@@ -17,7 +17,7 @@
         ];
     @endphp
     <div class="content-wrapper" id="timetable-page"
-        data-url-class-sections="{{ url('get-class-sections-with-semesters') }}"
+        data-url-class-sections="{{ url('get-class-sections-with-terms') }}"
         data-url-subjects="{{ url('get-subject-by-class-section') }}"
         data-url-teachers="{{ url('getteacherbysubject') }}" data-url-check="{{ url('checkTimetable') }}">
         <div class="page-header">

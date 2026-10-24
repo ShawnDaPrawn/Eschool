@@ -37,7 +37,7 @@ class AnnouncementController extends Controller
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'nullable|numeric',
             'subject_id' => 'nullable|numeric',
-            'semester_id' => 'nullable|numeric',
+            'term_id' => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +52,7 @@ class AnnouncementController extends Controller
 
             if ($request->filled('class_section_id')) {
                 $subjectTeacherQuery->where('class_section_id', $request->class_section_id);
-                $this->applySemesterFilter($subjectTeacherQuery, $request->class_section_id, $sessionYearId, $request->semester_id);
+                $this->applyTermFilter($subjectTeacherQuery, $request->class_section_id, $sessionYearId, $request->term_id);
             }
 
             if ($request->filled('subject_id')) {
@@ -80,7 +80,7 @@ class AnnouncementController extends Controller
         $validator = Validator::make($request->all(), [
             'class_section_id' => 'required|numeric|exists:class_sections,id',
             'subject_id' => 'required|numeric|exists:subjects,id',
-            'semester_id' => 'nullable|numeric|exists:semesters,id',
+            'term_id' => 'nullable|numeric|exists:terms,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'file' => 'nullable',
@@ -98,17 +98,17 @@ class AnnouncementController extends Controller
             $session_year_id = getSettings('session_year')['session_year'];
             $teacher_id = Auth::user()->teacher->id;
 
-            // Semester (conditional)
+            // Term (conditional)
             $classId = ClassSection::where('id', $request->class_section_id)->value('class_id');
-            $isClassHaveSemester = ClassSessionConfig::classHasSemester($classId, $session_year_id);
-            $semesterId = $isClassHaveSemester ? $request->semester_id : null;
+            $isClassHaveTerm = ClassSessionConfig::classHasTerm($classId, $session_year_id);
+            $termId = $isClassHaveTerm ? $request->term_id : null;
 
-            // Verify teacher is assigned (semester-aware)
+            // Verify teacher is assigned (term-aware)
             $subject_teacher = SubjectTeacher::where('teacher_id', $teacher_id)
                 ->where('class_section_id', $request->class_section_id)
                 ->where('subject_id', $request->subject_id)
-                ->when($isClassHaveSemester && $semesterId, fn ($q) => $q->where(
-                    fn ($q) => $q->where('semester_id', $semesterId)->orWhereNull('semester_id')
+                ->when($isClassHaveTerm && $termId, fn ($q) => $q->where(
+                    fn ($q) => $q->where('term_id', $termId)->orWhereNull('term_id')
                 ))
                 ->with('subject')
                 ->first();
@@ -121,7 +121,7 @@ class AnnouncementController extends Controller
             $announcement->title = trim($request->title);
             $announcement->description = trim($request->description);
             $announcement->session_year_id = $session_year_id;
-            $announcement->semester_id = $semesterId;
+            $announcement->term_id = $termId;
             $announcement->table()->associate($subject_teacher);
 
             // Get students in the class section

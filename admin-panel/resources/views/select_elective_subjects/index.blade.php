@@ -32,10 +32,10 @@
                                 </select>
                             </div>
 
-                            <div class="form-group col-12 col-md-2 mb-2 mb-md-0" id="semester_filter_container"
+                            <div class="form-group col-12 col-md-2 mb-2 mb-md-0" id="term_filter_container"
                                 style="display: none;">
-                                <label for="filter_semester" class="filter-menu">{{ __('semester') }}</label>
-                                <select name="filter_semester" id="filter_semester" class="form-control">
+                                <label for="filter_term" class="filter-menu">{{ __('term') }}</label>
+                                <select name="filter_term" id="filter_term" class="form-control">
                                 </select>
                             </div>
 
@@ -178,48 +178,48 @@
 @section('script')
     <script>
         $(document).ready(function() {
-            var semesterClassIds = [];
+            var termClassIds = [];
 
-            function checkSemesterVisibility() {
+            function checkTermVisibility() {
                 let class_id = parseInt($('#filter_class_section_id').val());
-                if (semesterClassIds.includes(class_id)) {
-                    $('#semester_filter_container').show();
-                    $('#filter_semester').prop('selectedIndex', 0);
+                if (termClassIds.includes(class_id)) {
+                    $('#term_filter_container').show();
+                    $('#filter_term').prop('selectedIndex', 0);
                 } else {
-                    $('#semester_filter_container').hide();
-                    $('#filter_semester').val('');
+                    $('#term_filter_container').hide();
+                    $('#filter_term').val('');
                 }
             }
 
-            function loadSemesters() {
+            function loadTerms() {
                 let session_year_id = $('#filter_session_year_global').val();
                 if (!session_year_id) return;
 
-                // Fetch semester-enabled classes for this session year
-                let configUrl = baseUrl + '/semester/class-config';
+                // Fetch term-enabled classes for this session year
+                let configUrl = baseUrl + '/term/classes';
                 ajaxRequest('GET', configUrl, {
                     session_year_id: session_year_id
                 }, null, function(response) {
-                    semesterClassIds = (response.data || []).map(function(c) {
+                    termClassIds = (response.data || []).map(function(c) {
                         return c.id;
                     });
-                    checkSemesterVisibility();
+                    checkTermVisibility();
                 }, null, null, true);
 
-                // Fetch semesters for this session year
-                let url = baseUrl + '/session-year/' + session_year_id + '/semesters';
+                // Fetch terms for this session year
+                let url = baseUrl + '/session-year/' + session_year_id + '/terms';
                 ajaxRequest('GET', url, null, null, function(response) {
                     let html = '';
-                    let semesters = response.data || [];
-                    if (semesters.length > 0) {
-                        $.each(semesters, function(key, value) {
+                    let terms = response.data || [];
+                    if (terms.length > 0) {
+                        $.each(terms, function(key, value) {
                             html += '<option value="' + value.id + '">' + value.name + '</option>';
                         });
                     } else {
                         html = '<option value="">' + trans('no_data_found') + '</option>';
                     }
-                    $('#filter_semester').html(html);
-                    $('#filter_semester').prop('selectedIndex', 0);
+                    $('#filter_term').html(html);
+                    $('#filter_term').prop('selectedIndex', 0);
                     loadElectiveSubjects();
                 }, null, null, true);
             }
@@ -227,15 +227,15 @@
             function loadElectiveSubjects() {
                 let class_id = $('#filter_class_section_id').val();
                 let session_year_id = $('#filter_session_year_global').val();
-                let semester_id = $('#filter_semester').val();
+                let term_id = $('#filter_term').val();
                 if (!class_id || !session_year_id) return;
                 let url = baseUrl + '/get-elective-subjects-by-class';
                 let data = {
                     class_id: class_id,
                     session_year_id: session_year_id
                 };
-                if (semester_id) {
-                    data.semester_id = semester_id;
+                if (term_id) {
+                    data.term_id = term_id;
                 }
 
                 function successCallback(response) {
@@ -256,14 +256,14 @@
             }
 
             $('#filter_class_section_id').on('change', function() {
-                checkSemesterVisibility();
+                checkTermVisibility();
                 loadElectiveSubjects();
             });
-            $('#filter_session_year_global').on('change', loadSemesters);
-            $('#filter_semester').on('change', loadElectiveSubjects);
+            $('#filter_session_year_global').on('change', loadTerms);
+            $('#filter_term').on('change', loadElectiveSubjects);
 
             // Trigger initial load
-            loadSemesters();
+            loadTerms();
 
             //todo: a permenant fix is pending
             setTimeout(() => {

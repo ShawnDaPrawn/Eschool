@@ -5,18 +5,18 @@ import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/resultTabSelectionCubit.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
 import 'package:eschool/cubits/resultsOnlineCubit.dart';
-import 'package:eschool/cubits/semestersCubit.dart';
+import 'package:eschool/cubits/termsCubit.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/data/models/resultOnline.dart';
-import 'package:eschool/data/models/semester.dart';
+import 'package:eschool/data/models/term.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool/ui/widgets/assignmentsSubjectsContainer.dart';
 import 'package:eschool/ui/widgets/customTabBarContainer.dart';
 import 'package:eschool/ui/widgets/listItemForExamAndResult.dart';
 import 'package:eschool/ui/widgets/listItemForOnlineExamAndOnlineResult.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
-import 'package:eschool/ui/widgets/semesterFilterBottomsheetContainer.dart';
+import 'package:eschool/ui/widgets/termFilterBottomsheetContainer.dart';
 import 'package:eschool/ui/widgets/tabBarBackgroundContainer.dart';
 import 'package:eschool/utils/assets.dart';
 import 'package:eschool/utils/labelKeys.dart';
@@ -34,23 +34,19 @@ class ResultsContainer extends StatefulWidget {
 }
 
 class _ResultsContainerState extends State<ResultsContainer> {
-  late ValueNotifier<Semester?> selectedSemesterNotifier =
-      ValueNotifier<Semester?>(
-        context
-            .read<AppConfigurationCubit>()
-            .getAppConfiguration()
-            .currentSemester,
-      );
+  late ValueNotifier<Term?> selectedTermNotifier = ValueNotifier<Term?>(
+    context.read<AppConfigurationCubit>().getAppConfiguration().currentTerm,
+  );
 
-  bool get doesChildHaveSemesterInClass {
+  bool get doesChildHaveTermInClass {
     if (widget.childId == null) {
-      return context.read<AuthCubit>().getStudentDetails().isClassSemesterOn;
+      return context.read<AuthCubit>().getStudentDetails().isClassTermOn;
     } else {
       return context
           .read<AuthCubit>()
           .getParentDetails()
           .getChild(widget.childId!)
-          .isClassSemesterOn;
+          .isClassTermOn;
     }
   }
 
@@ -61,11 +57,11 @@ class _ResultsContainerState extends State<ResultsContainer> {
   @override
   void initState() {
     Future.delayed(Duration.zero, () {
-      context.read<SemestersCubit>().fetchSemesters();
+      context.read<TermsCubit>().fetchTerms();
       fetchResults();
       fetchOnlineResults();
     });
-    selectedSemesterNotifier.addListener(() {
+    selectedTermNotifier.addListener(() {
       fetchResults();
     });
     super.initState();
@@ -75,7 +71,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
     context.read<ResultsCubit>().fetchResults(
       useParentApi: context.read<AuthCubit>().isParent(),
       childId: widget.childId,
-      semesterId: selectedSemesterNotifier.value?.id,
+      termId: selectedTermNotifier.value?.id,
     );
   }
 
@@ -106,7 +102,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
           context.read<ResultsCubit>().fetchMoreResults(
             useParentApi: context.read<AuthCubit>().isParent(),
             childId: widget.childId,
-            semesterId: selectedSemesterNotifier.value?.id,
+            termId: selectedTermNotifier.value?.id,
           );
           //to scroll to last in order for users to see the progress
           Future.delayed(const Duration(milliseconds: 10), () {
@@ -138,8 +134,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
                   ? const CustomBackButton()
                   : const SizedBox.shrink(),
               currentState.resultFilterTabTitle == offlineKey &&
-                      doesChildHaveSemesterInClass &&
-                      selectedSemesterNotifier.value != null
+                      doesChildHaveTermInClass
                   ? Align(
                       alignment: AlignmentDirectional.topEnd,
                       child: Padding(
@@ -148,7 +143,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
                         ),
                         child: SvgButton(
                           onTap: () async {
-                            final Semester? newSelection =
+                            final Term? newSelection =
                                 await showModalBottomSheet(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.only(
@@ -162,15 +157,14 @@ class _ResultsContainerState extends State<ResultsContainer> {
                                   ),
                                   context: context,
                                   builder: (_) => BlocProvider.value(
-                                    value: context.read<SemestersCubit>(),
-                                    child: SemesterFilterBottomsheetContainer(
-                                      selectedSemester:
-                                          selectedSemesterNotifier.value!,
+                                    value: context.read<TermsCubit>(),
+                                    child: TermFilterBottomsheetContainer(
+                                      selectedTerm: selectedTermNotifier.value,
                                     ),
                                   ),
                                 );
                             if (newSelection != null) {
-                              selectedSemesterNotifier.value = newSelection;
+                              selectedTermNotifier.value = newSelection;
                             }
                           },
                           svgIconUrl: Assets.filterIcon,
@@ -296,7 +290,7 @@ class _ResultsContainerState extends State<ResultsContainer> {
                 context.read<ResultsCubit>().fetchMoreResults(
                   useParentApi: context.read<AuthCubit>().isParent(),
                   childId: widget.childId,
-                  semesterId: selectedSemesterNotifier.value?.id,
+                  termId: selectedTermNotifier.value?.id,
                 );
               },
             ),

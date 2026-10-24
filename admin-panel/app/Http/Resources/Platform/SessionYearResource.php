@@ -10,7 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
 
 /**
- * A school year with its terms (the semesters table; openapi.yaml,
+ * A school year with its terms (the terms table; openapi.yaml,
  * SessionYear).
  *
  * @property SessionYear $resource
@@ -27,7 +27,7 @@ class SessionYearResource extends JsonResource
             'name' => (string) $this->resource->name,
             'start_date' => self::date($this->resource->start_date),
             'end_date' => self::date($this->resource->end_date),
-            'terms' => TermResource::collection($this->resource->semesters),
+            'terms' => TermResource::collection($this->resource->terms),
         ];
     }
 

@@ -22,7 +22,7 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
-        'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
+        'term_templates', 'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',
         'contact_us', 'educational_programs', 'elective_subject_groups', 'email_tempalates', 'events',
@@ -33,7 +33,7 @@ final class SchoolOwnedTables
         'lessons', 'media_files', 'medias', 'mediums', 'multiple_events',
         'notifications', 'online_exam_question_answers', 'online_exam_question_choices', 'online_exam_question_options', 'online_exam_questions',
         'online_exam_student_answers', 'online_exams', 'paid_installment_fees', 'parents', 'payment_transactions',
-        'read_messages', 'sections', 'semesters', 'session_years', 'shifts',
+        'read_messages', 'sections', 'terms', 'session_years', 'shifts',
         'sliders', 'staff_attendances', 'staffs', 'streams', 'student_online_exam_statuses',
         'student_sessions', 'student_subjects', 'students', 'subject_teachers', 'subjects',
         'teachers', 'timetables', 'user_notifications', 'web_settings',

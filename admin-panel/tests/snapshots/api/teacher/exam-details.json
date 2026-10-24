@@ -15,8 +15,8 @@
                 "id": "number",
                 "name": "string",
                 "publish": "number",
-                "semester_id": "null",
                 "session_year_id": "number",
+                "term_id": "null",
                 "timetable": [
                     {
                         "class_id": "number",
@@ -36,7 +36,7 @@
                             "image": "string",
                             "medium_id": "number",
                             "name": "string",
-                            "semester": "null",
+                            "term": "null",
                             "type": "string"
                         },
                         "subject_id": "number",

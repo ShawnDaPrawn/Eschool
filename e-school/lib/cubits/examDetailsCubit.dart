@@ -27,7 +27,7 @@ class ExamDetailsCubit extends Cubit<ExamDetailsState> {
     required bool useParentApi,
     required int examStatus,
     int? childId,
-    String? semesterId,
+    String? termId,
   }) {
     emit(ExamDetailsFetchInProgress());
     _studentRepository
@@ -35,7 +35,7 @@ class ExamDetailsCubit extends Cubit<ExamDetailsState> {
           childId: childId ?? 0,
           examStatus: examStatus,
           useParentApi: useParentApi,
-          semesterId: semesterId,
+          termId: termId,
         )
         .then((value) => emit(ExamDetailsFetchSuccess(examList: value)))
         .catchError((e) => emit(ExamDetailsFetchFailure(e.toString())));

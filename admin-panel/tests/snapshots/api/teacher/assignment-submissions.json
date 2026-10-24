@@ -18,13 +18,13 @@
                     "name": "string",
                     "points": "number",
                     "resubmission": "number",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "subject": {
                         "id": "number",
                         "name": "string"
                     },
-                    "subject_id": "number"
+                    "subject_id": "number",
+                    "term_id": "null"
                 },
                 "assignment_id": "number",
                 "created_at": "string",

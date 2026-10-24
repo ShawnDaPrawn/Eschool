@@ -1,9 +1,9 @@
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 
-class SemesterBreakContainer extends StatelessWidget {
-  final SemesterBreak semesterBreak;
-  const SemesterBreakContainer({super.key, required this.semesterBreak});
+class TermBreakContainer extends StatelessWidget {
+  final TermBreak termBreak;
+  const TermBreakContainer({super.key, required this.termBreak});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class SemesterBreakContainer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            SharedUiUtils.getTranslatedLabel(context, semesterBreakKey),
+            SharedUiUtils.getTranslatedLabel(context, termBreakKey),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -46,7 +46,7 @@ class SemesterBreakContainer extends StatelessWidget {
                 ),
                 TextSpan(
                   text:
-                      "${SharedUiUtils.formatDate(semesterBreak.startDate)} ${SharedUiUtils.getTranslatedLabel(context, toKey)} ${SharedUiUtils.formatDate(semesterBreak.endDate)}",
+                      "${SharedUiUtils.formatDate(termBreak.startDate)} ${SharedUiUtils.getTranslatedLabel(context, toKey)} ${SharedUiUtils.formatDate(termBreak.endDate)}",
                 ),
               ],
             ),

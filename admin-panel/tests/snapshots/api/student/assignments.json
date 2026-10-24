@@ -32,7 +32,6 @@
                     "name": "string",
                     "points": "number",
                     "resubmission": "number",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "subject": {
                         "bg_color": "string",
@@ -69,7 +68,8 @@
                         "student_id": "number",
                         "text_submission": "string",
                         "updated_at": "string"
-                    }
+                    },
+                    "term_id": "null"
                 }
             ],
             "first_page_url": "string",

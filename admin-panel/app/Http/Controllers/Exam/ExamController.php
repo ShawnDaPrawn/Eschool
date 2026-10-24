@@ -14,9 +14,9 @@ use App\Models\ExamClass;
 use App\Models\ExamMarks;
 use App\Models\ExamResult;
 use App\Models\ExamTimetable;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Subject;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,7 +73,7 @@ class ExamController extends Controller
             'name' => 'required',
             'session_year_id' => 'required|exists:session_years,id',
             'description' => 'nullable',
-            'semester_id' => 'nullable|exists:semesters,id',
+            'term_id' => 'nullable|exists:terms,id',
         ], [
             'class_id.required' => 'Please select at least one class.',
             'class_id.array' => 'Class selection must be an array.',
@@ -92,7 +92,7 @@ class ExamController extends Controller
             $exam->name = trim($request->name);
             $exam->description = trim($request->description ?? '');
             $exam->session_year_id = $request->session_year_id;
-            $exam->semester_id = $request->semester_id ?: null;
+            $exam->term_id = $request->term_id ?: null;
             $exam->save();
 
             if ($request->class_id && is_array($request->class_id)) {
@@ -329,7 +329,7 @@ class ExamController extends Controller
             $exam = Exam::with('exam_classes')->find($id);
             $exam->name = $request->name;
             $exam->description = $request->description;
-            $exam->semester_id = $request->semester_id ?: null;
+            $exam->term_id = $request->term_id ?: null;
             $exam->save();
 
             $all_exam_classes_id = ExamClass::whereIn('class_id', $request->class_id)
@@ -494,8 +494,8 @@ class ExamController extends Controller
 
             $teacher_id = Auth::user()->teacher->id;
 
-            // Check whether this class has semester configuration
-            $hasSemester = ClassSessionConfig::classHasSemester(
+            // Check whether this class has term configuration
+            $hasTerm = ClassSessionConfig::classHasTerm(
                 $class_id,
                 $session_year_id
             );
@@ -505,10 +505,10 @@ class ExamController extends Controller
                 ->where('session_year_id', $session_year_id)
                 ->where('class_section_id', $class_section_id);
 
-            // Teacher semester access for this section
-            $teacherSemesterIds = $classTeacherQuery
-                ->whereNotNull('semester_id')
-                ->pluck('semester_id')
+            // Teacher term access for this section
+            $teacherTermIds = $classTeacherQuery
+                ->whereNotNull('term_id')
+                ->pluck('term_id')
                 ->unique()
                 ->toArray();
 
@@ -525,9 +525,9 @@ class ExamController extends Controller
                 ->where('publish', $isPublish)
                 ->where('session_year_id', $session_year_id)
 
-                // Semester-based filtering
-                ->when($hasSemester, function ($query) use ($teacherSemesterIds) {
-                    $query->whereIn('semester_id', $teacherSemesterIds);
+                // Term-based filtering
+                ->when($hasTerm, function ($query) use ($teacherTermIds) {
+                    $query->whereIn('term_id', $teacherTermIds);
                 })
                 ->get();
 
@@ -588,7 +588,7 @@ class ExamController extends Controller
     public function getClassOptionsForSession(Request $request)
     {
         $sessionYearId = $request->session_year_id;
-        $allowedSemesterMap = [];
+        $allowedTermMap = [];
 
         if (Auth::user()->hasRole('Super Admin')) {
             $classes = ClassSection::with([
@@ -598,22 +598,22 @@ class ExamController extends Controller
                 'class.streams',
                 'streams',
                 'class.allSubjects' => fn ($q) => $q
-                    ->select('id', 'class_id', 'semester_id', 'session_year_id')
-                    ->whereNotNull('semester_id')
+                    ->select('id', 'class_id', 'term_id', 'session_year_id')
+                    ->whereNotNull('term_id')
                     ->where('session_year_id', $sessionYearId),
-                'class.allSubjects.semester:id,name',
+                'class.allSubjects.term:id,name',
             ])->get();
 
-            $allowedSemesterMap = $classes->mapWithKeys(fn ($cs) => [
+            $allowedTermMap = $classes->mapWithKeys(fn ($cs) => [
                 $cs->id => $cs->class->allSubjects
-                    ->pluck('semester')->filter()->unique('id')
+                    ->pluck('term')->filter()->unique('id')
                     ->map(fn ($s) => ['id' => $s->id, 'name' => $s->name])
                     ->values()->toArray(),
             ])->filter()->toArray();
         } else {
             $teacher_id = Auth::user()->teacher->id;
 
-            $classTeacherRecords = ClassTeacher::with('semester:id,name')
+            $classTeacherRecords = ClassTeacher::with('term:id,name')
                 ->where('class_teacher_id', $teacher_id)
                 ->where('session_year_id', $sessionYearId)
                 ->get();
@@ -622,12 +622,12 @@ class ExamController extends Controller
                 ->whereIn('id', $classTeacherRecords->pluck('class_section_id')->unique())
                 ->get();
 
-            $allowedSemesterMap = $classTeacherRecords
-                ->filter(fn ($r) => ! is_null($r->semester_id) && $r->semester)
+            $allowedTermMap = $classTeacherRecords
+                ->filter(fn ($r) => ! is_null($r->term_id) && $r->term)
                 ->groupBy('class_section_id')
                 ->map(
                     fn ($group) => $group
-                        ->map(fn ($r) => ['id' => $r->semester_id, 'name' => $r->semester->name])
+                        ->map(fn ($r) => ['id' => $r->term_id, 'name' => $r->term->name])
                         ->unique('id')->values()->toArray()
                 )->toArray();
         }
@@ -644,7 +644,7 @@ class ExamController extends Controller
 
         return response()->json([
             'classes' => $classOptions,
-            'allowedSemesterMap' => $allowedSemesterMap,
+            'allowedTermMap' => $allowedTermMap,
         ]);
     }
 

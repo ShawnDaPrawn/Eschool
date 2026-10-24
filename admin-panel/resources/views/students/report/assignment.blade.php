@@ -15,8 +15,8 @@
         $fileRecord = $submission->file->first();
         $fileUrl = $fileRecord && !empty($fileRecord->file_url) ? $fileRecord->file_url : '';
 
-        $semesterId = $submission->assignment?->semester_id ? (int) $submission->assignment->semester_id : null;
-        $semesterName = $submission->assignment?->semester?->name;
+        $termId = $submission->assignment?->term_id ? (int) $submission->assignment->term_id : null;
+        $termName = $submission->assignment?->term?->name;
 
         return [
             'id' => (int) $submission->id,
@@ -26,8 +26,8 @@
                 $submission->assignment?->class_section?->subject_teachers->first()?->teacher?->user?->full_name ??
                 'N/A',
             'sessionYearId' => (int) ($submission->session_year_id ?? 0),
-            'semesterId' => $semesterId,
-            'semesterLabel' => $semesterName ?? 'No Semester',
+            'termId' => $termId,
+            'termLabel' => $termName ?? 'No Term',
             'dueDate' => $submission->assignment?->due_date
                 ? date('Y-m-d H:i', strtotime($submission->assignment->due_date))
                 : '',
@@ -53,17 +53,17 @@
             </div>
             <div class="col-md-6 d-flex flex-wrap justify-content-md-end mt-3 mt-md-0" style="gap: 10px;">
 
-                {{-- Semester Filter --}}
+                {{-- Term Filter --}}
                 <div class="mb-2">
                     <label class="d-block font-weight-bold text-muted text-uppercase mb-1"
-                        style="font-size: 10px; letter-spacing: 0.5px;">{{ __('semester') }}</label>
+                        style="font-size: 10px; letter-spacing: 0.5px;">{{ __('term') }}</label>
 
-                    <select id="semester-filter" onchange="applyFilters()" class="form-control form-control-sm"
+                    <select id="term-filter" onchange="applyFilters()" class="form-control form-control-sm"
                         style="min-width: 150px;">
-                        <option value="all">{{ __('all_semesters') }}</option>
-                        @foreach ($semesters as $semester)
-                            <option value="{{ $semester->id }}">
-                                {{ $semester->name }}
+                        <option value="all">{{ __('all_terms') }}</option>
+                        @foreach ($terms as $term)
+                            <option value="{{ $term->id }}">
+                                {{ $term->name }}
                             </option>
                         @endforeach
                     </select>
@@ -297,7 +297,7 @@
         // Force both dropdowns to "all" on every fresh tab load.
         // This prevents any stale URL value or browser state from
         // silently filtering the data when no filter was intentionally applied.
-        document.getElementById('semester-filter').value = 'all';
+        document.getElementById('term-filter').value = 'all';
         document.getElementById('status-filter').value = 'all';
 
         applyFilters();
@@ -310,14 +310,14 @@
         }
 
         function applyFilters() {
-            const selectedSem = document.getElementById('semester-filter').value;
+            const selectedSem = document.getElementById('term-filter').value;
             const selectedStatus = document.getElementById('status-filter').value;
 
             const filtered = assignmentSubmissions.filter(item => {
 
                 const matchSem =
                     selectedSem === 'all' ||
-                    (item.semesterId !== null && String(item.semesterId) === String(selectedSem));
+                    (item.termId !== null && String(item.termId) === String(selectedSem));
 
                 const isLate = checkIsLate(item);
                 let matchStatus = false;
@@ -496,7 +496,7 @@
                                style="font-size:13px;cursor:pointer;color:var(--md-sys-color-primary);"
                                onclick="openReviewModal(${parseInt(item.id, 10)})">${esc(item.assignmentName)}</p>
                             <div class="small text-muted">
-                               {{ __('semester') }}: <span class="font-weight-bold">${esc(item.semesterLabel)}</span>
+                               {{ __('term') }}: <span class="font-weight-bold">${esc(item.termLabel)}</span>
                             </div>
                             ${attachmentHTML}
                         </td>

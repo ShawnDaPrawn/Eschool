@@ -222,7 +222,7 @@ Returns the same parent profile as `login`, without a token. No parameters. In e
 | `class_section_name` | `"{class} {section}"`, plus `" {stream}"` when the class has a stream |
 | `medium_name` | The class's medium |
 | `shift_id`, `shift` | The class's shift (`shifts` row or `null`) |
-| `is_semester_on_in_class` | `ClassSchool::getIncludeSemestersForSession()` for the current session year |
+| `is_term_on_in_class` | `ClassSchool::getIncludeTermsForSession()` for the current session year |
 | `category_name` | The student category's name |
 | `dynamic_fields` | The child's custom fields as an object, or `null` |
 | `is_fee_payment_due` | `1` or `0`, worked out as below |
@@ -249,14 +249,14 @@ The child's subjects for the current session year.
 
 Response `data` is `Students::subjects()`:
 
-- `core_subject`: the class's `class_subjects` rows of type `Compulsory` for the current session year (and the current semester when the class uses semesters), each with `subject` and `semester`.
-- `elective_subject`: the child's `student_subjects` rows (`subject_id`, `semester_id`, `subject`), or `[]` when the class has no elective groups.
+- `core_subject`: the class's `class_subjects` rows of type `Compulsory` for the current session year (and the current term when the class uses terms), each with `subject` and `term`.
+- `elective_subject`: the child's `student_subjects` rows (`subject_id`, `term_id`, `subject`), or `[]` when the class has no elective groups.
 
 The class section comes from the child's current `student_sessions` row.
 
 ### GET `class-subjects`
 
-All subjects offered to the child's class, rather than the ones the child takes. `child_id` (numeric) is required. `data` is `Students::classSubjects()`: `core_subject` (compulsory `class_subjects`) and `elective_subject_group` (`elective_subject_groups` with `electiveSubjects.subject`), both filtered by session year and current semester. This method reads the class from `students.class_section_id`, not from `student_sessions`. The e-school app does not call this route; it only uses `student/class-subjects`.
+All subjects offered to the child's class, rather than the ones the child takes. `child_id` (numeric) is required. `data` is `Students::classSubjects()`: `core_subject` (compulsory `class_subjects`) and `elective_subject_group` (`elective_subject_groups` with `electiveSubjects.subject`), both filtered by session year and current term. This method reads the class from `students.class_section_id`, not from `student_sessions`. The e-school app does not call this route; it only uses `student/class-subjects`.
 
 ### GET `lessons`
 
@@ -266,7 +266,7 @@ All subjects offered to the child's class, rather than the ones the child takes.
 | `subject_id` | any | yes | Lessons of this subject in the child's class section |
 | `lesson_id` | numeric | no | Return only this lesson |
 
-Response: `lessons` rows for the child's current class section and `subject_id`, each with `topic` and `file`. When the class uses semesters and there is a current semester, only lessons of that semester are returned. `subject_id` is not checked against the child's own subjects.
+Response: `lessons` rows for the child's current class section and `subject_id`, each with `topic` and `file`. When the class uses terms and there is a current term, only lessons of that term are returned. `subject_id` is not checked against the child's own subjects.
 
 ### GET `lesson-topics`
 
@@ -276,13 +276,13 @@ Response: `lessons` rows for the child's current class section and `subject_id`,
 | `lesson_id` | numeric | yes |
 | `topic_id` | numeric | no |
 
-Response: `lesson_topics` of the lesson, each with `file` and `lesson`. A topic is only returned when its lesson belongs to the child's current class section, and, for semester classes, to the current semester or no semester. The class-section restriction was added in c890813; before that any lesson's topics could be read.
+Response: `lesson_topics` of the lesson, each with `file` and `lesson`. A topic is only returned when its lesson belongs to the child's current class section, and, for term classes, to the current term or no term. The class-section restriction was added in c890813; before that any lesson's topics could be read.
 
 ## Timetable
 
 ### GET `timetable`
 
-`child_id` (numeric) is required. Returns the child's class-section timetable for the current session year (and the current semester when the class uses semesters), ordered by `day` and `start_time`. Only slots whose subject is one of the child's subjects are kept. `data` is a `TimetableCollection`, with one object per slot:
+`child_id` (numeric) is required. Returns the child's class-section timetable for the current session year (and the current term when the class uses terms), ordered by `day` and `start_time`. Only slots whose subject is one of the child's subjects are kept. `data` is a `TimetableCollection`, with one object per slot:
 
 | Field | Notes |
 |---|---|
@@ -291,7 +291,7 @@ Response: `lesson_topics` of the lesson, each with `file` and `lesson`. A topic 
 | `subject` | The `subjects` row |
 | `teacher_first_name`, `teacher_last_name` | The subject teacher |
 
-If the class uses semesters and no semester is current, this endpoint fails with 103.
+If the class uses terms and no term is current, this endpoint fails with 103.
 
 ## Assignments
 
@@ -306,7 +306,7 @@ If the class uses semesters and no semester is current, this endpoint fails with
 | `session_year_id` | integer | no | Defaults to the current session year |
 | `page` | integer | no | Laravel paginator page |
 
-Response: a Laravel paginator (15 per page, newest first) of `assignments` for the child's class section in that session year, limited to the child's subjects and, for semester classes, the session year's current semester. Each item has `file`, `subject`, and `submission`, which is the child's own `assignment_submissions` row (with `file`) or `null`.
+Response: a Laravel paginator (15 per page, newest first) of `assignments` for the child's class section in that session year, limited to the child's subjects and, for term classes, the session year's current term. Each item has `file`, `subject`, and `submission`, which is the child's own `assignment_submissions` row (with `file`) or `null`.
 
 ### GET `assignment-report`
 
@@ -368,11 +368,11 @@ Offline (written) exams for the child's class.
 | `child_id` | — | yes | Validated as `required\|nullable` |
 | `status` | — | no | `0` all, `1` upcoming, `2` ongoing, `3` completed. The rule string `nullable:digits:0,1,2,3` is malformed, so values are not actually validated. Any value other than 0–2 behaves as "completed". |
 | `get_timetable` | — | no | `1` adds `exam_timetable` to each exam |
-| `semester_id` | numeric, exists in `semesters` | no | Defaults to the current semester of the session year |
+| `term_id` | numeric, exists in `terms` | no | Defaults to the current term of the session year |
 
 Response `data`: `[{id, name, description, publish, session_year, exam_starting_date, exam_ending_date, exam_status, exam_timetable?}]`. Each `exam_timetable` row also has `starting_time` and `ending_time`, copies of `start_time` and `end_time` (appended by the `ExamTimetable` model; the app reads these names).
 
-- Exams are the `exam_classes` rows for the child's current class that have at least one timetable row for one of the child's subjects. For semester classes they are also limited to the semester.
+- Exams are the `exam_classes` rows for the child's current class that have at least one timetable row for one of the child's subjects. For term classes they are also limited to the term.
 - `exam_status` is a string: `"0"` upcoming, `"1"` ongoing, `"2"` completed. It is computed from the earliest and latest timetable dates for the class. Note that these values are numbered differently from the `status` filter.
 - `exam_timetable` holds every timetable row of the exam, with `subject`, across all classes. Use `get-exam-details` for the child's own timetable.
 - Unpublished exams are included; the `publish` flag is returned for the app to check.
@@ -384,7 +384,7 @@ Response `data`: `[{id, name, description, publish, session_year, exam_starting_
 | `child_id` | — | yes |
 | `exam_id` | — | yes |
 
-Response `data`: the exam's `exam_timetables` rows for the child's class and subjects, with `subject`, ordered by `date`, or `[]`. Each row has `start_time` and `end_time` plus the copies `starting_time` and `ending_time` that the app reads. For semester classes the exam must belong to the current semester.
+Response `data`: the exam's `exam_timetables` rows for the child's class and subjects, with `subject`, ordered by `date`, or `[]`. Each row has `start_time` and `end_time` plus the copies `starting_time` and `ending_time` that the app reads. For term classes the exam must belong to the current term.
 
 ### GET `exam-marks`
 
@@ -394,13 +394,13 @@ The child's offline exam results. These come from `exam_results` rows, which `Ex
 |---|---|---|---|
 | `child_id` | numeric, exists in `students` | yes | |
 | `session_year_id` | integer | no | Defaults to the current session year |
-| `semester_id` | numeric, exists in `semesters` | no | Must belong to the session year (validation error otherwise). Only used when the class uses semesters. |
+| `term_id` | numeric, exists in `terms` | no | Must belong to the session year (validation error otherwise). Only used when the class uses terms. |
 
-Semester filtering for semester classes:
+Term filtering for term classes:
 
-- With `semester_id`, only that semester.
-- Without `semester_id` and without `session_year_id`, the current semester. A validation error is returned if there is none.
-- With `session_year_id` but no `semester_id`, all semesters of that year.
+- With `term_id`, only that term.
+- Without `term_id` and without `session_year_id`, the current term. A validation error is returned if there is none.
+- With `session_year_id` but no `term_id`, all terms of that year.
 
 Response `data`: an array of `{result, exam_marks}`, one per result:
 
@@ -429,7 +429,7 @@ Parents can only see online exams and their results. Taking an exam (`get-online
 | `child_id` | numeric | yes |
 | `subject_id` | numeric | no |
 
-Lists online exams the child has not attempted yet, whose `end_date` has not passed, for the current session year (and current semester for semester classes). The exams are those set for the child's class section (`model_type` `App\Models\ClassSection`) or the whole class (`App\Models\ClassSchool`). Without `subject_id`, only exams in the child's subjects are listed.
+Lists online exams the child has not attempted yet, whose `end_date` has not passed, for the current session year (and current term for term classes). The exams are those set for the child's class section (`model_type` `App\Models\ClassSection`) or the whole class (`App\Models\ClassSchool`). Without `subject_id`, only exams in the child's subjects are listed.
 
 `data` is `{current_page, data, from, last_page, per_page, to, total}`, 15 per page, ordered by `start_date`. Each item is `{exam_id, class: {id, name}, subject: {id, name}, title, duration, start_date, end_date, total_marks}`. The `exam_key` is deliberately not sent; the teacher gives it to students when the exam starts.
 
@@ -640,7 +640,7 @@ Response: a paginator (15 per page, newest first) of `announcements` for the cur
 |---|---|
 | `noticeboard` | School-wide announcements (`table_type` = `''`), plus those for the classes (`App\Models\ClassSchool`) and class sections (`App\Models\ClassSection`) of all the parent's children, from their `student_sessions` rows in the current session year |
 | `class` | Announcements for the child's class (`table_type` `App\Models\ClassSchool`, `table_id` = class id from `students.class_section_id`) |
-| `subject` | Announcements on the `subject_teachers` rows for `subject_id` in the child's current class section (`table_type` `App\Models\SubjectTeacher`). Limited to the current semester for semester classes. |
+| `subject` | Announcements on the `subject_teachers` rows for `subject_id` in the child's current class section (`table_type` `App\Models\SubjectTeacher`). Limited to the current term for term classes. |
 | omitted | What the child may see, as on the student API: school-wide, the child's class, the child's class section, and the `subject_teachers` rows of the child's subjects in that class section (`App\Models\SubjectTeacher`). Until c38b7da this returned every announcement of the session year. |
 
 The app sends `type=noticeboard` without `child_id` for the general notice board, and `type=subject` with `child_id` and `subject_id` for subject announcements. The admin side of announcements is described at https://shawndaprawn.github.io/Eschool/features/announcements/.
@@ -655,11 +655,11 @@ No parameters except `page`. Returns a paginator (15 per page, newest first) of 
 
 ### GET `teachers`
 
-`child_id` (numeric) is required. Lists the child's class teachers and subject teachers for the child's subjects, in the child's current class section and session year (current semester for semester classes). `data`: `[{id, user_id, first_name, last_name, qualification, email, image, mobile_no, subjects}]`, where `subjects` is a comma-separated string of the subjects the teacher takes in that class section. Teachers' `dob` is not returned, because a teacher's date of birth is their default password (removed in c890813).
+`child_id` (numeric) is required. Lists the child's class teachers and subject teachers for the child's subjects, in the child's current class section and session year (current term for term classes). `data`: `[{id, user_id, first_name, last_name, qualification, email, image, mobile_no, subjects}]`, where `subjects` is a comma-separated string of the subjects the teacher takes in that class section. Teachers' `dob` is not returned, because a teacher's date of birth is their default password (removed in c890813).
 
 ## Chat with teachers
 
-A parent may chat only with the teachers that `chatTeacherScope()` returns: the class teachers and subject teachers (for the children's subjects) of every child's current class section, semester-aware. Chat storage and limits are described in [Chat](Chat); the admin chat settings are at https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/.
+A parent may chat only with the teachers that `chatTeacherScope()` returns: the class teachers and subject teachers (for the children's subjects) of every child's current class section, term-aware. Chat storage and limits are described in [Chat](Chat); the admin chat settings are at https://shawndaprawn.github.io/Eschool/admin-panel/chat-settings/.
 
 ### GET `get-user-list`
 
@@ -769,7 +769,7 @@ Not in the `CheckChild` group; the app sends no `child_id`. The leave must belon
 
 ### GET `academic-calendar-pdf`
 
-`child_id` is required. `AcademicCalendarService::generate()` builds a PDF of the current session year's holidays, semester breaks, events and the child's class exams, grouped by month. It is returned base64-encoded in the top-level `pdf` key (`data` is `null`).
+`child_id` is required. `AcademicCalendarService::generate()` builds a PDF of the current session year's holidays, term breaks, events and the child's class exams, grouped by month. It is returned base64-encoded in the top-level `pdf` key (`data` is `null`).
 
 ### GET `id-card-pdf`
 
@@ -789,7 +789,7 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 | GET | `/api/get-events-list` | Events of the current session year |
 | GET | `/api/get-events-details` | An event's day schedule (`event_id`); POST is also accepted |
 | GET | `/api/sliders` | App sliders |
-| GET | `/api/current-session-year`, `/api/get-session-year`, `/api/get-semesters` | Session year and semester pickers used by the report endpoints |
+| GET | `/api/current-session-year`, `/api/get-session-year`, `/api/get-terms` | Session year and term pickers used by the report endpoints |
 | GET | `/api/get-gallery-albums`, `/api/get-gallery-images`, `/api/get-gallery-videos` | School gallery (`per_page`, `page`, `album_id`) |
 
 ## Known quirks

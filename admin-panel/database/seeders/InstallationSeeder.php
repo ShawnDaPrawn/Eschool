@@ -236,10 +236,10 @@ class InstallationSeeder extends Seeder
             ['id' => 170, 'name' => 'chat-settings'],
             ['id' => 172, 'name' => 'attendance-report'],
 
-            ['id' => 173, 'name' => 'semester-list'],
-            ['id' => 174, 'name' => 'semester-create'],
-            ['id' => 175, 'name' => 'semester-edit'],
-            ['id' => 176, 'name' => 'semester-delete'],
+            ['id' => 173, 'name' => 'term-list'],
+            ['id' => 174, 'name' => 'term-create'],
+            ['id' => 175, 'name' => 'term-edit'],
+            ['id' => 176, 'name' => 'term-delete'],
 
             ['id' => 177, 'name' => 'online-registration-list'],
             ['id' => 178, 'name' => 'student-leave-approve'],

@@ -12,11 +12,11 @@ use App\Models\Leave;
 use App\Models\LeaveMaster;
 use App\Models\Notification;
 use App\Models\Parents;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Staff;
 use App\Models\Students;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Services\Platform\Notifications\Notifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -145,11 +145,11 @@ class StudentLeaveController extends Controller
         $class_section_ids = collect();
         /*
         |--------------------------------------------------------------------------
-        | NEW: Map of class_section_id => [semester_start, semester_end]
-        | Used to apply per-class semester date boundaries correctly.
+        | NEW: Map of class_section_id => [term_start, term_end]
+        | Used to apply per-class term date boundaries correctly.
         |--------------------------------------------------------------------------
         */
-        $classSemesterMap = collect(); // keyed by class_section_id
+        $classTermMap = collect(); // keyed by class_section_id
 
         /*
         |--------------------------------------------------------------------------
@@ -173,34 +173,34 @@ class StudentLeaveController extends Controller
 
             /*
             |--------------------------------------------------------------------------
-            | Build per-class semester map (only for the accessible class sections)
+            | Build per-class term map (only for the accessible class sections)
             |--------------------------------------------------------------------------
             |
-            | Instead of a flat list of all semester date ranges, we now build a map:
+            | Instead of a flat list of all term date ranges, we now build a map:
             |   class_section_id => { start_date, end_date }
             |
             | This lets us filter each leave by whether the student's class section
-            | has a matching semester for that leave's from_date — not just any semester.
+            | has a matching term for that leave's from_date — not just any term.
             |
             */
             $classTeacherRecords = ClassTeacher::where('class_teacher_id', $teacher->id)
                 ->whereIn('class_section_id', $class_section_ids)
-                ->whereNotNull('semester_id')
-                ->with('semester:id,start_date,end_date')  // eager load semester
-                ->get(['class_section_id', 'semester_id']);
+                ->whereNotNull('term_id')
+                ->with('term:id,start_date,end_date')  // eager load term
+                ->get(['class_section_id', 'term_id']);
 
             foreach ($classTeacherRecords as $record) {
-                if ($record->semester) {
-                    // If a class section has multiple semesters, store all of them
-                    $classSemesterMap->push([
+                if ($record->term) {
+                    // If a class section has multiple terms, store all of them
+                    $classTermMap->push([
                         'class_section_id' => $record->class_section_id,
-                        'start_date' => $record->semester->start_date,
-                        'end_date' => $record->semester->end_date,
+                        'start_date' => $record->term->start_date,
+                        'end_date' => $record->term->end_date,
                     ]);
                 }
             }
         } else {
-            // Admin: full access, no semester restriction
+            // Admin: full access, no term restriction
             $class_section_ids = ClassSection::pluck('id');
         }
 
@@ -248,22 +248,22 @@ class StudentLeaveController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Per-Class Semester Date Range Filter
+        | Per-Class Term Date Range Filter
         |--------------------------------------------------------------------------
         |
-        | OLD (broken): applied all semester date ranges as a flat OR, so Class 1's
-        | teacher would also see leaves from Class 2's semester dates.
+        | OLD (broken): applied all term date ranges as a flat OR, so Class 1's
+        | teacher would also see leaves from Class 2's term dates.
         |
         | NEW (correct): for each leave, check that the student's actual class section
-        | has a semester whose date range covers the leave's from_date. This couples
-        | the date boundary to the class membership, not just any semester.
+        | has a term whose date range covers the leave's from_date. This couples
+        | the date boundary to the class membership, not just any term.
         |
         */
-        if ($classSemesterMap->isNotEmpty()) {
-            $sql->where(function ($query) use ($classSemesterMap, $session_year_id) {
-                foreach ($classSemesterMap as $entry) {
+        if ($classTermMap->isNotEmpty()) {
+            $sql->where(function ($query) use ($classTermMap, $session_year_id) {
+                foreach ($classTermMap as $entry) {
                     $query->orWhere(function ($q) use ($entry, $session_year_id) {
-                        // Leave's from_date must fall within this semester's range...
+                        // Leave's from_date must fall within this term's range...
                         $q->whereBetween('from_date', [
                             $entry['start_date'],
                             $entry['end_date'],

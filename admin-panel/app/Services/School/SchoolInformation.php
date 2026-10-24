@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Services\School;
 
 use App\Models\Platform\School;
-use App\Models\Semester;
 use App\Models\Settings;
+use App\Models\Term;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Audit\Audit;
@@ -94,7 +94,7 @@ class SchoolInformation
             || ! in_array(strtolower((string) parse_url($website, PHP_URL_SCHEME)), ['http', 'https'], true))) {
             $website = null; // Older settings writers did not validate this key.
         }
-        $terms = $profile->sessionYearId === null ? collect() : Semester::query()->where('session_year_id', $profile->sessionYearId)
+        $terms = $profile->sessionYearId === null ? collect() : Term::query()->where('session_year_id', $profile->sessionYearId)
             ->orderBy('start_date')->orderBy('id')->get();
 
         return [
@@ -104,7 +104,7 @@ class SchoolInformation
                 'id' => $document['id'], 'title' => $document['title'], 'kind' => $document['kind'],
                 'url' => url(Storage::disk('public')->url($document['path'])),
             ], $this->documents()),
-            'term_dates' => $terms->map(fn ($term) => ['name' => $term->name, 'starts_on' => $term->start_date?->toDateString(), 'ends_on' => $term->end_date?->toDateString()])->all(),
+            'term_dates' => $terms->map(fn ($term) => ['name' => $term->name, 'starts_on' => $term->start_date?->toDateString(), 'ends_on' => $term->end_date?->toDateString(), 'grade_from' => $term->grade_from, 'grade_to' => $term->grade_to])->all(),
         ];
     }
 

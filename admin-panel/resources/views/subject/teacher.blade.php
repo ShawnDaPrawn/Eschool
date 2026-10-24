@@ -43,7 +43,7 @@
                                     <div class="form-group col-sm-12 col-md-6">
                                         <label>{{ __('class') }} {{ __('section') }} <span
                                                 class="text-danger">*</span></label>
-                                        <input type="hidden" name="semester_id" id="semester_id">
+                                        <input type="hidden" name="term_id" id="term_id">
                                         <select name="class_section_id" id="class_section_id"
                                             class="class_section_id form-control" style="width:100%;" tabindex="-1"
                                             aria-hidden="true">
@@ -153,10 +153,10 @@
                                                     data-visible="false">{{ __('stream_id') }}</th>
                                                 <th scope="col" data-field="stream_name" data-sortable="false">
                                                     {{ __('stream') . ' ' . __('name') }}</th>
-                                                <th scope="col" data-field="semester_id" data-sortable="true"
-                                                    data-visible="false" data-switchable="false">{{ __('semester_id') }}</th>
-                                                <th scope="col" data-field="semester_name" data-sortable="false">
-                                                    {{ __('semester') }}</th>
+                                                <th scope="col" data-field="term_id" data-sortable="true"
+                                                    data-visible="false" data-switchable="false">{{ __('term_id') }}</th>
+                                                <th scope="col" data-field="term_name" data-sortable="false">
+                                                    {{ __('term') }}</th>
                                                 <th scope="col" data-field="subject_id" data-sortable="true"
                                                     data-visible="false">{{ __('subject_id') }}</th>
                                                 <th scope="col" data-field="subject_name" data-sortable="false">
@@ -201,7 +201,7 @@
                         <input type="hidden" name="class_section_id" id="edit_class_section_id">
                         <input type="hidden" name="subject_id" id="edit_subject_id">
                         <input type="hidden" name="session_year_id" id="edit_session_year_id">
-                        <input type="hidden" name="semester_id" id="edit_semester_id">
+                        <input type="hidden" name="term_id" id="edit_term_id">
                         <div class="row">
                             <div class="form-group col-sm-12 col-md-12">
                                 <label>{{ __('class') }} {{ __('section') }}</label>
@@ -242,10 +242,10 @@
                 $('#edit_class_section_id').val(row.class_section_id);
                 $('#edit_subject_id').val(row.subject_id);
                 $('#edit_session_year_id').val($('#filter_session_year_global').val());
-                $('#edit_semester_id').val(row.semester_id || '');
+                $('#edit_term_id').val(row.term_id || '');
                 $('#edit_class_section_name').val(row.class_section_name + (row.stream_name && row.stream_name !==
-                    '-' ? ' ' + row.stream_name : '') + (row.semester_name && row.semester_name !== '-' ?
-                    ' - ' + row.semester_name : ''));
+                    '-' ? ' ' + row.stream_name : '') + (row.term_name && row.term_name !== '-' ?
+                    ' - ' + row.term_name : ''));
                 $('#edit_subject_name').val(row.subject_name);
 
                 // Load available teachers for this class_section + subject

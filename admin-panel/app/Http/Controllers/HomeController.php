@@ -20,13 +20,13 @@ use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\Parents;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Stream;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\FeesCollectionService;
@@ -1049,10 +1049,6 @@ class HomeController extends Controller
 
     public function getSubjectByClassSection(Request $request): JsonResponse
     {
-        $currentSemester = Semester::get()->first(function ($semester) {
-            return $semester->current;
-        });
-
         $session_year_id = (int) ($request->input('session_year_id') ?: getSettings('session_year')['session_year']);
         $classSectionId = (int) $request->input('class_section_id');
         $classSection = ClassSection::select('class_id')->where('id', $classSectionId)->first();
@@ -1066,23 +1062,24 @@ class HomeController extends Controller
             return response()->json([]);
         }
 
-        $semesterId = $request->input('semester_id');
-        $allSemesters = $request->boolean('all_semesters');
+        $currentTerm = Term::currentForClass($session_year_id, (int) $class->id);
+        $termId = $request->input('term_id');
+        $allTerms = $request->boolean('all_terms');
 
         $subjects = [];
-        if ($class->getIncludeSemestersForSession($session_year_id)) {
-            if ($allSemesters) {
+        if ($class->getIncludeTermsForSession($session_year_id)) {
+            if ($allTerms) {
                 $subjects = ClassSubject::SubjectTeacher($classSectionId)
                     ->where('class_id', $class->id)
-                    ->whereNotNull('semester_id')
+                    ->whereNotNull('term_id')
                     ->where('session_year_id', $session_year_id)
-                    ->with('subject', 'semester')
+                    ->with('subject', 'term')
                     ->get();
-            } elseif ($semesterId || $currentSemester) {
-                $effectiveSemesterId = $semesterId ?: $currentSemester->id;
-                $subjects = ClassSubject::SubjectTeacher($classSectionId, $effectiveSemesterId)
+            } elseif ($termId || $currentTerm) {
+                $effectiveTermId = $termId ?: $currentTerm->id;
+                $subjects = ClassSubject::SubjectTeacher($classSectionId, $effectiveTermId)
                     ->where('class_id', $class->id)
-                    ->where('semester_id', $effectiveSemesterId)
+                    ->where('term_id', $effectiveTermId)
                     ->where('session_year_id', $session_year_id)
                     ->with('subject')
                     ->get();

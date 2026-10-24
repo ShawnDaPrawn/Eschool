@@ -216,7 +216,7 @@ Every published page, by section. Paths are relative to `documentation/`.
 | 16 | Academic Document Generation | `features/document-generation.md` | https://shawndaprawn.github.io/Eschool/features/document-generation/ |
 | 17 | Leave Management | `features/leave-management.md` | https://shawndaprawn.github.io/Eschool/features/leave-management/ |
 | 18 | Student Self Registration | `features/student-registration.md` | https://shawndaprawn.github.io/Eschool/features/student-registration/ |
-| 19 | Semester | `features/semester.md` | https://shawndaprawn.github.io/Eschool/features/semester/ |
+| 19 | Term | `features/terms.md` | https://shawndaprawn.github.io/Eschool/features/terms/ |
 
 ### Single pages
 

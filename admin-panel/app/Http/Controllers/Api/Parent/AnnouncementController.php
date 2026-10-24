@@ -8,10 +8,10 @@ use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\ClassSessionConfig;
-use App\Models\Semester;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -37,10 +37,10 @@ class AnnouncementController extends Controller
         }
         try {
             $children = null;
+            $class_id = null;
             if ($request->type !== 'noticeboard') {
                 // Outside the CheckChild group: resolve the child through the parent here.
                 $children = $this->resolveChild($request, 106);
-                $class_id = $children->class_section->class->id;
             }
 
             $session_year = getSettings('session_year');
@@ -49,12 +49,13 @@ class AnnouncementController extends Controller
             $class_section_id = null;
             if (! empty($children)) {
                 $studentSession = StudentSessions::where('student_id', $children->id)
-                    ->where('session_year_id', $session_year_id)
+                    ->where('session_year_id', $session_year_id)->with('class_section')
                     ->first();
-                if (empty($studentSession)) {
+                if (empty($studentSession) || ! $studentSession->class_section) {
                     return ResponseService::errorResponse('Invalid Child ID', null, 106);
                 }
                 $class_section_id = $studentSession->class_section_id;
+                $class_id = $studentSession->class_section->class_id;
             }
 
             if (isset($request->type) && $request->type == 'subject') {
@@ -99,13 +100,11 @@ class AnnouncementController extends Controller
             }
 
             if (isset($request->type) && $request->type == 'subject') {
-                $isClassHaveSemester = ClassSessionConfig::classHasSemester($class_id, $session_year_id);
+                $isClassHaveTerm = ClassSessionConfig::classHasTerm($class_id, $session_year_id);
                 $data = $data->where('table_type', "App\Models\SubjectTeacher")->whereIn('table_id', $table);
-                if ($isClassHaveSemester) {
-                    $currentSemester = Semester::where('session_year_id', $session_year_id)
-                        ->get()
-                        ->first(fn ($s) => $s->current);
-                    $data->where('semester_id', $currentSemester->id);
+                if ($isClassHaveTerm) {
+                    $currentTerm = Term::currentForClass((int) $session_year_id, (int) $class_id);
+                    $data->where('term_id', $currentTerm?->id);
                 }
             }
 

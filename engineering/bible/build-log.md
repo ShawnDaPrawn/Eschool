@@ -174,3 +174,15 @@ automated verification from staging, full-term pilot acceptance and production
 release. Terms, subject standards, assessment/mark engine, teaching groups,
 timetable, attendance, reports, content, messages and pilot remain future slices.
 No staging resources, live data migration or production release are performed.
+
+## 23 October 2026: school terms and semester retirement
+
+The owner confirmed no installed clients use semesters and authorized retirement
+rather than a compatibility bridge. A coordinated in-place rename preserves IDs,
+academic foreign-key links and permission grants; bundled consumers use terms.
+Grade-aware calendars, optional lock/report dates, school templates, a Material 3
+management page and new-year template seeding share validated scoped services.
+Template preview does not mutate calendars; apply adds missing rows atomically,
+retains existing dates and rejects overlap or invalid leap-day conversion.
+Staging, independent assessment/pilot acceptance and production release remain
+separate; no live migration or cloud resources are part of this implementation.

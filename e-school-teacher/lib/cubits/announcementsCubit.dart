@@ -9,7 +9,6 @@ class AnnouncementsInitial extends AnnouncementsState {}
 class AnnouncementsFetchInProgress extends AnnouncementsState {}
 
 class AnnouncementsFetchSuccess extends AnnouncementsState {
-
   AnnouncementsFetchSuccess({
     required this.announcements,
     required this.fetchMoreAnnouncementsInProgress,
@@ -32,7 +31,8 @@ class AnnouncementsFetchSuccess extends AnnouncementsState {
   }) {
     return AnnouncementsFetchSuccess(
       announcements: newAnnouncements ?? announcements,
-      fetchMoreAnnouncementsInProgress: newFetchMoreAnnouncementsInProgress ??
+      fetchMoreAnnouncementsInProgress:
+          newFetchMoreAnnouncementsInProgress ??
           fetchMoreAnnouncementsInProgress,
       moreAnnouncementsFetchError:
           newMoreAnnouncementsFetchError ?? moreAnnouncementsFetchError,
@@ -43,15 +43,13 @@ class AnnouncementsFetchSuccess extends AnnouncementsState {
 }
 
 class AnnouncementsFetchFailure extends AnnouncementsState {
-
   AnnouncementsFetchFailure({required this.errorMessage});
   final String errorMessage;
 }
 
 class AnnouncementsCubit extends Cubit<AnnouncementsState> {
-
   AnnouncementsCubit(this._announcementRepository)
-      : super(AnnouncementsInitial());
+    : super(AnnouncementsInitial());
   final AnnouncementRepository _announcementRepository;
 
   void deleteAnnouncement(int announcementId) {
@@ -60,8 +58,9 @@ class AnnouncementsCubit extends Cubit<AnnouncementsState> {
           (state as AnnouncementsFetchSuccess).announcements;
       announcements.removeWhere((element) => element.id == announcementId);
       emit(
-        (state as AnnouncementsFetchSuccess)
-            .copyWith(newAnnouncements: announcements),
+        (state as AnnouncementsFetchSuccess).copyWith(
+          newAnnouncements: announcements,
+        ),
       );
     }
   }
@@ -69,14 +68,14 @@ class AnnouncementsCubit extends Cubit<AnnouncementsState> {
   Future<void> fetchAnnouncements({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     try {
       emit(AnnouncementsFetchInProgress());
       final result = await _announcementRepository.fetchAnnouncements(
         classSectionId: classSectionId,
         subjectId: subjectId,
-        semesterId: semesterId,
+        termId: termId,
       );
       emit(
         AnnouncementsFetchSuccess(
@@ -107,7 +106,7 @@ class AnnouncementsCubit extends Cubit<AnnouncementsState> {
   Future<void> fetchMoreAnnouncements({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     if (state is AnnouncementsFetchSuccess) {
       if ((state as AnnouncementsFetchSuccess)
@@ -116,18 +115,19 @@ class AnnouncementsCubit extends Cubit<AnnouncementsState> {
       }
       try {
         emit(
-          (state as AnnouncementsFetchSuccess)
-              .copyWith(newFetchMoreAnnouncementsInProgress: true),
+          (state as AnnouncementsFetchSuccess).copyWith(
+            newFetchMoreAnnouncementsInProgress: true,
+          ),
         );
         //fetch more announcements
         //more announcements result
-        final moreAssignmentsResult =
-            await _announcementRepository.fetchAnnouncements(
-          subjectId: subjectId,
-          classSectionId: classSectionId,
-          semesterId: semesterId,
-          page: (state as AnnouncementsFetchSuccess).currentPage + 1,
-        );
+        final moreAssignmentsResult = await _announcementRepository
+            .fetchAnnouncements(
+              subjectId: subjectId,
+              classSectionId: classSectionId,
+              termId: termId,
+              page: (state as AnnouncementsFetchSuccess).currentPage + 1,
+            );
 
         final currentState = state as AnnouncementsFetchSuccess;
         final List<Announcement> announcements = currentState.announcements;

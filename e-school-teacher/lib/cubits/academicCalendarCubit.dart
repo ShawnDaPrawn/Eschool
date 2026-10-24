@@ -12,7 +12,7 @@ typedef AcademicCalendarHighlightColors = ({
   Color holiday,
   Color event,
   Color exam,
-  Color semesterBreak,
+  Color termBreak,
 });
 
 abstract class AcademicCalendarState {}
@@ -78,13 +78,12 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
                 rangeEndDate: exam.getEndDate(),
               ),
             ),
-            ...(appConfigurationCubit.getAppConfiguration().semesterBreaks ??
-                    [])
+            ...(appConfigurationCubit.getAppConfiguration().termBreaks ?? [])
                 .map<AcademicCalendar>(
-                  (breakItem) => AcademicCalendar<SemesterBreak>(
+                  (breakItem) => AcademicCalendar<TermBreak>(
                     data: breakItem,
                     date: breakItem.startDate,
-                    highlightColor: highlights.semesterBreak,
+                    highlightColor: highlights.termBreak,
                     rangeEndDate: breakItem.endDate,
                   ),
                 ),

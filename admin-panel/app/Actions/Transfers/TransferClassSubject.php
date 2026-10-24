@@ -15,11 +15,11 @@ class TransferClassSubject
 
             $groupIdMap = [];
             // Terms belong to a year: point the copies at the new year's terms.
-            $semesters = YearIdMap::semesters($fromSessionId, $toSessionId);
+            $terms = YearIdMap::terms($fromSessionId, $toSessionId);
 
             // Transfer Elective Subject Groups
             ElectiveSubjectGroup::where('session_year_id', $fromSessionId)
-                ->chunkById(500, function ($rows) use ($toSessionId, $semesters, &$groupIdMap) {
+                ->chunkById(500, function ($rows) use ($toSessionId, $terms, &$groupIdMap) {
 
                     foreach ($rows as $row) {
 
@@ -28,7 +28,7 @@ class TransferClassSubject
                             'total_subjects' => $row->total_subjects,
                             'total_selectable_subjects' => $row->total_selectable_subjects,
                             'class_id' => $row->class_id,
-                            'semester_id' => YearIdMap::semester($row->semester_id, $semesters),
+                            'term_id' => YearIdMap::term($row->term_id, $terms),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]);
@@ -39,7 +39,7 @@ class TransferClassSubject
 
             // Transfer Class Subjects
             ClassSubject::where('session_year_id', $fromSessionId)
-                ->chunkById(500, function ($rows) use ($toSessionId, $semesters, &$groupIdMap) {
+                ->chunkById(500, function ($rows) use ($toSessionId, $terms, &$groupIdMap) {
 
                     $insertData = [];
 
@@ -58,7 +58,7 @@ class TransferClassSubject
                         $insertData[] = [
                             'session_year_id' => $toSessionId,
                             'class_id' => $row->class_id,
-                            'semester_id' => YearIdMap::semester($row->semester_id, $semesters),
+                            'term_id' => YearIdMap::term($row->term_id, $terms),
                             'type' => $row->type,
                             'subject_id' => $row->subject_id,
                             'elective_subject_group_id' => $newElectiveGroupId,

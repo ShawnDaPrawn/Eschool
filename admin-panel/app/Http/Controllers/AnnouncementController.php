@@ -9,11 +9,11 @@ use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\ClassSubject;
 use App\Models\File;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
+use App\Models\Term;
 use App\Services\Platform\Files\FileNames;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -65,36 +65,36 @@ class AnnouncementController extends Controller
                 ->where('id', $section->class->id)
                 ->first();
 
-            $hasSemesters = $class && $class->getIncludeSemestersForSession($session_year_id);
+            $hasTerms = $class && $class->getIncludeTermsForSession($session_year_id);
 
             $baseName = $section->class->name.' '.$section->section->name.' - '.$section->class->medium->name.' '.($section->class->streams->name ?? '');
 
-            if ($hasSemesters) {
+            if ($hasTerms) {
                 if ($isTeacher) {
-                    $semesters = Semester::where('session_year_id', $session_year_id)
+                    $terms = Term::where('session_year_id', $session_year_id)
                         ->whereIn('id', function ($q) use ($section, $session_year_id, $user) {
-                            $q->select('semester_id')
+                            $q->select('term_id')
                                 ->from('subject_teachers')
                                 ->where('class_section_id', $section->id)
                                 ->where('session_year_id', $session_year_id)
                                 ->where('teacher_id', $user->teacher->id)
-                                ->whereNotNull('semester_id')
+                                ->whereNotNull('term_id')
                                 ->whereNull('deleted_at');
                         })
                         ->orderBy('id', 'ASC')
                         ->get();
                 } else {
-                    $semesters = Semester::where('session_year_id', $session_year_id)
+                    $terms = Term::where('session_year_id', $session_year_id)
                         ->orderBy('id', 'ASC')
                         ->get();
                 }
 
-                foreach ($semesters as $semester) {
+                foreach ($terms as $term) {
                     $result[] = [
                         'id' => $section->id,
-                        'name' => $baseName.' - '.$semester->name,
+                        'name' => $baseName.' - '.$term->name,
                         'class_id' => $section->class->id,
-                        'semester_id' => $semester->id,
+                        'term_id' => $term->id,
                     ];
                 }
             } else {
@@ -102,7 +102,7 @@ class AnnouncementController extends Controller
                     'id' => $section->id,
                     'name' => $baseName,
                     'class_id' => $section->class->id,
-                    'semester_id' => null,
+                    'term_id' => null,
                 ];
             }
         }
@@ -115,7 +115,7 @@ class AnnouncementController extends Controller
         $data = $request->data;
         $class_id = $request->class_id;
         $class_section_id = $request->class_section_id;
-        $semester_id = $request->semester_id;
+        $term_id = $request->term_id;
         $session_year_id = $request->session_year_id ?: getSettings('session_year')['session_year'];
 
         if ($data == 'class_section' && $class_id != '') {
@@ -127,8 +127,8 @@ class AnnouncementController extends Controller
                     ->where('teacher_id', $user->teacher->id)
                     ->where('session_year_id', $session_year_id);
 
-                if ($semester_id) {
-                    $query->where('semester_id', $semester_id);
+                if ($term_id) {
+                    $query->where('term_id', $term_id);
                 }
 
                 $info = $query->with('subject')->get();
@@ -136,8 +136,8 @@ class AnnouncementController extends Controller
                 $query = ClassSubject::where('class_id', $class_id)
                     ->where('session_year_id', $session_year_id);
 
-                if ($semester_id) {
-                    $query->where('semester_id', $semester_id);
+                if ($term_id) {
+                    $query->where('term_id', $term_id);
                 }
 
                 $info = $query->with('subject')->get();
@@ -196,7 +196,7 @@ class AnnouncementController extends Controller
                 $announcement->title = $request->title;
                 $announcement->description = $request->description;
                 $announcement->session_year_id = getSettings('session_year')['session_year'];
-                $announcement->semester_id = $request->semester_id ?: null;
+                $announcement->term_id = $request->term_id ?: null;
                 if (! empty($request->set_data)) {
                     if ($request->set_data == 'class_section') {
                         $teacher_id = Auth::user()->teacher->id;
@@ -312,7 +312,7 @@ class AnnouncementController extends Controller
             $announcement = Announcement::find($request->edit_id);
             $announcement->title = $request->title;
             $announcement->description = $request->description;
-            $announcement->semester_id = $request->semester_id ?: null;
+            $announcement->term_id = $request->term_id ?: null;
             if (! empty($request->set_data)) {
                 if ($request->set_data == 'class_section') {
                     $subject_teacher_id = SubjectTeacher::select('id')->where(['class_section_id' => $request->class_section_id, 'subject_id' => $request->get_data, 'teacher_id' => $teacher_id])->get()->pluck('id');
@@ -422,7 +422,7 @@ class AnnouncementController extends Controller
         }
 
         $session_year_id = $_GET['session_year_id'] ?? getSettings('session_year')['session_year'];
-        $sql = Announcement::with('table', 'file', 'semester')->where('session_year_id', $session_year_id);
+        $sql = Announcement::with('table', 'file', 'term')->where('session_year_id', $session_year_id);
 
         // Filter announcements for teachers
         if (Auth::user()->hasRole('Teacher')) {
@@ -489,8 +489,8 @@ class AnnouncementController extends Controller
             if ($tempRow['type'] == 'App\\Models\\SubjectTeacher') {
                 $assign = 'Subject';
                 $class = $row->table;
-                $semesterName = $row->semester ? ' - '.$row->semester->name : '';
-                $class1 = $row->table?->class_section?->class?->name.'-'.$row->table?->class_section?->section?->name.$semesterName.' - '.$row->table?->subject?->name;
+                $termName = $row->term ? ' - '.$row->term->name : '';
+                $class1 = $row->table?->class_section?->class?->name.'-'.$row->table?->class_section?->section?->name.$termName.' - '.$row->table?->subject?->name;
             }
             if ($tempRow['type'] == '') {
                 $assign = 'noticeboard';

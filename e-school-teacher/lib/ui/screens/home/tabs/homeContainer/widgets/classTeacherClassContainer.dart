@@ -58,10 +58,9 @@ class ClassTeacherClassContainer extends StatelessWidget {
                       ),
                       child: Text(
                         () {
-                          var value = classDetails
-                              .getClassSectionNameWithSemester(
-                                context: context,
-                              );
+                          var value = classDetails.getClassSectionNameWithTerm(
+                            context: context,
+                          );
                           //removing stream name from class to not show multiple times
                           if (doesClassIncludeStream &&
                               classDetails.classDetails.stream?.name != null) {
@@ -76,9 +75,8 @@ class ClassTeacherClassContainer extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.start,
                         style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.readableOn(color),
+                          color: Theme.of(context).colorScheme
+                              .readableOn(color),
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
@@ -108,9 +106,8 @@ class ClassTeacherClassContainer extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.start,
                     style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.8),
+                      color: Theme.of(context).colorScheme.onSurface
+                          .withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),

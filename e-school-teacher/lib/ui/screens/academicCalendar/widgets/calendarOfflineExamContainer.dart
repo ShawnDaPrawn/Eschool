@@ -42,7 +42,7 @@ class CalendarOfflineExamContainer extends StatelessWidget {
                     exam
                             .timetable![subjectIndex]
                             .subject
-                            ?.subjectNameWithTypeAndSemester ??
+                            ?.subjectNameWithTypeAndTerm ??
                         '',
                     textAlign: TextAlign.start,
                     maxLines: 1,

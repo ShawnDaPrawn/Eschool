@@ -7,9 +7,9 @@ window.lessonEvents = {
         $('.edit_file_type_div').show();
         $('#edit_id').val(row.id);
         $('#edit_class_section_id').html('<option value="' + row.class_section_id + '" selected>' + row.class_section_name + '</option>');
-        $('#edit_subject_id').html('<option value="' + row.subject_id + '" data-semester="' + (row.semester_id || '') + '" selected>' + row.subject_name + '</option>');
-        // Show/populate the semester dropdown only when the class has semesters.
-        loadLessonEditSemester(row);
+        $('#edit_subject_id').html('<option value="' + row.subject_id + '" data-term="' + (row.term_id || '') + '" selected>' + row.subject_name + '</option>');
+        // Show/populate the term dropdown only when the class has terms.
+        loadLessonEditTerm(row);
         $('#edit_name').val(row.name);
         $('#edit_description').val(row.description);
         if (row.file.length > 0) {
@@ -258,7 +258,7 @@ window.assignmentEvents = {
 
         // Both dropdowns are disabled (display-only) — populate directly from row data,
         // no need to re-fetch from the server.
-        $('#edit_semester_id').val(row.semester_id || '');
+        $('#edit_term_id').val(row.term_id || '');
         $('#edit_class_section_id').html(
             '<option value="' + row.class_section_id + '">' + row.class_section_name + '</option>'
         );
@@ -1378,8 +1378,8 @@ window.onlineExamEvents = {
     'click .edit-data': function (e, value, row, index) {
         console.log(row);
         $('#edit_id').val(row.online_exam_id);
-        $('#edit-online-exam-semester').val(row.semester_name || '');
-        $('#edit-online-exam-semester-id').val(row.semester_id || '');
+        $('#edit-online-exam-term').val(row.term_name || '');
+        $('#edit-online-exam-term-id').val(row.term_id || '');
         $('#edit-online-exam-title').val(row.title);
         $('#edit-online-exam-key').val(row.exam_key);
         $('#edit-online-exam-duration').val(row.duration);
@@ -1665,10 +1665,10 @@ window.classEvents = {
         $('#edit_educational_program_id').val(row.educational_program_id);
         $('#edit_section_id').val(row.section_id).trigger('change');
 
-        if (row.include_semesters == 1) {
-            $('#edit_include_semesters').prop('checked', true).change();
+        if (row.include_terms == 1) {
+            $('#edit_include_terms').prop('checked', true).change();
         } else {
-            $('#edit_include_semesters').prop('checked', false).change();
+            $('#edit_include_terms').prop('checked', false).change();
         }
     }
 };
@@ -1909,7 +1909,7 @@ function formatDate(dateString) {
     return `${day}-${month}-${year}`;
 }
 
-window.semesterEvents = {
+window.termEvents = {
     'click .edit-data': function (e, value, row, index) {
         $('#edit_id').val(row.id);
         $('#edit_name').val(row.name);

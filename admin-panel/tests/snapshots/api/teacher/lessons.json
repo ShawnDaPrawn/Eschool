@@ -25,8 +25,8 @@
                 ],
                 "id": "number",
                 "name": "string",
-                "semester_id": "null",
                 "subject_id": "number",
+                "term_id": "null",
                 "topic_count": "number"
             }
         ],

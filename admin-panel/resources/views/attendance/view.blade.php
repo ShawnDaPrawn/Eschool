@@ -156,12 +156,12 @@
 
     function applyDateBoundsByClassSection() {
         var selectedClassSection = $('#timetable_class_section').find('option:selected');
-        var semesterStartDate = selectedClassSection.attr('data-semester-start-date');
-        var semesterEndDate = selectedClassSection.attr('data-semester-end-date');
+        var termStartDate = selectedClassSection.attr('data-term-start-date');
+        var termEndDate = selectedClassSection.attr('data-term-end-date');
         var sessionBounds = getSessionYearDateBounds();
 
-        if (semesterStartDate && semesterEndDate) {
-            setDatePickerBounds(semesterStartDate, semesterEndDate);
+        if (termStartDate && termEndDate) {
+            setDatePickerBounds(termStartDate, termEndDate);
         } else {
             setDatePickerBounds(sessionBounds.startDate, sessionBounds.endDate);
         }
@@ -169,7 +169,7 @@
         $('#date').val('');
     }
 
-    function loadAttendanceClassSectionsWithSemesters() {
+    function loadAttendanceClassSectionsWithTerms() {
         var session_year_id = $('#filter_session_year_global').val();
         setDatePickerDisabled(true);
 
@@ -180,7 +180,7 @@
         }
 
         $.ajax({
-            url: "{{ url('get-class-sections-with-semesters') }}",
+            url: "{{ url('get-class-sections-with-terms') }}",
             type: "GET",
             data: {
                 session_year_id: session_year_id,
@@ -198,9 +198,9 @@
 
                     html += '<option value="' + response[i].class_section_id + '"' +
                         ' data-class="' + response[i].class_id + '"' +
-                        ' data-semester="' + (response[i].semester_id || '') + '"' +
-                        ' data-semester-start-date="' + (response[i].semester_start_date || '') + '"' +
-                        ' data-semester-end-date="' + (response[i].semester_end_date || '') + '"' +
+                        ' data-term="' + (response[i].term_id || '') + '"' +
+                        ' data-term-start-date="' + (response[i].term_start_date || '') + '"' +
+                        ' data-term-end-date="' + (response[i].term_end_date || '') + '"' +
                         '>' + label + '</option>';
                 }
 
@@ -247,13 +247,13 @@
         setDatePickerBounds(sessionBounds.startDate, sessionBounds.endDate);
         $('#date').val('');
 
-        loadAttendanceClassSectionsWithSemesters();
+        loadAttendanceClassSectionsWithTerms();
     });
 
     $(document).ready(function() {
         var sessionBounds = getSessionYearDateBounds();
         setDatePickerBounds(sessionBounds.startDate, sessionBounds.endDate);
-        loadAttendanceClassSectionsWithSemesters();
+        loadAttendanceClassSectionsWithTerms();
     });
 </script>
 @endsection

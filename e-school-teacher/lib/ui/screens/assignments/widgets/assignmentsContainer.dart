@@ -89,9 +89,8 @@ class AssignmentsContainer extends StatelessWidget {
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.shadow.withValues(alpha: 0.05),
+                            color: Theme.of(context).colorScheme.shadow
+                                .withValues(alpha: 0.05),
                             offset: const Offset(2.5, 2.5),
                             blurRadius: 10,
                           ),
@@ -115,9 +114,9 @@ class AssignmentsContainer extends StatelessWidget {
                                   maxLines: 5,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
                                     fontWeight: FontWeight.w400,
                                     fontSize: 14,
                                   ),
@@ -141,10 +140,8 @@ class AssignmentsContainer extends StatelessWidget {
                                                 classSectionId:
                                                     assignment.classSectionId,
                                                 subjectId: assignment.subjectId,
-                                                semesterId: assignment
-                                                    .subject
-                                                    .semester
-                                                    ?.id,
+                                                termId:
+                                                    assignment.subject.term?.id,
                                               );
                                         }
                                       });
@@ -276,7 +273,7 @@ class AssignmentsContainer extends StatelessWidget {
                 context.read<AssignmentCubit>().fetchAssignment(
                   classSectionId: classSectionDetails.id,
                   subjectId: subject.id,
-                  semesterId: subject.semester?.id,
+                  termId: subject.term?.id,
                 );
               },
             ),

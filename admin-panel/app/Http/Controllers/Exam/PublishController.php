@@ -204,20 +204,20 @@ class PublishController extends Controller
     //     }
 
     //     $session_year_id = getSettings('session_year')['session_year'];
-    //     $currentSemesterId = Semester::where('session_year_id', $session_year_id)->get()->first(function ($semester) {
-    //         return $semester->current;
+    //     $currentTermId = Term::where('session_year_id', $session_year_id)->get()->first(function ($term) {
+    //         return $term->current;
     //     })->id;
 
     //     $teacher_id = Auth::user()->teacher->id;
 
     //     $class_section_id = ClassTeacher::where('class_teacher_id', $teacher_id)
     //         ->where('session_year_id', $session_year_id)
-    //         ->where(function ($query) use ($currentSemesterId) {
+    //         ->where(function ($query) use ($currentTermId) {
 
-    //             $query->whereNull('semester_id');
+    //             $query->whereNull('term_id');
 
-    //             if ($currentSemesterId) {
-    //                 $query->orWhere('semester_id', $currentSemesterId);
+    //             if ($currentTermId) {
+    //                 $query->orWhere('term_id', $currentTermId);
     //             }
     //         })
     //         ->pluck('class_section_id');
@@ -243,14 +243,14 @@ class PublishController extends Controller
 
         try {
             $class_id = ClassSection::where('id', $class_section_id)->value('class_id');
-            $semester_id = $request->query('semester_id');
+            $term_id = $request->query('term_id');
 
             $exam_data = ExamClass::with('exam')
                 ->where('class_id', $class_id)
-                ->whereHas('exam', function ($query) use ($semester_id) {
+                ->whereHas('exam', function ($query) use ($term_id) {
                     $query->where('publish', 1)
-                        ->when($semester_id, function ($q) use ($semester_id) {
-                            $q->where('semester_id', $semester_id);
+                        ->when($term_id, function ($q) use ($term_id) {
+                            $q->where('term_id', $term_id);
                         });
                 })->get();
 

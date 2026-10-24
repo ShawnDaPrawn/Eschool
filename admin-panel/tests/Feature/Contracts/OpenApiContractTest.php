@@ -50,6 +50,23 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'school terms as learner' => ['asha', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
+            'school terms as parent' => ['farid', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
+            'school terms as teacher' => ['tara', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
+            'school terms as admin' => ['superadmin', 'GET', 'api/v2/academics/terms', ['session_year_id' => 1], 200],
+            'school terms requires auth' => [null, 'GET', 'api/v2/academics/terms', [], 401],
+            'school terms validates year' => ['superadmin', 'GET', 'api/v2/academics/terms', [], 422],
+            'school term creation validates dates' => ['superadmin', 'POST', 'api/v2/academics/terms', [], 422],
+            'school term creation denied' => ['tara', 'POST', 'api/v2/academics/terms', [], 403],
+            'school term edit denied' => ['farid', 'PUT', 'api/v2/academics/terms/1', [], 403],
+            'school term delete unknown' => ['superadmin', 'DELETE', 'api/v2/academics/terms/999999', [], 404],
+            'school term delete denied' => ['asha', 'DELETE', 'api/v2/academics/terms/1', [], 403],
+            'calendar templates as admin' => ['superadmin', 'GET', 'api/v2/academics/term-templates', [], 200],
+            'calendar templates denied' => ['tara', 'GET', 'api/v2/academics/term-templates', [], 403],
+            'calendar template creation validation' => ['superadmin', 'POST', 'api/v2/academics/term-templates', [], 422],
+            'calendar template creation denied' => ['farid', 'POST', 'api/v2/academics/term-templates', [], 403],
+            'calendar template preview unknown' => ['superadmin', 'POST', 'api/v2/academics/term-templates/999999/apply', ['session_year_id' => 1], 404],
+            'calendar template apply denied' => ['asha', 'POST', 'api/v2/academics/term-templates/1/apply', ['session_year_id' => 1, 'apply' => true], 403],
             'academic reference as learner' => ['asha', 'GET', 'api/v2/academics/reference', [], 200],
             'academic reference as parent' => ['farid', 'GET', 'api/v2/academics/reference', [], 200],
             'academic reference as teacher' => ['tara', 'GET', 'api/v2/academics/reference', [], 200],

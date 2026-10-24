@@ -105,12 +105,12 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
   void fetchStudentList({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) {
     context.read<StudentsByClassSectionCubit>().fetchStudents(
       classSectionId: classSectionId,
       subjectId: subjectId,
-      semesterId: semesterId,
+      termId: termId,
     );
   }
 
@@ -263,7 +263,7 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
                                         .index]
                                     .id,
                             subjectId: selectedSubjectDetails!.id,
-                            semesterId: selectedSubjectDetails!.semester?.id,
+                            termId: selectedSubjectDetails!.term?.id,
                           );
                           //
                           setState(() {
@@ -298,7 +298,7 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
                   allPrimaryClasses[currentSelectedPrimaryClassSection.index]
                       .id,
               subjectId: selectedSubjectDetails!.id,
-              semesterId: selectedSubjectDetails!.semester?.id,
+              termId: selectedSubjectDetails!.term?.id,
             );
           } else {
             context.read<StudentsByClassSectionCubit>().updateState(
@@ -354,9 +354,8 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(
-              context,
-            ).colorScheme.shadow.withValues(alpha: 0.075),
+            color: Theme.of(context).colorScheme.shadow
+                .withValues(alpha: 0.075),
             offset: const Offset(2.5, 2.5),
             blurRadius: 5,
             spreadRadius: 1,
@@ -515,7 +514,7 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
                       .getExamDetails(index: currentSelectedExamName.index)
                       .examID!,
                   subjectId: selectedSubjectDetails!.id,
-                  semesterId: selectedSubjectDetails!.semester?.id,
+                  termId: selectedSubjectDetails!.term?.id,
                   bodyParameter: studentsMarksList,
                   classSectionId:
                       allPrimaryClasses[currentSelectedPrimaryClassSection
@@ -610,12 +609,12 @@ class _AddResultForAllStudentsState extends State<AddResultForAllStudents> {
                         .read<ExamTimeTableCubit>()
                         .getAllSubjects()[currentSelectedSubject.index]
                         .id,
-              semesterId: selectedSubjectDetails != null
-                  ? selectedSubjectDetails!.semester?.id
+              termId: selectedSubjectDetails != null
+                  ? selectedSubjectDetails!.term?.id
                   : context
                         .read<ExamTimeTableCubit>()
                         .getAllSubjects()[currentSelectedSubject.index]
-                        .semester
+                        .term
                         ?.id,
             ),
           );

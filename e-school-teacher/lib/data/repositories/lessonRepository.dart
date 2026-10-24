@@ -6,14 +6,14 @@ class LessonRepository {
     required String lessonName,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String lessonDescription,
     required List<Map<String, dynamic>> files,
   }) async {
     final Map<String, dynamic> body = {
       'class_section_id': classSectionId,
       'subject_id': subjectId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
       'name': lessonName,
       'description': lessonDescription,
     };
@@ -28,7 +28,7 @@ class LessonRepository {
   Future<List<Lesson>> getLessons({
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     try {
       final result = await Api.get(
@@ -37,7 +37,7 @@ class LessonRepository {
         queryParameters: {
           'class_section_id': classSectionId,
           'subject_id': subjectId,
-          if (semesterId != null) 'semester_id': semesterId,
+          if (termId != null) 'term_id': termId,
         },
       );
       return (result['data'] as List)
@@ -65,14 +65,14 @@ class LessonRepository {
     required int lessonId,
     required int classSectionId,
     required int subjectId,
-    String? semesterId,
+    String? termId,
     required String lessonDescription,
     required List<Map<String, dynamic>> files,
   }) async {
     final Map<String, dynamic> body = {
       'class_section_id': classSectionId,
       'subject_id': subjectId,
-      if (semesterId != null) 'semester_id': semesterId,
+      if (termId != null) 'term_id': termId,
       'name': lessonName,
       'description': lessonDescription,
       'lesson_id': lessonId,

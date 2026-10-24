@@ -39,6 +39,7 @@ class TenancyMigrationsTest extends TestCase
         '2026_10_23_170000_create_profile_fields',
         '2026_10_23_180000_create_private_profile_files',
         '2026_10_23_190000_create_academic_references',
+        '2026_10_23_200000_replace_semesters_with_school_terms',
     ];
 
     protected function setUp(): void

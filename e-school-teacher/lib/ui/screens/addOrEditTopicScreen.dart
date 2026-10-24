@@ -81,7 +81,7 @@ class _AddOrEditTopicScreenState extends State<AddOrEditTopicScreen> {
   late CustomDropDownItem currentSelectedSubject = widget.subject != null
       ? CustomDropDownItem(
           index: 0,
-          title: widget.subject!.subjectNameWithTypeAndSemester,
+          title: widget.subject!.subjectNameWithTypeAndTerm,
         )
       : CustomDropDownItem(
           index: 0,
@@ -277,7 +277,7 @@ class _AddOrEditTopicScreenState extends State<AddOrEditTopicScreen> {
               ),
             if (widget.subject != null)
               DefaultDropDownLabelContainer(
-                titleLabelKey: widget.subject!.subjectNameWithTypeAndSemester,
+                titleLabelKey: widget.subject!.subjectNameWithTypeAndTerm,
                 width: boxConstraints.maxWidth,
               )
             else
@@ -298,7 +298,7 @@ class _AddOrEditTopicScreenState extends State<AddOrEditTopicScreen> {
                           )
                           .id,
                       subjectId: subject.id,
-                      semesterId: subject.semester?.id,
+                      termId: subject.term?.id,
                     );
                   }
                 },

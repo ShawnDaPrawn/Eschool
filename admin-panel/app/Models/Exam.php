@@ -25,9 +25,9 @@ class Exam extends Model
         return $this->belongsTo(SessionYear::class);
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 
     public function marks()

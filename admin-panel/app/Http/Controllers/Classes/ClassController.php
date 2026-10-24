@@ -134,8 +134,8 @@ class ClassController extends Controller
 
             // A new class must have an authoritative ClassSessionConfig row for
             // every session year (not just the current one), defaulting to no
-            // semesters. The admin opts a class into semesters per session year
-            // from the Semester screen.
+            // terms. The admin opts a class into terms per session year
+            // from the Term screen.
             $sessionYearIds = SessionYear::pluck('id')->all();
             $now = now();
             $sessionConfigs = [];
@@ -154,7 +154,7 @@ class ClassController extends Controller
                     $sessionConfigs[] = [
                         'class_id' => $classId,
                         'session_year_id' => $sessionYearId,
-                        'include_semesters' => false,
+                        'include_terms' => false,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];
@@ -169,7 +169,7 @@ class ClassController extends Controller
                 ClassSessionConfig::upsert(
                     $sessionConfigs,
                     ['class_id', 'session_year_id'],
-                    ['include_semesters', 'updated_at']
+                    ['include_terms', 'updated_at']
                 );
             }
 
@@ -472,7 +472,7 @@ class ClassController extends Controller
             $tempRow['section_name'] = $sections->pluck('name');
             $tempRow['stream_id'] = $row->streams->id ?? '';
             $tempRow['stream_name'] = $row->streams->name ?? '-';
-            $tempRow['include_semesters'] = $row->getIncludeSemestersForSession($currentSessionYearId);
+            $tempRow['include_terms'] = $row->getIncludeTermsForSession($currentSessionYearId);
             $tempRow['created_at'] = convertDateFormat($row->created_at, 'd-m-Y H:i:s');
             $tempRow['updated_at'] = convertDateFormat($row->created_at, 'd-m-Y H:i:s');
             $tempRow['operate'] = $operate;

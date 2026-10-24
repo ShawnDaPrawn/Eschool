@@ -65,7 +65,7 @@ class _AssignmentDetailsBottomsheetContainerState
           ),
           const SizedBox(height: 5),
           Text(
-            widget.assignment.subject.subjectNameWithTypeAndSemester,
+            widget.assignment.subject.subjectNameWithTypeAndTerm,
             style: _getAssignmentDetailsLabelValueTextStyle(),
           ),
         ],
@@ -276,9 +276,8 @@ class _AssignmentDetailsBottomsheetContainerState
               color: Theme.of(context).colorScheme.surface,
               border: Border(
                 bottom: BorderSide(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant
+                      .withValues(alpha: 0.5),
                 ),
               ),
             ),

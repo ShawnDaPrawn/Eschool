@@ -73,13 +73,12 @@ class AcademicCalendarCubit extends Cubit<AcademicCalendarState> {
                 rangeEndDate: exam.getEndDate(),
               ),
             ),
-            ...(appConfigurationCubit.getAppConfiguration().semesterBreaks ??
-                    [])
+            ...(appConfigurationCubit.getAppConfiguration().termBreaks ?? [])
                 .map<AcademicCalendar>(
-                  (breakItem) => AcademicCalendar<SemesterBreak>(
+                  (breakItem) => AcademicCalendar<TermBreak>(
                     data: breakItem,
                     date: breakItem.startDate,
-                    highlightColor: colors.semesterBreak,
+                    highlightColor: colors.termBreak,
                     rangeEndDate: breakItem.endDate,
                   ),
                 ),

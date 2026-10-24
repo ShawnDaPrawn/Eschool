@@ -26,12 +26,10 @@
                         }
                     ],
                     "id": "number",
-                    "semester_id": "null",
                     "session_year_id": "number",
                     "table": {
                         "class_section_id": "number",
                         "id": "number",
-                        "semester_id": "null",
                         "session_year_id": "number",
                         "subject": {
                             "bg_color": "string",
@@ -43,10 +41,12 @@
                             "type": "string"
                         },
                         "subject_id": "number",
-                        "teacher_id": "number"
+                        "teacher_id": "number",
+                        "term_id": "null"
                     },
                     "table_id": "number",
                     "table_type": "string",
+                    "term_id": "null",
                     "title": "string"
                 }
             ],

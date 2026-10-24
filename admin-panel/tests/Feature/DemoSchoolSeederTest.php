@@ -37,7 +37,7 @@ class DemoSchoolSeederTest extends TestCase
 
         $current = SessionYear::findOrFail(getSettings('session_year')['session_year']);
         $this->assertSame(now()->format('Y'), $current->name);
-        $this->assertSame(4, $current->semesters()->count());
+        $this->assertSame(4, $current->terms()->count());
         $past = SessionYear::where('name', (string) (now()->year - 1))->firstOrFail();
 
         $admin = $this->user('admin.a');
@@ -122,7 +122,7 @@ class DemoSchoolSeederTest extends TestCase
     {
         $this->seed(InstallationSeeder::class);
         $this->seed(DemoSchoolSeeder::class);
-        $tables = ['users', 'students', 'parents', 'teachers', 'staffs', 'session_years', 'semesters', 'classes', 'class_sections', 'subjects',
+        $tables = ['users', 'students', 'parents', 'teachers', 'staffs', 'session_years', 'terms', 'classes', 'class_sections', 'subjects',
             'class_subjects', 'class_teachers', 'subject_teachers', 'timetables', 'student_sessions', 'fees_classes', 'grades', 'announcements', 'attendances', 'roles',
             'exams', 'exam_classes', 'exam_timetables', 'exam_marks', 'assignments'];
         $before = array_combine($tables, array_map(fn ($table) => DB::table($table)->count(), $tables));

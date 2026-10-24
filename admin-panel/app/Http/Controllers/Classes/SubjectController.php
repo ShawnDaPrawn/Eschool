@@ -10,19 +10,19 @@ use App\Models\ClassSchool;
 use App\Models\ClassSubject;
 use App\Models\ElectiveSubjectGroup;
 use App\Models\Mediums;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Stream;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\Term;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * Admin panel: which subjects each class studies, including subject groups and semesters.
+ * Admin panel: which subjects each class studies, including subject groups and terms.
  */
 class SubjectController extends Controller
 {
@@ -46,10 +46,10 @@ class SubjectController extends Controller
         $subjects = Subject::orderBy('id', 'ASC')->get();
         $mediums = Mediums::orderBy('id', 'ASC')->get();
         $streams = Stream::orderBy('id', 'ASC')->get();
-        $semesters = Semester::orderBy('id', 'ASC')->get();
+        $terms = Term::orderBy('id', 'ASC')->get();
         $session_years = SessionYear::orderBy('id', 'ASC')->get();
 
-        return response(view('class.subject', compact('classes', 'subjects', 'mediums', 'streams', 'semesters', 'session_years')));
+        return response(view('class.subject', compact('classes', 'subjects', 'mediums', 'streams', 'terms', 'session_years')));
     }
 
     public function update_subjects(Request $request)
@@ -79,30 +79,30 @@ class SubjectController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | PREVENT THE SAME SUBJECT BEING ASSIGNED TWICE WITHIN ONE SEMESTER
+        | PREVENT THE SAME SUBJECT BEING ASSIGNED TWICE WITHIN ONE TERM
         |--------------------------------------------------------------------------
-        | A subject may repeat across different semesters (e.g. English in both
-        | Semester 1 and Semester 2), but not twice within the same semester -
+        | A subject may repeat across different terms (e.g. English in both
+        | Term 1 and Term 2), but not twice within the same term -
         | whether as two core subjects, two elective choices, or a core/elective
         | overlap.
         */
 
-        $subjectSemesterPairs = [];
+        $subjectTermPairs = [];
 
         foreach (array_merge($request->edit_core_subject ?? [], $request->core_subjects ?? []) as $row) {
-            $subjectSemesterPairs[] = ($row['subject_id'] ?? '').'_'.($row['semester_id'] ?? '');
+            $subjectTermPairs[] = ($row['subject_id'] ?? '').'_'.($row['term_id'] ?? '');
         }
 
         foreach (array_merge($request->edit_elective_subjects ?? [], $request->elective_subjects ?? []) as $group) {
             foreach ($group['subject_id'] ?? [] as $subjectId) {
-                $subjectSemesterPairs[] = $subjectId.'_'.($group['semester_id'] ?? '');
+                $subjectTermPairs[] = $subjectId.'_'.($group['term_id'] ?? '');
             }
         }
 
-        if (count($subjectSemesterPairs) !== count(array_unique($subjectSemesterPairs))) {
+        if (count($subjectTermPairs) !== count(array_unique($subjectTermPairs))) {
             return response()->json([
                 'error' => true,
-                'message' => trans('same_subject_cannot_be_assigned_twice_in_the_same_semester'),
+                'message' => trans('same_subject_cannot_be_assigned_twice_in_the_same_term'),
             ]);
         }
 
@@ -125,7 +125,7 @@ class SubjectController extends Controller
                     continue;
                 }
                 $edit_core_subject->subject_id = $row['subject_id'];
-                $edit_core_subject->semester_id = $row['semester_id'] ?? null;
+                $edit_core_subject->term_id = $row['term_id'] ?? null;
                 $edit_core_subject->save();
             }
         }
@@ -143,7 +143,7 @@ class SubjectController extends Controller
                     'class_id' => $request->class_id,
                     'type' => 'Compulsory',
                     'subject_id' => $row['subject_id'],
-                    'semester_id' => $row['semester_id'] ?? null,
+                    'term_id' => $row['term_id'] ?? null,
                     'session_year_id' => $session_year_id,
                 ];
             }
@@ -178,7 +178,7 @@ class SubjectController extends Controller
                 $elective_subject_group->total_subjects = count($subject_group['subject_id']);
                 $elective_subject_group->total_selectable_subjects = $subject_group['total_selectable_subjects'];
                 $elective_subject_group->class_id = $request->class_id;
-                $elective_subject_group->semester_id = $subject_group['semester_id'] ?? null;
+                $elective_subject_group->term_id = $subject_group['term_id'] ?? null;
                 $elective_subject_group->save();
 
                 // --- UPDATE SUBJECTS INSIDE THE GROUP ---
@@ -205,7 +205,7 @@ class SubjectController extends Controller
                     $elective_subject->type = 'Elective';
                     $elective_subject->subject_id = $subject_id;
                     $elective_subject->elective_subject_group_id = $elective_subject_group->id;
-                    $elective_subject->semester_id = $subject_group['semester_id'] ?? null;
+                    $elective_subject->term_id = $subject_group['term_id'] ?? null;
                     $elective_subject->session_year_id = $session_year_id;
                     $elective_subject->save();
                 }
@@ -229,8 +229,8 @@ class SubjectController extends Controller
                     StudentSubject::whereIn('subject_id', $removed_subject_ids)
                         ->whereIn('class_section_id', $class_section_ids)
                         ->where('session_year_id', $session_year_id)
-                        ->when($subject_group['semester_id'] ?? null, function ($query, $semester) {
-                            return $query->where('semester_id', $semester);
+                        ->when($subject_group['term_id'] ?? null, function ($query, $term) {
+                            return $query->where('term_id', $term);
                         })
                         ->delete();
                 }
@@ -252,7 +252,7 @@ class SubjectController extends Controller
                 $elective_subject_group->total_selectable_subjects = $subject_group['total_selectable_subjects'];
                 $elective_subject_group->class_id = $request->class_id;
                 $elective_subject_group->session_year_id = $session_year_id;
-                $elective_subject_group->semester_id = $subject_group['semester_id'] ?? null;
+                $elective_subject_group->term_id = $subject_group['term_id'] ?? null;
                 $elective_subject_group->save();
 
                 foreach ($subject_group['subject_id'] as $subject_id) {
@@ -261,7 +261,7 @@ class SubjectController extends Controller
                         'type' => 'Elective',
                         'subject_id' => $subject_id,
                         'session_year_id' => $session_year_id,
-                        'semester_id' => $subject_group['semester_id'] ?? null,
+                        'term_id' => $subject_group['term_id'] ?? null,
                         'elective_subject_group_id' => $elective_subject_group->id,
                     ];
                     ClassSubject::insert($elective_subject);
@@ -305,7 +305,7 @@ class SubjectController extends Controller
                 if ($session_year_id) {
                     $q->where('session_year_id', $session_year_id);
                 }
-                $q->with('semester');
+                $q->with('term');
             },
             'electiveSubjectGroup' => function ($q) use ($session_year_id) {
                 if ($session_year_id) {
@@ -332,12 +332,6 @@ class SubjectController extends Controller
 
         $total = $sql->count();
 
-        // $currentSemester = Semester::get()->first(function ($semester) {
-        //     return $semester->current;
-        // });
-        $currentSemester = Semester::where('session_year_id', $session_year_id)
-            ->first();
-
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
 
@@ -347,14 +341,15 @@ class SubjectController extends Controller
         $no = 1;
 
         foreach ($res as $row) {
-            $includesSemesters = $row->getIncludeSemestersForSession($session_year_id);
+            $includesTerms = $row->getIncludeTermsForSession($session_year_id);
+            $currentTerm = $includesTerms ? Term::currentForClass((int) $session_year_id, (int) $row->id) : null;
 
-            if ($includesSemesters !== null) {
+            if ($includesTerms !== null) {
                 // Edit the same session year the list is showing.
                 $editUrl = route('class-subject-edit.index', array_filter(['id' => $row->id, 'session_year_id' => $session_year_id]));
                 $operate = '<a href="'.e($editUrl).'" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             } else {
-                $operate = '<a href="javascript:void(0)" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon disabled" title="'.trans('semester_not_configured').'" disabled><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+                $operate = '<a href="javascript:void(0)" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon disabled" title="'.trans('term_not_configured').'" disabled><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
             }
 
             $tempRow = [];
@@ -366,28 +361,16 @@ class SubjectController extends Controller
             $tempRow['stream_id'] = $row->streams->id ?? ' ';
             $tempRow['stream_name'] = $row->streams->name ?? '-';
             $tempRow['section_names'] = $row->sections->pluck('name');
-            $tempRow['include_semesters'] = $includesSemesters;
+            $tempRow['include_terms'] = $includesTerms;
 
-            // if ($includesSemesters && ! empty($currentSemester)) {
-            //     $tempRow['core_subjects'] = $row->coreSubject->filter(function ($data) use ($currentSemester) {
-            //         return $data->semester_id == $currentSemester->id;
-            //     })->values(); // Filter subjects based on current semester
-
-            //     $tempRow['elective_subject_groups'] = $row->electiveSubjectGroup->filter(function ($data) use ($currentSemester) {
-            //         return $data->semester_id == $currentSemester->id;
-            //     })->values();
-            // } else {
-            //     $tempRow['core_subjects'] = $row->coreSubject;
-            //     $tempRow['elective_subject_groups'] = $row->electiveSubjectGroup;
-            // }
-            if ($includesSemesters) {
+            if ($includesTerms) {
 
                 $tempRow['core_subjects'] = $row->coreSubject
-                    ->where('semester_id', $currentSemester->id)
+                    ->where('term_id', $currentTerm?->id ?? 0)
                     ->values();
 
                 $tempRow['elective_subject_groups'] = $row->electiveSubjectGroup
-                    ->where('semester_id', $currentSemester->id)
+                    ->where('term_id', $currentTerm?->id ?? 0)
                     ->values();
 
             } else {
@@ -409,11 +392,11 @@ class SubjectController extends Controller
     }
 
     /**
-     * Returns the full semester-wise subject breakdown for a single class,
+     * Returns the full term-wise subject breakdown for a single class,
      * scoped to the selected session year. Consumed by the bootstrap-table
      * detail view (expand row) on the class-subject listing.
      */
-    public function subjectSemesterDetails(Request $request, $class_id)
+    public function subjectTermDetails(Request $request, $class_id)
     {
         if (! Auth::user()->can('assign-class-subject')) {
             return response()->json([
@@ -430,7 +413,7 @@ class SubjectController extends Controller
                     if ($session_year_id) {
                         $q->where('session_year_id', $session_year_id);
                     }
-                    $q->with('subject', 'semester');
+                    $q->with('subject', 'term');
                 },
                 'electiveSubjectGroup' => function ($q) use ($session_year_id) {
                     if ($session_year_id) {
@@ -444,17 +427,17 @@ class SubjectController extends Controller
                 },
             ])->findOrFail($class_id);
 
-            // Order chronologically (start_date) so semesters read Sem 1 → Sem 2 …;
-            // fall back to id for any semester missing a start date.
-            $semesters = Semester::where('session_year_id', $session_year_id)
+            // Order chronologically (start_date) so terms read Term 1 → Term 2 …;
+            // fall back to id for any term missing a start date.
+            $terms = Term::where('session_year_id', $session_year_id)->forClass((int) $class->id)
                 ->orderByRaw('start_date IS NULL, start_date ASC')
                 ->orderBy('id', 'ASC')
                 ->get();
 
             $data = [];
-            foreach ($semesters as $semester) {
+            foreach ($terms as $term) {
                 $coreSubjects = $class->coreSubject
-                    ->where('semester_id', $semester->id)
+                    ->where('term_id', $term->id)
                     ->map(function ($classSubject) {
                         return [
                             'name' => $classSubject->subject->name ?? '',
@@ -463,7 +446,7 @@ class SubjectController extends Controller
                     })->values();
 
                 $electiveGroups = $class->electiveSubjectGroup
-                    ->where('semester_id', $semester->id)
+                    ->where('term_id', $term->id)
                     ->map(function ($group) {
                         return [
                             'total_subjects' => $group->total_subjects,
@@ -478,8 +461,8 @@ class SubjectController extends Controller
                     })->values();
 
                 $data[] = [
-                    'id' => $semester->id,
-                    'name' => $semester->name,
+                    'id' => $term->id,
+                    'name' => $term->name,
                     'core_subjects' => $coreSubjects,
                     'elective_groups' => $electiveGroups,
                 ];
@@ -487,7 +470,7 @@ class SubjectController extends Controller
 
             return response()->json([
                 'error' => false,
-                'semesters' => $data,
+                'terms' => $data,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -582,7 +565,7 @@ class SubjectController extends Controller
                 if ($sessionYearId) {
                     $q->where('session_year_id', $sessionYearId);
                 }
-                $q->with('semester');
+                $q->with('term');
             },
             'electiveSubjectGroup' => function ($q) use ($sessionYearId) {
                 if ($sessionYearId) {
@@ -597,13 +580,13 @@ class SubjectController extends Controller
             },
         ])->findOrFail($id);
 
-        $semesters = Semester::where('session_year_id', $sessionYearId)->orderBy('id', 'ASC')->get();
+        $terms = Term::where('session_year_id', $sessionYearId)->forClass((int) $class->id)->orderBy('id', 'ASC')->get();
         $subjects = Subject::orderBy('id', 'ASC')->get();
         $mediums = Mediums::orderBy('id', 'ASC')->get();
         $streams = Stream::orderBy('id', 'ASC')->get();
 
         $sessionYearName = SessionYear::whereKey($sessionYearId)->value('name');
 
-        return response(view('class.edit_subject', compact('class', 'semesters', 'subjects', 'mediums', 'streams', 'sessionYearId', 'sessionYearName')));
+        return response(view('class.edit_subject', compact('class', 'terms', 'subjects', 'mediums', 'streams', 'sessionYearId', 'sessionYearName')));
     }
 }

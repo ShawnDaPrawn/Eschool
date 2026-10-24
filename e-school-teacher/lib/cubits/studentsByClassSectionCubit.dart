@@ -10,21 +10,18 @@ class StudentsByClassSectionFetchInProgress
     extends StudentsByClassSectionState {}
 
 class StudentsByClassSectionFetchSuccess extends StudentsByClassSectionState {
-
   StudentsByClassSectionFetchSuccess({required this.students});
   final List<Student> students;
 }
 
 class StudentsByClassSectionFetchFailure extends StudentsByClassSectionState {
-
   StudentsByClassSectionFetchFailure(this.errorMessage);
   final String errorMessage;
 }
 
 class StudentsByClassSectionCubit extends Cubit<StudentsByClassSectionState> {
-
   StudentsByClassSectionCubit(this._studentRepository)
-      : super(StudentsByClassSectionInitial());
+    : super(StudentsByClassSectionInitial());
   final StudentRepository _studentRepository;
 
   void updateState(StudentsByClassSectionState updatedState) {
@@ -34,18 +31,18 @@ class StudentsByClassSectionCubit extends Cubit<StudentsByClassSectionState> {
   Future<void> fetchStudents({
     required int classSectionId,
     required int? subjectId,
-    String? semesterId,
+    String? termId,
   }) async {
     emit(StudentsByClassSectionFetchInProgress());
     try {
       emit(
         StudentsByClassSectionFetchSuccess(
-          students:
-              await _studentRepository.getStudentsByClassSectionAndSubject(
-            classSectionId: classSectionId,
-            subjectId: subjectId,
-            semesterId: semesterId,
-          ),
+          students: await _studentRepository
+              .getStudentsByClassSectionAndSubject(
+                classSectionId: classSectionId,
+                subjectId: subjectId,
+                termId: termId,
+              ),
         ),
       );
     } catch (e) {

@@ -159,7 +159,7 @@ $('#timetable_class_section,#date').on('change input', function () {
             const $dateInput = $('#date');
 
             // Attendance can't be marked for a future date (matches mobile app behaviour) —
-            // clamp the calendar's max date to today even if the session/semester ends later.
+            // clamp the calendar's max date to today even if the session/term ends later.
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if (parseDDMMYYYY(endDate) > today) {

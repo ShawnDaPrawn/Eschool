@@ -68,7 +68,7 @@ class ExamTimeTableCubit extends Cubit<ExamTimeTableState> {
 
   List<String> getSubjectName() {
     return getAllSubjects()
-        .map<String>((subject) => subject.subjectNameWithTypeAndSemester)
+        .map<String>((subject) => subject.subjectNameWithTypeAndTerm)
         .toList();
   }
 

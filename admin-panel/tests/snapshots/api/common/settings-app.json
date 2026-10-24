@@ -17,14 +17,18 @@
                 "max_files_or_images_in_one_message": "number"
             },
             "compulsory_fee_payment_mode": "string",
-            "current_semester": {
+            "current_term": {
                 "created_at": "string",
                 "current": "bool",
                 "deleted_at": "null",
                 "end_date": "string",
                 "end_month_name": "string",
+                "grade_from": "number",
+                "grade_to": "number",
                 "id": "number",
+                "marks_lock_on": "null",
                 "name": "string",
+                "reports_on": "null",
                 "session_year_id": "number",
                 "start_date": "string",
                 "start_month_name": "string",
@@ -44,7 +48,6 @@
             },
             "school_name": "string",
             "school_tagline": "string",
-            "semester_breaks": "null",
             "session_year": {
                 "created_at": "string",
                 "default": "number",
@@ -64,7 +67,8 @@
             "teacher_app_version": "string",
             "teacher_force_app_update": "string",
             "teacher_ios_app_link": "string",
-            "teacher_ios_app_version": "string"
+            "teacher_ios_app_version": "string",
+            "term_breaks": "null"
         },
         "error": "bool",
         "message": "string"

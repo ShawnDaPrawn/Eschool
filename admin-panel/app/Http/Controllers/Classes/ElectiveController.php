@@ -11,12 +11,12 @@ use App\Models\ClassSection;
 use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\ElectiveSubjectGroup;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\Term;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +50,7 @@ class ElectiveController extends Controller
                 'selected_subjects.*' => 'required|array|min:1',
                 'is_bulk' => 'nullable|in:0,1',
                 'session_year_id' => 'required|numeric',
-                'semester_id' => 'nullable|numeric',
+                'term_id' => 'nullable|numeric',
             ]);
 
             if ($validator->fails()) {
@@ -63,14 +63,14 @@ class ElectiveController extends Controller
             $isBulk = (int) $request->input('is_bulk', 0);
             $electiveGroupId = $request->input('elective_group');
             $selectedSubjects = $request->input('selected_subjects');
-            $semester_id = $request->input('semester_id') ?: null;
+            $term_id = $request->input('term_id') ?: null;
 
             // Flatten all selected subject IDs into one array
             $selectedSubjectIds = collect($selectedSubjects)->flatten()->toArray();
 
             $electiveGroup = ElectiveSubjectGroup::with('electiveSubjects')
-                ->when($semester_id, function ($query) use ($semester_id) {
-                    $query->where('semester_id', $semester_id);
+                ->when($term_id, function ($query) use ($term_id) {
+                    $query->where('term_id', $term_id);
                 })
                 ->findOrFail($electiveGroupId);
 
@@ -94,7 +94,7 @@ class ElectiveController extends Controller
                 ], 422);
             }
 
-            // Get session year and current semester
+            // Get session year and current term
 
             $sessionYearId = $request->session_year_id;
 
@@ -119,9 +119,9 @@ class ElectiveController extends Controller
                     ->where('class_section_id', $classSectionId)
                     ->where('session_year_id', $sessionYearId)
                     ->when(
-                        is_null($semester_id),
-                        fn ($q) => $q->whereNull('semester_id'),
-                        fn ($q) => $q->where('semester_id', $semester_id)
+                        is_null($term_id),
+                        fn ($q) => $q->whereNull('term_id'),
+                        fn ($q) => $q->where('term_id', $term_id)
                     )
                     ->whereIn('subject_id', $validSubjectIds)
                     ->delete();
@@ -133,7 +133,7 @@ class ElectiveController extends Controller
                         'subject_id' => $subjectId,
                         'class_section_id' => $classSectionId,
                         'session_year_id' => $sessionYearId,
-                        'semester_id' => $semester_id,
+                        'term_id' => $term_id,
                     ]);
                 }
             }
@@ -167,7 +167,7 @@ class ElectiveController extends Controller
                 ]);
             }
             $session_year_id = $request->session_year_id;
-            $semester_id = $request->semester_id;
+            $term_id = $request->term_id;
             $studentId = $request->input('student_id');
 
             if (! $studentId) {
@@ -185,19 +185,19 @@ class ElectiveController extends Controller
 
             $class_id = ClassSection::find($student_class_section_id)->class_id;
 
-            $hasSemesters = ClassSessionConfig::where('class_id', $class_id)
+            $hasTerms = ClassSessionConfig::where('class_id', $class_id)
                 ->where('session_year_id', $session_year_id)
-                ->where('include_semesters', true)
+                ->where('include_terms', true)
                 ->exists();
 
             // Get assigned elective subjects for this student
             $assignedSubjects = StudentSubject::where('student_id', $studentId)
                 ->where('class_section_id', $student_class_section_id)
                 ->where('session_year_id', $session_year_id)
-                ->when($hasSemesters, function ($query) use ($semester_id) {
-                    $query->where('semester_id', $semester_id);
+                ->when($hasTerms, function ($query) use ($term_id) {
+                    $query->where('term_id', $term_id);
                 }, function ($query) {
-                    $query->whereNull('semester_id');
+                    $query->whereNull('term_id');
                 })
                 ->pluck('subject_id')
                 ->toArray();
@@ -206,7 +206,7 @@ class ElectiveController extends Controller
             //     'studentId' => $studentId,
             //     'student_class_section_id' => $student_class_section_id,
             //     'session_year_id' => $session_year_id,
-            //     'semester_id' => $semester_id,
+            //     'term_id' => $term_id,
             // ]);
 
             return response()->json([
@@ -263,24 +263,24 @@ class ElectiveController extends Controller
         }
         $session_year_id = $request->session_year_id;
         $class_id = $request->class_id;
-        $semester_id = $request->semester_id;
+        $term_id = $request->term_id;
 
-        $hasSemesters = ClassSessionConfig::where('class_id', $class_id)
+        $hasTerms = ClassSessionConfig::where('class_id', $class_id)
             ->where('session_year_id', $session_year_id)
-            ->where('include_semesters', true)
+            ->where('include_terms', true)
             ->exists();
 
         $groups = ElectiveSubjectGroup::with([
             'electiveSubjects' => function ($query) {
-                $query->without('semester')->with('subject');
+                $query->without('term')->with('subject');
             },
         ])
             ->where('class_id', $class_id)
             ->where('session_year_id', $session_year_id)
-            ->when($hasSemesters, function ($query) use ($semester_id) {
-                $query->where('semester_id', $semester_id);
+            ->when($hasTerms, function ($query) use ($term_id) {
+                $query->where('term_id', $term_id);
             }, function ($query) {
-                $query->whereNull('semester_id');
+                $query->whereNull('term_id');
             })
             ->get()
             ->values();
@@ -301,29 +301,29 @@ class ElectiveController extends Controller
         $request->validate([
             'class_id' => 'required|integer',
             'session_year_id' => 'required|integer',
-            'semester_id' => 'nullable|integer',
+            'term_id' => 'nullable|integer',
         ]);
 
         $class_id = $request->class_id;
         $session_year_id = $request->session_year_id;
-        $semester_id = $request->semester_id;
+        $term_id = $request->term_id;
 
         // Fetch elective subjects corresponding to class
-        $hasSemesters = ClassSessionConfig::where('class_id', $class_id)
+        $hasTerms = ClassSessionConfig::where('class_id', $class_id)
             ->where('session_year_id', $session_year_id)
-            ->where('include_semesters', true)
+            ->where('include_terms', true)
             ->exists();
 
         $subjects = ElectiveSubjectGroup::with([
             'electiveSubjects' => function ($query) {
-                $query->without('semester')->with('subject');
+                $query->without('term')->with('subject');
             },
         ])
             ->where('class_id', $class_id)->where('session_year_id', $session_year_id)
-            ->when($hasSemesters, function ($query) use ($semester_id) {
-                $query->where('semester_id', $semester_id);
+            ->when($hasTerms, function ($query) use ($term_id) {
+                $query->where('term_id', $term_id);
             }, function ($query) {
-                $query->whereNull('semester_id');
+                $query->whereNull('term_id');
             })
             ->get()
             ->pluck('electiveSubjects')
@@ -351,7 +351,7 @@ class ElectiveController extends Controller
         $order = $request->input('order', 'DESC');
         $search = $request->input('search');
         $status = $request->input('filter_status');
-        $semester_id = $request->input('semester_id');
+        $term_id = $request->input('term_id');
 
         // Get session year
         $sessionYearId = (int) $request->session_year_id;
@@ -404,15 +404,15 @@ class ElectiveController extends Controller
        ------------------------------------------------------- */
         $rule = ElectiveSubjectGroup::where('class_id', $class_id)
             ->where('session_year_id', $sessionYearId)
-            ->when($semester_id, function ($q) use ($semester_id) {
-                $q->where('semester_id', $semester_id);
+            ->when($term_id, function ($q) use ($term_id) {
+                $q->where('term_id', $term_id);
             })
             ->first();
 
         $electiveIds = ClassSubject::where('class_id', $class_id)
             ->where('type', 'Elective')
-            ->when($semester_id, function ($q) use ($semester_id) {
-                $q->where('semester_id', $semester_id);
+            ->when($term_id, function ($q) use ($term_id) {
+                $q->where('term_id', $term_id);
             })
             ->where('session_year_id', $sessionYearId)
             ->pluck('subject_id')
@@ -422,8 +422,8 @@ class ElectiveController extends Controller
             ->whereIn('subject_id', $electiveIds)
             ->whereIn('class_section_id', $students->pluck('class_section_id'))
             ->where('session_year_id', $sessionYearId)
-            ->when($semester_id, function ($q) use ($semester_id) {
-                $q->where('semester_id', $semester_id);
+            ->when($term_id, function ($q) use ($term_id) {
+                $q->where('term_id', $term_id);
             })
             ->select('student_id', 'subject_id')
             ->get()

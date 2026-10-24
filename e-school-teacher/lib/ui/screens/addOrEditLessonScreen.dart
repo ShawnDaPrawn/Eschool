@@ -81,7 +81,7 @@ class _AddOrEditLessonScreenState extends State<AddOrEditLessonScreen> {
         )
       : CustomDropDownItem(
           index: 0,
-          title: widget.subject!.subjectNameWithTypeAndSemester,
+          title: widget.subject!.subjectNameWithTypeAndTerm,
         );
 
   late final TextEditingController _lessonNameTextEditingController =
@@ -161,7 +161,7 @@ class _AddOrEditLessonScreenState extends State<AddOrEditLessonScreen> {
       lessonId: widget.lesson!.id,
       classSectionId: widget.lesson!.classSectionId,
       subjectId: widget.subject!.id,
-      semesterId: widget.subject!.semester?.id,
+      termId: widget.subject!.term?.id,
       files: _addedStudyMaterials,
     );
   }
@@ -222,7 +222,7 @@ class _AddOrEditLessonScreenState extends State<AddOrEditLessonScreen> {
                 .id,
       files: _addedStudyMaterials,
       subjectId: selectedSubject.id,
-      semesterId: selectedSubject.semester?.id,
+      termId: selectedSubject.term?.id,
       lessonDescription: _lessonDescriptionTextEditingController.text.trim(),
       lessonName: _lessonNameTextEditingController.text.trim(),
     );
@@ -290,7 +290,7 @@ class _AddOrEditLessonScreenState extends State<AddOrEditLessonScreen> {
               //
               if (widget.subject != null)
                 DefaultDropDownLabelContainer(
-                  titleLabelKey: widget.subject!.subjectNameWithTypeAndSemester,
+                  titleLabelKey: widget.subject!.subjectNameWithTypeAndTerm,
                   width: boxConstraints.maxWidth,
                   highlight: true,
                 )

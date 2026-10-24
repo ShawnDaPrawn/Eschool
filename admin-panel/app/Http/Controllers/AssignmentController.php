@@ -12,11 +12,11 @@ use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\File;
 use App\Models\Notification;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\Term;
 use App\Rules\AfterNow;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
@@ -74,7 +74,7 @@ class AssignmentController extends Controller
         $session_year_id = request('session_year_id');
         // $current_session_id = getSettings('session_year')['session_year'];
 
-        $sql = Assignment::assignmentteachers()->with('class_section', 'file', 'subject', 'semester')
+        $sql = Assignment::assignmentteachers()->with('class_section', 'file', 'subject', 'term')
             ->where('session_year_id', $session_year_id)
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
@@ -108,21 +108,20 @@ class AssignmentController extends Controller
                     $query->where('class_section_id', $class_id);
                 });
             })
-            ->when(request('semester_id') != null, function ($query) {
-                $semester_id = request('semester_id');
-                $query->where(function ($query) use ($semester_id) {
-                    $query->where('semester_id', $semester_id);
+            ->when(request('term_id') != null, function ($query) {
+                $term_id = request('term_id');
+                $query->where(function ($query) use ($term_id) {
+                    $query->where('term_id', $term_id);
                 });
             });
         $total = $sql->count();
 
         $sql->orderBy($sort, $order)->skip($offset)->take($limit);
         $res = $sql->get();
-        $currentSemester = Semester::where('session_year_id', $session_year_id)
-            ->get()
-            ->first(fn ($semester) => $semester->current);
-        $semesterEnabledClassIds = ClassSessionConfig::where('session_year_id', $session_year_id)
-            ->where('include_semesters', true)
+        $res->loadMissing('class_section.class.gradeLevel');
+        $currentTerms = Term::where('session_year_id', $session_year_id)->get()->filter(fn ($term) => $term->current);
+        $termEnabledClassIds = ClassSessionConfig::where('session_year_id', $session_year_id)
+            ->where('include_terms', true)
             ->pluck('class_id')
             ->flip();
         $bulkData = [];
@@ -154,12 +153,15 @@ class AssignmentController extends Controller
                 $row?->class_section?->class?->medium->name.' '.($row?->class_section?->class?->streams->name ?? '')
             );
             $classId = $row?->class_section?->class_id;
-            $semesterName = $row?->semester?->name;
-            if (empty($semesterName) && $classId && isset($semesterEnabledClassIds[$classId])) {
-                $semesterName = $currentSemester?->name;
+            $termName = $row?->term?->name;
+            if (empty($termName) && $classId && isset($termEnabledClassIds[$classId])) {
+                $grade = $row->class_section?->class?->gradeLevel?->sort_order;
+                $termName = $currentTerms->first(fn ($term) => $grade === null
+                    ? $term->grade_from === 0 && $term->grade_to === 12
+                    : $term->grade_from <= $grade && $term->grade_to >= $grade)?->name;
             }
 
-            $tempRow['class_section_name'] = collect([$classSectionName, $classDetails, $semesterName])
+            $tempRow['class_section_name'] = collect([$classSectionName, $classDetails, $termName])
                 ->filter(fn ($value) => ! empty($value))
                 ->implode(' - ');
             $tempRow['subject_id'] = $row->subject_id;
@@ -172,7 +174,7 @@ class AssignmentController extends Controller
             $tempRow['resubmission'] = $row->resubmission;
             $tempRow['extra_days_for_resubmission'] = $row->extra_days_for_resubmission;
             $tempRow['session_year_id'] = $row->session_year_id;
-            $tempRow['semester_id'] = $row->semester_id;
+            $tempRow['term_id'] = $row->term_id;
             $tempRow['created_at'] = convertDateFormat($row->created_at, 'd-m-Y H:i:s');
             $tempRow['updated_at'] = convertDateFormat($row->updated_at, 'd-m-Y H:i:s');
             $tempRow['operate'] = $operate;
@@ -236,7 +238,7 @@ class AssignmentController extends Controller
             }
 
             $assignment->session_year_id = $session_year_id;
-            $assignment->semester_id = $request->semester_id ?: null;
+            $assignment->term_id = $request->term_id ?: null;
             $subject_name = Subject::select('name')->where('id', $assignment->subject_id)->pluck('name')->first();
             $title = 'Update assignment in '.$subject_name;
             $body = $request->name;
@@ -341,7 +343,7 @@ class AssignmentController extends Controller
                 $assignment->extra_days_for_resubmission = null;
             }
             $assignment->session_year_id = $request->session_year;
-            $assignment->semester_id = $request->semester_id ?: null;
+            $assignment->term_id = $request->term_id ?: null;
 
             $subject_name = Subject::where('id', $request->subject_id)->pluck('name')->first();
 
@@ -486,38 +488,38 @@ class AssignmentController extends Controller
                 ->where('id', $section->class->id)
                 ->first();
 
-            $hasSemesters = $class && $class->getIncludeSemestersForSession($session_year_id);
+            $hasTerms = $class && $class->getIncludeTermsForSession($session_year_id);
 
             $baseName = $section->class->name.' '.$section->section->name.' - '.$section->class->medium->name.' '.($section->class->streams->name ?? '');
 
-            if ($hasSemesters) {
-                // For teachers, only show semesters they are assigned to
+            if ($hasTerms) {
+                // For teachers, only show terms they are assigned to
                 if ($isTeacher) {
-                    $semesters = Semester::where('session_year_id', $session_year_id)
+                    $terms = Term::where('session_year_id', $session_year_id)
                         ->whereIn('id', function ($q) use ($section, $session_year_id, $user) {
-                            $q->select('semester_id')
+                            $q->select('term_id')
                                 ->from('subject_teachers')
                                 ->where('class_section_id', $section->id)
                                 ->where('session_year_id', $session_year_id)
-                                ->where('teacher_id', $user->teacher->id)  // ← only teacher's semesters
-                                ->whereNotNull('semester_id')
+                                ->where('teacher_id', $user->teacher->id)  // ← only teacher's terms
+                                ->whereNotNull('term_id')
                                 ->whereNull('deleted_at');
                         })
                         ->orderBy('id', 'ASC')
                         ->get();
                 } else {
-                    // Admin gets ALL semesters
-                    $semesters = Semester::where('session_year_id', $session_year_id)
+                    // Admin gets ALL terms
+                    $terms = Term::where('session_year_id', $session_year_id)
                         ->orderBy('id', 'ASC')
                         ->get();
                 }
 
-                foreach ($semesters as $semester) {
+                foreach ($terms as $term) {
                     $result[] = [
                         'id' => $section->id,
-                        'name' => $baseName.' - '.$semester->name,
+                        'name' => $baseName.' - '.$term->name,
                         'class_id' => $section->class->id,
-                        'semester_id' => $semester->id,
+                        'term_id' => $term->id,
                     ];
                 }
             } else {
@@ -525,7 +527,7 @@ class AssignmentController extends Controller
                     'id' => $section->id,
                     'name' => $baseName,
                     'class_id' => $section->class->id,
-                    'semester_id' => null,
+                    'term_id' => null,
                 ];
             }
         }
@@ -600,11 +602,11 @@ class AssignmentController extends Controller
                     });
                 });
             })
-            ->when(request('semester_id') != null, function ($query) {
-                $semester_id = request('semester_id');
-                $query->where(function ($query) use ($semester_id) {
-                    $query->whereHas('assignment', function ($q) use ($semester_id) {
-                        $q->where('semester_id', $semester_id);
+            ->when(request('term_id') != null, function ($query) {
+                $term_id = request('term_id');
+                $query->where(function ($query) use ($term_id) {
+                    $query->whereHas('assignment', function ($q) use ($term_id) {
+                        $q->where('term_id', $term_id);
                     });
                 });
             });

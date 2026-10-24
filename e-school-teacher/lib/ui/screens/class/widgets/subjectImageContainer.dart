@@ -36,9 +36,8 @@ class SubjectImageContainer extends StatelessWidget {
         boxShadow: showShadow
             ? [
                 BoxShadow(
-                  color: UiUtils.getColorFromHexValue(
-                    subject.bgColor,
-                  ).withValues(alpha: 0.2),
+                  color: UiUtils.getColorFromHexValue(subject.bgColor)
+                      .withValues(alpha: 0.2),
                   offset: const Offset(0, 4),
                   blurRadius: 10,
                 ),
@@ -51,7 +50,7 @@ class SubjectImageContainer extends StatelessWidget {
       width: width,
       child: subject.image.isEmpty
           ? SubjectFirstLetterContainer(
-              subjectName: subject.subjectNameWithTypeAndSemester,
+              subjectName: subject.subjectNameWithTypeAndTerm,
             )
           : subject.isSubjectImageSvg
           ? Padding(

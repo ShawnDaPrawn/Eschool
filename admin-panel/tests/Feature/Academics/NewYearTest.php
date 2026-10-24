@@ -22,7 +22,7 @@ class NewYearTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const YEAR_TABLES = ['class_subjects', 'elective_subject_groups', 'class_teachers', 'subject_teachers', 'timetables', 'grades', 'fees_classes', 'leave_masters', 'semesters', 'student_sessions', 'class_session_configs'];
+    private const YEAR_TABLES = ['class_subjects', 'elective_subject_groups', 'class_teachers', 'subject_teachers', 'timetables', 'grades', 'fees_classes', 'leave_masters', 'terms', 'student_sessions', 'class_session_configs'];
 
     private SessionYear $current;
 
@@ -61,7 +61,7 @@ class NewYearTest extends TestCase
         $this->assertSame($before, $this->snapshot(), 'Creating next year changed the current year');
         $this->assertSame((string) $this->current->id, (string) getSettings('session_year')['session_year']);
         $this->assertNull(session('session_year'), 'The panel must keep showing the current year');
-        $this->assertSame(2, DB::table('semesters')->where('session_year_id', $next->id)->count(), 'The terms with dates are created');
+        $this->assertSame(2, DB::table('terms')->where('session_year_id', $next->id)->count(), 'The terms with dates are created');
         foreach (['class_subjects', 'class_teachers', 'timetables', 'grades', 'fees_classes', 'leave_masters'] as $table) {
             $this->assertSame(0, DB::table($table)->where('session_year_id', $next->id)->count(), "Nothing is carried into $table before the switch");
         }
@@ -114,12 +114,12 @@ class NewYearTest extends TestCase
 
     public function test_carried_rows_point_at_next_years_terms_and_subject_teachers(): void
     {
-        $termOne = (int) DB::table('semesters')->where('session_year_id', $this->current->id)->value('id');
+        $termOne = (int) DB::table('terms')->where('session_year_id', $this->current->id)->value('id');
         foreach (['class_subjects', 'class_teachers', 'subject_teachers', 'timetables'] as $table) {
-            DB::table($table)->where('session_year_id', $this->current->id)->update(['semester_id' => $termOne]);
+            DB::table($table)->where('session_year_id', $this->current->id)->update(['term_id' => $termOne]);
         }
         $next = $this->createNextYear();
-        $nextTermOne = (int) DB::table('semesters')->where('session_year_id', $next->id)->where('name', 'Term 1')->value('id');
+        $nextTermOne = (int) DB::table('terms')->where('session_year_id', $next->id)->where('name', 'Term 1')->value('id');
 
         $this->actingAs($this->superAdmin())->postJson(route('new-year.make-current'), [
             'year_id' => $next->id,
@@ -127,14 +127,14 @@ class NewYearTest extends TestCase
         ])->assertOk();
 
         foreach (['class_subjects', 'class_teachers', 'subject_teachers', 'timetables'] as $table) {
-            $this->assertSame([$nextTermOne], DB::table($table)->where('session_year_id', $next->id)->distinct()->pluck('semester_id')->map(fn ($id) => (int) $id)->all(), "$table points at next year's Term 1");
+            $this->assertSame([$nextTermOne], DB::table($table)->where('session_year_id', $next->id)->distinct()->pluck('term_id')->map(fn ($id) => (int) $id)->all(), "$table points at next year's Term 1");
         }
         $lesson = DB::table('timetables')->where('session_year_id', $next->id)->first();
         $subjectTeacher = DB::table('subject_teachers')->where('id', $lesson->subject_teacher_id)->first();
         $this->assertSame($next->id, (int) $subjectTeacher->session_year_id);
-        $this->assertSame($nextTermOne, (int) $subjectTeacher->semester_id);
+        $this->assertSame($nextTermOne, (int) $subjectTeacher->term_id);
         // The current year's rows keep their own term.
-        $this->assertSame([$termOne], DB::table('timetables')->where('session_year_id', $this->current->id)->distinct()->pluck('semester_id')->map(fn ($id) => (int) $id)->all());
+        $this->assertSame([$termOne], DB::table('timetables')->where('session_year_id', $this->current->id)->distinct()->pluck('term_id')->map(fn ($id) => (int) $id)->all());
     }
 
     public function test_promotions_are_checked_per_learner_not_by_count(): void
@@ -257,14 +257,14 @@ class NewYearTest extends TestCase
     {
         $now = ['created_at' => now(), 'updated_at' => now()];
         $year = $this->current->id;
-        SchoolTable::query('semesters')->insert(['name' => 'Term 1', 'start_date' => $this->current->start_date, 'end_date' => $this->current->end_date, 'session_year_id' => $year] + $now);
+        SchoolTable::query('terms')->insert(['name' => 'Term 1', 'start_date' => $this->current->start_date, 'end_date' => $this->current->end_date, 'session_year_id' => $year] + $now);
         $medium = SchoolTable::query('mediums')->insertGetId(['name' => 'English'] + $now);
         $section = SchoolTable::query('sections')->insertGetId(['name' => 'A'] + $now);
         $classA = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 5', 'medium_id' => $medium] + $now);
         $classB = SchoolTable::query('classes')->insertGetId(['name' => 'Grade 6', 'medium_id' => $medium] + $now);
         $this->ids['homeroom_a'] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $classA, 'section_id' => $section] + $now);
         $this->ids['homeroom_b'] = SchoolTable::query('class_sections')->insertGetId(['class_id' => $classB, 'section_id' => $section] + $now);
-        SchoolTable::query('class_session_configs')->insert(['class_id' => $classA, 'session_year_id' => $year, 'include_semesters' => 0] + $now);
+        SchoolTable::query('class_session_configs')->insert(['class_id' => $classA, 'session_year_id' => $year, 'include_terms' => 0] + $now);
         foreach (['Maths', 'English'] as $name) {
             $subject = SchoolTable::query('subjects')->insertGetId(['name' => $name, 'code' => strtoupper(substr($name, 0, 3)), 'bg_color' => '#5c6bc0', 'image' => 's.png', 'medium_id' => $medium, 'type' => 'Theory'] + $now);
             SchoolTable::query('class_subjects')->insert(['class_id' => $classA, 'subject_id' => $subject, 'type' => 'Compulsory', 'session_year_id' => $year] + $now);

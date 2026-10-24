@@ -60,7 +60,7 @@
                                         tabindex="-1" aria-hidden="true">
                                         <option value="">{{ __('select') . ' ' . __('class_section') }}</option>
                                     </select>
-                                    <input type="hidden" name="semester_id" id="semester_id" value="">
+                                    <input type="hidden" name="term_id" id="term_id" value="">
                                 </div>
                                 <div class="form-group col-sm-12 col-md-3 show_class_section_id">
                                     <label>&nbsp;</label>
@@ -174,7 +174,7 @@
                                     style="width:100%;" tabindex="-1" aria-hidden="true">
                                     <option value="">{{ __('select') . ' ' . __('class_section') }}</option>
                                 </select>
-                                <input type="hidden" name="semester_id" id="edit_semester_id" value="">
+                                <input type="hidden" name="term_id" id="edit_term_id" value="">
                                 <br>
                                 <br>
                                 <div class="form-group">
@@ -208,8 +208,8 @@
     <script>
         $('.show_class_section_id').hide();
 
-        // Load class sections with semester support
-        function loadAnnouncementClassSections(targetSelector, subjectSelector, semesterInputSelector) {
+        // Load class sections with term support
+        function loadAnnouncementClassSections(targetSelector, subjectSelector, termInputSelector) {
             let session_year_id = '{{ getSettings('session_year')['session_year'] }}';
             $.ajax({
                 url: "{{ url('announcement-class-sections') }}",
@@ -222,20 +222,20 @@
                     for (let i = 0; i < response.length; i++) {
                         html += '<option value="' + response[i]['id'] + '" data-class="' + response[i][
                             'class_id'
-                        ] + '" data-semester="' + (response[i]['semester_id'] || '') + '">' + response[i][
+                        ] + '" data-term="' + (response[i]['term_id'] || '') + '">' + response[i][
                             'name'
                         ] + '</option>';
                     }
                     $(targetSelector).html(html);
                     $(subjectSelector).html('');
-                    $(semesterInputSelector).val('');
+                    $(termInputSelector).val('');
                 }
             });
         }
 
         // Load class sections on page load
-        loadAnnouncementClassSections('#class_section_id', '#get_data', '#semester_id');
-        loadAnnouncementClassSections('#edit_class_section_id', '#edit_get_data', '#edit_semester_id');
+        loadAnnouncementClassSections('#class_section_id', '#get_data', '#term_id');
+        loadAnnouncementClassSections('#edit_class_section_id', '#edit_get_data', '#edit_term_id');
 
         $('#set_data').on('change', function() {
             data = $(this).val();
@@ -265,11 +265,11 @@
             });
         });
 
-        // Create form: class section change -> load subjects with semester
+        // Create form: class section change -> load subjects with term
         $('#class_section_id').on('change', function() {
             let class_id = $(this).find(':selected').attr('data-class');
-            let semester_id = $(this).find(':selected').data('semester') || '';
-            $('#semester_id').val(semester_id);
+            let term_id = $(this).find(':selected').data('term') || '';
+            $('#term_id').val(term_id);
 
             if (!$(this).val()) {
                 $('#get_data').html('');
@@ -283,7 +283,7 @@
                     data: 'class_section',
                     class_id: class_id,
                     class_section_id: $('#class_section_id').val(),
-                    semester_id: semester_id
+                    term_id: term_id
                 },
                 success: function(response) {
                     let html = '';
@@ -331,12 +331,12 @@
             });
         });
 
-        // Edit form: class section change -> load subjects with semester
+        // Edit form: class section change -> load subjects with term
         $('#edit_class_section_id').on('change', function(e, subjectid) {
             data = $('#edit_set_data').val();
             let class_id = $(this).find(':selected').attr('data-class');
-            let semester_id = $(this).find(':selected').data('semester') || '';
-            $('#edit_semester_id').val(semester_id);
+            let term_id = $(this).find(':selected').data('term') || '';
+            $('#edit_term_id').val(term_id);
 
             $.ajax({
                 url: "{{ url('getAssignData') }}",
@@ -345,7 +345,7 @@
                     data: data,
                     class_id: class_id,
                     class_section_id: $('#edit_class_section_id').val(),
-                    semester_id: semester_id
+                    term_id: term_id
                 },
                 success: function(response) {
                     html = '';

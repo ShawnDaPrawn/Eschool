@@ -381,7 +381,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
           .getClassSectionDetails(index: currentSelectedClassSection.index)
           .id,
       subjectId: selectedSubject.id,
-      semesterId: selectedSubject.semester?.id,
+      termId: selectedSubject.term?.id,
       name: _assignmentNameTextEditingController.text.trim(),
       datetime:
           "${DateFormat('dd-MM-yyyy').format(dueDate!)} ${dueTime!.hour.toString().padLeft(2, '0')}:${dueTime!.minute.toString().padLeft(2, '0')}",
@@ -429,7 +429,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
     context.read<EditAssignmentCubit>().editAssignment(
       classSelectionId: widget.assignment!.classSectionId,
       subjectId: widget.assignment!.subjectId,
-      semesterId: widget.assignment!.subject.semester?.id,
+      termId: widget.assignment!.subject.term?.id,
       name: _assignmentNameTextEditingController.text.trim(),
       dateTime:
           "${DateFormat('dd-MM-yyyy').format(dueDate!)} ${dueTime!.hour.toString().padLeft(2, '0')}:${dueTime!.minute.toString().padLeft(2, '0')}",
@@ -489,7 +489,7 @@ class _AddAssignmentScreenState extends State<AddAssignmentScreen> {
             if (widget.editassignment)
               DefaultDropDownLabelContainer(
                 titleLabelKey:
-                    widget.assignment!.subject.subjectNameWithTypeAndSemester,
+                    widget.assignment!.subject.subjectNameWithTypeAndTerm,
                 width: boxConstraints.maxWidth,
               )
             else

@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Api\Teacher\Concerns\TeacherAccess;
 use App\Http\Controllers\Controller;
-use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
+use App\Models\Term;
 use App\Models\Timetable;
 use App\Services\ResponseService;
 use Illuminate\Http\Request;
@@ -79,31 +79,29 @@ class TimetableController extends Controller
         }
     }
 
-    /** The timetable entries getTeacherTimetable shows the teacher (current session year and semester). */
+    /** The timetable entries getTeacherTimetable shows the teacher (current session year and term). */
     private function teacherTimetableQuery(Teacher $teacher)
     {
         // Fetch current session year ID once
         $sessionYearId = getSettings('session_year')['session_year'];
 
-        // Get current semester for this session
-        $currentSemester = Semester::where('session_year_id', $sessionYearId)
-            ->get()
-            ->first(fn ($s) => $s->current);
+        // Get current term for this session
+        $currentTerms = Term::query()->where('session_year_id', $sessionYearId)->get()->filter(fn ($term) => $term->current)->pluck('id');
 
         // Get subject-teacher IDs for:
-        // - current semester OR semester is null
+        // - current term OR term is null
         $subjectTeacherIds = SubjectTeacher::where('teacher_id', $teacher->id)
-            ->where(function ($query) use ($currentSemester) {
-                $query->where('semester_id', $currentSemester?->id)
-                    ->orWhereNull('semester_id');
+            ->where(function ($query) use ($currentTerms) {
+                $query->whereIn('term_id', $currentTerms)
+                    ->orWhereNull('term_id');
             })
             ->pluck('id');
 
         return Timetable::whereIn('subject_teacher_id', $subjectTeacherIds)
             ->where('session_year_id', $sessionYearId)
-            ->where(function ($query) use ($currentSemester) {
-                $query->where('semester_id', $currentSemester?->id)
-                    ->orWhereNull('semester_id');
+            ->where(function ($query) use ($currentTerms) {
+                $query->whereIn('term_id', $currentTerms)
+                    ->orWhereNull('term_id');
             });
     }
 }

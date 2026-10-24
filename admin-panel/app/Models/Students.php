@@ -195,9 +195,9 @@ class Students extends Model
      *
      * @return array<string, mixed>
      */
-    public function subjects(bool $ignoreSemester = false): array
+    public function subjects(bool $ignoreTerm = false): array
     {
-        $currentSemester = $this->getCurrentSemester();
+        $currentTerm = $this->getCurrentTerm();
         $session_year = getSettings('session_year');
         $session_year_id = $session_year['session_year'];
 
@@ -216,32 +216,32 @@ class Students extends Model
             ->where('id', $class_id)
             ->first();
 
-        $includesSemesters = ! $ignoreSemester
-            && $class?->getIncludeSemestersForSession($session_year_id)
-            && $currentSemester;
+        $includesTerms = ! $ignoreTerm
+            && $class?->getIncludeTermsForSession($session_year_id)
+            && $currentTerm;
 
-        // Core subjects — filter by semester if applicable
-        $core_subjects = $includesSemesters
+        // Core subjects — filter by term if applicable
+        $core_subjects = $includesTerms
             ? $classSection->class->coreSubject
-                ?->where('semester_id', $currentSemester->id)
+                ?->where('term_id', $currentTerm->id)
                 ->where('session_year_id', $session_year_id)
                 ->values()->toArray() ?? []
             : $classSection->class->coreSubject
                 ?->where('session_year_id', $session_year_id)
                 ->values()->toArray() ?? [];
 
-        // Elective subjects — include semester_id in select so where() works correctly
+        // Elective subjects — include term_id in select so where() works correctly
         $electiveSubjectQuery = StudentSubject::where('student_id', $this->id)
             ->where('class_section_id', $class_section_id)
             ->where('session_year_id', $session_year_id)
-            ->select('subject_id', 'semester_id')
+            ->select('subject_id', 'term_id')
             ->with('subject');
 
-        if ($includesSemesters) {
-            $electiveSubjectQuery->where('semester_id', $currentSemester->id);
+        if ($includesTerms) {
+            $electiveSubjectQuery->where('term_id', $currentTerm->id);
             $elective_subject_count = $classSection->class->electiveSubjectGroup
                 ->where('session_year_id', $session_year_id)
-                ->where('semester_id', $currentSemester->id)
+                ->where('term_id', $currentTerm->id)
                 ->count();
         } else {
             $elective_subject_count = $classSection->class->electiveSubjectGroup
@@ -264,21 +264,21 @@ class Students extends Model
      */
     public function classSubjects(): array
     {
-        $currentSemester = $this->getCurrentSemester();
+        $currentTerm = $this->getCurrentTerm();
         $session_year = getSettings('session_year');
         $session_year_id = $session_year['session_year'];
         $class = ClassSchool::withSessionConfigFor($session_year_id)
             ->where('id', $this->class_section->class->id)
             ->first();
 
-        $includesSemesters = $class?->getIncludeSemestersForSession($session_year_id) && $currentSemester;
+        $includesTerms = $class?->getIncludeTermsForSession($session_year_id) && $currentTerm;
 
-        if ($includesSemesters) {
+        if ($includesTerms) {
             $core_subjects = $this->class_section->class->coreSubject
                 ->where('session_year_id', $session_year_id)
-                ->where('semester_id', $currentSemester->id)->values();
+                ->where('term_id', $currentTerm->id)->values();
             $elective_subjects = $this->class_section->class->electiveSubjectGroup
-                ->where('semester_id', $currentSemester->id)
+                ->where('term_id', $currentTerm->id)
                 ->where('session_year_id', $session_year_id)
                 ->values()
                 ->load('electiveSubjects.subject');
@@ -300,13 +300,17 @@ class Students extends Model
     }
 
     /**
-     * Get current semester.
+     * Get current term.
      */
-    private function getCurrentSemester(): ?Semester
+    private function getCurrentTerm(): ?Term
     {
-        return Semester::where('session_year_id', getSettings('session_year')['session_year'] ?? null)
+        $year = getSettings('session_year')['session_year'] ?? null;
+        $section = $this->studentSessions()->where('session_year_id', $year)->first()?->class_section ?? $this->class_section;
+        $grade = $section?->class?->gradeLevel?->sort_order;
+
+        return Term::where('session_year_id', $year)->forGrade($grade)
             ->get()
-            ->first(fn ($semester) => $semester->current);
+            ->first(fn ($term) => $term->current);
     }
 
     /**

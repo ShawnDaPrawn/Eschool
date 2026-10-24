@@ -125,7 +125,7 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
         '${UiUtils.formatTime(timeTableSlot.startTime)} - ${UiUtils.formatTime(timeTableSlot.endTime)}';
     final String classSection = timeTableSlot.classSectionDetails
         .getClassSectionNameWithMedium();
-    final String subject = timeTableSlot.subject.subjectNameWithTypeAndSemester;
+    final String subject = timeTableSlot.subject.subjectNameWithTypeAndTerm;
     // One node per lesson for screen readers: time, class and subject read
     // together; the link actions stay separate, labelled buttons.
     return Semantics(
@@ -136,9 +136,8 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Theme.of(
-                context,
-              ).colorScheme.shadow.withValues(alpha: 0.05),
+              color: Theme.of(context).colorScheme.shadow
+                  .withValues(alpha: 0.05),
               offset: const Offset(2.5, 2.5),
               blurRadius: 10,
             ),
@@ -189,9 +188,9 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                   fontWeight: FontWeight.w400,
                                   fontSize: 12,
                                 ),
@@ -207,9 +206,9 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
                             fontWeight: FontWeight.w400,
                             fontSize: 12,
                           ),
@@ -234,9 +233,9 @@ class _TimeTableContainerState extends State<TimeTableContainer> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
                                     ),

@@ -64,8 +64,8 @@ class SchoolRoles
         'role-edit', 'role-delete', 'staff-create', 'staff-list', 'staff-edit', 'staff-delete',
         'generate-id-card', 'id-card-setting', 'generate-document', 'generate-result',
         'leave-setting-create', 'leave-list', 'leave-approve', 'leave-delete', 'chat-settings',
-        'attendance-report', 'semester-list', 'semester-create', 'semester-edit',
-        'semester-delete', 'online-registration-list', 'student-leave-approve',
+        'attendance-report', 'term-list', 'term-create', 'term-edit',
+        'term-delete', 'online-registration-list', 'student-leave-approve',
         'assign-elective-subjects', 'view-exam-result', 'assign-class-subject', 'student-report',
     ];
 

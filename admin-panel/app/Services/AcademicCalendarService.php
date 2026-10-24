@@ -5,11 +5,11 @@ namespace App\Services;
 use App\Models\Event;
 use App\Models\ExamTimetable;
 use App\Models\Holiday;
-use App\Models\Semester;
+use App\Models\SessionYear;
+use App\Services\Academics\TermBreaks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class AcademicCalendarService
 {
@@ -17,13 +17,13 @@ class AcademicCalendarService
     {
         $sessionYear = $this->getSessionYear();
 
-        $semesterBreaks = $this->getSemesterBreaks($sessionYear);
+        $termBreaks = $this->getTermBreaks($sessionYear);
         $holidays = $this->getHolidays($sessionYear->id);
         $events = $this->getEvents($sessionYear->id);
         $exams = $this->getExams($sessionYear, $classIds);
 
         $allItems = $holidays
-            ->merge($semesterBreaks)
+            ->merge($termBreaks)
             ->merge($events)
             ->merge($exams)
             ->sortBy('date')
@@ -40,7 +40,7 @@ class AcademicCalendarService
     {
         $sessionYearId = getSettings('session_year')['session_year'];
 
-        $sessionYear = DB::table('session_years')
+        $sessionYear = SessionYear::query()
             ->select('id', 'name', 'start_date', 'end_date')
             ->where('id', $sessionYearId)
             ->first();
@@ -52,44 +52,11 @@ class AcademicCalendarService
         return $sessionYear;
     }
 
-    private function getSemesterBreaks($sessionYear): Collection
+    private function getTermBreaks($sessionYear): Collection
     {
-        $semesterBreaks = collect();
-
-        $semesters = Semester::query()
-            ->whereBetween('start_date', [
-                $sessionYear->start_date,
-                $sessionYear->end_date,
-            ])
-            ->orderBy('start_date')
-            ->get();
-
-        for ($i = 0; $i < $semesters->count() - 1; $i++) {
-            $current = $semesters[$i];
-            $next = $semesters[$i + 1];
-
-            if (
-                $current->end_date &&
-                $next->start_date &&
-                Carbon::parse($next->start_date)->gt(Carbon::parse($current->end_date))
-            ) {
-                $breakStart = Carbon::parse($current->end_date)->addDay();
-                $breakEnd = Carbon::parse($next->start_date)->subDay();
-
-                if (
-                    $breakStart->between($sessionYear->start_date, $sessionYear->end_date) &&
-                    $breakEnd->between($sessionYear->start_date, $sessionYear->end_date)
-                ) {
-                    $semesterBreaks->push((object) [
-                        'date' => $breakStart->toDateString(),
-                        'type' => 'holiday',
-                        'title' => "Semester Break: {$breakStart->format('jS M')} - {$breakEnd->format('jS M')}",
-                    ]);
-                }
-            }
-        }
-
-        return $semesterBreaks;
+        return collect(app(TermBreaks::class)->forYear($sessionYear->id))
+            ->map(fn ($break) => (object) ['date' => $break['start'], 'type' => 'holiday',
+                'title' => 'Term Break: '.$break['start'].' - '.$break['end']]);
     }
 
     private function getHolidays(int $sessionYearId): Collection

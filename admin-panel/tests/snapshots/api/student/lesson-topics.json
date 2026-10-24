@@ -28,8 +28,8 @@
                     "description": "string",
                     "id": "number",
                     "name": "string",
-                    "semester_id": "null",
-                    "subject_id": "number"
+                    "subject_id": "number",
+                    "term_id": "null"
                 },
                 "lesson_id": "number",
                 "name": "string"

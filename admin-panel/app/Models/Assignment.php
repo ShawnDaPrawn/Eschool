@@ -67,9 +67,9 @@ class Assignment extends Model
         return $this->belongsTo(Subject::class)->withTrashed();
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class)->withTrashed();
+        return $this->belongsTo(Term::class)->withTrashed();
     }
 
     public function submissions(): HasMany
@@ -119,10 +119,10 @@ class Assignment extends Model
                     ->whereColumn('subject_teachers.subject_id', 'assignments.subject_id')
                     ->where('subject_teachers.teacher_id', $teacherId)
 
-                    ->where(function ($semesterQuery) {
+                    ->where(function ($termQuery) {
 
-                        // Semester based classes
-                        $semesterQuery->where(function ($q1) {
+                        // Term based classes
+                        $termQuery->where(function ($q1) {
 
                             $q1->whereExists(function ($configQuery) {
 
@@ -130,15 +130,15 @@ class Assignment extends Model
                                     ->from('class_session_configs')
                                     ->whereColumn('class_session_configs.class_id', 'class_sections.class_id')
                                     ->whereColumn('class_session_configs.session_year_id', 'assignments.session_year_id')
-                                    ->where('class_session_configs.include_semesters', true);
+                                    ->where('class_session_configs.include_terms', true);
                             })
                                 ->whereColumn(
-                                    'subject_teachers.semester_id',
-                                    'assignments.semester_id'
+                                    'subject_teachers.term_id',
+                                    'assignments.term_id'
                                 );
                         })
 
-                            // Non-semester based classes
+                            // Non-term based classes
                             ->orWhere(function ($q2) {
 
                                 $q2->whereNotExists(function ($configQuery) {
@@ -147,7 +147,7 @@ class Assignment extends Model
                                         ->from('class_session_configs')
                                         ->whereColumn('class_session_configs.class_id', 'class_sections.class_id')
                                         ->whereColumn('class_session_configs.session_year_id', 'assignments.session_year_id')
-                                        ->where('class_session_configs.include_semesters', true);
+                                        ->where('class_session_configs.include_terms', true);
                                 });
                             });
                     });

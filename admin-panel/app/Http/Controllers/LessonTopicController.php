@@ -194,7 +194,7 @@ class LessonTopicController extends Controller
             $order = $_GET['order'];
         }
 
-        $sql = LessonTopic::lessontopicteachers()->with('lesson.class_section', 'lesson.subject', 'lesson.semester', 'file');
+        $sql = LessonTopic::lessontopicteachers()->with('lesson.class_section', 'lesson.subject', 'lesson.term', 'file');
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(function ($query) use ($search) {
@@ -224,9 +224,9 @@ class LessonTopicController extends Controller
                 $q->where('class_section_id', $_GET['class_id']);
             });
         }
-        if (! empty($_GET['semester_id'])) {
+        if (! empty($_GET['term_id'])) {
             $sql = $sql->whereHas('lesson', function ($q) {
-                $q->where('semester_id', $_GET['semester_id']);
+                $q->where('term_id', $_GET['term_id']);
             });
         }
         if (! empty($_GET['lesson_id'])) {
@@ -255,7 +255,7 @@ class LessonTopicController extends Controller
             $tempRow['lesson_name'] = $row->lesson->name;
             $tempRow['class_section_id'] = $row->lesson->class_section->id;
             $tempRow['class_section_name'] = $row->lesson->class_section->class->name.' '.$row->lesson->class_section->section->name.' - '.$row->lesson->class_section->class->medium->name;
-            $tempRow['semester_name'] = $row->lesson->semester ? $row->lesson->semester->name : '-';
+            $tempRow['term_name'] = $row->lesson->term ? $row->lesson->term->name : '-';
             $tempRow['subject_id'] = $row->lesson->subject->id;
             $tempRow['subject_name'] = $row->lesson->subject->name.' - '.$row->lesson->subject->type;
             $tempRow['file'] = $row->file;

@@ -11,19 +11,19 @@ class TransferClassTeacherAndSubjectTeacher
     public function execute(int $fromSessionId, int $toSessionId): void
     {
         // Terms belong to a year: point the copies at the new year's terms.
-        $semesters = YearIdMap::semesters($fromSessionId, $toSessionId);
+        $terms = YearIdMap::terms($fromSessionId, $toSessionId);
 
         ClassTeacher::where('session_year_id', $fromSessionId)
-            ->chunkById(500, function ($rows) use ($toSessionId, $semesters) {
+            ->chunkById(500, function ($rows) use ($toSessionId, $terms) {
 
-                $insertClassTeacherData = $rows->map(function (ClassTeacher $row) use ($toSessionId, $semesters) {
+                $insertClassTeacherData = $rows->map(function (ClassTeacher $row) use ($toSessionId, $terms) {
                     return array_merge(
                         collect($row->getAttributes())
                             ->except(['id', 'created_at', 'updated_at'])
                             ->toArray(),
                         [
                             'session_year_id' => $toSessionId,
-                            'semester_id' => YearIdMap::semester($row->semester_id, $semesters),
+                            'term_id' => YearIdMap::term($row->term_id, $terms),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]
@@ -35,16 +35,16 @@ class TransferClassTeacherAndSubjectTeacher
             });
 
         SubjectTeacher::where('session_year_id', $fromSessionId)
-            ->chunkById(500, function ($rows) use ($toSessionId, $semesters) {
+            ->chunkById(500, function ($rows) use ($toSessionId, $terms) {
 
-                $insertSubjectTeacherData = $rows->map(function (SubjectTeacher $row) use ($toSessionId, $semesters) {
+                $insertSubjectTeacherData = $rows->map(function (SubjectTeacher $row) use ($toSessionId, $terms) {
                     return array_merge(
                         collect($row->getAttributes())
                             ->except(['id', 'created_at', 'updated_at'])
                             ->toArray(),
                         [
                             'session_year_id' => $toSessionId,
-                            'semester_id' => YearIdMap::semester($row->semester_id, $semesters),
+                            'term_id' => YearIdMap::term($row->term_id, $terms),
                             'created_at' => now(),
                             'updated_at' => now(),
                         ]

@@ -23,10 +23,10 @@ use App\Models\OnlineExamQuestionChoice;
 use App\Models\OnlineExamStudentAnswer;
 use App\Models\PaidInstallmentFee;
 use App\Models\PaymentTransaction;
-use App\Models\Semester;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
+use App\Models\Term;
 use App\Services\OnlineExamScoringService;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LegacyAmount;
@@ -158,7 +158,7 @@ class ReportController extends Controller
             'examDetail' => collect(),
             'leaveDetail' => collect(),
             'assignment' => collect(),
-            'semesters' => collect(),
+            'terms' => collect(),
             'mounth' => [],
             'holidayscount' => 0,
             'workingdays' => 0,
@@ -543,29 +543,29 @@ class ReportController extends Controller
     private function assignmentReport(Request $request, $student, $sessionYear, $data)
     {
 
-        $semesterId = $request->get('semester_id');
+        $termId = $request->get('term_id');
 
         $query = AssignmentSubmission::with([
             'assignment.subject',
             'assignment.session_year',
-            'assignment.semester',
+            'assignment.term',
             'assignment.class_section.subject_teachers.teacher.user',
             'file',
         ])
             ->where('student_id', $request->id)
             ->where('session_year_id', $sessionYear->id);
 
-        // Semester Filter
-        if (! empty($semesterId) && $semesterId != 'all') {
+        // Term Filter
+        if (! empty($termId) && $termId != 'all') {
 
-            $query->whereHas('assignment', function ($q) use ($semesterId) {
-                $q->where('semester_id', $semesterId);
+            $query->whereHas('assignment', function ($q) use ($termId) {
+                $q->where('term_id', $termId);
             });
         }
 
         $data['Assignment'] = $query->get();
 
-        $data['semesters'] = Semester::where(
+        $data['terms'] = Term::where(
             'session_year_id',
             $sessionYear->id
         )->get();

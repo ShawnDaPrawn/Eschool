@@ -101,7 +101,7 @@ class _TopicsScreenState extends State<TopicsScreen> {
                         )
                         .id,
                     subjectId: subject.id,
-                    semesterId: subject.semester?.id,
+                    termId: subject.term?.id,
                   );
 
                   context.read<TopicsCubit>().updateState(TopicsInitial());
@@ -192,24 +192,24 @@ class _TopicsScreenState extends State<TopicsScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionAddButton(
         onTap: () {
-          Navigator.of(context).pushNamed<bool?>(Routes.addOrEditTopic).then((
-            value,
-          ) {
-            if (value != null && value) {
-              if (context.mounted) {
-                final lessonsState = context.read<LessonsCubit>().state;
-                if (lessonsState is LessonsFetchSuccess &&
-                    lessonsState.lessons.isNotEmpty) {
-                  context.read<TopicsCubit>().fetchTopics(
-                    lessonId: context
-                        .read<LessonsCubit>()
-                        .getLesson(currentSelectedLesson.index)
-                        .id,
-                  );
+          Navigator.of(context)
+              .pushNamed<bool?>(Routes.addOrEditTopic)
+              .then((value) {
+                if (value != null && value) {
+                  if (context.mounted) {
+                    final lessonsState = context.read<LessonsCubit>().state;
+                    if (lessonsState is LessonsFetchSuccess &&
+                        lessonsState.lessons.isNotEmpty) {
+                      context.read<TopicsCubit>().fetchTopics(
+                        lessonId: context
+                            .read<LessonsCubit>()
+                            .getLesson(currentSelectedLesson.index)
+                            .id,
+                      );
+                    }
+                  }
                 }
-              }
-            }
-          });
+              });
         },
       ),
       body: Stack(
@@ -246,9 +246,7 @@ class _TopicsScreenState extends State<TopicsScreen> {
                 children: [
                   //
                   _buildClassSubjectAndLessonDropDowns(),
-                  SizedBox(
-                    height: MediaQuery.sizeOf(context).height * 0.0125,
-                  ),
+                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.0125),
 
                   BlocBuilder<LessonsCubit, LessonsState>(
                     builder: (context, state) {

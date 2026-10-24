@@ -31,12 +31,12 @@ class ClassSubject extends Model
         return $this->belongsTo(ElectiveSubjectGroup::class, 'elective_subject_group_id');
     }
 
-    public function semester()
+    public function term()
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(Term::class);
     }
 
-    public function scopeSubjectTeacher($query, $class_section_id = null, $semester_id = null)
+    public function scopeSubjectTeacher($query, $class_section_id = null, $term_id = null)
     {
         $user = Auth::user();
         if ($user->hasRole('Teacher')) {
@@ -44,8 +44,8 @@ class ClassSubject extends Model
             if ($class_section_id) {
                 $subjectTeacherQuery->where('class_section_id', $class_section_id);
             }
-            if ($semester_id) {
-                $subjectTeacherQuery->where('semester_id', $semester_id);
+            if ($term_id) {
+                $subjectTeacherQuery->where('term_id', $term_id);
             }
             $subjects_ids = $subjectTeacherQuery->pluck('subject_id');
 

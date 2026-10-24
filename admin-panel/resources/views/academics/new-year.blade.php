@@ -86,6 +86,7 @@
                             <x-page.field name="end_date" type="date" :label="__('new_year_ends_on')" :value="$suggestion['end_date']" required />
                         </div>
                     </div>
+                    <x-page.field name="term_template_id" type="select" :label="__('Calendar template (optional)')" :options="['' => __('Use the dates below')] + $termTemplates" :help="__('A selected template supplies the new year calendar instead of the manual rows.')" />
                     <fieldset class="m3-fieldset new-year-fieldset">
                         <legend class="new-year-legend">{{ __('new_year_terms') }}</legend>
                         <p class="page-field-help">{{ __('new_year_terms_hint') }}</p>
@@ -99,6 +100,14 @@
                                 </div>
                                 <div class="m3-col-12 m3-col-expanded-4">
                                     <x-page.field name="terms[{{ $index }}][end_date]" type="date" :label="__('new_year_term_ends_on')" :value="$term['end_date']" />
+                                </div>
+                                <div class="m3-col-12 m3-col-expanded-6">
+                                    <x-page.field name="terms[{{ $index }}][grade_from]" type="number" :label="__('From grade (0 = R)')" :value="$term['grade_from'] ?? 0" min="0" max="12" />
+                                    <x-page.field name="terms[{{ $index }}][grade_to]" type="number" :label="__('To grade (0 = R)')" :value="$term['grade_to'] ?? 12" min="0" max="12" />
+                                </div>
+                                <div class="m3-col-12 m3-col-expanded-6">
+                                    <x-page.field name="terms[{{ $index }}][marks_lock_on]" type="date" :label="__('Marks lock date (optional)')" :value="$term['marks_lock_on'] ?? ''" />
+                                    <x-page.field name="terms[{{ $index }}][reports_on]" type="date" :label="__('Report date (optional)')" :value="$term['reports_on'] ?? ''" />
                                 </div>
                             </div>
                         @endforeach

@@ -353,7 +353,7 @@
             if (originalValue && currentValue !== originalValue) {
                 Swal.fire({
                     title: trans('Are you sure?'),
-                    html: `<p>${trans('changing_session_year_reset_semester')}</p>`,
+                    html: `<p>${trans('changing_session_year_reset_term')}</p>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',

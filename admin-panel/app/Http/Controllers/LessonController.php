@@ -12,7 +12,6 @@ use App\Models\ClassSection;
 use App\Models\File;
 use App\Models\Lesson;
 use App\Models\LessonTopic;
-use App\Models\Semester;
 use App\Models\SubjectLesson;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
@@ -86,7 +85,7 @@ class LessonController extends Controller
             $lesson->description = $request->description;
             $lesson->class_section_id = $request->class_section_id;
             $lesson->subject_id = $request->subject_id;
-            $lesson->semester_id = $request->semester_id ?: null;
+            $lesson->term_id = $request->term_id ?: null;
             $lesson->save();
 
             foreach ($request->file as $key => $file) {
@@ -204,7 +203,7 @@ class LessonController extends Controller
             $order = $_GET['order'];
         }
 
-        $sql = Lesson::lessonteachers()->with('subject', 'class_section', 'topic', 'semester');
+        $sql = Lesson::lessonteachers()->with('subject', 'class_section', 'topic', 'term');
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(function ($query) use ($search) {
@@ -229,8 +228,8 @@ class LessonController extends Controller
         if (! empty($_GET['class_id'])) {
             $sql = $sql->where('class_section_id', $_GET['class_id']);
         }
-        if (! empty($_GET['semester_id'])) {
-            $sql = $sql->where('semester_id', $_GET['semester_id']);
+        if (! empty($_GET['term_id'])) {
+            $sql = $sql->where('term_id', $_GET['term_id']);
         }
         if (! empty($_GET['lesson_id'])) {
             $sql = $sql->where('id', $_GET['lesson_id']);
@@ -278,8 +277,8 @@ class LessonController extends Controller
             $tempRow['description'] = $row->description;
             $tempRow['class_section_id'] = $row->class_section_id;
             $tempRow['class_section_name'] = $row->class_section->class->name.' '.$row->class_section->section->name.' - '.$row->class_section->class->medium->name;
-            $tempRow['semester_id'] = $row->semester_id;
-            $tempRow['semester_name'] = $row->semester ? $row->semester->name : '-';
+            $tempRow['term_id'] = $row->term_id;
+            $tempRow['term_name'] = $row->term ? $row->term->name : '-';
             $tempRow['subject_id'] = $row->subject_id;
             $tempRow['subject_name'] = $row->subject->name.' - '.$row->subject->type;
             $tempRow['topic'] = $row->topic;
@@ -308,7 +307,7 @@ class LessonController extends Controller
             $lesson = Lesson::findOrFail($request->edit_id);
             $lesson->name = $request->name;
             $lesson->description = $request->description;
-            $lesson->semester_id = $request->semester_id ?: null;
+            $lesson->term_id = $request->term_id ?: null;
             $lesson->save();
 
             // Update the Old Files
@@ -527,8 +526,8 @@ class LessonController extends Controller
             $lesson = $lesson->where('class_section_id', $request->class_section_id);
         }
 
-        if (! empty($request->semester_id)) {
-            $lesson = $lesson->where('semester_id', $request->semester_id);
+        if (! empty($request->term_id)) {
+            $lesson = $lesson->where('term_id', $request->term_id);
         }
         $lesson = $lesson->get();
         $response = [
@@ -575,11 +574,8 @@ class LessonController extends Controller
         return response()->json($response);
     }
 
-    public function getTeacherSemesterSubjects(Request $request)
+    public function getTeacherTermSubjects(Request $request)
     {
-        $currentSemester = Semester::get()->first(function ($semester) {
-            return $semester->current;
-        });
 
         $session_year_id = (int) (
             $request->input('session_year_id')
@@ -609,7 +605,7 @@ class LessonController extends Controller
         $subjects = SubjectTeacher::where('teacher_id', $teacher_id)
             ->where('class_section_id', $classSectionId)
             ->where('session_year_id', $session_year_id)
-            ->with('subject', 'semester')
+            ->with('subject', 'term')
             ->get();
 
         return response()->json($subjects);

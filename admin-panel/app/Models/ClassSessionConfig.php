@@ -15,11 +15,11 @@ class ClassSessionConfig extends Model
     protected $fillable = [
         'class_id',
         'session_year_id',
-        'include_semesters',
+        'include_terms',
     ];
 
     protected $casts = [
-        'include_semesters' => 'boolean',
+        'include_terms' => 'boolean',
     ];
 
     // Relationships
@@ -42,13 +42,13 @@ class ClassSessionConfig extends Model
     // Helper Methods
 
     /**
-     * Check if a class has semester configuration for a given session year.
+     * Check if a class has term configuration for a given session year.
      */
-    public static function classHasSemester($class_id, $session_year_id): bool
+    public static function classHasTerm($class_id, $session_year_id): bool
     {
         return static::where('class_id', $class_id)
             ->where('session_year_id', $session_year_id)
-            ->where('include_semesters', true)
+            ->where('include_terms', true)
             ->exists();
     }
 }
