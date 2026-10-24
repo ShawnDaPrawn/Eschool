@@ -28,6 +28,10 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
+    buildFeatures {
+        resValues = true
+    }
+
     namespace = "tech.tokensoft.navigateed.teacher"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "28.2.13676358"

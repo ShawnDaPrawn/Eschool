@@ -54,6 +54,16 @@ binding, the native allowlist and guarded launch/plugin call sites. This is
 source/configuration evidence only. Actual iOS compilation and native device
 launch remain unrun because this environment has no macOS/Xcode.
 
+### Android resource generation follow-up
+
+The first native CI build rejected the new generated app-name resources because
+the current Android Gradle plugin disables custom resource values by default.
+The application now explicitly enables `buildFeatures.resValues` for the legacy
+teacher and named staff variants. This addresses the identical configuration
+failure in both reserved APK builds and the existing teacher smoke run. Local
+native metadata validation passes; actual Android compile/smoke evidence remains
+the final-head CI result, not a source-check claim.
+
 The native Crashlytics upload build phase also skips reserved/unknown native
 bundle identifiers before any upload command. The audit syntax-checks the full
 script and executes only its isolated leading gate for all 12 configurations,
