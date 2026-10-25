@@ -486,6 +486,47 @@ import 'package:eschool_api/src/model/progress_roster.dart';
 import 'package:eschool_api/src/model/progress_roster_response.dart';
 import 'package:eschool_api/src/model/progress_staff_band.dart';
 import 'package:eschool_api/src/model/progress_staff_band_response.dart';
+import 'package:eschool_api/src/model/recognition_access.dart';
+import 'package:eschool_api/src/model/recognition_access_response.dart';
+import 'package:eschool_api/src/model/recognition_award_category.dart';
+import 'package:eschool_api/src/model/recognition_award_definition.dart';
+import 'package:eschool_api/src/model/recognition_award_profile.dart';
+import 'package:eschool_api/src/model/recognition_award_profile_response.dart';
+import 'package:eschool_api/src/model/recognition_award_window.dart';
+import 'package:eschool_api/src/model/recognition_catalogue_change.dart';
+import 'package:eschool_api/src/model/recognition_configuration.dart';
+import 'package:eschool_api/src/model/recognition_configuration_response.dart';
+import 'package:eschool_api/src/model/recognition_configure.dart';
+import 'package:eschool_api/src/model/recognition_correction.dart';
+import 'package:eschool_api/src/model/recognition_house.dart';
+import 'package:eschool_api/src/model/recognition_house_counter.dart';
+import 'package:eschool_api/src/model/recognition_house_counters.dart';
+import 'package:eschool_api/src/model/recognition_house_counters_response.dart';
+import 'package:eschool_api/src/model/recognition_issue.dart';
+import 'package:eschool_api/src/model/recognition_learner.dart';
+import 'package:eschool_api/src/model/recognition_learner_page.dart';
+import 'package:eschool_api/src/model/recognition_learner_page_response.dart';
+import 'package:eschool_api/src/model/recognition_named_reference.dart';
+import 'package:eschool_api/src/model/recognition_nominate.dart';
+import 'package:eschool_api/src/model/recognition_nomination.dart';
+import 'package:eschool_api/src/model/recognition_nomination_catalogue.dart';
+import 'package:eschool_api/src/model/recognition_nomination_catalogue_response.dart';
+import 'package:eschool_api/src/model/recognition_nomination_choice.dart';
+import 'package:eschool_api/src/model/recognition_nomination_page.dart';
+import 'package:eschool_api/src/model/recognition_nomination_page_response.dart';
+import 'package:eschool_api/src/model/recognition_outside_award.dart';
+import 'package:eschool_api/src/model/recognition_permanent_award.dart';
+import 'package:eschool_api/src/model/recognition_point_category.dart';
+import 'package:eschool_api/src/model/recognition_point_entry.dart';
+import 'package:eschool_api/src/model/recognition_point_history.dart';
+import 'package:eschool_api/src/model/recognition_point_history_response.dart';
+import 'package:eschool_api/src/model/recognition_present.dart';
+import 'package:eschool_api/src/model/recognition_reference.dart';
+import 'package:eschool_api/src/model/recognition_reference_response.dart';
+import 'package:eschool_api/src/model/recognition_review.dart';
+import 'package:eschool_api/src/model/recognition_settings.dart';
+import 'package:eschool_api/src/model/recognition_versioned_correction.dart';
+import 'package:eschool_api/src/model/recognition_year.dart';
 import 'package:eschool_api/src/model/reply_anonymous_incident_response.dart';
 import 'package:eschool_api/src/model/reply_identified_incident_response.dart';
 import 'package:eschool_api/src/model/reply_wellbeing_report_response.dart';
@@ -2339,6 +2380,149 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ProgressStaffBandResponse':
       return ProgressStaffBandResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionAccess':
+      return RecognitionAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionAccessResponse':
+      return RecognitionAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionAwardCategory':
+      return RecognitionAwardCategory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionAwardDefinition':
+      return RecognitionAwardDefinition.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionAwardProfile':
+      return RecognitionAwardProfile.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionAwardProfileResponse':
+      return RecognitionAwardProfileResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionAwardWindow':
+      return RecognitionAwardWindow.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionCatalogueChange':
+      return RecognitionCatalogueChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionConfiguration':
+      return RecognitionConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionConfigurationResponse':
+      return RecognitionConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionConfigure':
+      return RecognitionConfigure.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionCorrection':
+      return RecognitionCorrection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionHouse':
+      return RecognitionHouse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionHouseCounter':
+      return RecognitionHouseCounter.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionHouseCounters':
+      return RecognitionHouseCounters.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionHouseCountersResponse':
+      return RecognitionHouseCountersResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionIssue':
+      return RecognitionIssue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionLearner':
+      return RecognitionLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionLearnerPage':
+      return RecognitionLearnerPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionLearnerPageResponse':
+      return RecognitionLearnerPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionNamedReference':
+      return RecognitionNamedReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionNominate':
+      return RecognitionNominate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionNomination':
+      return RecognitionNomination.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionNominationCatalogue':
+      return RecognitionNominationCatalogue.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionNominationCatalogueResponse':
+      return RecognitionNominationCatalogueResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionNominationChoice':
+      return RecognitionNominationChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionNominationPage':
+      return RecognitionNominationPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionNominationPageResponse':
+      return RecognitionNominationPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionOutsideAward':
+      return RecognitionOutsideAward.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionPermanentAward':
+      return RecognitionPermanentAward.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionPointCategory':
+      return RecognitionPointCategory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionPointEntry':
+      return RecognitionPointEntry.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionPointHistory':
+      return RecognitionPointHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionPointHistoryResponse':
+      return RecognitionPointHistoryResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionPresent':
+      return RecognitionPresent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionReference':
+      return RecognitionReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionReferenceResponse':
+      return RecognitionReferenceResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionReview':
+      return RecognitionReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionSettings':
+      return RecognitionSettings.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RecognitionVersionedCorrection':
+      return RecognitionVersionedCorrection.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RecognitionYear':
+      return RecognitionYear.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ReplyAnonymousIncidentResponse':
       return ReplyAnonymousIncidentResponse.fromJson(

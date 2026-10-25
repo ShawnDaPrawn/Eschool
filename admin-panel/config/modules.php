@@ -3,6 +3,8 @@
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
 return [
+    'house_points' => ['name' => 'House points', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'awards' => ['name' => 'Awards', 'default' => false, 'dependencies' => ['people', 'academics']],
     'school_transfers' => ['name' => 'School transfers', 'default' => false, 'dependencies' => ['people', 'academics']],
     'leadership_dashboard' => ['name' => 'Leadership dashboard', 'default' => false, 'dependencies' => ['academics']],
     'early_warning' => ['name' => 'Early warning and interventions', 'default' => false, 'dependencies' => ['people', 'academics']],

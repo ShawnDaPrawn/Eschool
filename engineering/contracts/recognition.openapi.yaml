@@ -1,0 +1,2073 @@
+tags:
+- name: Recognition
+  description: Dated house points and permanent awards, scoped to current school authority.
+paths:
+  /recognition/{module}/access:
+    get:
+      operationId: getRecognitionAccess
+      tags:
+      - Recognition
+      summary: getRecognitionAccess
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/configuration:
+    get:
+      operationId: getRecognitionConfiguration
+      tags:
+      - Recognition
+      summary: getRecognitionConfiguration
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/learners:
+    get:
+      operationId: getRecognitionLearners
+      tags:
+      - Recognition
+      summary: getRecognitionLearners
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionLearnerPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/counters:
+    get:
+      operationId: getHouseCounters
+      tags:
+      - Recognition
+      summary: getHouseCounters
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionHouseCountersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/learners/{learner}/points:
+    get:
+      operationId: getHousePointHistory
+      tags:
+      - Recognition
+      summary: getHousePointHistory
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: audience
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - staff
+          - family
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionPointHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/learners/{learner}/awards:
+    get:
+      operationId: getPermanentAwards
+      tags:
+      - Recognition
+      summary: getPermanentAwards
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: audience
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - staff
+          - family
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionAwardProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/nomination-catalogue:
+    get:
+      operationId: getAwardNominationCatalogue
+      tags:
+      - Recognition
+      summary: getAwardNominationCatalogue
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionNominationCatalogueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /recognition/{module}/nominations:
+    get:
+      operationId: getAwardNominations
+      tags:
+      - Recognition
+      summary: getAwardNominations
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionNominationPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: nominateAward
+      tags:
+      - Recognition
+      summary: nominateAward
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionNominate'
+  /recognition/{module}/settings:
+    post:
+      operationId: configureRecognition
+      tags:
+      - Recognition
+      summary: configureRecognition
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionConfigure'
+  /recognition/{module}/catalogue/{kind}:
+    post:
+      operationId: createRecognitionCatalogue
+      tags:
+      - Recognition
+      summary: createRecognitionCatalogue
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - houses
+          - point-categories
+          - house-memberships
+          - award-categories
+          - award-definitions
+          - award-windows
+          - award-administrators
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionCatalogueChange'
+  /recognition/{module}/catalogue/{kind}/{record}:
+    post:
+      operationId: saveRecognitionCatalogue
+      tags:
+      - Recognition
+      summary: saveRecognitionCatalogue
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - houses
+          - point-categories
+          - house-memberships
+          - award-categories
+          - award-definitions
+          - award-windows
+          - award-administrators
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionCatalogueChange'
+  /recognition/{module}/points:
+    post:
+      operationId: issueHousePoints
+      tags:
+      - Recognition
+      summary: issueHousePoints
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionIssue'
+  /recognition/{module}/points/{record}/reverse:
+    post:
+      operationId: reverseHousePoints
+      tags:
+      - Recognition
+      summary: reverseHousePoints
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionCorrection'
+  /recognition/{module}/nominations/{record}/review:
+    post:
+      operationId: reviewAwardNomination
+      tags:
+      - Recognition
+      summary: reviewAwardNomination
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionReview'
+  /recognition/{module}/nominations/{record}/withdraw:
+    post:
+      operationId: withdrawAwardNomination
+      tags:
+      - Recognition
+      summary: withdrawAwardNomination
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionVersionedCorrection'
+  /recognition/{module}/presentations:
+    post:
+      operationId: presentAward
+      tags:
+      - Recognition
+      summary: presentAward
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionPresent'
+  /recognition/{module}/outside-awards:
+    post:
+      operationId: recordOutsideAward
+      tags:
+      - Recognition
+      summary: recordOutsideAward
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionOutsideAward'
+  /recognition/{module}/presentations/{record}/void:
+    post:
+      operationId: voidAward
+      tags:
+      - Recognition
+      summary: voidAward
+      description: Current school, account, roles, module and dated scope are checked again before exact UUID replay.
+        Private changes use JSON bodies; receipts contain references only. House-point history is separate from
+        permanent award presentations. Module-incompatible paths return 404.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: module
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - house_points
+          - awards
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized recognition projection or immutable operation reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecognitionVersionedCorrection'
+components:
+  schemas:
+    RecognitionAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - module
+      - school_id
+      - account_id
+      - session_year_id
+      - today
+      - family
+      - can_write
+      - manager
+      - grade_ids
+      properties:
+        module:
+          type: string
+        school_id:
+          type: integer
+          minimum: 1
+        account_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        today:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        family:
+          type: boolean
+        can_write:
+          type: boolean
+        manager:
+          type: boolean
+        grade_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+    RecognitionSettings:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - daily_staff_cap
+      - public_points_allowed
+      - principal_approval_required
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        daily_staff_cap:
+          type: integer
+          minimum: 1
+        public_points_allowed:
+          type: boolean
+        principal_approval_required:
+          type: boolean
+    RecognitionReference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    RecognitionNamedReference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    RecognitionYear:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        starts_on:
+          type: string
+        ends_on:
+          type: string
+    RecognitionHouse:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - emblem
+      - primary_colour
+      - secondary_colour
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        emblem:
+          type: string
+        primary_colour:
+          type: string
+        secondary_colour:
+          type: string
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    RecognitionPointCategory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - default_points
+      - minimum_points
+      - maximum_points
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        default_points:
+          type: integer
+        minimum_points:
+          type: integer
+        maximum_points:
+          type: integer
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    RecognitionAwardCategory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - parent_id
+      - scope_kind
+      - grade_level_id
+      - subject_id
+      - activity_group_id
+      - active
+      - revision
+      - can_manage
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        parent_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        scope_kind:
+          type: string
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        activity_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        can_manage:
+          type: boolean
+    RecognitionAwardDefinition:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - award_category_id
+      - name
+      - criteria
+      - frequency
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        award_category_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        criteria:
+          type: string
+        frequency:
+          type: string
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    RecognitionAwardWindow:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - award_category_id
+      - session_year_id
+      - opens_on
+      - closes_on
+      - status
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        award_category_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        opens_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        closes_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        status:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+    RecognitionConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - access
+      - settings
+      - years
+      - grades
+      properties:
+        access:
+          $ref: '#/components/schemas/RecognitionAccess'
+        settings:
+          $ref: '#/components/schemas/RecognitionSettings'
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionYear'
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionNamedReference'
+        houses:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionHouse'
+        point_categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionPointCategory'
+        award_categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionAwardCategory'
+        award_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionAwardDefinition'
+        award_windows:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionAwardWindow'
+    RecognitionLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - grade_level_id
+      - session_year_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+    RecognitionLearnerPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_after
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionLearner'
+        next_after:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RecognitionHouseCounter:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - emblem
+      - primary_colour
+      - secondary_colour
+      - active
+      - revision
+      - points
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        emblem:
+          type: string
+        primary_colour:
+          type: string
+        secondary_colour:
+          type: string
+        active:
+          type: boolean
+        revision:
+          type: integer
+        points:
+          type: integer
+    RecognitionHouseCounters:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - revision
+      - items
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionHouseCounter'
+    RecognitionPointEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - house_id
+      - house_name
+      - category_name
+      - points
+      - reason
+      - on_date
+      - public
+      - reverses_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        house_id:
+          type: integer
+          minimum: 1
+        house_name:
+          type: string
+        category_name:
+          type: string
+        points:
+          type: integer
+        reason:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        public:
+          type: boolean
+        reverses_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RecognitionPointHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_before
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionPointEntry'
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RecognitionPermanentAward:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - session_year_id
+      - title
+      - criteria
+      - presented_on
+      - event
+      - outside_organisation
+      - source_kind
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        criteria:
+          type: string
+        presented_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        event:
+          type:
+          - string
+          - 'null'
+        outside_organisation:
+          type:
+          - string
+          - 'null'
+        source_kind:
+          type: string
+    RecognitionAwardProfile:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_before
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionPermanentAward'
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RecognitionNominationChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - category_id
+      - name
+      - opens_on
+      - closes_on
+      - status
+      - definitions
+      properties:
+        category_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        opens_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        closes_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        status:
+          type: string
+        definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionNamedReference'
+    RecognitionNominationCatalogue:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionNominationChoice'
+    RecognitionNomination:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - learner_id
+      - learner_name
+      - grade_level_id
+      - award_category_id
+      - award_definition_id
+      - award_name
+      - criteria
+      - reason
+      - state
+      - review_reason
+      - can_review
+      - can_withdraw
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        award_category_id:
+          type: integer
+          minimum: 1
+        award_definition_id:
+          type: integer
+          minimum: 1
+        award_name:
+          type: string
+        criteria:
+          type: string
+        reason:
+          type: string
+        state:
+          type: string
+        review_reason:
+          type:
+          - string
+          - 'null'
+        can_review:
+          type: boolean
+        can_withdraw:
+          type: boolean
+    RecognitionNominationPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_before
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognitionNomination'
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    RecognitionIssue:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - session_year_id
+      - point_category_id
+      - points
+      - reason
+      - public
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        point_category_id:
+          type: integer
+          minimum: 1
+        points:
+          type: integer
+          minimum: -10000
+          maximum: 10000
+        reason:
+          type: string
+          maxLength: 2000
+        public:
+          type: boolean
+    RecognitionCorrection:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 4000
+    RecognitionVersionedCorrection:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 4000
+    RecognitionNominate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - grade_level_id
+      - learner_id
+      - award_definition_id
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        award_definition_id:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 4000
+    RecognitionReview:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - decision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum:
+          - approved
+          - rejected
+        reason:
+          type: string
+          maxLength: 4000
+    RecognitionPresent:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - session_year_id
+      - award_definition_id
+      - award_nomination_id
+      - presented_on
+      - event
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        award_definition_id:
+          type: integer
+          minimum: 1
+        award_nomination_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        presented_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        event:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+    RecognitionOutsideAward:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - session_year_id
+      - title
+      - criteria
+      - outside_organisation
+      - presented_on
+      - event
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 160
+        criteria:
+          type: string
+          maxLength: 4000
+        outside_organisation:
+          type: string
+          maxLength: 160
+        presented_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        event:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+    RecognitionConfigure:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - daily_staff_cap
+      - public_points_allowed
+      - principal_approval_required
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        daily_staff_cap:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        public_points_allowed:
+          type: boolean
+        principal_approval_required:
+          type: boolean
+    RecognitionCatalogueChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        name:
+          type: string
+          maxLength: 160
+        active:
+          type: boolean
+        emblem:
+          type: string
+        primary_colour:
+          type: string
+        secondary_colour:
+          type: string
+        default_points:
+          type: integer
+        minimum_points:
+          type: integer
+        maximum_points:
+          type: integer
+        learner_id:
+          type: integer
+          minimum: 1
+        house_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 4000
+        parent_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        scope_kind:
+          type: string
+        grade_level_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        activity_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        award_category_id:
+          type: integer
+          minimum: 1
+        criteria:
+          type: string
+          maxLength: 4000
+        frequency:
+          type: string
+        opens_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        closes_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        status:
+          type: string
+        user_id:
+          type: integer
+          minimum: 1
+      description: The catalogue kind in the path selects the strict server-side rule set; all unrecognized fields
+        are discarded and required kind-specific fields are validated. Configuration changes require current manager
+        or category administrator authority.
+    RecognitionAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionAccess'
+    RecognitionConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionConfiguration'
+    RecognitionReferenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionReference'
+    RecognitionLearnerPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionLearnerPage'
+    RecognitionHouseCountersResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionHouseCounters'
+    RecognitionPointHistoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionPointHistory'
+    RecognitionAwardProfileResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionAwardProfile'
+    RecognitionNominationCatalogueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionNominationCatalogue'
+    RecognitionNominationPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/RecognitionNominationPage'

@@ -13,6 +13,7 @@ import 'package:eschool_api/src/api/communication_api.dart';
 import 'package:eschool_api/src/api/growth_api.dart';
 import 'package:eschool_api/src/api/pastoral_api.dart';
 import 'package:eschool_api/src/api/platform_api.dart';
+import 'package:eschool_api/src/api/recognition_api.dart';
 import 'package:eschool_api/src/api/school_transfers_api.dart';
 import 'package:eschool_api/src/api/wellbeing_api.dart';
 
@@ -173,6 +174,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   PlatformApi getPlatformApi() {
     return PlatformApi(dio);
+  }
+
+  /// Get RecognitionApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  RecognitionApi getRecognitionApi() {
+    return RecognitionApi(dio);
   }
 
   /// Get SchoolTransfersApi instance, base route and serializer can be overridden by a given but be careful,

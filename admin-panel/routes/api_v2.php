@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
+use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
 use App\Http\Controllers\Api\V2\Wellbeing\PublicReportingController;
@@ -39,6 +40,7 @@ use App\Http\Middleware\AuthorizeCover;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeMarks;
 use App\Http\Middleware\AuthorizeMastery;
+use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeRegister;
 use App\Http\Middleware\AuthorizeReport;
 use App\Http\Middleware\AuthorizeSubjectStandard;
@@ -51,6 +53,7 @@ use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
+use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
@@ -462,3 +465,17 @@ Route::prefix('transfers')->middleware(['auth:sanctum', 'school.context', 'role.
     Route::get('{lane}/{record}', [$c, 'show'])->whereIn('lane', ['outgoing', 'incoming', 'consents', 'receipts'])->whereNumber('record')->name('show');
     Route::get('{lane}/{record}/archive', [$c, 'archive'])->whereIn('lane', ['outgoing', 'incoming', 'consents', 'receipts'])->whereNumber('record')->name('archive');
 });
+
+Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'awards'])->name('api.v2.recognition.')
+    ->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', AuthorizeRecognition::class])->group(function () {
+        $c = RecognitionController::class;
+        foreach (['access' => 'access', 'configuration' => 'configuration', 'learners' => 'learners', 'counters' => 'counters', 'learners/{learner}/points' => 'history', 'learners/{learner}/awards' => 'profile', 'nomination-catalogue' => 'catalogue', 'nominations' => 'nominations'] as $path => $method) {
+            Route::get($path, [$c, $method])->whereNumber('learner')->name($method);
+        }
+        Route::post('settings', [$c, 'configure'])->name('configure');
+        Route::post('catalogue/{kind}', [$c, 'catalogueWrite'])->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->name('catalogue-create');
+        Route::post('catalogue/{kind}/{record}', [$c, 'catalogueWrite'])->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->whereNumber('record')->name('catalogue-save');
+        foreach (['points' => 'issue', 'points/{record}/reverse' => 'reverse', 'nominations' => 'nominate', 'nominations/{record}/review' => 'review', 'nominations/{record}/withdraw' => 'withdraw', 'presentations' => 'present', 'outside-awards' => 'outside', 'presentations/{record}/void' => 'void'] as $path => $method) {
+            Route::post($path, [$c, $method])->whereNumber('record')->name($method);
+        }
+    });
