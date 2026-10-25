@@ -42,3 +42,8 @@ after resume. Keep attendance/material drafts on transient errors and retry an
 uncertain save with the same UUID. Never persist private group state unencrypted.
 The message editor opts in to activity scopes only after widget-level round-trip
 coverage proves it renders and writes the exact new scope kind.
+
+
+Panel attendance binds the session to the URL's group before dispatch. The
+read-only-year decision uses that actual session group's year. A current-group
+URL cannot bypass a retained session's historical-year refusal.

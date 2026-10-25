@@ -69,3 +69,11 @@ eligibility fields, matching the SDK's omitted-null serialization.
 A parent who is also staff can read their child's group in parent mode without
 roster/draft/capture rights. Parent visibility is never reused as staff contact or
 message-audience authority. The staff-only contact query excludes it explicitly.
+
+
+## Large receipt capacity
+
+Encrypted operation receipts use LONGTEXT, including an upgrade for installations
+that already created TEXT. A valid multi-learner register can exceed 64 KiB after
+encryption. Writes and exact replay must retain the entire response. Narrowing
+the column refuses when retained ciphertext exceeds TEXT capacity.
