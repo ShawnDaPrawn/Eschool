@@ -187,7 +187,7 @@ class CommunityAuthority
             abort_if(array_intersect($roles, ['Parent', 'Student']) === [], 403);
             $allocations = collect();
         }
-        $memberGroups = $staffOnly ? [] : ActivityMembership::whereIn('learner_id', $this->learnerIds($fresh))->whereDate('starts_on', '<=', $this->today())->whereDate('ends_on', '>=', $this->today())->pluck('activity_group_id')->map(fn ($id) => (int) $id)->all();
+        $memberGroups = $staffOnly ? [] : ActivityMembership::where('active', true)->whereIn('learner_id', $this->learnerIds($fresh))->whereDate('starts_on', '<=', $this->today())->whereDate('ends_on', '>=', $this->today())->pluck('activity_group_id')->map(fn ($id) => (int) $id)->all();
         $map = $rows->keyBy('id');
         $visible = [];
         foreach ($rows as $row) {

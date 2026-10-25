@@ -387,6 +387,8 @@ class ActivityGroupsTest extends TestCase
         app(ActivityGroups::class)->allocation($this->superAdmin(), $group['id'], $row->id, true, $this->dates(['revision' => 1, 'user_id' => $coach->id, 'role' => 'facilitator', 'cascade' => false, 'active' => false]));
         $this->api($coach)->getJson('/api/v2/activities/groups/'.$group['id'])->assertNotFound();
         app(ActivityGroups::class)->allocation($this->superAdmin(), $group['id'], $member['id'], false, $this->dates(['revision' => 1, 'learner_id' => $this->schoolA->ids['asha'], 'role' => 'member', 'active' => false]));
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->assertSame([], app(CommunityAuthority::class)->visible($parent, $this->year));
         $definition = ['kind' => 'activity_group', 'session_year_id' => $this->year, 'target_id' => $group['id'], 'parents' => true];
         $this->assertSame([], app(MessagePolicy::class)->recipients($this->superAdmin(), $definition, '2026-02-10'));
         $future = app(ActivityGroups::class)->allocation($this->superAdmin(), $group['id'], null, true, $this->dates(['starts_on' => '2026-05-01', 'user_id' => $coach->id, 'role' => 'facilitator', 'cascade' => false]));

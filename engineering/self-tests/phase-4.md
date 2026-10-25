@@ -114,3 +114,5 @@ Full SDK suite: 53 passed, including four activity-specific wire tests; generato
 7.25.0 reproduces 811 Dart files. SDK analysis has zero errors/warnings (296
 generated style infos). Configured strict OpenAPI lint, changed PHP Pint and
 full Larastan pass. Final complete CI/review remains required before merge.
+
+Activity-list revocation follow-up: cancelled learner memberships are excluded from list metadata as well as detail, audiences and attendance. The existing cancellation regression was first observed failing without the filter, then passed after the fix.
