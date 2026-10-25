@@ -8,6 +8,7 @@ use App\Models\Academics\GradeLevel;
 use App\Models\Academics\HomeroomAllocation;
 use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
+use App\Models\Activities\ActivityGroup;
 use App\Models\ClassSection;
 use App\Models\Communication\Audience;
 use App\Models\Communication\Message;
@@ -15,6 +16,7 @@ use App\Models\Communication\MessageRecipient;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Activities\CommunityAuthority;
 use App\Services\Communication\CommunicationRecipients;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Communication\RecipientAccess;
@@ -31,6 +33,9 @@ class MessagePolicy
         $year = SessionYear::findOrFail((int) $definition['session_year_id']);
         $wide = $rules->manages($actor) || $rules->principal($actor) || (! $review && $rules->effective($actor)['allow_school']);
         $kind = $definition['kind'];
+        if (app(CommunityAuthority::class)->facilitatorOnly($actor)) {
+            abort_unless(in_array($kind, ['activity_group', 'custom'], true), 403);
+        }
         $target = (int) ($definition['target_id'] ?? 0);
         if ($kind === 'school') {
             abort_unless($wide, 403);
@@ -46,6 +51,12 @@ class MessagePolicy
         if ($kind === 'grade') {
             GradeLevel::findOrFail($target);
             abort_unless($wide || in_array($target, $rules->heads($actor), true), 403);
+
+            return;
+        }
+        if ($kind === 'activity_group') {
+            $group = ActivityGroup::where('session_year_id', $year->id)->where('active', true)->findOrFail($target);
+            app(CommunityAuthority::class)->audience($actor, (int) $group->id);
 
             return;
         }

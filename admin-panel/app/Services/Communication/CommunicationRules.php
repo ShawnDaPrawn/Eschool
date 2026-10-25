@@ -11,10 +11,13 @@ use App\Models\Platform\School;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Activities\CommunityAuthority;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class CommunicationRules
 {
@@ -41,6 +44,19 @@ class CommunicationRules
         }
         if (in_array('Teacher', app(ProfilePolicy::class)->roles($fresh), true)) {
             return true;
+        }
+
+        if (in_array('Facilitator', app(ProfilePolicy::class)->roles($fresh), true)) {
+            try {
+                $groups = app(CommunityAuthority::class);
+                if ($groups->staffAssignments($fresh)->exists()) {
+                    return true;
+                }
+            } catch (HttpExceptionInterface|ModelNotFoundException $error) {
+                if ($error instanceof HttpExceptionInterface && ! in_array($error->getStatusCode(), [403, 404], true)) {
+                    throw $error;
+                }
+            }
         }
 
         return $this->manages($fresh) || $this->principal($fresh) || $this->heads($fresh) !== [] || $this->effective($fresh)['allow_school'];
@@ -78,6 +94,9 @@ class CommunicationRules
             $allowSchool = $allowSchool || ($rule?->allow_school ?? $broadDefault);
             $approval = $approval && ($rule?->requires_approval ?? ! $broadDefault);
             $versions[] = [(int) $role->id, $rule?->revision ?? 0];
+        }
+        if (app(CommunityAuthority::class)->facilitatorOnly($fresh)) {
+            $allowSchool = false;
         }
         $heads = $this->heads($fresh);
 

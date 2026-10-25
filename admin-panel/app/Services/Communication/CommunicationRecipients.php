@@ -8,6 +8,8 @@ use App\Models\Academics\HomeroomAllocation;
 use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TeachingGroupMembership;
+use App\Models\Activities\ActivityGroup;
+use App\Models\Activities\ActivityMembership;
 use App\Models\Parents;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
@@ -16,9 +18,12 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Activities\CommunityAuthority;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /** Resolves people and access reasons without exposing contact addresses. */
 class CommunicationRecipients
@@ -40,6 +45,12 @@ class CommunicationRecipients
         $query = $this->enrolments((int) $definition['session_year_id'], $date);
         $kind = $definition['kind'];
         $target = $definition['target_id'] ?? null;
+        if ($kind === 'activity_group') {
+            $group = ActivityGroup::where('active', true)->where('session_year_id', $definition['session_year_id'])->findOrFail($target);
+            $ids = app(CommunityAuthority::class)->descendants($group);
+
+            return $this->activityLearners($ids, (int) $definition['session_year_id'], $date);
+        }
         if ($kind === 'grade') {
             $query->whereHas('homeroom.class', fn ($q) => $q->where('grade_level_id', $target));
         } elseif ($kind === 'homeroom') {
@@ -54,6 +65,15 @@ class CommunicationRecipients
         }
 
         return Students::whereIn('id', $query->select('learner_id'))->get(['id', 'user_id', 'father_id', 'mother_id', 'guardian_id']);
+    }
+
+    public function activityLearners(array $groups, int $year, string $date): Collection
+    {
+        $active = ActivityGroup::whereIn('id', $groups)->where('active', true)->where('session_year_id', $year)
+            ->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->select('id');
+        $ids = ActivityMembership::where('active', true)->whereIn('activity_group_id', $active)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->select('learner_id');
+
+        return Students::whereIn('id', $this->enrolments($year, $date)->select('learner_id'))->whereIn('id', $ids)->get(['id', 'user_id', 'father_id', 'mother_id', 'guardian_id']);
     }
 
     private function merge(array &$result, int $user, string $kind, ?int $learner = null): void
@@ -121,7 +141,8 @@ class CommunicationRecipients
     {
         $rules = app(CommunicationRules::class);
         $effective = $rules->effective($actor);
-        if ((! $review && $effective['allow_school']) || $rules->manages($actor) || $rules->principal($actor)) {
+        $restricted = app(CommunityAuthority::class)->facilitatorOnly($actor);
+        if (! $restricted && ((! $review && $effective['allow_school']) || $rules->manages($actor) || $rules->principal($actor))) {
             $result = [];
             foreach ($this->members()->pluck('id') as $user) {
                 $this->merge($result, (int) $user, 'direct');
@@ -129,10 +150,10 @@ class CommunicationRecipients
 
             return $result;
         }
-        $teachers = $review ? [] : app(AcademicAuthority::class)->teachers($actor);
+        $teachers = ($review || $restricted) ? [] : app(AcademicAuthority::class)->teachers($actor);
         $groups = TeachingAllocation::whereIn('teacher_id', $teachers)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->select('teaching_group_id');
         $homes = HomeroomAllocation::whereIn('teacher_id', $teachers)->where('session_year_id', $year)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->select('class_section_id');
-        $gradeIds = $effective['head_grades'];
+        $gradeIds = $restricted ? [] : $effective['head_grades'];
         $enrolments = $this->enrolments($year, $date)->where(function ($query) use ($groups, $homes, $gradeIds, $date, $year) {
             $query->whereIn('class_section_id', $homes)->orWhereHas('homeroom.class', fn ($q) => $q->whereIn('grade_level_id', $gradeIds))
                 ->orWhereHas('homeroom.class', function ($class) use ($groups, $date, $year) {
@@ -157,6 +178,30 @@ class CommunicationRecipients
                 $result[$id] = $reason;
             } else {
                 $result[$id]['guardian_of'] = $reason['guardian_of'];
+            }
+        }
+
+        if (app(ModuleGate::class)->allows('groups')) {
+            $authority = app(CommunityAuthority::class);
+            $groupIds = [];
+            try {
+                $groupIds = array_map(fn ($group) => (int) $group->id, $authority->visible($actor, $year, true));
+            } catch (HttpExceptionInterface $error) {
+                if (! in_array($error->getStatusCode(), [403, 404], true)) {
+                    throw $error;
+                }
+            }
+            $activity = $this->activityLearners($groupIds, $year, $date);
+            foreach ([false, true] as $parents) {
+                foreach ($this->fromLearners($activity, $parents) as $id => $reason) {
+                    if (! isset($result[$id])) {
+                        $result[$id] = $reason;
+                    } else {
+                        foreach (['learner_ids', 'guardian_of'] as $key) {
+                            $result[$id][$key] = array_values(array_unique([...$result[$id][$key], ...$reason[$key]]));
+                        }
+                    }
+                }
             }
         }
 

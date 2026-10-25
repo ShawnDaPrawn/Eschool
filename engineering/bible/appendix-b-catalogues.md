@@ -124,3 +124,14 @@ Both types contain generic text and IDs only. Delivery checks publication identi
 recipient/reviewer rights immediately before transport. Withdrawals and ended
 guardian rights suppress delivery; notification contents never contain the
 private title, text, custom contacts or read statistics.
+
+
+## Activity groups
+
+`groups`: school-entitled and disabled by default; activity hierarchy, dated staff/
+learner allocations, sessions, registers and authored materials. Enabling the
+module exposes its actual backend operations, not unimplemented admissions,
+consultations, cards, counselling or a facilitator app. No new notification type
+is required: activity_group audiences use the communication centre's existing
+approval, scheduling and private delivery rules. A new client capability selects
+activity composition; it does not bypass group authority.

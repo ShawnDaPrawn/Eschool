@@ -72,6 +72,8 @@ enum CommunicationScopeKindEnum {
   homeroom(r'homeroom'),
   @JsonValue(r'group')
   group(r'group'),
+  @JsonValue(r'activity_group')
+  activityGroup(r'activity_group'),
   @JsonValue(r'custom')
   custom(r'custom'),
   @JsonValue(r'unknown_default_open_api')

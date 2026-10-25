@@ -24,7 +24,7 @@ class MessageController extends Controller
 
     public function configuration(MessageRequest $r): JsonResponse
     {
-        return $this->response($r, app(MessageQueries::class)->configuration($r->user(), $r->validated('session_year_id') === null ? null : (int) $r->validated('session_year_id')));
+        return $this->response($r, app(MessageQueries::class)->configuration($r->user(), $r->validated('session_year_id') === null ? null : (int) $r->validated('session_year_id'), $r->supportsActivityGroups()));
     }
 
     public function contacts(MessageRequest $r): JsonResponse
@@ -60,12 +60,12 @@ class MessageController extends Controller
 
     public function drafts(MessageRequest $r): JsonResponse
     {
-        return $this->response($r, app(MessageQueries::class)->drafts($r->user(), (int) $r->validated('page', 1)));
+        return $this->response($r, app(MessageQueries::class)->drafts($r->user(), (int) $r->validated('page', 1), $r->supportsActivityGroups()));
     }
 
     public function editor(MessageRequest $r, int $message): JsonResponse
     {
-        return $this->response($r, app(MessageQueries::class)->editor($r->user(), $message));
+        return $this->response($r, app(MessageQueries::class)->editor($r->user(), $message, $r->supportsActivityGroups()));
     }
 
     public function create(MessageRequest $r): JsonResponse

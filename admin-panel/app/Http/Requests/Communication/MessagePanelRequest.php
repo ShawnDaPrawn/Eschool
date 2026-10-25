@@ -12,11 +12,16 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class MessagePanelRequest extends MessageRequest
 {
+    public function supportsActivityGroups(): bool
+    {
+        return true;
+    }
+
     protected function prepareForValidation(): void
     {
         if (in_array($this->action(), ['create', 'save'], true) && $this->has('scope_selector')) {
             $value = $this->input('scope_selector');
-            abort_unless(is_string($value) && preg_match('/^(school|grade|homeroom|group|custom):(0|[1-9][0-9]{0,14})$/D', $value, $matches), 422);
+            abort_unless(is_string($value) && preg_match('/^(school|grade|homeroom|group|activity_group|custom):(0|[1-9][0-9]{0,14})$/D', $value, $matches), 422);
             $this->merge(['audience' => ['kind' => $matches[1], 'target_id' => $matches[1] === 'school' ? null : (int) $matches[2], 'session_year_id' => $this->input('session_year_id'), 'parents' => $this->input('parents', '0')]]);
         }
         if (in_array($this->action(), ['audience-create', 'audience-save'], true)) {

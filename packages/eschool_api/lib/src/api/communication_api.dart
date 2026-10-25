@@ -39,6 +39,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [communicationAudienceWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -52,6 +53,7 @@ class CommunicationApi {
   Future<Response<CommunicationAudienceReceiptResponse>>
   createCommunicationAudience({
     required CommunicationAudienceWrite communicationAudienceWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -83,13 +85,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationAudienceWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -100,6 +110,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -142,6 +153,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [communicationMessageWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -155,6 +167,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>>
   createSchoolMessageDraft({
     required CommunicationMessageWrite communicationMessageWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -186,13 +199,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationMessageWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -203,6 +224,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -246,6 +268,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationDecisionWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -259,6 +282,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> decideSchoolMessage({
     required int message,
     required CommunicationDecisionWrite communicationDecisionWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -295,13 +319,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationDecisionWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -312,6 +344,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -353,6 +386,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -366,6 +400,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationConfigurationResponse>>
   getCommunicationConfiguration({
+    int? activityGroups = 0,
     int? xSchoolId,
     int? sessionYearId,
     CancelToken? cancelToken,
@@ -398,6 +433,7 @@ class CommunicationApi {
     );
 
     final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
       if (sessionYearId != null) r'session_year_id': sessionYearId,
     };
 
@@ -447,6 +483,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -459,6 +496,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageEditorResponse>> getSchoolMessageEditor({
     required int message,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -494,9 +532,14 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -539,6 +582,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [sessionYearId]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -552,6 +596,7 @@ class CommunicationApi {
   Future<Response<CommunicationAudienceListResponse>>
   listCommunicationAudiences({
     required int sessionYearId,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -583,6 +628,7 @@ class CommunicationApi {
     );
 
     final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
       r'session_year_id': sessionYearId,
     };
 
@@ -632,6 +678,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [sessionYearId]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -645,6 +692,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationContactListResponse>> listCommunicationContacts({
     required int sessionYearId,
+    int? activityGroups = 0,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -677,6 +725,7 @@ class CommunicationApi {
     );
 
     final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
       r'session_year_id': sessionYearId,
       if (page != null) r'page': page,
     };
@@ -726,6 +775,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -737,6 +787,7 @@ class CommunicationApi {
   /// Returns a [Future] containing a [Response] with a [CommunicationRuleListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationRuleListResponse>> listCommunicationRoleRules({
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -767,9 +818,14 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -811,6 +867,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -823,6 +880,7 @@ class CommunicationApi {
   /// Returns a [Future] containing a [Response] with a [CommunicationMessageListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageListResponse>> listSchoolMessageDrafts({
+    int? activityGroups = 0,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -854,7 +912,10 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
-    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+      if (page != null) r'page': page,
+    };
 
     final _response = await _dio.request<Object>(
       _path,
@@ -901,6 +962,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -913,6 +975,7 @@ class CommunicationApi {
   /// Returns a [Future] containing a [Response] with a [CommunicationMessageListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageListResponse>> listSchoolMessageInbox({
+    int? activityGroups = 0,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -944,7 +1007,10 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
-    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+      if (page != null) r'page': page,
+    };
 
     final _response = await _dio.request<Object>(
       _path,
@@ -992,6 +1058,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1004,6 +1071,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationReadReceiptResponse>> markSchoolMessageRead({
     required int message,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1039,9 +1107,14 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1084,6 +1157,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1096,6 +1170,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessagePreviewResponse>> previewSchoolMessage({
     required int message,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1131,9 +1206,14 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1176,6 +1256,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1188,6 +1269,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageReaderResponse>> readSchoolMessage({
     required int message,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1223,9 +1305,14 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1269,6 +1356,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [audience]
   /// * [communicationAudienceWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1283,6 +1371,7 @@ class CommunicationApi {
   saveCommunicationAudience({
     required int audience,
     required CommunicationAudienceWrite communicationAudienceWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1319,13 +1408,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationAudienceWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -1336,6 +1433,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1379,6 +1477,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [role]
   /// * [communicationRuleWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1392,6 +1491,7 @@ class CommunicationApi {
   Future<Response<CommunicationRoleRuleResponse>> saveCommunicationRoleRule({
     required int role,
     required CommunicationRuleWrite communicationRuleWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1428,13 +1528,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationRuleWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -1445,6 +1553,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1488,6 +1597,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationMessageWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1501,6 +1611,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> saveSchoolMessageDraft({
     required int message,
     required CommunicationMessageWrite communicationMessageWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1537,13 +1648,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationMessageWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -1554,6 +1673,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1597,6 +1717,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationSubmitWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1610,6 +1731,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> submitSchoolMessage({
     required int message,
     required CommunicationSubmitWrite communicationSubmitWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1646,13 +1768,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationSubmitWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -1663,6 +1793,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1706,6 +1837,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationWithdrawWrite]
+  /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1719,6 +1851,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> withdrawSchoolMessage({
     required int message,
     required CommunicationWithdrawWrite communicationWithdrawWrite,
+    int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1755,13 +1888,21 @@ class CommunicationApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (activityGroups != null) r'activity_groups': activityGroups,
+    };
+
     dynamic _bodyData;
 
     try {
       _bodyData = jsonEncode(communicationWithdrawWrite);
     } catch (error, stackTrace) {
       throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
+        requestOptions: _options.compose(
+          _dio.options,
+          _path,
+          queryParameters: _queryParameters,
+        ),
         type: DioExceptionType.unknown,
         error: error,
         stackTrace: stackTrace,
@@ -1772,6 +1913,7 @@ class CommunicationApi {
       _path,
       data: _bodyData,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,

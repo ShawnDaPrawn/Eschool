@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Communication;
 
 use App\Policies\Communication\MessagePolicy;
+use App\Services\Communication\ActivityMessageCapability;
 use App\Services\Communication\CommunicationAudiences;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Communication\MessageFlow;
@@ -18,6 +19,11 @@ class MessageRequest extends FormRequest
         $name = (string) $this->route()->getName();
 
         return substr($name, strrpos($name, '.') + 1);
+    }
+
+    public function supportsActivityGroups(): bool
+    {
+        return $this->boolean('activity_groups');
     }
 
     public function authorize(): bool
@@ -34,6 +40,9 @@ class MessageRequest extends FormRequest
             return true;
         }
         $rules->staff($actor);
+        if (! $this->supportsActivityGroups() && $this->input('audience.kind') === 'activity_group') {
+            app(ActivityMessageCapability::class)->requireSupport(false);
+        }
         if (in_array($action, ['rules', 'rule-save'], true)) {
             abort_unless($rules->manages($actor), 403);
         }
@@ -42,6 +51,9 @@ class MessageRequest extends FormRequest
         }
         if ($this->route('message') !== null) {
             $message = app(MessagePolicy::class)->staff($actor, (int) $this->route('message'), in_array($action, ['save', 'submit'], true));
+            if (! $this->supportsActivityGroups() && ($message->audience['kind'] ?? null) === 'activity_group') {
+                app(ActivityMessageCapability::class)->requireSupport(false);
+            }
             if ($action === 'decision') {
                 abort_unless(app(MessagePolicy::class)->canReview($actor, $message), 404);
             }
@@ -59,7 +71,7 @@ class MessageRequest extends FormRequest
             'create','save' => ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'title' => ['required', 'string', 'max:191'],
                 'markdown' => ['required', 'string', 'max:20000'], 'channels' => ['required', 'array', 'min:1', 'max:3'], 'channels.*' => ['required', Rule::in(['in_app', 'push', 'email']), 'distinct'],
                 'scheduled_local' => ['nullable', 'string', 'date_format:Y-m-d\TH:i'], 'audience' => ['required', 'array:kind,session_year_id,target_id,parents'],
-                'audience.kind' => ['required', Rule::in(['school', 'grade', 'homeroom', 'group', 'custom'])], 'audience.session_year_id' => ['required', 'integer', 'min:1'],
+                'audience.kind' => ['required', Rule::in(['school', 'grade', 'homeroom', 'group', 'activity_group', 'custom'])], 'audience.session_year_id' => ['required', 'integer', 'min:1'],
                 'audience.target_id' => ['required_unless:audience.kind,school', 'nullable', 'integer', 'min:1'], 'audience.parents' => ['required', 'boolean']],
             'submit' => $revision + $fingerprint,
             'decision' => $revision + $fingerprint + ['decision' => ['required', Rule::in(['approve', 'reject'])], 'reason' => ['required', 'string', 'min:3', 'max:2000']],
@@ -69,6 +81,6 @@ class MessageRequest extends FormRequest
             'rule-save' => ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'allow_school' => ['required', 'boolean'], 'requires_approval' => ['required', 'boolean']],
             'contacts','audiences' => ['session_year_id' => ['required', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,10000']],
             default => ['session_year_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,10000']],
-        };
+        } + ['activity_groups' => ['sometimes', 'boolean']];
     }
 }

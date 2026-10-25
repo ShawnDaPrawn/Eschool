@@ -50,6 +50,20 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'listActivityGroups module-off' => ['superadmin', 'GET', 'api/v2/activities/groups', [], 404],
+            'createActivityGroup module-off' => ['superadmin', 'POST', 'api/v2/activities/groups', [], 404],
+            'readActivityGroup module-off' => ['superadmin', 'GET', 'api/v2/activities/groups/999999', [], 404],
+            'saveActivityGroup module-off' => ['superadmin', 'PUT', 'api/v2/activities/groups/999999', [], 404],
+            'readActivityGroupRoster module-off' => ['superadmin', 'GET', 'api/v2/activities/groups/999999/roster', [], 404],
+            'createActivityMembership module-off' => ['superadmin', 'POST', 'api/v2/activities/groups/999999/memberships', [], 404],
+            'saveActivityMembership module-off' => ['superadmin', 'PUT', 'api/v2/activities/groups/999999/memberships/999999', [], 404],
+            'createActivityStaffAllocation module-off' => ['superadmin', 'POST', 'api/v2/activities/groups/999999/staff', [], 404],
+            'saveActivityStaffAllocation module-off' => ['superadmin', 'PUT', 'api/v2/activities/groups/999999/staff/999999', [], 404],
+            'createActivitySession module-off' => ['superadmin', 'POST', 'api/v2/activities/groups/999999/sessions', [], 404],
+            'saveActivitySession module-off' => ['superadmin', 'PUT', 'api/v2/activities/groups/999999/sessions/999999', [], 404],
+            'createActivityMaterial module-off' => ['superadmin', 'POST', 'api/v2/activities/groups/999999/materials', [], 404],
+            'saveActivityMaterial module-off' => ['superadmin', 'PUT', 'api/v2/activities/groups/999999/materials/999999', [], 404],
+            'captureActivitySessionAttendance module-off' => ['superadmin', 'PUT', 'api/v2/activities/sessions/999999/attendance', [], 404],
             'getCommunicationConfiguration' => ['superadmin', 'GET', 'api/v2/communication/configuration', [], 200],
             'listCommunicationContacts' => ['superadmin', 'GET', 'api/v2/communication/contacts', ['session_year_id' => 1], 200],
             'listCommunicationAudiences' => ['superadmin', 'GET', 'api/v2/communication/audiences', ['session_year_id' => 1], 200],

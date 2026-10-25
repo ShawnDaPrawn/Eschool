@@ -7,6 +7,7 @@ return [
     'people' => ['name' => 'People and guardian approval', 'always_on' => true],
     'academics' => ['name' => 'Years, academics, attendance and reports', 'always_on' => true],
     'communication' => ['name' => 'Communication and notification settings', 'always_on' => true],
+    'groups' => ['name' => 'Activity groups and sessions', 'default' => false],
     'chat' => ['name' => 'Direct messages', 'default' => true],
     'online_exams' => ['name' => 'Online exams', 'default' => true],
     'fees' => ['name' => 'Tuition fees', 'default' => false, 'legacy' => true, 'money' => true],

@@ -36,6 +36,7 @@ const _$CommunicationScopeKindEnumEnumMap = {
   CommunicationScopeKindEnum.grade: 'grade',
   CommunicationScopeKindEnum.homeroom: 'homeroom',
   CommunicationScopeKindEnum.group: 'group',
+  CommunicationScopeKindEnum.activityGroup: 'activity_group',
   CommunicationScopeKindEnum.custom: 'custom',
   CommunicationScopeKindEnum.unknownDefaultOpenApi: 'unknown_default_open_api',
 };

@@ -190,3 +190,18 @@ review/delivery recovery cursors. `message_recipients` freezes a deduplicated
 user/access-reason snapshot and processing state; `message_reads` stores one
 acknowledgement per user/publication. All six use the school scope. Retained rows
 prevent rollback. Published bodies/scopes/channels cannot be overwritten.
+
+
+## Activity group backend
+
+`activity_groups` stores school/year seasonal trees and explicit eligibility.
+`activity_group_memberships` and `activity_group_staff` retain dated allocations,
+active/cancelled state and encrypted reasons. Staff subtree authority is explicit.
+`activity_sessions` and `activity_attendance` separate activity registers from
+academic attendance; no missing row is inferred present or absent.
+`activity_materials` stores encrypted authored Markdown and publication state.
+`activity_operations` retains encrypted UUID/hash receipts. All seven tables carry
+school_id with tenant scopes and foreign keys. Audit hashes sensitive text rather
+than copying it into audit JSON; immutable encrypted receipts retain revisions.
+Destructive rollback refuses any retained activity data. No sensitive counselling
+case or medical record is stored in these tables.

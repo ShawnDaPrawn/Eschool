@@ -2705,5 +2705,7 @@
   "captured attendance entries": "okufakiwe kwababekhona",
   "content_failure_": "content_failure_",
   "documents": "imibhalo",
-  "released results": "ekhishwe imiphumela"
+  "released results": "ekhishwe imiphumela",
+  "activity_group": "Iqembu lemisebenzi",
+  "Update your app to work with activity group messages.": "Buyekeza uhlelo lwakho lokusebenza ukuze usebenze nemiyalezo yamaqembu emisebenzi."
 }

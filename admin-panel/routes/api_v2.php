@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
@@ -56,6 +57,20 @@ use Illuminate\Support\Facades\Route;
 | New endpoints follow the domain recipe: a thin controller in
 | Api/V2/<Domain>, a FormRequest, a service and a JSON Resource.
 */
+
+Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {
+    $c = GroupController::class;
+    Route::get('groups', [$c, 'index'])->name('index');
+    Route::post('groups', [$c, 'create'])->name('create');
+    Route::get('groups/{group}', [$c, 'show'])->whereNumber('group')->name('show');
+    Route::put('groups/{group}', [$c, 'save'])->whereNumber('group')->name('save');
+    Route::get('groups/{group}/roster', [$c, 'roster'])->whereNumber('group')->name('roster');
+    foreach (['memberships' => ['membership', 'allocation', 'membership-save'], 'staff' => ['staff', 'allocation', 'staff-save'], 'sessions' => ['session', 'session', 'session-save'], 'materials' => ['material', 'material', 'material-save']] as $path => [$method, $parameter, $action]) {
+        Route::post('groups/{group}/'.$path, [$c, $method])->whereNumber('group')->name($path.'.'.$action);
+        Route::put('groups/{group}/'.$path.'/{'.$parameter.'}', [$c, $method])->whereNumber('group')->whereNumber($parameter)->name($path.'.update.'.$action);
+    }
+    Route::put('sessions/{session}/attendance', [$c, 'attendance'])->whereNumber('session')->name('attendance-save');
+});
 
 // Keep fresh class permissions ahead of idempotent replay as well as validation.
 Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', 'cache.headers:private;no_store'])->name('api.v2.academics.')->group(function () {

@@ -43,6 +43,9 @@ class AcademicAuthority
     public function teachers(User $actor): array
     {
         $fresh = $this->staff($actor);
+        if (! in_array('Teacher', app(ProfilePolicy::class)->roles($fresh), true)) {
+            return [];
+        }
 
         return Teacher::query()->where('user_id', $fresh->id)->pluck('id')->map(fn ($id) => (int) $id)->all();
     }

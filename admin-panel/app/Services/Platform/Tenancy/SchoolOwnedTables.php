@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_operations',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
@@ -87,6 +88,7 @@ final class SchoolOwnedTables
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
         'users' => 'one row per human across schools; a user belongs to a school through school_memberships',
         'permissions' => 'one catalogue of permission names; roles hold them per school',
+        'platform_staff_identities' => 'global platform-operator exclusions; never school data or an access grant',
         'languages' => 'interface languages are installed for the whole platform',
         'policy_acceptances' => 'a user accepts a platform policy version once',
         'personal_access_tokens' => 'belong to a user; the school comes from the membership on each request',
