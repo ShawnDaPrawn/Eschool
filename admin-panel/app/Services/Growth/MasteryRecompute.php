@@ -12,6 +12,11 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryScope;
 use App\Models\Growth\MasteryTopic;
+use App\Models\Learning\PracticeDailySet;
+use App\Models\Learning\PracticeItem;
+use App\Models\Learning\PracticeItemVersion;
+use App\Models\Learning\PracticeReview;
+use App\Models\Learning\PracticeSetEntry;
 use App\Models\Subject;
 use App\Services\Academics\MarkInputs;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -141,14 +146,30 @@ class MasteryRecompute
         }, 3);
     }
 
+    /** Practice is a distinct self-study provenance, never a canonical assessment mark. */
+    public function practice(PracticeReview $review, TeachingGroup $group, int $topicId): void
+    {
+        $this->serialised((int) $group->subject_id, function () use ($review, $group, $topicId) {
+            $entry = PracticeSetEntry::findOrFail($review->practice_set_entry_id);
+            $set = PracticeDailySet::where('learner_id', $review->learner_id)->where('teaching_group_id', $group->id)->findOrFail($entry->practice_daily_set_id);
+            $version = PracticeItemVersion::findOrFail($entry->practice_item_version_id);
+            PracticeItem::where('teaching_group_id', $group->id)->where('topic_id', $topicId)->findOrFail($version->practice_item_id);
+            MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $review->learner_id, 'topic_id' => $topicId,
+                'audience' => 'practice', 'source_key' => 'practice:'.$review->id], ['grade_level_id' => $group->grade_level_id,
+                    'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
+                    'maximum_units' => 1, 'observed_at' => $review->created_at]);
+            $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
+        });
+    }
+
     private function aggregate(int $learnerId, int $subjectId): void
     {
         $topicIds = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->pluck('topic_id')
             ->merge(MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->pluck('topic_id'))->unique();
         foreach ($topicIds as $topicId) {
-            foreach (['staff', 'family'] as $audience) {
+            foreach (['staff', 'family', 'practice'] as $audience) {
                 $rows = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->where('topic_id', $topicId)
-                    ->where('audience', $audience)->orderByDesc('observed_at')->orderByDesc('id')->limit(20)->get(['achieved_units', 'maximum_units'])->toArray();
+                    ->whereIn('audience', $audience === 'practice' ? ['practice'] : [$audience, 'practice'])->orderByDesc('observed_at')->orderByDesc('id')->limit(20)->get(['achieved_units', 'maximum_units'])->toArray();
                 $score = app(MasteryScore::class)->calculate($rows);
                 MasteryRecord::updateOrCreate(['subject_id' => $subjectId, 'learner_id' => $learnerId, 'topic_id' => $topicId, 'audience' => $audience], $score + ['computed_at' => now()]);
             }
