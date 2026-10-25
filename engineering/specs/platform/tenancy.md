@@ -152,3 +152,10 @@ reference data with no school or person values. Their global classification is
 registered in SchoolOwnedTables. The nullable `classes.grade_level_id` points to
 that shared catalogue; classes remain school-owned and every mapping lookup and
 write is scoped to CurrentSchool. No class or learner data is stored globally.
+## Platform staff exclusion registry (Phases 3 and 4)
+
+`platform_staff_identities` is global: it records which platform operators must
+be denied restricted school counselling/safeguarding records, including when
+they also hold school memberships. It has no school_id and grants no school or
+platform permission. Trusted console changes are audited; no HTTP registry
+management is exposed. See `restricted-pastoral-access.md` for the full contract.
