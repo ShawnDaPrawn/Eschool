@@ -115,6 +115,7 @@ class ControllerMethodCallsTest extends TestCase
             'return ResponseService::successResponse()->header("Cache-Control", "private")->header("Pragma", "no-cache");' => true,
             'ResponseService::successResponse()->header("Cache-Control", "private");' => false,
             'return consumes(ResponseService::successResponse());' => false,
+            'return ResponseService::successResponse()->getStatusCode();' => false,
         ] as $statement => $returned) {
             $nodes = $parser->parse('<?php function example() { '.$statement.' }');
             $traverser = new NodeTraverser;
@@ -136,7 +137,9 @@ class ControllerMethodCallsTest extends TestCase
         }
         // A returned response may set headers through a fluent receiver chain.
         // Calls passed as arguments remain excluded: their value can be ignored.
-        if ($parent instanceof Node\Expr\MethodCall && $parent->var === $expr) {
+        if ($parent instanceof Node\Expr\MethodCall && $parent->var === $expr
+            && $parent->name instanceof Node\Identifier
+            && in_array(strtolower($parent->name->toString()), ['header', 'withheaders'], true)) {
             return $this->valueIsReturnedOrThrown($parent);
         }
         // return $cond ? ResponseService::a() : ResponseService::b();
