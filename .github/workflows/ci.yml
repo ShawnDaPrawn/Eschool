@@ -570,7 +570,13 @@ jobs:
         run: |
           # Isolated protocol fixture; this does not qualify malware detection.
           nohup python3 e2e/support/synthetic-photo-scanner.py > storage/logs/photo-scanner-fixture.log 2>&1 &
-          PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --no-reload --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+          # Serve the real application through Laravel's own router directly.
+          # Keep the long browser run independent of Artisan's log-parsing process.
+          (
+            cd public
+            PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php -S 127.0.0.1:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > ../storage/logs/serve.log 2>&1 &
+            echo "$!" > ../storage/logs/panel.pid
+          )
           for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && exit 0; sleep 1; done
           cat storage/logs/serve.log
           exit 1
@@ -586,7 +592,10 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Playwright checks
         working-directory: admin-panel/e2e
-        run: npm run typecheck && npx playwright test
+        run: |
+          npm run typecheck
+          trap 'panel_result=$?; if ! kill -0 "$(cat ../storage/logs/panel.pid)" 2>/dev/null; then echo "Panel server exited during the browser run"; tail -n 40 ../storage/logs/serve.log; panel_result=1; fi; exit "$panel_result"' EXIT
+          npx playwright test
       - name: Upload the report
         if: failure()
         uses: actions/upload-artifact@v7
