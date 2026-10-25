@@ -40,6 +40,7 @@ use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
+use App\Http\Controllers\Panel\Cards\CardPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
@@ -84,6 +85,7 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeCardsPanel;
 use App\Http\Middleware\AuthorizeConsultationPanel;
 use App\Http\Middleware\AuthorizeGalleryPanel;
 use App\Http\Middleware\AuthorizeIntake;
@@ -888,3 +890,22 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::post('detentions/{detention}/entries/{entry}/attendance', [$c, 'write'])->whereNumber('detention')->whereNumber('entry')->name('attendance');
     Route::post('detentions/{detention}/cancel', [$c, 'write'])->whereNumber('detention')->name('cancel');
 });
+
+// Cards are permanent identities, not edits to the panel's selected academic year.
+// Each operation resolves the current subject, membership and approval afresh.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardsPanel::class])->prefix('school-cards')->name('cards-panel.')->group(function () {
+    $c = CardPanelController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['issue', 'portrait'])->name('create');
+    Route::post('cards/{card}/{operation}', [$c, 'write'])->whereUuid('card')->whereIn('operation', ['freeze', 'replace', 'restore'])->name('change');
+    Route::get('cards/{card}/portrait', [$c, 'portrait'])->whereUuid('card')->defaults('operation', 'portrait')->name('portrait');
+    Route::post('print', [$c, 'print'])->defaults('operation', 'print')->name('print');
+});
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardsPanel::class])->prefix('school-card-readers')->name('card-readers-panel.')->group(function () {
+    $c = CardPanelController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('/', [$c, 'write'])->defaults('operation', 'register')->name('register');
+    Route::post('{device}/revoke', [$c, 'write'])->whereUuid('device')->defaults('operation', 'revoke')->name('write');
+});
+
+Route::view('card-reader', 'cards.scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.index');

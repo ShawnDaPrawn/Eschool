@@ -9,6 +9,7 @@ use App\Models\Cards\CardChipProfile;
 use App\Models\Cards\CardKey;
 use App\Models\Cards\CardPortrait;
 use App\Models\Cards\CardQrUse;
+use App\Models\Cards\CardReaderDevice;
 use App\Models\Cards\CardScanLog;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
@@ -16,9 +17,11 @@ use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolModule;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Cards\CardPortraits;
+use App\Services\Cards\CardPrintExports;
 use App\Services\Cards\CardReaders;
 use App\Services\Cards\Cards;
 use App\Services\Cards\CardScans;
@@ -26,12 +29,15 @@ use App\Services\Cards\CardSigningKeys;
 use App\Services\Cards\Crypto\SignedCardQr;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Barryvdh\DomPDF\PDF;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\Concerns\ValidatesOpenApiResponses;
@@ -323,6 +329,113 @@ class CardDomainTest extends TestCase
             ->assertOk()->assertJsonStructure(['data' => ['portrait_id', 'revision']]);
         $this->api($this->admin)->postJson('/api/v2/cards', ['operation_id' => (string) Str::uuid(), 'person_id' => $this->child->id, 'type' => 'learner'])->assertOk();
         $this->api($this->parent)->getJson('/api/v2/cards/mine')->assertOk()->assertJsonCount(1, 'data.items');
+    }
+
+    private function panelInput(array $input = []): array
+    {
+        return ['expected_account_id' => (string) $this->admin->id, 'expected_school_id' => '1', 'operation_id' => (string) Str::uuid()] + $input;
+    }
+
+    public function test_private_panel_connects_portrait_issue_freeze_and_replacement_without_session_flash(): void
+    {
+        app(CardPortraits::class)->upload($this->parent, (int) $this->child->id, 'learner', (string) Str::uuid(), UploadedFile::fake()->image('portrait.jpg', 100, 150));
+        $this->actingAs($this->admin)->get('/school-cards?type=learner&person_id='.$this->child->id)->assertOk()->assertSee('Issue card')->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/school-cards/actions/issue', $this->panelInput(['person_id' => $this->child->id, 'type' => 'learner']))->assertRedirect();
+        $card = Card::firstOrFail();
+        $this->post('/school-cards/cards/'.$card->id.'/freeze', $this->panelInput(['reason' => 'Lost private card']))->assertRedirect();
+        $this->assertSame('frozen', $card->fresh()->status);
+        $this->post('/school-cards/cards/'.$card->id.'/replace', $this->panelInput(['reason' => 'Replacement after loss']))->assertRedirect();
+        $this->assertSame('replaced', $card->fresh()->status);
+        $this->post('/school-cards/actions/issue', $this->panelInput(['person_id' => 'invalid-private', 'type' => 'learner']))->assertStatus(422)->assertSessionMissing('_old_input')->assertHeader('Referrer-Policy', 'no-referrer');
+    }
+
+    public function test_card_panel_permissions_and_expected_identity_precede_private_fields(): void
+    {
+        $teacher = User::findOrFail($this->schoolA->ids['tara_user']);
+        $this->actingAs($teacher)->get('/school-cards')->assertForbidden()->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/school-cards/actions/portrait', [])->assertForbidden();
+        $this->actingAs($this->admin)->post('/school-cards/actions/issue', ['expected_account_id' => ['malformed'], 'expected_school_id' => '1'])->assertForbidden();
+        $this->post('/school-cards/actions/issue?person_id=123', $this->panelInput())->assertStatus(422)->assertSessionMissing('_old_input');
+    }
+
+    public function test_print_export_uses_cr80_private_pixels_and_a_locator_not_an_authentication_proof(): void
+    {
+        $card = $this->issue();
+        foreach (['landscape' => [85.6, 54.0], 'portrait' => [54.0, 85.6]] as $layout => [$width, $height]) {
+            $pdf = app(CardPrintExports::class)->pdf($this->admin, ['card_ids' => [$card['id']], 'layout' => $layout]);
+            $bytes = $pdf->output();
+            $this->assertStringStartsWith('%PDF-', $bytes);
+            $canvas = $pdf->getDomPDF()->getCanvas();
+            $this->assertEqualsWithDelta($width * 72 / 25.4, $canvas->get_width(), 0.01);
+            $this->assertEqualsWithDelta($height * 72 / 25.4, $canvas->get_height(), 0.01);
+            $this->assertSame(1, $canvas->get_page_count());
+        }
+        $reader = $this->reader();
+        try {
+            app(CardScans::class)->qr($reader['credential'], ['operation_id' => (string) Str::uuid(), 'credential' => 'NELOC1.1.'.$card['id']]);
+            $this->fail('Printed locator became proof.');
+        } catch (HttpException $error) {
+            $this->assertSame(403, $error->getStatusCode());
+        }
+        $this->actingAs($this->parent)->post('/school-cards/print', $this->panelInput(['card_ids' => [$card['id']], 'layout' => 'landscape']))->assertForbidden();
+    }
+
+    public function test_reader_pairing_secret_stays_in_a_private_response_and_is_never_flashed(): void
+    {
+        $this->actingAs($this->admin)->get('/school-card-readers')->assertOk();
+        $response = $this->post('/school-card-readers', $this->panelInput(['name' => 'Synthetic controlled gate', 'kind' => 'gate',
+            'public_key' => base64_encode(sodium_crypto_box_publickey(sodium_crypto_box_keypair())), 'days' => '1']))->assertOk()->assertSee('NED1.1.', false)->assertHeader('Cache-Control', 'no-store, private')->assertSessionMissing('_old_input');
+        $device = CardReaderDevice::firstOrFail();
+        $this->post('/school-card-readers/'.$device->id.'/revoke', $this->panelInput())->assertRedirect();
+        $this->assertSame('revoked', $device->fresh()->status);
+    }
+
+    public function test_private_card_get_validation_does_not_flash_search_or_allow_a_cached_response(): void
+    {
+        $this->actingAs($this->admin)->get('/school-cards?search%5B%5D=private-search')
+            ->assertStatus(422)->assertSessionMissing('_old_input')->assertHeader('Cache-Control', 'no-store, private');
+    }
+
+    public function test_print_rechecks_authority_after_the_slow_renderer_before_returning_private_bytes(): void
+    {
+        $card = $this->issue();
+        $pdf = \Mockery::mock(PDF::class);
+        $pdf->shouldReceive('output')->once()->andReturnUsing(function () {
+            SchoolMembership::where('user_id', $this->admin->id)->update(['status' => 'ended']);
+
+            return '%PDF-private-never-returned';
+        });
+        $service = \Mockery::mock(CardPrintExports::class)->makePartial();
+        $service->shouldReceive('pdf')->once()->andReturn($pdf);
+        $this->expectException(HttpException::class);
+        $service->output($this->admin, ['card_ids' => [$card['id']], 'layout' => 'landscape']);
+    }
+
+    public function test_reader_device_routes_are_stateless_bearer_only_even_on_a_first_party_origin(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $route = app('router')->getRoutes()->getByName('api.v2.cards.device.qr');
+        $this->assertContains(EnsureFrontendRequestsAreStateful::class, $route->excludedMiddleware());
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->withHeaders(['Origin' => 'http://localhost', 'X-School-Id' => '1'])->withToken($reader['credential'])
+            ->postJson('/api/v2/card-device/scan/qr', ['operation_id' => (string) Str::uuid(), 'credential' => app(Cards::class)->credential($this->parent, $card['id'])['credential']])
+            ->assertOk()->assertJsonPath('data.outcome', 'accepted')->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(1, CardScanLog::count());
+    }
+
+    public function test_read_only_card_panel_preserves_revocation_and_private_print_but_disables_positive_changes(): void
+    {
+        $card = $this->issue();
+        config(['modules.cards.always_on' => false]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'cards'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $this->actingAs($this->admin)->get('/school-cards?type=learner&person_id='.$this->child->id)
+            ->assertOk()->assertSee('Card changes are read-only.')->assertSee('disabled');
+        $this->post('/school-cards/actions/issue', $this->panelInput(['person_id' => $this->child->id, 'type' => 'learner']))->assertNotFound();
+        $this->post('/school-cards/print', $this->panelInput(['card_ids' => [$card['id']], 'layout' => 'landscape']))->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->post('/school-cards/cards/'.$card['id'].'/freeze', $this->panelInput(['reason' => 'Synthetic read-only lost card']))->assertRedirect();
+        $this->assertSame('frozen', Card::findOrFail($card['id'])->status);
     }
 
     public function test_issue_portrait_and_signed_qr_are_current_private_and_retry_safe(): void

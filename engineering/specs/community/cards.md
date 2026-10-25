@@ -74,8 +74,33 @@ The first supported SDM encoding profile mirrors encrypted seven-byte UID and
 also has an independent nonempty-input published vector. No factory key is used
 for issued cards; production card keys are independently random and encrypted.
 
-Current delivery: the first domain/cryptography increment implements issuance,
-private portraits, short digital credential signing/key rotation, freeze and
-replacement plus the published cryptographic vectors. Reader scan execution,
-encoding, offline snapshots, classroom entry and UI/API are planned above and
-remain unimplemented in this increment; see the card-domain self-test evidence.
+Current software delivery includes issuance/private portraits, 25-second digital
+credentials and key rotation, freeze/replacement, delegated online scan execution,
+typed API/SDK and Teacher/Facilitator/Student/Parent screens. The staff workbench
+now connects issuance, portraits, freeze/replacement/restore and revocable reader
+registration. Permission and expected school/account checks precede private form
+fields; private refusals never flash inputs into the session.
+
+CR80 exports support 85.6 × 54 mm and 54 × 85.6 mm pages with sanitized private
+portraits and generated vector QR symbols. Printed `NELOC1` values are identity
+locators, **not gate authentication proofs**. The online reader refuses these
+locators and accepts only rotating `NEQ1` proofs or verified personalized SUN
+messages. Download authorization and card/person state are rechecked after PDF
+rendering. Printing sends no remote resource requests.
+
+The standalone online reader uses only its delegated NED1 credential, never a
+staff/learner session, cookies or persistent browser storage. Camera frames and
+NFC payloads stay local until a bounded proof is submitted for server verification.
+An ambiguous transport result retains the exact operation/proof for foreground
+retry; changing pairing or leaving the foreground discards that in-memory state.
+Photo/status display has a 15-second monotonic lease measured from the beginning
+of verification, including the complete download; a response arriving too late
+cannot revive pixels. Both metadata and full portrait-body downloads time out.
+Device endpoints deliberately exclude Sanctum's cookie/CSRF authentication and
+still require the isolated delegated device guard.
+
+Offline snapshots, physical encoding runtime and restricted Foundation classroom
+entry remain unimplemented. The camera/WebNFC adapters and CR80 PDF geometry have
+software checks; physical cameras, chips, printers, readers, deployed latency and
+native device journeys require separate acceptance. See card-domain, card-api,
+card-apps and card-panel self-test records for actual evidence.

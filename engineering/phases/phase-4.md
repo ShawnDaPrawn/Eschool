@@ -113,7 +113,7 @@ remains explicitly unverified and does not stop independent development.
 | Incident/counsellor workflow | Encrypted scoped casework, appointments, public/identified reports, sanitized private media, follow-up and guarded notices/inboxes | Deployment/device/external acceptance |
 | Consultations | Domain, panel, four app profiles, anonymous separation and scheduled generic notices | Deployment and real delivery acceptance; statutory elections remain Phase 6 |
 | Houses and awards | Caps/reversals, annual catalogue reuse, assembly, permanent awards, actual live Home counter/celebration | Deployed latency and device acceptance |
-| Cards | Private identity/portrait domain, rotation/freeze/replacement, published-vector crypto, delegated online scan execution, typed API; four app profiles qualified in this increment | Staff panel/CR80 print and online scanner UI, offline scanning, physical encoding runtime and restricted Foundation classroom entry; hardware acceptance |
+| Cards | Private identity/portrait domain, rotation/freeze/replacement, published-vector crypto, delegated online scan execution, typed API, four app profiles, staff workbench, CR80 PDFs and online scanner | Offline scanning, physical encoding runtime and restricted Foundation classroom entry; hardware acceptance |
 | Intake/admissions | Public resume, encrypted/scanned applications, waiting-list offers, atomic enrolment and balanced homeroom/house choices | Staging/deployment and external acceptance |
 | Health/consent, meetings and gate passes | Pending | Entire retained feature set |
 | Personal photo gallery | Private group/family surfaces, approval/tag withdrawal, explicit transfer retention | Deployment/device acceptance |
