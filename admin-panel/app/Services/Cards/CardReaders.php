@@ -28,7 +28,7 @@ class CardReaders
             fn () => app(CardAccess::class)->manage($actor, true), function () use ($actor, $data) {
                 $secret = bin2hex(random_bytes(32));
                 $device = CardReaderDevice::create(['issued_by' => $actor->id, 'name' => $data['name'], 'kind' => $data['kind'],
-                    'public_key' => $data['public_key'], 'secret_hash' => hash('sha256', $secret), 'expires_at' => now()->utc()->addDays($data['days'])]);
+                    'public_key' => $data['public_key'], 'secret_hash' => hash('sha256', $secret), 'expires_at' => now()->utc()->addDays((int) $data['days'])]);
 
                 return ['id' => $device->id, 'credential' => 'NED1.'.app(CurrentSchool::class)->id().'.'.$device->id.'.'.$secret,
                     'kind' => $device->kind, 'expires_at' => $device->expires_at->toIso8601String()];

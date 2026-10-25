@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Admissions\IntakeAuthority;
 use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Ai\Quarantine\AiReviewAuthority;
+use App\Services\Cards\CardPanelScope;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
@@ -161,6 +162,9 @@ class Navigation
             return false;
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {
             return false;
         }
         if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {

@@ -2,6 +2,7 @@ import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../localization/academic_text.dart';
 import 'discipline_repository.dart';
 
@@ -10,10 +11,12 @@ class SchoolDisciplineScreen extends StatefulWidget {
   const SchoolDisciplineScreen({
     required this.repository,
     required this.canRead,
+    this.initialRecord,
     super.key,
   });
   final DisciplineRepository repository;
   final bool Function() canRead;
+  final int? initialRecord;
   @override
   State<SchoolDisciplineScreen> createState() => _SchoolDisciplineScreenState();
 }
@@ -179,6 +182,9 @@ class _SchoolDisciplineScreenState extends State<SchoolDisciplineScreen>
       _date.text = config.today;
       _infraction = config.framework?.definition.infractions.firstOrNull?.code;
       await _load(epoch);
+      if (_current(epoch) && widget.initialRecord != null) {
+        await _open(widget.initialRecord!);
+      }
     } catch (e) {
       _fail(e, epoch);
     }

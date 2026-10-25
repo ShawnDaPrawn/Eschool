@@ -109,6 +109,14 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.featureFlags['my_grade'] ==
+            true &&
+        allowsSchoolModule(context.watch<MeContextCubit>().context, 'my_grade'))
+      tile(
+        title: label('My grade'),
+        icon: Icons.groups_outlined,
+        onTap: () => open(Routes.myGrade),
+      ),
     AvailableOnly(
       featureKey:
           'secure-cards:${context.watch<MeContextCubit>().context?.currentSchoolId}:${context.watch<MeContextCubit>().context?.user?.id}:${context.watch<MeContextCubit>().context?.roles.join(',')}',
@@ -1418,3 +1426,58 @@ class SchoolCardsEntry extends StatelessWidget {
     },
   );
 }
+
+Route<dynamic> myGradeRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school < 1 ||
+        account == null ||
+        account < 1 ||
+        me.featureFlags['my_grade'] != true ||
+        !me.isModuleOn('my_grade') ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'My grade'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: MyGradeSessionBoundary(
+        pinned: me,
+        builder: (_, active) => MyGradeClientScreen(
+          client: Api.client,
+          schoolId: school,
+          readerId: account,
+          contextChanges: Stream<void>.multi((changes) {
+            final profile = session.stream.listen((_) => changes.add(null));
+            final selection = schools.stream.listen((_) => changes.add(null));
+            changes.onCancel = () {
+              profile.cancel();
+              selection.cancel();
+            };
+          }),
+          contextActive: () =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+        ),
+      ),
+    );
+  },
+);

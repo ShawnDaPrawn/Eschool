@@ -7,6 +7,7 @@ namespace App\Policies\People;
 use App\Models\ClassTeacher;
 use App\Models\Parents;
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\ProfileFieldDefinition;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
@@ -133,6 +134,12 @@ class ProfilePolicy
 
     public function field(array $context, ProfileFieldDefinition $field, bool $write = false): bool
     {
+        // The generic profile reader/editor must not bypass the private health boundary.
+        $medical = $field->category?->key === 'health' || in_array($field->key, ['medical_alerts', 'allergies'], true);
+        if ($medical && (app(CurrentSchool::class)->isAcrossSchools() || app(CurrentSchool::class)->isImpersonating()
+            || PlatformStaffIdentity::where('user_id', $context['actor']->id)->where('active', true)->exists())) {
+            return false;
+        }
         if ($field->hidden || ! in_array($context['role'], $field->visible_to, true)
             || ($field->sensitive && ! $context['sensitive'])) {
             return false;

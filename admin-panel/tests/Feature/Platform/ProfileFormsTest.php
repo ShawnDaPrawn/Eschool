@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\ProfileFieldDefinition;
 use App\Models\Platform\ProfileFieldValue;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\People\Profiles\ProfileDefinitions;
+use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -148,5 +150,24 @@ class ProfileFormsTest extends TestCase
         $this->getJson('/api/v2/people/'.$this->schoolA->ids['asha_user'].'/profile?profile_type=learner')->assertNotFound();
         $this->postJson('/api/v2/profile-fields/categories', ['profile_type' => 'learner', 'key' => 'expired_admin', 'label' => 'No'])
             ->assertForbidden();
+    }
+
+    public function test_platform_identity_cannot_read_or_change_health_through_the_existing_profile_api(): void
+    {
+        $learner = User::findOrFail($this->schoolA->ids['asha_user']);
+        $admin = $this->superAdmin();
+        $token = $admin->createToken('medical-profile-boundary')->plainTextToken;
+        app(ProfileForms::class)->save($admin, $learner, 'learner', ['medical_alerts' => 'Synthetic restricted medical value']);
+        $url = '/api/v2/people/'.$learner->id.'/profile';
+        $this->withToken($token)->getJson($url.'?profile_type=learner')->assertOk()->assertSee('Synthetic restricted medical value');
+        PlatformStaffIdentity::create(['user_id' => $admin->id, 'active' => true]);
+        $response = $this->getJson($url.'?profile_type=learner')->assertOk()->assertDontSee('Synthetic restricted medical value');
+        $keys = collect($response->json('data.categories'))->pluck('fields')->flatten(1)->pluck('key')->all();
+        $this->assertContains('first_name', $keys);
+        $this->assertNotContains('medical_alerts', $keys);
+        $this->assertNotContains('allergies', $keys);
+        $this->putJson($url, ['profile_type' => 'learner', 'values' => ['medical_alerts' => ['text' => 'Unauthorized changed medical value']]])->assertUnprocessable();
+        PlatformStaffIdentity::where('user_id', $admin->id)->delete();
+        $this->getJson($url.'?profile_type=learner')->assertOk()->assertSee('Synthetic restricted medical value')->assertDontSee('Unauthorized changed medical value');
     }
 }

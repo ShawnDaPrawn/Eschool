@@ -1,0 +1,7 @@
+.school-identity-reader { max-width: 48rem; margin: auto; padding: var(--m3-space-4, 1rem); }
+.school-identity-reader form { display: grid; gap: var(--m3-space-3, .75rem); margin-block: var(--m3-space-4, 1rem); }
+.school-identity-reader input { min-width: 0; width: 100%; box-sizing: border-box; padding: var(--m3-space-3, .75rem); color: var(--md-sys-color-on-surface); background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline); border-radius: var(--m3-radius-sm, .5rem); }
+.school-identity-reader-actions { display: flex; flex-wrap: wrap; gap: var(--m3-space-2, .5rem); }
+.school-identity-reader video { width: 100%; max-height: 24rem; }
+.school-identity-reader img { object-fit: contain; max-width: 100%; }
+.school-identity-reader [hidden] { display: none !important; }

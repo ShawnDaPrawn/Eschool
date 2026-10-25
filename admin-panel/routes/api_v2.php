@@ -605,7 +605,7 @@ Route::prefix('cards')->name('api.v2.cards.')->middleware([PrivateDomainResponse
 });
 
 // Dedicated credentials cannot authorize any normal user endpoint.
-Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->group(function () {
+Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
     $controller = CardController::class;
     Route::post('scan/qr', [$controller, 'scan'])->name('qr');
     Route::post('scan/sun', [$controller, 'scan'])->name('sun');
