@@ -254,29 +254,29 @@ class ActivityGroupsTest extends TestCase
     {
         $this->api($this->superAdmin());
         $path = '/api/v2/activities/groups';
-        $group = $this->postJson($path, $this->data())->assertOk()->json('data');
+        $group = $this->postJson($path, $this->data())->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
         $id = $group['id'];
-        $this->putJson("$path/$id", $this->data(['revision' => 1, 'name' => 'Hockey updated']))->assertOk()->assertJsonPath('data.revision', 2);
-        $this->getJson($path)->assertOk()->assertJsonPath('data.total', 1);
-        $member = $this->postJson("$path/$id/memberships", $this->dates(['learner_id' => $this->schoolA->ids['asha'], 'role' => 'member']))->assertOk()->json('data');
-        $this->putJson("$path/$id/memberships/{$member['id']}", $this->dates(['revision' => 1, 'learner_id' => $this->schoolA->ids['asha'], 'role' => 'captain']))->assertOk();
-        $staff = $this->postJson("$path/$id/staff", $this->dates(['user_id' => $this->schoolA->ids['tara_user'], 'role' => 'facilitator', 'cascade' => false]))->assertOk()->json('data');
-        $this->putJson("$path/$id/staff/{$staff['id']}", $this->dates(['revision' => 1, 'user_id' => $this->schoolA->ids['tara_user'], 'role' => 'admin', 'cascade' => true]))->assertOk();
+        $this->putJson("$path/$id", $this->data(['revision' => 1, 'name' => 'Hockey updated']))->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.revision', 2);
+        $this->getJson($path)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.total', 1);
+        $member = $this->postJson("$path/$id/memberships", $this->dates(['learner_id' => $this->schoolA->ids['asha'], 'role' => 'member']))->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+        $this->putJson("$path/$id/memberships/{$member['id']}", $this->dates(['revision' => 1, 'learner_id' => $this->schoolA->ids['asha'], 'role' => 'captain']))->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $staff = $this->postJson("$path/$id/staff", $this->dates(['user_id' => $this->schoolA->ids['tara_user'], 'role' => 'facilitator', 'cascade' => false]))->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+        $this->putJson("$path/$id/staff/{$staff['id']}", $this->dates(['revision' => 1, 'user_id' => $this->schoolA->ids['tara_user'], 'role' => 'admin', 'cascade' => true]))->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $body = ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'on_date' => '2026-02-10', 'name' => 'Session', 'venue' => 'Field', 'status' => 'scheduled'];
-        $session = $this->postJson("$path/$id/sessions", $body)->assertOk()->json('data');
+        $session = $this->postJson("$path/$id/sessions", $body)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
         $body['revision'] = 1;
         $body['operation_id'] = (string) Str::uuid();
         $body['name'] = 'Training updated';
-        $this->putJson("$path/$id/sessions/{$session['id']}", $body)->assertOk();
-        $this->putJson('/api/v2/activities/sessions/'.$session['id'].'/attendance', ['operation_id' => (string) Str::uuid(), 'revision' => 2, 'reason' => 'Explicit register capture', 'entries' => [['learner_id' => $this->schoolA->ids['asha'], 'status' => 'present', 'revision' => 0]]])->assertOk()->assertJsonPath('data.session_revision', 3);
+        $this->putJson("$path/$id/sessions/{$session['id']}", $body)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->putJson('/api/v2/activities/sessions/'.$session['id'].'/attendance', ['operation_id' => (string) Str::uuid(), 'revision' => 2, 'reason' => 'Explicit register capture', 'entries' => [['learner_id' => $this->schoolA->ids['asha'], 'status' => 'present', 'revision' => 0]]])->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.session_revision', 3);
         $body = ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'title' => 'Fixture', 'markdown' => '# Fixtures', 'published' => false];
-        $material = $this->postJson("$path/$id/materials", $body)->assertOk()->json('data');
+        $material = $this->postJson("$path/$id/materials", $body)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
         $body['revision'] = 1;
         $body['operation_id'] = (string) Str::uuid();
         $body['published'] = true;
-        $this->putJson("$path/$id/materials/{$material['id']}", $body)->assertOk();
-        $this->getJson("$path/$id/roster")->assertOk()->assertJsonPath('data.memberships.0.role', 'captain');
-        $this->getJson("$path/$id")->assertOk()->assertJsonPath('data.materials.0.published', true);
+        $this->putJson("$path/$id/materials/{$material['id']}", $body)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->getJson("$path/$id/roster")->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.memberships.0.role', 'captain');
+        $this->getJson("$path/$id")->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.materials.0.published', true);
     }
 
     public function test_legacy_compose_is_not_exposed_to_new_audience_enums_but_published_reader_stays_compatible(): void
