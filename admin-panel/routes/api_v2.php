@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
+use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
@@ -580,8 +581,8 @@ Route::prefix('live')->name('api.v2.live.')->middleware([PrivateDomainResponse::
 });
 
 // Private per-child weekly summaries; every read refreshes actual guardian rights.
-Route::prefix('digests')->middleware([\App\Http\Middleware\PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:digest'])->name('api.v2.digests.')->group(function () {
-    $c = \App\Http\Controllers\Api\V2\Learning\Digests\DigestController::class;
+Route::prefix('digests')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:digest'])->name('api.v2.digests.')->group(function () {
+    $c = DigestController::class;
     Route::get('access', [$c, 'access'])->name('access');
     Route::get('templates', [$c, 'templates'])->name('templates');
     Route::post('templates', [$c, 'createTemplate'])->name('create-template');

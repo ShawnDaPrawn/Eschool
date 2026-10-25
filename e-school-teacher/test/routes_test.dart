@@ -217,7 +217,9 @@ void main() {
     final parser = DeepLinkParser(routes: deepLinkRoutes);
     for (final route in deepLinkRoutes) {
       final target = parser.parse(
-        Uri.parse('https://teach.navigateed.co.za${route.path}'),
+        Uri.parse(
+          'https://teach.navigateed.co.za${route.path.replaceAll(RegExp(r':[A-Za-z][A-Za-z0-9_]*'), '1')}',
+        ),
       )!;
       expect(
         open(target.routeName, target.arguments),

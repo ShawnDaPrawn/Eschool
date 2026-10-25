@@ -2,7 +2,6 @@ import 'package:eschool/ui/screens/parentHomeScreen.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool_core/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:integration_test/integration_test.dart';
