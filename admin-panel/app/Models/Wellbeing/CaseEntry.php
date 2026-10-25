@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Wellbeing;
 
+use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,6 @@ class CaseEntry extends Model
 
     protected function casts(): array
     {
-        return ['body' => 'encrypted', 'happened_at' => 'immutable_datetime'];
+        return ['body' => 'encrypted', 'happened_at' => UtcInstant::class];
     }
 }
