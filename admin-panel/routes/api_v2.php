@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\V2\Transfers\TransferController;
 use App\Http\Controllers\Api\V2\Wellbeing\IncidentPhotoController;
 use App\Http\Controllers\Api\V2\Wellbeing\PublicReportingController;
 use App\Http\Controllers\Api\V2\Wellbeing\WellbeingController;
+use App\Http\Controllers\Api\V2\Wellbeing\WellbeingInboxController;
 use App\Http\Middleware\AuthorizeClassGrade;
 use App\Http\Middleware\AuthorizeCover;
 use App\Http\Middleware\AuthorizeCurriculum;
@@ -55,6 +56,7 @@ use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
+use App\Http\Middleware\PublicReportingBoundary;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -83,7 +85,7 @@ use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 // Anonymous transport is deliberately stateless even when a portal cookie exists.
 Route::prefix('wellbeing/public/{schoolSlug}')->where(['schoolSlug' => '[a-z0-9][a-z0-9-]*'])->name('api.v2.wellbeing.public.')
     ->withoutMiddleware([EnsureFrontendRequestsAreStateful::class, 'throttle:api'])
-    ->middleware([PrivateWellbeing::class, 'throttle:wellbeing-public'])->group(function () {
+    ->middleware([PrivateWellbeing::class, PublicReportingBoundary::class, 'throttle:wellbeing-public'])->group(function () {
         $controller = PublicReportingController::class;
         Route::get('configuration', [$controller, 'action'])->name('categories');
         Route::post('reports', [$controller, 'action'])->middleware('throttle:wellbeing-submit')->name('submit');
@@ -94,6 +96,9 @@ Route::prefix('wellbeing/public/{schoolSlug}')->where(['schoolSlug' => '[a-z0-9]
     });
 
 Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbeing::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:wellbeing,read'])->group(function () {
+    $inbox = WellbeingInboxController::class;
+    Route::get('notices', [$inbox, 'index'])->middleware(AuthorizeWellbeing::class.':own-notices')->name('own-notices');
+    Route::post('notices/{notice}/read', [$inbox, 'read'])->whereNumber('notice')->middleware(AuthorizeWellbeing::class.':own-notice-read')->name('own-notice-read');
     $photo = IncidentPhotoController::class;
     Route::post('own/photos', [$photo, 'own'])->middleware(['module:wellbeing,write', AuthorizeWellbeing::class.':own-photo-upload'])->name('own-photo-upload');
     Route::post('own/photos/download', [$photo, 'own'])->middleware(AuthorizeWellbeing::class.':own-photo-read')->name('own-photo-read');
@@ -117,7 +122,7 @@ Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbe
 Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     $c = SessionController::class;
     Route::post('sign-in', [$c, 'signIn'])->middleware(['throttle:login', 'portal.sign-in'])->name('sign-in');
-    Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context'])->name('session');
+    Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
 });
 

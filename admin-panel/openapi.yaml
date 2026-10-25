@@ -15100,7 +15100,7 @@ paths:
           minimum: 1
       - name: session_year_id
         in: query
-        required: true
+        required: false
         description: session year id
         schema:
           type: integer
@@ -15841,6 +15841,97 @@ paths:
         schema:
           type: string
           format: uuid
+  /wellbeing/notices:
+    get:
+      operationId: listWellbeingNotices
+      tags:
+      - Wellbeing
+      summary: listWellbeingNotices
+      description: Own delivered generic private alerts only. Fresh account/school/role, independent incident-team/case/owner,
+        learner approval/enrolment/guardian and module scope applies before list/count/lookup/read marking.
+        No code, source report/case IDs, names, clinical counts or clinical content are returned. Personal
+        read receipts are idempotent and permitted in read-only mode; they never mutate the clinical source.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingNoticesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      - name: area
+        in: query
+        required: false
+        description: Narrows already-authorized own alerts to the current app area; never grants source
+          access.
+        schema:
+          type: string
+          enum:
+          - staff
+          - reporter
+  /wellbeing/notices/{notice}/read:
+    post:
+      operationId: readWellbeingNotice
+      tags:
+      - Wellbeing
+      summary: readWellbeingNotice
+      description: Own delivered generic private alerts only. Fresh account/school/role, independent incident-team/case/owner,
+        learner approval/enrolment/guardian and module scope applies before list/count/lookup/read marking.
+        No code, source report/case IDs, names, clinical counts or clinical content are returned. Personal
+        read receipts are idempotent and permitted in read-only mode; they never mutate the clinical source.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadWellbeingNoticeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: notice
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
 components:
   securitySchemes:
     bearerAuth:
@@ -16994,6 +17085,10 @@ components:
           maxItems: 50
           items:
             $ref: '#/components/schemas/DisciplineFamilyRecord'
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisciplineChoice'
     DisciplineDetention:
       type: object
       additionalProperties: false
@@ -17951,6 +18046,13 @@ components:
         revision:
           type: integer
           minimum: 1
+        activity_group_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          description: Explicit group for this category and school year; omitted or null uses the original
+            category group only within its own year.
     RecognitionConfiguration:
       type: object
       additionalProperties: false
@@ -35371,5 +35473,106 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/IncidentPhoto'
+        code:
+          type: integer
+    WellbeingNotice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - message
+      - link
+      - created_at
+      - read_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 128
+        message:
+          type: string
+          maxLength: 128
+        link:
+          type: string
+          pattern: ^/(wellbeing|report-concern)$
+        created_at:
+          type: string
+          format: date-time
+        read_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+    WellbeingNoticePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - unread_count
+      properties:
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/WellbeingNotice'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        unread_count:
+          type: integer
+          minimum: 0
+    WellbeingNoticeReadReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - read_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        read_at:
+          type: string
+          format: date-time
+    ListWellbeingNoticesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingNoticePage'
+        code:
+          type: integer
+    ReadWellbeingNoticeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingNoticeReadReceipt'
         code:
           type: integer

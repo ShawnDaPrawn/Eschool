@@ -547,7 +547,7 @@ paths:
           minimum: 1
       - name: session_year_id
         in: query
-        required: true
+        required: false
         description: session year id
         schema:
           type: integer
@@ -2004,6 +2004,10 @@ components:
           maxItems: 50
           items:
             $ref: '#/components/schemas/DisciplineFamilyRecord'
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisciplineChoice'
     DisciplineDetention:
       type: object
       additionalProperties: false

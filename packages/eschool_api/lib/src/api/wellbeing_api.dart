@@ -36,9 +36,11 @@ import 'package:eschool_api/src/model/list_wellbeing_case_incident_choices_respo
 import 'package:eschool_api/src/model/list_wellbeing_case_professionals_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_cases_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_managed_cases_response.dart';
+import 'package:eschool_api/src/model/list_wellbeing_notices_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_reports_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_team_assignments_response.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
+import 'package:eschool_api/src/model/read_wellbeing_notice_response.dart';
 import 'package:eschool_api/src/model/reply_anonymous_incident_response.dart';
 import 'package:eschool_api/src/model/reply_identified_incident_response.dart';
 import 'package:eschool_api/src/model/reply_wellbeing_report_response.dart';
@@ -2422,6 +2424,104 @@ class WellbeingApi {
     );
   }
 
+  /// listWellbeingNotices
+  /// Own delivered generic private alerts only. Fresh account/school/role, independent incident-team/case/owner, learner approval/enrolment/guardian and module scope applies before list/count/lookup/read marking. No code, source report/case IDs, names, clinical counts or clinical content are returned. Personal read receipts are idempotent and permitted in read-only mode; they never mutate the clinical source.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [area] - Narrows already-authorized own alerts to the current app area; never grants source access.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ListWellbeingNoticesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ListWellbeingNoticesResponse>> listWellbeingNotices({
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    String? area,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/notices';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (page != null) r'page': page,
+      if (area != null) r'area': area,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ListWellbeingNoticesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ListWellbeingNoticesResponse,
+              ListWellbeingNoticesResponse
+            >(rawData, 'ListWellbeingNoticesResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ListWellbeingNoticesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// listWellbeingReports
   /// Private encrypted wellbeing data; fresh actor and dated category-team or case assignment are checked before loading, validation and replay. Platform staff and impersonation have no professional access. Configuration reveals only assignment metadata; clinical grants are independent from support plans and learner notes. Responses forbid caching.
   ///
@@ -2711,6 +2811,101 @@ class WellbeingApi {
     }
 
     return Response<OpenWellbeingCaseResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// readWellbeingNotice
+  /// Own delivered generic private alerts only. Fresh account/school/role, independent incident-team/case/owner, learner approval/enrolment/guardian and module scope applies before list/count/lookup/read marking. No code, source report/case IDs, names, clinical counts or clinical content are returned. Personal read receipts are idempotent and permitted in read-only mode; they never mutate the clinical source.
+  ///
+  /// Parameters:
+  /// * [notice]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ReadWellbeingNoticeResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ReadWellbeingNoticeResponse>> readWellbeingNotice({
+    required int notice,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/notices/{notice}/read'.replaceAll(
+      '{'
+      r'notice'
+      '}',
+      notice.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ReadWellbeingNoticeResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ReadWellbeingNoticeResponse,
+              ReadWellbeingNoticeResponse
+            >(rawData, 'ReadWellbeingNoticeResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ReadWellbeingNoticeResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

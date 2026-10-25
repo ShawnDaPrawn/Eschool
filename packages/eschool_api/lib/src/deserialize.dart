@@ -479,6 +479,7 @@ import 'package:eschool_api/src/model/list_wellbeing_case_incident_choices_respo
 import 'package:eschool_api/src/model/list_wellbeing_case_professionals_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_cases_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_managed_cases_response.dart';
+import 'package:eschool_api/src/model/list_wellbeing_notices_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_reports_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_team_assignments_response.dart';
 import 'package:eschool_api/src/model/mastery_configuration.dart';
@@ -543,6 +544,7 @@ import 'package:eschool_api/src/model/progress_roster.dart';
 import 'package:eschool_api/src/model/progress_roster_response.dart';
 import 'package:eschool_api/src/model/progress_staff_band.dart';
 import 'package:eschool_api/src/model/progress_staff_band_response.dart';
+import 'package:eschool_api/src/model/read_wellbeing_notice_response.dart';
 import 'package:eschool_api/src/model/recognition_access.dart';
 import 'package:eschool_api/src/model/recognition_access_response.dart';
 import 'package:eschool_api/src/model/recognition_award_category.dart';
@@ -746,6 +748,9 @@ import 'package:eschool_api/src/model/wellbeing_category_input.dart';
 import 'package:eschool_api/src/model/wellbeing_configuration.dart';
 import 'package:eschool_api/src/model/wellbeing_learner_choice.dart';
 import 'package:eschool_api/src/model/wellbeing_named_choice.dart';
+import 'package:eschool_api/src/model/wellbeing_notice.dart';
+import 'package:eschool_api/src/model/wellbeing_notice_page.dart';
+import 'package:eschool_api/src/model/wellbeing_notice_read_receipt.dart';
 import 'package:eschool_api/src/model/wellbeing_report.dart';
 import 'package:eschool_api/src/model/wellbeing_report_page.dart';
 import 'package:eschool_api/src/model/wellbeing_report_reply_input.dart';
@@ -2449,6 +2454,11 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'ListWellbeingNoticesResponse':
+      return ListWellbeingNoticesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ListWellbeingReportsResponse':
       return ListWellbeingReportsResponse.fromJson(
             value as Map<String, dynamic>,
@@ -2648,6 +2658,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ProgressStaffBandResponse':
       return ProgressStaffBandResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ReadWellbeingNoticeResponse':
+      return ReadWellbeingNoticeResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'RecognitionAccess':
       return RecognitionAccess.fromJson(value as Map<String, dynamic>)
@@ -3315,6 +3328,15 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'WellbeingNamedChoice':
       return WellbeingNamedChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WellbeingNotice':
+      return WellbeingNotice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WellbeingNoticePage':
+      return WellbeingNoticePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WellbeingNoticeReadReceipt':
+      return WellbeingNoticeReadReceipt.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WellbeingReport':
       return WellbeingReport.fromJson(value as Map<String, dynamic>)

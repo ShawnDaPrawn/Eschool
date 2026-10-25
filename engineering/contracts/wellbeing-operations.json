@@ -264,5 +264,19 @@
     "path": "/wellbeing/reports/{report}/photos/{photo}",
     "operation": "downloadWellbeingIncidentPhoto",
     "input": null
+  },
+  {
+    "action": "own-notices",
+    "method": "GET",
+    "path": "/wellbeing/notices",
+    "operation": "listWellbeingNotices",
+    "input": null
+  },
+  {
+    "action": "own-notice-read",
+    "method": "POST",
+    "path": "/wellbeing/notices/{notice}/read",
+    "operation": "readWellbeingNotice",
+    "input": null
   }
 ]

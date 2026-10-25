@@ -499,6 +499,7 @@ lib/src/model/list_wellbeing_case_incident_choices_response.dart
 lib/src/model/list_wellbeing_case_professionals_response.dart
 lib/src/model/list_wellbeing_cases_response.dart
 lib/src/model/list_wellbeing_managed_cases_response.dart
+lib/src/model/list_wellbeing_notices_response.dart
 lib/src/model/list_wellbeing_reports_response.dart
 lib/src/model/list_wellbeing_team_assignments_response.dart
 lib/src/model/mastery_configuration.dart
@@ -563,6 +564,7 @@ lib/src/model/progress_roster.dart
 lib/src/model/progress_roster_response.dart
 lib/src/model/progress_staff_band.dart
 lib/src/model/progress_staff_band_response.dart
+lib/src/model/read_wellbeing_notice_response.dart
 lib/src/model/recognition_access.dart
 lib/src/model/recognition_access_response.dart
 lib/src/model/recognition_award_category.dart
@@ -766,6 +768,9 @@ lib/src/model/wellbeing_category_input.dart
 lib/src/model/wellbeing_configuration.dart
 lib/src/model/wellbeing_learner_choice.dart
 lib/src/model/wellbeing_named_choice.dart
+lib/src/model/wellbeing_notice.dart
+lib/src/model/wellbeing_notice_page.dart
+lib/src/model/wellbeing_notice_read_receipt.dart
 lib/src/model/wellbeing_report.dart
 lib/src/model/wellbeing_report_page.dart
 lib/src/model/wellbeing_report_reply_input.dart

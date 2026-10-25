@@ -10,6 +10,7 @@ use App\Models\Parents;
 use App\Models\People\Enrolment;
 use App\Models\Students;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Models\Wellbeing\Appointment;
 use App\Models\Wellbeing\CareCase;
 use App\Models\Wellbeing\CaseAssignment;
@@ -21,6 +22,7 @@ use App\Models\Wellbeing\TeamAssignment;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Notifications\NotificationVisibility;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Notifications\PrivateNoticeDelivery;
 use App\Services\Platform\Notifications\PrivateNoticeScope;
@@ -144,6 +146,46 @@ class WellbeingNotices implements PrivateNoticeDelivery, PrivateNoticeScope
         $notifications->where(function (Builder $query) use ($allowed) {
             $query->where(fn ($staff) => $staff->where('type', self::STAFF)->whereIn('id', (clone $allowed)->whereIn('kind', ['report_staff', 'case_staff'])->select('notification_id')))
                 ->orWhere(fn ($owner) => $owner->where('type', self::REPORTER)->whereIn('id', (clone $allowed)->where('kind', 'report_reply')->select('notification_id')));
+        });
+    }
+
+    private function delivered(User $actor): Builder
+    {
+        $fresh = $this->access->actor($actor);
+        $links = UserNotification::where('user_id', $fresh->id)->select('notification_id');
+
+        return NotificationVisibility::forUser(Notification::whereIn('type', [self::STAFF, self::REPORTER])->whereIn('id', $links), (int) $fresh->id, 0);
+    }
+
+    public function inbox(User $actor, int $page = 1, ?string $area = null): array
+    {
+        $query = $this->delivered($actor);
+        abort_unless($area === null || in_array($area, ['staff', 'reporter'], true), 422);
+        if ($area !== null) {
+            $query->where('type', $area === 'staff' ? self::STAFF : self::REPORTER);
+        }
+        $rows = (clone $query)->orderByDesc('id')->paginate(25, ['id', 'type', 'created_at'], 'page', $page);
+        $markers = $this->permitted($actor)->whereIn('notification_id', $rows->pluck('id')->all())->get(['notification_id', 'read_at'])->keyBy('notification_id');
+        $unread = (clone $query)->whereIn('id', $this->permitted($actor)->whereNull('read_at')->select('notification_id'))->count();
+        $items = $rows->map(fn ($notice) => ['id' => (int) $notice->id, 'title' => __('Private school update'),
+            'message' => __('Open your private school area to review an available update.'),
+            'link' => $notice->type === self::STAFF ? self::STAFF_LINK : self::REPORTER_LINK,
+            'created_at' => $notice->created_at->toISOString(), 'read_at' => $markers->get($notice->id)?->read_at?->toISOString()])->all();
+
+        return ['items' => $items, 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'unread_count' => $unread];
+    }
+
+    public function markRead(User $actor, int $id): array
+    {
+        return DB::transaction(function () use ($actor, $id) {
+            $this->delivered($actor)->select('id')->findOrFail($id);
+            $intent = $this->permitted($actor)->where('notification_id', $id)->lockForUpdate()->firstOrFail();
+            if ($intent->read_at === null) {
+                $intent->read_at = now();
+                $intent->save();
+            }
+
+            return ['id' => $id, 'read_at' => $intent->read_at->toISOString()];
         });
     }
 

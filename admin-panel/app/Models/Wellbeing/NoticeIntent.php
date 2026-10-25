@@ -23,6 +23,6 @@ class NoticeIntent extends Model
 
     protected function casts(): array
     {
-        return ['event_id' => 'integer', 'recipient_user_id' => 'integer', 'incident_report_id' => 'integer', 'support_case_id' => 'integer', 'notification_id' => 'integer', 'queued_at' => 'immutable_datetime'];
+        return ['event_id' => 'integer', 'recipient_user_id' => 'integer', 'incident_report_id' => 'integer', 'support_case_id' => 'integer', 'notification_id' => 'integer', 'queued_at' => 'immutable_datetime', 'read_at' => 'immutable_datetime'];
     }
 }

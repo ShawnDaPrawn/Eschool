@@ -34,9 +34,15 @@ class WellbeingRequest extends FormRequest
     public function rules(): array
     {
         $action = $this->action();
+        if ($action === 'own-notices') {
+            return ['page' => ['sometimes', 'integer', 'between:1,10000'], 'area' => ['sometimes', 'in:staff,reporter']];
+        }
         if ($this->isMethod('GET')) {
             return ['selected' => ['sometimes', 'integer', 'min:1'], 'on_date' => [$action === 'case-professionals' ? 'required' : 'sometimes', 'date_format:Y-m-d'], 'page' => ['sometimes', 'integer', 'between:1,10000'], 'search' => ['sometimes', 'nullable', 'string', 'max:100'], 'before' => ['sometimes', 'integer', 'min:1'],
                 'from' => [$action === 'appointments' ? 'required' : 'sometimes', 'date_format:Y-m-d'], 'to' => [$action === 'appointments' ? 'required' : 'sometimes', 'date_format:Y-m-d', 'after_or_equal:from']];
+        }
+        if ($action === 'own-notice-read') {
+            return [];
         }
         $secret = ['secret' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/D']];
         if (in_array($action, ['public.read', 'identified-read'], true)) {

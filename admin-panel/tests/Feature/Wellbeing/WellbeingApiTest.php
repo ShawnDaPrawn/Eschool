@@ -135,12 +135,12 @@ class WellbeingApiTest extends TestCase
             }
             $path = '/api/v2'.preg_replace_callback('/\{(\w+)\}/', fn ($match) => $match[1] === 'photo' ? '11111111-1111-4111-8111-111111111111' : '999999', $operation['path']);
             $this->api($this->professional)->withHeader('X-School-Id', '2')->json($operation['method'], $path, [])->assertForbidden();
-            if ($operation['action'] !== 'access' && ! str_starts_with($operation['action'], 'identified-') && $operation['action'] !== 'identify' && ! str_starts_with($operation['action'], 'own-photo-')) {
+            if ($operation['action'] !== 'access' && ! str_starts_with($operation['action'], 'identified-') && $operation['action'] !== 'identify' && ! str_starts_with($operation['action'], 'own-')) {
                 $this->api($parent)->json($operation['method'], $path, [])->assertForbidden();
             }
             $count++;
         }
-        $this->assertSame(32, $count);
+        $this->assertSame(34, $count);
     }
 
     public function test_assigned_professional_facilitator_profile_can_triage_and_write_case_without_teacher_record(): void

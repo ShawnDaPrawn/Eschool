@@ -1271,6 +1271,13 @@ components:
         revision:
           type: integer
           minimum: 1
+        activity_group_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          description: Explicit group for this category and school year; omitted or null uses the original
+            category group only within its own year.
     RecognitionConfiguration:
       type: object
       additionalProperties: false

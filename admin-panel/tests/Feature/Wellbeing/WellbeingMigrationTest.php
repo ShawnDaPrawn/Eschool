@@ -18,6 +18,8 @@ class WellbeingMigrationTest extends TestCase
         $migration = require database_path('migrations/2026_10_25_050000_create_wellbeing.php');
         $photos = require database_path('migrations/2026_10_25_170000_create_incident_photos.php');
         $notices = require database_path('migrations/2026_10_25_180000_create_wellbeing_notice_intents.php');
+        $reads = require database_path('migrations/2026_10_25_185000_add_wellbeing_notice_reads.php');
+        $reads->down();
         $notices->down();
         $photos->down();
         $migration->down();
@@ -28,6 +30,7 @@ class WellbeingMigrationTest extends TestCase
         $migration->up();
         $photos->up();
         $notices->up();
+        $reads->up();
         $this->assertTrue(Schema::hasTable('incident_reports'));
         $this->assertTrue(Schema::hasTable('wellbeing_operations'));
         $this->assertFalse(config('modules.wellbeing.default'));

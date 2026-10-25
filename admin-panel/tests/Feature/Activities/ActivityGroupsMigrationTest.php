@@ -17,11 +17,22 @@ class ActivityGroupsMigrationTest extends TestCase
     {
         Artisan::call('migrate:fresh', ['--force' => true]);
         $migration = require database_path('migrations/2026_10_25_010000_create_activity_groups.php');
+        // Later feature tables may legitimately reference groups. Reverse
+        // those migrations first, then restore them after this domain.
+        $later = glob(database_path('migrations/*.php')) ?: [];
+        $later = array_values(array_filter($later, fn ($path) => basename($path) > '2026_10_25_010000_create_activity_groups.php'));
+        sort($later);
+        foreach (array_reverse($later) as $path) {
+            (require $path)->down();
+        }
         $migration->down();
         $this->assertFalse(Schema::hasTable('activity_groups'));
         $this->assertTrue(Schema::hasTable('teaching_groups'));
         $this->assertTrue(Schema::hasTable('messages'));
         $migration->up();
+        foreach ($later as $path) {
+            (require $path)->up();
+        }
         $this->assertTrue(Schema::hasTable('activity_groups'));
         $this->assertTrue(Schema::hasTable('activity_operations'));
     }

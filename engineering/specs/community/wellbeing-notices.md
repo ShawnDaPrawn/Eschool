@@ -26,3 +26,12 @@ survive queue failure and source rollback must create neither intent nor notice.
 Use the shared private scope/delivery-provider contracts and preserve unrelated
 notification prefixes. Real push/email provider delivery remains separate
 qualification; tests must use synthetic addresses and fake transports.
+
+The dedicated v2 inbox lists delivered generic wellbeing notices only after fresh
+source authorization and explicit recipient linkage. Pagination and unread totals
+apply the same scope. An optional staff/reporter area narrows results without
+granting authority. Mark-read stores the recipient intent's first read timestamp,
+returns it unchanged on retry, and remains available in module read-only mode.
+Another account or a withdrawn assignment cannot list or acknowledge the notice.
+Clients use pinned account/school headers and keep bodies in the current private
+reader generation only. No legacy TeacherModel or Firebase bootstrap is required.

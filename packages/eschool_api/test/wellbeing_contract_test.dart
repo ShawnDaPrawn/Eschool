@@ -6,6 +6,37 @@ import 'package:test/test.dart';
 
 void main() {
   test(
+    'private inbox preserves first-read timestamps and explicit unread null',
+    () {
+      final notice = WellbeingNotice.fromJson({
+        'id': 13,
+        'title': 'Private school update',
+        'message':
+            'Open your private school area to review an available update.',
+        'link': '/wellbeing',
+        'created_at': '2026-02-10T08:00:00.000Z',
+        'read_at': null,
+      });
+      expect(notice.readAt, isNull);
+      expect(notice.toJson().containsKey('read_at'), isTrue);
+      expect(notice.toJson()['read_at'], isNull);
+      final receipt = WellbeingNoticeReadReceipt.fromJson({
+        'id': 13,
+        'read_at': '2026-02-10T09:00:00.000Z',
+      });
+      expect(receipt.id, 13);
+      expect(receipt.readAt.toUtc().hour, 9);
+      final page = WellbeingNoticePage.fromJson({
+        'items': [notice.toJson()],
+        'page': 1,
+        'last_page': 1,
+        'unread_count': 1,
+      });
+      expect(page.items.single.link, '/wellbeing');
+      expect(page.unreadCount, 1);
+    },
+  );
+  test(
     'case professional picker sends exact school calendar date and selection',
     () async {
       final dio = Dio(BaseOptions(baseUrl: 'https://school.example/api/v2'));

@@ -49,7 +49,9 @@ class Notifier
                 Log::error('notification_fanout_acceleration_failed', ['exception' => get_class($error)]);
             }
         };
-        if (config('queue.default') === 'sync' || DB::transactionLevel() === 0) {
+        // Even the synchronous driver must wait for the real outer commit.
+        // Delivery may otherwise escape a later authorization refusal/rollback.
+        if (DB::transactionLevel() === 0) {
             $accelerate();
         } else {
             DB::afterCommit($accelerate);

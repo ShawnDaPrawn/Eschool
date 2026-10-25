@@ -38,6 +38,12 @@ DisciplineFamilyHistory _$DisciplineFamilyHistoryFromJson(
             )
             .toList(),
       ),
+      years: $checkedConvert(
+        'years',
+        (v) => (v as List<dynamic>?)
+            ?.map((e) => DisciplineChoice.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      ),
     );
     return val;
   },
@@ -56,4 +62,5 @@ Map<String, dynamic> _$DisciplineFamilyHistoryToJson(
   'page': instance.page,
   'last_page': instance.lastPage,
   'records': instance.records.map((e) => e.toJson()).toList(),
+  'years': ?instance.years?.map((e) => e.toJson()).toList(),
 };

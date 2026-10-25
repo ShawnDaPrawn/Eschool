@@ -20,8 +20,10 @@ use App\Models\Wellbeing\CaseAssignment;
 use App\Models\Wellbeing\IncidentReport;
 use App\Models\Wellbeing\NoticeIntent;
 use App\Models\Wellbeing\TeamAssignment;
+use App\Services\ParentPolicyService;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
@@ -39,11 +41,13 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class WellbeingNoticesTest extends TestCase
 {
     use UsesTwoSchools;
+    use ValidatesOpenApiResponses;
 
     private User $professional;
 
@@ -304,5 +308,53 @@ class WellbeingNoticesTest extends TestCase
         TeamAssignment::query()->update(['ends_on' => '2026-02-10']);
         $this->travelTo(CarbonImmutable::parse('2026-02-10T22:30:00Z'));
         $this->assertFalse(app(WellbeingNotices::class)->allows($this->professional, WellbeingNotices::STAFF, $staff->delivery_payload));
+    }
+
+    private function api(User $actor, int $school = 1): self
+    {
+        $this->app['auth']->forgetGuards();
+        if ($actor->id === $this->professional->id) {
+            ParentPolicyService::acceptCurrent($actor);
+        }
+        $name = $actor->id === $this->professional->id ? AppTokens::FACILITATOR : 'wellbeing-notice-fixture';
+
+        return $this->flushHeaders()->withToken($actor->createToken($name)->plainTextToken)->withHeaders(['X-School-Id' => (string) $school, 'X-Account-Id' => (string) $actor->id]);
+    }
+
+    public function test_actual_facilitator_inbox_and_first_read_receipt_have_no_teacher_dependency_or_private_source_fields(): void
+    {
+        $this->submit();
+        $this->api($this->professional)->getJson('/api/v2/wellbeing/notices')->assertOk()->assertJsonCount(0, 'data.items');
+        $notice = $this->queue(NoticeIntent::sole());
+        $this->getJson('/api/v2/wellbeing/notices')->assertOk()->assertJsonCount(0, 'data.items');
+        $this->fanout($notice, $this->professional);
+        $page = $this->getJson('/api/v2/wellbeing/notices')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('data.unread_count', 1)->assertJsonPath('data.items.0.link', '/wellbeing')->assertJsonPath('data.items.0.read_at', null);
+        foreach (['PRIVATE', 'incident_report_id', 'support_case_id', 'event_id', 'wellbeing_intent_id', $this->secret] as $private) {
+            $this->assertStringNotContainsString($private, $page->getContent());
+        }
+        $first = $this->postJson('/api/v2/wellbeing/notices/'.$notice->id.'/read', [])->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data.read_at');
+        $this->travel(2)->minutes();
+        SchoolModule::where('module', 'wellbeing')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->postJson('/api/v2/wellbeing/notices/'.$notice->id.'/read', [])->assertOk()->assertJsonPath('data.read_at', $first);
+        $this->getJson('/api/v2/wellbeing/notices')->assertOk()->assertJsonPath('data.unread_count', 0)->assertJsonPath('data.items.0.read_at', $first);
+        $this->getJson('/api/v2/wellbeing/notices?page=0')->assertUnprocessable();
+    }
+
+    public function test_private_inbox_refuses_wrong_owner_context_and_revoked_source_before_receipt_replay(): void
+    {
+        $this->submit();
+        $notice = $this->queue(NoticeIntent::sole());
+        $this->fanout($notice, $this->professional);
+        $this->api($this->parent)->getJson('/api/v2/wellbeing/notices')->assertOk()->assertJsonCount(0, 'data.items');
+        $this->postJson('/api/v2/wellbeing/notices/'.$notice->id.'/read', [])->assertNotFound();
+        $this->api($this->professional)->withHeader('X-Account-Id', (string) $this->parent->id)->getJson('/api/v2/wellbeing/notices')->assertForbidden();
+        $this->api($this->professional, 2)->getJson('/api/v2/wellbeing/notices')->assertForbidden();
+        $this->api($this->professional)->postJson('/api/v2/wellbeing/notices/'.$notice->id.'/read', [])->assertOk();
+        TeamAssignment::query()->update(['active' => false]);
+        $this->getJson('/api/v2/wellbeing/notices')->assertOk()->assertJsonPath('data.unread_count', 0)->assertJsonCount(0, 'data.items');
+        $this->postJson('/api/v2/wellbeing/notices/'.$notice->id.'/read', [])->assertNotFound();
+        $this->assertSame(1, NoticeIntent::whereNotNull('read_at')->count());
     }
 }

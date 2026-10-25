@@ -101,6 +101,7 @@ final readonly class ApiRoute
     {
         return match ($name) {
             'field' => 'test_field',
+            'photo' => '8aef50e7-2429-4d2c-a523-668ae436c4d4',
             'kind' => str_contains($this->uri, '/academics/allocations/') ? 'homerooms' : 'memberships',
             default => '1',
         };

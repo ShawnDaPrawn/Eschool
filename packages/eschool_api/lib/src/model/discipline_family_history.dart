@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/discipline_choice.dart';
 import 'package:eschool_api/src/model/discipline_family_record.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -26,6 +27,8 @@ class DisciplineFamilyHistory {
     required this.lastPage,
 
     required this.records,
+
+    this.years,
   });
 
   // minimum: 1
@@ -47,6 +50,9 @@ class DisciplineFamilyHistory {
   @JsonKey(name: r'records', required: true, includeIfNull: false)
   final List<DisciplineFamilyRecord> records;
 
+  @JsonKey(name: r'years', required: false, includeIfNull: false)
+  final List<DisciplineChoice>? years;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -55,7 +61,8 @@ class DisciplineFamilyHistory {
           other.sessionYearId == sessionYearId &&
           other.page == page &&
           other.lastPage == lastPage &&
-          other.records == records;
+          other.records == records &&
+          other.years == years;
 
   @override
   int get hashCode =>
@@ -63,7 +70,8 @@ class DisciplineFamilyHistory {
       sessionYearId.hashCode +
       page.hashCode +
       lastPage.hashCode +
-      records.hashCode;
+      records.hashCode +
+      years.hashCode;
 
   factory DisciplineFamilyHistory.fromJson(Map<String, dynamic> json) =>
       _$DisciplineFamilyHistoryFromJson(json);

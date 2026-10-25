@@ -29,6 +29,8 @@ class RecognitionAwardWindow {
     required this.status,
 
     required this.revision,
+
+    this.activityGroupId,
   });
 
   // minimum: 1
@@ -56,6 +58,11 @@ class RecognitionAwardWindow {
   @JsonKey(name: r'revision', required: true, includeIfNull: false)
   final int revision;
 
+  /// Explicit group for this category and school year; omitted or null uses the original category group only within its own year.
+  // minimum: 1
+  @JsonKey(name: r'activity_group_id', required: false, includeIfNull: false)
+  final int? activityGroupId;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -66,7 +73,8 @@ class RecognitionAwardWindow {
           other.opensOn == opensOn &&
           other.closesOn == closesOn &&
           other.status == status &&
-          other.revision == revision;
+          other.revision == revision &&
+          other.activityGroupId == activityGroupId;
 
   @override
   int get hashCode =>
@@ -76,7 +84,8 @@ class RecognitionAwardWindow {
       opensOn.hashCode +
       closesOn.hashCode +
       status.hashCode +
-      revision.hashCode;
+      revision.hashCode +
+      (activityGroupId == null ? 0 : activityGroupId.hashCode);
 
   factory RecognitionAwardWindow.fromJson(Map<String, dynamic> json) =>
       _$RecognitionAwardWindowFromJson(json);

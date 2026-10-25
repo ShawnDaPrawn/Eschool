@@ -38,6 +38,10 @@ RecognitionAwardWindow _$RecognitionAwardWindowFromJson(
       closesOn: $checkedConvert('closes_on', (v) => v as String),
       status: $checkedConvert('status', (v) => v as String),
       revision: $checkedConvert('revision', (v) => (v as num).toInt()),
+      activityGroupId: $checkedConvert(
+        'activity_group_id',
+        (v) => (v as num?)?.toInt(),
+      ),
     );
     return val;
   },
@@ -46,6 +50,7 @@ RecognitionAwardWindow _$RecognitionAwardWindowFromJson(
     'sessionYearId': 'session_year_id',
     'opensOn': 'opens_on',
     'closesOn': 'closes_on',
+    'activityGroupId': 'activity_group_id',
   },
 );
 
@@ -59,4 +64,5 @@ Map<String, dynamic> _$RecognitionAwardWindowToJson(
   'closes_on': instance.closesOn,
   'status': instance.status,
   'revision': instance.revision,
+  'activity_group_id': ?instance.activityGroupId,
 };
