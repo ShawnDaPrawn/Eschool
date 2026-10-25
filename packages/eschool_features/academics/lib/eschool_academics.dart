@@ -114,6 +114,11 @@ export 'src/digests/weekly_digest_repository.dart';
 export 'src/digests/weekly_digest_screen.dart';
 export 'src/digests/weekly_digest_session_boundary.dart';
 
+export 'src/my_grade/my_grade_repository.dart';
+export 'src/my_grade/my_grade_session_boundary.dart';
+export 'src/my_grade/my_grade_screen.dart';
 export 'src/cards/card_repository.dart';
 export 'src/cards/cards_screen.dart';
 export 'src/cards/card_session_boundary.dart';
+export 'src/my_grade/my_grade_client_screen.dart';
+export 'src/my_grade/my_grade_private_action.dart';

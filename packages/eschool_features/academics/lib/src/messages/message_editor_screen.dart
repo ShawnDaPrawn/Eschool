@@ -1,9 +1,12 @@
 import '../localization/academic_text.dart';
+
 import 'dart:convert';
+
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../content/content_widgets.dart';
 import 'message_repository.dart';
 import 'message_cubit.dart';
@@ -12,6 +15,7 @@ class SchoolMessageEditorScreen extends StatefulWidget {
   const SchoolMessageEditorScreen({
     required this.repository,
     this.id,
+    this.initialGradeId,
     this.embedded = false,
     this.onPrivateEdits,
     this.refreshEpoch = 0,
@@ -19,6 +23,7 @@ class SchoolMessageEditorScreen extends StatefulWidget {
   });
   final SchoolMessageRepository repository;
   final int? id;
+  final int? initialGradeId;
   final bool embedded;
   final ValueChanged<bool>? onPrivateEdits;
   final int refreshEpoch;
@@ -58,8 +63,9 @@ class _SchoolMessageEditorScreenState extends State<SchoolMessageEditorScreen>
     if (old.repository != widget.repository || old.id != widget.id) {
       _cubit.close();
       _create();
-    } else if (old.refreshEpoch != widget.refreshEpoch)
+    } else if (old.refreshEpoch != widget.refreshEpoch) {
       _reload();
+    }
   }
 
   void _reload() {
@@ -77,8 +83,9 @@ class _SchoolMessageEditorScreenState extends State<SchoolMessageEditorScreen>
       AppLifecycleState.inactive,
       AppLifecycleState.paused,
       AppLifecycleState.hidden,
-    ].contains(state))
+    ].contains(state)) {
       _cubit.hide();
+    }
   }
 
   @override
@@ -100,7 +107,18 @@ class _SchoolMessageEditorScreenState extends State<SchoolMessageEditorScreen>
     _schedule.text = editor?.scheduledLocal ?? '';
     _parents = editor?.audience.parents ?? false;
     _channels = Set<String>.from(editor?.channels ?? {'in_app'});
-    _scope = editor == null
+    final grade = widget.initialGradeId;
+    final hasGrade =
+        editor == null &&
+        grade != null &&
+        config.scopes.any(
+          (scope) => scope.kind.value == 'grade' && scope.targetId == grade,
+        ) &&
+        config.rules?.headGrades.contains(grade) == true;
+    if (hasGrade) _parents = true;
+    _scope = hasGrade
+        ? 'grade:$grade'
+        : editor == null
         ? (config.scopes.isEmpty
               ? null
               : '${config.scopes.first.kind.value}:${config.scopes.first.targetId ?? 0}')
