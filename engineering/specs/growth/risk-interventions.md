@@ -45,3 +45,30 @@ availability is independently rechecked against the original professional grant.
 
 This domain increment precedes its typed HTTP contracts and panel/app workflows;
 those consumers are not represented by placeholder navigation.
+
+## Private v2 contract and client
+
+The additive `growth/risk` surface supplies configuration, paged learner and
+professional choices, eligible owners, scoped signals/class guidance, metadata
+review queue, original-owner body/history, creation/review/handoff, separate
+caseload assignment/revocation and versioned rules. Every operation includes
+optional expected-account binding and school selection. Private writes reject
+all query parameters before validation; immutable UUID intent is HMAC keyed and
+receipts use a separate encrypted LONGTEXT `risk_operations` ledger. Replays
+reauthorize current scope and the original professional owner kind; another
+staff role cannot revive a withdrawn professional source.
+
+Ordinary allocated staff or assigned professionals create actions for themselves.
+Assigning another owner requires a fresh principal or dated grade-head metadata
+administrator before the recipient is looked up. Eligible-owner choices are
+bounded; ordinary staff cannot enumerate other professional caseload holders.
+Handoffs remain pinned to the original authority kind. The optional requested
+owner kind is freshly validated, allowing an explicitly academic action for a
+dual-role teacher without silently acquiring professional access. Detail/history
+still require the exact current owner. No principal assignment picker loads body
+columns. Retained active actions can be reviewed without rewriting their year.
+
+The owned OpenAPI fragment and canonical contract preserve all preceding paths
+and schemas; generated Dart models use calendar strings for day-only fields and
+nullable scores for unavailable sources. Staff panel/native consumers follow in
+the next increment; no learner/parent risk navigation is introduced.

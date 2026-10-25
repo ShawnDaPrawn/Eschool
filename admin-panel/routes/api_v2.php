@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
+use App\Http\Controllers\Api\V2\Growth\RiskController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
@@ -425,4 +426,25 @@ Route::prefix('pastoral/support')->middleware(['auth:sanctum', 'school.context',
     foreach ($routes as [$verb, $path, $method, $name]) {
         Route::$verb($path, [$c, $method])->where(['audience' => 'principal|professional', 'plan' => '[0-9]+', 'assignment' => '[0-9]+', 'disclosure' => '[0-9]+'])->middleware($a.':'.$name)->name($name);
     }
+});
+
+
+Route::prefix('growth/risk')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'staff', 'module:early_warning'])->name('api.v2.risk.')->group(function () {
+    $c = RiskController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::put('settings', [$c, 'configure'])->name('configure');
+    Route::get('signals', [$c, 'signals'])->name('signals');
+    Route::get('groups/{group}', [$c, 'classroom'])->whereNumber('group')->name('classroom');
+    Route::get('learners', [$c, 'learners'])->name('learners');
+    Route::get('learners/{learner}/owners', [$c, 'owners'])->whereNumber('learner')->name('owners');
+    Route::get('learners/{learner}/professionals', [$c, 'professionals'])->whereNumber('learner')->name('professionals');
+    Route::get('learners/{learner}/assignments', [$c, 'assignments'])->whereNumber('learner')->name('assignments');
+    Route::put('learners/{learner}/assignments/{professional}', [$c, 'assign'])->whereNumber('learner')->whereNumber('professional')->name('assign');
+    Route::post('learners/{learner}/assignments/{professional}/revoke', [$c, 'revoke'])->whereNumber('learner')->whereNumber('professional')->name('revoke');
+    Route::get('interventions', [$c, 'interventions'])->name('interventions');
+    Route::post('learners/{learner}/interventions', [$c, 'create'])->whereNumber('learner')->name('create');
+    Route::get('interventions/{intervention}', [$c, 'detail'])->whereNumber('intervention')->name('detail');
+    Route::get('interventions/{intervention}/history', [$c, 'history'])->whereNumber('intervention')->name('history');
+    Route::put('interventions/{intervention}', [$c, 'update'])->whereNumber('intervention')->name('update');
+    Route::post('interventions/{intervention}/owner', [$c, 'transfer'])->whereNumber('intervention')->name('transfer');
 });

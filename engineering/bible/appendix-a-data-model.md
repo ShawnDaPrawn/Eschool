@@ -217,3 +217,7 @@ the reporting year, grade and original owner authority, with encrypted action an
 outcome; `intervention_versions` retains immutable encrypted revision and owner
 handoff records. All five are school scoped; populated rollback is refused.
 Metadata projections explicitly exclude action/outcome before SQL retrieval.
+
+`risk_operations` is the additive private HTTP operation ledger. Actor-scoped
+UUIDs and keyed intent hashes protect retry identity; encrypted LONGTEXT receipts
+retain metadata only. Its populated rollback is refused independently.

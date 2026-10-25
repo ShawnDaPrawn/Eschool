@@ -385,6 +385,20 @@ import 'package:eschool_api/src/model/incident_reply_input.dart';
 import 'package:eschool_api/src/model/incident_reply_receipt.dart';
 import 'package:eschool_api/src/model/incident_submission_input.dart';
 import 'package:eschool_api/src/model/incident_submission_receipt.dart';
+import 'package:eschool_api/src/model/intervention_create.dart';
+import 'package:eschool_api/src/model/intervention_detail.dart';
+import 'package:eschool_api/src/model/intervention_detail_response.dart';
+import 'package:eschool_api/src/model/intervention_history.dart';
+import 'package:eschool_api/src/model/intervention_history_response.dart';
+import 'package:eschool_api/src/model/intervention_metadata.dart';
+import 'package:eschool_api/src/model/intervention_metadata_response.dart';
+import 'package:eschool_api/src/model/intervention_owner_write.dart';
+import 'package:eschool_api/src/model/intervention_queue.dart';
+import 'package:eschool_api/src/model/intervention_queue_item.dart';
+import 'package:eschool_api/src/model/intervention_queue_response.dart';
+import 'package:eschool_api/src/model/intervention_update.dart';
+import 'package:eschool_api/src/model/intervention_version.dart';
+import 'package:eschool_api/src/model/intervention_version_record.dart';
 import 'package:eschool_api/src/model/learner_note_assignment.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
@@ -473,6 +487,35 @@ import 'package:eschool_api/src/model/progress_staff_band_response.dart';
 import 'package:eschool_api/src/model/reply_anonymous_incident_response.dart';
 import 'package:eschool_api/src/model/reply_identified_incident_response.dart';
 import 'package:eschool_api/src/model/reply_wellbeing_report_response.dart';
+import 'package:eschool_api/src/model/risk_assignment.dart';
+import 'package:eschool_api/src/model/risk_assignment_result.dart';
+import 'package:eschool_api/src/model/risk_assignment_result_response.dart';
+import 'package:eschool_api/src/model/risk_assignment_revoke.dart';
+import 'package:eschool_api/src/model/risk_assignment_write.dart';
+import 'package:eschool_api/src/model/risk_assignments.dart';
+import 'package:eschool_api/src/model/risk_assignments_response.dart';
+import 'package:eschool_api/src/model/risk_classroom.dart';
+import 'package:eschool_api/src/model/risk_classroom_learner.dart';
+import 'package:eschool_api/src/model/risk_classroom_response.dart';
+import 'package:eschool_api/src/model/risk_classroom_signal.dart';
+import 'package:eschool_api/src/model/risk_configuration.dart';
+import 'package:eschool_api/src/model/risk_configuration_response.dart';
+import 'package:eschool_api/src/model/risk_learner_choice.dart';
+import 'package:eschool_api/src/model/risk_learner_choices.dart';
+import 'package:eschool_api/src/model/risk_learner_choices_response.dart';
+import 'package:eschool_api/src/model/risk_owner_choice.dart';
+import 'package:eschool_api/src/model/risk_owner_choices.dart';
+import 'package:eschool_api/src/model/risk_owner_choices_response.dart';
+import 'package:eschool_api/src/model/risk_professional_choices.dart';
+import 'package:eschool_api/src/model/risk_professional_choices_response.dart';
+import 'package:eschool_api/src/model/risk_settings.dart';
+import 'package:eschool_api/src/model/risk_settings_response.dart';
+import 'package:eschool_api/src/model/risk_settings_write.dart';
+import 'package:eschool_api/src/model/risk_signal.dart';
+import 'package:eschool_api/src/model/risk_signal_learner.dart';
+import 'package:eschool_api/src/model/risk_signals.dart';
+import 'package:eschool_api/src/model/risk_signals_response.dart';
+import 'package:eschool_api/src/model/risk_staff_choice.dart';
 import 'package:eschool_api/src/model/save_wellbeing_appointment_response.dart';
 import 'package:eschool_api/src/model/save_wellbeing_case_assignment_response.dart';
 import 'package:eschool_api/src/model/save_wellbeing_category_response.dart';
@@ -1945,6 +1988,50 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'IncidentSubmissionReceipt':
       return IncidentSubmissionReceipt.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'InterventionCreate':
+      return InterventionCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionDetail':
+      return InterventionDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionDetailResponse':
+      return InterventionDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionHistory':
+      return InterventionHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionHistoryResponse':
+      return InterventionHistoryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionMetadata':
+      return InterventionMetadata.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionMetadataResponse':
+      return InterventionMetadataResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'InterventionOwnerWrite':
+      return InterventionOwnerWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionQueue':
+      return InterventionQueue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionQueueItem':
+      return InterventionQueueItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionQueueResponse':
+      return InterventionQueueResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionUpdate':
+      return InterventionUpdate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionVersion':
+      return InterventionVersion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'InterventionVersionRecord':
+      return InterventionVersionRecord.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'LearnerNoteAssignment':
       return LearnerNoteAssignment.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2234,6 +2321,94 @@ ReturnType deserialize<ReturnType, BaseType>(
       return ReplyWellbeingReportResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'RiskAssignment':
+      return RiskAssignment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskAssignmentResult':
+      return RiskAssignmentResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskAssignmentResultResponse':
+      return RiskAssignmentResultResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RiskAssignmentRevoke':
+      return RiskAssignmentRevoke.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskAssignmentWrite':
+      return RiskAssignmentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskAssignments':
+      return RiskAssignments.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskAssignmentsResponse':
+      return RiskAssignmentsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskClassroom':
+      return RiskClassroom.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskClassroomLearner':
+      return RiskClassroomLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskClassroomResponse':
+      return RiskClassroomResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskClassroomSignal':
+      return RiskClassroomSignal.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskConfiguration':
+      return RiskConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskConfigurationResponse':
+      return RiskConfigurationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskLearnerChoice':
+      return RiskLearnerChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskLearnerChoices':
+      return RiskLearnerChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskLearnerChoicesResponse':
+      return RiskLearnerChoicesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskOwnerChoice':
+      return RiskOwnerChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskOwnerChoices':
+      return RiskOwnerChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskOwnerChoicesResponse':
+      return RiskOwnerChoicesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskProfessionalChoices':
+      return RiskProfessionalChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskProfessionalChoicesResponse':
+      return RiskProfessionalChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RiskSettings':
+      return RiskSettings.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'RiskSettingsResponse':
+      return RiskSettingsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskSettingsWrite':
+      return RiskSettingsWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskSignal':
+      return RiskSignal.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'RiskSignalLearner':
+      return RiskSignalLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskSignals':
+      return RiskSignals.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'RiskSignalsResponse':
+      return RiskSignalsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RiskStaffChoice':
+      return RiskStaffChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'SaveWellbeingAppointmentResponse':
       return SaveWellbeingAppointmentResponse.fromJson(

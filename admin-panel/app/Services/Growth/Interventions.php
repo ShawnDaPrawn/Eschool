@@ -73,15 +73,23 @@ class Interventions
         $authority->year($year, true);
         $grade = $authority->currentGrade($learner, $year);
         $authority->caseActor($actor, $learner, $year, $grade, true);
-        $data = Validator::make($input, ['owner_id' => ['required', 'integer', 'min:1'], 'action' => ['required', 'string', 'max:20000'],
+        $data = Validator::make($input, ['owner_id' => ['required', 'integer', 'min:1'], 'owner_authority' => ['sometimes', 'in:academic,professional,leadership'], 'action' => ['required', 'string', 'max:20000'],
             'started_on' => ['required', 'date_format:Y-m-d'], 'review_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:started_on']])->validate();
         $schoolYear = SessionYear::findOrFail($year);
         abort_unless($data['started_on'] >= $schoolYear->start_date && $data['started_on'] <= $schoolYear->end_date, 422, 'Start the intervention within its school year.');
-        $kind = $authority->caseKind(User::findOrFail($data['owner_id']), $learner, $year, $grade, true);
+        if ((int) $data['owner_id'] !== (int) $actor->id) {
+            $authority->administer($actor, $learner, $year);
+        }
+        $owner = User::findOrFail($data['owner_id']);
+        $kind = $data['owner_authority'] ?? $authority->caseKind($owner, $learner, $year, $grade, true);
+        $authority->caseActor($owner, $learner, $year, $grade, true, $kind);
 
         return DB::transaction(function () use ($actor, $learner, $year, $grade, $data, $authority, $kind) {
             School::lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
             $authority->caseActor($actor, $learner, $year, $grade, true);
+            if ((int) $data['owner_id'] !== (int) $actor->id) {
+                $authority->administer($actor, $learner, $year);
+            }
             $authority->caseActor(User::findOrFail($data['owner_id']), $learner, $year, $grade, true, $kind);
             abort_unless($authority->currentGrade($learner, $year) === $grade, 409, 'The learner enrolment changed. Reload before saving.');
             $row = Intervention::create($data + ['learner_id' => $learner, 'session_year_id' => $year, 'grade_level_id' => $grade,
@@ -93,7 +101,7 @@ class Interventions
         });
     }
 
-    private function authorized(User $actor, int $id, bool $write = false): Intervention
+    public function authorized(User $actor, int $id, bool $write = false): Intervention
     {
         app(RiskAuthority::class)->actor($actor);
         $row = Intervention::select(self::META)->findOrFail($id);

@@ -367,3 +367,25 @@ assertions**, with changed-file Pint and complete configured Larastan passing.
 No actual counsellor review, diagnosis, clinical risk disclosure, real-school
 observation or staff panel/app acceptance is claimed by this service increment.
 The HTTP contracts and staff workflows remain the next increment.
+
+
+## Early warning private API and typed client
+
+The combined private HTTP/domain/actual-tenant-migration cohort passes **25 tests,
+571 assertions**, with every new HTTP response checked against the canonical
+contract. It exercises creation, exact retries, intent conflicts, original-kind
+revocation before replay, owner-only encrypted body/history, metadata queue and
+handoff without body SQL, bounded owner choices, settings, separate risk grants,
+classroom/leadership scopes, foreign learner/school, wrong account/role/owner,
+password/module/platform refusals and replaced-context rollback. Ordinary staff
+cannot assign another owner or discover other professional grant holders.
+Changed-file Pint, complete configured Larastan and strict OpenAPI lint pass.
+
+Pinned generation produced **1,280 Dart files** for sixteen additive operations
+and forty-three schemas. All **77 SDK tests** pass. SDK analysis reports 702
+generated informational lints and no errors or warnings. Calendar days round-trip
+without timestamps; unknown signals remain distinct from measured zero.
+The global route/contract catalogue passes **331 tests, 1,571 assertions**. A
+second clean pinned regeneration reproduces every generated Dart byte.
+Panel/native interaction acceptance remains the next increment; no family risk
+labels, clinical evidence projection or live-school acceptance is claimed.

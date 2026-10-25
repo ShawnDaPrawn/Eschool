@@ -11,6 +11,13 @@ import 'package:dio/dio.dart';
 
 import 'package:eschool_api/src/model/academic_release_periods_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/intervention_create.dart';
+import 'package:eschool_api/src/model/intervention_detail_response.dart';
+import 'package:eschool_api/src/model/intervention_history_response.dart';
+import 'package:eschool_api/src/model/intervention_metadata_response.dart';
+import 'package:eschool_api/src/model/intervention_owner_write.dart';
+import 'package:eschool_api/src/model/intervention_queue_response.dart';
+import 'package:eschool_api/src/model/intervention_update.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_write.dart';
@@ -34,11 +41,135 @@ import 'package:eschool_api/src/model/progress_family_bands_response.dart';
 import 'package:eschool_api/src/model/progress_learner_list_response.dart';
 import 'package:eschool_api/src/model/progress_roster_response.dart';
 import 'package:eschool_api/src/model/progress_staff_band_response.dart';
+import 'package:eschool_api/src/model/risk_assignment_result_response.dart';
+import 'package:eschool_api/src/model/risk_assignment_revoke.dart';
+import 'package:eschool_api/src/model/risk_assignment_write.dart';
+import 'package:eschool_api/src/model/risk_assignments_response.dart';
+import 'package:eschool_api/src/model/risk_classroom_response.dart';
+import 'package:eschool_api/src/model/risk_configuration_response.dart';
+import 'package:eschool_api/src/model/risk_learner_choices_response.dart';
+import 'package:eschool_api/src/model/risk_owner_choices_response.dart';
+import 'package:eschool_api/src/model/risk_professional_choices_response.dart';
+import 'package:eschool_api/src/model/risk_settings_response.dart';
+import 'package:eschool_api/src/model/risk_settings_write.dart';
+import 'package:eschool_api/src/model/risk_signals_response.dart';
 
 class GrowthApi {
   final Dio _dio;
 
   const GrowthApi(this._dio);
+
+  /// createIntervention
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [interventionCreate]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [InterventionMetadataResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<InterventionMetadataResponse>> createIntervention({
+    required int learner,
+    required InterventionCreate interventionCreate,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/learners/{learner}/interventions'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(interventionCreate);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    InterventionMetadataResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              InterventionMetadataResponse,
+              InterventionMetadataResponse
+            >(rawData, 'InterventionMetadataResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<InterventionMetadataResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
 
   /// createLearnerNote
   /// Fresh school, role, assignment and owner checks precede private body loading and receipt replay. Counselling requires a dedicated restricted role and current note-only caseload; principals administer assignment metadata without body access. Platform identities and impersonation cannot read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id UUID; historical note writes return 423. Every response forbids caching.
@@ -153,6 +284,102 @@ class GrowthApi {
     );
   }
 
+  /// getClassroomRiskSignals
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskClassroomResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskClassroomResponse>> getClassroomRiskSignals({
+    required int group,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/groups/{group}'.replaceAll(
+      '{'
+      r'group'
+      '}',
+      group.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskClassroomResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskClassroomResponse, RiskClassroomResponse>(
+              rawData,
+              'RiskClassroomResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskClassroomResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// getFamilyProgressBands
   /// Fresh school, role, assignment and owner checks precede private body loading and receipt replay. Counselling requires a dedicated restricted role and current note-only caseload; principals administer assignment metadata without body access. Platform identities and impersonation cannot read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id UUID; historical note writes return 423. Every response forbids caching.
   ///
@@ -247,6 +474,409 @@ class GrowthApi {
     }
 
     return Response<ProgressFamilyBandsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getIntervention
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [intervention]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [InterventionDetailResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<InterventionDetailResponse>> getIntervention({
+    required int intervention,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/interventions/{intervention}'.replaceAll(
+      '{'
+      r'intervention'
+      '}',
+      intervention.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    InterventionDetailResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<InterventionDetailResponse, InterventionDetailResponse>(
+              rawData,
+              'InterventionDetailResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<InterventionDetailResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getInterventionHistory
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [intervention]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [InterventionHistoryResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<InterventionHistoryResponse>> getInterventionHistory({
+    required int intervention,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/interventions/{intervention}/history'
+        .replaceAll(
+          '{'
+          r'intervention'
+          '}',
+          intervention.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    InterventionHistoryResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              InterventionHistoryResponse,
+              InterventionHistoryResponse
+            >(rawData, 'InterventionHistoryResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<InterventionHistoryResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getInterventionOwnerChoices
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [search]
+  /// * [interventionId]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskOwnerChoicesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskOwnerChoicesResponse>> getInterventionOwnerChoices({
+    required int learner,
+    required int sessionYearId,
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    String? search,
+    int? interventionId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/learners/{learner}/owners'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+      if (page != null) r'page': page,
+      if (search != null) r'search': search,
+      if (interventionId != null) r'intervention_id': interventionId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskOwnerChoicesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskOwnerChoicesResponse, RiskOwnerChoicesResponse>(
+              rawData,
+              'RiskOwnerChoicesResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskOwnerChoicesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getInterventionQueue
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [InterventionQueueResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<InterventionQueueResponse>> getInterventionQueue({
+    required int sessionYearId,
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/interventions';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+      if (page != null) r'page': page,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    InterventionQueueResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<InterventionQueueResponse, InterventionQueueResponse>(
+              rawData,
+              'InterventionQueueResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<InterventionQueueResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1729,6 +2359,507 @@ class GrowthApi {
     );
   }
 
+  /// getRiskAssignments
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskAssignmentsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskAssignmentsResponse>> getRiskAssignments({
+    required int learner,
+    required int sessionYearId,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/learners/{learner}/assignments'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskAssignmentsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskAssignmentsResponse, RiskAssignmentsResponse>(
+              rawData,
+              'RiskAssignmentsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskAssignmentsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getRiskConfiguration
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskConfigurationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskConfigurationResponse>> getRiskConfiguration({
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/configuration';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskConfigurationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskConfigurationResponse, RiskConfigurationResponse>(
+              rawData,
+              'RiskConfigurationResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskConfigurationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getRiskLearnerChoices
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [search]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskLearnerChoicesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskLearnerChoicesResponse>> getRiskLearnerChoices({
+    required int sessionYearId,
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    String? search,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/learners';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+      if (page != null) r'page': page,
+      if (search != null) r'search': search,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskLearnerChoicesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskLearnerChoicesResponse, RiskLearnerChoicesResponse>(
+              rawData,
+              'RiskLearnerChoicesResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskLearnerChoicesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getRiskProfessionalChoices
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [search]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskProfessionalChoicesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskProfessionalChoicesResponse>> getRiskProfessionalChoices({
+    required int learner,
+    required int sessionYearId,
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    String? search,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/learners/{learner}/professionals'.replaceAll(
+      '{'
+      r'learner'
+      '}',
+      learner.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+      if (page != null) r'page': page,
+      if (search != null) r'search': search,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskProfessionalChoicesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              RiskProfessionalChoicesResponse,
+              RiskProfessionalChoicesResponse
+            >(rawData, 'RiskProfessionalChoicesResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskProfessionalChoicesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getRiskSignals
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskSignalsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskSignalsResponse>> getRiskSignals({
+    required int sessionYearId,
+    int? xAccountId,
+    int? xSchoolId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/signals';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'session_year_id': sessionYearId,
+      if (page != null) r'page': page,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskSignalsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskSignalsResponse, RiskSignalsResponse>(
+              rawData,
+              'RiskSignalsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskSignalsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// getStaffProgressBand
   /// Fresh school, role, assignment and owner checks precede private body loading and receipt replay. Counselling requires a dedicated restricted role and current note-only caseload; principals administer assignment metadata without body access. Platform identities and impersonation cannot read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id UUID; historical note writes return 423. Every response forbids caching.
   ///
@@ -2049,6 +3180,128 @@ class GrowthApi {
     }
 
     return Response<LearnerNoteAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// revokeRiskAssignment
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [professional]
+  /// * [riskAssignmentRevoke]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskAssignmentResultResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskAssignmentResultResponse>> revokeRiskAssignment({
+    required int learner,
+    required int professional,
+    required RiskAssignmentRevoke riskAssignmentRevoke,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/growth/risk/learners/{learner}/assignments/{professional}/revoke'
+            .replaceAll(
+              '{'
+              r'learner'
+              '}',
+              learner.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'professional'
+              '}',
+              professional.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(riskAssignmentRevoke);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskAssignmentResultResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              RiskAssignmentResultResponse,
+              RiskAssignmentResultResponse
+            >(rawData, 'RiskAssignmentResultResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskAssignmentResultResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -2391,6 +3644,457 @@ class GrowthApi {
     }
 
     return Response<ProgressBandSettingsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// saveRiskAssignment
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [professional]
+  /// * [riskAssignmentWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskAssignmentResultResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskAssignmentResultResponse>> saveRiskAssignment({
+    required int learner,
+    required int professional,
+    required RiskAssignmentWrite riskAssignmentWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/learners/{learner}/assignments/{professional}'
+        .replaceAll(
+          '{'
+          r'learner'
+          '}',
+          learner.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'professional'
+          '}',
+          professional.toString(),
+        );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(riskAssignmentWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskAssignmentResultResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              RiskAssignmentResultResponse,
+              RiskAssignmentResultResponse
+            >(rawData, 'RiskAssignmentResultResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskAssignmentResultResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// saveRiskSettings
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [riskSettingsWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [RiskSettingsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<RiskSettingsResponse>> saveRiskSettings({
+    required RiskSettingsWrite riskSettingsWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/settings';
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(riskSettingsWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    RiskSettingsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<RiskSettingsResponse, RiskSettingsResponse>(
+              rawData,
+              'RiskSettingsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<RiskSettingsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// transferInterventionOwner
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [intervention]
+  /// * [interventionOwnerWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [InterventionMetadataResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<InterventionMetadataResponse>> transferInterventionOwner({
+    required int intervention,
+    required InterventionOwnerWrite interventionOwnerWrite,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/interventions/{intervention}/owner'.replaceAll(
+      '{'
+      r'intervention'
+      '}',
+      intervention.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(interventionOwnerWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    InterventionMetadataResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              InterventionMetadataResponse,
+              InterventionMetadataResponse
+            >(rawData, 'InterventionMetadataResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<InterventionMetadataResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// updateIntervention
+  /// Staff-only early warning. Fresh school, role, dated allocation, separate risk caseload and original owner authority precede body retrieval or replay. Platform identities and impersonation are denied. Signals are guidance, never diagnosis or family labels. Unknown sources remain null. Private writes are body-only and require a stable operation_id UUID; encrypted receipts use keyed intent hashes. Every response forbids caching. New cases require the current year; retained owned actions preserve their reporting year.
+  ///
+  /// Parameters:
+  /// * [intervention]
+  /// * [interventionUpdate]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [InterventionMetadataResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<InterventionMetadataResponse>> updateIntervention({
+    required int intervention,
+    required InterventionUpdate interventionUpdate,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/growth/risk/interventions/{intervention}'.replaceAll(
+      '{'
+      r'intervention'
+      '}',
+      intervention.toString(),
+    );
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(interventionUpdate);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    InterventionMetadataResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              InterventionMetadataResponse,
+              InterventionMetadataResponse
+            >(rawData, 'InterventionMetadataResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<InterventionMetadataResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
