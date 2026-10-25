@@ -1,0 +1,54 @@
+name: Staff build identities
+
+on:
+  pull_request:
+    paths:
+      - 'e-school-teacher/android/**'
+      - 'e-school-teacher/ios/**'
+      - 'e-school-teacher/lib/app/**'
+      - 'e-school-teacher/lib/utils/constants.dart'
+      - 'e-school-teacher/pubspec*'
+      - 'e-school-teacher/test/staff_build_identity_test.dart'
+      - 'e-school-teacher/tool/check_staff_flavors.py'
+      - 'packages/**'
+      - '.github/workflows/staff-flavors.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staff-flavors-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reserved-identities:
+    name: Reserved ${{ matrix.flavor }} Android identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [facilitator, vendor]
+    defaults:
+      run:
+        working-directory: e-school-teacher
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Validate iOS metadata references
+        run: python3 tool/check_staff_flavors.py
+      - name: Resolve locked app dependencies
+        run: flutter pub get --enforce-lockfile
+      - name: Verify reserved identity cannot start authenticated teacher shell
+        run: flutter test --flavor ${{ matrix.flavor }} --dart-define=FLAVOR=${{ matrix.flavor }} test/staff_build_identity_test.dart
+      - name: Compile the named Android identity without signing credentials
+        run: flutter build apk --debug --flavor ${{ matrix.flavor }} --dart-define=FLAVOR=${{ matrix.flavor }}
