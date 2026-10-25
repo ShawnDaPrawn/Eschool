@@ -19,6 +19,6 @@ class AiUsage extends Model
 
     protected function casts(): array
     {
-        return ['reserved_units' => 'integer', 'used_units' => 'integer', 'cost_cents' => 'integer', 'reserved_cost_cents' => 'integer', 'inference_output' => 'encrypted:array', 'inference_sources' => 'encrypted:array', 'completed_at' => 'datetime'];
+        return ['reserved_units' => 'integer', 'used_units' => 'integer', 'cost_cents' => 'integer', 'reserved_cost_cents' => 'integer', 'inference_output' => 'encrypted:array', 'inference_sources' => 'encrypted:array', 'completed_at' => 'datetime', 'quarantine_purged_at' => 'immutable_datetime'];
     }
 }
