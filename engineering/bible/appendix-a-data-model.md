@@ -235,3 +235,20 @@ No permanent learner-profile field or automatic enrolment removal is introduced.
 `risk_operations` is the additive private HTTP operation ledger. Actor-scoped
 UUIDs and keyed intent hashes protect retry identity; encrypted LONGTEXT receipts
 retain metadata only. Its populated rollback is refused independently.
+
+## Intake and admissions
+
+`intakes` pins an existing school year, selected profile definition IDs, a stable
+form fingerprint, sensitivity classification, opening/closing UTC instants,
+integer-cent fee, requested document categories and bounded retention days.
+`intake_grades` holds grade capacities. `applications` encrypts answers/contact,
+stores only keyed email lookup and hashed ownership capabilities, and retains
+revisioned state, fee acknowledgement and canonical learner reference.
+`application_documents` contains opaque private encrypted file metadata and
+scanner evidence. `offers` distinguishes an acceptance deadline from an accepted
+reservation. `application_links` stores single-use, expiring resume-token hashes.
+`application_events` encrypts private review/receipt evidence; global audit records
+contain references/revisions only. `admission_operations` stores actor-scoped UUID
+intent hashes and encrypted reference receipts. All eight tables are school owned;
+populated rollback refuses erasure. Application retention never removes the
+resulting learner, guardian link, invitation or canonical educational records.

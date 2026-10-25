@@ -168,3 +168,15 @@ infraction label enters outbox/audit payloads. Family and grade-head notices
 follow with the private API/workflow increment. Confirmed official counts feed
 early warning and the aggregate-only leadership adapter; pending, overturned
 and unavailable records are distinguished from confirmed history.
+
+## Intake and admissions
+
+The existing `intake` module covers the additive public application form and the
+freshly authorised office pipeline. Legacy v1 registration routes remain intact.
+Resume/decision emails use encrypted existing mail jobs, with fresh source,
+school/module, expiry and contact checks immediately before delivery; an email
+link never creates guardian approval. No new public native SDK or paid payment
+provider is required. `admissions:maintain` recovers offers every minute; its daily
+`--retention` variant erases due private copies even when the module or school is
+disabled. New UI keys have English fallbacks in all panel catalogues; fluent
+Afrikaans/isiZulu review remains separately unqualified.
