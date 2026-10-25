@@ -130,3 +130,13 @@ Private-write header follow-up: activity API responses explicitly set private,
 no-store on every method; Laravel's GET-oriented cache middleware alone does not
 cover POST/PUT. The complete 14-operation contract case asserts those headers
 on reads and writes: 1 test / 89 assertions passed.
+
+
+### Large operation receipt review correction, 25 October 2026
+
+A real MySQL regression with 40 learners and a 2,000-character attendance reason
+reproduced silent truncation to exactly 65,535 bytes under the configured SQL mode.
+Initial and forward migrations now use LONGTEXT. The regression passes after
+simulating an existing TEXT installation and applying the upgrade: complete
+ciphertext, exact decrypted retry, 40 rows, one receipt, one session revision
+advance, and refusal to narrow oversized retained history (1 test / 7 assertions).
