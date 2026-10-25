@@ -258,6 +258,9 @@ class MasteryEngineTest extends TestCase
         $science = $existing->replicate();
         $science->subject_id = $this->schoolA->ids['science'];
         $science->save();
+        $scienceAssessment = $existing->assessments()->firstOrFail()->replicate();
+        $scienceAssessment->curriculum_plan_id = $science->id;
+        $scienceAssessment->save();
         $source = CurriculumTopic::query()->firstOrFail()->replicate();
         $source->curriculum_plan_id = $science->id;
         $source->key = (string) Str::uuid();
@@ -284,6 +287,34 @@ class MasteryEngineTest extends TestCase
             'grade_level_id' => $draft->grade_level_id, 'name' => $private->name]);
         $this->assertStringNotContainsString('PRIVATE DRAFT TOPIC', json_encode(app(TopicGraph::class)->data($this->subject)));
         $this->assertStringNotContainsString('PRIVATE DRAFT TOPIC', json_encode($this->masteryView()));
+    }
+
+    public function test_independent_term_publication_controls_new_and_retained_graph_references(): void
+    {
+        $plan = CurriculumPlan::query()->firstOrFail();
+        $term = Term::create(['name' => 'Term two', 'session_year_id' => $this->year, 'start_date' => '2026-04-01', 'end_date' => '2026-06-30']);
+        $topic = CurriculumTopic::query()->firstOrFail()->replicate();
+        $topic->term_id = $term->id;
+        $topic->key = (string) Str::uuid();
+        $topic->name = 'Unreviewed term-two topic';
+        $topic->save();
+        app(TopicGraph::class)->sync($this->subject);
+        $this->assertFalse(MasteryTopic::where('topic_key', $topic->key)->exists());
+        $assessment = $plan->assessments()->firstOrFail()->replicate();
+        $assessment->term_id = $term->id;
+        $assessment->state = 'published';
+        $assessment->save();
+        app(TopicGraph::class)->sync($this->subject);
+        $node = MasteryTopic::where('topic_key', $topic->key)->firstOrFail();
+        $this->graph(links: [['topic_id' => $this->nodes[$this->keys[1]], 'prerequisite_id' => $node->id, 'source' => 'Synthetic published term prerequisite']]);
+        $this->assertStringContainsString($topic->name, json_encode(app(TopicGraph::class)->data($this->subject)));
+        $assessment->update(['state' => 'draft']);
+        $graph = app(TopicGraph::class)->data($this->subject);
+        $this->assertStringNotContainsString($topic->name, json_encode($graph));
+        $this->assertSame([], $graph['links']);
+        $this->assertStringNotContainsString($topic->name, json_encode($this->masteryView()));
+        $this->assertSame(1, TopicLink::count());
+        $this->assertTrue(MasteryTopic::whereKey($node->id)->exists());
     }
 
     public function test_approved_learner_can_read_and_withdrawal_immediately_refuses_access(): void

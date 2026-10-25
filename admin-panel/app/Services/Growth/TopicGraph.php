@@ -26,7 +26,7 @@ class TopicGraph
     public function sync(int $subjectId): void
     {
         Subject::query()->findOrFail($subjectId);
-        $sources = CurriculumTopic::query()->with('curriculum')->whereHas('curriculum', fn ($q) => $q->where('subject_id', $subjectId)->where('state', 'published'))
+        $sources = CurriculumTopic::query()->with('curriculum')->whereHas('curriculum', fn ($q) => $this->publishedTerm($q, $subjectId))
             ->orderByDesc('id')->limit(5001)->get();
         abort_if($sources->count() > 5000, 422, 'Mastery subject source exceeds its bounded catalogue.');
         foreach ($sources->unique('key') as $source) {
@@ -38,7 +38,14 @@ class TopicGraph
     public function nodes(int $subjectId): Collection
     {
         return MasteryTopic::query()->where('subject_id', $subjectId)->whereHas('source', fn ($q) => $q->whereNull('curriculum_topics.deleted_at')
-            ->whereHas('curriculum', fn ($c) => $c->where('state', 'published')->where('subject_id', $subjectId)))->orderBy('id')->limit(5001)->get();
+            ->whereHas('curriculum', fn ($c) => $this->publishedTerm($c, $subjectId)))->orderBy('id')->limit(5001)->get();
+    }
+
+    private function publishedTerm($query, int $subjectId): void
+    {
+        $query->where('state', 'published')->where('subject_id', $subjectId)
+            ->whereHas('assessments', fn ($assessment) => $assessment->where('state', 'published')
+                ->whereColumn('assessment_plans.term_id', 'curriculum_topics.term_id'));
     }
 
     public function settings(): array

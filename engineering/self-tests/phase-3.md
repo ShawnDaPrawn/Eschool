@@ -74,3 +74,12 @@ Confidence is a versioned evidence-sufficiency heuristic, not a calibrated risk
 probability, diagnostic label or promotion rule. No official CAPS prerequisite
 edges, live model evidence, device/staging acceptance or production release is
 invented.
+
+Mastery publication review follow-up: a published curriculum header is insufficient
+when assessment terms publish independently. Source anchoring and every graph/read
+projection now require a published assessment for the exact curriculum and topic
+term. A regression publishes then withdraws a second-term reference, verifies no
+unreviewed/withdrawn label or edge reaches views, and confirms historical node/link
+rows remain retained. With the shared pastoral-role/migration rehearsal changes,
+**27 tests passed, 269 assertions** (mastery, role matrix, tenant migrations).
+Changed-file Pint and complete configured Larastan analysis pass.
