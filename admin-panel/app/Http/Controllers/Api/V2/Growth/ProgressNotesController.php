@@ -89,6 +89,16 @@ class ProgressNotesController extends Controller
         return $this->response($result);
     }
 
+    public function revokeAssignment(ProgressNotesRequest $r, int $learner, int $staff): JsonResponse
+    {
+        $data = $r->validated() + ['learner_id' => $learner, 'staff_user_id' => $staff];
+        $result = app(LearnerNoteOperations::class)->once($r->user(), 'note.revoke-assignment', $data,
+            fn () => app(LearnerNotesPolicy::class)->assign($r->user(), $learner),
+            fn () => app(LearnerNotes::class)->revokeAssignment($r->user(), $learner, $staff, (int) $data['expected_revision']));
+
+        return $this->response($result);
+    }
+
     public function configure(ProgressNotesRequest $r): JsonResponse
     {
         $data = $r->validated();

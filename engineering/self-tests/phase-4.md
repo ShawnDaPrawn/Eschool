@@ -144,6 +144,7 @@ inline session links; underlines fixed the accessibility failure. Missing demo
 avatar storage linking and canonical demo enrolments were fixture setup issues
 fixed without weakening assertions. Browser tests use synthetic data only.
 
+
 Hierarchy review follow-up: reparenting validates the full retained subtree
 height, including archived descendants, against the proposed ancestor depth.
 A regression first produced HTTP 200 for a depth-13 move, then returned 422 with

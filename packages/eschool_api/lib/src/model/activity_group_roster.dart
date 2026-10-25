@@ -5,6 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:eschool_api/src/model/activity_group_staff.dart';
 import 'package:eschool_api/src/model/activity_attendance.dart';
+import 'package:eschool_api/src/model/activity_session_roster.dart';
 import 'package:eschool_api/src/model/activity_roster_member.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -24,6 +25,8 @@ class ActivityGroupRoster {
     required this.staff,
 
     required this.attendance,
+
+    this.sessionRoster,
   });
 
   @JsonKey(name: r'memberships', required: true, includeIfNull: false)
@@ -35,17 +38,24 @@ class ActivityGroupRoster {
   @JsonKey(name: r'attendance', required: true, includeIfNull: false)
   final List<ActivityAttendance> attendance;
 
+  @JsonKey(name: r'session_roster', required: false, includeIfNull: false)
+  final ActivitySessionRoster? sessionRoster;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ActivityGroupRoster &&
           other.memberships == memberships &&
           other.staff == staff &&
-          other.attendance == attendance;
+          other.attendance == attendance &&
+          other.sessionRoster == sessionRoster;
 
   @override
   int get hashCode =>
-      memberships.hashCode + staff.hashCode + attendance.hashCode;
+      memberships.hashCode +
+      staff.hashCode +
+      attendance.hashCode +
+      sessionRoster.hashCode;
 
   factory ActivityGroupRoster.fromJson(Map<String, dynamic> json) =>
       _$ActivityGroupRosterFromJson(json);

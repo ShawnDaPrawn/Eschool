@@ -75,4 +75,30 @@ void main() {
     });
     expect(assignment.toJson()['starts_on'], '2026-02-01');
   });
+  test('assignment revocation preserves legacy omission and exact intent', () {
+    final older = <String, dynamic>{
+      'id': 5,
+      'learner_id': 4,
+      'staff_user_id': 2,
+      'staff_name': 'Synthetic clinician',
+      'starts_on': '2026-10-01',
+      'ends_on': '2026-10-31',
+      'revision': 1,
+    };
+    final grant = LearnerNoteAssignment.fromJson(older);
+    expect(grant.revoked, isNull);
+    expect(grant.toJson(), older);
+    final revoked = LearnerNoteAssignment.fromJson({...older, 'revoked': true});
+    expect(revoked.revoked, isTrue);
+    expect(revoked.toJson()['starts_on'], older['starts_on']);
+    expect(revoked.toJson()['revoked'], isTrue);
+    final request = LearnerNoteAssignmentRevoke.fromJson({
+      'operation_id': '4abe121c-21cd-4429-a4c9-9cf1a54fbfee',
+      'expected_revision': 1,
+    });
+    expect(request.toJson(), {
+      'operation_id': '4abe121c-21cd-4429-a4c9-9cf1a54fbfee',
+      'expected_revision': 1,
+    });
+  });
 }

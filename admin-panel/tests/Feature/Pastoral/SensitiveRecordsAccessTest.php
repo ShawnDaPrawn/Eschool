@@ -59,6 +59,23 @@ class SensitiveRecordsAccessTest extends TestCase
         $this->denied($actor);
     }
 
+    public function test_pending_password_change_refuses_stale_actor_in_both_school_contexts(): void
+    {
+        $actor = $this->person();
+        $actor->assignRole(SchoolRoles::COUNSELLOR);
+        $other = School::create(['name' => 'Other clinical school', 'slug' => 'other-clinical', 'status' => 'active', 'timezone' => 'Africa/Johannesburg']);
+        app(SchoolRoles::class)->seed($other);
+        app(CurrentSchool::class)->run($other, fn () => $actor->assignRole(SchoolRoles::COUNSELLOR));
+        $token = $actor->createToken('retained-teacher-profile');
+        $this->assertSame($actor->id, app(SensitiveRecordsAccess::class)->actor($actor)->id);
+        DB::table('users')->where('id', $actor->id)->update(['password_change_required' => true]);
+        $this->denied($actor);
+        app(CurrentSchool::class)->run($other, fn () => $this->denied($actor));
+        $this->assertNotNull($actor->tokens()->find($token->accessToken->id));
+        DB::table('users')->where('id', $actor->id)->update(['password_change_required' => false]);
+        $this->assertSame($actor->id, app(SensitiveRecordsAccess::class)->actor($actor)->id);
+    }
+
     public function test_platform_staff_cannot_enter_even_with_real_counsellor_assignment(): void
     {
         $actor = $this->person();

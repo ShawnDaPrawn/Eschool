@@ -376,6 +376,7 @@ Route::prefix('growth/progress')->middleware(['auth:sanctum', 'school.context', 
     Route::get('notes/{note}/history', [$c, 'history'])->whereNumber('note')->name('history');
     Route::get('learners/{learner}/assignments', [$c, 'assignments'])->whereNumber('learner')->name('assignments');
     Route::put('learners/{learner}/assignments/{staff}', [$c, 'assign'])->whereNumber('learner')->whereNumber('staff')->name('assign');
+    Route::post('learners/{learner}/assignments/{staff}/revoke', [$c, 'revokeAssignment'])->whereNumber('learner')->whereNumber('staff')->name('revoke-assignment');
 });
 
 Route::prefix('pastoral/support')->middleware(['auth:sanctum', 'school.context', 'staff', 'module:support_plans'])->name('api.v2.support.')->group(function () {

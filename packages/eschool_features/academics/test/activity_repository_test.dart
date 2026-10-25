@@ -53,6 +53,51 @@ void main() {
     },
   );
   test(
+    'session roster pins selected session and refuses missing or mismatched response',
+    () async {
+      for (final altered in [
+        'missing',
+        'wrong-session',
+        'wrong-group',
+        'duplicate',
+      ]) {
+        final body = activityRosterFixture();
+        final selected = body['session_roster'] as Map<String, dynamic>;
+        if (altered == 'missing') body.remove('session_roster');
+        if (altered == 'wrong-session') selected['session_id'] = 10;
+        if (altered == 'wrong-group') selected['group_id'] = 99;
+        if (altered == 'duplicate') {
+          (selected['learners'] as List).add(
+            (selected['learners'] as List).first,
+          );
+        }
+        final api = FakeApi(
+          routes: {'GET v2/activities/groups/7/roster': ok(body)},
+        );
+        await expectLater(
+          repository(api).roster(7, sessionId: 9),
+          throwsA(isA<ApiException>()),
+        );
+        expect(api.requests.single.queryParameters['session_id'], 9);
+        expect(api.requests.single.headers['X-Account-Id'], '12');
+      }
+    },
+  );
+  test(
+    'session roster preserves retained revision and valid unrecorded classmates',
+    () async {
+      final api = FakeApi(
+        routes: {
+          'GET v2/activities/groups/7/roster': ok(activityRosterFixture()),
+        },
+      );
+      final result = await repository(api).roster(7, sessionId: 9);
+      expect(result.sessionRoster!.learners.map((x) => x.learnerId), [17, 18]);
+      expect(result.sessionRoster!.learners.first.status, isNull);
+      expect(result.sessionRoster!.learners.first.revision, 0);
+    },
+  );
+  test(
     'foreign school detail is rejected before returning private records',
     () async {
       final api = FakeApi(
