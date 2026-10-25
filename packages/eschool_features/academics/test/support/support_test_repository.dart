@@ -13,6 +13,8 @@ class FakeSupport implements SupportRepository {
   List<String> audiences = ['professional'];
   bool writable = true, deny = false, failWrite = false, hasPlan = false;
   int revision = 1;
+  String? due;
+  bool paginated = false;
   final reads = <String>[], writes = <String>[];
   Completer<SupportAccess>? delayedAccess;
   @override
@@ -32,24 +34,37 @@ class FakeSupport implements SupportRepository {
     String audience, {
     String search = '',
     int page = 1,
+    int? learnerId,
+    int? staffId,
   }) async {
     reads.add('configuration:$audience');
     return SupportConfiguration.fromJson({
       'audience': audience,
-      'page': 1,
-      'last_page': 1,
+      'page': page,
+      'last_page': paginated ? 2 : 1,
       'learners': [
-        {'id': 3, 'name': 'Synthetic Learner'},
+        if (!paginated || learnerId == 3 || (page == 1 && search.isEmpty))
+          {'id': 3, 'name': 'Synthetic Learner'},
       ],
       'staff': [
         {
-          'id': 4,
-          'name': audience == 'principal'
+          'id':
+              paginated &&
+                  (staffId == 5 ||
+                      (staffId == null && (page == 2 || search.isNotEmpty)))
+              ? 5
+              : 4,
+          'name':
+              paginated &&
+                  (staffId == 5 ||
+                      (staffId == null && (page == 2 || search.isNotEmpty)))
+              ? 'Other professional'
+              : audience == 'principal'
               ? 'Named Counsellor'
               : 'Named Teacher',
         },
       ],
-      'staff_last_page': 1,
+      'staff_last_page': paginated ? 2 : 1,
     });
   }
 
@@ -120,7 +135,7 @@ class FakeSupport implements SupportRepository {
     'learner_name': 'Synthetic Learner',
     'revision': revision,
     'state': 'active',
-    'review_due_on': null,
+    'review_due_on': due,
     'started_on': '2026-02-01',
     'sias_stage': 'SNA1',
     'needs': 'Private clinical needs',
@@ -181,7 +196,12 @@ class FakeSupport implements SupportRepository {
       throw ApiException('Connection lost', isTransportFailure: true);
     }
     hasPlan = true;
-    if (action == 'review') revision++;
+    if (action == 'review') {
+      revision++;
+      if (payload['next_review_on'] != null) {
+        due = payload['next_review_on'] as String;
+      }
+    }
     return SupportWriteReceipt.fromJson({
       'id': 10,
       'revision': revision,

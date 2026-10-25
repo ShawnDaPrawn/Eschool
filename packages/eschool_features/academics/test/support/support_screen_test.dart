@@ -13,6 +13,7 @@ Future<void> show(WidgetTester tester, FakeSupport repo) async {
 
 Future<void> tapButton(WidgetTester tester, String label) async {
   tester.testTextInput.hide();
+  FocusManager.instance.primaryFocus?.unfocus();
   await tester.pumpAndSettle();
   final button = find.widgetWithText(FilledButton, label);
   await tester.ensureVisible(button);
@@ -129,4 +130,113 @@ void main() {
       isEmpty,
     );
   });
+  testWidgets('appointment choices survive different search and result pages', (
+    tester,
+  ) async {
+    final repo = FakeSupport()
+      ..audiences = ['principal']
+      ..paginated = true;
+    await show(tester, repo);
+    await tester.tap(find.byType(DropdownButtonFormField<int>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Synthetic Learner').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      field('Private appointment rationale'),
+      'Reason for this learner and professional',
+    );
+    final next = find.widgetWithText(OutlinedButton, 'Next page');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      next,
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(next);
+    await tester.pumpAndSettle();
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    expect(find.text('Synthetic Learner'), findsWidgets);
+    expect(
+      tester
+          .widget<TextField>(field('Private appointment rationale'))
+          .controller!
+          .text,
+      'Reason for this learner and professional',
+    );
+    await tester.scrollUntilVisible(
+      field('Find learner or staff member'),
+      -500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    final person = find.byType(DropdownButtonFormField<int>).last;
+    await tester.ensureVisible(person);
+    await tester.pumpAndSettle();
+    await tester.tap(person);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Other professional').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      field('Private appointment rationale'),
+      'Reason for this learner and professional',
+    );
+    await tester.scrollUntilVisible(
+      field('Find learner or staff member'),
+      -500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(field('Find learner or staff member'), 'Other');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    final search = find.byTooltip('Search');
+    await tester.ensureVisible(search);
+    await tester.pumpAndSettle();
+    await tester.tap(search);
+    await tester.pumpAndSettle();
+    expect(find.text('Synthetic Learner'), findsWidgets);
+    await tapButton(tester, 'Appoint professional');
+    expect(repo.writes, hasLength(1));
+    expect(repo.writes.single, contains('"learner_id":3'));
+    expect(repo.writes.single, contains('"user_id":5'));
+    expect(
+      repo.writes.single,
+      contains('Reason for this learner and professional'),
+    );
+  });
+  testWidgets(
+    'review schedule reconciles without overwriting a preserved plan edit',
+    (tester) async {
+      final repo = FakeSupport()..hasPlan = true;
+      await show(tester, repo);
+      await tester.tap(find.text('Synthetic Learner'));
+      await tester.pumpAndSettle();
+      await tester.enterText(field('Support needs'), 'Unsent case edit');
+      final date = find.widgetWithText(
+        OutlinedButton,
+        'Next review date: Not set',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(date);
+      await tester.pumpAndSettle();
+      await tester.tap(date);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('15'));
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(field('Review outcome'));
+      await tester.enterText(field('Review outcome'), 'Actual human review');
+      await tapButton(tester, 'Add review');
+      expect(
+        tester.widget<TextField>(field('Support needs')).controller!.text,
+        'Unsent case edit',
+      );
+      expect(find.text('Review due: 2026-02-15'), findsOneWidget);
+      await tapButton(tester, 'Save support plan');
+      expect(repo.writes, hasLength(2));
+      expect(repo.writes.last, contains('"revision":2'));
+      expect(repo.writes.last, contains('"review_due_on":"2026-02-15"'));
+    },
+  );
 }

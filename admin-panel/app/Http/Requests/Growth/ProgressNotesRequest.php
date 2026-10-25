@@ -23,6 +23,7 @@ class ProgressNotesRequest extends FormRequest
 
     public function authorize(): bool
     {
+        abort_if(! $this->isMethodSafe() && $this->query->count() > 0, 422, 'Invalid save request. Reload and try again.');
         $policy = app(LearnerNotesPolicy::class);
         $write = ! $this->isMethodSafe();
         $policy->enabled($write);

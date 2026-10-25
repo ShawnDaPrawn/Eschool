@@ -120,7 +120,7 @@ class SupportQueries
     }
 
     /** Search returns named choices, never private plan contents. */
-    public function configuration(User $actor, string $audience, string $search = '', int $page = 1): array
+    public function configuration(User $actor, string $audience, string $search = '', int $page = 1, ?int $learnerId = null, ?int $staffId = null): array
     {
         $a = app(SupportAuthority::class);
         if ($audience === 'principal') {
@@ -133,6 +133,9 @@ class SupportQueries
         if ($audience !== 'principal') {
             $query->whereIn('id', SupportAssignment::where('user_id', $actor->id)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id'));
         }
+        if ($learnerId !== null) {
+            $query->whereKey($learnerId);
+        }
         if ($search !== '') {
             $query->whereHas('user', fn ($q) => $q->where(fn ($q) => $q->where('first_name', 'like', '%'.$search.'%')->orWhere('last_name', 'like', '%'.$search.'%')));
         }
@@ -144,6 +147,7 @@ class SupportQueries
         $ids = SchoolMembership::active()->where('school_id', app(CurrentSchool::class)->id())->whereIn('role', $roles)->select('user_id');
         $operators = PlatformStaffIdentity::where('active', true)->select('user_id');
         $people = User::whereIn('id', $ids)->whereNotIn('id', $operators)
+            ->when($staffId !== null, fn ($q) => $q->whereKey($staffId))
             ->when($search !== '', fn ($q) => $q->where(fn ($q) => $q->where('first_name', 'like', '%'.$search.'%')->orWhere('last_name', 'like', '%'.$search.'%')))
             ->orderBy('first_name')->orderBy('id')->paginate(50, ['*'], 'staff_page', max(1, $page));
         foreach ($people as $person) {

@@ -109,6 +109,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (allowsSchoolModule(
+      context.watch<MeContextCubit>().context,
+      'academics',
+    ))
+      tile(
+        title: label('Progress and notes'),
+        icon: Icons.edit_note_outlined,
+        onTap: () => open(Routes.progressNotes),
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn('mastery') ==
             true &&
         allowsSchoolModule(context.watch<MeContextCubit>().context, 'mastery'))
@@ -680,6 +689,63 @@ Route<dynamic> supportPlansRoute() => AdaptivePageRoute(
                 active() &&
                 (schools.state.selectedId == null ||
                     schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> progressNotesRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'academics')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Progress and notes'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: ProgressSessionBoundary(
+        pinned: me,
+        child: ProgressNotesScreen(
+          canRead: () =>
+              progressAccessStillCurrent(me, session.context) &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+          repository: ApiProgressRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                progressAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                allowsSchoolModule(session.context, 'academics'),
           ),
         ),
       ),

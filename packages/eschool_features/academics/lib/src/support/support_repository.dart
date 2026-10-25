@@ -10,6 +10,8 @@ abstract interface class SupportRepository {
     String audience, {
     String search = '',
     int page = 1,
+    int? learnerId,
+    int? staffId,
   });
   Future<SupportCases> cases({int page = 1});
   Future<SupportAssignments> assignments({int page = 1});
@@ -70,6 +72,7 @@ class ApiSupportRepository implements SupportRepository {
       queryParameters: query,
       data: payload,
       requestTimeout: const Duration(seconds: 30),
+      privateRequest: true,
     );
     _guard();
     final data = response?['data'];
@@ -85,6 +88,8 @@ class ApiSupportRepository implements SupportRepository {
     String audience, {
     String search = '',
     int page = 1,
+    int? learnerId,
+    int? staffId,
   }) async {
     if (!['professional', 'principal'].contains(audience)) {
       throw ArgumentError.value(audience);
@@ -92,7 +97,12 @@ class ApiSupportRepository implements SupportRepository {
     return SupportConfiguration.fromJson(
       await _send(
         'configuration/$audience',
-        query: {if (search.trim().isNotEmpty) 'search': search.trim(), 'page': page},
+        query: {
+          if (search.trim().isNotEmpty) 'search': search.trim(),
+          'page': page,
+          'learner_id': ?learnerId,
+          'user_id': ?staffId,
+        },
       ),
     );
   }

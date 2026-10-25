@@ -51,7 +51,6 @@ export 'src/cover/cover_screen.dart';
 
 export 'src/activities/activity_repository.dart';
 export 'src/activities/activity_groups_screen.dart';
-export 'src/activities/activity_session_boundary.dart';
 
 export 'src/growth/mastery_repository.dart';
 export 'src/growth/mastery_cubit.dart';
@@ -59,7 +58,11 @@ export 'src/growth/mastery_screen.dart';
 export 'src/growth/mastery_session_boundary.dart';
 export 'src/cover/cover_session_boundary.dart';
 
+export 'src/progress_notes/progress_repository.dart';
+export 'src/progress_notes/progress_notes_screen.dart';
+export 'src/progress_notes/family_progress_screen.dart';
+export 'src/progress_notes/progress_session_boundary.dart';
+export 'src/activities/activity_session_boundary.dart';
 export 'src/support/support_repository.dart';
 export 'src/support/support_screen.dart';
-
 export 'src/support/support_session_boundary.dart';

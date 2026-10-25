@@ -6,6 +6,7 @@ namespace App\Services\Panel;
 
 use App\Models\User;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Growth\ProgressQueries;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Modules\ModuleGate;
@@ -125,6 +126,9 @@ class Navigation
             return false;
         }
         if (($item['cover_actor'] ?? false) && ! app(CoverAuthority::class)->available($user, (int) schoolSetting('session_year'))) {
+            return false;
+        }
+        if (($item['progress_actor'] ?? false) && ! app(ProgressQueries::class)->available($user)) {
             return false;
         }
         if (($item['support_actor'] ?? false) && ! app(SupportAuthority::class)->available($user)) {

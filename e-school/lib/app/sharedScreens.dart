@@ -910,3 +910,96 @@ class MasteryEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> familyProgressRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final auth = context.read<AuthCubit>();
+    final children = context.read<ChildSelectionCubit>();
+    final parent = auth.isParent();
+    final child = parent ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    final school = parent ? child?.schoolId : me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        learner == null ||
+        learner <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'academics')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Learning progress'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: ProgressSessionBoundary(
+        pinned: me,
+        child: FamilyProgressScreen(
+          learnerId: learner,
+          canRead: () =>
+              progressAccessStillCurrent(me, session.context) &&
+              (!parent ||
+                  children.selected?.id == learner &&
+                      children.selected?.schoolId == school),
+          repository: ApiProgressRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                progressAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!parent ||
+                    children.selected?.id == learner &&
+                        children.selected?.schoolId == school) &&
+                allowsSchoolModule(session.context, 'academics'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyProgressEntry extends StatelessWidget {
+  const FamilyProgressEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!allowsSchoolModule(state.context, 'academics'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.insights_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Learning progress'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.familyProgress),
+            ),
+          );
+        },
+      );
+}

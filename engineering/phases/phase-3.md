@@ -14,7 +14,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Work | Depends on | State / specification |
 | --- | --- | --- |
 | AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | Staff gateway, protocol adapters and feature-scoped ownership/approval/caps/deadline service implemented; domain sources, media and operations UI continue; [spec](../specs/ai/feature-inference.md) |
-| Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Domain and private v2/typed SDK implemented: encrypted notes/caseload/revisions and running/released bands; alerts and client workflows follow; [spec](../specs/growth/progress-notes.md) |
+| Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Encrypted domain, private v2/typed SDK, panel/shared readers and all four app-profile entries implemented and verified in review; queued rule-aware alerts are in independent review; [spec](../specs/growth/progress-notes.md) |
 | Tutor sessions, subject/source lock, scanned photo feedback and summaries | Reviewed gateway, notes, content | Queued; no learner inference enabled by the foundation |
 | Topic dependencies, evidence and mastery map | Question marks and published curriculum | Engine, v2 contract, panel and learner/parent/teacher views implemented in review; [spec](../specs/growth/mastery.md); verified practice/tutor evidence adapters follow |
 | Daily practice, FSRS reviews, offline daily sets and streaks | Mastery, published content, gateway | Queued |
@@ -24,7 +24,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Risk signals and staff-owned interventions | Marks, attendance, discipline and wellbeing counts | Queued; no learner-facing risk labels |
 | Discipline framework, sanctions, detentions, escalation and acknowledgement | Fresh staff/guardian policies and audit | Queued; principal hearing referral, never automatic expulsion |
 | My grade dashboard and actions | Existing dated AcademicLeadership appointments | Queued; award nominations integrate after Phase 4 awards |
-| Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Queued; later money data remains a separate integration |
+| Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Root-owned cover/support/dashboard implemented and verified in review; later money data remains a separate integration |
 | Consented inter-school transfers and external signed packages | Existing dated changes and private exit packages | Queued; round-trip authorization and atomic enrolment tests |
 
 ## Gateway implementation and release boundary
