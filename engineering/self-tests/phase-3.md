@@ -42,6 +42,62 @@ authority before any quarantine flag is written. Final focused run: **16 tests
 passed, 93 assertions**, including both callback directions, zero foreign flags,
 original-school settlement and suppressed output. Changed-file Pint passes.
 
+## Mastery graph and canonical evidence engine
+
+Implemented published stable-topic anchors, explicit sourced acyclic prerequisite
+links, separate staff/family evidence and projections, exact integer 0–4 levels,
+unknown-versus-zero handling, bounded recent-evidence confidence and up to three
+root-gap recommendations. Current grade/year topics plus published prerequisite
+closure are eligible; unrelated future-grade and draft nodes are excluded.
+
+Staff uses canonical current question marks. Family uses frozen released snapshot
+question evidence plus explicit school opt-in, with fresh own-child/approval and
+module/visibility checks. Later raw edits do not alter released mastery. Dedicated
+school/subject lock rows serialize derived rebuilds without taking the school
+mark-write lock. Mark, release, definition and module-enable events queue rebuilds;
+`mastery:rebuild <school> --group=<owned-group>` supports trusted bounded repair.
+The module is registered off by default and may be explicitly enabled through the
+existing school module management. No learner self-score endpoint exists.
+
+Verification: affected mastery/mark/tenancy cohort **40 passed, 800 assertions**.
+Final focused engine/repair-command suite **14 passed, 64 assertions**; changed-file
+Pint and complete configured Larastan analysis pass. Covered role/school/owner,
+approval/guardian/module/visibility revocation, frozen release versus raw edits,
+missing question values, cyclic/duplicate/cross-subject links, draft/future topic
+exclusion, replay without duplicate evidence, integer boundaries, empty rollback/
+reapply and retained-data rollback refusal.
+
+This backend engine does not claim completed mastery app/panel UX or v2 contract
+publication. Those follow after the parallel Phase 4 contract/SDK publication slot.
+Practice/tutor evidence adapters arrive with their verified review workflows.
+Confidence is a versioned evidence-sufficiency heuristic, not a calibrated risk
+probability, diagnostic label or promotion rule. No official CAPS prerequisite
+edges, live model evidence, device/staging acceptance or production release is
+invented.
+
+Mastery publication review follow-up: a published curriculum header is insufficient
+when assessment terms publish independently. Source anchoring and every graph/read
+projection now require a published assessment for the exact curriculum and topic
+term. A regression publishes then withdraws a second-term reference, verifies no
+unreviewed/withdrawn label or edge reaches views, and confirms historical node/link
+rows remain retained. With the shared pastoral-role/migration rehearsal changes,
+**27 tests passed, 269 assertions** (mastery, role matrix, tenant migrations).
+Changed-file Pint and complete configured Larastan analysis pass.
+
+Fresh teaching-authority follow-up: merged the shared role-transition guard, which
+requires the current Teacher role before retained Teacher profiles/allocations can
+authorize academic reads. The mastery/role/migration cohort remains **27 passed,
+269 assertions**; the three Counsellor/Facilitator/Safeguarding transitions pass
+**3 tests, 21 assertions**. Complete configured Larastan analysis passes.
+
+Mastery review fixes: changed the derived mutex to school/subject-wide, acquired
+before the evidence snapshot and retained through cross-year aggregation. A real
+second MySQL connection attempts a different grade/year rebuild during the first
+read; the regression failed before the fix and now waits behind the mutex. After
+release, former group members keep question-only tagged targets even when the
+task tag list is empty; that regression also failed before the fix. The focused
+engine/concurrency/tenant migration cohort passes **18 tests, 249 assertions**.
+The six new tenant tables still rehearse rollback/reapply successfully.
 ## Provider and moderation protocol adapters
 
 Implemented fixed-origin HTTPS protocols for OpenAI text/embedding, Anthropic
@@ -57,3 +113,13 @@ interface. Changed-file Pint and full configured Larastan analysis pass.
 No real endpoint was contacted and no provider was enabled or qualified.
 These are protocol tests, not real-model safety, privacy, latency or cost evidence.
 See the provider adapter spec and qualification record for the release boundary.
+
+Changed-file Pint and complete configured Larastan analysis pass after both mastery review fixes.
+
+The mastery engine now includes canonical main's relief-cover prerequisite with
+both modules, package entitlements and tenant registries preserved. The combined
+engine/cover/tenant-schema/migration cohort passes **37 tests, 795 assertions**.
+Pint and full Larastan pass. The static check exposed two legacy lowercase
+`softDeletes` imports that depended on a different worker loading the trait first;
+Shift and Stream now use canonical `SoftDeletes`, and both cold-autoload checks
+pass. This integration adds no API or SDK changes.
