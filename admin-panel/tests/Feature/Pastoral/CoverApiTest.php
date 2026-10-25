@@ -118,6 +118,6 @@ class CoverApiTest extends TestCase
         $this->assertFalse($guard->allows($this->person(), $notice->type, $notice->delivery_payload));
         $cover->fresh()->update(['revision' => 3]);
         $this->assertFalse($guard->allows($this->person('theo'), $notice->type, $notice->delivery_payload));
-        $this->assertSame([], app(Notifier::class)->send($this->person('theo'),$notice->type,$notice->title,$notice->message,'/pastoral/cover',$notice));
+        $this->assertSame([], app(Notifier::class)->send($this->person('theo'), $notice->type, $notice->title, $notice->message, '/pastoral/cover', $notice));
     }
 }
