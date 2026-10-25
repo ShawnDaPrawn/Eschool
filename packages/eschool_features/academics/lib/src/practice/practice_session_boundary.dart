@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../localization/academic_text.dart';
 import 'practice_store.dart';
+import 'practice_approval_store.dart';
 
 bool practiceAccessStillCurrent(MeContext pinned, MeContext? current) =>
     current != null &&
@@ -79,16 +80,30 @@ class PracticeCacheSessionGuard extends StatelessWidget {
   const PracticeCacheSessionGuard({
     required this.child,
     this.purge = SecurePracticeStore.purge,
+    this.purgeApprovals = SecurePracticeApprovalStore.purge,
     super.key,
   });
   final Widget child;
-  final Future<void> Function() purge;
+  final Future<void> Function() purge, purgeApprovals;
   Future<void> _purge() async {
     try {
       await purge();
     } catch (_) {
       /* The store always attempts key erasure. */
     }
+  }
+
+  Future<void> _purgeApprovals() async {
+    try {
+      await purgeApprovals();
+    } catch (_) {
+      /* Old scope keys remain inaccessible. */
+    }
+  }
+
+  void _scopeChanged() {
+    unawaited(_purge());
+    unawaited(_purgeApprovals());
   }
 
   bool _same(MeContext? old, MeContext? next) =>
@@ -100,7 +115,12 @@ class PracticeCacheSessionGuard extends StatelessWidget {
       BlocListener<SchoolSelectionCubit, SchoolSelectionState>(
         listenWhen: (old, next) =>
             old.selectedId != null && old.selectedId != next.selectedId,
-        listener: (_, _) => unawaited(_purge()),
+        listener: (_, _) => _scopeChanged(),
+      ),
+      BlocListener<MeContextCubit, MeContextState>(
+        listenWhen: (old, next) =>
+            old.context != null && !_same(old.context, next.context),
+        listener: (_, _) => unawaited(_purgeApprovals()),
       ),
       BlocListener<MeContextCubit, MeContextState>(
         listenWhen: (old, next) =>

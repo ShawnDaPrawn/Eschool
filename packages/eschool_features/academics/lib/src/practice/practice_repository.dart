@@ -39,6 +39,32 @@ class PracticeIntent {
   final String _body;
   Map<String, dynamic> get body =>
       Map<String, dynamic>.from(jsonDecode(_body) as Map);
+  Map<String, dynamic> savedApproval() {
+    if (action != PracticeAction.approve) {
+      throw StateError('Only approvals are stored here.');
+    }
+    return {'group': group, 'item': item, 'body': body};
+  }
+
+  static PracticeIntent restoreApproval(Map<String, dynamic> value) {
+    final group = value['group'], item = value['item'];
+    if (group is! int ||
+        group <= 0 ||
+        (item != null && (item is! int || item <= 0)) ||
+        value['body'] is! Map) {
+      throw const FormatException('Invalid saved approval.');
+    }
+    final input = PracticeApproveInput.fromJson(
+      Map<String, dynamic>.from(value['body'] as Map),
+    );
+    if (!RegExp(
+      r'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$',
+    ).hasMatch(input.operationId)) {
+      throw const FormatException('Invalid saved approval identity.');
+    }
+    return PracticeIntent.approve(group, input, item: item as int?);
+  }
+
   Map<String, dynamic> savedReview() {
     if (action != PracticeAction.review) {
       throw StateError('Only learner reviews can be queued offline.');

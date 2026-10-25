@@ -97,3 +97,5 @@ export 'src/practice/practice_store.dart';
 export 'src/practice/practice_screen.dart';
 export 'src/practice/practice_bank_screen.dart';
 export 'src/practice/practice_session_boundary.dart';
+export 'src/practice/practice_approval_outbox.dart';
+export 'src/practice/practice_approval_store.dart';

@@ -6,7 +6,10 @@ class PracticeProtocolFixture {
   PracticeProtocolFixture({this.staff = true, this.reader = 12});
   final bool staff;
   final int reader;
-  bool granted = true, reviewed = false;
+  bool granted = true, reviewed = false, loseFirstApprovalResponse = false;
+  int approvalCreates = 0;
+  String? _approvalOperation;
+  Duration offlineLease = const Duration(days: 1);
   Map<String, dynamic>? lastApproval;
   Map<String, dynamic> question = {
     'kind': 'number',
@@ -26,7 +29,7 @@ class PracticeProtocolFixture {
       'group_id': 7,
       'practice_on': now.toIso8601String().substring(0, 10),
       'server_time': now.toIso8601String(),
-      'offline_until': now.add(const Duration(days: 1)).toIso8601String(),
+      'offline_until': now.add(offlineLease).toIso8601String(),
       'estimated_seconds': 120,
       'completed': reviewed,
       'streak_days': reviewed ? 1 : 0,
@@ -113,8 +116,21 @@ class PracticeProtocolFixture {
       ],
     }),
     'POST v2/learning/practice/groups/7/bank/21': (RequestOptions request) {
-      lastApproval = Map<String, dynamic>.from(request.data as Map);
-      question = Map<String, dynamic>.from(lastApproval!['definition'] as Map);
+      final input = Map<String, dynamic>.from(request.data as Map);
+      if (_approvalOperation != input['operation_id']) {
+        approvalCreates++;
+        _approvalOperation = input['operation_id'] as String;
+        lastApproval = input;
+        question = Map<String, dynamic>.from(
+          lastApproval!['definition'] as Map,
+        );
+        if (loseFirstApprovalResponse) {
+          loseFirstApprovalResponse = false;
+          return const FakeResponse({
+            'message': 'Synthetic lost approval response',
+          }, status: 503);
+        }
+      }
       return ok({'id': 21, 'version_id': 30, 'revision': 2, 'active': true});
     },
     'GET v2/learning/practice/learners/11/daily-sets/10': (RequestOptions _) =>

@@ -193,6 +193,30 @@ void main() {
       expect(repo.writes, isEmpty);
     },
   );
+  test(
+    'expired empty copies release capacity before the next download without losing pending work',
+    () async {
+      for (var i = 10; i < 30; i++) {
+        await cache.save(
+          practiceSet(id: i),
+          requestedAt: clock,
+          writable: true,
+        );
+      }
+      await cache.queue(practiceAnswer());
+      clock = clock.add(const Duration(days: 2));
+      repo.time = clock;
+      await cache.save(
+        practiceSet(id: 99, time: clock),
+        requestedAt: clock,
+        writable: true,
+      );
+      expect((await store.keys()).length, 2);
+      expect((await cache.pending()).single.set, 10);
+      expect(await cache.read(11, 10), isNull);
+      expect((await cache.read(11, 99))!.set.id, 99);
+    },
+  );
   test('closed context cannot read or write a previous scope', () async {
     await cache.save(practiceSet(), requestedAt: clock, writable: true);
     cache.close();

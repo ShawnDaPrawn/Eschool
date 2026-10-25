@@ -29,6 +29,8 @@ class _PracticeScreenState extends State<PracticeScreen>
   PracticeAccess? _access;
   PracticeDailySet? _set;
   PracticeIntent? _pending;
+  Timer? _leaseTimer;
+  DateTime? _savedDeadline;
   List<PracticeIntent> _queued = [];
   int? _group;
   int _index = 0, _epoch = 0, _rating = 3;
@@ -65,6 +67,7 @@ class _PracticeScreenState extends State<PracticeScreen>
     WidgetsBinding.instance.removeObserver(this);
     _scroll.dispose();
     _epoch++;
+    _leaseTimer?.cancel();
     widget.cache.close();
     _number.dispose();
     super.dispose();
@@ -76,6 +79,8 @@ class _PracticeScreenState extends State<PracticeScreen>
     if (state != AppLifecycleState.resumed) {
       setState(() {
         _suspended = true;
+        _leaseTimer?.cancel();
+        _savedDeadline = null;
         _epoch++;
         _set = null;
         _access = null;
@@ -130,6 +135,8 @@ class _PracticeScreenState extends State<PracticeScreen>
 
   Future<void> _load() async {
     if (!_active || _pending != null) return;
+    _leaseTimer?.cancel();
+    _savedDeadline = null;
     final epoch = ++_epoch;
     setState(() {
       _busy = true;
@@ -152,6 +159,41 @@ class _PracticeScreenState extends State<PracticeScreen>
     } catch (e) {
       _fail(e, epoch);
     }
+  }
+
+  void _savedLease(DateTime deadline) {
+    _leaseTimer?.cancel();
+    _savedDeadline = deadline.toUtc();
+    final remaining = deadline.toUtc().difference(DateTime.now().toUtc());
+    _leaseTimer = Timer(
+      remaining > Duration.zero ? remaining : Duration.zero,
+      _expireSaved,
+    );
+  }
+
+  void _expireSaved() {
+    if (!mounted || _savedDeadline == null) return;
+    setState(() {
+      _epoch++;
+      _set = null;
+      _queued = [];
+      _busy = false;
+      _saved = false;
+      _savedWritable = false;
+      _savedDeadline = null;
+      _resetAnswer();
+      _status =
+          'This saved practice copy has expired. Sync pending answers after refreshing access.';
+    });
+  }
+
+  bool _leaseCurrent() {
+    final deadline = _savedDeadline;
+    if (deadline != null && !DateTime.now().toUtc().isBefore(deadline)) {
+      _expireSaved();
+      return false;
+    }
+    return true;
   }
 
   void _resetAnswer() {
@@ -205,6 +247,7 @@ class _PracticeScreenState extends State<PracticeScreen>
         _queued = saved?.pending ?? [];
         _saved = saved != null;
         _savedWritable = saved?.writable ?? false;
+        if (saved != null) _savedLease(saved.expiresAt);
         _busy = false;
         _status = '';
         _resetAnswer();
@@ -230,11 +273,13 @@ class _PracticeScreenState extends State<PracticeScreen>
         requestedAt: started,
         writable: _access?.writable == true && widget.canWrite(),
       );
+      final saved = await widget.cache.read(fresh.learnerId, fresh.id);
       if (!_current(epoch)) return;
       setState(() {
         _set = fresh;
-        _saved = true;
-        _savedWritable = _access?.writable == true && widget.canWrite();
+        _saved = saved != null;
+        _savedWritable = saved?.writable ?? false;
+        if (saved != null) _savedLease(saved.expiresAt);
         _busy = false;
         _status = 'Encrypted practice copy saved for offline use.';
       });
@@ -244,7 +289,13 @@ class _PracticeScreenState extends State<PracticeScreen>
   }
 
   Future<void> _answerQuestion() async {
-    if (!_write || _busy || _set == null || _pending != null) return;
+    if (!_leaseCurrent() ||
+        !_write ||
+        _busy ||
+        _set == null ||
+        _pending != null) {
+      return;
+    }
     final value = _set!, entry = value.items[_index], epoch = _epoch;
     if (entry.review != null || _queued.any((p) => p.entry == entry.id)) return;
     try {
@@ -318,9 +369,12 @@ class _PracticeScreenState extends State<PracticeScreen>
       final saved = await widget.cache.read(value.learnerId, value.id);
       if (!_current(epoch)) return;
       setState(() {
+        _leaseTimer?.cancel();
+        _savedDeadline = null;
         _set = updated;
         _saved = saved != null;
         _savedWritable = saved?.writable ?? false;
+        if (saved != null) _savedLease(saved.expiresAt);
         if (_access != null) {
           _access = PracticeAccess.fromJson({
             ..._access!.toJson(),
@@ -366,9 +420,12 @@ class _PracticeScreenState extends State<PracticeScreen>
       final saved = await widget.cache.read(row.learner, row.set);
       if (!_current(epoch)) return;
       setState(() {
+        _leaseTimer?.cancel();
+        _savedDeadline = null;
         _set = value;
         _saved = saved != null;
         _savedWritable = saved?.writable ?? false;
+        if (saved != null) _savedLease(saved.expiresAt);
         if (_access != null) {
           _access = PracticeAccess.fromJson({
             ..._access!.toJson(),
@@ -449,6 +506,7 @@ class _PracticeScreenState extends State<PracticeScreen>
         _queued = chosen.pending;
         _saved = true;
         _savedWritable = chosen.writable;
+        _savedLease(chosen.expiresAt);
         _index = 0;
         _resetAnswer();
         _status = 'Offline copy. Sync requires a fresh access check.';
@@ -460,6 +518,18 @@ class _PracticeScreenState extends State<PracticeScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_savedDeadline != null &&
+        !DateTime.now().toUtc().isBefore(_savedDeadline!)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _expireSaved());
+      return ScreenScaffold(
+        title: l('Daily practice'),
+        body: const Center(
+          child: AcademicText(
+            'This saved practice copy has expired. Sync pending answers after refreshing access.',
+          ),
+        ),
+      );
+    }
     if (!_active) {
       return ScreenScaffold(
         title: l('Daily practice'),
@@ -646,6 +716,7 @@ class _PracticeScreenState extends State<PracticeScreen>
                   child: OutlinedButton(
                     onPressed: !_busy && _pending == null && _index > 0
                         ? () => setState(() {
+                            if (!_leaseCurrent()) return;
                             _index--;
                             _resetAnswer();
                           })
@@ -661,6 +732,7 @@ class _PracticeScreenState extends State<PracticeScreen>
                             _pending == null &&
                             _index + 1 < value.items.length
                         ? () => setState(() {
+                            if (!_leaseCurrent()) return;
                             _index++;
                             _resetAnswer();
                           })
