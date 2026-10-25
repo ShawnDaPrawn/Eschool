@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
+use App\Http\Controllers\Api\V2\Growth\MyGradeController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
@@ -543,6 +544,11 @@ Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'award
 Route::prefix('staff/private-notices')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:communication'])->name('api.v2.staff-private-notices.')->group(function () {
     Route::get('/', [PrivateStaffNoticeController::class, 'index'])->name('index');
     Route::post('{notice}/read', [PrivateStaffNoticeController::class, 'read'])->whereNumber('notice')->name('read');
+});
+
+Route::prefix('my-grade')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:my_grade'])->name('api.v2.my-grade.')->group(function () {
+    Route::get('access', [MyGradeController::class, 'access'])->name('access');
+    Route::get('grades/{grade}', [MyGradeController::class, 'dashboard'])->whereNumber('grade')->name('dashboard');
 });
 
 Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:daily_practice'])->name('api.v2.practice.')->group(function () {

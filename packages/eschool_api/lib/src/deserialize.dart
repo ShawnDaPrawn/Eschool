@@ -583,6 +583,18 @@ import 'package:eschool_api/src/model/mastery_topic_view.dart';
 import 'package:eschool_api/src/model/mastery_view.dart';
 import 'package:eschool_api/src/model/mastery_view_response.dart';
 import 'package:eschool_api/src/model/module.dart';
+import 'package:eschool_api/src/model/my_grade_access.dart';
+import 'package:eschool_api/src/model/my_grade_access_response.dart';
+import 'package:eschool_api/src/model/my_grade_actions.dart';
+import 'package:eschool_api/src/model/my_grade_award_choice.dart';
+import 'package:eschool_api/src/model/my_grade_awards.dart';
+import 'package:eschool_api/src/model/my_grade_choice.dart';
+import 'package:eschool_api/src/model/my_grade_dashboard.dart';
+import 'package:eschool_api/src/model/my_grade_dashboard_response.dart';
+import 'package:eschool_api/src/model/my_grade_discipline_queue.dart';
+import 'package:eschool_api/src/model/my_grade_learner.dart';
+import 'package:eschool_api/src/model/my_grade_pending_record.dart';
+import 'package:eschool_api/src/model/my_grade_signal.dart';
 import 'package:eschool_api/src/model/my_school_info.dart';
 import 'package:eschool_api/src/model/my_school_response.dart';
 import 'package:eschool_api/src/model/notification_channel_preference.dart';
@@ -2929,6 +2941,42 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Module':
       return Module.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MyGradeAccess':
+      return MyGradeAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeAccessResponse':
+      return MyGradeAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeActions':
+      return MyGradeActions.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeAwardChoice':
+      return MyGradeAwardChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeAwards':
+      return MyGradeAwards.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeChoice':
+      return MyGradeChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeDashboard':
+      return MyGradeDashboard.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeDashboardResponse':
+      return MyGradeDashboardResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeDisciplineQueue':
+      return MyGradeDisciplineQueue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeLearner':
+      return MyGradeLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradePendingRecord':
+      return MyGradePendingRecord.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MyGradeSignal':
+      return MyGradeSignal.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'MySchoolInfo':
       return MySchoolInfo.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'MySchoolResponse':

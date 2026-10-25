@@ -5,6 +5,7 @@
 return [
     'digest' => ['name' => 'Weekly parent digest', 'default' => false, 'dependencies' => ['people', 'academics', 'communication']],
     'live_updates' => ['name' => 'Live school updates', 'default' => false, 'dependencies' => ['people', 'communication']],
+    'my_grade' => ['name' => 'My grade', 'default' => false, 'dependencies' => ['academics']],
     'gallery' => ['name' => 'Private photo gallery', 'default' => false, 'dependencies' => ['people']],
     'daily_practice' => ['name' => 'Daily practice', 'default' => false, 'dependencies' => ['academics']],
     'consultations' => ['name' => 'Polls, surveys and nonstatutory elections', 'default' => false, 'dependencies' => ['people', 'communication']],

@@ -7,7 +7,7 @@ This plan grows the existing Laravel backend and Flutter shells.
 
 ## Feature order and ownership
 
-The Phase 3 agent owns steps 1–11; the lead owns shared contracts, review,
+The Phase 3 agent owns steps 1–11 except the weekly parent digest; the lead owns that digest, shared contracts, review,
 integration and step 12 (cover/support/dashboard) plus step 13 (transfers). Each row becomes one or more small feature PRs with its own spec,
 automated isolation/authority tests and affected-profile self-test record.
 
@@ -23,7 +23,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Language-approved weekly parent digest | Own-child records, notifications and approved templates | Deterministic encrypted per-child weekly receipts, Monday school-local job, versioned language approval panel and Parent reader/home action implemented; automated and browser evidence in `engineering/self-tests/weekly-parent-digests.md`. Fluent school wording approval remains an explicit school action. |
 | Risk signals and staff-owned interventions | Marks, attendance and confirmed discipline counts; wellbeing unavailable pending explicit disclosure | Immutable dated observations, private typed API/SDK, separate caseloads, owner review/handoff panel and classic/native staff apps implemented and tested in review; no learner-facing risk labels |
 | Discipline framework, sanctions, detentions, escalation and acknowledgement | Fresh staff/guardian policies and audit | Year frameworks, encrypted records, reasoned grade-head review/overturn, principal hearings, revision-specific guardian acknowledgement, detention/count adapters and private HTTP/typed SDK and phone/desktop panel implemented and browser-tested in review; classic teacher, dedicated facilitator-teacher, learner and guardian apps implemented and browser-tested; source-aware notices follow; never automatic expulsion |
-| My grade dashboard and actions | Existing dated AcademicLeadership appointments | Queued; award nominations integrate after Phase 4 awards |
+| My grade dashboard and actions | Existing dated AcademicLeadership appointments | Current-year head scope, active learner roster, attendance/academic watch, pending discipline metadata and eligible nomination choices implemented; two private reads and typed client locally verified. Shared hub/action and combined browser qualification continue; [spec](../specs/growth/my-grade.md). |
 | Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Cover and restricted support domain/API/panel/staff apps implemented in review; principal attendance/activity dashboard implemented and browser-tested; risk/discipline adapters follow, later money data remains separate |
 | Consented inter-school transfers and external signed packages | Existing dated changes and private exit packages | Signed domain, private v2/SDK, staff panel and Parent app implemented; actual two-school browser and Parent Chrome checks pass in review; [spec](../specs/academics/school-transfers.md) |
 

@@ -15,6 +15,7 @@ import 'package:eschool_api/src/api/discipline_api.dart';
 import 'package:eschool_api/src/api/gallery_api.dart';
 import 'package:eschool_api/src/api/growth_api.dart';
 import 'package:eschool_api/src/api/live_updates_api.dart';
+import 'package:eschool_api/src/api/my_grade_api.dart';
 import 'package:eschool_api/src/api/pastoral_api.dart';
 import 'package:eschool_api/src/api/platform_api.dart';
 import 'package:eschool_api/src/api/practice_api.dart';
@@ -193,6 +194,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   LiveUpdatesApi getLiveUpdatesApi() {
     return LiveUpdatesApi(dio);
+  }
+
+  /// Get MyGradeApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  MyGradeApi getMyGradeApi() {
+    return MyGradeApi(dio);
   }
 
   /// Get PastoralApi instance, base route and serializer can be overridden by a given but be careful,
