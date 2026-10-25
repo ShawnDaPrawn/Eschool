@@ -37,6 +37,14 @@ return [
             'throw' => true,
         ],
 
+        'wellbeing_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/wellbeing-media'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
+
         'profile_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/profile-files'),

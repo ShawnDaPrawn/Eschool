@@ -130,6 +130,15 @@ components:
       - messages
       - counselling
       properties:
+        house_points:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+        awards:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+        discipline:
+          type: boolean
+          description: Optional capability; absence preserves older facilitator session responses. Fresh record-specific authority remains required.
         risk_interventions:
           type: boolean
           description: Fresh original-kind authority for private risk interventions; absence

@@ -21,7 +21,7 @@ class WellbeingSettings
     {
         $this->access->environment();
 
-        return ['emergency_guidance' => self::EMERGENCY_GUIDANCE, 'categories' => Category::where('active', true)->orderBy('name')->get(['id', 'name', 'emergency_guidance'])->toArray()];
+        return ['photo_constraints' => ['maximum_bytes' => 4194304, 'maximum_photos' => IncidentPhotos::LIMIT, 'allowed_mimes' => ['image/jpeg', 'image/png']], 'emergency_guidance' => self::EMERGENCY_GUIDANCE, 'categories' => Category::where('active', true)->orderBy('name')->get(['id', 'name', 'emergency_guidance'])->toArray()];
     }
 
     public function saveCategory(User $actor, ?int $id, array $input): array

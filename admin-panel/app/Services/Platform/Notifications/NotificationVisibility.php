@@ -13,7 +13,7 @@ class NotificationVisibility
     {
         $links = UserNotification::query()->where('user_id', $userId)->select('notification_id');
 
-        return $query->where(function ($visible) use ($links, $portalAudience) {
+        $query->where(function ($visible) use ($links, $portalAudience) {
             $visible->whereIn('id', $links)->orWhere(function ($legacy) use ($portalAudience) {
                 // Existing history remains readable. Old private academic
                 // rows are never promoted to a whole-portal broadcast.
@@ -22,5 +22,7 @@ class NotificationVisibility
                 });
             });
         });
+
+        return app(PrivateNoticeScopes::class)->apply($query, $userId);
     }
 }

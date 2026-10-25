@@ -26,6 +26,7 @@ DisciplineConfiguration _$DisciplineConfigurationFromJson(
       ],
     );
     final val = DisciplineConfiguration(
+      writable: $checkedConvert('writable', (v) => v as bool?),
       sessionYearId: $checkedConvert(
         'session_year_id',
         (v) => (v as num).toInt(),
@@ -69,6 +70,7 @@ DisciplineConfiguration _$DisciplineConfigurationFromJson(
 Map<String, dynamic> _$DisciplineConfigurationToJson(
   DisciplineConfiguration instance,
 ) => <String, dynamic>{
+  'writable': ?instance.writable,
   'session_year_id': instance.sessionYearId,
   'today': instance.today,
   'can_manage': instance.canManage,

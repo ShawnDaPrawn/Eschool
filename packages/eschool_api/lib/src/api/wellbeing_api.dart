@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:eschool_api/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
+import 'dart:typed_data';
 import 'package:eschool_api/src/model/add_wellbeing_case_entry_response.dart';
 import 'package:eschool_api/src/model/create_wellbeing_appointment_response.dart';
 import 'package:eschool_api/src/model/create_wellbeing_case_assignment_response.dart';
@@ -25,6 +26,7 @@ import 'package:eschool_api/src/model/get_wellbeing_report_response.dart';
 import 'package:eschool_api/src/model/identify_incident_reporter_response.dart';
 import 'package:eschool_api/src/model/incident_follow_up_input.dart';
 import 'package:eschool_api/src/model/incident_identify_input.dart';
+import 'package:eschool_api/src/model/incident_photo_read_input.dart';
 import 'package:eschool_api/src/model/incident_reply_input.dart';
 import 'package:eschool_api/src/model/incident_submission_input.dart';
 import 'package:eschool_api/src/model/link_wellbeing_case_incident_response.dart';
@@ -47,6 +49,8 @@ import 'package:eschool_api/src/model/save_wellbeing_team_assignment_response.da
 import 'package:eschool_api/src/model/set_wellbeing_case_status_response.dart';
 import 'package:eschool_api/src/model/submit_anonymous_incident_response.dart';
 import 'package:eschool_api/src/model/submit_identified_incident_response.dart';
+import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
+import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/wellbeing_appointment_input.dart';
 import 'package:eschool_api/src/model/wellbeing_assignment_input.dart';
 import 'package:eschool_api/src/model/wellbeing_case_entry_input.dart';
@@ -606,6 +610,296 @@ class WellbeingApi {
     }
 
     return Response<CreateWellbeingTeamAssignmentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// downloadAnonymousIncidentPhoto
+  /// Private report photo. No capability or private code belongs in any URL. Anonymous routes ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads require independent current category-team authority. Read-only preserves authorized reads. Uploads are bounded, independently safety scanned before/after metadata removal, encrypted and immutably retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+  ///
+  /// Parameters:
+  /// * [schoolSlug]
+  /// * [incidentPhotoReadInput]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [Uint8List] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<Uint8List>> downloadAnonymousIncidentPhoto({
+    required String schoolSlug,
+    required IncidentPhotoReadInput incidentPhotoReadInput,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/public/{schoolSlug}/photos/download'.replaceAll(
+      '{'
+      r'schoolSlug'
+      '}',
+      schoolSlug.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      responseType: ResponseType.bytes,
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{'secure': <Map<String, String>>[], ...?extra},
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(incidentPhotoReadInput);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    Uint8List? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null ? null : rawData as Uint8List;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<Uint8List>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// downloadIdentifiedIncidentPhoto
+  /// Private report photo. No capability or private code belongs in any URL. Anonymous routes ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads require independent current category-team authority. Read-only preserves authorized reads. Uploads are bounded, independently safety scanned before/after metadata removal, encrypted and immutably retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+  ///
+  /// Parameters:
+  /// * [incidentPhotoReadInput]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [Uint8List] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<Uint8List>> downloadIdentifiedIncidentPhoto({
+    required IncidentPhotoReadInput incidentPhotoReadInput,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/own/photos/download';
+    final _options = Options(
+      method: r'POST',
+      responseType: ResponseType.bytes,
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(incidentPhotoReadInput);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    Uint8List? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null ? null : rawData as Uint8List;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<Uint8List>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// downloadWellbeingIncidentPhoto
+  /// Private report photo. No capability or private code belongs in any URL. Anonymous routes ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads require independent current category-team authority. Read-only preserves authorized reads. Uploads are bounded, independently safety scanned before/after metadata removal, encrypted and immutably retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+  ///
+  /// Parameters:
+  /// * [report]
+  /// * [photo]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [Uint8List] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<Uint8List>> downloadWellbeingIncidentPhoto({
+    required int report,
+    required String photo,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/reports/{report}/photos/{photo}'
+        .replaceAll(
+          '{'
+          r'report'
+          '}',
+          report.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'photo'
+          '}',
+          photo.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      responseType: ResponseType.bytes,
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    Uint8List? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null ? null : rawData as Uint8List;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<Uint8List>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -3515,6 +3809,222 @@ class WellbeingApi {
     }
 
     return Response<SubmitIdentifiedIncidentResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// uploadAnonymousIncidentPhoto
+  /// Private report photo. No capability or private code belongs in any URL. Anonymous routes ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads require independent current category-team authority. Read-only preserves authorized reads. Uploads are bounded, independently safety scanned before/after metadata removal, encrypted and immutably retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+  ///
+  /// Parameters:
+  /// * [schoolSlug]
+  /// * [secret]
+  /// * [operationId]
+  /// * [photo] - JPEG/PNG no larger than4MiB; safety scanned, oriented and re-encoded before private storage.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [UploadAnonymousIncidentPhotoResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<UploadAnonymousIncidentPhotoResponse>>
+  uploadAnonymousIncidentPhoto({
+    required String schoolSlug,
+    required String secret,
+    required String operationId,
+    required MultipartFile photo,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/public/{schoolSlug}/photos'.replaceAll(
+      '{'
+      r'schoolSlug'
+      '}',
+      schoolSlug.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{'secure': <Map<String, String>>[], ...?extra},
+      contentType: 'multipart/form-data',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = FormData.fromMap(<String, dynamic>{
+        r'secret': secret,
+        r'operation_id': operationId,
+        r'photo': photo,
+      });
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    UploadAnonymousIncidentPhotoResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              UploadAnonymousIncidentPhotoResponse,
+              UploadAnonymousIncidentPhotoResponse
+            >(rawData, 'UploadAnonymousIncidentPhotoResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<UploadAnonymousIncidentPhotoResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// uploadIdentifiedIncidentPhoto
+  /// Private report photo. No capability or private code belongs in any URL. Anonymous routes ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads require independent current category-team authority. Read-only preserves authorized reads. Uploads are bounded, independently safety scanned before/after metadata removal, encrypted and immutably retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+  ///
+  /// Parameters:
+  /// * [secret]
+  /// * [operationId]
+  /// * [photo] - JPEG/PNG no larger than4MiB; safety scanned, oriented and re-encoded before private storage.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [UploadIdentifiedIncidentPhotoResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<UploadIdentifiedIncidentPhotoResponse>>
+  uploadIdentifiedIncidentPhoto({
+    required String secret,
+    required String operationId,
+    required MultipartFile photo,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/own/photos';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'multipart/form-data',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = FormData.fromMap(<String, dynamic>{
+        r'secret': secret,
+        r'operation_id': operationId,
+        r'photo': photo,
+      });
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    UploadIdentifiedIncidentPhotoResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              UploadIdentifiedIncidentPhotoResponse,
+              UploadIdentifiedIncidentPhotoResponse
+            >(rawData, 'UploadIdentifiedIncidentPhotoResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<UploadIdentifiedIncidentPhotoResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

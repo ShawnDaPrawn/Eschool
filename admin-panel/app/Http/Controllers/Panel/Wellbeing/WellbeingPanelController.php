@@ -11,6 +11,7 @@ use App\Models\Wellbeing\Category;
 use App\Services\Panel\SessionYearContext;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Wellbeing\Casework;
+use App\Services\Wellbeing\IncidentPhotos;
 use App\Services\Wellbeing\IncidentReporting;
 use App\Services\Wellbeing\WellbeingPanelScope;
 use App\Services\Wellbeing\WellbeingQueries;
@@ -45,6 +46,9 @@ class WellbeingPanelController extends Controller
         $reportId = $r->route('report') ?? $r->input('report');
         $case = $configurationMode || $caseId === null ? null : $queries->case($r->user(), (int) $caseId, $r->input('before') === null ? null : (int) $r->input('before'));
         $report = $configurationMode || $reportId === null || $case !== null ? null : $queries->report($r->user(), (int) $reportId, $r->input('before') === null ? null : (int) $r->input('before'), true);
+        if ($report !== null) {
+            $report['photos'] = app(IncidentPhotos::class)->staff($r->user(), $report['id']);
+        }
         $caseList = $configurationMode ? null : $queries->cases($r->user(), $page);
         $reportList = $configurationMode ? null : $queries->reports($r->user(), $page);
         $calendarFrom = $this->calendarDate($r->input('calendar_from'), $access['today']);
@@ -93,6 +97,16 @@ class WellbeingPanelController extends Controller
     public function index(WellbeingPanelRequest $r): Response
     {
         return response()->view('wellbeing.panel', $this->model($r))->header('Cache-Control', 'no-store, private');
+    }
+
+    public function photoDownload(WellbeingPanelRequest $request, int $report, string $photo): Response
+    {
+        abort_unless((string) $request->query('expected_account_id') === (string) $request->user()->id
+            && (string) $request->query('expected_school_id') === (string) app(CurrentSchool::class)->id(), 403);
+        $file = app(IncidentPhotos::class)->staffDownload($request->user(), $report, $photo);
+
+        return response($file['bytes'], 200, ['Content-Type' => 'image/jpeg', 'Content-Disposition' => 'attachment; filename="report-photo.jpg"',
+            'Cache-Control' => 'no-store, private', 'Referrer-Policy' => 'no-referrer', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     public function failure(WellbeingPanelRequest $r, array $messages, int $status): Response

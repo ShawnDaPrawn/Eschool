@@ -11,5 +11,7 @@ Route::middleware([PublicReportingBoundary::class, 'throttle:wellbeing-public'])
         Route::get('/', [IncidentReportingController::class, 'form'])->name('form');
         Route::post('/', [IncidentReportingController::class, 'submit'])->middleware('throttle:wellbeing-submit')->name('submit');
         Route::post('/follow-up', [IncidentReportingController::class, 'followUp'])->name('follow-up');
+        Route::post('/photos', [IncidentReportingController::class, 'photo'])->name('photo-upload');
+        Route::post('/photos/download', [IncidentReportingController::class, 'photoDownload'])->name('photo-read');
         Route::post('/replies', [IncidentReportingController::class, 'reply'])->name('reply');
     });

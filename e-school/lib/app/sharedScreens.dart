@@ -178,6 +178,17 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isModuleOn('wellbeing') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'wellbeing',
+        ))
+      tile(
+        title: label('Report a concern'),
+        icon: Icons.support_agent,
+        onTap: () => open(Routes.reportConcern),
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn('mastery') ==
             true &&
         allowsSchoolModule(context.watch<MeContextCubit>().context, 'mastery'))
@@ -998,6 +1009,91 @@ class FamilyProgressEntry extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Navigator.of(context).pushNamed(Routes.familyProgress),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> reportConcernRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final auth = context.read<AuthCubit>(),
+        children = context.read<ChildSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    final parent = auth.isParent(),
+        child = auth.isParent() ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    if (me == null ||
+        school == null ||
+        account == null ||
+        account <= 0 ||
+        school <= 0 ||
+        !allowsSchoolModule(me, 'wellbeing') ||
+        !me.isModuleOn('wellbeing') ||
+        (child != null && child.schoolId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Report a concern'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: ReportingSessionBoundary(
+        pinned: me,
+        builder: (_, active) => IncidentReportingScreen(
+          reporterName: me.user!.name,
+          learnerId: learner,
+          learnerName: parent
+              ? child?.child.name
+              : auth.getStudentDetails().getFullName(),
+          repository: ApiReportingRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!parent || children.selected?.id == learner),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class ReportConcernEntry extends StatelessWidget {
+  const ReportConcernEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!allowsSchoolModule(state.context, 'wellbeing') ||
+              state.context?.isModuleOn('wellbeing') != true)
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.support_agent),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Report a concern'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.reportConcern),
             ),
           );
         },

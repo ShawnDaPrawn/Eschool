@@ -1235,6 +1235,9 @@ components:
       - years
       - framework
       properties:
+        writable:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
         session_year_id:
           type: integer
           minimum: 1

@@ -18,6 +18,8 @@ part 'discipline_configuration.g.dart';
 class DisciplineConfiguration {
   /// Returns a new [DisciplineConfiguration] instance.
   DisciplineConfiguration({
+    this.writable,
+
     required this.sessionYearId,
 
     required this.today,
@@ -34,6 +36,10 @@ class DisciplineConfiguration {
 
     required this.framework,
   });
+
+  /// Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+  @JsonKey(name: r'writable', required: false, includeIfNull: false)
+  final bool? writable;
 
   // minimum: 1
   @JsonKey(name: r'session_year_id', required: true, includeIfNull: false)
@@ -64,6 +70,7 @@ class DisciplineConfiguration {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is DisciplineConfiguration &&
+          other.writable == writable &&
           other.sessionYearId == sessionYearId &&
           other.today == today &&
           other.canManage == canManage &&
@@ -75,6 +82,7 @@ class DisciplineConfiguration {
 
   @override
   int get hashCode =>
+      writable.hashCode +
       sessionYearId.hashCode +
       today.hashCode +
       canManage.hashCode +

@@ -24,6 +24,7 @@ RiskConfiguration _$RiskConfigurationFromJson(Map<String, dynamic> json) =>
           ],
         );
         final val = RiskConfiguration(
+          writable: $checkedConvert('writable', (v) => v as bool?),
           sessionYearId: $checkedConvert(
             'session_year_id',
             (v) => (v as num).toInt(),
@@ -64,6 +65,7 @@ RiskConfiguration _$RiskConfigurationFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$RiskConfigurationToJson(RiskConfiguration instance) =>
     <String, dynamic>{
+      'writable': ?instance.writable,
       'session_year_id': instance.sessionYearId,
       'can_manage': instance.canManage,
       'can_read_signals': instance.canReadSignals,

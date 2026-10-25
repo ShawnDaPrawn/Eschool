@@ -21,12 +21,13 @@ class AuthorizeWellbeing
         try {
             $a = app(WellbeingAccess::class);
             $actor = $request->user();
-            $write = ! $request->isMethodSafe();
+            // The private code travels in a POST body, but follow-up is a read.
+            $write = ! $request->isMethodSafe() && ! in_array($action, ['identified-read', 'own-photo-read'], true);
             if (in_array($action, ['configuration', 'managed-cases', 'team-assignments', 'case-assignments', 'category-create', 'category-save', 'team-create', 'team-save', 'case-create', 'case-assignment-create', 'case-assignment-save'], true)) {
                 $a->configure($actor, $write);
-            } elseif (in_array($action, ['access', 'identified-submit', 'identified-read', 'identified-reply', 'identify'], true)) {
+            } elseif (in_array($action, ['access', 'identified-submit', 'identified-read', 'identified-reply', 'identify', 'own-photo-upload', 'own-photo-read'], true)) {
                 $a->actor($actor, $write);
-            } elseif (in_array($action, ['reports', 'report', 'report-respond'], true)) {
+            } elseif (in_array($action, ['reports', 'report', 'report-respond', 'report-photo'], true)) {
                 $a->professional($actor, $write);
                 if ($request->route('report') !== null) {
                     $a->report($actor, (int) $request->route('report'), $write);

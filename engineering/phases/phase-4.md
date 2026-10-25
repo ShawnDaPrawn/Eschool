@@ -67,8 +67,10 @@ restricted panel, are implemented and browser-verified. Two more typed reads
 provide case-owned dated professional and same-learner incident choices; report
 threads now expose retained-history pagination. The restricted app's real case/triage/calendar workflows are implemented and
 verified through shared tests plus both facilitator and dual-role Teacher
-Chromium entrypoints. Private media, identified
-family reporting and generic fresh-authority notices remain active follow-up;
+Chromium entrypoints. Identified learner/parent reporting is implemented and browser verified with
+explicit consent and private follow-up. Private photo storage and its public/panel/API adapters now have automated and
+browser evidence; app photo controls and generic
+fresh-authority notices remain active follow-up;
 the disabled module is not yet a completed reporting workflow. Separate support-plan/learner-note permissions never grant these cases.
 
 Parallel ownership: the root stream owns houses/awards (step 5), then intake

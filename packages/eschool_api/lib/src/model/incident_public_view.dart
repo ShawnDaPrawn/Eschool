@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:eschool_api/src/model/incident_public_thread.dart';
+import 'package:eschool_api/src/model/incident_photo.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'incident_public_view.g.dart';
@@ -36,6 +37,8 @@ class IncidentPublicView {
     required this.hasOlder,
 
     required this.nextBefore,
+
+    this.photos,
   });
 
   @JsonKey(name: r'anonymous', required: true, includeIfNull: false)
@@ -80,6 +83,9 @@ class IncidentPublicView {
   @JsonKey(name: r'next_before', required: true, includeIfNull: true)
   final int? nextBefore;
 
+  @JsonKey(name: r'photos', required: false, includeIfNull: false)
+  final List<IncidentPhoto>? photos;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -93,7 +99,8 @@ class IncidentPublicView {
           other.emergencyGuidance == emergencyGuidance &&
           other.threads == threads &&
           other.hasOlder == hasOlder &&
-          other.nextBefore == nextBefore;
+          other.nextBefore == nextBefore &&
+          other.photos == photos;
 
   @override
   int get hashCode =>
@@ -106,7 +113,8 @@ class IncidentPublicView {
       emergencyGuidance.hashCode +
       threads.hashCode +
       hasOlder.hashCode +
-      (nextBefore == null ? 0 : nextBefore.hashCode);
+      (nextBefore == null ? 0 : nextBefore.hashCode) +
+      photos.hashCode;
 
   factory IncidentPublicView.fromJson(Map<String, dynamic> json) =>
       _$IncidentPublicViewFromJson(json);

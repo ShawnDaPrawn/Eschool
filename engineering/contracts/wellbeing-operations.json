@@ -229,5 +229,40 @@
     "path": "/wellbeing/cases/{case}/incident-choices",
     "operation": "listWellbeingCaseIncidentChoices",
     "input": null
+  },
+  {
+    "action": "public.photo-upload",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/photos",
+    "operation": "uploadAnonymousIncidentPhoto",
+    "input": "IncidentPhotoUploadInput"
+  },
+  {
+    "action": "public.photo-read",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/photos/download",
+    "operation": "downloadAnonymousIncidentPhoto",
+    "input": "IncidentPhotoReadInput"
+  },
+  {
+    "action": "own-photo-upload",
+    "method": "POST",
+    "path": "/wellbeing/own/photos",
+    "operation": "uploadIdentifiedIncidentPhoto",
+    "input": "IncidentPhotoUploadInput"
+  },
+  {
+    "action": "own-photo-read",
+    "method": "POST",
+    "path": "/wellbeing/own/photos/download",
+    "operation": "downloadIdentifiedIncidentPhoto",
+    "input": "IncidentPhotoReadInput"
+  },
+  {
+    "action": "report-photo",
+    "method": "GET",
+    "path": "/wellbeing/reports/{report}/photos/{photo}",
+    "operation": "downloadWellbeingIncidentPhoto",
+    "input": null
   }
 ]

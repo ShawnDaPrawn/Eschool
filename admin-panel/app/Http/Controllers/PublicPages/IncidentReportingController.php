@@ -7,6 +7,7 @@ namespace App\Http\Controllers\PublicPages;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Wellbeing\PublicIncidentRequest;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Wellbeing\IncidentPhotos;
 use App\Services\Wellbeing\IncidentReporting;
 use App\Services\Wellbeing\PublicReportingPage;
 use Illuminate\Http\Request;
@@ -47,6 +48,26 @@ class IncidentReportingController extends Controller
 
             return $reports->followUp($data['secret']);
         }, __('Your follow-up was received.'));
+    }
+
+    public function photo(PublicIncidentRequest $request): Response
+    {
+        $input = $request->validated();
+
+        return $this->act($request, function (IncidentReporting $reports) use ($input) {
+            app(IncidentPhotos::class)->upload($input['secret'], $input['photo'], $input['operation_id']);
+
+            return $reports->followUp($input['secret']);
+        }, __('Your photo was received.'));
+    }
+
+    public function photoDownload(PublicIncidentRequest $request): Response
+    {
+        $input = $request->validated();
+        $school = app(PublicReportingPage::class)->school((string) $request->route('schoolSlug'));
+        $file = app(CurrentSchool::class)->run($school, fn () => app(IncidentPhotos::class)->reporterDownload($input['secret'], $input['photo_id']));
+
+        return response($file['bytes'], 200, ['Content-Type' => 'image/jpeg', 'Content-Disposition' => 'attachment; filename="report-photo.jpg"', 'Cache-Control' => 'no-store, private', 'Referrer-Policy' => 'no-referrer', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     private function act(PublicIncidentRequest $request, callable $operation, ?string $message = null): Response

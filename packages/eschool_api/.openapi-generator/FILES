@@ -451,6 +451,9 @@ lib/src/model/handle_state_response.dart
 lib/src/model/identify_incident_reporter_response.dart
 lib/src/model/incident_follow_up_input.dart
 lib/src/model/incident_identify_input.dart
+lib/src/model/incident_photo.dart
+lib/src/model/incident_photo_constraints.dart
+lib/src/model/incident_photo_read_input.dart
 lib/src/model/incident_public_configuration.dart
 lib/src/model/incident_public_configuration_categories_inner.dart
 lib/src/model/incident_public_thread.dart
@@ -734,6 +737,8 @@ lib/src/model/update_my_profile_request.dart
 lib/src/model/update_person_profile_request.dart
 lib/src/model/update_profile_category_request.dart
 lib/src/model/update_profile_field_request.dart
+lib/src/model/upload_anonymous_incident_photo_response.dart
+lib/src/model/upload_identified_incident_photo_response.dart
 lib/src/model/validation_errors.dart
 lib/src/model/wellbeing_access.dart
 lib/src/model/wellbeing_appointment.dart

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Wellbeing\WellbeingRequest;
 use App\Http\Resources\Wellbeing\WellbeingResource;
 use App\Services\Wellbeing\Casework;
+use App\Services\Wellbeing\IncidentPhotos;
 use App\Services\Wellbeing\IncidentReporting;
 use App\Services\Wellbeing\WellbeingQueries;
 use App\Services\Wellbeing\WellbeingSettings;
@@ -35,6 +36,10 @@ class WellbeingController extends Controller
             'case' => $queries->case($actor, (int) $r->route('case'), $before),
             'appointments' => app(Casework::class)->appointments($actor, (int) $r->route('case'), $r->validated('from'), $r->validated('to')),
         };
+
+        if ($r->action() === 'report') {
+            $data['photos'] = app(IncidentPhotos::class)->staff($actor, (int) $r->route('report'));
+        }
 
         return $this->response($r, $data);
     }
@@ -67,6 +72,10 @@ class WellbeingController extends Controller
             'appointment-create' => $cases->appointment($actor, (int) $r->route('case'), null, $input),
             'appointment-save' => $cases->appointment($actor, (int) $r->route('case'), (int) $r->route('appointment'), $input),
         };
+
+        if ($r->action() === 'identified-read') {
+            $data['photos'] = app(IncidentPhotos::class)->reporter($input['secret'], $actor);
+        }
 
         return $this->response($r, $data);
     }

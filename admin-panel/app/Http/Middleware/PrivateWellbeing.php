@@ -5,15 +5,23 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /** Applies to private success/refusal responses on every HTTP method. */
 class PrivateWellbeing
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        try {
+            $response = $next($request);
+        } catch (Throwable $error) {
+            $handler = app(ExceptionHandler::class);
+            $handler->report($error);
+            $response = $handler->render($request, $error);
+        }
         $response->headers->set('Cache-Control', 'no-store, private');
         $response->headers->set('Referrer-Policy', 'no-referrer');
         $response->headers->set('X-Content-Type-Options', 'nosniff');

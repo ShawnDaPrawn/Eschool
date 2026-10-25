@@ -15580,6 +15580,267 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DisciplineDetentionCancelWrite'
+  /wellbeing/public/{schoolSlug}/photos:
+    post:
+      operationId: uploadAnonymousIncidentPhoto
+      tags:
+      - Wellbeing
+      summary: uploadAnonymousIncidentPhoto
+      description: Private report photo. No capability or private code belongs in any URL. Anonymous routes
+        ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads
+        require independent current category-team authority. Read-only preserves authorized reads. Uploads
+        are bounded, independently safety scanned before/after metadata removal, encrypted and immutably
+        retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadAnonymousIncidentPhotoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Safety scanner or private storage temporarily unavailable. No successful upload is
+            implied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - name: schoolSlug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 191
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IncidentPhotoUploadInput'
+  /wellbeing/public/{schoolSlug}/photos/download:
+    post:
+      operationId: downloadAnonymousIncidentPhoto
+      tags:
+      - Wellbeing
+      summary: downloadAnonymousIncidentPhoto
+      description: Private report photo. No capability or private code belongs in any URL. Anonymous routes
+        ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads
+        require independent current category-team authority. Read-only preserves authorized reads. Uploads
+        are bounded, independently safety scanned before/after metadata removal, encrypted and immutably
+        retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+      responses:
+        '200':
+          description: Authorized sanitized JPEG; no-store, private.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Safety scanner or private storage temporarily unavailable. No successful upload is
+            implied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - name: schoolSlug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 191
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentPhotoReadInput'
+  /wellbeing/own/photos:
+    post:
+      operationId: uploadIdentifiedIncidentPhoto
+      tags:
+      - Wellbeing
+      summary: uploadIdentifiedIncidentPhoto
+      description: Private report photo. No capability or private code belongs in any URL. Anonymous routes
+        ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads
+        require independent current category-team authority. Read-only preserves authorized reads. Uploads
+        are bounded, independently safety scanned before/after metadata removal, encrypted and immutably
+        retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadIdentifiedIncidentPhotoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Safety scanner or private storage temporarily unavailable. No successful upload is
+            implied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IncidentPhotoUploadInput'
+  /wellbeing/own/photos/download:
+    post:
+      operationId: downloadIdentifiedIncidentPhoto
+      tags:
+      - Wellbeing
+      summary: downloadIdentifiedIncidentPhoto
+      description: Private report photo. No capability or private code belongs in any URL. Anonymous routes
+        ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads
+        require independent current category-team authority. Read-only preserves authorized reads. Uploads
+        are bounded, independently safety scanned before/after metadata removal, encrypted and immutably
+        retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+      responses:
+        '200':
+          description: Authorized sanitized JPEG; no-store, private.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Safety scanner or private storage temporarily unavailable. No successful upload is
+            implied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentPhotoReadInput'
+  /wellbeing/reports/{report}/photos/{photo}:
+    get:
+      operationId: downloadWellbeingIncidentPhoto
+      tags:
+      - Wellbeing
+      summary: downloadWellbeingIncidentPhoto
+      description: Private report photo. No capability or private code belongs in any URL. Anonymous routes
+        ignore all ambient accounts. Identified routes require the original fresh reporter; staff downloads
+        require independent current category-team authority. Read-only preserves authorized reads. Uploads
+        are bounded, independently safety scanned before/after metadata removal, encrypted and immutably
+        retryable by operation UUID. No gallery, AI, generic file link or case-role shortcut.
+      responses:
+        '200':
+          description: Authorized sanitized JPEG; no-store, private.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Safety scanner or private storage temporarily unavailable. No successful upload is
+            implied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: report
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: photo
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
 components:
   securitySchemes:
     bearerAuth:
@@ -15964,6 +16225,9 @@ components:
       - years
       - framework
       properties:
+        writable:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
         session_year_id:
           type: integer
           minimum: 1
@@ -19135,10 +19399,19 @@ components:
       - messages
       - counselling
       properties:
+        house_points:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+        awards:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+        discipline:
+          type: boolean
+          description: Optional capability; absence preserves older facilitator session responses. Fresh record-specific
+            authority remains required.
         risk_interventions:
           type: boolean
-          description: Fresh original-kind authority for private risk interventions; absence
-            means unavailable.
+          description: Fresh original-kind authority for private risk interventions; absence means unavailable.
         groups:
           type: boolean
         messages:
@@ -32323,6 +32596,8 @@ components:
                 type: string
               emergency_guidance:
                 type: string
+        photo_constraints:
+          $ref: '#/components/schemas/IncidentPhotoConstraints'
     IncidentSubmissionReceipt:
       type: object
       additionalProperties: false
@@ -32429,6 +32704,11 @@ components:
           - type: integer
             minimum: 1
           - type: 'null'
+        photos:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/IncidentPhoto'
     WellbeingReportSummary:
       type: object
       additionalProperties: false
@@ -32586,6 +32866,11 @@ components:
           - type: integer
             minimum: 1
           - type: 'null'
+        photos:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/IncidentPhoto'
     WellbeingReportPage:
       type: object
       additionalProperties: false
@@ -33929,6 +34214,9 @@ components:
       - settings
       - years
       properties:
+        writable:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
         session_year_id:
           type: integer
           minimum: 1
@@ -34960,5 +35248,128 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/WellbeingCaseChoicePage'
+        code:
+          type: integer
+    IncidentPhoto:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - mime
+      - bytes
+      - width
+      - height
+      - thumbnail_base64
+      - created_at
+      - report_revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        mime:
+          type: string
+          enum:
+          - image/jpeg
+        bytes:
+          type: integer
+          minimum: 1
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+        thumbnail_base64:
+          type: string
+          maxLength: 524288
+        created_at:
+          type: string
+          format: date-time
+        report_revision:
+          type: integer
+          minimum: 1
+    IncidentPhotoConstraints:
+      type: object
+      additionalProperties: false
+      required:
+      - maximum_bytes
+      - maximum_photos
+      - allowed_mimes
+      properties:
+        maximum_bytes:
+          type: integer
+          minimum: 1
+        maximum_photos:
+          type: integer
+          minimum: 1
+        allowed_mimes:
+          type: array
+          items:
+            type: string
+            pattern: ^image/(jpeg|png)$
+    IncidentPhotoUploadInput:
+      type: object
+      additionalProperties: false
+      required:
+      - secret
+      - operation_id
+      - photo
+      properties:
+        secret:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        operation_id:
+          type: string
+          format: uuid
+        photo:
+          type: string
+          format: binary
+          description: JPEG/PNG no larger than4MiB; safety scanned, oriented and re-encoded before private
+            storage.
+    IncidentPhotoReadInput:
+      type: object
+      additionalProperties: false
+      required:
+      - secret
+      - photo_id
+      properties:
+        secret:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        photo_id:
+          type: string
+          format: uuid
+    UploadAnonymousIncidentPhotoResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentPhoto'
+        code:
+          type: integer
+    UploadIdentifiedIncidentPhotoResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentPhoto'
         code:
           type: integer

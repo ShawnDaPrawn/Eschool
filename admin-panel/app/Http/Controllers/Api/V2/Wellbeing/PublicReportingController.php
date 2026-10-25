@@ -9,6 +9,7 @@ use App\Http\Requests\Wellbeing\WellbeingRequest;
 use App\Http\Resources\Wellbeing\WellbeingResource;
 use App\Models\Platform\School;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Wellbeing\IncidentPhotos;
 use App\Services\Wellbeing\IncidentReporting;
 use App\Services\Wellbeing\WellbeingSettings;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,10 @@ class PublicReportingController extends Controller
                 'public.read' => $service->followUp($data['secret'], null, isset($data['before']) ? (int) $data['before'] : null),
                 'public.reply' => $service->reply($data['secret'], $data),
             };
+
+            if ($request->action() === 'public.read') {
+                $result['photos'] = app(IncidentPhotos::class)->reporter($data['secret']);
+            }
 
             return response()->json(['error' => false, 'message' => 'Private reporting request completed.', 'data' => (new WellbeingResource($result))->resolve($request), 'code' => 200], 200, ['Cache-Control' => 'no-store, private']);
         });

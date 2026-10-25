@@ -314,6 +314,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::prefix('wellbeing')->name('wellbeing.')->middleware([PrivateWellbeing::class, 'module:wellbeing'])->group(function () {
             $controller = WellbeingPanelController::class;
             Route::get('/', [$controller, 'index'])->name('index');
+            Route::get('reports/{report}/photos/{photo}', [$controller, 'photoDownload'])->whereNumber('report')->whereUuid('photo')->name('photo-download');
             foreach (['categories' => 'category-create', 'categories/{category}' => 'category-save', 'categories/{category}/team' => 'team-create', 'categories/{category}/team/{assignment}' => 'team-save',
                 'cases' => 'case-create', 'cases/{case}/assignments' => 'case-assignment-create', 'cases/{case}/assignments/{assignment}' => 'case-assignment-save',
                 'reports/{report}/replies' => 'report-respond', 'cases/{case}/entries' => 'case-entry', 'cases/{case}/incident-link' => 'case-link', 'cases/{case}/status' => 'case-status',

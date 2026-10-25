@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Wellbeing;
 
+use App\Services\Platform\Files\SafeImages;
 use App\Services\Wellbeing\WellbeingRules;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,7 +20,7 @@ class PublicIncidentRequest extends FormRequest
 
     public function validationData(): array
     {
-        return $this->getInputSource()->all();
+        return $this->getInputSource()->all() + $this->allFiles();
     }
 
     public function rules(): array
@@ -28,6 +29,8 @@ class PublicIncidentRequest extends FormRequest
 
         return match ($this->route()->getName()) {
             'public.wellbeing.submit' => WellbeingRules::rules('report-submit'),
+            'public.wellbeing.photo-upload' => $secret + SafeImages::rules() + ['operation_id' => ['required', 'uuid']],
+            'public.wellbeing.photo-read' => $secret + ['photo_id' => ['required', 'uuid']],
             'public.wellbeing.reply' => $secret + WellbeingRules::rules('reporter-reply'),
             'public.wellbeing.follow-up' => $secret + ['before' => ['sometimes', 'integer', 'min:1']],
         };

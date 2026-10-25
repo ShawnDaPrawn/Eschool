@@ -19,6 +19,8 @@ part 'risk_configuration.g.dart';
 class RiskConfiguration {
   /// Returns a new [RiskConfiguration] instance.
   RiskConfiguration({
+    this.writable,
+
     required this.sessionYearId,
 
     required this.canManage,
@@ -35,6 +37,10 @@ class RiskConfiguration {
 
     this.today,
   });
+
+  /// Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+  @JsonKey(name: r'writable', required: false, includeIfNull: false)
+  final bool? writable;
 
   // minimum: 1
   @JsonKey(name: r'session_year_id', required: true, includeIfNull: false)
@@ -65,6 +71,7 @@ class RiskConfiguration {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is RiskConfiguration &&
+          other.writable == writable &&
           other.sessionYearId == sessionYearId &&
           other.canManage == canManage &&
           other.canReadSignals == canReadSignals &&
@@ -76,6 +83,7 @@ class RiskConfiguration {
 
   @override
   int get hashCode =>
+      writable.hashCode +
       sessionYearId.hashCode +
       canManage.hashCode +
       canReadSignals.hashCode +

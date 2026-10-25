@@ -16,6 +16,12 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.housePoints,
+
+    this.awards,
+
+    this.discipline,
+
     this.riskInterventions,
 
     required this.groups,
@@ -28,6 +34,18 @@ class FacilitatorFeatures {
 
     this.learnerNotes,
   });
+
+  /// Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+  @JsonKey(name: r'house_points', required: false, includeIfNull: false)
+  final bool? housePoints;
+
+  /// Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+  @JsonKey(name: r'awards', required: false, includeIfNull: false)
+  final bool? awards;
+
+  /// Optional capability; absence preserves older facilitator session responses. Fresh record-specific authority remains required.
+  @JsonKey(name: r'discipline', required: false, includeIfNull: false)
+  final bool? discipline;
 
   /// Fresh original-kind authority for private risk interventions; absence means unavailable.
   @JsonKey(name: r'risk_interventions', required: false, includeIfNull: false)
@@ -54,6 +72,9 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.housePoints == housePoints &&
+          other.awards == awards &&
+          other.discipline == discipline &&
           other.riskInterventions == riskInterventions &&
           other.groups == groups &&
           other.messages == messages &&
@@ -63,6 +84,9 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      housePoints.hashCode +
+      awards.hashCode +
+      discipline.hashCode +
       riskInterventions.hashCode +
       groups.hashCode +
       messages.hashCode +

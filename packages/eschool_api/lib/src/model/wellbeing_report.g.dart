@@ -83,6 +83,12 @@ WellbeingReport _$WellbeingReportFromJson(Map<String, dynamic> json) =>
             'next_before',
             (v) => (v as num?)?.toInt(),
           ),
+          photos: $checkedConvert(
+            'photos',
+            (v) => (v as List<dynamic>?)
+                ?.map((e) => IncidentPhoto.fromJson(e as Map<String, dynamic>))
+                .toList(),
+          ),
         );
         return val;
       },
@@ -119,6 +125,7 @@ Map<String, dynamic> _$WellbeingReportToJson(WellbeingReport instance) =>
       'learner_name': instance.learnerName,
       'has_older': ?instance.hasOlder,
       'next_before': ?instance.nextBefore,
+      'photos': ?instance.photos?.map((e) => e.toJson()).toList(),
     };
 
 const _$WellbeingReportUrgencyEnumEnumMap = {

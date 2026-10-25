@@ -27,7 +27,7 @@ final class SchoolOwnedTables
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
         'risk_settings', 'risk_observations', 'risk_caseloads', 'interventions', 'intervention_versions', 'risk_operations',
-        'wellbeing_categories', 'wellbeing_team_assignments', 'incident_reports', 'incident_threads', 'support_cases', 'support_case_assignments', 'support_case_entries', 'wellbeing_appointments', 'wellbeing_operations', 'wellbeing_events',
+        'incident_photos', 'wellbeing_categories', 'wellbeing_team_assignments', 'incident_reports', 'incident_threads', 'support_cases', 'support_case_assignments', 'support_case_entries', 'wellbeing_appointments', 'wellbeing_operations', 'wellbeing_events',
         'learner_note_operations', 'progress_band_states', 'progress_band_alerts', 'progress_band_settings', 'learner_notes', 'learner_note_revisions', 'learner_note_assignments',
         'support_assignments', 'support_plans', 'support_plan_versions', 'support_reviews', 'support_disclosures', 'support_operations',
         'cover_absences', 'cover_assignments', 'cover_operations',

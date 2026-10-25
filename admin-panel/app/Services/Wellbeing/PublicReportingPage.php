@@ -33,12 +33,13 @@ class PublicReportingPage
         $reportMode = in_array($request->route()->getName(), ['public.wellbeing.form', 'public.wellbeing.submit'], true);
         $provided = $posted['secret'] ?? null;
         $secret = is_string($provided) && preg_match('/^[a-f0-9]{64}$/D', $provided) ? $provided : ($reportMode ? bin2hex(random_bytes(32)) : '');
+        $photos = $thread === null ? [] : app(CurrentSchool::class)->run($school, fn () => app(IncidentPhotos::class)->reporter($secret));
         $body = $posted['body'] ?? '';
         $draft = ['body' => is_string($body) && mb_strlen($body) <= 20000 ? $body : '',
             'category_id' => is_scalar($posted['category_id'] ?? null) ? (string) $posted['category_id'] : '',
             'urgency' => in_array($posted['urgency'] ?? null, ['routine', 'urgent'], true) ? $posted['urgency'] : 'routine'];
 
-        return $this->view('wellbeing.public-reporting', compact('school', 'configuration', 'secret', 'reportMode', 'thread', 'draft', 'message', 'errors', 'canWrite') + ['operationId' => (string) Str::uuid()], $status);
+        return $this->view('wellbeing.public-reporting', compact('school', 'configuration', 'secret', 'reportMode', 'thread', 'draft', 'message', 'errors', 'canWrite', 'photos') + ['operationId' => (string) Str::uuid()], $status);
     }
 
     public function writable(Request $request): bool
@@ -51,7 +52,7 @@ class PublicReportingPage
     public function failedDraft(Request $request, array $errors, int $status): Response
     {
         $thread = null;
-        if ($request->route()->getName() === 'public.wellbeing.reply') {
+        if (in_array($request->route()->getName(), ['public.wellbeing.reply', 'public.wellbeing.photo-upload'], true)) {
             $body = $request->isJson() ? $request->json()->all() : $request->request->all();
             $secret = $body['secret'] ?? null;
             if (is_string($secret) && preg_match('/^[a-f0-9]{64}$/D', $secret)) {
@@ -87,6 +88,6 @@ class PublicReportingPage
     private function headers(): array
     {
         return ['Cache-Control' => 'no-store, private', 'Referrer-Policy' => 'no-referrer', 'X-Content-Type-Options' => 'nosniff', 'X-Frame-Options' => 'DENY',
-            'Content-Security-Policy' => "default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"];
+            'Content-Security-Policy' => "default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"];
     }
 }

@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/incident_photo.dart';
 import 'package:eschool_api/src/model/wellbeing_report_thread.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -50,6 +51,8 @@ class WellbeingReport {
     this.hasOlder,
 
     this.nextBefore,
+
+    this.photos,
   });
 
   // minimum: 1
@@ -119,6 +122,9 @@ class WellbeingReport {
   @JsonKey(name: r'next_before', required: false, includeIfNull: false)
   final int? nextBefore;
 
+  @JsonKey(name: r'photos', required: false, includeIfNull: false)
+  final List<IncidentPhoto>? photos;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -139,7 +145,8 @@ class WellbeingReport {
           other.reporterName == reporterName &&
           other.learnerName == learnerName &&
           other.hasOlder == hasOlder &&
-          other.nextBefore == nextBefore;
+          other.nextBefore == nextBefore &&
+          other.photos == photos;
 
   @override
   int get hashCode =>
@@ -159,7 +166,8 @@ class WellbeingReport {
       (reporterName == null ? 0 : reporterName.hashCode) +
       (learnerName == null ? 0 : learnerName.hashCode) +
       hasOlder.hashCode +
-      (nextBefore == null ? 0 : nextBefore.hashCode);
+      (nextBefore == null ? 0 : nextBefore.hashCode) +
+      photos.hashCode;
 
   factory WellbeingReport.fromJson(Map<String, dynamic> json) =>
       _$WellbeingReportFromJson(json);

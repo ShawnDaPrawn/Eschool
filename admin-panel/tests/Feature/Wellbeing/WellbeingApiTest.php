@@ -8,6 +8,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolModule;
 use App\Models\User;
 use App\Models\Wellbeing\CaseAssignment;
 use App\Models\Wellbeing\IncidentReport;
@@ -132,14 +133,14 @@ class WellbeingApiTest extends TestCase
             if (str_starts_with($operation['action'], 'public.')) {
                 continue;
             }
-            $path = '/api/v2'.preg_replace('/\{\w+\}/', '999999', $operation['path']);
+            $path = '/api/v2'.preg_replace_callback('/\{(\w+)\}/', fn ($match) => $match[1] === 'photo' ? '11111111-1111-4111-8111-111111111111' : '999999', $operation['path']);
             $this->api($this->professional)->withHeader('X-School-Id', '2')->json($operation['method'], $path, [])->assertForbidden();
-            if ($operation['action'] !== 'access' && ! str_starts_with($operation['action'], 'identified-') && $operation['action'] !== 'identify') {
+            if ($operation['action'] !== 'access' && ! str_starts_with($operation['action'], 'identified-') && $operation['action'] !== 'identify' && ! str_starts_with($operation['action'], 'own-photo-')) {
                 $this->api($parent)->json($operation['method'], $path, [])->assertForbidden();
             }
             $count++;
         }
-        $this->assertSame(29, $count);
+        $this->assertSame(32, $count);
     }
 
     public function test_assigned_professional_facilitator_profile_can_triage_and_write_case_without_teacher_record(): void
@@ -226,6 +227,19 @@ class WellbeingApiTest extends TestCase
         $this->assertTrue($access->profile($this->professional)['features']['counselling']);
         PlatformStaffIdentity::create(['user_id' => $this->professional->id, 'active' => true]);
         $this->assertFalse($access->profile($this->professional)['features']['counselling']);
+    }
+
+    public function test_identified_follow_up_is_a_private_read_during_read_only_mode(): void
+    {
+        $this->submit();
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->api($parent)->postJson('/api/v2/wellbeing/own/identify', ['secret' => $this->secret, 'revision' => 1, 'identify_consent' => true, 'learner_id' => $this->schoolA->ids['asha']])->assertOk();
+        SchoolModule::where('module', 'wellbeing')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->postJson('/api/v2/wellbeing/own/follow-up', ['secret' => $this->secret])->assertOk()->assertJsonPath('data.body', 'Synthetic anonymous concern.')->assertHeader('Cache-Control', 'no-store, private');
+        $this->postJson('/api/v2/wellbeing/own/follow-up/replies', $this->operation(['secret' => $this->secret, 'body' => 'Unsent read-only reply']))->assertForbidden();
+        $this->api($this->professional)->postJson('/api/v2/wellbeing/own/follow-up', ['secret' => $this->secret])->assertForbidden();
+        $this->assertSame(0, IncidentThread::count());
     }
 
     public function test_identification_is_explicit_and_uses_bound_account_after_the_public_code_stops_working(): void

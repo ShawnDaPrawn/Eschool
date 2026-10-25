@@ -76,3 +76,6 @@ export 'src/transfers/transfer_session_boundary.dart';
 export 'src/wellbeing/wellbeing_repository.dart';
 export 'src/wellbeing/wellbeing_screen.dart';
 export 'src/wellbeing/wellbeing_session_boundary.dart';
+export 'src/wellbeing/reporting_repository.dart';
+export 'src/wellbeing/reporting_screen.dart';
+export 'src/wellbeing/reporting_session_boundary.dart';

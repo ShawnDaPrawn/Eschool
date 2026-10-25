@@ -431,6 +431,9 @@ import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/identify_incident_reporter_response.dart';
 import 'package:eschool_api/src/model/incident_follow_up_input.dart';
 import 'package:eschool_api/src/model/incident_identify_input.dart';
+import 'package:eschool_api/src/model/incident_photo.dart';
+import 'package:eschool_api/src/model/incident_photo_constraints.dart';
+import 'package:eschool_api/src/model/incident_photo_read_input.dart';
 import 'package:eschool_api/src/model/incident_public_configuration.dart';
 import 'package:eschool_api/src/model/incident_public_configuration_categories_inner.dart';
 import 'package:eschool_api/src/model/incident_public_thread.dart';
@@ -714,6 +717,8 @@ import 'package:eschool_api/src/model/update_my_profile_request.dart';
 import 'package:eschool_api/src/model/update_person_profile_request.dart';
 import 'package:eschool_api/src/model/update_profile_category_request.dart';
 import 'package:eschool_api/src/model/update_profile_field_request.dart';
+import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
+import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
 import 'package:eschool_api/src/model/wellbeing_access.dart';
 import 'package:eschool_api/src/model/wellbeing_appointment.dart';
@@ -2280,6 +2285,15 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'IncidentIdentifyInput':
       return IncidentIdentifyInput.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'IncidentPhoto':
+      return IncidentPhoto.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'IncidentPhotoConstraints':
+      return IncidentPhotoConstraints.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'IncidentPhotoReadInput':
+      return IncidentPhotoReadInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'IncidentPublicConfiguration':
       return IncidentPublicConfiguration.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -3206,6 +3220,16 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'UpdateProfileFieldRequest':
       return UpdateProfileFieldRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'UploadAnonymousIncidentPhotoResponse':
+      return UploadAnonymousIncidentPhotoResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'UploadIdentifiedIncidentPhotoResponse':
+      return UploadIdentifiedIncidentPhotoResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
