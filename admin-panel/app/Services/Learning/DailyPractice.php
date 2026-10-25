@@ -173,8 +173,12 @@ class DailyPractice
 
     private function streak(int $learner): int
     {
-        $days = PracticeDailySet::where('learner_id', $learner)->whereNotNull('completed_at')->orderByDesc('completed_on')->limit(800)->pluck('completed_on')->map(fn ($date) => $date->toDateString())->unique()->all();
         $day = CarbonImmutable::parse(app(AcademicAuthority::class)->today());
+        // Bound calendar dates before distinct, rather than truncating multi-subject rows.
+        $days = PracticeDailySet::where('learner_id', $learner)->whereNotNull('completed_at')
+            ->whereBetween('completed_on', [$day->subDays(365)->toDateString(), $day->toDateString()])
+            ->distinct()->orderByDesc('completed_on')->pluck('completed_on')
+            ->map(fn ($date) => $date->toDateString())->all();
         if (! in_array($day->toDateString(), $days, true)) {
             $day = $day->subDay();
         }
