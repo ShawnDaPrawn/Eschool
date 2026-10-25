@@ -20,7 +20,7 @@ return new class extends Migration
             $t->foreignId('actor_id')->constrained('users');
             $t->uuid('operation_id');
             $t->string('request_hash', 64);
-            $t->text('receipt');
+            $t->longText('receipt');
             $t->timestamps();
             $t->unique(['school_id', 'actor_id', 'operation_id'], 'activity_operation_identity');
         });
