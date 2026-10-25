@@ -329,3 +329,21 @@ new panel or app surface and does not claim clinical user acceptance.
 The complete canonical route/contract catalogue passes **284 tests, 1,383
 assertions**. Strict OpenAPI lint and all **68 SDK tests** pass. SDK analysis
 contains 593 generated informational lints and no errors or warnings.
+
+
+## Queued progress-band alerts
+
+Independent staff-running and family-released band state, minimum coverage,
+transition deduplication, immutable alert revisions, outbox jobs and threshold
+rechecks are implemented. Generic notification payloads expose no learner or mark
+values. Fresh source/role/guardian/approval and destination checks run at fanout,
+Notifier and transport; older release events cannot overwrite newer family state.
+
+The affected domain/notes/tenant migration cohort passes **18 tests, 316
+assertions**. The broader alert/Notifier/preferences cohort passes **34 tests,
+135 assertions**. Final focused qualification passes **6 tests, 37 assertions**,
+including stringified push IDs, boolean refusal, changed destination, stale
+snapshot, out-of-order released evidence and settings requeue. Changed-file Pint
+and complete configured Larastan pass. Tests use synthetic schools, fake dispatch
+and no actual transport or provider. Generic inbox history contains no private
+learner values; application progress readers enforce current per-record access.

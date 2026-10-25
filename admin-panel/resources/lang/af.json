@@ -2929,5 +2929,9 @@
   "Withdraw appointment": "Trek aanstelling terug",
   "Withdraw instructions": "Trek instruksies terug",
   "Withdraw support appointment": "Trek ondersteuningsaanstelling terug",
-  "Withdraw teacher instructions": "Trek onderwyserinstruksies terug"
+  "Withdraw teacher instructions": "Trek onderwyserinstruksies terug",
+  "Learning progress updates": "Leervorderingskennisgewings",
+  "Teaching progress updates": "Onderrigvorderingskennisgewings",
+  "Learning progress updated": "Leervordering bygewerk",
+  "Open Learning progress to review an available update.": "Maak Leervordering oop om ’n beskikbare opdatering te sien."
 }

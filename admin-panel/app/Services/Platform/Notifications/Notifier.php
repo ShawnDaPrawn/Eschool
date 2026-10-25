@@ -11,6 +11,7 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Growth\ProgressNotices;
 use App\Services\MailService;
 use App\Services\Pastoral\CoverNotices;
 use App\Services\Platform\Events\NotificationRequested;
@@ -71,6 +72,9 @@ class Notifier
     /** Each allowed channel is claimed independently, so retrying a fanout never repeats earlier recipients. */
     public function send(User $user, string $type, string $title, string $body, ?string $link = null, ?Notification $notice = null, ?array $channels = null): array
     {
+        if (str_starts_with($type, 'progress.') && ! app(ProgressNotices::class)->allows($user, $type, $notice?->delivery_payload ?? [])) {
+            return [];
+        }
         if (str_starts_with($type, 'pastoral.cover') && ! app(CoverNotices::class)->allows($user, $type, $notice?->delivery_payload ?? [])) {
             return [];
         }
@@ -114,7 +118,7 @@ class Notifier
                 } else {
                     $school = app(CurrentSchool::class)->school();
                     $mailBody = $user->email_verified_at === null ? __('Open NavigateEd to view this notice.') : $body;
-                    $mailBase = in_array($type, ['communication.approval_requested', 'pastoral.cover_assigned'], true) ? config('app.url') : config('identity.portal_url');
+                    $mailBase = in_array($type, ['communication.approval_requested', 'pastoral.cover_assigned', 'progress.staff_band_changed'], true) ? config('app.url') : config('identity.portal_url');
                     $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) $mailBase, '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
                     if (! MailService::queue($mail, (int) $user->id)) {
                         throw new RuntimeException('A notification email could not be queued.');

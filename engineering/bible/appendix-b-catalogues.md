@@ -135,3 +135,14 @@ consultations, cards, counselling or a facilitator app. No new notification type
 is required: activity_group audiences use the communication centre's existing
 approval, scheduling and private delivery rules. A new client capability selects
 activity composition; it does not bypass group authority.
+
+
+## Phase 3: progress alerts
+
+`progress.band_changed` (academics, learner/parent) and
+`progress.staff_band_changed` (academics, teacher/admin) use optional standard
+channel preferences. Generic messages and opaque alert IDs contain no learner
+names, marks, subjects or clinical values. Fresh canonical evidence and current
+recipient authority are rechecked at fanout and final transport. Family uses
+frozen released running evidence only. `growth.progress_bands_configured` is an
+ID-only transactional event that queues threshold rechecks, not a public notice.

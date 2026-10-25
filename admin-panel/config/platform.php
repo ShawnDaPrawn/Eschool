@@ -9,6 +9,7 @@ use App\Listeners\Academics\QueueContentConversion;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Academics\QueueReportGeneration;
 use App\Listeners\Growth\QueueMasteryRecompute;
+use App\Listeners\Growth\QueueProgressBands;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
@@ -45,14 +46,15 @@ return [
             'academics.content_uploaded' => [QueueContentConversion::class],
             'academics.report_published' => [NotifyReportPublished::class],
             'academics.report_approved' => [QueueReportGeneration::class],
-            'academics.assessment_published' => [QueueAssessmentRecompute::class, QueueMasteryRecompute::class],
+            'academics.assessment_published' => [QueueAssessmentRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class],
             'academics.register_changed' => [NotifyRegisterAmended::class],
-            'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class],
-            'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class],
-            'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class],
+            'growth.progress_bands_configured' => [QueueProgressBands::class],
+            'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class, QueueProgressBands::class],
+            'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class],
+            'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class],
             'notification.requested' => [QueueNotificationFanout::class],
             'handle.proposed' => [NotifyHandleGuardians::class],
-            'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class],
+            'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class, QueueProgressBands::class],
             // 'fees.payment_recorded' => [App\Listeners\Money\UpdateLedger::class],
         ],
 
