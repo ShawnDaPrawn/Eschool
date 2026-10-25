@@ -1,6 +1,6 @@
 Activity groups extend the current Laravel academic/communication platform with
 seasonal school-life groups and dated authority. The initial backend is available
-through API v2 and the group-management panel. Shared app screens follow separately.
+through API v2 and the group-management panel. The teacher and family apps share group, session and material views; coaches can record explicit attendance.
 
 ## Enable and allocate
 
@@ -31,8 +31,7 @@ for activity drafts. Published message readers keep their existing shape.
 ## Qualification
 
 The backend/contract tests cover role, school, owner and guardian boundaries.
-The initial native facilitator build remains unavailable until its scoped sign-in
-and group shell are delivered. No store registration, physical device, staging
+The native facilitator identity remains unavailable until its dedicated scoped sign-in and restricted shell are delivered; teacher and family apps can already open the shared group views. No store registration, physical device, staging
 performance or production release is inferred from API and unit tests.
 
 ## See also

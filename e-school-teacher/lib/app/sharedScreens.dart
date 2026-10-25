@@ -435,3 +435,76 @@ class SchoolMessagesEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        !allowsSchoolModule(me, 'groups')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Activity groups'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    bool active() =>
+        session.context?.user?.id == account &&
+        session.context?.currentSchoolId == school &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school) &&
+        allowsSchoolModule(session.context, 'groups');
+    Widget result = ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: ActivityGroupsScreen(
+        repository: ApiActivityRepository(
+          Api.client,
+          schoolId: school,
+          accountId: account,
+          contextActive: active,
+        ),
+      ),
+    );
+    result = BlocListener<MeContextCubit, MeContextState>(
+      listener: (context, state) {
+        if (!active()) Navigator.of(context).popUntil((r) => r.isFirst);
+      },
+      child: result,
+    );
+    return result;
+  },
+);
+
+class ActivityGroupsEntry extends StatelessWidget {
+  const ActivityGroupsEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!allowsSchoolModule(state.context, 'groups'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Activity groups'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.activityGroups),
+            ),
+          );
+        },
+      );
+}

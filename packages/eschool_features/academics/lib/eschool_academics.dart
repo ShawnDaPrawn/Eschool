@@ -46,3 +46,6 @@ export 'src/messages/message_cubit.dart';
 export 'src/messages/message_reader_screen.dart';
 export 'src/messages/messages_screen.dart';
 export 'src/messages/message_editor_screen.dart';
+
+export 'src/activities/activity_repository.dart';
+export 'src/activities/activity_groups_screen.dart';

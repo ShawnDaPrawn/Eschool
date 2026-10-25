@@ -22,6 +22,32 @@ class _MessageContextRepository implements MeContextRepository {
 }
 
 void main() {
+  testWidgets(
+    'disabled groups refuse the direct activity route before loading private state',
+    (tester) async {
+      final cubit = MeContextCubit(
+        repository: _MessageContextRepository(),
+        cache: InMemoryMeContextCache(),
+      );
+      addTearDown(cubit.close);
+      await cubit.load();
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: cubit,
+          child: MaterialApp(
+            onGenerateRoute: (_) => open(Routes.activityGroups),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This feature is unavailable at your school.'),
+        findsOneWidget,
+      );
+      expect(find.byType(ActivityGroupsScreen), findsNothing);
+    },
+  );
+
   final student = Student.fromJson({'id': 4});
   final subjects = [
     Subject.fromJson({'id': 1, 'name': 'Maths'}),

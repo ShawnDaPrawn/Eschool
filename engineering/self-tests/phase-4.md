@@ -162,3 +162,26 @@ Panel private-response follow-up: successful form redirects and failed-validatio
 responses explicitly forbid caching. API/panel header and form checks passed:
 5 tests / 134 assertions. The shared browser-flow configuration retains the
 serialized seeded-write project from #109 while adding activity coverage.
+
+
+## Shared activity app views
+
+Implemented shared group lists/detail, coach session/material editing and explicit
+attendance, with entries/routes in both existing teacher and family apps. The
+family view never loads a peer roster. Activity audience compose now opts in only
+after widget tests proved exact kind/group/guardian round trips.
+
+Actual verification: complete shared academic feature suite 196 tests passed,
+including activity views at 390/1024/1280, no implicit attendance, immutable retry,
+conflict review, calendar-date planning, pending-resume privacy, role revocation,
+offline draft retention and stale-account response refusal. Complete teacher app
+40 tests passed; complete learner/parent app 51 tests passed. Both route suites
+refuse a disabled groups deep route before private state loads. Both app analyses
+have zero errors/warnings (existing style infos 24 teacher / 26 family); shared
+analysis retains only the recorded existing message-file style infos.
+
+No new native iOS compilation, physical device, store listing, live delivery timing
+or production/staging qualification is inferred from unit/widget tests. The
+facilitator identity still deliberately stops before teacher startup until its
+separate scoped sign-in and restricted shell are implemented. Authored group
+Markdown is available; private binary materials remain separate follow-up work.
