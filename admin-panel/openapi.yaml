@@ -9018,6 +9018,18 @@ paths:
         schema:
           type: string
           maxLength: 100
+      - name: learner_id
+        in: query
+        description: Revalidate one named learner choice independently of other result pages.
+        schema:
+          type: integer
+          minimum: 1
+      - name: user_id
+        in: query
+        description: Revalidate one named staff choice independently of other result pages.
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Private scoped support data; never cached.

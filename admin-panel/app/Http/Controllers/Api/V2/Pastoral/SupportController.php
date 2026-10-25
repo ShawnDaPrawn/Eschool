@@ -32,7 +32,7 @@ class SupportController extends Controller
 
     public function configuration(SupportRequest $r, string $audience): JsonResponse
     {
-        return $this->response(app(SupportQueries::class)->configuration($r->user(), $audience, (string) $r->validated('search', ''), (int) $r->validated('page', 1)));
+        return $this->response(app(SupportQueries::class)->configuration($r->user(), $audience, (string) $r->validated('search', ''), (int) $r->validated('page', 1), $r->has('learner_id') ? (int) $r->validated('learner_id') : null, $r->has('user_id') ? (int) $r->validated('user_id') : null));
     }
 
     public function cases(SupportRequest $r): JsonResponse

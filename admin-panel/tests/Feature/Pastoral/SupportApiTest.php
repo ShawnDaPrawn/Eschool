@@ -121,4 +121,31 @@ class SupportApiTest extends TestCase
         $this->postJson(self::BASE.'plans', $input)->assertNotFound();
         $this->assertSame(1, SupportPlan::count());
     }
+
+    public function test_empty_search_is_a_valid_unfiltered_configuration_request(): void
+    {
+        $this->actingAs($this->professional)->getJson(self::BASE.'configuration/professional?search=&page=1')->assertOk()->assertJsonPath('data.learners.0.id', $this->learner);
+    }
+
+    public function test_teacher_capabilities_are_read_only_even_when_the_module_is_writable(): void
+    {
+        $this->actingAs(User::findOrFail($this->schoolA->ids['theo_user']))->getJson(self::BASE.'access')->assertOk()->assertJsonPath('data.audiences', ['teacher'])->assertJsonPath('data.can_write', false);
+    }
+
+    public function test_selected_choices_are_revalidated_independently_of_search_and_paging(): void
+    {
+        $path = self::BASE.'configuration/principal';
+        $this->actingAs($this->superAdmin())->getJson($path.'?search=NoSuchName&page=2')->assertOk()->assertJsonCount(0, 'data.learners')->assertJsonCount(0, 'data.staff');
+        $selected = $path.'?learner_id='.$this->learner.'&user_id='.$this->professional->id;
+        $this->getJson($selected)->assertOk()->assertJsonPath('data.learners.0.id', $this->learner)->assertJsonPath('data.staff.0.id', $this->professional->id);
+        $this->getJson($path.'?learner_id='.$this->schoolB->ids['asha'].'&user_id='.$this->schoolB->ids['tara_user'])->assertOk()->assertJsonCount(0, 'data.learners')->assertJsonCount(0, 'data.staff');
+        SchoolMembership::where('school_id', 1)->where('user_id', $this->professional->id)->update(['ends_on' => '2026-02-09']);
+        $this->getJson($selected)->assertOk()->assertJsonCount(0, 'data.staff');
+    }
+
+    public function test_private_writes_refuse_query_parameters_even_with_an_otherwise_valid_body(): void
+    {
+        $this->actingAs($this->professional)->postJson(self::BASE.'plans?needs=PrivateQueryDraft', $this->body())->assertUnprocessable()->assertDontSee('PrivateQueryDraft');
+        $this->assertSame(0, SupportPlan::count());
+    }
 }
