@@ -9,8 +9,10 @@ use App\Models\Learning\TutorMessage;
 use App\Models\Learning\TutorPhoto;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\SchoolModule;
+use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Learning\TutorPhotos;
 use App\Services\Platform\Files\UploadScanner;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -167,11 +169,20 @@ class TutorApiTest extends TestCase
         $this->signIn();
         $session = $this->createSession();
         $operation = (string) Str::uuid();
+        $image = imagecreatetruecolor(32, 32);
+        imagefill($image, 0, 0, imagecolorallocate($image, 255, 255, 255));
+        ob_start();
+        imagepng($image);
+        $bytes = (string) ob_get_clean();
+        imagedestroy($image);
+        $photo = app(TutorPhotos::class)->upload($this->actor('asha'), $session['id'], $operation,
+            UploadedFile::fake()->createWithContent('working.png', $bytes), ['x' => 0, 'y' => 0, 'width' => 32, 'height' => 32], true);
         config(['ai.inference.enabled' => false]);
         $path = '/api/v2/tutor/sessions/'.$session['id'];
-        $draft = ['operation_id' => $operation, 'question' => 'PRIVATE-SAVED-HUMAN-DRAFT', 'working' => 'My own unsubmitted working.'];
+        $draft = ['operation_id' => $operation, 'question' => 'PRIVATE-SAVED-HUMAN-DRAFT', 'working' => 'My own unsubmitted working.', 'photo_ids' => [$photo['id']]];
         $this->postJson($path.'/messages', $draft)->assertOk()->assertJsonPath('data.state', 'failed')->assertJsonPath('data.question', $draft['question'])->assertJsonPath('data.response', null);
         $this->getJson($path.'/turns/'.$operation)->assertOk()->assertJsonPath('data.question', $draft['question'])->assertJsonPath('data.working', $draft['working']);
+        $this->getJson($path)->assertOk()->assertJsonPath('data.pending_photos.0.id', $photo['id'])->assertJsonPath('data.pending_photos.0.operation_id', $operation);
         $this->signIn('farid');
         $this->getJson($path.'/turns/'.$operation)->assertNotFound()->assertDontSee($draft['question']);
         $this->signIn();
@@ -211,5 +222,58 @@ class TutorApiTest extends TestCase
         $this->post($path.'/photos', $form, ['Accept' => 'application/json'])->assertOk();
         $this->assertSame(20, TutorPhoto::whereNull('revoked_at')->count());
         Http::assertNothingSent();
+    }
+
+    public function test_quarantined_operation_hides_its_approved_crop_preview_and_prepared_receipts(): void
+    {
+        $this->signIn();
+        $session = $this->createSession();
+        $operation = (string) Str::uuid();
+        $image = imagecreatetruecolor(32, 32);
+        imagefill($image, 0, 0, imagecolorallocate($image, 255, 255, 255));
+        ob_start();
+        imagepng($image);
+        $bytes = (string) ob_get_clean();
+        imagedestroy($image);
+        $photo = app(TutorPhotos::class)->upload($this->actor('asha'), $session['id'], $operation,
+            UploadedFile::fake()->createWithContent('working.png', $bytes), ['x' => 0, 'y' => 0, 'width' => 32, 'height' => 32], true);
+        $path = '/api/v2/tutor/sessions/'.$session['id'];
+        $this->getJson($path)->assertOk()->assertJsonPath('data.pending_photos.0.id', $photo['id']);
+        $this->postJson($path.'/messages', ['operation_id' => $operation, 'question' => 'I am being abused.', 'photo_ids' => [$photo['id']]])
+            ->assertOk()->assertJsonPath('data.state', 'quarantined')->assertJsonPath('data.question', null);
+        $this->get($path.'/photos/'.$photo['id'], ['Accept' => 'image/png'])->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+        // Usage quarantine must hide input even before a late message linkage.
+        TutorMessage::where('operation_id', $operation)->update(['state' => 'pending', 'ai_usage_id' => null]);
+        $this->getJson($path.'/turns/'.$operation)->assertOk()->assertJsonPath('data.state', 'quarantined')->assertJsonPath('data.question', null)->assertJsonPath('data.response', null);
+        $this->getJson($path)->assertOk()->assertJsonPath('data.pending_photos', []);
+        Http::assertNothingSent();
+    }
+
+    public function test_quarantine_created_during_private_crop_read_prevents_bytes_from_returning(): void
+    {
+        $this->signIn();
+        $session = $this->createSession();
+        $operation = (string) Str::uuid();
+        $image = imagecreatetruecolor(32, 32);
+        imagefill($image, 0, 0, imagecolorallocate($image, 255, 255, 255));
+        ob_start();
+        imagepng($image);
+        $bytes = (string) ob_get_clean();
+        imagedestroy($image);
+        $photo = app(TutorPhotos::class)->upload($this->actor('asha'), $session['id'], $operation,
+            UploadedFile::fake()->createWithContent('working.png', $bytes), ['x' => 0, 'y' => 0, 'width' => 32, 'height' => 32], true);
+        $disk = Storage::disk(TutorPhotos::DISK);
+        $adapter = \Mockery::mock(FilesystemAdapter::class);
+        $adapter->shouldReceive('get')->once()->andReturnUsing(function ($path) use ($disk, $photo, $operation) {
+            $usage = AiUsage::create(['user_id' => $this->actor('asha')->id, 'learner_id' => $this->schoolA->ids['asha'], 'feature' => 'tutor',
+                'provider' => 'synthetic', 'operation_id' => $operation, 'request_hash' => hash('sha256', 'synthetic'),
+                'usage_date' => now()->toDateString(), 'unit' => 'tokens', 'state' => 'reserved']);
+            unset($photo['operation_id']);
+            app(AiQuarantine::class)->capture($usage, 'input', ['safety'], ['text' => 'Synthetic held input', 'media' => [$photo]]);
+
+            return $disk->get($path);
+        });
+        Storage::shouldReceive('disk')->with(TutorPhotos::DISK)->andReturn($adapter);
+        $this->get('/api/v2/tutor/sessions/'.$session['id'].'/photos/'.$photo['id'], ['Accept' => 'image/png'])->assertNotFound();
     }
 }

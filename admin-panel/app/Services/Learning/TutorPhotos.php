@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Learning;
 
+use App\Models\Ai\AiUsage;
 use App\Models\Learning\TutorMessage;
 use App\Models\Learning\TutorPhoto;
 use App\Models\Platform\School;
@@ -24,6 +25,12 @@ use Throwable;
 class TutorPhotos
 {
     public const DISK = 'academic_private';
+
+    private function unquarantined(TutorPhoto $photo): void
+    {
+        abort_if(AiUsage::where('feature', 'tutor')->where('operation_id', $photo->operation_id)->where('user_id', $photo->user_id)
+            ->where(fn ($query) => $query->where('state', 'quarantined')->orWhereNotNull('quarantine_purged_at'))->exists(), 404);
+    }
 
     private function capacity(User $actor): void
     {
@@ -145,11 +152,13 @@ class TutorPhotos
         $school = app(CurrentSchool::class)->id();
         app(TutorAccess::class)->session($actor, $session);
         $photo = TutorPhoto::where('tutor_session_id', $session)->where('user_id', $actor->id)->whereNotNull('approved_at')->whereNull('revoked_at')->whereNull('purged_at')->findOrFail($id);
+        $this->unquarantined($photo);
         abort_unless($photo->path === app(CurrentSchool::class)->storagePath('tutor-photos').'/'.$photo->id.'.enc', 404);
         $bytes = Crypt::decryptString(Storage::disk(self::DISK)->get($photo->path));
         abort_unless(app(CurrentSchool::class)->id() === $school, 403);
         app(TutorAccess::class)->session($actor, $session);
-        $fresh = TutorPhoto::whereNull('revoked_at')->whereNull('purged_at')->findOrFail($id);
+        $fresh = TutorPhoto::where('tutor_session_id', $session)->where('user_id', $actor->id)->whereNull('revoked_at')->whereNull('purged_at')->findOrFail($id);
+        $this->unquarantined($fresh);
         $image = new VisionImage($fresh->id, $fresh->sha256, $bytes);
 
         return ['bytes' => $image->bytes, 'mime' => 'image/png'];

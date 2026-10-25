@@ -175,20 +175,23 @@ class TutorSessions
 
     public function turnData(User $actor, TutorMessage $message): array
     {
-        app(TutorAccess::class)->session($actor, $message->tutor_session_id);
+        $session = app(TutorAccess::class)->session($actor, $message->tutor_session_id);
         abort_unless((int) $message->user_id === (int) $actor->id, 404);
-        $safe = $message->state === 'completed' && $message->purged_at === null;
+        $usage = AiUsage::where('feature', 'tutor')->where('operation_id', $message->operation_id)->where('user_id', $actor->id)
+            ->where('learner_id', $session->learner_id)->first(['state', 'quarantine_purged_at']);
+        $state = $usage?->quarantine_purged_at !== null ? 'purged' : ($usage?->state === 'quarantined' ? 'quarantined' : $message->state);
+        $safe = $state === 'completed' && $message->purged_at === null;
         if ($safe) {
             app(TutorFeaturePolicy::class)->message($actor, $message->id);
         }
         // Own human-authored drafts can be recovered after an unknown write.
         // AI output still needs the full source guard; quarantined/purged input
         // never returns to the conversation or a parent summary.
-        $ownInput = in_array($message->state, ['pending', 'failed', 'completed'], true) && $message->purged_at === null;
+        $ownInput = in_array($state, ['pending', 'failed', 'completed'], true) && $message->purged_at === null;
 
-        return ['id' => $message->id, 'operation_id' => $message->operation_id, 'state' => $message->state,
+        return ['id' => $message->id, 'operation_id' => $message->operation_id, 'state' => $state,
             'question' => $ownInput ? $message->learner_text : null, 'working' => $ownInput ? $message->working : null, 'response' => $safe ? $message->response : null,
-            'failure_code' => $message->failure_code, 'support_message' => $message->state === 'quarantined' ? self::SUPPORT_MESSAGE : null,
+            'failure_code' => $message->failure_code, 'support_message' => $state === 'quarantined' ? self::SUPPORT_MESSAGE : null,
             'provisional' => true];
     }
 
@@ -204,7 +207,9 @@ class TutorSessions
         $rows = TutorMessage::where('tutor_session_id', $id)->orderBy('created_at')->orderBy('id')->paginate(20, ['*'], 'page', max(1, $page));
         $data = $rows->getCollection()->map(fn ($row) => $this->turnData($actor, $row))->all();
         $pendingPhotos = TutorPhoto::where('tutor_session_id', $id)->where('user_id', $actor->id)->whereNull('revoked_at')->whereNull('purged_at')->whereNotNull('approved_at')
-            ->whereNotIn('operation_id', TutorMessage::where('user_id', $actor->id)->select('operation_id'))->orderBy('id')->limit(20)->get()
+            ->whereNotIn('operation_id', TutorMessage::where('user_id', $actor->id)->whereIn('state', ['completed', 'quarantined', 'purged'])->select('operation_id'))
+            ->whereNotIn('operation_id', AiUsage::where('feature', 'tutor')->where('user_id', $actor->id)
+                ->where(fn ($query) => $query->where('state', 'quarantined')->orWhereNotNull('quarantine_purged_at'))->select('operation_id'))->orderBy('id')->limit(20)->get()
             ->map(fn ($photo) => ['id' => $photo->id, 'sha256' => $photo->sha256, 'mime' => 'image/png', 'operation_id' => $photo->operation_id,
                 'school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id])->all();
         app(TutorAccess::class)->session($actor, $id);
