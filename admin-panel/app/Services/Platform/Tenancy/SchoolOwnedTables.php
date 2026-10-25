@@ -22,6 +22,8 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'learner_activity_days',
+        'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
+        'discipline_acknowledgements', 'detention_sessions', 'detention_entries', 'detention_versions',
         'risk_settings', 'risk_observations', 'risk_caseloads', 'interventions', 'intervention_versions',
         'wellbeing_categories', 'wellbeing_team_assignments', 'incident_reports', 'incident_threads', 'support_cases', 'support_case_assignments', 'support_case_entries', 'wellbeing_appointments', 'wellbeing_operations', 'wellbeing_events',
         'learner_note_operations', 'progress_band_states', 'progress_band_alerts', 'progress_band_settings', 'learner_notes', 'learner_note_revisions', 'learner_note_assignments',

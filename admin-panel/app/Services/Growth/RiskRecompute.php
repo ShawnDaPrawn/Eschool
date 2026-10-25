@@ -21,6 +21,7 @@ use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\Attendance\RegisterRosters;
 use App\Services\Academics\MarkDefinitions;
 use App\Services\Academics\MarkSnapshots;
+use App\Services\Discipline\DisciplineMetrics;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -104,7 +105,7 @@ class RiskRecompute
                     $academic = $this->academic((int) $learner->id, $yearId, $gradeId, $term?->id, $rules);
                     $attendance = $this->attendance($learner, $yearId, $start, $today, $rules);
                     $unknown = ['score' => null, 'signal_count' => null, 'reason_code' => 'source_unavailable', 'evidence' => []];
-                    foreach (['academic' => $academic, 'attendance' => $attendance, 'discipline' => $unknown, 'wellbeing' => $unknown] as $source => $facts) {
+                    foreach (['academic' => $academic, 'attendance' => $attendance, 'discipline' => app(DisciplineMetrics::class)->observed((int) $learner->id, $yearId, $gradeId, $start, $today), 'wellbeing' => $unknown] as $source => $facts) {
                         $this->record((int) $learner->id, $yearId, $gradeId, $today, $start, $source, $facts, $rules, $verify);
                     }
                     $count++;

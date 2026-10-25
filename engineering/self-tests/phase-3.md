@@ -367,3 +367,28 @@ assertions**, with changed-file Pint and complete configured Larastan passing.
 No actual counsellor review, diagnosis, clinical risk disclosure, real-school
 observation or staff panel/app acceptance is claimed by this service increment.
 The HTTP contracts and staff workflows remain the next increment.
+
+
+## Discipline framework, records and detention domain
+
+The combined discipline/risk/leadership/actual-tenant-migration cohort passes
+**38 tests, 425 assertions**, with changed-file Pint and complete configured
+Larastan passing. It covers configured escalation/reset, no automatic expulsion,
+principal-only hearing resolution, fresh grade-head withdrawal, reasoned retained
+overturn, encrypted large multibyte framework history, immutable revisions,
+wrong school/role/owner and no unauthorized body SQL. Calendar-term reset first
+proved a real Carbon-to-string return error, then passed after the day-string
+fix. Missing source/sample remains unknown; discipline observations and principal
+counts use confirmed records with immutable reporting year/grade.
+
+Family reads omit pending entries and staff notes. Verified current guardians
+acknowledge a specific revision; content review invalidates the current-version
+acknowledgement without deleting earlier receipts. Approved learners can read
+their own published history and cannot acknowledge as a parent. Separate
+detention assignment, unknown attendance, supervisor capture, reasoned grade-head
+correction and sanction withdrawal are covered. Guardian revocation, mandatory
+password change, platform identity and impersonation refuse access.
+
+These are service/domain checks, not school framework acceptance, a month of
+operation or panel/native UX verification. The typed contracts, notices and real
+workflow surfaces continue in the next increment.

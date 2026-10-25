@@ -50,6 +50,8 @@ return [
             'academics.assessment_published' => [QueueAssessmentRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.register_changed' => [QueueRiskEvaluate::class, NotifyRegisterAmended::class],
             'growth.risk_rules_configured' => [QueueRiskEvaluate::class],
+            'discipline.framework_published' => [QueueRiskEvaluate::class],
+            'discipline.record_changed' => [QueueRiskEvaluate::class],
             'growth.progress_bands_configured' => [QueueProgressBands::class],
             'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],

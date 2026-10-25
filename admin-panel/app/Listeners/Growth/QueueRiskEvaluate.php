@@ -40,7 +40,7 @@ class QueueRiskEvaluate implements OutboxListener
                 }
 
                 return;
-            } elseif ($event->type === 'growth.risk_rules_configured' || ($event->type === 'context.changed' && ($event->payload['reason'] ?? null) === 'modules')) {
+            } elseif (in_array($event->type, ['growth.risk_rules_configured', 'discipline.framework_published'], true) || ($event->type === 'context.changed' && ($event->payload['reason'] ?? null) === 'modules')) {
                 foreach (GradeLevel::pluck('id') as $grade) {
                     EvaluateRisk::dispatch((int) $event->school_id, (int) schoolSetting('session_year'), (int) $grade);
                 }

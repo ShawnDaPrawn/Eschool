@@ -217,3 +217,18 @@ the reporting year, grade and original owner authority, with encrypted action an
 outcome; `intervention_versions` retains immutable encrypted revision and owner
 handoff records. All five are school scoped; populated rollback is refused.
 Metadata projections explicitly exclude action/outcome before SQL retrieval.
+
+
+## School discipline and detention
+
+`discipline_frameworks` and immutable `discipline_framework_versions` retain
+explicit year-specific levels, infraction/sanction dictionaries, counters and
+reset rules. `discipline_records` pins the dated year/grade, framework revision
+and infraction, with encrypted family description, staff note, decision text and
+basis. Immutable `discipline_record_versions` retains every reviewed change.
+`discipline_acknowledgements` is guardian- and revision-specific.
+`detention_sessions` retains school-timezone scheduling and the assigned
+supervisor; `detention_entries` keeps explicit unknown/present/absent/excused
+states; immutable `detention_versions` audits captures and reasoned corrections.
+All eight tables are school scoped and retained rows block destructive rollback.
+No permanent learner-profile field or automatic enrolment removal is introduced.
