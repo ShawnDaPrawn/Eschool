@@ -1470,5 +1470,6 @@
   "The anonymous form opens separately. Your signed-in identity is not attached to that report.": "The anonymous form opens separately. Your signed-in identity is not attached to that report.",
   "reporter": "reporter",
   "urgent": "urgent",
-  "Open anonymous reporting": "Open anonymous reporting"
+  "Open anonymous reporting": "Open anonymous reporting",
+  "Follow-up is read-only. Saved records remain available.": "Follow-up is read-only. Saved records remain available."
 }

@@ -2,6 +2,7 @@ import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
 import '../localization/academic_text.dart';
 import 'risk_repository.dart';
 
@@ -57,6 +58,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
   String l(String value) => academicText(context, value);
   String _today() =>
       _config?.today ?? DateTime.now().toIso8601String().substring(0, 10);
+  bool get _writable => _config?.writable == true;
   bool get _allowed =>
       mounted &&
       !_suspended &&
@@ -364,7 +366,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
   }
 
   Future<void> _save() async {
-    if (!_allowed || _busy) return;
+    if (!_allowed || _busy || !_writable) return;
     if (_uncertain) {
       await _dispatch();
       return;
@@ -396,8 +398,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
           !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(_review.text) ||
           (_state == 'completed' && _outcome.text.trim().isEmpty)) {
         setState(
-          () => _error =
-              'Enter an action, a calendar review date and an outcome for completed care.',
+          () => _error = 'Enter an action, a calendar review date and an outcome for completed care.',
         );
         return;
       }
@@ -421,8 +422,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
             _owner == null ||
             !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(_start.text)) {
           setState(
-            () => _error =
-                'Choose a learner, an eligible owner and a calendar start date.',
+            () => _error = 'Choose a learner, an eligible owner and a calendar start date.',
           );
           return;
         }
@@ -446,7 +446,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
 
   Future<void> _dispatch() async {
     final p = _pending;
-    if (!_allowed || p == null) return;
+    if (!_allowed || p == null || !_writable) return;
     final epoch = ++_epoch;
     setState(() {
       _busy = true;
@@ -517,8 +517,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
             }
           }
           _busy = false;
-          _error =
-              'The saved action changed. Compare the current record before saving a new revision.';
+          _error = 'The saved action changed. Compare the current record before saving a new revision.';
         });
       } else if (e is ApiException &&
           (e.statusCode ?? 0) >= 400 &&
@@ -527,16 +526,14 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
         setState(() {
           _pending = null;
           _busy = false;
-          _error =
-              'The change was refused. Check the dates and current scope before trying again.';
+          _error = 'The change was refused. Check the dates and current scope before trying again.';
         });
       } else {
         if (!_current(epoch)) return;
         setState(() {
           _uncertain = true;
           _busy = false;
-          _error =
-              'The result is unknown. Retry the same change or check saved records before starting another.';
+          _error = 'The result is unknown. Retry the same change or check saved records before starting another.';
         });
       }
     }
@@ -564,11 +561,12 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
     TextEditingController controller, {
     int lines = 1,
     int? max,
+    bool requiresWrite = true,
   }) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: TextField(
       controller: controller,
-      enabled: !_busy && !_uncertain,
+      enabled: !_busy && !_uncertain && (!requiresWrite || _writable),
       minLines: lines,
       maxLines: lines + 3,
       maxLength: max,
@@ -619,7 +617,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
               if (_handoff == null || p.id != _handoff!.ownerId)
                 DropdownMenuItem(value: p.id, child: Text(p.name)),
           ],
-          onChanged: _busy || _uncertain
+          onChanged: _busy || _uncertain || !_writable
               ? null
               : (id) => setState(
                   () => _owner = people.where((p) => p.id == id).firstOrNull,
@@ -661,6 +659,8 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
               'Recorded evidence guides a staff follow-up. Missing evidence stays unknown; this is not a diagnosis or a learner label.',
             ),
           ),
+          if (config != null && !_writable)
+            Text(l('Follow-up is read-only. Saved records remain available.')),
           if (_error.isNotEmpty)
             Text(
               l(_error),
@@ -836,7 +836,12 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
                   l('Plan an owned follow-up'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                _field('Find a learner', _search, max: 100),
+                _field(
+                  'Find a learner',
+                  _search,
+                  max: 100,
+                  requiresWrite: false,
+                ),
                 TextButton(
                   onPressed: _busy || _uncertain ? null : () => _learners(1),
                   child: Text(l('Search')),
@@ -939,7 +944,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
                           child: Text(l(entry.value)),
                         ),
                     ],
-                    onChanged: _busy || _uncertain
+                    onChanged: _busy || _uncertain || !_writable
                         ? null
                         : (state) => setState(() => _state = state ?? 'active'),
                   ),
@@ -951,7 +956,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
                       (_newer ?? _detail)!.toJson()['state'] == 'active') ||
                   (_learner != null && _year == config.sessionYearId))
                 FilledButton(
-                  onPressed: _busy ? null : _save,
+                  onPressed: _busy || !_writable ? null : _save,
                   child: Text(
                     l(
                       _uncertain
