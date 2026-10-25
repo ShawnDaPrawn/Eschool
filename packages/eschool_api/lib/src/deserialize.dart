@@ -746,6 +746,33 @@ import 'package:eschool_api/src/model/school_term_response.dart';
 import 'package:eschool_api/src/model/school_term_write.dart';
 import 'package:eschool_api/src/model/school_terms_response.dart';
 import 'package:eschool_api/src/model/school_terms_response_data.dart';
+import 'package:eschool_api/src/model/secure_card.dart';
+import 'package:eschool_api/src/model/secure_card_configuration.dart';
+import 'package:eschool_api/src/model/secure_card_configuration_response.dart';
+import 'package:eschool_api/src/model/secure_card_credential.dart';
+import 'package:eschool_api/src/model/secure_card_credential_response.dart';
+import 'package:eschool_api/src/model/secure_card_issue.dart';
+import 'package:eschool_api/src/model/secure_card_page.dart';
+import 'package:eschool_api/src/model/secure_card_page_response.dart';
+import 'package:eschool_api/src/model/secure_card_people_page.dart';
+import 'package:eschool_api/src/model/secure_card_people_page_response.dart';
+import 'package:eschool_api/src/model/secure_card_person.dart';
+import 'package:eschool_api/src/model/secure_card_portrait_receipt.dart';
+import 'package:eschool_api/src/model/secure_card_portrait_receipt_response.dart';
+import 'package:eschool_api/src/model/secure_card_qr_scan.dart';
+import 'package:eschool_api/src/model/secure_card_reader_credential.dart';
+import 'package:eschool_api/src/model/secure_card_reader_credential_response.dart';
+import 'package:eschool_api/src/model/secure_card_reader_register.dart';
+import 'package:eschool_api/src/model/secure_card_reason.dart';
+import 'package:eschool_api/src/model/secure_card_replacement.dart';
+import 'package:eschool_api/src/model/secure_card_replacement_response.dart';
+import 'package:eschool_api/src/model/secure_card_response.dart';
+import 'package:eschool_api/src/model/secure_card_restore.dart';
+import 'package:eschool_api/src/model/secure_card_revocation.dart';
+import 'package:eschool_api/src/model/secure_card_revocation_response.dart';
+import 'package:eschool_api/src/model/secure_card_scan_receipt.dart';
+import 'package:eschool_api/src/model/secure_card_scan_receipt_response.dart';
+import 'package:eschool_api/src/model/secure_card_sun_scan.dart';
 import 'package:eschool_api/src/model/session_year.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/set_wellbeing_case_status_response.dart';
@@ -3479,6 +3506,102 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'SchoolTermsResponseData':
       return SchoolTermsResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCard':
+      return SecureCard.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SecureCardConfiguration':
+      return SecureCardConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardConfigurationResponse':
+      return SecureCardConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardCredential':
+      return SecureCardCredential.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardCredentialResponse':
+      return SecureCardCredentialResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardIssue':
+      return SecureCardIssue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardPage':
+      return SecureCardPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardPageResponse':
+      return SecureCardPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardPeoplePage':
+      return SecureCardPeoplePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardPeoplePageResponse':
+      return SecureCardPeoplePageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardPerson':
+      return SecureCardPerson.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardPortraitReceipt':
+      return SecureCardPortraitReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardPortraitReceiptResponse':
+      return SecureCardPortraitReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardQrScan':
+      return SecureCardQrScan.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardReaderCredential':
+      return SecureCardReaderCredential.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardReaderCredentialResponse':
+      return SecureCardReaderCredentialResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardReaderRegister':
+      return SecureCardReaderRegister.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardReason':
+      return SecureCardReason.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardReplacement':
+      return SecureCardReplacement.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardReplacementResponse':
+      return SecureCardReplacementResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardResponse':
+      return SecureCardResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardRestore':
+      return SecureCardRestore.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardRevocation':
+      return SecureCardRevocation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardRevocationResponse':
+      return SecureCardRevocationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardScanReceipt':
+      return SecureCardScanReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureCardScanReceiptResponse':
+      return SecureCardScanReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureCardSunScan':
+      return SecureCardSunScan.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'SessionYear':
       return SessionYear.fromJson(value as Map<String, dynamic>) as ReturnType;

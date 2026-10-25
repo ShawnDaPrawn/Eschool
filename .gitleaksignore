@@ -2,3 +2,13 @@
 # unsigned test data, contains no real school/learner identity, and cannot
 # authorize a register write. Keep all other findings subject to the scan.
 40f024d63724259e5ca78e49878b9ea6854fadb5:packages/eschool_api/test/register_contract_test.dart:generic-api-key:20
+# Exact historical card test fixture: KEY on line 15 is a generated UUID used
+# only as the signing-key record ID, not Ed25519 key material or an API secret.
+# Its use is the k claim in NEQ1 test proofs; the actual signing pair is random.
+# RFC 8032 section 7.1 known-answer seed/signature occur separately in this file.
+# Keep all generic-api-key rules and every other historical finding active.
+c3301f3cfd09a5bb43231571632d3f8a629148f4:admin-panel/tests/Unit/Cards/SignedCardQrTest.php:generic-api-key:15
+# Exact typed-SDK fixture: NEQ1.synthetic.signed is an intentionally unsigned
+# shape example, not a valid Ed25519 card proof (the verifier rejects it).
+# This exemption does not cover valid-shaped card credentials or other lines.
+3357bda2b0ed2263dd45409b307ffd417c34df24:packages/eschool_api/test/secure_card_contract_test.dart:generic-api-key:37

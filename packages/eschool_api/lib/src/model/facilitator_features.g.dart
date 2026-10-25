@@ -34,6 +34,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(Map<String, dynamic> json) =>
           counselling: $checkedConvert('counselling', (v) => v as bool),
           supportPlans: $checkedConvert('support_plans', (v) => v as bool?),
           learnerNotes: $checkedConvert('learner_notes', (v) => v as bool?),
+          cards: $checkedConvert('cards', (v) => v as bool?),
         );
         return val;
       },
@@ -67,4 +68,5 @@ Map<String, dynamic> _$FacilitatorFeaturesToJson(
   'counselling': instance.counselling,
   'support_plans': ?instance.supportPlans,
   'learner_notes': ?instance.learnerNotes,
+  'cards': ?instance.cards,
 };

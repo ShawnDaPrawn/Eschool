@@ -19,12 +19,19 @@ class OpenAiProvider implements InferenceProvider
         if ($request->capability === Capability::Embed) {
             return ['/embeddings', ['model' => $request->model, 'input' => $request->input, 'user' => $request->anonymousActor, 'encoding_format' => 'float']];
         }
-        if ($request->capability !== Capability::Complete) {
+        if (! in_array($request->capability, [Capability::Complete, Capability::Vision], true)) {
             throw new InferenceNotDispatched('media_policy_required');
+        }
+        $content = $request->input;
+        if ($request->capability === Capability::Vision) {
+            $content = [['type' => 'text', 'text' => $request->input['text']]];
+            foreach ($request->input['images'] as $image) {
+                $content[] = ['type' => 'image_url', 'image_url' => ['url' => 'data:image/png;base64,'.$image['data'], 'detail' => 'high']];
+            }
         }
 
         return ['/chat/completions', ['model' => $request->model,
-            'messages' => [['role' => 'system', 'content' => $request->systemPrompt], ['role' => 'user', 'content' => $request->input]],
+            'messages' => [['role' => 'system', 'content' => $request->systemPrompt], ['role' => 'user', 'content' => $content]],
             'max_completion_tokens' => $request->maximumTokens, 'n' => 1, 'stream' => false, 'store' => false, 'user' => $request->anonymousActor]];
     }
 

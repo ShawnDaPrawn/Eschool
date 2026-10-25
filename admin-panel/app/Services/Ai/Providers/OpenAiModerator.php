@@ -9,8 +9,9 @@ use App\Services\Ai\Inference\Capability;
 use App\Services\Ai\Inference\InferenceModerator;
 use App\Services\Ai\Inference\InferenceNotDispatched;
 use App\Services\Ai\Inference\ModerationContext;
+use App\Services\Ai\Inference\ResolvedVisionInput;
 
-/** Fail-closed text moderation; vision waits for the private media resolver. */
+/** Fail-closed moderation of text and server-resolved private image derivatives. */
 class OpenAiModerator implements InferenceModerator
 {
     private function textPayload(string $direction, string|array $content, ModerationContext $context): array
@@ -18,19 +19,33 @@ class OpenAiModerator implements InferenceModerator
         if (! in_array($direction, ['input', 'output'], true) || ! preg_match('/^[a-f0-9]{64}$/D', $context->anonymousActor)) {
             throw new AiUnavailable('moderation_context_invalid');
         }
-        if (! is_string($content) || strlen($content) > 262144 || ! mb_check_encoding($content, 'UTF-8') || str_contains($content, "\0")) {
+        if (is_array($content)) {
+            if ($direction !== 'input') {
+                throw new AiUnavailable('moderation_invalid');
+            }
+            ResolvedVisionInput::units($content);
+            $input = [['type' => 'text', 'text' => $content['text']]];
+            foreach ($content['images'] as $image) {
+                $input[] = ['type' => 'image_url', 'image_url' => ['url' => 'data:image/png;base64,'.$image['data']]];
+            }
+        } elseif (strlen($content) > 262144 || ! mb_check_encoding($content, 'UTF-8') || str_contains($content, "\0")) {
             throw new AiUnavailable('moderation_invalid');
+        } else {
+            $input = $content;
         }
         $model = config('ai.providers.openai.moderation_model');
         if (! is_string($model) || ! preg_match('/^[a-zA-Z0-9._:-]{1,128}$/D', $model)) {
             throw new AiUnavailable('moderation_unavailable');
         }
 
-        return ['model' => $model, 'input' => $content];
+        return ['model' => $model, 'input' => $input];
     }
 
     public function preflight(Capability $capability, string|array $input, ModerationContext $context): void
     {
+        if (is_array($input) && $capability !== Capability::Vision) {
+            throw new InferenceNotDispatched('moderation_invalid');
+        }
         try {
             $payload = $this->textPayload('input', $input, $context);
         } catch (AiUnavailable $error) {
@@ -53,6 +68,9 @@ class OpenAiModerator implements InferenceModerator
             $context->deadline?->remainingSeconds();
 
             return []; // Numeric outputs receive structural, not semantic, output checks.
+        }
+        if (is_array($content) && $capability !== Capability::Vision) {
+            throw new AiUnavailable('moderation_invalid');
         }
         $data = app(ProviderTransport::class)->post('openai', '/moderations', $this->textPayload($direction, $content, $context), $context->operationId, $direction, $context->deadline);
         if (! is_array($data['results'] ?? null) || count($data['results']) !== 1 || ! is_bool($data['results'][0]['flagged'] ?? null)) {

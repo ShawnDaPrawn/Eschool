@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Tenancy;
 
+use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
+use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Models\Parents;
 use App\Models\Students;
@@ -118,6 +120,19 @@ class ApiRouteTenancyTest extends TestCase
     {
         $route = $this->route($method, $uri);
         $label = $route->label();
+
+        if (in_array(CardDeviceContext::class, $route->middleware, true)) {
+            $this->assertContains($label, [
+                'POST api/v2/card-device/scan/qr', 'POST api/v2/card-device/scan/sun', 'GET api/v2/card-device/scans/{scan}/portrait',
+            ], 'Dedicated device credentials must not escape the isolated reader endpoints');
+            $this->assertContains(PrivateDomainResponse::class, $route->middleware);
+            $this->assertFalse($route->requiresAuthentication(), 'User Sanctum credentials must not grant device authority');
+            $this->json($method, $route->path())->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+            $this->asA('tara')->json($method, $route->path())->assertUnauthorized();
+            $this->asB('tara')->json($method, $route->path())->assertUnauthorized();
+
+            return;
+        }
 
         if (array_key_exists($label, self::PUBLIC)) {
             $this->assertFalse($route->requiresAuthentication(), "$label is on the public list but needs a token: take it off the list");

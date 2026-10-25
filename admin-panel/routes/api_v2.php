@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
+use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
@@ -61,6 +62,7 @@ use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
+use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -586,6 +588,29 @@ Route::prefix('live')->name('api.v2.live.')->middleware([PrivateDomainResponse::
     Route::delete('groups/{group}/presence', [$controller, 'presence'])->whereNumber('group')->name('leave');
 });
 
+Route::prefix('cards')->name('api.v2.cards.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = CardController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('mine', [$controller, 'read'])->name('mine');
+    Route::get('managed', [$controller, 'read'])->name('managed');
+    Route::get('people', [$controller, 'read'])->name('people');
+    Route::post('/', [$controller, 'write'])->name('issue');
+    Route::post('portraits', [$controller, 'upload'])->name('portrait.upload');
+    Route::get('{card}', [$controller, 'read'])->whereUuid('card')->name('read');
+    Route::get('{card}/portrait', [$controller, 'portrait'])->whereUuid('card')->name('portrait');
+    foreach (['credential', 'freeze', 'replace', 'restore'] as $action) {
+        Route::post('{card}/'.$action, [$controller, 'write'])->whereUuid('card')->name($action);
+    }
+});
+
+// Dedicated credentials cannot authorize any normal user endpoint.
+Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->group(function () {
+    $controller = CardController::class;
+    Route::post('scan/qr', [$controller, 'scan'])->name('qr');
+    Route::post('scan/sun', [$controller, 'scan'])->name('sun');
+    Route::get('scans/{scan}/portrait', [$controller, 'portrait'])->whereUuid('scan')->name('portrait');
+});
+
 // Private per-child weekly summaries; every read refreshes actual guardian rights.
 Route::prefix('digests')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:digest'])->name('api.v2.digests.')->group(function () {
     $c = DigestController::class;
@@ -596,4 +621,9 @@ Route::prefix('digests')->middleware([PrivateDomainResponse::class, 'auth:sanctu
     Route::post('preferences', [$c, 'preferences'])->name('preferences');
     Route::get('learners/{learner}/weeks', [$c, 'list'])->whereNumber('learner')->name('list');
     Route::get('{digest}', [$c, 'show'])->whereNumber('digest')->name('show');
+});
+
+Route::prefix('card-readers')->name('api.v2.cards.readers.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    Route::post('/', [CardController::class, 'write'])->name('register');
+    Route::delete('{device}', [CardController::class, 'write'])->whereUuid('device')->name('revoke');
 });

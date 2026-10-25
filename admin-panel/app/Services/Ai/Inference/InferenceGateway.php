@@ -60,10 +60,22 @@ class InferenceGateway
         if ($request->prompt !== $config['prompt']) {
             throw new AiUnavailable('prompt_not_allowed');
         }
-        if ($capability === Capability::Vision || ! is_string($request->input)) {
+        $input = $request->input;
+        $vision = null;
+        if ($capability === Capability::Vision) {
+            if ($scope === null || $policy === null) {
+                throw new AiUnavailable('media_policy_required');
+            }
+            $vision = app(VisionMediaRegistry::class)->resolver($request->feature)->resolve($actor, $scope);
+            $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
+            if ($vision->manifest() !== $request->input) {
+                throw new AiUnavailable('vision_manifest_changed');
+            }
+            $input = $vision->payload();
+        } elseif (! is_string($input)) {
             throw new AiUnavailable('media_policy_required');
         }
-        $reserve = strlen($request->input) + strlen($prompt['system']) + 256 + $config['maximum_output_tokens'];
+        $reserve = ($vision === null ? strlen($input) : ResolvedVisionInput::units($input)) + strlen($prompt['system']) + 256 + $config['maximum_output_tokens'];
         if ($reserve > 131072) {
             throw new AiUnavailable('request_too_large');
         }
@@ -123,13 +135,13 @@ class InferenceGateway
             $identity = $scope?->learnerId === null ? 'actor:'.$actor->id : 'learner:'.$scope->learnerId;
             $anonymous = hash_hmac('sha256', $schoolId.':'.$identity, (string) config('app.key'));
             $moderationContext = new ModerationContext($request->operationId, $anonymous, $deadline);
-            $providerRequest = new ProviderRequest($capability, $request->operationId, $config['model'], $anonymous, $prompt['system'], $request->input,
+            $providerRequest = new ProviderRequest($capability, $request->operationId, $config['model'], $anonymous, $prompt['system'], $input,
                 $config['maximum_output_tokens'], $reserve, $deadline);
             // No HTTP in preflight. Fail before even external moderation when the provider cannot dispatch.
             $provider->preflight($providerRequest);
-            $moderator->preflight($capability, $request->input, $moderationContext);
+            $moderator->preflight($capability, $input, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
-            $inputFlags = $moderator->flags($capability, 'input', $request->input, $moderationContext);
+            $inputFlags = $moderator->flags($capability, 'input', $input, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
             $this->quarantine($usage, $inputFlags, 'input', $request->input);
             $dispatched = true;
@@ -244,6 +256,10 @@ class InferenceGateway
             if (! is_string($config[$key] ?? null) || $config[$key] === '' || strlen($config[$key]) > 128) {
                 throw new AiUnavailable('adapter_unavailable');
             }
+        }
+        if ($capability === Capability::Vision && $scope !== null) {
+            // Resolver withdrawal/replacement invalidates an in-flight authorization.
+            $config['vision_resolver_class'] = get_class(app(VisionMediaRegistry::class)->resolver($feature));
         }
 
         return $config;

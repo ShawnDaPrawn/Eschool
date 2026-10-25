@@ -16,6 +16,8 @@ return [
         'features' => [],
         // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
         'feature_policies' => [],
+        // Only explicit feature-owned resolvers may load approved private derivatives.
+        'vision_resolvers' => [],
     ],
     'transcribe' => [
         'provider' => 'local-whisper-base',

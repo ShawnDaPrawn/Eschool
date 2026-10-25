@@ -20,6 +20,12 @@ class CardSigningKeys
             if ($key !== null) {
                 return $key;
             }
+            // Completed signing epochs retain public verification material only.
+            foreach (CardKey::where('sign_until', '<=', $now)->get() as $retired) {
+                if ($retired->secret_key !== '') {
+                    $retired->update(['secret_key' => '']);
+                }
+            }
             $pair = sodium_crypto_sign_keypair();
             $row = CardKey::create(['public_key' => base64_encode(sodium_crypto_sign_publickey($pair)), 'secret_key' => base64_encode(sodium_crypto_sign_secretkey($pair)),
                 'starts_at' => $now, 'sign_until' => $now->copy()->addDay(), 'verify_until' => $now->copy()->addDay()->addMinute()]);
