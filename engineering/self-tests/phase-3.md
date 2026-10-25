@@ -392,3 +392,26 @@ password change, platform identity and impersonation refuse access.
 These are service/domain checks, not school framework acceptance, a month of
 operation or panel/native UX verification. The typed contracts, notices and real
 workflow surfaces continue in the next increment.
+## Current risk observation ordering and active scheduling
+
+Both reviewed bugs first reproduced with real red regressions: canonical daily
+attendance changed present → absent → present while the displayed risk stayed
+absent, and the configured application's schedule omitted the hourly refresh.
+After the retained-safe index/append fix and active scheduler registration, the
+risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions**.
+Repeated identical refreshes stay idempotent; genuine reversions retain all three
+ordered observations and classroom readers show the latest corrected state.
+Changed-file Pint and complete configured Larastan pass.
+
+The inherited SetSchoolContext/PortalSession formatting is corrected and the
+complete **1,283-file Pint** check passes. The already reviewed Phase 4 Android
+smoke matrix is backported unchanged: family, classic Teacher and native
+facilitator each run their matching target/profile. No startup assertion is
+weakened; emulator execution remains CI verification.
+
+A grade-mapping correction no longer silently restarts the learner's configured
+school-year discipline counter. The original record keeps its reported grade;
+the next record retains the correct second-level review. This regression first
+fails with the old grade-filtered counter, then passes. The complete discipline
+cohort passes **13 tests, 82 assertions**, changed-file Pint and configured
+Larastan; scheduler/ordered-risk-observation corrections are inherited too.

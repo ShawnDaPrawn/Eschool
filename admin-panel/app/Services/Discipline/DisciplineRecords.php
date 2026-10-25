@@ -45,7 +45,7 @@ class DisciplineRecords
             $infraction = collect($definition['infractions'])->firstWhere('code', $data['infraction_code']);
             abort_unless($infraction !== null, 422, 'Choose an infraction from the current framework.');
             $start = $this->windowStart($year, $grade, $data['occurred_on'], $definition);
-            $count = DisciplineRecord::where('learner_id', $learner)->where('session_year_id', $year)->where('grade_level_id', $grade)
+            $count = DisciplineRecord::where('learner_id', $learner)->where('session_year_id', $year)
                 ->whereIn('status', ['confirmed', 'hearing'])->whereBetween('occurred_on', [$start, $data['occurred_on']])
                 ->when($definition['counter_scope'] === 'same_infraction', fn ($q) => $q->where('infraction_code', $data['infraction_code']))->count() + 1;
             $levels = $definition['levels'];

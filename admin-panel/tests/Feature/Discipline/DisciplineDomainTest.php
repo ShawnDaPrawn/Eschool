@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Discipline;
 
 use App\Models\Academics\AcademicLeadership;
+use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingGroup;
 use App\Models\ClassSchool;
 use App\Models\Discipline\DetentionEntry;
@@ -292,6 +293,20 @@ class DisciplineDomainTest extends TestCase
         app(ModuleGate::class)->forget();
         $this->denied(fn () => $r->read($this->actor(), $row['id']), 403);
         $this->assertNull(app(DisciplineMetrics::class)->forLeadership($this->superAdmin(), $this->year, '2026-02-01', '2026-02-10', [$this->grade => [$this->schoolA->ids['asha']]])[$this->grade]);
+    }
+
+    public function test_school_year_counter_follows_learner_across_grade_correction_without_rewriting_reported_grade(): void
+    {
+        $this->configure();
+        $first = $this->record();
+        $newGrade = (int) GradeLevel::where('code', '8')->value('id');
+        $this->assertNotSame($this->grade, $newGrade);
+        ClassSchool::whereKey($this->schoolA->ids['class_a'])->update(['grade_level_id' => $newGrade]);
+        $next = app(DisciplineRecords::class)->create($this->superAdmin(), $this->schoolA->ids['asha'], $this->year, $this->entry());
+        $this->assertSame('review', $next['level_code']);
+        $this->assertSame('pending_review', $next['status']);
+        $this->assertSame($this->grade, DisciplineRecord::findOrFail($first['id'])->grade_level_id);
+        $this->assertSame($newGrade, $next['grade_level_id']);
     }
 
     public function test_term_reset_uses_calendar_days_and_preserves_the_prior_term_history(): void
