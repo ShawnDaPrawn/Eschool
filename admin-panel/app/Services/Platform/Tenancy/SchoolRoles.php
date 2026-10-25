@@ -38,7 +38,7 @@ class SchoolRoles
         self::STUDENT => [],
         self::FACILITATOR => [],
         self::COUNSELLOR => ['pastoral-sensitive-access'],
-        self::SAFEGUARDING => ['pastoral-sensitive-access'],
+        self::SAFEGUARDING => ['pastoral-sensitive-access', 'ai-flags-review'],
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
