@@ -103,7 +103,7 @@ class IncidentPhotos
                 $photo = IncidentPhoto::create(['id' => $uuid, 'incident_report_id' => $id, 'operation_id' => $operation, 'source_digest' => $digest,
                     'sha256' => hash('sha256', $image['bytes']), 'path' => $path, 'bytes' => strlen($image['bytes']), 'width' => $image['width'], 'height' => $image['height'],
                     'thumbnail' => $image['thumbnail'], 'scan_receipt' => ['source' => $sourceScan, 'sanitized' => $cleanScan], 'report_revision' => $report->revision]);
-                $this->operations->event($actor, 'wellbeing.photo_added', $report);
+                $this->operations->event($report->anonymous ? null : $actor, 'wellbeing.photo_added', $report);
                 $this->context($schoolId);
                 $this->reports->authorizedReportId($secret, $actor, true);
 

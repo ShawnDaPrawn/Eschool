@@ -88,7 +88,7 @@ class SafeImages
                 $image = $rotated;
             }
             if (in_array($orientation, [2, 4, 5, 7], true)) {
-                imageflip($image, in_array($orientation, [2, 7], true) ? IMG_FLIP_HORIZONTAL : IMG_FLIP_VERTICAL);
+                imageflip($image, in_array($orientation, [2, 5], true) ? IMG_FLIP_HORIZONTAL : IMG_FLIP_VERTICAL);
             }
             $output = $this->jpeg($image, 2048);
             $dimensions = getimagesizefromstring($output);

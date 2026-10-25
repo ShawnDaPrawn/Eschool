@@ -10,6 +10,7 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
 use App\Models\User;
 use App\Models\Wellbeing\Category;
+use App\Models\Wellbeing\Event;
 use App\Models\Wellbeing\IncidentPhoto;
 use App\Models\Wellbeing\IncidentReport;
 use App\Models\Wellbeing\TeamAssignment;
@@ -282,5 +283,13 @@ class IncidentPhotosTest extends TestCase
             $this->assertStringContainsString('incident_photo_report_scope', $error->getMessage());
         }
         $this->assertSame(0, IncidentPhoto::count());
+    }
+
+    public function test_supplied_actor_never_becomes_an_anonymous_photo_audit_identity(): void
+    {
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        app(IncidentPhotos::class)->upload($this->secret, $this->photo(), (string) Str::uuid(), $parent);
+        $this->assertNull(IncidentReport::firstOrFail()->reporter_user_id);
+        $this->assertNull(Event::where('event', 'wellbeing.photo_added')->firstOrFail()->actor_id);
     }
 }

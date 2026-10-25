@@ -31,3 +31,13 @@ image quality, ingress/log privacy and latency are not qualified by these tests.
 HTTP transports, public follow-up controls, restricted panel/app previews and
 fresh-authority notices continue in the next increments; the module defaults
 remain unchanged.
+
+Review correction: an authenticated caller holding an anonymous code no longer
+appears as the actor of a photo event. EXIF transpose/transverse orientations now
+use the correct flip after rotation. Both findings were reproduced against the
+reviewed source (actor link plus orientations 5 and 7 failed), then corrected.
+An asymmetric six-colour grid verifies all eight orientations in both stored
+pixels and thumbnail. Final isolated cohort: 20 tests / 390 assertions, no test
+warnings; whole-app Larastan and Pint pass. The first review worktree run lacked
+its ignored local test `.env`; restoring that existing test setup removed the
+file-read warnings before the final clean run.
