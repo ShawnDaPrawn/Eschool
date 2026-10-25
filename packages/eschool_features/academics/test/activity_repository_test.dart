@@ -3,6 +3,7 @@ import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'activity_test_repository.dart';
 
 void main() {
@@ -44,6 +45,7 @@ void main() {
         api.requests.every(
           (r) =>
               r.headers['X-School-Id'] == '1' &&
+              r.headers['X-Account-Id'] == '12' &&
               r.headers['Authorization'] == 'Bearer synthetic',
         ),
         isTrue,

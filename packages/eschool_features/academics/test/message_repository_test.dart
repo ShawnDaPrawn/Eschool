@@ -41,7 +41,11 @@ void main() {
       isTrue,
     );
     expect(
-      api.requests.every((request) => request.headers['X-School-Id'] == '1'),
+      api.requests.every(
+        (request) =>
+            request.headers['X-School-Id'] == '1' &&
+            request.headers['X-Account-Id'] == '12',
+      ),
       isTrue,
     );
     expect(

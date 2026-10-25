@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
+use App\Http\Controllers\Api\V2\Growth\MasteryController;
+use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -26,8 +28,10 @@ use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
+use App\Http\Middleware\AuthorizeCover;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeMarks;
+use App\Http\Middleware\AuthorizeMastery;
 use App\Http\Middleware\AuthorizeRegister;
 use App\Http\Middleware\AuthorizeReport;
 use App\Http\Middleware\AuthorizeSubjectStandard;
@@ -35,6 +39,7 @@ use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\PrivateAcademicContent;
+use App\Http\Middleware\PrivateMastery;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -312,4 +317,33 @@ Route::prefix('communication')->middleware(['auth:sanctum', 'school.context', 'r
     Route::get('messages', [$c, 'inbox'])->name('inbox');
     Route::get('messages/{message}', [$c, 'reader'])->whereNumber('message')->name('reader');
     Route::post('messages/{message}/read', [$c, 'read'])->whereNumber('message')->name('read');
+});
+
+Route::prefix('growth/mastery')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:mastery', PrivateMastery::class])->name('api.v2.mastery.')->group(function () {
+    $controller = MasteryController::class;
+    $policy = AuthorizeMastery::class;
+    Route::get('configuration', [$controller, 'configuration'])->middleware($policy.':configuration')->name('configuration');
+    Route::get('groups/{group}/learners', [$controller, 'roster'])->whereNumber('group')->middleware($policy.':read')->name('roster');
+    Route::get('groups/{group}/learners/{learner}', [$controller, 'staff'])->whereNumber('group')->whereNumber('learner')->middleware($policy.':read')->name('staff');
+    Route::get('learners/{learner}/subjects', [$controller, 'subjects'])->whereNumber('learner')->middleware($policy.':family')->name('subjects');
+    Route::get('learners/{learner}', [$controller, 'family'])->whereNumber('learner')->middleware($policy.':family')->name('family');
+    Route::get('subjects/{subject}/graph', [$controller, 'graph'])->whereNumber('subject')->middleware($policy.':graph')->name('graph');
+    Route::put('subjects/{subject}/graph', [$controller, 'saveGraph'])->whereNumber('subject')->middleware([$policy.':manage', 'idempotent'])->name('save-graph');
+    Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->middleware([$policy.':rebuild', 'idempotent'])->name('rebuild');
+});
+
+Route::prefix('pastoral/cover')->middleware(['auth:sanctum', 'school.context', 'staff', 'module:relief_cover', 'cache.headers:private;no_store'])->name('api.v2.cover.')->group(function () {
+    $c = CoverController::class;
+    $a = AuthorizeCover::class;
+    foreach (['configuration', 'mine'] as $operation) {
+        Route::get($operation, [$c, $operation])->middleware($a.':'.$operation)->name($operation);
+    }
+    Route::post('absences', [$c, 'request'])->middleware($a.':request')->name('request');
+    Route::get('absences/{absence}', [$c, 'absence'])->whereNumber('absence')->middleware($a.':absence')->name('absence');
+    foreach (['refresh', 'cancel'] as $operation) {
+        Route::post('absences/{absence}/'.$operation, [$c, $operation])->whereNumber('absence')->middleware($a.':'.$operation)->name($operation);
+    }
+    Route::get('occurrences/{occurrence}', [$c, 'occurrence'])->whereNumber('occurrence')->middleware($a.':occurrence')->name('occurrence');
+    Route::get('occurrences/{occurrence}/candidates', [$c, 'candidates'])->whereNumber('occurrence')->middleware($a.':candidates')->name('candidates');
+    Route::put('occurrences/{occurrence}/assignment', [$c, 'assign'])->whereNumber('occurrence')->middleware($a.':assign')->name('assign');
 });

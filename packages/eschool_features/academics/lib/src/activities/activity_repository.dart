@@ -68,6 +68,7 @@ class ApiActivityRepository implements ActivityRepository {
       data: data,
       queryParameters: query,
       schoolId: schoolId,
+      accountId: accountId,
       requestTimeout: const Duration(seconds: 30),
     );
     _guard();

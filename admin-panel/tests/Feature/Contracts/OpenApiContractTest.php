@@ -50,6 +50,15 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getCoverConfiguration requires auth' => [null, 'GET', 'api/v2/pastoral/cover/configuration', [], 401],
+            'getMyCover requires auth' => [null, 'GET', 'api/v2/pastoral/cover/mine', [], 401],
+            'createCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences', [], 401],
+            'getCoverAbsence requires auth' => [null, 'GET', 'api/v2/pastoral/cover/absences/1', [], 401],
+            'refreshCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences/1/refresh', [], 401],
+            'cancelCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences/1/cancel', [], 401],
+            'getCoverOccurrence requires auth' => [null, 'GET', 'api/v2/pastoral/cover/occurrences/1', [], 401],
+            'getCoverCandidates requires auth' => [null, 'GET', 'api/v2/pastoral/cover/occurrences/1/candidates', [], 401],
+            'assignCoverOccurrence requires auth' => [null, 'PUT', 'api/v2/pastoral/cover/occurrences/1/assignment', [], 401],
             'listActivityGroups module-off' => ['superadmin', 'GET', 'api/v2/activities/groups', [], 404],
             'createActivityGroup module-off' => ['superadmin', 'POST', 'api/v2/activities/groups', [], 404],
             'readActivityGroup module-off' => ['superadmin', 'GET', 'api/v2/activities/groups/999999', [], 404],
@@ -272,6 +281,14 @@ class OpenApiContractTest extends TestCase
             'context as a teacher' => ['tara', 'GET', 'api/v2/me/context', [], 200],
             'context as the super admin' => ['superadmin', 'GET', 'api/v2/me/context', [], 200],
             'context as school-created staff' => ['staff', 'GET', 'api/v2/me/context', [], 200],
+            'mastery configuration requires auth' => [null, 'GET', 'api/v2/growth/mastery/configuration', [], 401],
+            'mastery roster requires auth' => [null, 'GET', 'api/v2/growth/mastery/groups/1/learners', [], 401],
+            'mastery staff learner requires auth' => [null, 'GET', 'api/v2/growth/mastery/groups/1/learners/1', [], 401],
+            'mastery family subjects requires auth' => [null, 'GET', 'api/v2/growth/mastery/learners/1/subjects', [], 401],
+            'mastery family learner requires auth' => [null, 'GET', 'api/v2/growth/mastery/learners/1', [], 401],
+            'mastery graph read requires auth' => [null, 'GET', 'api/v2/growth/mastery/subjects/1/graph', [], 401],
+            'mastery graph write requires auth' => [null, 'PUT', 'api/v2/growth/mastery/subjects/1/graph', [], 401],
+            'mastery repair queue requires auth' => [null, 'POST', 'api/v2/growth/mastery/groups/1/rebuild', [], 401],
             'context without a token' => [null, 'GET', 'api/v2/me/context', [], 401],
             'context for an account with no role' => ['norole', 'GET', 'api/v2/me/context', [], 403],
         ];

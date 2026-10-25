@@ -149,6 +149,7 @@ class ApiClient {
     bool useAuthToken = true,
     bool notFoundAsNull = false,
     int? schoolId,
+    int? accountId,
     String? idempotencyKey,
     Duration? requestTimeout,
   }) async {
@@ -176,6 +177,7 @@ class ApiClient {
               ? {
                   ...headers(),
                   if (schoolId != null) 'X-School-Id': '$schoolId',
+                  if (accountId != null) 'X-Account-Id': '$accountId',
                   if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
                 }
               : const {'Accept': 'application/json'},

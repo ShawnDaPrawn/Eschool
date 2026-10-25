@@ -16,6 +16,12 @@ part 'academic_timetable_lesson.g.dart';
 class AcademicTimetableLesson {
   /// Returns a new [AcademicTimetableLesson] instance.
   AcademicTimetableLesson({
+    this.coverId,
+
+    this.originalTeacherId,
+
+    this.originalTeacherName,
+
     required this.id,
 
     required this.revision,
@@ -64,6 +70,21 @@ class AcademicTimetableLesson {
 
     required this.date,
   });
+
+  // minimum: 1
+  @JsonKey(name: r'cover_id', required: false, includeIfNull: false)
+  final int? coverId;
+
+  // minimum: 1
+  @JsonKey(name: r'original_teacher_id', required: false, includeIfNull: false)
+  final int? originalTeacherId;
+
+  @JsonKey(
+    name: r'original_teacher_name',
+    required: false,
+    includeIfNull: false,
+  )
+  final String? originalTeacherName;
 
   // minimum: 1
   @JsonKey(name: r'id', required: true, includeIfNull: false)
@@ -158,6 +179,9 @@ class AcademicTimetableLesson {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AcademicTimetableLesson &&
+          other.coverId == coverId &&
+          other.originalTeacherId == originalTeacherId &&
+          other.originalTeacherName == originalTeacherName &&
           other.id == id &&
           other.revision == revision &&
           other.sessionYearId == sessionYearId &&
@@ -185,6 +209,9 @@ class AcademicTimetableLesson {
 
   @override
   int get hashCode =>
+      coverId.hashCode +
+      originalTeacherId.hashCode +
+      originalTeacherName.hashCode +
       id.hashCode +
       revision.hashCode +
       sessionYearId.hashCode +

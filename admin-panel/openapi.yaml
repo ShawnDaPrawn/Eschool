@@ -161,6 +161,8 @@ security:
 - bearerAuth: []
 - cookieAuth: []
 tags:
+- name: Growth
+  description: Private learner growth and mastery.
 - name: Communication
   description: Private school audiences and approved scheduled messages.
 - name: Academics
@@ -169,6 +171,8 @@ tags:
   description: Who is signed in and the school they work in.
 - name: Activities
   description: Scoped seasonal groups, allocations, session registers and materials.
+- name: Pastoral
+  description: Scoped school cover and restricted learner support.
 paths:
   /academics/teaching-groups:
     get:
@@ -183,6 +187,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -250,6 +255,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -293,6 +299,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -366,6 +373,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -415,6 +423,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -496,6 +505,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -553,6 +563,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -616,6 +627,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: kind
         in: path
@@ -691,6 +703,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: kind
         in: path
@@ -742,6 +755,7 @@ paths:
         principals. Date intervals stay within the year. Updates require revision and all context fields;
         history is audited. Weights and marks are not changed by an allocation.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: kind
         in: path
@@ -796,6 +810,7 @@ paths:
         may be incomplete; publication validates the affected term. Decimal marks are strings; weights
         are integer basis points (10000 = 100%).
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: subject_id
         in: query
@@ -862,6 +877,7 @@ paths:
         may be incomplete; publication validates the affected term. Decimal marks are strings; weights
         are integer basis points (10000 = 100%).
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -902,6 +918,7 @@ paths:
         may be incomplete; publication validates the affected term. Decimal marks are strings; weights
         are integer basis points (10000 = 100%).
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
         in: path
@@ -941,6 +958,7 @@ paths:
         may be incomplete; publication validates the affected term. Decimal marks are strings; weights
         are integer basis points (10000 = 100%).
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
         in: path
@@ -987,6 +1005,7 @@ paths:
         may be incomplete; publication validates the affected term. Decimal marks are strings; weights
         are integer basis points (10000 = 100%).
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
         in: path
@@ -1033,6 +1052,7 @@ paths:
         may be incomplete; publication validates the affected term. Decimal marks are strings; weights
         are integer basis points (10000 = 100%).
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: plan
         in: path
@@ -1082,6 +1102,7 @@ paths:
       - Academics
       summary: Browse published CAPS and IEB reference revisions
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: framework
         in: query
@@ -1142,6 +1163,7 @@ paths:
       - Academics
       summary: Read a school subject mapping with subject-list permission
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: subject
         in: path
@@ -1178,6 +1200,7 @@ paths:
       - Academics
       summary: Map or clear a school subject reference with subject-edit permission
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: subject
         in: path
@@ -1222,6 +1245,7 @@ paths:
       - Academics
       summary: Create a school subject from a published reference with subject-create permission
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -1260,6 +1284,7 @@ paths:
       - Academics
       summary: Read school-year terms and grade ranges
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -1303,6 +1328,7 @@ paths:
       - Academics
       summary: Create a term in the current school
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -1343,6 +1369,7 @@ paths:
       - Academics
       summary: Update school term dates and grade range
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: term
         in: path
@@ -1388,6 +1415,7 @@ paths:
       - Academics
       summary: Remove an unused school term
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: term
         in: path
@@ -1427,6 +1455,7 @@ paths:
       - Academics
       summary: List this school's calendar templates
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -1458,6 +1487,7 @@ paths:
       - Academics
       summary: Save a school-year calendar as a template
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -1498,6 +1528,7 @@ paths:
       - Academics
       summary: Preview or apply a school calendar template
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: template
         in: path
@@ -1547,6 +1578,7 @@ paths:
       description: Read-only reference for active school members. Thresholds are integer basis points,
         not new calculations of existing learner marks.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -1574,6 +1606,7 @@ paths:
       description: Requires class-list or class-edit in the current school. Foreign or deleted classes
         return 404.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: class
         in: path
@@ -1606,6 +1639,7 @@ paths:
       description: Requires class-edit in the current school. Does not change class names, legacy marks
         or reports. Repeated identical mappings produce no additional audit entry.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       - name: class
@@ -1652,6 +1686,7 @@ paths:
       description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata;
         refresh the profile to read permitted metadata.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: field
         in: path
@@ -1702,6 +1737,7 @@ paths:
       description: PDF, PNG or JPEG up to 5 MB. The upload is encrypted and returns no private metadata;
         refresh the profile to read permitted metadata.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: person
         in: path
@@ -1758,6 +1794,7 @@ paths:
       description: Requires active membership and the same school in X-School-Id. Document links are public
         school publications, not private person files.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: school
         in: path
@@ -1816,6 +1853,7 @@ paths:
 
         '
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -1844,6 +1882,7 @@ paths:
       - Platform
       summary: List linked learners and current consent
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -1871,6 +1910,7 @@ paths:
       - Platform
       summary: Approve or withdraw learner access
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -2007,6 +2047,7 @@ paths:
       - Platform
       summary: Email an invitation to an existing linked guardian
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: guardian
         in: path
@@ -2040,6 +2081,7 @@ paths:
       - Platform
       summary: Read a learners dated enrolment history
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -2081,6 +2123,7 @@ paths:
       - Platform
       summary: Append a dated homeroom assignment
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -2139,6 +2182,7 @@ paths:
       - Platform
       summary: Read your handle and pending proposal
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2173,6 +2217,7 @@ paths:
       - Platform
       summary: Choose a handle or request guardian approval
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2222,6 +2267,7 @@ paths:
       - Platform
       summary: Read your linked learners pending handle requests
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2257,6 +2303,7 @@ paths:
       - Platform
       summary: Approve or reject a linked learners handle
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: proposal
         in: path
@@ -2313,6 +2360,7 @@ paths:
       - Platform
       summary: Read your notice preferences and required channels
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2339,6 +2387,7 @@ paths:
       - Platform
       summary: Change an optional notification channel
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2388,6 +2437,7 @@ paths:
       - Platform
       summary: Read your authorised profile form
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: profile_type
         in: query
@@ -2422,6 +2472,7 @@ paths:
       - Platform
       summary: Save your editable profile fields
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2469,6 +2520,7 @@ paths:
       - Platform
       summary: Read an authorised person profile
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: person
         in: path
@@ -2510,6 +2562,7 @@ paths:
       - Platform
       summary: Save an authorised person profile
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: person
         in: path
@@ -2564,6 +2617,7 @@ paths:
       - Platform
       summary: Read current-school profile field configuration
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: profile_type
         in: query
@@ -2599,6 +2653,7 @@ paths:
       - Platform
       summary: Create a school profile category
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2652,6 +2707,7 @@ paths:
       - Platform
       summary: Update a school profile category
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: category
         in: path
@@ -2711,6 +2767,7 @@ paths:
       - Platform
       summary: Remove an empty school profile category
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: category
         in: path
@@ -2747,6 +2804,7 @@ paths:
       - Platform
       summary: Create a school profile field
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -2825,6 +2883,7 @@ paths:
       - Platform
       summary: Update a school profile field
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: definition
         in: path
@@ -2909,6 +2968,7 @@ paths:
       - Platform
       summary: Remove an unlocked school profile field
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: definition
         in: path
@@ -2950,6 +3010,7 @@ paths:
         task IDs map to a year-specific canonical task; copied definitions never duplicate marks. No fee
         condition gates academic results.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3011,6 +3072,7 @@ paths:
         condition gates academic results. Capture needs a current subject allocation. Only the grade head
         corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3067,6 +3129,7 @@ paths:
         condition gates academic results. Capture needs a current subject allocation. Only the grade head
         corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3123,6 +3186,7 @@ paths:
         condition gates academic results. Capture needs a current subject allocation. Only the grade head
         corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3179,6 +3243,7 @@ paths:
         condition gates academic results. Capture needs a current subject allocation. Only the grade head
         corrects moderated marks, with a reason, and moderates. Preview never saves marks.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3237,6 +3302,7 @@ paths:
         Official mode requires complete selected learners; running mode is explicitly provisional. Other
         learners may continue independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3289,6 +3355,7 @@ paths:
         Official mode requires complete selected learners; running mode is explicitly provisional. Other
         learners may continue independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -3336,6 +3403,7 @@ paths:
         older relationships. Results contain only explicitly released evidence; omit term_id for year
         results. Staff use the scoped matrix. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -3388,6 +3456,7 @@ paths:
         periods, newest release first, with school-scoped labels. No unpublished periods or scores are
         disclosed.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -3430,6 +3499,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -3480,6 +3550,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -3523,6 +3594,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -3573,6 +3645,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -3616,6 +3689,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -3659,6 +3733,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -3701,6 +3776,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -3760,6 +3836,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -3803,6 +3880,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -3846,6 +3924,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -3896,6 +3975,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -3946,6 +4026,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -3996,6 +4077,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -4046,6 +4128,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -4089,6 +4172,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -4139,6 +4223,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: batch
         in: path
@@ -4182,6 +4267,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: card
         in: path
@@ -4225,6 +4311,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: card
         in: path
@@ -4275,6 +4362,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: card
         in: path
@@ -4349,6 +4437,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: card
         in: path
@@ -4393,6 +4482,7 @@ paths:
         Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected
         learners can progress independently.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -4444,6 +4534,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: on_date
         in: query
@@ -4495,6 +4586,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -4538,6 +4630,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -4574,6 +4667,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -4618,6 +4712,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -4662,6 +4757,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -4707,6 +4803,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -4751,6 +4848,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: register
         in: path
@@ -4795,6 +4893,7 @@ paths:
         contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters.
         No fee condition applies.'
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: register
         in: path
@@ -4844,6 +4943,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -4888,6 +4988,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -4942,6 +5043,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner_id
         in: query
@@ -4984,6 +5086,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -5027,6 +5130,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: room
         in: path
@@ -5076,6 +5180,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -5119,6 +5224,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: schedule
         in: path
@@ -5168,6 +5274,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -5211,6 +5318,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -5254,6 +5362,7 @@ paths:
         or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week
         parity. No fee condition applies.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/IdempotencyKey'
       responses:
@@ -5296,6 +5405,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -5336,6 +5446,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: search
         in: query
@@ -5383,6 +5494,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -5430,6 +5542,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: grade
         in: path
@@ -5476,6 +5589,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -5515,6 +5629,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -5554,6 +5669,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -5593,6 +5709,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -5632,6 +5749,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -5671,6 +5789,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: package
         in: path
@@ -5711,6 +5830,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: package
         in: path
@@ -5751,6 +5871,7 @@ paths:
         remain requester owned. No learner is activated and no billing is posted. Canonical educational records are
         retained.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: package
         in: path
@@ -5818,6 +5939,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -5856,6 +5978,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -5900,6 +6023,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -5955,6 +6079,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: item
         in: path
@@ -6000,6 +6125,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: item
         in: path
@@ -6069,6 +6195,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: item
         in: path
@@ -6113,6 +6240,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -6151,6 +6279,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: version
         in: path
@@ -6188,6 +6317,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: version
         in: path
@@ -6238,6 +6368,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: version
         in: path
@@ -6276,6 +6407,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: version
         in: path
@@ -6320,6 +6452,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: version
         in: path
@@ -6364,6 +6497,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -6406,6 +6540,7 @@ paths:
       summary: Revalidate up to twenty saved immutable publications
       description: Private no-store query. Checks current account, school, learner enrolment and group access using the reader policy. Omits inaccessible IDs without revealing whether they exist. Returns no Markdown or source files; a successful response renews only the listed immutable publication leases.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -6448,6 +6583,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -6492,6 +6628,7 @@ paths:
         operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human
         review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -6536,6 +6673,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -6575,6 +6713,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -6620,6 +6759,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
@@ -6658,6 +6798,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -6697,6 +6838,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: audience
@@ -6742,6 +6884,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -6775,6 +6918,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: role
@@ -6820,6 +6964,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: page
@@ -6858,6 +7003,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       responses:
@@ -6897,6 +7043,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -6935,6 +7082,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -6980,6 +7128,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -7019,6 +7168,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -7064,6 +7214,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -7109,6 +7260,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -7154,6 +7306,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: page
@@ -7193,6 +7346,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -7232,6 +7386,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
@@ -7271,6 +7426,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -7313,6 +7469,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -7351,6 +7508,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7388,6 +7546,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7432,6 +7591,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7470,6 +7630,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7514,6 +7675,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7564,6 +7726,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7608,6 +7771,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7658,6 +7822,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7702,6 +7867,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7752,6 +7918,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7796,6 +7963,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -7846,6 +8014,7 @@ paths:
         and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
         their own groups. Learners and guardians never receive peer rosters.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session
         in: path
@@ -7880,6 +8049,791 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ActivityAttendanceWrite'
+  /growth/mastery/configuration:
+    get:
+      operationId: getMasteryConfiguration
+      tags:
+      - Growth
+      summary: getMasteryConfiguration
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/groups/{group}/learners:
+    get:
+      operationId: getMasteryRoster
+      tags:
+      - Growth
+      summary: getMasteryRoster
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryRosterResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/groups/{group}/learners/{learner}:
+    get:
+      operationId: getMasteryStaff
+      tags:
+      - Growth
+      summary: getMasteryStaff
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryViewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/learners/{learner}/subjects:
+    get:
+      operationId: getMasterySubjects
+      tags:
+      - Growth
+      summary: getMasterySubjects
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterySubjectListResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/learners/{learner}:
+    get:
+      operationId: getMasteryFamily
+      tags:
+      - Growth
+      summary: getMasteryFamily
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryViewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/subjects/{subject}/graph:
+    get:
+      operationId: getMasteryGraph
+      tags:
+      - Growth
+      summary: getMasteryGraph
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryGraphResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: saveMasteryGraph
+      tags:
+      - Growth
+      summary: saveMasteryGraph
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryGraphResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasteryGraphWrite'
+  /growth/mastery/groups/{group}/rebuild:
+    post:
+      operationId: queueMasteryRebuild
+      tags:
+      - Growth
+      summary: queueMasteryRebuild
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryRebuildResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /pastoral/cover/configuration:
+    get:
+      operationId: getCoverConfiguration
+      tags:
+      - Pastoral
+      summary: getCoverConfiguration
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/cover/mine:
+    get:
+      operationId: getMyCover
+      tags:
+      - Pastoral
+      summary: getMyCover
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverMineResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/cover/absences:
+    post:
+      operationId: createCoverAbsence
+      tags:
+      - Pastoral
+      summary: createCoverAbsence
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverAbsenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverCreateInput'
+  /pastoral/cover/absences/{absence}:
+    get:
+      operationId: getCoverAbsence
+      tags:
+      - Pastoral
+      summary: getCoverAbsence
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: absence
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverAbsenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/cover/absences/{absence}/refresh:
+    post:
+      operationId: refreshCoverAbsence
+      tags:
+      - Pastoral
+      summary: refreshCoverAbsence
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: absence
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverAbsenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverChangeInput'
+  /pastoral/cover/absences/{absence}/cancel:
+    post:
+      operationId: cancelCoverAbsence
+      tags:
+      - Pastoral
+      summary: cancelCoverAbsence
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: absence
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverAbsenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverChangeInput'
+  /pastoral/cover/occurrences/{occurrence}:
+    get:
+      operationId: getCoverOccurrence
+      tags:
+      - Pastoral
+      summary: getCoverOccurrence
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: occurrence
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverOccurrenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/cover/occurrences/{occurrence}/candidates:
+    get:
+      operationId: getCoverCandidates
+      tags:
+      - Pastoral
+      summary: getCoverCandidates
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: occurrence
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverCandidatesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/cover/occurrences/{occurrence}/assignment:
+    put:
+      operationId: assignCoverOccurrence
+      tags:
+      - Pastoral
+      summary: assignCoverOccurrence
+      description: Fresh school, module, role and ownership checks. Private absence reasons are limited
+        to the requester and authorized managers. Substitutes receive only assigned dated occurrences.
+        Writes require a stable operation_id UUID and revision; retries replay only after fresh authorization.
+        Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
+        teaching or marks access is granted.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: occurrence
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped relief cover.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverOccurrenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoverAssignmentInput'
 components:
   securitySchemes:
     bearerAuth:
@@ -7898,6 +8852,14 @@ components:
 
         '
   parameters:
+    ExpectedAccount:
+      name: X-Account-Id
+      in: header
+      required: false
+      description: Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+      schema:
+        type: integer
+        minimum: 1
     SchoolId:
       name: X-School-Id
       in: header
@@ -8048,6 +9010,433 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    CoverTeacher:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    CoverSource:
+      type: object
+      additionalProperties: false
+      required:
+      - lesson_id
+      - lesson_revision
+      - session_year_id
+      - teacher_id
+      - teacher_name
+      - group_id
+      - homeroom_id
+      - title
+      - subject_name
+      - room_id
+      - room_name
+      - period_id
+      - starts_at
+      - ends_at
+      - on_date
+      properties:
+        lesson_id:
+          type: integer
+          minimum: 1
+        lesson_revision:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        teacher_name:
+          type: string
+        group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        homeroom_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        title:
+          type: string
+        subject_name:
+          type:
+          - string
+          - 'null'
+        room_id:
+          type: integer
+          minimum: 1
+        room_name:
+          type: string
+        period_id:
+          type: integer
+          minimum: 1
+        starts_at:
+          type: string
+        ends_at:
+          type: string
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    CoverOccurrence:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - absence_id
+      - revision
+      - state
+      - on_date
+      - source
+      - substitute_teacher_id
+      - substitute_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        absence_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - open
+          - assigned
+          - cancelled
+          - needs_review
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        source:
+          $ref: '#/components/schemas/CoverSource'
+        substitute_teacher_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        substitute_name:
+          type:
+          - string
+          - 'null'
+    CoverAbsenceSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - state
+      - teacher_id
+      - teacher_name
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - requested
+          - cancelled
+        teacher_id:
+          type: integer
+          minimum: 1
+        teacher_name:
+          type: string
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    CoverAbsence:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - state
+      - teacher_id
+      - teacher_name
+      - starts_on
+      - ends_on
+      - session_year_id
+      - reason
+      - cancel_reason
+      - occurrences
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - requested
+          - cancelled
+        teacher_id:
+          type: integer
+          minimum: 1
+        teacher_name:
+          type: string
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        session_year_id:
+          type: integer
+          minimum: 1
+        reason:
+          type:
+          - string
+          - 'null'
+        cancel_reason:
+          type:
+          - string
+          - 'null'
+        occurrences:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/CoverOccurrence'
+    CoverConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - year_name
+      - can_manage
+      - teachers
+      - current_page
+      - last_page
+      - total
+      - absences
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        year_name:
+          type: string
+        can_manage:
+          type: boolean
+        teachers:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/CoverTeacher'
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        absences:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/CoverAbsenceSummary'
+    CoverMine:
+      type: object
+      additionalProperties: false
+      required:
+      - occurrences
+      properties:
+        occurrences:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/CoverOccurrence'
+    CoverCandidates:
+      type: object
+      additionalProperties: false
+      required:
+      - occurrence_id
+      - revision
+      - teachers
+      properties:
+        occurrence_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        teachers:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/CoverTeacher'
+    CoverCreateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - teacher_id
+      - starts_on
+      - ends_on
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          minimum: 1
+        teacher_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+    CoverChangeInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+    CoverAssignmentInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - substitute_teacher_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        substitute_teacher_id:
+          type: integer
+          minimum: 1
+    CoverConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CoverConfiguration'
+    CoverAbsenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CoverAbsence'
+    CoverOccurrenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CoverOccurrence'
+    CoverCandidatesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CoverCandidates'
+    CoverMineResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CoverMine'
     TeachingGroupWrite:
       type: object
       required:
@@ -12107,6 +13496,14 @@ components:
       - subject_name
       - date
       properties:
+        cover_id:
+          type: integer
+          minimum: 1
+        original_teacher_id:
+          type: integer
+          minimum: 1
+        original_teacher_name:
+          type: string
         id:
           type: integer
           minimum: 1
@@ -18234,3 +19631,463 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/ActivityAttendanceReceipt'
+    MasterySettings:
+      type: object
+      additionalProperties: false
+      required:
+      - family_marks_enabled
+      - revision
+      - policy_version
+      properties:
+        family_marks_enabled:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 0
+        policy_version:
+          type: string
+    MasteryNode:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - topic_key
+      - name
+      - grade_level_id
+      - grade_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        topic_key:
+          type: string
+          format: uuid
+        name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+    MasteryLink:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - prerequisite_id
+      - source
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        prerequisite_id:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          minLength: 3
+          maxLength: 1000
+    MasteryTopicView:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - topic_key
+      - name
+      - grade_level_id
+      - grade_name
+      - level
+      - confidence_bp
+      - evidence_count
+      - computed_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        topic_key:
+          type: string
+          format: uuid
+        name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+        level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 4
+        confidence_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        evidence_count:
+          type: integer
+          minimum: 0
+          maximum: 20
+        computed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    MasteryPriority:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - name
+      - level
+      - confidence_bp
+      - reason
+      - path
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 4
+        confidence_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        reason:
+          type: string
+          enum:
+          - not_yet_assessed
+          - prerequisite_gap
+          - topic_gap
+        path:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 100
+    MasteryView:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - subject_id
+      - audience
+      - marks_visible
+      - policy_version
+      - topics
+      - target_topic_ids
+      - priorities
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        audience:
+          type: string
+          enum:
+          - staff
+          - family
+        marks_visible:
+          type: boolean
+        policy_version:
+          type: string
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryTopicView'
+          maxItems: 5000
+        target_topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 5000
+        priorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryPriority'
+          maxItems: 3
+    MasterySubjectChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    MasterySubjectList:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - subjects
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasterySubjectChoice'
+          maxItems: 500
+    MasteryGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_id
+      - subject_name
+      - grade_level_id
+      - grade_name
+      - session_year_id
+      - year_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        year_name:
+          type: string
+    MasteryConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - can_manage
+      - settings
+      - groups
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        can_manage:
+          type: boolean
+        settings:
+          $ref: '#/components/schemas/MasterySettings'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryGroup'
+          maxItems: 500
+    MasteryRosterLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - display_name
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        display_name:
+          type: string
+    MasteryRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - current_page
+      - last_page
+      - total
+      - learners
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryRosterLearner'
+          maxItems: 100
+    MasteryGraph:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - settings
+      - nodes
+      - links
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        settings:
+          $ref: '#/components/schemas/MasterySettings'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryNode'
+          maxItems: 5000
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryLink'
+          maxItems: 10000
+    MasteryGraphWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - expected_revision
+      - family_marks_enabled
+      - links
+      properties:
+        expected_revision:
+          type: integer
+          minimum: 0
+        family_marks_enabled:
+          type: boolean
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryLink'
+          maxItems: 10000
+    MasteryRebuild:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - queued
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        queued:
+          type: boolean
+    MasteryViewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryView'
+    MasteryConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryConfiguration'
+    MasteryRosterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryRoster'
+    MasteryGraphResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryGraph'
+    MasteryRebuildResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryRebuild'
+    MasterySubjectListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasterySubjectList'

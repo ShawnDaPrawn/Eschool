@@ -15,6 +15,7 @@ use App\Models\SessionYear;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Policies\Academics\TimetablePolicy;
+use App\Services\Pastoral\CoverTimetable;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 
@@ -84,12 +85,13 @@ class TimetableQueries
                 if ($date < $start->toDateString() || $date > $end->toDateString()) {
                     continue;
                 }
+                $cover = app(CoverTimetable::class)->assigned($lesson, $date);
                 if ($learner !== null) {
                     if (! in_array($learner, $engine->learners($lesson->getAttributes(), $date), true)) {
                         continue;
                     }
                 } elseif (! $manager) {
-                    $visible = in_array((int) $lesson->teacher_id, $teachers, true) || in_array((int) $lesson->teaching_group_id, $groups, true);
+                    $visible = ($cover !== null && in_array((int) $cover->substitute_teacher_id, $teachers, true)) || in_array((int) $lesson->teacher_id, $teachers, true) || in_array((int) $lesson->teaching_group_id, $groups, true);
                     if (! $visible) {
                         continue;
                     }
@@ -100,7 +102,8 @@ class TimetableQueries
                 if (! $manager && ! $allocation->where('teacher_id', $lesson->teacher_id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->exists()) {
                     continue;
                 }
-                $rows[] = $this->data($lesson, $date);
+                $row = $this->data($lesson, $date);
+                $rows[] = $cover === null ? $row : app(CoverTimetable::class)->display($row, $cover);
             }
         }
         usort($rows, fn ($a, $b) => [$a['date'], $a['starts_at'], $a['id']] <=> [$b['date'], $b['starts_at'], $b['id']]);
