@@ -15,6 +15,7 @@ use App\Services\Academics\Content\ContentProcessingFailure;
 use App\Services\Academics\Content\ContentSettings;
 use App\Services\Academics\Content\ConverterClient;
 use App\Services\Ai\Inference\Capability;
+use App\Services\Ai\Inference\FeatureInferenceRequest;
 use App\Services\Ai\Inference\InferenceGateway;
 use App\Services\Ai\Inference\InferenceRequest;
 use App\Services\Ai\Inference\ProviderResponse;
@@ -27,6 +28,11 @@ use Throwable;
 /** All model calls share this boundary; external inference remains disabled by default. */
 class AiGateway
 {
+    public function runFeature(User $actor, Capability $capability, FeatureInferenceRequest $request): ProviderResponse
+    {
+        return app(InferenceGateway::class)->runFeature($actor, $capability, $request);
+    }
+
     public function complete(User $actor, InferenceRequest $request): ProviderResponse
     {
         return app(InferenceGateway::class)->run($actor, Capability::Complete, $request);

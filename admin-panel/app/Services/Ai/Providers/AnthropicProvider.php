@@ -6,21 +6,33 @@ namespace App\Services\Ai\Providers;
 
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Inference\Capability;
+use App\Services\Ai\Inference\InferenceNotDispatched;
 use App\Services\Ai\Inference\InferenceProvider;
 use App\Services\Ai\Inference\ProviderRequest;
 use App\Services\Ai\Inference\ProviderResponse;
 
 class AnthropicProvider implements InferenceProvider
 {
-    public function infer(ProviderRequest $request): ProviderResponse
+    private function payload(ProviderRequest $request): array
     {
         ProviderProtocol::input($request);
         if ($request->capability !== Capability::Complete) {
-            throw new AiUnavailable('media_policy_required');
+            throw new InferenceNotDispatched('media_policy_required');
         }
-        $data = app(ProviderTransport::class)->post('anthropic', '/messages', ['model' => $request->model, 'system' => $request->systemPrompt,
+
+        return ['model' => $request->model, 'system' => $request->systemPrompt,
             'messages' => [['role' => 'user', 'content' => $request->input]], 'metadata' => ['user_id' => $request->anonymousActor],
-            'max_tokens' => $request->maximumTokens, 'stream' => false], $request->operationId);
+            'max_tokens' => $request->maximumTokens, 'stream' => false];
+    }
+
+    public function preflight(ProviderRequest $request): void
+    {
+        app(ProviderTransport::class)->preflight('anthropic', '/messages', $this->payload($request), $request->operationId, deadline: $request->deadline);
+    }
+
+    public function infer(ProviderRequest $request): ProviderResponse
+    {
+        $data = app(ProviderTransport::class)->post('anthropic', '/messages', $this->payload($request), $request->operationId, deadline: $request->deadline);
         if (($data['model'] ?? null) !== $request->model || ($data['role'] ?? null) !== 'assistant' || ! in_array($data['stop_reason'] ?? null, ['end_turn', 'stop_sequence'], true)
             || ! is_array($data['content'] ?? null) || count($data['content']) < 1 || count($data['content']) > 16 || ! is_array($data['usage'] ?? null)) {
             throw new AiUnavailable('provider_protocol_invalid');

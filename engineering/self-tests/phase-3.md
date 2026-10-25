@@ -145,3 +145,38 @@ activity-subtree checks. The integrated mastery/activity cohort passes **48 test
 An explicit private-response middleware now covers every HTTP method, including
 graph receipts, conflict errors, cached receipt replay and repair POST responses;
 Laravel's cache-header middleware only covers cacheable methods.
+
+## Feature-scoped inference, learner caps and bounded transport
+
+Implemented the separate server-registered feature-policy contract, immutable
+resolved school/actor/learner/subject scope, fresh guardian approval and own-family
+checks, staff/family audience separation, learner quotas alongside actor/school
+quotas and source/role checks before replay and around every external stage.
+Registered features cannot bypass their resolver using the old staff entry point.
+Existing staff receipt hashes and local transcription history remain compatible;
+the existing nullable learner usage reference is reused with additive budget
+indexes. Feature calls restore the caller's tenant after callback misbehavior.
+
+Provider and moderator preflight validate locally before any external moderation.
+Known-not-dispatched refusals settle zero, including qualification revoked after
+input moderation; unknown HTTP outcomes retain the full reservation. Validated
+provider results settle known tokens even when output is quarantined. Per-stage
+HTTP/socket timeouts clip to one monotonic overall deadline; response-size and
+usage-total consistency checks remain strict.
+
+Verification: affected feature/foundation/provider/content/tenant-migration cohort
+**65 passed, 869 assertions**. Focused feature/provider run **21 passed, 173
+assertions**, changed-file Pint and full configured Larastan pass. Tests include
+wrong role/owner/school/subject, unapproved and revoked learner access, exact-intent
+replay, source/role withdrawal, shared learner caps across guardian/student
+accounts, context replacement, zero HTTP with an unqualified inference provider,
+qualification change after moderation, unknown HTTP failures, late-result
+suppression, timeout option propagation, quarantine metering and retained content
+transcription behavior. The HTTP fake recorder omits failed requests, so unknown
+outcome tests explicitly count attempted callbacks as well as ledger settlement.
+
+These checks prove software authorization/accounting/protocol boundaries using
+synthetic fixtures. They do not certify real-provider safety, privacy, latency or
+cost. The production registry remains empty, all providers unqualified, and no
+paid inference was activated or called. Vision and real domain source policies
+remain tied to their upcoming feature workflows.
