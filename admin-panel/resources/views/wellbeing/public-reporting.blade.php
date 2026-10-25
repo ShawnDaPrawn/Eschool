@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ __('Private reporting') }} · {{ $school->name }}</title>
+<link rel="stylesheet" href="{{ asset('assets/css/m3-tokens.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/m3-base.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/m3-components.css') }}">
+<style>
+:root{color-scheme:light;font-family:var(--md-ref-typeface-plain);color:var(--md-sys-color-on-surface);background:var(--md-sys-color-surface-container-low)}*{box-sizing:border-box}body{margin:0;padding:20px}main{max-width:720px;margin:auto}a{color:var(--md-sys-color-primary);text-decoration:underline}h1{font-size:1.8rem}h2{font-size:1.3rem}section,aside{padding:20px;margin:20px 0;background:var(--md-sys-color-surface);border-radius:var(--app-radius);border:1px solid var(--md-sys-color-outline-variant)}aside{background:#fff2dd;border-color:#957138}label{display:block;font-weight:600;margin:16px 0 6px}input,select,textarea,button{font:inherit;max-width:100%;width:100%;padding:12px;border:1px solid var(--md-sys-color-outline);border-radius:var(--app-radius)}textarea{resize:vertical;min-height:150px}button{margin-top:18px;background:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:0;border-radius:var(--app-radius);font-weight:600;cursor:pointer}input:focus,textarea:focus,select:focus,button:focus,a:focus{outline:3px solid var(--md-sys-color-primary);outline-offset:3px}.code{font-family:ui-monospace,monospace;font-size:.9rem}.text{white-space:pre-wrap;overflow-wrap:anywhere}.muted{color:#425466}.error{border:2px solid var(--md-sys-color-error)}.thread{border-top:1px solid #d5dfe8;padding-top:14px;margin-top:14px}summary{cursor:pointer;text-decoration:underline}small{display:block;line-height:1.5;margin:8px 0}footer{padding:10px 0 30px}@media(max-width:420px){body{padding:12px}section,aside{padding:16px}}
+</style>
+</head>
+<body><main>
+<header><p class="muted">NavigateEd · {{ $school->name }}</p><h1>{{ __('Private reporting') }}</h1></header>
+<aside aria-label="{{ __('Urgent help') }}"><h2>{{ __('If you are unsafe') }}</h2><p>{{ $configuration['emergency_guidance'] }}</p><p>{{ __('This form is not an emergency response service. Do not wait for a school reply if someone is in immediate danger.') }}</p></aside>
+@if($message)<section role="status"><p>{{ $message }}</p></section>@endif
+@if($errors)<section class="error" role="alert"><h2>{{ __('Check your request') }}</h2><ul>@foreach($errors as $messages)@foreach((array)$messages as $error)<li>{{ $error }}</li>@endforeach @endforeach</ul></section>@endif
+@if($thread !== null)
+<section><h2>{{ __('Your private follow-up') }}</h2>
+<label for="saved-code">{{ __('Your private code') }}</label><input class="code" id="saved-code" value="{{ $secret }}" readonly autocomplete="off" spellcheck="false">
+<small>{{ __('Keep this code privately. You need it to read replies. The school cannot recover a lost anonymous code.') }}</small>
+<p><strong>{{ __('Status') }}:</strong> {{ __($thread['status']) }}</p><h3>{{ __('Your report') }}</h3><p class="text">{{ $thread['body'] }}</p>
+@foreach($thread['threads'] as $item)<article class="thread"><h3>{{ $item['author']==='school' ? __('School reply') : __('Your follow-up') }}</h3><p class="text">{{ $item['body'] }}</p><small>{{ $item['created_at'] }}</small></article>@endforeach
+@if($thread['has_older'])<form method="post" action="{{ route('public.wellbeing.follow-up',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><input type="hidden" name="before" value="{{ $thread['next_before'] }}"><button class="btn btn-primary" type="submit">{{ __('Read older replies') }}</button></form>@endif
+<form method="post" action="{{ route('public.wellbeing.reply',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><input type="hidden" name="operation_id" value="{{ $operationId }}"><label for="reply-body">{{ __('Add a follow-up') }}</label><textarea id="reply-body" name="body" maxlength="20000" required>{{ $errors ? $draft['body'] : '' }}</textarea><button class="btn btn-primary" type="submit">{{ __('Send follow-up') }}</button></form>
+<form method="post" action="{{ route('public.wellbeing.follow-up',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><button class="btn btn-primary" type="submit">{{ __('Refresh school replies') }}</button></form>
+</section>
+@elseif($reportMode)
+<section><h2>{{ __('Make an anonymous report') }}</h2><p>{{ __('This page does not use your signed-in school account. Avoid names or identifying details if you want to remain anonymous.') }}</p>
+<form method="post" action="{{ route('public.wellbeing.submit',['schoolSlug'=>$school->slug]) }}" autocomplete="off"><input type="hidden" name="anonymous" value="1">
+<label for="report-code">{{ __('Save your private code before sending') }}</label><input class="code" id="report-code" name="secret" value="{{ $secret }}" readonly spellcheck="false" aria-describedby="code-help"><small id="code-help">{{ __('Keep this code privately. You need it to read replies. The school cannot recover a lost anonymous code.') }}</small>
+<label for="report-category">{{ __('Report category') }}</label><select id="report-category" name="category_id" required><option value="">{{ __('Choose a category') }}</option>@foreach($configuration['categories'] as $category)<option value="{{ $category['id'] }}" @selected($draft['category_id']===(string)$category['id'])>{{ $category['name'] }}</option>@endforeach</select>
+<label for="report-urgency">{{ __('How urgent is this?') }}</label><select id="report-urgency" name="urgency"><option value="routine" @selected($draft['urgency']==='routine')>{{ __('routine') }}</option><option value="urgent" @selected($draft['urgency']==='urgent')>{{ __('urgent') }}</option></select>
+<label for="report-body">{{ __('What happened?') }}</label><textarea id="report-body" name="body" maxlength="20000" required>{{ $draft['body'] }}</textarea><small>{{ __('Share what the school needs to help. If you include names or identifying details, the report may no longer be anonymous in practice.') }}</small>
+<button class="btn btn-primary" type="submit">{{ __('Send anonymous report') }}</button></form>
+<details><summary>{{ __('Guidance by category') }}</summary>@foreach($configuration['categories'] as $category)<h3>{{ $category['name'] }}</h3><p>{{ $category['emergency_guidance'] }}</p>@endforeach</details></section>
+@endif
+<section><h2>{{ __('Already have a private code?') }}</h2><form method="post" action="{{ route('public.wellbeing.follow-up',['schoolSlug'=>$school->slug]) }}" autocomplete="off"><label for="lookup-code">{{ __('Enter your private code') }}</label><input id="lookup-code" class="code" name="secret" type="password" minlength="64" maxlength="64" pattern="[a-f0-9]{64}" autocomplete="off" spellcheck="false" required><button class="btn btn-primary" type="submit">{{ __('Read school replies') }}</button></form></section>
+<footer><a href="{{ route('public.wellbeing.form',['schoolSlug'=>$school->slug]) }}">{{ __('Start another report') }}</a><p class="muted">{{ __('Do not put your private code in a web address or share it publicly.') }}</p></footer>
+</main></body></html>

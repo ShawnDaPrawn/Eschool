@@ -9,6 +9,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class SupportRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        abort_if(! $this->isMethodSafe() && $this->query->count() > 0, 422, 'Submit support changes in the request body.');
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -18,7 +23,7 @@ class SupportRequest extends FormRequest
     {
         $op = substr((string) $this->route()->getName(), strlen('api.v2.support.'));
         if ($this->isMethod('GET')) {
-            return ['page' => ['sometimes', 'integer', 'min:1'], 'search' => ['sometimes', 'nullable', 'string', 'max:100']];
+            return ['learner_id' => ['sometimes', 'integer', 'min:1'], 'user_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1'], 'search' => ['sometimes', 'nullable', 'string', 'max:100']];
         }
 
         return SupportPlans::rules(match ($op) {

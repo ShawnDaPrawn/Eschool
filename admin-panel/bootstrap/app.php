@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApiV2ExceptionRenderer;
+use App\Exceptions\PublicReportingExceptionRenderer;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckChild;
@@ -69,6 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')->group(__DIR__.'/../routes/internal.php');
             Route::middleware(['api', 'auth:sanctum', 'school.context', 'role.any', 'learner.approved'])
                 ->prefix('protected/profile-files')->name('profile-files.')->group(__DIR__.'/../routes/profile_files.php');
+            Route::group([], __DIR__.'/../routes/public_wellbeing.php');
             ModuleRoutes::apply(Route::getRoutes());
         },
     )
@@ -206,5 +208,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson());
         // API v2 answers every error in the {error, message, data, code} envelope
         // with its real HTTP status (v1 keeps Laravel's own error bodies).
+        $exceptions->render(fn (Throwable $e, Request $request) => PublicReportingExceptionRenderer::render($e, $request));
         $exceptions->render(fn (Throwable $e, Request $request) => ApiV2ExceptionRenderer::render($e, $request));
     })->create();
