@@ -15,6 +15,7 @@ use App\Services\Ai\Inference\Capability;
 use App\Services\Ai\Inference\InferenceModerator;
 use App\Services\Ai\Inference\InferenceProvider;
 use App\Services\Ai\Inference\InferenceRequest;
+use App\Services\Ai\Inference\ModerationContext;
 use App\Services\Ai\Inference\ProviderRequest;
 use App\Services\Ai\Inference\ProviderResponse;
 use App\Services\Ai\PromptRegistry;
@@ -344,7 +345,7 @@ class TestModerator implements InferenceModerator
 
     public static bool $failure = false;
 
-    public function flags(Capability $capability, string $direction, string|array $content): array
+    public function flags(Capability $capability, string $direction, string|array $content, ModerationContext $context): array
     {
         if (self::$failure) {
             throw new \RuntimeException('Unavailable moderator');

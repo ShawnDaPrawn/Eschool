@@ -41,3 +41,19 @@ Both input/output moderation results now recheck the original school and fresh
 authority before any quarantine flag is written. Final focused run: **16 tests
 passed, 93 assertions**, including both callback directions, zero foreign flags,
 original-school settlement and suppressed output. Changed-file Pint passes.
+
+## Provider and moderation protocol adapters
+
+Implemented fixed-origin HTTPS protocols for OpenAI text/embedding, Anthropic
+Messages and DeepSeek text, plus OpenAI text moderation. Separate output/total
+budgets, exact returned-model checks, bounded response streams, TLS verification,
+timeouts, no redirects/retries, sanitized errors, pseudonymous metadata and staged
+UUID headers are covered by synthetic Http fakes. Moderation callbacks now receive
+operation/pseudonym context; existing tenant rechecks remain in place.
+
+Final focused protocol/foundation run: **24 tests passed, 186 assertions**.
+The existing 27 content-engine tests also passed with the updated moderator
+interface. Changed-file Pint and full configured Larastan analysis pass.
+No real endpoint was contacted and no provider was enabled or qualified.
+These are protocol tests, not real-model safety, privacy, latency or cost evidence.
+See the provider adapter spec and qualification record for the release boundary.

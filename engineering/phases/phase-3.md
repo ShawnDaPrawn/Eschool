@@ -37,8 +37,9 @@ Production configuration is disabled with no provider adapters or credentials.
 Vision refuses until a Files-backed scanned/redacted media policy exists.
 Students/parents remain refused even if mistakenly listed in feature settings.
 
-Real provider adapters, learner authorization/caps, source loaders, moderation
-implementations, safeguarding review/retention UI, live evaluation capture and
+Bounded provider/text-moderation adapters are the next implemented slice
+([spec](../specs/ai/provider-adapters.md)); all remain unqualified and disabled.
+Learner authorization/caps, source loaders, feature-specific moderation policies, safeguarding review/retention UI, live evaluation capture and
 cost administration are subsequent work, not completed by this first slice.
 
 ## Concurrent integration and evidence
