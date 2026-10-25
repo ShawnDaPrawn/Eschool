@@ -125,7 +125,8 @@ class ActivityGroups
             if (($data['parent_id'] ?? null) !== null) {
                 $parent = ActivityGroup::where('session_year_id', $year->id)->where('active', true)->findOrFail($data['parent_id']);
                 abort_if($id !== null && in_array($id, $this->access->lineage($parent), true), 422, 'A group cannot contain its ancestor.');
-                abort_if(count($this->access->lineage($parent)) >= 12, 422, 'Activity tree exceeds twelve levels.');
+                $subtreeHeight = $row->exists ? $this->access->subtreeHeight($row) : 1;
+                abort_if(count($this->access->lineage($parent)) + $subtreeHeight > 12, 422, 'Activity tree exceeds twelve levels.');
                 $this->inSeason($parent, $data['starts_on'], $data['ends_on']);
             }
             if ($row->exists) {
