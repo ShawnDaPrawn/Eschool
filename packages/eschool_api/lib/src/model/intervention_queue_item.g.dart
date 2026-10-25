@@ -26,6 +26,8 @@ InterventionQueueItem _$InterventionQueueItemFromJson(
       ],
     );
     final val = InterventionQueueItem(
+      learnerName: $checkedConvert('learner_name', (v) => v as String?),
+      ownerName: $checkedConvert('owner_name', (v) => v as String?),
       id: $checkedConvert('id', (v) => (v as num).toInt()),
       learnerId: $checkedConvert('learner_id', (v) => (v as num).toInt()),
       ownerId: $checkedConvert('owner_id', (v) => (v as num).toInt()),
@@ -48,6 +50,8 @@ InterventionQueueItem _$InterventionQueueItemFromJson(
     return val;
   },
   fieldKeyMap: const {
+    'learnerName': 'learner_name',
+    'ownerName': 'owner_name',
     'learnerId': 'learner_id',
     'ownerId': 'owner_id',
     'gradeLevelId': 'grade_level_id',
@@ -59,6 +63,8 @@ InterventionQueueItem _$InterventionQueueItemFromJson(
 Map<String, dynamic> _$InterventionQueueItemToJson(
   InterventionQueueItem instance,
 ) => <String, dynamic>{
+  'learner_name': ?instance.learnerName,
+  'owner_name': ?instance.ownerName,
   'id': instance.id,
   'learner_id': instance.learnerId,
   'owner_id': instance.ownerId,

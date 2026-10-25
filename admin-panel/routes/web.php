@@ -48,6 +48,7 @@ use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
+use App\Http\Controllers\Panel\Transfers\TransferPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\People\ProfileFieldController;
@@ -76,6 +77,7 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\EnforceReadOnlyYears;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateMastery;
@@ -269,6 +271,15 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        Route::prefix('school-transfers')->name('school-transfers.')->middleware(AuthorizeTransfer::class)->group(function () {
+            $c = TransferPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('{lane}/{record}/archive', [$c, 'archive'])->whereIn('lane', ['outgoing', 'incoming', 'receipts'])->whereNumber('record')->name('archive');
+            Route::post('packages', [$c, 'write'])->name('prepare');
+            foreach (['release', 'cancel', 'accept'] as $action) {
+                Route::post('packages/{package}/'.$action, [$c, 'write'])->whereNumber('package')->name($action);
+            }
         });
         Route::get('leadership-dashboard', [DashboardController::class, 'index'])->middleware(['module:leadership_dashboard', 'cache.headers:private;no_store'])->name('leadership-dashboard.index');
         Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {

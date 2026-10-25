@@ -594,6 +594,26 @@ import 'package:eschool_api/src/model/term_template_response.dart';
 import 'package:eschool_api/src/model/term_template_write.dart';
 import 'package:eschool_api/src/model/term_templates_response.dart';
 import 'package:eschool_api/src/model/term_templates_response_data.dart';
+import 'package:eschool_api/src/model/transfer_accept_input.dart';
+import 'package:eschool_api/src/model/transfer_access.dart';
+import 'package:eschool_api/src/model/transfer_access_response.dart';
+import 'package:eschool_api/src/model/transfer_attendance.dart';
+import 'package:eschool_api/src/model/transfer_choice.dart';
+import 'package:eschool_api/src/model/transfer_choice_page.dart';
+import 'package:eschool_api/src/model/transfer_choice_page_response.dart';
+import 'package:eschool_api/src/model/transfer_consent_input.dart';
+import 'package:eschool_api/src/model/transfer_detail.dart';
+import 'package:eschool_api/src/model/transfer_detail_response.dart';
+import 'package:eschool_api/src/model/transfer_document.dart';
+import 'package:eschool_api/src/model/transfer_mark.dart';
+import 'package:eschool_api/src/model/transfer_page.dart';
+import 'package:eschool_api/src/model/transfer_page_response.dart';
+import 'package:eschool_api/src/model/transfer_prepare_input.dart';
+import 'package:eschool_api/src/model/transfer_report.dart';
+import 'package:eschool_api/src/model/transfer_revision_input.dart';
+import 'package:eschool_api/src/model/transfer_summary.dart';
+import 'package:eschool_api/src/model/transfer_write_receipt.dart';
+import 'package:eschool_api/src/model/transfer_write_receipt_response.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_profile_request.dart';
 import 'package:eschool_api/src/model/update_person_profile_request.dart';
@@ -2669,6 +2689,66 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'TermTemplatesResponseData':
       return TermTemplatesResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferAcceptInput':
+      return TransferAcceptInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferAccess':
+      return TransferAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferAccessResponse':
+      return TransferAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferAttendance':
+      return TransferAttendance.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferChoice':
+      return TransferChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferChoicePage':
+      return TransferChoicePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferChoicePageResponse':
+      return TransferChoicePageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferConsentInput':
+      return TransferConsentInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferDetail':
+      return TransferDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferDetailResponse':
+      return TransferDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferDocument':
+      return TransferDocument.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferMark':
+      return TransferMark.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'TransferPage':
+      return TransferPage.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'TransferPageResponse':
+      return TransferPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferPrepareInput':
+      return TransferPrepareInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferReport':
+      return TransferReport.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferRevisionInput':
+      return TransferRevisionInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferSummary':
+      return TransferSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferWriteReceipt':
+      return TransferWriteReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferWriteReceiptResponse':
+      return TransferWriteReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'UpdateMyNotificationPreferencesRequest':
       return UpdateMyNotificationPreferencesRequest.fromJson(

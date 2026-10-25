@@ -50,6 +50,17 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getTransferAccess requires auth' => [null, 'GET', 'api/v2/transfers/access', [], 401],
+            'getTransferChoices requires auth' => [null, 'GET', 'api/v2/transfers/choices/learners', [], 401],
+            'prepareTransfer requires auth' => [null, 'POST', 'api/v2/transfers/packages', [], 401],
+            'getTransfers requires auth' => [null, 'GET', 'api/v2/transfers/outgoing', [], 401],
+            'getTransfer requires auth' => [null, 'GET', 'api/v2/transfers/outgoing/1', [], 401],
+            'downloadTransferArchive requires auth' => [null, 'GET', 'api/v2/transfers/outgoing/1/archive', [], 401],
+            'consentTransfer requires auth' => [null, 'POST', 'api/v2/transfers/packages/1/consent', [], 401],
+            'withdrawTransfer requires auth' => [null, 'POST', 'api/v2/transfers/packages/1/withdraw', [], 401],
+            'releaseTransfer requires auth' => [null, 'POST', 'api/v2/transfers/packages/1/release', [], 401],
+            'cancelTransfer requires auth' => [null, 'POST', 'api/v2/transfers/packages/1/cancel', [], 401],
+            'acceptTransfer requires auth' => [null, 'POST', 'api/v2/transfers/packages/1/accept', [], 401],
             'getPublicIncidentConfiguration route boundary' => [null, 'GET', 'api/v2/wellbeing/public/unknown-school/configuration', [], 404],
             'submitAnonymousIncident route boundary' => [null, 'POST', 'api/v2/wellbeing/public/unknown-school/reports', [], 422],
             'getAnonymousIncidentFollowUp route boundary' => [null, 'POST', 'api/v2/wellbeing/public/unknown-school/follow-up', [], 422],

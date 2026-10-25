@@ -2,11 +2,14 @@
 
 use App\Services\Growth\ProgressPanelScope;
 use App\Services\Pastoral\SupportPanelScope;
+use App\Services\Transfers\TransferPanelScope;
+use App\Services\Wellbeing\WellbeingPanelScope;
 
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
-    ['paths' => ['wellbeing', 'wellbeing/*'], 'title' => 'Incidents and counselling', 'route' => 'wellbeing.index', 'guard' => \App\Services\Wellbeing\WellbeingPanelScope::class,
+    ['paths' => ['school-transfers', 'school-transfers/*'], 'title' => 'School transfers', 'route' => 'school-transfers.index', 'guard' => TransferPanelScope::class, 'fields' => ['external_school' => ['label' => 'Receiving school', 'limit' => 160]]],
+    ['paths' => ['wellbeing', 'wellbeing/*'], 'title' => 'Incidents and counselling', 'route' => 'wellbeing.index', 'guard' => WellbeingPanelScope::class,
         'fields' => ['body' => ['label' => 'Private text', 'limit' => 20000], 'notes' => ['label' => 'Appointment notes', 'limit' => 20000], 'reason' => ['label' => 'Reason for this change', 'limit' => 2000],
             'location' => ['label' => 'Appointment location', 'limit' => 500], 'name' => ['label' => 'Category name', 'limit' => 191], 'emergency_guidance' => ['label' => 'Emergency guidance', 'limit' => 2000]]],
     ['paths' => ['learner-notes', 'learner-notes/*'], 'title' => 'Learner notes', 'route' => 'learner-notes.index', 'guard' => ProgressPanelScope::class,

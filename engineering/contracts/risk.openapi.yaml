@@ -1316,6 +1316,10 @@ components:
       - revision
       - can_read_body
       properties:
+        learner_name:
+          type: string
+        owner_name:
+          type: string
         id:
           type: integer
           minimum: 1
