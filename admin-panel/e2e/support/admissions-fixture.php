@@ -14,7 +14,8 @@ use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Str;
 
-abort_unless(app()->environment(['local', 'testing']) && str_ends_with((string) config('database.connections.'.config('database.default').'.database'), '_test'), 403);
+$safe = require base_path('e2e/support/admissions-environment.php');
+abort_unless($safe(app()->environment(), (string) config('database.connections.'.config('database.default').'.database'), filter_var(getenv('CI'), FILTER_VALIDATE_BOOLEAN)), 403);
 
 return app(CurrentSchool::class)->run(1, function (): array {
     $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();

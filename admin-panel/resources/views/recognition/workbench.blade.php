@@ -4,7 +4,7 @@
 @section('content')
 <div data-recognition-root class="content-wrapper recognition @if($assembly) recognition--assembly @endif">
 <h1>{{ __($module === 'house_points' ? 'Houses and points' : 'Awards and assembly') }}</h1>
-@if($messages)<div role="alert" class="alert alert-warning"><ul>@foreach($messages as $message)<li>{{ $message }}</li>@endforeach</ul></div>@endif
+@if($messages)<div role="alert" class="recognition-warning"><ul>@foreach($messages as $message)<li>{{ $message }}</li>@endforeach</ul></div>@endif
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 @if($draft)<details open class="m3-card"><summary>{{ __('Your unsaved recognition text') }}</summary>@foreach($draft as $key=>$value)<p><strong>{{ __(ucfirst(str_replace('_',' ',$key))) }}</strong>: {{ $value }}</p>@endforeach<p>{{ __('Compare the current record and enter the corrected change below.') }}</p></details>@endif
 @if(!$canWrite)<p role="status">{{ __('This view is read only. Return to the current school year to make changes, or ask a school administrator about module access.') }}</p>@endif
