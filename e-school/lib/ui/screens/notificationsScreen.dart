@@ -188,6 +188,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         textAlign: TextAlign.start,
                       ),
+                      if (notification.type == 'digest.weekly')
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton.icon(
+                            key: ValueKey('digest-notice-${notification.id}'),
+                            icon: const Icon(Icons.summarize_outlined),
+                            label: Text(
+                              UiUtils.getTranslatedLabel(
+                                context,
+                                'Weekly learning updates',
+                              ),
+                            ),
+                            onPressed: () =>
+                                Navigator.of(context)
+                                    .pushNamed(Routes.weeklyDigest),
+                          ),
+                        ),
                       if (notification.type == 'consultations.opened' ||
                           notification.type == 'consultations.staff_opened')
                         Align(

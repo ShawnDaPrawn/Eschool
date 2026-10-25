@@ -319,6 +319,7 @@ return [
             'icon' => 'activities',
             'groups' => [
                 'groups' => ['label' => 'nav_activity_groups', 'items' => [
+                    ['key' => 'weekly-digest-templates', 'label' => 'Weekly digest templates', 'route' => 'digest-panel.index', 'permissions' => [], 'digest_manager' => true, 'module' => 'digest', 'active' => ['digest-panel.*'], 'keywords' => ['weekly', 'parent', 'digest', 'language', 'approval']],
                     ['key' => 'gallery', 'label' => 'Private photos', 'route' => 'gallery-panel.index', 'permissions' => [], 'gallery_actor' => true, 'module' => 'gallery', 'active' => ['gallery-panel.*'], 'keywords' => ['photos', 'gallery', 'tags', 'consent']],
                     ['key' => 'consultations', 'label' => 'Polls, surveys and elections', 'route' => 'consultations-panel.index', 'permissions' => [], 'consultation_actor' => true, 'module' => 'consultations', 'active' => ['consultations-panel.*'], 'keywords' => ['vote', 'poll', 'survey', 'election']],
                     ['key' => 'house-points', 'label' => 'Houses and points', 'route' => 'recognition.index', 'params' => ['module' => 'house_points'], 'permissions' => [], 'recognition_module' => 'house_points', 'module' => 'house_points', 'active' => ['recognition.*'], 'keywords' => ['houses', 'points', 'recognition']],

@@ -150,6 +150,7 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String weeklyDigest = '/learning/weekly-digest';
   static const String dailyPractice = '/learning/practice';
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
@@ -396,6 +397,8 @@ class Routes {
         return familyProgressRoute();
       case reportConcern:
         return reportConcernRoute();
+      case weeklyDigest:
+        return familyWeeklyDigestRoute();
       case dailyPractice:
         return dailyPracticeRoute();
       case mastery:

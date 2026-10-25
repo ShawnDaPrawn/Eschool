@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Recognition;
 
 use App\Models\Academics\GradeLevel;
+use App\Models\Academics\TeachingGroupMembership;
+use App\Models\Activities\ActivityMembership;
+use App\Models\People\Enrolment;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardDefinition;
 use App\Models\Recognition\AwardNomination;
@@ -15,6 +18,9 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Identity\CurrentLearnerMembership;
+use App\Services\Platform\Modules\ModuleGate;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -45,10 +51,50 @@ class AwardNominations
             } catch (HttpException $e) {
                 continue;
             }
+            if (! $this->hasEligibleLearner($category, $year, $grade)) {
+                continue;
+            }
             $items[] = ['category_id' => (int) $category->id, 'name' => $category->name, 'opens_on' => $window->opens_on->toDateString(), 'closes_on' => $window->closes_on->toDateString(), 'status' => $window->status, 'definitions' => AwardDefinition::where('award_category_id', $category->id)->where('active', true)->orderBy('name')->get()->map(fn ($d) => ['id' => (int) $d->id, 'name' => $d->name])->all()];
         }
 
         return ['items' => $items];
+    }
+
+    /** Filter working nomination choices; the write path still rechecks exact eligibility. */
+    private function hasEligibleLearner(AwardCategory $category, int $year, int $grade): bool
+    {
+        $authority = app(RecognitionAuthority::class);
+        $today = $authority->today();
+        $places = Enrolment::with('homeroom.class')->where('session_year_id', $year)->onDate($today)
+            ->whereHas('homeroom.class', fn ($q) => $q->where('grade_level_id', $grade))
+            ->whereIn('learner_id', Students::whereIn('user_id', app(CurrentLearnerMembership::class)->users()->select('users.id'))->select('id'));
+        if ($category->subject_id !== null) {
+            $places->whereIn('learner_id', TeachingGroupMembership::whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)
+                ->whereHas('group', fn ($q) => $q->where('active', true)->where('session_year_id', $year)->where('grade_level_id', $grade)->where('subject_id', $category->subject_id))->select('learner_id'));
+        }
+        if ($category->scope_kind === 'group') {
+            $group = $authority->categoryGroup($category, $year);
+            if ($group === null || ! app(ModuleGate::class)->allows('groups')) {
+                return false;
+            }
+            $places->whereIn('learner_id', ActivityMembership::where('activity_group_id', $group)->where('active', true)
+                ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id'));
+        }
+        foreach ($places->get() as $place) {
+            $learner = Students::find($place->learner_id);
+            if ($learner === null) {
+                continue;
+            }
+            try {
+                $authority->eligible($category, $learner, $place);
+
+                return true;
+            } catch (HttpException|ModelNotFoundException) {
+                // An ended subject/group/ancestor cannot remain a nomination choice.
+            }
+        }
+
+        return false;
     }
 
     public function nominate(User $actor, array $input): AwardNomination

@@ -1,0 +1,913 @@
+tags:
+- name: WeeklyDigests
+  description: Private Monday parent summaries from released school evidence and reviewed language templates.
+paths:
+  /digests/access:
+    get:
+      operationId: getWeeklyDigestAccess
+      tags:
+      - WeeklyDigests
+      summary: getWeeklyDigestAccess
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /digests/preferences:
+    post:
+      operationId: setWeeklyDigestPreference
+      tags:
+      - WeeklyDigests
+      summary: setWeeklyDigestPreference
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeeklyDigestPreferenceInput'
+  /digests/learners/{learner}/weeks:
+    get:
+      operationId: getWeeklyDigests
+      tags:
+      - WeeklyDigests
+      summary: getWeeklyDigests
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /digests/{digest}:
+    get:
+      operationId: getWeeklyDigest
+      tags:
+      - WeeklyDigests
+      summary: getWeeklyDigest
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: digest
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /digests/templates:
+    get:
+      operationId: getWeeklyDigestTemplates
+      tags:
+      - WeeklyDigests
+      summary: getWeeklyDigestTemplates
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestTemplatePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createWeeklyDigestTemplate
+      tags:
+      - WeeklyDigests
+      summary: createWeeklyDigestTemplate
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeeklyDigestTemplateInput'
+  /digests/templates/{template}/review:
+    post:
+      operationId: reviewWeeklyDigestTemplate
+      tags:
+      - WeeklyDigests
+      summary: reviewWeeklyDigestTemplate
+      description: Parent-only per-child school evidence, never clinical notes or risk labels. Current account,
+        school, guardian relationship and learner source authorize each read and notification delivery. School managers
+        review immutable language versions; an unapproved preferred language never silently falls back. Exact mutation
+        retries retain their operation identifier.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: template
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private weekly digest result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyDigestReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: This school module or selected year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeeklyDigestTemplateReview'
+components:
+  schemas:
+    WeeklyDigestChild:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    WeeklyDigestAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - account_id
+      - parent
+      - can_manage
+      - children
+      - language
+      - preference_revision
+      - languages
+      - approved_languages
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        account_id:
+          type: integer
+          minimum: 1
+        parent:
+          type: boolean
+        can_manage:
+          type: boolean
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeeklyDigestChild'
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+        preference_revision:
+          type: integer
+          minimum: 0
+        languages:
+          type: array
+          items:
+            type: string
+            minLength: 2
+            maxLength: 10
+        approved_languages:
+          type: array
+          items:
+            type: string
+            minLength: 2
+            maxLength: 10
+    WeeklyDigestListItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - language
+      - week_start
+      - week_end
+      - title
+      - opened
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+        week_start:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        week_end:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        title:
+          type: string
+        opened:
+          type: boolean
+    WeeklyDigestPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - total
+      - next_before
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeeklyDigestListItem'
+          maxItems: 12
+        total:
+          type: integer
+          minimum: 0
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    WeeklyDigestMark:
+      type: object
+      additionalProperties: false
+      required:
+      - release_id
+      - subject
+      - percentage_bp
+      - provisional
+      properties:
+        release_id:
+          type: integer
+          minimum: 1
+        subject:
+          type: string
+          maxLength: 80
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        provisional:
+          type: boolean
+    WeeklyDigestAttendance:
+      type: object
+      additionalProperties: false
+      required:
+      - recorded
+      - present
+      - absent
+      - excused
+      properties:
+        recorded:
+          type: integer
+          minimum: 0
+        present:
+          type: integer
+          minimum: 0
+        absent:
+          type: integer
+          minimum: 0
+        excused:
+          type: integer
+          minimum: 0
+    WeeklyDigestPractice:
+      type: object
+      additionalProperties: false
+      required:
+      - total
+      - completed
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        completed:
+          type: integer
+          minimum: 0
+    WeeklyDigestEvent:
+      type: object
+      additionalProperties: false
+      required:
+      - event_id
+      - date
+      - title
+      properties:
+        event_id:
+          type: integer
+          minimum: 1
+        date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        title:
+          type: string
+          maxLength: 100
+    WeeklyDigestEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - marks
+      - attendance
+      - practice
+      - events
+      - event_count
+      - action_kind
+      - content_version_id
+      properties:
+        marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeeklyDigestMark'
+          maxItems: 300
+        attendance:
+          $ref: '#/components/schemas/WeeklyDigestAttendance'
+        practice:
+          $ref: '#/components/schemas/WeeklyDigestPractice'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeeklyDigestEvent'
+          maxItems: 3
+        event_count:
+          type: integer
+          minimum: 0
+        action_kind:
+          type: string
+          enum:
+          - practice
+          - marks
+          - attendance
+          - calendar
+        content_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    WeeklyDigestHomeAction:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - learner_id
+      - label
+      - content_version_id
+      properties:
+        kind:
+          type: string
+          enum:
+          - practice
+          - marks
+          - attendance
+          - calendar
+        learner_id:
+          type: integer
+          minimum: 1
+        label:
+          type: string
+          maxLength: 160
+        content_version_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    WeeklyDigestDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - language
+      - week_start
+      - week_end
+      - template_version
+      - title
+      - summary
+      - evidence
+      - home_action
+      - expires_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+        week_start:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        week_end:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        template_version:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 220
+        summary:
+          type: string
+          maxLength: 2000
+        evidence:
+          $ref: '#/components/schemas/WeeklyDigestEvidence'
+        home_action:
+          $ref: '#/components/schemas/WeeklyDigestHomeAction'
+        expires_at:
+          type: string
+          format: date-time
+    WeeklyDigestReference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    WeeklyDigestPreferenceInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - language
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+        revision:
+          type: integer
+          minimum: 0
+    WeeklyDigestActionTemplates:
+      type: object
+      additionalProperties: false
+      required:
+      - practice
+      - marks
+      - attendance
+      - calendar
+      properties:
+        practice:
+          type: string
+          minLength: 1
+          maxLength: 160
+        marks:
+          type: string
+          minLength: 1
+          maxLength: 160
+        attendance:
+          type: string
+          minLength: 1
+          maxLength: 160
+        calendar:
+          type: string
+          minLength: 1
+          maxLength: 160
+    WeeklyDigestStartingTemplate:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - body
+      - actions
+      - notice_prompt
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        body:
+          type: string
+          minLength: 1
+          maxLength: 1200
+        actions:
+          $ref: '#/components/schemas/WeeklyDigestActionTemplates'
+        notice_prompt:
+          type: string
+          minLength: 1
+          maxLength: 120
+    WeeklyDigestTemplateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - language
+      - title
+      - body
+      - actions
+      - notice_prompt
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        body:
+          type: string
+          minLength: 1
+          maxLength: 1200
+        actions:
+          $ref: '#/components/schemas/WeeklyDigestActionTemplates'
+        notice_prompt:
+          type: string
+          minLength: 1
+          maxLength: 120
+    WeeklyDigestTemplate:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - language
+      - version
+      - revision
+      - title
+      - body
+      - actions
+      - notice_prompt
+      - approved
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        language:
+          type: string
+          minLength: 2
+          maxLength: 10
+        version:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        body:
+          type: string
+          minLength: 1
+          maxLength: 1200
+        actions:
+          $ref: '#/components/schemas/WeeklyDigestActionTemplates'
+        notice_prompt:
+          type: string
+          minLength: 1
+          maxLength: 120
+        approved:
+          type: boolean
+    WeeklyDigestTemplatePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - starting_templates
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WeeklyDigestTemplate'
+          maxItems: 24
+        starting_templates:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/WeeklyDigestStartingTemplate'
+    WeeklyDigestTemplateReview:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - decision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum:
+          - approve
+          - revoke
+    WeeklyDigestAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/WeeklyDigestAccess'
+    WeeklyDigestPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/WeeklyDigestPage'
+    WeeklyDigestDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/WeeklyDigestDetail'
+    WeeklyDigestReferenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/WeeklyDigestReference'
+    WeeklyDigestTemplatePageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        code:
+          type: integer
+          example: 200
+        data:
+          $ref: '#/components/schemas/WeeklyDigestTemplatePage'

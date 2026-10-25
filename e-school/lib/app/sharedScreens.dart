@@ -1644,3 +1644,122 @@ class FamilyPrivateGalleryEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> familyWeeklyDigestRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        auth = context.read<AuthCubit>(),
+        children = context.read<ChildSelectionCubit>();
+    final parent = auth.isParent(),
+        child = auth.isParent() ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    final school = parent ? child?.schoolId : me?.currentSchoolId,
+        account = me?.user?.id;
+
+    if (!parent ||
+        me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        learner == null ||
+        learner <= 0 ||
+        me.currentSchoolId != school ||
+        !(me.isModuleOn('digest') && allowsSchoolModule(me, 'digest')) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Weekly learning update',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: WeeklyDigestSessionBoundary(
+        pinned: me,
+        builder: (active) => WeeklyDigestScreen(
+          repository: ApiWeeklyDigestRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!parent ||
+                    children.selected?.id == learner &&
+                        children.selected?.schoolId == school),
+          ),
+          learnerId: learner,
+          onHomeAction: (action) {
+            if (!active() ||
+                children.selected?.id != learner ||
+                children.selected?.schoolId != school)
+              return;
+            final route = switch (action.kind) {
+              WeeklyDigestHomeActionKindEnum.practice => Routes.academicContent,
+              WeeklyDigestHomeActionKindEnum.marks => Routes.academicMarks,
+              WeeklyDigestHomeActionKindEnum.attendance =>
+                Routes.academicAttendance,
+              WeeklyDigestHomeActionKindEnum.calendar =>
+                Routes.academicCalendar,
+              _ => null,
+            };
+            if (route == null) return;
+            final version = action.contentVersionId;
+            Navigator.of(context).pushNamed(
+              route,
+              arguments:
+                  action.kind == WeeklyDigestHomeActionKindEnum.practice &&
+                      version != null
+                  ? ContentLinkTarget(learner: learner, version: version)
+                  : null,
+            );
+          },
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyWeeklyDigestEntry extends StatelessWidget {
+  const FamilyWeeklyDigestEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!context.read<AuthCubit>().isParent() ||
+              state.context?.isModuleOn('digest') != true ||
+              !allowsSchoolModule(state.context, 'digest'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.summarize_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Weekly learning update',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.weeklyDigest),
+            ),
+          );
+        },
+      );
+}

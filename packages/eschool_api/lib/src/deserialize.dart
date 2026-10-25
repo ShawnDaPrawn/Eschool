@@ -553,6 +553,14 @@ import 'package:eschool_api/src/model/list_wellbeing_managed_cases_response.dart
 import 'package:eschool_api/src/model/list_wellbeing_notices_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_reports_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_team_assignments_response.dart';
+import 'package:eschool_api/src/model/live_authorization.dart';
+import 'package:eschool_api/src/model/live_authorization_response.dart';
+import 'package:eschool_api/src/model/live_authorize_request.dart';
+import 'package:eschool_api/src/model/live_presence.dart';
+import 'package:eschool_api/src/model/live_presence_request.dart';
+import 'package:eschool_api/src/model/live_presence_response.dart';
+import 'package:eschool_api/src/model/live_session_configuration.dart';
+import 'package:eschool_api/src/model/live_session_response.dart';
 import 'package:eschool_api/src/model/mastery_configuration.dart';
 import 'package:eschool_api/src/model/mastery_configuration_response.dart';
 import 'package:eschool_api/src/model/mastery_graph.dart';
@@ -818,6 +826,30 @@ import 'package:eschool_api/src/model/update_profile_field_request.dart';
 import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
 import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
+import 'package:eschool_api/src/model/weekly_digest_access.dart';
+import 'package:eschool_api/src/model/weekly_digest_access_response.dart';
+import 'package:eschool_api/src/model/weekly_digest_action_templates.dart';
+import 'package:eschool_api/src/model/weekly_digest_attendance.dart';
+import 'package:eschool_api/src/model/weekly_digest_child.dart';
+import 'package:eschool_api/src/model/weekly_digest_detail.dart';
+import 'package:eschool_api/src/model/weekly_digest_detail_response.dart';
+import 'package:eschool_api/src/model/weekly_digest_event.dart';
+import 'package:eschool_api/src/model/weekly_digest_evidence.dart';
+import 'package:eschool_api/src/model/weekly_digest_home_action.dart';
+import 'package:eschool_api/src/model/weekly_digest_list_item.dart';
+import 'package:eschool_api/src/model/weekly_digest_mark.dart';
+import 'package:eschool_api/src/model/weekly_digest_page.dart';
+import 'package:eschool_api/src/model/weekly_digest_page_response.dart';
+import 'package:eschool_api/src/model/weekly_digest_practice.dart';
+import 'package:eschool_api/src/model/weekly_digest_preference_input.dart';
+import 'package:eschool_api/src/model/weekly_digest_reference.dart';
+import 'package:eschool_api/src/model/weekly_digest_reference_response.dart';
+import 'package:eschool_api/src/model/weekly_digest_starting_template.dart';
+import 'package:eschool_api/src/model/weekly_digest_template.dart';
+import 'package:eschool_api/src/model/weekly_digest_template_input.dart';
+import 'package:eschool_api/src/model/weekly_digest_template_page.dart';
+import 'package:eschool_api/src/model/weekly_digest_template_page_response.dart';
+import 'package:eschool_api/src/model/weekly_digest_template_review.dart';
 import 'package:eschool_api/src/model/wellbeing_access.dart';
 import 'package:eschool_api/src/model/wellbeing_appointment.dart';
 import 'package:eschool_api/src/model/wellbeing_appointment_input.dart';
@@ -2812,6 +2844,29 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'LiveAuthorization':
+      return LiveAuthorization.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveAuthorizationResponse':
+      return LiveAuthorizationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveAuthorizeRequest':
+      return LiveAuthorizeRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LivePresence':
+      return LivePresence.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'LivePresenceRequest':
+      return LivePresenceRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LivePresenceResponse':
+      return LivePresenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveSessionConfiguration':
+      return LiveSessionConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveSessionResponse':
+      return LiveSessionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'MasteryConfiguration':
       return MasteryConfiguration.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -3668,6 +3723,84 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestAccess':
+      return WeeklyDigestAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestAccessResponse':
+      return WeeklyDigestAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestActionTemplates':
+      return WeeklyDigestActionTemplates.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestAttendance':
+      return WeeklyDigestAttendance.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestChild':
+      return WeeklyDigestChild.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestDetail':
+      return WeeklyDigestDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestDetailResponse':
+      return WeeklyDigestDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestEvent':
+      return WeeklyDigestEvent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestEvidence':
+      return WeeklyDigestEvidence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestHomeAction':
+      return WeeklyDigestHomeAction.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestListItem':
+      return WeeklyDigestListItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestMark':
+      return WeeklyDigestMark.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestPage':
+      return WeeklyDigestPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestPageResponse':
+      return WeeklyDigestPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestPractice':
+      return WeeklyDigestPractice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestPreferenceInput':
+      return WeeklyDigestPreferenceInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestReference':
+      return WeeklyDigestReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestReferenceResponse':
+      return WeeklyDigestReferenceResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WeeklyDigestStartingTemplate':
+      return WeeklyDigestStartingTemplate.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WeeklyDigestTemplate':
+      return WeeklyDigestTemplate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestTemplateInput':
+      return WeeklyDigestTemplateInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestTemplatePage':
+      return WeeklyDigestTemplatePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WeeklyDigestTemplatePageResponse':
+      return WeeklyDigestTemplatePageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WeeklyDigestTemplateReview':
+      return WeeklyDigestTemplateReview.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WellbeingAccess':
       return WellbeingAccess.fromJson(value as Map<String, dynamic>)

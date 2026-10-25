@@ -811,3 +811,7 @@ when another browser tab has replaced the session cookie. This optional header
 adds no permission; old clients may omit it. Shared `ApiClient.send` accepts
 `accountId`, and the generated SDK exposes the optional header on authenticated
 operations. Use the authenticated account ID, not the selected learner's ID.
+
+### Weekly parent digests
+
+`/api/v2/digests` adds access, own-child week listing/detail, exact language preferences and manager-only immutable template creation/review/listing. The canonical contract and generated `WeeklyDigestsApi` describe all seven operations. Parent records and notification delivery always refresh the current guardian and learner source; managers maintain wording through `/weekly-digest-templates`.

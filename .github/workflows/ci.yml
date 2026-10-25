@@ -144,6 +144,10 @@ jobs:
           done
           CONTENT_CLAMAV_INTEGRATION=true php artisan test tests/Unit/ClamAvIntegrationTest.php
       - run: php artisan test
+      - name: Qualify actual private Reverb socket and immediate committed relay
+        env:
+          LIVE_REVERB_INTEGRATION: 'true'
+        run: php vendor/bin/phpunit tests/Feature/Live/ReverbIntegrationTest.php
       # The container's Apache answers the portals' requests for uploaded files
       # with CORS headers (docker/storage-cors.conf); the runner has apache2.
       - name: Storage CORS in Apache
@@ -370,10 +374,22 @@ jobs:
             flow: family_practice_smoke_test.dart
           - app: e-school
             flow: family_consultations_smoke_test.dart
+          - app: e-school
+            flow: parent_digest_smoke_test.dart
+          - app: e-school
+            flow: family_gallery_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_gallery_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_gallery_smoke_test.dart
+            flavor: facilitator
           - app: e-school-teacher
             flow: teacher_consultations_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_consultations_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: facilitator_live_smoke_test.dart
             flavor: facilitator
           - app: e-school-teacher
             flow: teacher_risk_smoke_test.dart
@@ -396,6 +412,25 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
+      - name: Set up PHP for the real live browser transport fixture
+        if: matrix.flow == 'facilitator_live_smoke_test.dart'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3.36'
+          extensions: mbstring, intl, sodium, pdo_mysql
+          coverage: none
+      - name: Install the pinned Reverb runtime
+        if: matrix.flow == 'facilitator_live_smoke_test.dart'
+        working-directory: admin-panel
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress
+      - name: Start loopback Reverb and the synthetic signed browser publisher
+        if: matrix.flow == 'facilitator_live_smoke_test.dart'
+        working-directory: admin-panel
+        run: |
+          APP_ENV=testing APP_KEY=base64:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8= REVERB_APP_ID=qualification-browser REVERB_APP_KEY=qualification-browser-key REVERB_APP_SECRET=qualification-browser-secret-32-characters php artisan reverb:start --host=127.0.0.1 --port=8088 > "$RUNNER_TEMP/live-browser-reverb.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/live-browser-reverb.pid"
+          python3 tool/live/browser_control.py > "$RUNNER_TEMP/live-browser-control.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/live-browser-control.pid"
       # The runner image ships Chrome with a matching chromedriver.
       - name: Start chromedriver
         run: |
@@ -408,6 +443,13 @@ jobs:
           ${{ matrix.flavor && format('--flavor {0} --dart-define=FLAVOR={0}', matrix.flavor) || '' }}
           -d web-server --browser-name=chrome --headless
           --no-web-resources-cdn
+      - name: Stop the isolated live browser fixture
+        if: always() && matrix.flow == 'facilitator_live_smoke_test.dart'
+        run: |
+          for service in reverb control; do
+            pid_file="$RUNNER_TEMP/live-browser-$service.pid"
+            if [ -f "$pid_file" ]; then kill "$(cat "$pid_file")" 2>/dev/null || true; fi
+          done
 
   docs:
     name: Documentation build

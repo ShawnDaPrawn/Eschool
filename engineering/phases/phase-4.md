@@ -89,3 +89,10 @@ opening notices pass fresh-source inbox/delivery and rollback tests. This
 client/notices increment is being published for CI and review; deployed schedules,
 external delivery and device acceptance remain unverified. The root stream additionally owns personal gallery
 and transfer tag-retention consent after intake.
+
+Step 10 transport now has a qualified local Reverb/worker/socket round trip,
+credential-specific leases, typed session/presence APIs and shared lifecycle
+transport. Visible group presence and protected live result refreshes are implemented, with
+actual dedicated staff browser transport evidence in self-tests/live-consumers.md.
+Home recognition moments/counters, published CI and deployed acceptance remain
+separate. No deployed latency or phase completion is claimed.

@@ -202,6 +202,21 @@ firebase deploy --only hosting
 firebase deploy --only hosting:docs   # the documentation site alone
 ```
 
+### Preview on a phone
+
+Both web builds are installable web apps (PWAs): each `web/manifest.json` has the name, `display: standalone`, the theme colour and 192 and 512 px icons (plain and maskable), and `web/index.html` has the iOS home-screen tags. Chrome installs a site from its menu without a service worker (since Chrome 108 on Android), and Safari's *Add to Home Screen* needs none.
+
+To try both apps on a phone before a store or production release, run **Actions > Web app preview > Run workflow** from `main`, select **deploy_preview**, and use a staging or isolated test API ([web-preview.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/web-preview.yml)). It builds each app as the deploy workflow does, names it as a preview ("NavigateEd (preview)", "NavigateEd Teacher (preview)"; "NE preview" and "NE T preview" on a home screen) with a `noindex` tag, and deploys it to the `preview` channel of the portal's Firebase Hosting site. The live portals are not changed. The channel's address stays the same between runs, so an installed preview shows the next run's build when it is reloaded. Each job's summary gives the address, how to install it, and two answers from the server:
+
+| Check | What it means |
+|---|---|
+| CORS | Whether the server lets a browser on the preview's address call it. A server running this repository allows only `APP_URL` and the portal addresses until `CORS_ALLOWED_ORIGINS` in the environment's env file (then `infra/gcp/provision.sh`) also lists both preview addresses. |
+| API v2 | Whether `/api/v2/me/context` exists (401 when signed out). A 404 means the server runs code from before Phase 0, so screens that use API v2 fail. |
+
+The server is the run's `api_base_url` input, else the repository variable `PREVIEW_API_BASE_URL`, else the staging address in `config/staging.json`. The configured production API is refused. Previews always use bearer tokens (`WEB_AUTH_MODE=bearer`): a `*.web.app` address never shares the panel's cookies. A pull request that changes the workflow only builds seven-day downloadable artifacts and never receives Firebase credentials. A manual run without **deploy_preview** also only builds artifacts. Publishing requires an explicit dispatch from `main`. The workflow uses the repository secret `FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06` (the documentation workflow's) and creates the `navigateed-app` and `navigateed-teach` sites if they do not exist yet.
+
+A preview is the browser build, so it has no push notifications, and attaching files and paying fees ask for the phone app ([web-builds spec](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/web-builds.md)). Those need a phone build: the signed APK from **Build release artifacts** on Android, or TestFlight on an iPhone.
+
 ## Versioning
 
 | Place | Student app | Teacher app | Notes |

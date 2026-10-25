@@ -105,5 +105,10 @@ export 'src/practice/practice_session_boundary.dart';
 export 'src/gallery/gallery_repository.dart';
 export 'src/gallery/gallery_screen.dart';
 export 'src/gallery/gallery_session_boundary.dart';
+export 'src/recognition/recognition_live_changes.dart';
 export 'src/practice/practice_approval_outbox.dart';
 export 'src/practice/practice_approval_store.dart';
+
+export 'src/digests/weekly_digest_repository.dart';
+export 'src/digests/weekly_digest_screen.dart';
+export 'src/digests/weekly_digest_session_boundary.dart';

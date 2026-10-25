@@ -50,6 +50,17 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getWeeklyDigestAccess requires auth' => [null, 'GET', 'api/v2/digests/access', [], 401],
+            'listWeeklyDigestTemplates requires auth' => [null, 'GET', 'api/v2/digests/templates', [], 401],
+            'createWeeklyDigestTemplate requires auth' => [null, 'POST', 'api/v2/digests/templates', [], 401],
+            'reviewWeeklyDigestTemplate requires auth' => [null, 'POST', 'api/v2/digests/templates/1/review', [], 401],
+            'setWeeklyDigestPreference requires auth' => [null, 'POST', 'api/v2/digests/preferences', [], 401],
+            'listWeeklyDigests requires auth' => [null, 'GET', 'api/v2/digests/learners/1/weeks', [], 401],
+            'getWeeklyDigest requires auth' => [null, 'GET', 'api/v2/digests/1', [], 401],
+            'openLiveSession requires auth' => [null, 'POST', 'api/v2/live/session', [], 401],
+            'authorizeLiveChannel requires auth' => [null, 'POST', 'api/v2/live/authorize', [], 401],
+            'joinLiveGroupPresence requires auth' => [null, 'POST', 'api/v2/live/groups/1/presence', [], 401],
+            'leaveLiveGroupPresence requires auth' => [null, 'DELETE', 'api/v2/live/groups/1/presence', [], 401],
             'getGalleryConfiguration requires auth' => [null, 'GET', 'api/v2/gallery/configuration', [], 401],
             'getPersonalGallery requires auth' => [null, 'GET', 'api/v2/gallery/learners/1/photos', [], 401],
             'getGroupGallery requires auth' => [null, 'GET', 'api/v2/gallery/groups/1/photos', [], 401],
