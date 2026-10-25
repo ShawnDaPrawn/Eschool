@@ -1,0 +1,17 @@
+# Subject tutor
+
+The learner starts a subject session from current dated teaching-group enrolment and one to three currently published school content versions. Only the approved active Student account can read or write its raw conversation; parent and staff roles have no generic chat grant. A parent receives a deterministic template summary of completed curricular learning steps, never chat, teacher notes, photos, safety reasons or flagged counts.
+
+Every turn stores an encrypted immutable request/context snapshot and uses an exact operation UUID. Concurrent/retried turns cannot silently duplicate compute. Unknown provider outcomes remain charged and explicit; a completed replay reauthorizes its original sources. No output updates official marks or treats model confidence as verified mastery.
+
+The registered `tutor` inference policy assembles subject Markdown, published mastery priorities and only tutor-visible notes whose author retains current academic authority. Staff and counselling bodies are excluded before retrieval. Known account/school identifiers, email addresses and phone-like strings are minimized; this is not a claim of universal PII detection. Recent text dialogue is reused only against the same still-authorized source snapshot. Context is bounded and subject-locked. The versioned prompt requires explain/question/correct, hints before submitted working and kind redirects for off-topic requests.
+
+The feature moderator applies ordinary input/output moderation plus a strict JSON/subject-token/working-stage boundary before gateway completion. Extra answer fields, wrong subject tokens and corrections without working quarantine the output. These software checks do not prove real-model semantic refusal or subject lock; qualified-model evaluation remains required before activation.
+
+Explicit self-harm/abuse phrases route to a zero-cost local safeguarding quarantine and fixed trusted-adult/emergency guidance even when external inference is off. This conservative local phrase guard supplements provider moderation; it is not a complete multilingual clinical classifier or a claim an emergency was reported. Safeguarding review/retention uses the shared restricted AI queue.
+
+Photos pass platform Files validation/scanning, an explicitly approved server-applied working crop and a second scan. Only encrypted cropped pixel derivatives are stored on the private academic disk; originals and filenames are discarded. Each approved derivative is bound to learner/session/operation/hash, rechecked before retrieval, and never exposed by a public URL. A visible-name pixel canary outside the approved crop verifies that boundary; identifiers inside a crop still need privacy qualification.
+
+The quarantine participant correlates operation, feature, school, actor and learner independently of late usage-FK linkage. It removes derived message/context/photo copies even if the module or learner access was withdrawn; original curriculum, session audit metadata and cost/token receipts remain. Purged markers prevent delayed successful callbacks from restoring private bodies.
+
+External inference, Tutor feature and provider qualification stay off by default. The deployment must explicitly choose a qualified model and conservative configured rate; code supplies neither live credentials nor an invented model/price acceptance. API/app/panel readers and verified exercise outcome integration are following implementation work; this domain increment alone is not the full Tutor delivery.
