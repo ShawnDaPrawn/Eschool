@@ -82,3 +82,5 @@ Schedule::job(new ApplyRetention)->dailyAt('02:40')->name('academic-export-reten
 Schedule::job(new RecoverContentConversions)->everyMinute()->name('content-conversion-recovery')->withoutOverlapping();
 
 Schedule::job(new RecoverMessages)->everyMinute()->name('communication-message-recovery')->withoutOverlapping();
+
+Schedule::command('leadership:prune-activity')->dailyAt('02:50')->name('learner-activity-retention')->withoutOverlapping();

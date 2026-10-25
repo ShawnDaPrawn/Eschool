@@ -2929,5 +2929,22 @@
   "Withdraw appointment": "Trek aanstelling terug",
   "Withdraw instructions": "Trek instruksies terug",
   "Withdraw support appointment": "Trek ondersteuningsaanstelling terug",
-  "Withdraw teacher instructions": "Trek onderwyserinstruksies terug"
+  "Withdraw teacher instructions": "Trek onderwyserinstruksies terug",
+  "Leadership dashboard": "Leierskapkontroleskerm",
+  "School trends by grade": "Skooltendense per graad",
+  "Attendance is based on recorded school days. Activity counts show observed signed-in learners. Missing sources are shown as unavailable.": "Bywoning berus op aangetekende skooldae. Aktiwiteittellings toon waargenome aangemelde leerders. Ontbrekende bronne word as onbeskikbaar getoon.",
+  "Choose dashboard period": "Kies die kontroleskermtydperk",
+  "Weeks to show": "Weke om te wys",
+  "Through date": "Tot en met datum",
+  "View trends": "Bekyk tendense",
+  "Learner activity observed since": "Leerderaktiwiteit waargeneem sedert",
+  "Enrolled learners at period end": "Ingeskrewe leerders aan die einde van die tydperk",
+  "Recorded attendance": "Aangetekende bywoning",
+  "learner days": "leerderdae",
+  "Learners requiring academic follow-up": "Leerders wat akademiese opvolg benodig",
+  "Learners with discipline incidents": "Leerders met dissiplinevoorvalle",
+  "Fee collection": "Invordering van skoolgeld",
+  "Observed active learners": "Waargenome aktiewe leerders",
+  "Partial observation": "Gedeeltelike waarneming",
+  "No dated enrolments in this period.": "Geen gedateerde inskrywings in hierdie tydperk nie."
 }

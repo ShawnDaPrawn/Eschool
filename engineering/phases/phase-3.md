@@ -24,7 +24,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Risk signals and staff-owned interventions | Marks, attendance, discipline and wellbeing counts | Queued; no learner-facing risk labels |
 | Discipline framework, sanctions, detentions, escalation and acknowledgement | Fresh staff/guardian policies and audit | Queued; principal hearing referral, never automatic expulsion |
 | My grade dashboard and actions | Existing dated AcademicLeadership appointments | Queued; award nominations integrate after Phase 4 awards |
-| Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Queued; later money data remains a separate integration |
+| Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Cover and restricted support domain/API/panel/staff apps implemented in review; principal attendance/activity dashboard implemented and browser-tested; risk/discipline adapters follow, later money data remains separate |
 | Consented inter-school transfers and external signed packages | Existing dated changes and private exit packages | Queued; round-trip authorization and atomic enrolment tests |
 
 ## Gateway implementation and release boundary

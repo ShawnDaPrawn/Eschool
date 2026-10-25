@@ -21,6 +21,7 @@ use App\Http\Middleware\EnsureUserIsStaff;
 use App\Http\Middleware\HandleIdempotencyKey;
 use App\Http\Middleware\LanguageManager;
 use App\Http\Middleware\LimitRequestInput;
+use App\Http\Middleware\ObserveLearnerActivity;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RejectDangerousUploads;
 use App\Http\Middleware\RequireParentPolicyAcceptance;
@@ -137,6 +138,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SubstituteBindings::class,
         ]);
         $middleware->api(append: [
+            ObserveLearnerActivity::class,
             RejectDangerousUploads::class,
         ]);
 
