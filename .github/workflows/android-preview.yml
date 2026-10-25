@@ -1,0 +1,100 @@
+name: Android preview APKs
+
+on:
+  push:
+    branches: ['build/android-demo']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Preview APK (${{ matrix.app }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: e-school
+            filename: navigateed-learner-parent
+          - app: e-school-teacher
+            filename: navigateed-teacher
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Create a disposable preview signing key
+        working-directory: ${{ matrix.app }}
+        run: |
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/preview.jks" \
+            -alias preview -keyalg RSA -keysize 2048 -validity 30 \
+            -storepass android -keypass android -dname 'CN=NavigateEd Preview'
+          cat > android/key.properties <<EOF
+          storeFile=$RUNNER_TEMP/preview.jks
+          storePassword=android
+          keyAlias=preview
+          keyPassword=android
+          EOF
+      - name: Check and build the latest app
+        working-directory: ${{ matrix.app }}
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter analyze --no-fatal-infos
+          flutter test
+          flutter build apk --release --dart-define-from-file=config/production.json
+      - name: Verify and package the installable APK
+        env:
+          APP_DIRECTORY: ${{ matrix.app }}
+          APK_NAME: ${{ matrix.filename }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/apk"
+          cp "$APP_DIRECTORY/build/app/outputs/flutter-apk/app-release.apk" \
+            "$RUNNER_TEMP/apk/$APK_NAME-preview.apk"
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" \
+            verify --verbose "$RUNNER_TEMP/apk/$APK_NAME-preview.apk"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          config = json.loads(Path(os.environ['APP_DIRECTORY'], 'config/production.json').read_text())
+          text = f'''NavigateEd Android preview
+          Source commit: {os.environ['GITHUB_SHA']}
+          Backend: {config['API_BASE_URL']}
+          Built from the current application with a disposable preview signing key.
+          This package is for direct testing, not a Play Store release.
+
+          DemoSchoolSeeder accounts (require a backend seeded with demo data):
+          Learner: DEMO-A-0001
+          Parent: parent.a@demo.navigateed.test
+          Teacher: teacher.a@demo.navigateed.test
+          Password for all: NavigateDemo2026
+          Demo account availability on the configured backend has not been verified.
+          '''
+          Path(os.environ['RUNNER_TEMP'], 'apk', 'README.txt').write_text(text)
+          PY
+          (cd "$RUNNER_TEMP/apk" && sha256sum *.apk > SHA256SUMS)
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.filename }}-preview-${{ github.sha }}
+          path: ${{ runner.temp }}/apk/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove disposable signing files
+        if: always()
+        env:
+          APP_DIRECTORY: ${{ matrix.app }}
+        run: rm -f "$RUNNER_TEMP/preview.jks" "$APP_DIRECTORY/android/key.properties"
