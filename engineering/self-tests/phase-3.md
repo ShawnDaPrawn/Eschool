@@ -367,3 +367,15 @@ assertions**, with changed-file Pint and complete configured Larastan passing.
 No actual counsellor review, diagnosis, clinical risk disclosure, real-school
 observation or staff panel/app acceptance is claimed by this service increment.
 The HTTP contracts and staff workflows remain the next increment.
+
+
+## Current risk observation ordering and active scheduling
+
+Both reviewed bugs first reproduced with real red regressions: canonical daily
+attendance changed present → absent → present while the displayed risk stayed
+absent, and the configured application's schedule omitted the hourly refresh.
+After the retained-safe index/append fix and active scheduler registration, the
+risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions**.
+Repeated identical refreshes stay idempotent; genuine reversions retain all three
+ordered observations and classroom readers show the latest corrected state.
+Changed-file Pint and complete configured Larastan pass.

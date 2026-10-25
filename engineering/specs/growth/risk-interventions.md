@@ -45,3 +45,11 @@ availability is independently rechecked against the original professional grant.
 
 This domain increment precedes its typed HTTP contracts and panel/app workflows;
 those consumers are not represented by placeholder navigation.
+
+
+Current-state ordering deduplicates only against the immediately latest same-day
+observation. A real A → B → A correction appends another immutable row, so readers
+that select the latest ID show the restored facts. A forward migration retains
+old rows and changes the historical fingerprint uniqueness constraint to a lookup
+index; rollback refuses histories containing genuine repeated fingerprints.
+The hourly refresh is registered in the active routes/console.php schedule.
