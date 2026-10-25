@@ -10,7 +10,7 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 1b | Scoped facilitator role, API and menu / Backend + App | Dated owned groups from step 2 | community/facilitator-access.md |
 | 2 | Activity tree, seasons, dated members/staff, sessions, materials and cascading audiences / Backend + App | Phase 2 Files, Notifier and audiences | activities/groups.md; activities/group-surfaces.md |
 | 3 | Anonymous incidents, token follow-up, restricted counselling cases and appointments / Backend + App | Shared safeguarding policy with Phase 3; no impersonation access | community/wellbeing.md |
-| 4 | Polls, surveys and non-statutory elections / Backend + App | Audiences, scheduler, separate participation and responses | Before implementation |
+| 4 | Polls, surveys and non-statutory elections / Backend + App | Audiences, scheduler, separate participation and responses | community/consultations.md |
 | 5 | House caps/reversals, reusable awards and assembly mode / Backend + App | Groups and audited permissions | Before implementation |
 | 6 | Signed/rotating cards, freeze, scan log and printer exports / Backend + App | Identity; physical chip/printer qualification | Before implementation |
 | 7 | Public resumable intake, waiting list, offers and atomic enrolment / Backend + App | Profiles, guardians, approvals, Files | Before implementation |
@@ -83,6 +83,6 @@ Step4 consultation domain now implements scoped frozen configuration, audited
 revisioned changes, physically separate anonymous ballots/participation, unique
 one-person voting, validated options, scheduled opening/closure and private/public
 results with bounded individual-response paging. Seventeen domain/migration cases
-pass; API/panel/shared readers and notices remain active implementation, not a
+pass; the additive API/typed client is being verified while panel/shared readers and notices remain active implementation, not a
 completed polling workflow. The root stream additionally owns personal gallery
 and transfer tag-retention consent after intake.

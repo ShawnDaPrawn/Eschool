@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
+use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\Api\V2\Wellbeing\PublicReportingController;
 use App\Http\Controllers\Api\V2\Wellbeing\WellbeingController;
 use App\Http\Controllers\Api\V2\Wellbeing\WellbeingInboxController;
 use App\Http\Middleware\AuthorizeClassGrade;
+use App\Http\Middleware\AuthorizeConsultation;
 use App\Http\Middleware\AuthorizeCover;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeMarks;
@@ -55,6 +57,7 @@ use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\PrivateAcademicContent;
+use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
@@ -82,6 +85,16 @@ use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 | New endpoints follow the domain recipe: a thin controller in
 | Api/V2/<Domain>, a FormRequest, a service and a JSON Resource.
 */
+
+Route::prefix('consultations')->name('api.v2.consultations.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:consultations,read'])->group(function () {
+    $controller = ConsultationController::class;
+    foreach (['access' => 'access', 'audiences' => 'audiences', 'managed' => 'managed', '' => 'mine', '{consultation}/configuration' => 'configuration', '{consultation}/results' => 'results', '{consultation}/managed-results' => 'manager-results', '{consultation}/responses' => 'responses', '{consultation}/history' => 'history', '{consultation}/history/{event}' => 'history-entry', '{consultation}' => 'ballot'] as $path => $action) {
+        Route::get($path, [$controller, 'read'])->whereNumber(['consultation', 'event'])->middleware(AuthorizeConsultation::class.':'.$action)->name($action);
+    }
+    foreach (['' => 'create', '{consultation}' => 'edit', '{consultation}/publish' => 'publish', '{consultation}/close' => 'close', '{consultation}/cancel' => 'cancel', '{consultation}/vote' => 'vote'] as $path => $action) {
+        Route::post($path, [$controller, 'write'])->whereNumber('consultation')->middleware(AuthorizeConsultation::class.':'.$action)->name($action);
+    }
+});
 
 // Anonymous transport is deliberately stateless even when a portal cookie exists.
 Route::prefix('wellbeing/public/{schoolSlug}')->where(['schoolSlug' => '[a-z0-9][a-z0-9-]*'])->name('api.v2.wellbeing.public.')
@@ -485,7 +498,7 @@ Route::prefix('transfers')->middleware(['auth:sanctum', 'school.context', 'role.
 });
 
 // Private encrypted receipts are feature-owned; no global plaintext replay cache.
-Route::prefix('discipline')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'module:discipline'])->name('api.v2.discipline.')->group(function () {
+Route::prefix('discipline')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:discipline'])->name('api.v2.discipline.')->group(function () {
     $controller = DisciplineController::class;
     Route::get('configuration', [$controller, 'configuration'])->name('configuration');
     Route::get('framework', [$controller, 'framework'])->name('framework');

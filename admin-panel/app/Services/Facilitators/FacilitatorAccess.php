@@ -9,6 +9,7 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Policies\Growth\LearnerNotesPolicy;
 use App\Policies\People\ProfilePolicy;
+use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\ParentPolicyService;
@@ -83,8 +84,25 @@ class FacilitatorAccess
         return ['user_id' => (int) $fresh->id, 'school_id' => (int) $school->id, 'name' => trim($fresh->first_name.' '.$fresh->last_name),
             'roles' => array_values(array_intersect(app(ProfilePolicy::class)->roles($fresh), self::ROLES)),
             'schools' => $choices->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name, 'slug' => $row->slug])->all(),
-            'features' => ['private_notices' => app(StaffPrivateNotices::class)->available($fresh), 'discipline' => app(DisciplineQueries::class)->available($fresh), 'groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
+            'features' => ['consultations' => $this->consultationsAvailable($fresh), 'private_notices' => app(StaffPrivateNotices::class)->available($fresh), 'discipline' => app(DisciplineQueries::class)->available($fresh), 'groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
                 'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh), 'risk_interventions' => $this->riskAvailable($fresh), 'house_points' => $this->recognitionAvailable($fresh, 'house_points'), 'awards' => $this->recognitionAvailable($fresh, 'awards')]];
+    }
+
+    private function consultationsAvailable(User $actor): bool
+    {
+        try {
+            app(ConsultationAccess::class)->actor($actor);
+
+            return true;
+        } catch (ModelNotFoundException) {
+            return false;
+        } catch (HttpExceptionInterface $error) {
+            if (! in_array($error->getStatusCode(), [403, 404], true)) {
+                throw $error;
+            }
+
+            return false;
+        }
     }
 
     private function recognitionAvailable(User $actor, string $module): bool

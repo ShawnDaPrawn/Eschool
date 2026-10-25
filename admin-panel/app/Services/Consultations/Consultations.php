@@ -56,8 +56,11 @@ class Consultations
             $this->access->year((int) $data['session_year_id'], true);
         }, function () use ($actor, $id, $data) {
             $row = $id === null ? new Consultation : Consultation::findOrFail($id);
+            if ($id !== null) {
+                $this->access->year((int) $row->session_year_id, true);
+            }
             abort_unless((int) ($row->revision ?? 0) === (int) $data['revision'] && ($id === null || $row->status === 'draft'), 409, 'Published configuration is retained. Create a new consultation or refresh the draft.');
-            $audience = $this->access->audience($data['audience'], (int) $data['session_year_id']);
+            $audience = $this->access->audience($actor, $data['audience'], (int) $data['session_year_id']);
             $row->fill(['session_year_id' => $data['session_year_id'], 'created_by' => $row->created_by ?? $actor->id,
                 'type' => $data['type'], 'title' => trim($data['title']), 'instructions' => trim($data['instructions'] ?? ''),
                 'audience' => $audience, 'anonymous' => $data['anonymous'], 'results_visibility' => $data['results_visibility'],
@@ -96,7 +99,7 @@ class Consultations
             abort_unless($row->status === 'draft' && $row->closes_at->isFuture(), 409, 'Only an unexpired draft can be published.');
             abort_unless(Question::where('consultation_id', $id)->exists(), 422);
             // Resolve now to reject a missing/inactive audience, never freeze a voter list.
-            abort_unless($this->access->recipients($row) !== [], 422, 'The consultation needs a current eligible audience.');
+            abort_unless($row->opens_at->isFuture() || $this->access->recipients($row) !== [], 422, 'The consultation needs a current eligible audience.');
             $row->status = $row->opens_at->isFuture() ? 'scheduled' : 'open';
             $row->revision++;
             $row->save();
@@ -132,7 +135,7 @@ class Consultations
         });
     }
 
-    public function questions(Consultation $row): array
+    private function questions(Consultation $row): array
     {
         $options = Option::where('consultation_id', $row->id)->orderBy('position')->get()->groupBy('question_id');
         $candidates = Candidate::where('consultation_id', $row->id)->get()->keyBy('option_id');
@@ -147,7 +150,16 @@ class Consultations
     {
         return $this->receipt($row) + ['type' => $row->type, 'title' => $row->title, 'instructions' => $row->instructions,
             'session_year_id' => (int) $row->session_year_id, 'anonymous' => $row->anonymous, 'results_visibility' => $row->results_visibility,
-            'opens_at' => $row->opens_at->toISOString(), 'closes_at' => $row->closes_at->toISOString(), 'ended_at' => $row->ended_at?->toISOString()];
+            'opens_at' => $row->opens_at->toISOString(), 'closes_at' => $row->closes_at->toISOString(), 'ended_at' => $row->ended_at?->toISOString(),
+            'writable' => app(ModuleGate::class)->writable('consultations') && (int) $row->session_year_id === (int) schoolSetting('session_year')];
+    }
+
+    public function listingItem(User $actor, Consultation $row, bool $managed): array
+    {
+        abort_unless((int) $row->school_id === app(CurrentSchool::class)->id(), 404);
+        $managed ? $this->access->manager($actor) : $this->access->voter($actor, $row);
+
+        return $this->summary($row);
     }
 
     public function configuration(User $actor, int $id): array
@@ -183,7 +195,7 @@ class Consultations
         $result = [];
         foreach ($questions as $q) {
             $input = $byQuestion->get($q->id, []);
-            $ids = $input['option_ids'] ?? [];
+            $ids = array_map('intval', $input['option_ids'] ?? []);
             $text = trim($input['text'] ?? '');
             if ($q->kind === 'text') {
                 abort_if($ids !== [] || ($q->required && $text === ''), 422, 'Complete each required question.');
@@ -282,9 +294,12 @@ class Consultations
         $rows = Response::where('consultation_id', $id)->orderBy('id')->paginate(50, ['id', 'respondent_user_id', 'answers'], 'page', $page);
         $people = $row->anonymous ? collect() : User::whereIn('id', $rows->pluck('respondent_user_id')->filter()->all())->get(['id', 'first_name', 'last_name'])->keyBy('id');
 
-        return ['items' => $rows->map(fn ($response) => ['respondent' => $row->anonymous ? null : ['id' => (int) $response->respondent_user_id,
-            'name' => $people->get($response->respondent_user_id)?->full_name ?? 'Former participant'], 'answers' => $response->answers])->all(),
-            'page' => $rows->currentPage(), 'last_page' => $rows->lastPage()];
+        return ['items' => $rows->map(fn ($response) => [
+            'respondent_user_id' => $row->anonymous ? null : (int) $response->respondent_user_id,
+            'respondent_name' => $row->anonymous ? null : ($people->get($response->respondent_user_id)?->full_name ?? 'Former participant'),
+            'answers' => collect($response->answers)->map(fn ($answer, $question) => ['question_id' => (int) $question,
+                'option_ids' => array_values($answer['option_ids'] ?? []), 'text' => $answer['text'] ?? null])->values()->all(),
+        ])->all(), 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage()];
     }
 
     public function results(User $actor, int $id, bool $manager = false): array
@@ -307,7 +322,7 @@ class Consultations
         abort_unless($count === Participation::where('consultation_id', $id)->count(), 409, 'The retained ballot totals need review.');
         $totals = [];
         foreach ($questions as $q) {
-            $totals[$q['id']] = ['answered' => 0, 'options' => array_fill_keys(array_column($q['options'], 'id'), 0), 'texts' => []];
+            $totals[$q['id']] = ['answered' => 0, 'options' => array_fill_keys(array_column($q['options'], 'id'), 0)];
         }
         foreach (Response::where('consultation_id', $id)->orderBy('id')->cursor() as $response) {
             foreach ($response->answers as $qid => $answer) {
@@ -324,7 +339,6 @@ class Consultations
 
         return ['id' => $id, 'closed' => $closed, 'anonymous' => $row->anonymous, 'response_count' => $count,
             'questions' => array_map(fn ($q) => $q + ['answered' => $totals[$q['id']]['answered'],
-                'counts' => array_map(fn ($option) => ['option_id' => $option['id'], 'count' => $totals[$q['id']]['options'][$option['id']]], $q['options']),
-                'texts' => $manager ? $totals[$q['id']]['texts'] : []], $questions)];
+                'counts' => array_map(fn ($option) => ['option_id' => $option['id'], 'count' => $totals[$q['id']]['options'][$option['id']]], $q['options'])], $questions)];
     }
 }

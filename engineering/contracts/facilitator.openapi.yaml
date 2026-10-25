@@ -130,6 +130,9 @@ components:
       - messages
       - counselling
       properties:
+        consultations:
+          type: boolean
+          description: Optional current-school consultation capability; every ballot still requires fresh audience authority.
         private_notices:
           type: boolean
           description: Optional fresh dedicated staff inbox capability; absence means unavailable. Every notice still requires its source grant.
