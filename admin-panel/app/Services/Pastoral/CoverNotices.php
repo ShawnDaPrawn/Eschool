@@ -20,8 +20,8 @@ class CoverNotices
         }
         $teacher = Teacher::findOrFail($cover->substitute_teacher_id);
         $notifier = app(Notifier::class);
-        $notice = $notifier->makeNotice('pastoral.cover_assigned', __('Relief cover updated'), __('Open Relief cover to review your assigned lesson.'), '/pastoral/cover');
-        $notice->delivery_payload = ['link' => '/pastoral/cover', 'cover_assignment_id' => (int) $cover->id, 'cover_revision' => $cover->revision];
+        $notice = $notifier->makeNotice('pastoral.cover_assigned', __('Relief cover updated'), __('Open Relief cover to review your assigned lesson.'), '/relief-cover');
+        $notice->delivery_payload = ['link' => '/relief-cover', 'cover_assignment_id' => (int) $cover->id, 'cover_revision' => $cover->revision];
         $notice->save();
         $notifier->assign($notice, [(int) $teacher->user_id]);
     }

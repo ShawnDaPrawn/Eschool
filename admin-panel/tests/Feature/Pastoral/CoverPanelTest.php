@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Pastoral;
 
+use App\Jobs\Platform\SendMail;
+use App\Models\Notification;
 use App\Models\Pastoral\CoverAbsence;
 use App\Models\Pastoral\CoverAssignment;
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Pastoral\ReliefCover;
+use App\Services\Platform\Notifications\NotificationRules;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\Concerns\UsesCoverScenario;
 use Tests\TestCase;
@@ -40,6 +46,22 @@ class CoverPanelTest extends TestCase
         $this->get('/relief-cover/'.$absence->id)->assertForbidden();
         $this->actingAs($this->person())->post('/relief-cover/'.$absence->id.'/cancel', $this->fields() + ['revision' => 1])->assertRedirect();
         $this->assertSame('cancelled', $absence->fresh()->state);
+    }
+
+    public function test_assignment_notice_opens_the_implemented_staff_workbench_on_its_host(): void
+    {
+        Queue::fake();
+        config(['app.url' => 'https://panel.example.test', 'identity.portal_url' => 'https://learner.example.test']);
+        $this->request();
+        $cover = CoverAssignment::orderBy('id')->firstOrFail();
+        app(ReliefCover::class)->assign($this->superAdmin(), $cover->id, $this->substitute, 1, (string) Str::uuid());
+        $notice = Notification::where('type', 'pastoral.cover_assigned')->sole();
+        $this->assertSame('/relief-cover', $notice->delivery_payload['link']);
+        $teacher = $this->person('theo');
+        app(NotificationRules::class)->choose($teacher, $notice->type, 'email', true);
+        app(Notifier::class)->send($teacher, $notice->type, $notice->title, $notice->message, $notice->delivery_payload['link'], $notice);
+        Queue::assertPushed(SendMail::class, fn ($job) => $job->mailable->noticeUrl === 'https://panel.example.test/relief-cover');
+        $this->actingAs($teacher)->get($notice->delivery_payload['link'])->assertOk()->assertSee('Cover maths')->assertDontSee('Private cover reason');
     }
 
     public function test_invalid_and_conflicting_drafts_remain_private_and_are_not_flashed(): void
