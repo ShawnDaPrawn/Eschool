@@ -149,8 +149,10 @@ class ApiClient {
     bool useAuthToken = true,
     bool notFoundAsNull = false,
     int? schoolId,
+    int? accountId,
     String? idempotencyKey,
     Duration? requestTimeout,
+    bool privateRequest = false,
   }) async {
     final cancellation = requestTimeout == null ? null : CancelToken();
     var deadlineElapsed = false;
@@ -163,7 +165,7 @@ class ApiClient {
     try {
       final Dio dio = _createDio();
 
-      debugPrint('API Called $method: $url');
+      if (!privateRequest) debugPrint('API Called $method: $url');
 
       final response = await dio.request<dynamic>(
         url,
@@ -176,6 +178,7 @@ class ApiClient {
               ? {
                   ...headers(),
                   if (schoolId != null) 'X-School-Id': '$schoolId',
+                  if (accountId != null) 'X-Account-Id': '$accountId',
                   if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
                 }
               : const {'Accept': 'application/json'},
@@ -225,16 +228,25 @@ class ApiClient {
   }
 
   /// Reads an authenticated asset into memory, with explicit school scope.
-  Future<Uint8List> getBytes({required String url, int? schoolId}) async {
+  Future<Uint8List> getBytes({
+    required String url,
+    int? schoolId,
+    int? accountId,
+    Duration? requestTimeout,
+  }) async {
     try {
-      final response = await _createDio().get<List<int>>(
+      final dio = _createDio();
+      if (requestTimeout != null) dio.options.connectTimeout = requestTimeout;
+      final response = await dio.get<List<int>>(
         url,
         options: Options(
           responseType: ResponseType.bytes,
+          receiveTimeout: requestTimeout,
           followRedirects: false,
           headers: {
             ...headers(),
             if (schoolId != null) 'X-School-Id': '$schoolId',
+            if (accountId != null) 'X-Account-Id': '$accountId',
           },
         ),
       );

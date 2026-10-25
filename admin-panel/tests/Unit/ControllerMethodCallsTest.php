@@ -108,6 +108,25 @@ class ControllerMethodCallsTest extends TestCase
         $this->assertSame([], $dropped, 'Return these responses (or throw them in an HttpResponseException)');
     }
 
+    public function test_returned_response_chains_are_accepted_but_dropped_chains_are_refused(): void
+    {
+        $parser = (new ParserFactory)->createForNewestSupportedVersion();
+        foreach ([
+            'return ResponseService::successResponse()->header("Cache-Control", "private")->header("Pragma", "no-cache");' => true,
+            'ResponseService::successResponse()->header("Cache-Control", "private");' => false,
+            'return consumes(ResponseService::successResponse());' => false,
+            'return ResponseService::successResponse()->getStatusCode();' => false,
+        ] as $statement => $returned) {
+            $nodes = $parser->parse('<?php function example() { '.$statement.' }');
+            $traverser = new NodeTraverser;
+            $traverser->addVisitor(new ParentConnectingVisitor);
+            $nodes = $traverser->traverse($nodes);
+            $call = (new NodeFinder)->findFirstInstanceOf($nodes, Node\Expr\StaticCall::class);
+            $this->assertNotNull($call);
+            $this->assertSame($returned, $this->valueIsReturnedOrThrown($call), $statement);
+        }
+    }
+
     /** Whether an expression's value ends up returned or thrown by its function. */
     private function valueIsReturnedOrThrown(Node\Expr $expr): bool
     {
@@ -115,6 +134,13 @@ class ControllerMethodCallsTest extends TestCase
 
         if ($parent instanceof Node\Stmt\Return_ || $parent instanceof Node\Expr\Throw_) {
             return true;
+        }
+        // A returned response may set headers through a fluent receiver chain.
+        // Calls passed as arguments remain excluded: their value can be ignored.
+        if ($parent instanceof Node\Expr\MethodCall && $parent->var === $expr
+            && $parent->name instanceof Node\Identifier
+            && in_array(strtolower($parent->name->toString()), ['header', 'withheaders'], true)) {
+            return $this->valueIsReturnedOrThrown($parent);
         }
         // return $cond ? ResponseService::a() : ResponseService::b();
         if ($parent instanceof Node\Expr\Ternary && $parent->cond !== $expr) {

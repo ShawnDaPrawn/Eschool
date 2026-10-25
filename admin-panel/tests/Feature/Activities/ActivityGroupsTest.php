@@ -136,6 +136,47 @@ class ActivityGroupsTest extends TestCase
         $this->assertCount(1, app(ActivityGroups::class)->roster($teacher, $group['id'])['memberships']);
     }
 
+    public function test_session_roster_uses_dated_enrolment_and_retains_captured_corrections(): void
+    {
+        $service = app(ActivityGroups::class);
+        $group = $this->group();
+        $teacher = $this->coach($group['id']);
+        foreach (['asha', 'ben', 'cara'] as $name) {
+            if ($name !== 'asha') {
+                Enrolment::create(['learner_id' => $this->schoolA->ids[$name], 'session_year_id' => $this->year,
+                    'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic session roster']);
+            }
+            $service->allocation($this->superAdmin(), $group['id'], null, false, $this->dates(['learner_id' => $this->schoolA->ids[$name], 'role' => 'member']));
+        }
+        $session = $service->session($teacher, $group['id'], null, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'on_date' => '2026-02-10', 'name' => 'Training', 'venue' => 'Field', 'status' => 'scheduled']);
+        $captured = $service->attendance($teacher, $session['id'], ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'reason' => 'Observed before withdrawal', 'entries' => [['learner_id' => $this->schoolA->ids['cara'], 'status' => 'late', 'revision' => 0]]]);
+        Enrolment::whereIn('learner_id', [$this->schoolA->ids['ben'], $this->schoolA->ids['cara']])->update(['ends_on' => '2026-02-09']);
+        ActivityMembership::where('learner_id', $this->schoolA->ids['cara'])->update(['active' => false]);
+        $path = '/api/v2/activities/groups/'.$group['id'].'/roster';
+        $response = $this->api($teacher)->getJson($path.'?session_id='.$session['id'])->assertOk();
+        $roster = $response->json('data.session_roster');
+        $this->assertNotNull($roster);
+        $this->assertSame($session['id'], $roster['session_id']);
+        $this->assertSame($captured['session_revision'], $roster['session_revision']);
+        $this->assertSame([$this->schoolA->ids['asha'], $this->schoolA->ids['cara']], array_column($roster['learners'], 'learner_id'));
+        $this->assertSame('late', $roster['learners'][1]['status']);
+        $this->assertSame(1, $roster['learners'][1]['revision']);
+        $this->assertArrayNotHasKey('session_roster', $this->getJson($path)->assertOk()->json('data'));
+        $this->actingAs($this->superAdmin(), 'web')->get(route('activity-groups.index', ['group_id' => $group['id'], 'session_id' => $session['id']]))
+            ->assertOk()->assertViewHas('attendance', fn ($rows) => array_keys($rows) === [$this->schoolA->ids['asha'], $this->schoolA->ids['cara']]);
+        $service->attendance($teacher, $session['id'], ['operation_id' => (string) Str::uuid(), 'revision' => $roster['session_revision'], 'reason' => 'Correct retained session record', 'entries' => [
+            ['learner_id' => $this->schoolA->ids['asha'], 'status' => 'present', 'revision' => 0],
+            ['learner_id' => $this->schoolA->ids['cara'], 'status' => 'present', 'revision' => 1],
+        ]]);
+        $other = $this->group(['name' => 'Unrelated activity']);
+        $this->api($this->superAdmin())->getJson('/api/v2/activities/groups/'.$other['id'].'/roster?session_id='.$session['id'])->assertNotFound();
+        $this->api(User::findOrFail($this->schoolA->ids['farid_user']))->getJson($path.'?session_id='.$session['id'])->assertForbidden();
+        $this->api($teacher)->withHeader('X-School-Id', '2')->getJson($path.'?session_id='.$session['id'])->assertForbidden();
+        ActivityStaff::where('user_id', $teacher->id)->update(['starts_on' => '2026-02-10']);
+        ActivitySession::whereKey($session['id'])->update(['on_date' => '2026-02-09']);
+        $this->api($teacher)->getJson($path.'?session_id='.$session['id'])->assertNotFound();
+    }
+
     public function test_guardian_relationship_revocation_and_expired_staff_remove_current_reads(): void
     {
         $group = $this->group();
@@ -443,6 +484,59 @@ class ActivityGroupsTest extends TestCase
         $this->assertSame(0, ActivityAttendance::count());
     }
 
+    public function test_activity_panel_renders_named_scoped_choices_and_saves_definitions_allocations_sessions_and_materials(): void
+    {
+        $this->actingAs($this->superAdmin());
+        $this->get(route('activity-groups.index'))->assertOk()->assertSee('New activity group')->assertHeader('cache-control', 'no-store, private');
+        $this->post(route('activity-groups.create'), $this->data(['name' => 'Panel Hockey']))->assertRedirect()->assertHeader('Cache-Control', 'no-store, private');
+        $group = ActivityGroup::where('name', 'Panel Hockey')->firstOrFail();
+        $this->get(route('activity-groups.index', ['group_id' => $group->id]))->assertOk()->assertSee('Asha')->assertDontSee('Bea');
+        $this->post(route('activity-groups.membership-save', ['group' => $group->id]), $this->dates(['learner_id' => $this->schoolA->ids['asha'], 'role' => 'member']))->assertRedirect();
+        $this->post(route('activity-groups.staff-save', ['group' => $group->id]), $this->dates(['user_id' => $this->schoolA->ids['tara_user'], 'role' => 'facilitator', 'cascade' => false]))->assertRedirect();
+        $this->post(route('activity-groups.session-save', ['group' => $group->id]), ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'on_date' => '2026-02-10', 'name' => 'Practice', 'venue' => 'Field', 'status' => 'scheduled'])->assertRedirect();
+        $session = ActivitySession::where('activity_group_id', $group->id)->firstOrFail();
+        $this->get(route('activity-groups.index', ['group_id' => $group->id, 'session_id' => $session->id]))->assertOk()->assertSee('Unrecorded')->assertSee('Asha');
+        $this->post(route('activity-groups.attendance-save', ['group' => $group->id, 'session' => $session->id]), ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'reason' => 'Observed attendance', 'entries' => [['learner_id' => $this->schoolA->ids['asha'], 'revision' => 0, 'status' => 'late']]])->assertRedirect();
+        $this->post(route('activity-groups.material-save', ['group' => $group->id]), ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'title' => 'Safe fixture', 'markdown' => '# Practice <script>alert(1)</script>', 'published' => true])->assertRedirect();
+        $this->get(route('activity-groups.index', ['group_id' => $group->id]))->assertOk()->assertSee('Safe fixture')->assertDontSee('<script>alert(1)</script>', false);
+        $this->assertSame('late', ActivityAttendance::firstOrFail()->status);
+    }
+
+    public function test_activity_panel_refuses_wrong_role_foreign_ids_and_cross_group_records_before_rendering(): void
+    {
+        $group = $this->group();
+        $member = $this->member($group['id']);
+        $other = $this->group(['name' => 'Other']);
+        $this->actingAs(User::findOrFail($this->schoolA->ids['farid_user']));
+        $this->get(route('activity-groups.index'))->assertRedirect()->assertSessionHasErrors();
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']));
+        $this->post(route('activity-groups.create'), $this->data())->assertForbidden();
+        $this->actingAs($this->superAdmin());
+        $this->get(route('activity-groups.index', ['group_id' => $other['id'], 'edit' => 'membership', 'record_id' => $member['id']]))->assertNotFound();
+        $this->withHeader('X-School-Id', '2')->get(route('activity-groups.index', ['group_id' => $group['id']]))->assertForbidden();
+    }
+
+    public function test_activity_panel_keeps_validation_and_conflict_drafts_in_response_without_plain_session_flash(): void
+    {
+        $group = $this->group();
+        $this->actingAs($this->superAdmin());
+        $invalid = $this->data(['name' => 'Keep this draft', 'starts_on' => '2026-12-31', 'ends_on' => '2026-01-01']);
+        $this->post(route('activity-groups.create'), $invalid)->assertUnprocessable()->assertHeader('Cache-Control', 'no-store, private')->assertSee('Keep this draft')->assertSessionMissing('_old_input');
+        $this->post(route('activity-groups.create'), $this->data(['name' => ['malformed']]))->assertUnprocessable()->assertSessionMissing('_old_input');
+        $this->post(route('activity-groups.save', ['group' => $group['id']]), $this->data(['name' => 'Conflicting draft']))->assertConflict()->assertSee('Conflicting draft')->assertSee('Hockey')->assertSee('reviewed_conflict', false)->assertSessionMissing('_old_input');
+        $this->assertSame('Hockey', ActivityGroup::findOrFail($group['id'])->name);
+    }
+
+    public function test_activity_panel_refuses_explicit_historical_year_writes_even_with_current_header(): void
+    {
+        $year = SessionYear::create(['name' => 'Historical activity year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $group = $this->group(['session_year_id' => $year->id, 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31']);
+        $this->actingAs($this->superAdmin());
+        $this->get(route('activity-groups.index', ['group_id' => $group['id']]))->assertOk()->assertSee('This school year is read-only.')->assertSee('disabled', false);
+        $this->post(route('activity-groups.save', ['group' => $group['id']]), $this->data(['session_year_id' => $year->id, 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31', 'revision' => 1]))->assertStatus(423);
+        $this->assertSame(1, ActivityGroup::findOrFail($group['id'])->revision);
+    }
+
     public function test_reparenting_keeps_the_entire_retained_subtree_within_twelve_levels(): void
     {
         $parent = null;
@@ -462,6 +556,33 @@ class ActivityGroupsTest extends TestCase
         $this->putJson('/api/v2/activities/groups/'.$moving['id'], $this->data(['name' => 'Moving root', 'revision' => 1, 'parent_id' => $parent['parent_id']]))->assertOk();
         $this->assertCount(12, app(CommunityAuthority::class)->lineage(ActivityGroup::findOrFail($child['id'])));
 
+    }
+
+    public function test_historical_header_refusal_never_flashes_private_activity_text(): void
+    {
+        $year = SessionYear::create(['name' => 'Historical group header year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $this->actingAs($this->superAdmin());
+        $this->withSession(['session_year' => $year->id])
+            ->post(route('activity-groups.create'), $this->data(['reason' => 'Synthetic private change reason', 'markdown' => 'Synthetic private material draft']))
+            ->assertStatus(423)->assertHeader('Cache-Control', 'no-store, private')
+            ->assertSee('Synthetic private change reason')->assertSessionMissing('_old_input');
+    }
+
+    public function test_panel_attendance_binds_the_actual_session_group_and_its_historical_year(): void
+    {
+        $current = $this->group();
+        $year = SessionYear::create(['name' => 'Historical attendance year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $historical = $this->group(['session_year_id' => $year->id, 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31']);
+        $session = ActivitySession::create(['activity_group_id' => $historical['id'], 'on_date' => '2025-02-10', 'name' => 'Retained session', 'venue' => 'Field', 'status' => 'scheduled', 'revision' => 1]);
+        ActivityAttendance::create(['activity_session_id' => $session->id, 'learner_id' => $this->schoolA->ids['asha'], 'status' => 'present', 'recorded_by' => $this->superAdmin()->id, 'reason' => 'Original attendance', 'revision' => 1]);
+        $input = ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'reason' => 'Forged current group correction', 'entries' => [['learner_id' => $this->schoolA->ids['asha'], 'status' => 'absent', 'revision' => 1]]];
+        $receipts = ActivityOperation::count();
+        $this->actingAs($this->superAdmin());
+        $this->post(route('activity-groups.attendance-save', ['group' => $current['id'], 'session' => $session->id]), $input)->assertNotFound();
+        $this->post(route('activity-groups.attendance-save', ['group' => $historical['id'], 'session' => $session->id]), $input)->assertStatus(423);
+        $this->assertSame('present', ActivityAttendance::where('activity_session_id', $session->id)->firstOrFail()->status);
+        $this->assertSame(1, $session->fresh()->revision);
+        $this->assertSame($receipts, ActivityOperation::count());
     }
 
     public function test_large_attendance_receipt_survives_mysql_encryption_and_exact_replay(): void

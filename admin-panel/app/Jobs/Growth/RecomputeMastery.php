@@ -9,13 +9,21 @@ use App\Services\Growth\MasteryRecompute;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 
-class RecomputeMastery implements ShouldQueue
+class RecomputeMastery implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
+
+    public int $uniqueFor = 120;
+
+    public function uniqueId(): string
+    {
+        return $this->schoolId.':'.$this->groupId;
+    }
 
     public int $tries = 3;
 

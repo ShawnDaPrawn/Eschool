@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 
@@ -81,8 +82,9 @@ class ApiSchoolMessageRepository implements SchoolMessageRepository {
       method: method,
       url: '${AppConfig.apiV2Url}communication/$path',
       data: data,
-      queryParameters: query,
+      queryParameters: {...?query, 'activity_groups': 1},
       schoolId: schoolId,
+      accountId: readerId,
       requestTimeout: const Duration(seconds: 30),
     );
     _guard();

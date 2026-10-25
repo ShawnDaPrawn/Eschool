@@ -44,6 +44,7 @@ class ActivityGroups
             'staff-save' => $base + $dates + $reason + ['active' => ['sometimes', 'boolean'], 'user_id' => ['required', 'integer', 'min:1'], 'role' => ['required', Rule::in(['admin', 'facilitator'])], 'cascade' => ['required', 'boolean']],
             'session-save' => $base + ['on_date' => ['required', 'date_format:Y-m-d'], 'name' => ['required', 'string', 'max:191'], 'venue' => ['required', 'string', 'max:191'], 'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])]],
             'attendance-save' => $base + $reason + ['entries' => ['required', 'array', 'min:1', 'max:500'], 'entries.*' => ['required', 'array:learner_id,status,revision'], 'entries.*.learner_id' => ['required', 'integer', 'min:1', 'distinct'], 'entries.*.status' => ['required', Rule::in(['present', 'absent', 'late', 'excused'])], 'entries.*.revision' => ['required', 'integer', 'min:0']],
+            'roster' => ['session_id' => ['sometimes', 'integer', 'min:1']],
             'material-save' => $base + ['title' => ['required', 'string', 'max:191'], 'markdown' => ['required', 'string', 'max:20000'], 'published' => ['required', 'boolean']],
             default => ['page' => ['sometimes', 'integer', 'between:1,10000'], 'session_year_id' => ['sometimes', 'integer', 'min:1']],
         };
@@ -264,8 +265,7 @@ class ActivityGroups
             if ($date > $this->access->today()) {
                 throw ValidationException::withMessages(['on_date' => 'Session attendance opens on the session date.']);
             }
-            $roster = ActivityMembership::where('active', true)->where('activity_group_id', $session->activity_group_id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)
-                ->whereIn('learner_id', Enrolment::where('session_year_id', ActivityGroup::findOrFail($session->activity_group_id)->session_year_id)->onDate($date)->select('learner_id'))->pluck('learner_id')->map(fn ($x) => (int) $x)->all();
+            $roster = $this->sessionLearnerIds($session);
             foreach ($data['entries'] as $entry) {
                 $row = ActivityAttendance::firstOrNew(['activity_session_id' => $sessionId, 'learner_id' => $entry['learner_id']]);
                 // Withdrawal closes future group access, not the ability to correct
@@ -324,11 +324,16 @@ class ActivityGroups
         return ['group' => $this->present($group), 'materials' => $materials, 'sessions' => ActivitySession::where('activity_group_id', $id)->orderBy('on_date')->get()->map(fn ($x) => $this->present($x))->all(), 'can_manage' => $staff && $this->access->manages($actor), 'can_capture' => $staff && $group->active && app(ModuleGate::class)->writable('groups')];
     }
 
-    public function roster(User $actor, int $id): array
+    public function roster(User $actor, int $id, ?int $sessionId = null): array
     {
         $this->access->groupStaff($actor, $id);
 
-        return ['memberships' => ActivityMembership::where('activity_group_id', $id)->get()->map(function ($row) {
+        $session = $sessionId === null ? null : ActivitySession::where('activity_group_id', $id)->findOrFail($sessionId);
+        if ($session !== null) {
+            $this->access->groupStaff($actor, $id, false, $session->on_date->toDateString());
+        }
+
+        $result = ['memberships' => ActivityMembership::where('activity_group_id', $id)->get()->map(function ($row) {
             $learner = Students::withTrashed()->findOrFail($row->learner_id);
             $user = User::find($learner->user_id);
 
@@ -336,5 +341,32 @@ class ActivityGroups
         })->all(),
             'staff' => ActivityStaff::where('activity_group_id', $id)->get()->map(fn ($row) => $this->present($row))->all(),
             'attendance' => ActivityAttendance::whereIn('activity_session_id', ActivitySession::where('activity_group_id', $id)->select('id'))->get()->map(fn ($row) => $this->present($row))->all()];
+        if ($session !== null) {
+            $captured = ActivityAttendance::where('activity_session_id', $session->id)->get()->keyBy('learner_id');
+            $ids = array_values(array_unique([...$this->sessionLearnerIds($session), ...$captured->keys()->map(fn ($value) => (int) $value)->all()]));
+            sort($ids);
+            $result['session_roster'] = ['session_id' => (int) $session->id, 'group_id' => $id, 'session_revision' => (int) $session->revision,
+                'learners' => array_map(function (int $learnerId) use ($captured) {
+                    $learner = Students::withTrashed()->findOrFail($learnerId);
+                    $user = User::find($learner->user_id);
+                    $saved = $captured->get($learnerId);
+
+                    return ['learner_id' => $learnerId, 'learner_name' => $user === null ? 'Former learner' : trim($user->first_name.' '.$user->last_name),
+                        'status' => $saved?->status, 'revision' => $saved === null ? 0 : (int) $saved->revision];
+                }, $ids)];
+        }
+
+        return $result;
+    }
+
+    /** The capture and read paths share exactly the same dated eligibility. */
+    private function sessionLearnerIds(ActivitySession $session): array
+    {
+        $date = $session->on_date->toDateString();
+        $group = ActivityGroup::findOrFail($session->activity_group_id);
+
+        return ActivityMembership::where('active', true)->where('activity_group_id', $group->id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)
+            ->whereIn('learner_id', Enrolment::where('session_year_id', $group->session_year_id)->onDate($date)->select('learner_id'))
+            ->pluck('learner_id')->map(fn ($value) => (int) $value)->all();
     }
 }

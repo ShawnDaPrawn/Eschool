@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import FirebaseCore
+import url_launcher_ios
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -8,6 +9,10 @@ import FirebaseCore
   // Unknown and reserved app identities never initialize teacher services.
   private var isTeacherBuild: Bool {
     Bundle.main.bundleIdentifier == "tech.tokensoft.navigateed.teacher"
+  }
+
+  private var isFacilitatorBuild: Bool {
+    Bundle.main.bundleIdentifier == "tech.tokensoft.navigateed.facilitator"
   }
 
   override func application(
@@ -26,8 +31,14 @@ import FirebaseCore
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-    // Reserved shells need only the Flutter engine to render their unavailable page.
-    // Plugin registration can itself initialize native services before Dart runs.
+    // The facilitator registers only its required, non-Firebase URL handler.
+    // Full generated registration remains exclusive to the teacher identity.
+    if isFacilitatorBuild {
+      if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "URLLauncherPlugin") {
+        URLLauncherPlugin.register(with: registrar)
+      }
+      return
+    }
     guard isTeacherBuild else { return }
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }

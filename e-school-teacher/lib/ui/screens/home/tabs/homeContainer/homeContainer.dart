@@ -38,6 +38,84 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (allowsSchoolModule(
+      context.watch<MeContextCubit>().context,
+      'discipline',
+    ))
+      MenuContainerDetails(
+        route: Routes.schoolDiscipline,
+        iconPath: Assets.resultIcon,
+        titleKey: 'School discipline',
+      ),
+    if (context.watch<MeContextCubit>().context?.isModuleOn('early_warning') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'early_warning',
+        ))
+      MenuContainerDetails(
+        route: Routes.riskInterventions,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Staff follow-up',
+      ),
+    if (allowsSchoolModule(
+      context.watch<MeContextCubit>().context,
+      'academics',
+    ))
+      MenuContainerDetails(
+        route: Routes.progressNotes,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Progress and notes',
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('mastery') ==
+            true &&
+        allowsSchoolModule(context.watch<MeContextCubit>().context, 'mastery'))
+      MenuContainerDetails(
+        route: Routes.mastery,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Mastery map',
+      ),
+    if (context.watch<MeContextCubit>().context?.roles.any(
+              (role) => ['Counsellor', 'Safeguarding'].contains(role),
+            ) ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'wellbeing',
+        ))
+      MenuContainerDetails(
+        route: Routes.wellbeing,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Incidents and counselling',
+      ),
+    if (context.watch<MeContextCubit>().context?.isModuleOn('support_plans') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'support_plans',
+        ))
+      MenuContainerDetails(
+        route: Routes.supportPlans,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Support plans',
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('relief_cover') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'relief_cover',
+        ))
+      MenuContainerDetails(
+        route: Routes.reliefCover,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Relief cover',
+      ),
+    if (allowsSchoolModule(context.watch<MeContextCubit>().context, 'groups'))
+      MenuContainerDetails(
+        route: Routes.activityGroups,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Activity groups',
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
               'communication_messages',
             ) ==
@@ -393,6 +471,7 @@ class _HomeContainerState extends State<HomeContainer> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const AcademicNextPeriod(),
+                            const StaffRecognitionEntry(),
 
                             ///[Class Teacher]
                             if (state.primaryClass?.isNotEmpty ?? false) ...[

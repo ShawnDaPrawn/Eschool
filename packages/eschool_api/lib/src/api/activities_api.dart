@@ -37,6 +37,7 @@ class ActivitiesApi {
   /// Parameters:
   /// * [session]
   /// * [activityAttendanceWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -51,6 +52,7 @@ class ActivitiesApi {
   captureActivitySessionAttendance({
     required int session,
     required ActivityAttendanceWrite activityAttendanceWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -68,6 +70,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -146,6 +149,7 @@ class ActivitiesApi {
   ///
   /// Parameters:
   /// * [activityGroupWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -158,6 +162,7 @@ class ActivitiesApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ActivityGroupResponse>> createActivityGroup({
     required ActivityGroupWrite activityGroupWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -170,6 +175,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -250,6 +256,7 @@ class ActivitiesApi {
   /// Parameters:
   /// * [group]
   /// * [activityMaterialWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -263,6 +270,7 @@ class ActivitiesApi {
   Future<Response<ActivityMaterialResponse>> createActivityMaterial({
     required int group,
     required ActivityMaterialWrite activityMaterialWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -280,6 +288,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -360,6 +369,7 @@ class ActivitiesApi {
   /// Parameters:
   /// * [group]
   /// * [activityMembershipWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -373,6 +383,7 @@ class ActivitiesApi {
   Future<Response<ActivityMembershipResponse>> createActivityMembership({
     required int group,
     required ActivityMembershipWrite activityMembershipWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -390,6 +401,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -470,6 +482,7 @@ class ActivitiesApi {
   /// Parameters:
   /// * [group]
   /// * [activitySessionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -483,6 +496,7 @@ class ActivitiesApi {
   Future<Response<ActivitySessionResponse>> createActivitySession({
     required int group,
     required ActivitySessionWrite activitySessionWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -500,6 +514,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -580,6 +595,7 @@ class ActivitiesApi {
   /// Parameters:
   /// * [group]
   /// * [activityStaffWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -593,6 +609,7 @@ class ActivitiesApi {
   Future<Response<ActivityGroupStaffResponse>> createActivityStaffAllocation({
     required int group,
     required ActivityStaffWrite activityStaffWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -610,6 +627,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -688,6 +706,7 @@ class ActivitiesApi {
   /// School-scoped private activity data. Fresh membership, role and group authority precede validation and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only their own groups. Learners and guardians never receive peer rosters.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [page]
@@ -701,6 +720,7 @@ class ActivitiesApi {
   /// Returns a [Future] containing a [Response] with a [ActivityGroupListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ActivityGroupListResponse>> listActivityGroups({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     int? page,
@@ -715,6 +735,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -785,6 +806,7 @@ class ActivitiesApi {
   ///
   /// Parameters:
   /// * [group]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -797,6 +819,7 @@ class ActivitiesApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ActivityGroupDetailResponse>> readActivityGroup({
     required int group,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -814,6 +837,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -877,7 +901,9 @@ class ActivitiesApi {
   ///
   /// Parameters:
   /// * [group]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [sessionId] - Return the server-authorized dated session register, including retained captured corrections.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -889,7 +915,9 @@ class ActivitiesApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ActivityGroupRosterResponse>> readActivityGroupRoster({
     required int group,
+    int? xAccountId,
     int? xSchoolId,
+    int? sessionId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -906,6 +934,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -924,9 +953,14 @@ class ActivitiesApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (sessionId != null) r'session_id': sessionId,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -970,6 +1004,7 @@ class ActivitiesApi {
   /// Parameters:
   /// * [group]
   /// * [activityGroupWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -983,6 +1018,7 @@ class ActivitiesApi {
   Future<Response<ActivityGroupResponse>> saveActivityGroup({
     required int group,
     required ActivityGroupWrite activityGroupWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1000,6 +1036,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1081,6 +1118,7 @@ class ActivitiesApi {
   /// * [group]
   /// * [material]
   /// * [activityMaterialWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1095,6 +1133,7 @@ class ActivitiesApi {
     required int group,
     required int material,
     required ActivityMaterialWrite activityMaterialWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1119,6 +1158,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1200,6 +1240,7 @@ class ActivitiesApi {
   /// * [group]
   /// * [allocation]
   /// * [activityMembershipWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1214,6 +1255,7 @@ class ActivitiesApi {
     required int group,
     required int allocation,
     required ActivityMembershipWrite activityMembershipWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1238,6 +1280,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1319,6 +1362,7 @@ class ActivitiesApi {
   /// * [group]
   /// * [session]
   /// * [activitySessionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1333,6 +1377,7 @@ class ActivitiesApi {
     required int group,
     required int session,
     required ActivitySessionWrite activitySessionWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1357,6 +1402,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1438,6 +1484,7 @@ class ActivitiesApi {
   /// * [group]
   /// * [allocation]
   /// * [activityStaffWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1452,6 +1499,7 @@ class ActivitiesApi {
     required int group,
     required int allocation,
     required ActivityStaffWrite activityStaffWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1476,6 +1524,7 @@ class ActivitiesApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },

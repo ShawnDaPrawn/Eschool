@@ -6,6 +6,8 @@ namespace App\Http\Middleware;
 
 use App\Models\Platform\School;
 use App\Models\User;
+use App\Services\Facilitators\FacilitatorAccess;
+use App\Services\Platform\Identity\ExpectedAccount;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -72,6 +74,8 @@ class SetSchoolContext
             // Guests: the auth middleware refuses them.
             return $next($request);
         }
+        ExpectedAccount::check($request);
+
         if ($this->currentSchool->isImpersonating()) {
             return $next($request);
         }
@@ -88,6 +92,11 @@ class SetSchoolContext
         $this->currentSchool->set($school);
         // Roles loaded before the team was known would be another school's.
         $user->unsetRelation('roles')->unsetRelation('permissions');
+        // A facilitator profile cannot bypass fresh readiness through another
+        // role's v1/v2 routes. Credential management/logout remain available.
+        if ($request->is('api/*', 'protected/profile-files/*') && ! $request->is('api/change-password', 'api/logout')) {
+            app(FacilitatorAccess::class)->enforceProfile($request);
+        }
 
         return $next($request);
     }

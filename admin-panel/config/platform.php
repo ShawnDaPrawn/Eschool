@@ -9,9 +9,12 @@ use App\Listeners\Academics\QueueContentConversion;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Academics\QueueReportGeneration;
 use App\Listeners\Growth\QueueMasteryRecompute;
+use App\Listeners\Growth\QueueProgressBands;
+use App\Listeners\Growth\QueueRiskEvaluate;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
+use App\Listeners\Wellbeing\QueuePrivateNotice;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,14 +48,19 @@ return [
             'academics.content_uploaded' => [QueueContentConversion::class],
             'academics.report_published' => [NotifyReportPublished::class],
             'academics.report_approved' => [QueueReportGeneration::class],
-            'academics.assessment_published' => [QueueAssessmentRecompute::class, QueueMasteryRecompute::class],
-            'academics.register_changed' => [NotifyRegisterAmended::class],
-            'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class],
-            'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class],
-            'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class],
+            'academics.assessment_published' => [QueueAssessmentRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'academics.register_changed' => [QueueRiskEvaluate::class, NotifyRegisterAmended::class],
+            'growth.risk_rules_configured' => [QueueRiskEvaluate::class],
+            'discipline.framework_published' => [QueueRiskEvaluate::class],
+            'discipline.record_changed' => [QueueRiskEvaluate::class],
+            'growth.progress_bands_configured' => [QueueProgressBands::class],
+            'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'wellbeing.notice_requested' => [QueuePrivateNotice::class],
             'notification.requested' => [QueueNotificationFanout::class],
             'handle.proposed' => [NotifyHandleGuardians::class],
-            'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class],
+            'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             // 'fees.payment_recorded' => [App\Listeners\Money\UpdateLedger::class],
         ],
 

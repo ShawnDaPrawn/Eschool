@@ -148,10 +148,10 @@ class MessagePolicy
     public function reader(User $actor, int $id): Message
     {
         app(CommunicationRules::class)->actor($actor);
-        $message = Message::whereIn('state', ['dispatching', 'sent'])->whereNotNull('published_at')->findOrFail($id);
         $recipient = MessageRecipient::where('message_id', $id)->where('user_id', $actor->id)->firstOrFail();
-        abort_unless(app(RecipientAccess::class)->allows($actor, $recipient->access_reason), 404);
+        $reason = $recipient->access_reason;
+        abort_unless(is_array($reason) && app(RecipientAccess::class)->allows($actor, $reason), 404);
 
-        return $message;
+        return Message::whereIn('state', ['dispatching', 'sent'])->whereNotNull('published_at')->findOrFail($id);
     }
 }

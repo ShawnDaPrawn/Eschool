@@ -34,6 +34,13 @@ class TooManyLoginFailures extends RuntimeException
             'minutes' => max(1, (int) ceil($this->seconds / 60)),
         ]);
 
+        if ($request->is('api/v2/*')) {
+            return ApiV2ExceptionRenderer::envelope(429, $message, headers: [
+                'Retry-After' => (string) max(1, $this->seconds),
+                'Cache-Control' => 'no-store, private',
+            ]);
+        }
+
         // The apps show messages from responses shaped like this (see ResponseService).
         if ($request->is('api/*') || $request->expectsJson()) {
             return response()->json(['error' => true, 'message' => $message]);

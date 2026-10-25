@@ -1,0 +1,282 @@
+[
+  {
+    "action": "public.categories",
+    "method": "GET",
+    "path": "/wellbeing/public/{schoolSlug}/configuration",
+    "operation": "getPublicIncidentConfiguration",
+    "input": null
+  },
+  {
+    "action": "public.submit",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/reports",
+    "operation": "submitAnonymousIncident",
+    "input": "IncidentSubmissionInput"
+  },
+  {
+    "action": "public.read",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/follow-up",
+    "operation": "getAnonymousIncidentFollowUp",
+    "input": "IncidentFollowUpInput"
+  },
+  {
+    "action": "public.reply",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/follow-up/replies",
+    "operation": "replyAnonymousIncident",
+    "input": "IncidentReplyInput"
+  },
+  {
+    "action": "access",
+    "method": "GET",
+    "path": "/wellbeing/access",
+    "operation": "getWellbeingAccess",
+    "input": null
+  },
+  {
+    "action": "configuration",
+    "method": "GET",
+    "path": "/wellbeing/configuration",
+    "operation": "getWellbeingConfiguration",
+    "input": null
+  },
+  {
+    "action": "managed-cases",
+    "method": "GET",
+    "path": "/wellbeing/management/cases",
+    "operation": "listWellbeingManagedCases",
+    "input": null
+  },
+  {
+    "action": "team-assignments",
+    "method": "GET",
+    "path": "/wellbeing/categories/{category}/team",
+    "operation": "listWellbeingTeamAssignments",
+    "input": null
+  },
+  {
+    "action": "case-assignments",
+    "method": "GET",
+    "path": "/wellbeing/management/cases/{case}/assignments",
+    "operation": "listWellbeingCaseAssignments",
+    "input": null
+  },
+  {
+    "action": "reports",
+    "method": "GET",
+    "path": "/wellbeing/reports",
+    "operation": "listWellbeingReports",
+    "input": null
+  },
+  {
+    "action": "report",
+    "method": "GET",
+    "path": "/wellbeing/reports/{report}",
+    "operation": "getWellbeingReport",
+    "input": null
+  },
+  {
+    "action": "cases",
+    "method": "GET",
+    "path": "/wellbeing/cases",
+    "operation": "listWellbeingCases",
+    "input": null
+  },
+  {
+    "action": "case",
+    "method": "GET",
+    "path": "/wellbeing/cases/{case}",
+    "operation": "getWellbeingCase",
+    "input": null
+  },
+  {
+    "action": "appointments",
+    "method": "GET",
+    "path": "/wellbeing/cases/{case}/appointments",
+    "operation": "listWellbeingAppointments",
+    "input": null
+  },
+  {
+    "action": "category-create",
+    "method": "POST",
+    "path": "/wellbeing/categories",
+    "operation": "createWellbeingCategory",
+    "input": "WellbeingCategoryInput"
+  },
+  {
+    "action": "category-save",
+    "method": "POST",
+    "path": "/wellbeing/categories/{category}",
+    "operation": "saveWellbeingCategory",
+    "input": "WellbeingCategoryInput"
+  },
+  {
+    "action": "team-create",
+    "method": "POST",
+    "path": "/wellbeing/categories/{category}/team",
+    "operation": "createWellbeingTeamAssignment",
+    "input": "WellbeingAssignmentInput"
+  },
+  {
+    "action": "team-save",
+    "method": "POST",
+    "path": "/wellbeing/categories/{category}/team/{assignment}",
+    "operation": "saveWellbeingTeamAssignment",
+    "input": "WellbeingAssignmentInput"
+  },
+  {
+    "action": "case-create",
+    "method": "POST",
+    "path": "/wellbeing/management/cases",
+    "operation": "openWellbeingCase",
+    "input": "WellbeingCaseOpenInput"
+  },
+  {
+    "action": "case-assignment-create",
+    "method": "POST",
+    "path": "/wellbeing/management/cases/{case}/assignments",
+    "operation": "createWellbeingCaseAssignment",
+    "input": "WellbeingAssignmentInput"
+  },
+  {
+    "action": "case-assignment-save",
+    "method": "POST",
+    "path": "/wellbeing/management/cases/{case}/assignments/{assignment}",
+    "operation": "saveWellbeingCaseAssignment",
+    "input": "WellbeingAssignmentInput"
+  },
+  {
+    "action": "identified-submit",
+    "method": "POST",
+    "path": "/wellbeing/own/reports",
+    "operation": "submitIdentifiedIncident",
+    "input": "IncidentSubmissionInput"
+  },
+  {
+    "action": "identified-read",
+    "method": "POST",
+    "path": "/wellbeing/own/follow-up",
+    "operation": "getIdentifiedIncidentFollowUp",
+    "input": "IncidentFollowUpInput"
+  },
+  {
+    "action": "identified-reply",
+    "method": "POST",
+    "path": "/wellbeing/own/follow-up/replies",
+    "operation": "replyIdentifiedIncident",
+    "input": "IncidentReplyInput"
+  },
+  {
+    "action": "identify",
+    "method": "POST",
+    "path": "/wellbeing/own/identify",
+    "operation": "identifyIncidentReporter",
+    "input": "IncidentIdentifyInput"
+  },
+  {
+    "action": "report-respond",
+    "method": "POST",
+    "path": "/wellbeing/reports/{report}/replies",
+    "operation": "replyWellbeingReport",
+    "input": "WellbeingReportReplyInput"
+  },
+  {
+    "action": "case-entry",
+    "method": "POST",
+    "path": "/wellbeing/cases/{case}/entries",
+    "operation": "addWellbeingCaseEntry",
+    "input": "WellbeingCaseEntryInput"
+  },
+  {
+    "action": "case-link",
+    "method": "POST",
+    "path": "/wellbeing/cases/{case}/incident-link",
+    "operation": "linkWellbeingCaseIncident",
+    "input": "WellbeingCaseLinkInput"
+  },
+  {
+    "action": "case-status",
+    "method": "POST",
+    "path": "/wellbeing/cases/{case}/status",
+    "operation": "setWellbeingCaseStatus",
+    "input": "WellbeingCaseStatusInput"
+  },
+  {
+    "action": "appointment-create",
+    "method": "POST",
+    "path": "/wellbeing/cases/{case}/appointments",
+    "operation": "createWellbeingAppointment",
+    "input": "WellbeingAppointmentInput"
+  },
+  {
+    "action": "appointment-save",
+    "method": "POST",
+    "path": "/wellbeing/cases/{case}/appointments/{appointment}",
+    "operation": "saveWellbeingAppointment",
+    "input": "WellbeingAppointmentInput"
+  },
+  {
+    "action": "case-professionals",
+    "method": "GET",
+    "path": "/wellbeing/cases/{case}/professionals",
+    "operation": "listWellbeingCaseProfessionals",
+    "input": null
+  },
+  {
+    "action": "case-report-choices",
+    "method": "GET",
+    "path": "/wellbeing/cases/{case}/incident-choices",
+    "operation": "listWellbeingCaseIncidentChoices",
+    "input": null
+  },
+  {
+    "action": "public.photo-upload",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/photos",
+    "operation": "uploadAnonymousIncidentPhoto",
+    "input": "IncidentPhotoUploadInput"
+  },
+  {
+    "action": "public.photo-read",
+    "method": "POST",
+    "path": "/wellbeing/public/{schoolSlug}/photos/download",
+    "operation": "downloadAnonymousIncidentPhoto",
+    "input": "IncidentPhotoReadInput"
+  },
+  {
+    "action": "own-photo-upload",
+    "method": "POST",
+    "path": "/wellbeing/own/photos",
+    "operation": "uploadIdentifiedIncidentPhoto",
+    "input": "IncidentPhotoUploadInput"
+  },
+  {
+    "action": "own-photo-read",
+    "method": "POST",
+    "path": "/wellbeing/own/photos/download",
+    "operation": "downloadIdentifiedIncidentPhoto",
+    "input": "IncidentPhotoReadInput"
+  },
+  {
+    "action": "report-photo",
+    "method": "GET",
+    "path": "/wellbeing/reports/{report}/photos/{photo}",
+    "operation": "downloadWellbeingIncidentPhoto",
+    "input": null
+  },
+  {
+    "action": "own-notices",
+    "method": "GET",
+    "path": "/wellbeing/notices",
+    "operation": "listWellbeingNotices",
+    "input": null
+  },
+  {
+    "action": "own-notice-read",
+    "method": "POST",
+    "path": "/wellbeing/notices/{notice}/read",
+    "operation": "readWellbeingNotice",
+    "input": null
+  }
+]

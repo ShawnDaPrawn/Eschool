@@ -135,3 +135,58 @@ consultations, cards, counselling or a facilitator app. No new notification type
 is required: activity_group audiences use the communication centre's existing
 approval, scheduling and private delivery rules. A new client capability selects
 activity composition; it does not bypass group authority.
+
+
+## Phase 3: progress alerts
+
+`progress.band_changed` (academics, learner/parent) and
+`progress.staff_band_changed` (academics, teacher/admin) use optional standard
+channel preferences. Generic messages and opaque alert IDs contain no learner
+names, marks, subjects or clinical values. Fresh canonical evidence and current
+recipient authority are rechecked at fanout and final transport. Family uses
+frozen released running evidence only. `growth.progress_bands_configured` is an
+ID-only transactional event that queues threshold rechecks, not a public notice.
+
+
+## Early warning
+
+`early_warning` is disabled by default and depends on people and academics.
+`growth.risk_rules_configured` is an ID-only outbox event, not a notice type.
+Hourly `risk:evaluate` jobs and academic/attendance events observe current-day
+canonical evidence. Unavailable wellbeing and discipline sources stay null until
+explicit authoritative adapters exist. No family risk labels or clinical-source
+counts are exposed. Leadership receives grade/date counts only.
+
+
+## Discipline
+
+`discipline` defaults off and depends on people/academics. Schools must explicitly
+publish a year framework; there is no invented punitive default.
+`discipline.framework_published` and `discipline.record_changed` are ID-only
+transactional events queuing current risk observations. No private reason or
+infraction label enters outbox/audit payloads. Family and grade-head notices
+follow with the private API/workflow increment. Confirmed official counts feed
+early warning and the aggregate-only leadership adapter; pending, overturned
+and unavailable records are distinguished from confirmed history.
+
+## Intake and admissions
+
+The existing `intake` module covers the additive public application form and the
+freshly authorised office pipeline. Legacy v1 registration routes remain intact.
+Resume/decision emails use encrypted existing mail jobs, with fresh source,
+school/module, expiry and contact checks immediately before delivery; an email
+link never creates guardian approval. No new public native SDK or paid payment
+provider is required. `admissions:maintain` recovers offers every minute; its daily
+`--retention` variant erases due private copies even when the module or school is
+disabled. New UI keys have English fallbacks in all panel catalogues; fluent
+Afrikaans/isiZulu review remains separately unqualified.
+
+## Private gallery
+
+`gallery` defaults off and depends on people. Groups are optional sources rather
+than permission to browse personal family galleries. The default rule requires
+verified guardian tag approval; self-consent requires explicit school configuration.
+`gallery:prune-copies` runs daily at03:30, including disabled schools/modules, to
+erase retired image variants and old unknown rollback copies inside each school's
+private gallery directory. Academic completion invokes a synchronous references-only
+transfer event; separate immutable guardian choice controls retaining/copying tags.

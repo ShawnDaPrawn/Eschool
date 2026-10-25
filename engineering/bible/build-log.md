@@ -430,3 +430,95 @@ feature dependencies are recorded in `engineering/phases/phase-3-4-coordination.
 the lead reviews and integrates feature PRs. Existing transcription and teacher
 builds remain supported. External provider activation, production/store release
 and unrun acceptance evidence are not inferred from this kickoff.
+
+### 25 October 2026 - relief cover API and dated integration
+
+The backend cover increment now has scoped v2 APIs, a combined generated client,
+dated effective-teacher timetable projection, reserved cover clash checks and
+generic notices with recipient/source/revision checks at transport. Focused
+API/domain tests passed22/171, full configured static analysis and strict schema
+lint passed, and two SDK date/nullability regressions passed. Panel/shared-app
+workbenches follow; support plans, leadership and transfers remain in progress.
+No external classroom/device/staging acceptance or production activation claimed.
+
+### 25 October 2026 - private relief-cover panel
+
+The school panel now handles named cover requests, available substitute
+assignment, explicit source review/cancellation and dated personal lessons.
+Private draft errors and early read-only-year refusals return escaped input
+without session flash; the shared private-form registry also covers group
+materials. Actual browser workflows passed at1024/1280 with accessibility,
+overflow, unique-ID and own-origin error checks. Panel access and mutation
+regressions, catalogue checks, Pint and configured static analysis pass.
+Shared app cover screens and expected-account binding follow separately; no
+external classroom/staging/device acceptance or whole-phase completion claimed.
+
+## 2026-10-25 — houses, append-only points and permanent awards domain
+
+Added school-owned houses, dated memberships, categories, configurable daily staff
+issue limits and reasoned append-only reversals, plus scoped reusable award
+categories/definitions, year windows, versioned nominations, retained presentations
+and outside awards. Permanent profiles query award presentations only. Exact UUID
+receipts retain references and HMAC intent, with current authority before replay.
+The grade-head nomination adapter is now available for My grade integration.
+Twenty-two MySQL tests (97 assertions), Pint and whole-app static analysis pass;
+API/panel/app/live delivery and external acceptance follow separately. No production
+activation or whole-phase completion is claimed.
+
+## 2026-10-25 — recognition API and generated client
+
+Added 19 scoped v2 recognition operations and 41 schemas with shared service/request
+validation, aggregate counters, private year history, separate permanent profiles
+and nomination/presentation actions. The integrated API/contract cohort passed391
+checks (1,966 assertions); final recognition30/273 and configured static analysis
+pass. The pinned generator produced1,410 Dart files; existing83 plus new4 SDK tests
+and strict lint pass. Preserved parallel Risk/calendar additions. Panel/assembly,
+apps and live/notice integration remain separate increments; no phase or production
+completion is claimed by these checks.
+
+## 2026-10-25 — houses, awards and assembly panel
+
+Added the school panel workbench for dated house allocations, configurable point
+categories/caps, reasoned reversals, scoped reusable award definitions, nomination
+windows and category appointments, reviewed/approved assembly presentations and
+outside awards. Permanent profiles contain presentations only. Assembly excludes
+private nomination/review reasons; private draft failures never enter session flash.
+37 MySQL checks/321 assertions, full Pint, configured static analysis and TypeScript
+pass; actual Chromium award/reversal/assembly/certificate-correction workflows pass
+at390/820/1280 with accessibility, overflow, duplicate-ID and error checks. Native
+clients, guarded notices and live latency remain independent integration work.
+
+## 2026-10-25 — digital intake and admissions
+
+Added configured intakes, encrypted draft/contact/document storage, phone-friendly
+no-account forms with private email resumes, reviewed office pipeline, bulk offers,
+capacity-locked FIFO waiting lists, exact-cent office acknowledgements, balanced
+allocation and atomic individual/bulk enrolment with guardian invitations and no
+automatic learner approval. Session/account/school/year guards protect private
+forms; definition fingerprints prevent saved-answer reinterpretation. Daily
+retention deletes due application copies without deleting canonical learner
+records; delayed offer recovery cannot revive retention-due applicants.
+
+Final admissions30/208, prior integrated76/28,053, whole-application static analysis,
+selected Pint, TypeScript and actual390/820/1280 browser flows pass. All three
+browser flows cover real queued-email resume through office enrolment, with
+serious/critical accessibility and overflow checks. A numeric-throttle collision
+found by the browser run was fixed using separate named allowances. Live mail,
+scanner deployment, physical devices, fluent review and independent staging
+acceptance remain separately unqualified. No payment provider or production
+activation, nor whole Phase 4 completion, is claimed.
+
+## 2026-10-25 — private gallery domain and consented transfer hooks
+
+Added dedicated scanned, sanitized encrypted photo variants, owned tags with
+revisioned consent, guardian-first school settings, all-year private family queries
+and current-group proposals by approved handles. Staff never acquire a personal
+family gallery. Completed transfers remove tags by default; explicit immutable
+fingerprinted guardian choice copies only selected pixels into the receiving
+family without source-group access or learner activation. Daily cleanup erases
+retired variants and bounded old rollback orphans even with the module disabled.
+
+44 MySQL tests/1,201 assertions, selected Pint and whole-app Larastan pass, including
+all23 existing transfer cases. API/SDK/panel/native implementation and browser
+qualification remain active follow-on work. No complete gallery, external scanner,
+physical device, staging or phase completion claim is made by this domain increment.

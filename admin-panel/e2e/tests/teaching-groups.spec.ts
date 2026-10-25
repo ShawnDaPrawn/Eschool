@@ -37,7 +37,11 @@ test('admin maps a class, creates a group and records dated teacher and learner 
   await teacher.getByRole('button', { name: 'Save teacher allocation' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Dated assignment saved' })).toBeVisible();
   const member = page.getByRole('form', { name: 'Add learner membership', exact: true });
-  await member.getByRole('combobox', { name: 'Learner', exact: true }).selectOption({ index: 0 });
+  // Lerato has a real Grade 5 placement from the demo's January start.
+  // The form's full-year interval must fit that dated enrolment.
+  await member.getByRole('combobox', { name: 'Learner', exact: true }).selectOption({ label: 'Lerato Dlamini' });
+  await member.getByRole('textbox', { name: 'Starts on', exact: true }).fill('2026-01-14');
+  await member.getByRole('textbox', { name: 'Ends on', exact: true }).fill('2026-12-09');
   await member.getByRole('textbox', { name: 'Reason', exact: true }).fill('Browser learner membership');
   await member.getByRole('button', { name: 'Save learner membership' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Dated assignment saved' })).toBeVisible();

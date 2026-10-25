@@ -10,7 +10,6 @@ use App\Models\Activities\ActivityGroup;
 use App\Models\ClassSection;
 use App\Models\Communication\Message;
 use App\Models\Communication\MessageRead;
-use App\Models\Communication\MessageRecipient;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Policies\Communication\MessagePolicy;
@@ -119,8 +118,11 @@ class MessageQueries
     public function inbox(User $actor, int $page): array
     {
         app(CommunicationRules::class)->actor($actor);
-        $ids = MessageRecipient::where('user_id', $actor->id)->select('message_id');
-        $rows = Message::whereIn('id', $ids)->whereIn('state', ['dispatching', 'sent'])->whereNotNull('published_at')->orderByDesc('id')->paginate(20, ['*'], 'page', $page);
+        $ids = app(RecipientAccess::class)->messageIds($actor);
+        if ($ids === []) {
+            return ['page' => max(1, $page), 'last_page' => 1, 'items' => []];
+        }
+        $rows = Message::whereIntegerInRaw('id', $ids)->whereIn('state', ['dispatching', 'sent'])->whereNotNull('published_at')->orderByDesc('id')->paginate(20, ['*'], 'page', $page);
         $read = MessageRead::where('user_id', $actor->id)->whereIn('message_id', $rows->pluck('id'))->pluck('read_at', 'message_id');
         $items = [];
         foreach ($rows as $m) {

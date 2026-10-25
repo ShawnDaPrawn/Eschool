@@ -124,6 +124,15 @@ class Routes {
   static const String academicMarks = '/academics/marks';
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
+  static const String mastery = '/growth/mastery';
+  static const String progressNotes = '/growth/progress';
+  static const String schoolDiscipline = '/discipline';
+  static const String recognition = '/community/recognition';
+  static const String riskInterventions = '/growth/risk';
+  static const String reliefCover = '/pastoral/cover';
+  static const String supportPlans = '/pastoral/support';
+  static const String wellbeing = '/wellbeing';
+  static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
   static const String academicRegisters = '/academics/registers';
@@ -141,7 +150,15 @@ class Routes {
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
+      progressNotes => 'academics',
+      schoolDiscipline => 'discipline',
+      riskInterventions => 'early_warning',
+      mastery => 'mastery',
+      activityGroups => 'groups',
       schoolMessages => 'communication',
+      reliefCover => 'relief_cover',
+      supportPlans => 'support_plans',
+      wellbeing => 'wellbeing',
       chatMessages ||
       chatUserProfile ||
       chatUserPage ||
@@ -316,6 +333,24 @@ class Routes {
         return academicRegistersRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case progressNotes:
+        return progressNotesRoute();
+      case schoolDiscipline:
+        return schoolDisciplineRoute();
+      case recognition:
+        return staffRecognitionRoute();
+      case riskInterventions:
+        return riskInterventionsRoute();
+      case mastery:
+        return masteryRoute();
+      case reliefCover:
+        return reliefCoverRoute();
+      case supportPlans:
+        return supportPlansRoute();
+      case wellbeing:
+        return wellbeingRoute();
+      case activityGroups:
+        return activityGroupsRoute();
       case schoolMessages:
         return schoolMessagesRoute(routeSettings.arguments);
       case academicContent:

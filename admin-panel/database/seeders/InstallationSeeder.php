@@ -27,9 +27,9 @@ class InstallationSeeder extends Seeder
 
         // Add Permissions
         $permissions = [
-            ['name' => 'pastoral-sensitive-access'], ['name' => 'activity-groups-manage'],
+            ['name' => 'pastoral-sensitive-access'], ['name' => 'activity-groups-manage'], ['name' => 'wellbeing-configure'],
             ['name' => 'marks-view-all'], ['name' => 'marks-release'],
-            ['name' => 'academic-structure-manage'], ['name' => 'communication-manage'],
+            ['name' => 'academic-structure-manage'], ['name' => 'communication-manage'], ['name' => 'consultations-manage'],
             ['name' => 'curriculum-read'], ['name' => 'curriculum-manage'], ['name' => 'curriculum-publish'],
             ['id' => 1, 'name' => 'role-list'],
             ['id' => 2, 'name' => 'role-create'],

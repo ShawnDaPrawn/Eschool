@@ -109,6 +109,78 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (allowsSchoolModule(
+      context.watch<MeContextCubit>().context,
+      'discipline',
+    ))
+      tile(
+        title: label('School discipline'),
+        icon: Icons.fact_check_outlined,
+        onTap: () => open(Routes.schoolDiscipline),
+      ),
+    if (context.watch<MeContextCubit>().context?.isModuleOn('early_warning') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'early_warning',
+        ))
+      tile(
+        title: label('Staff follow-up'),
+        icon: Icons.assignment_ind_outlined,
+        onTap: () => open(Routes.riskInterventions),
+      ),
+    if (allowsSchoolModule(
+      context.watch<MeContextCubit>().context,
+      'academics',
+    ))
+      tile(
+        title: label('Progress and notes'),
+        icon: Icons.edit_note_outlined,
+        onTap: () => open(Routes.progressNotes),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('mastery') ==
+            true &&
+        allowsSchoolModule(context.watch<MeContextCubit>().context, 'mastery'))
+      tile(
+        title: label('Mastery map'),
+        icon: Icons.account_tree_outlined,
+        onTap: () => open(Routes.mastery),
+      ),
+    if (context.watch<MeContextCubit>().context?.roles.any(
+              (role) => ['Counsellor', 'Safeguarding'].contains(role),
+            ) ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'wellbeing',
+        ))
+      tile(
+        title: label('Incidents and counselling'),
+        icon: Icons.support_agent,
+        onTap: () => open(Routes.wellbeing),
+      ),
+    if (context.watch<MeContextCubit>().context?.isModuleOn('support_plans') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'support_plans',
+        ))
+      tile(
+        title: label('Support plans'),
+        icon: Icons.health_and_safety_outlined,
+        onTap: () => open(Routes.supportPlans),
+      ),
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('relief_cover') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'relief_cover',
+        ))
+      tile(
+        title: label('Relief cover'),
+        icon: Icons.event_available_outlined,
+        onTap: () => open(Routes.reliefCover),
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
               'communication_messages',
             ) ==
@@ -430,6 +502,528 @@ class SchoolMessagesEntry extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Navigator.of(context).pushNamed(Routes.schoolMessages),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> reliefCoverRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        me?.isFeatureOn('relief_cover') != true ||
+        !allowsSchoolModule(me, 'relief_cover')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Relief cover'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: CoverSessionBoundary(
+        pinned: me!,
+        child: CoverScreen(
+          writable: () => !session.context!.isModuleReadOnly('relief_cover'),
+          repository: ApiCoverRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                coverAccessStillCurrent(me, session.context) &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        !allowsSchoolModule(me, 'groups')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Activity groups'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me!;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        activityAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school) &&
+        allowsSchoolModule(session.context, 'groups');
+    Widget result = ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: ActivitySessionBoundary(
+        pinned: pinned,
+        builder: (context, generationActive) => ActivityGroupsScreen(
+          repository: ApiActivityRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+    result = BlocListener<MeContextCubit, MeContextState>(
+      listener: (context, state) {
+        if (!active()) Navigator.of(context).popUntil((r) => r.isFirst);
+      },
+      child: result,
+    );
+    return result;
+  },
+);
+
+class ActivityGroupsEntry extends StatelessWidget {
+  const ActivityGroupsEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!allowsSchoolModule(state.context, 'groups'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Activity groups'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.activityGroups),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> masteryRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        me.isFeatureOn('mastery') != true ||
+        !allowsSchoolModule(me, 'mastery')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Mastery map'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: MasterySessionBoundary(
+        pinned: me,
+        child: MasteryScreen(
+          repository: ApiMasteryRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                masteryAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                session.context?.isFeatureOn('mastery') == true &&
+                allowsSchoolModule(session.context, 'mastery'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> supportPlansRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        me?.isModuleOn('support_plans') != true ||
+        !allowsSchoolModule(me, 'support_plans')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Support plans'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: SupportSessionBoundary(
+        pinned: me!,
+        builder: (active) => SupportScreen(
+          repository: ApiSupportRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> progressNotesRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'academics')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Progress and notes'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: ProgressSessionBoundary(
+        pinned: me,
+        child: ProgressNotesScreen(
+          canRead: () =>
+              progressAccessStillCurrent(me, session.context) &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+          repository: ApiProgressRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                progressAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                allowsSchoolModule(session.context, 'academics'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> wellbeingRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        me?.isModuleOn('wellbeing') != true ||
+        !allowsSchoolModule(me, 'wellbeing')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Incidents and counselling',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: WellbeingSessionBoundary(
+        pinned: me!,
+        builder: (_, active) => WellbeingScreen(
+          repository: ApiWellbeingRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> riskInterventionsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'early_warning')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Staff follow-up'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: RiskSessionBoundary(
+        pinned: me,
+        child: RiskInterventionsScreen(
+          canRead: () =>
+              riskAccessStillCurrent(me, session.context) &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+          repository: ApiRiskRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                riskAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                allowsSchoolModule(session.context, 'early_warning'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> schoolDisciplineRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'discipline')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'School discipline'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: DisciplineSessionBoundary(
+        pinned: me,
+        child: SchoolDisciplineScreen(
+          canRead: () =>
+              disciplineAccessStillCurrent(me, session.context) &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+          repository: ApiDisciplineRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                disciplineAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                allowsSchoolModule(session.context, 'discipline'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> staffRecognitionRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    final modules = [
+      for (final key in ['house_points', 'awards'])
+        if (me?.isModuleOn(key) == true && allowsSchoolModule(me, key)) key,
+    ];
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        modules.isEmpty ||
+        !me.roles.any((role) => !['Parent', 'Student'].contains(role)) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: RecognitionSessionBoundary(
+        pinned: me,
+        modules: modules,
+        builder: (active) => RecognitionScreen(
+          repository: ApiRecognitionRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+          modules: modules,
+        ),
+      ),
+    );
+  },
+);
+
+class StaffRecognitionEntry extends StatelessWidget {
+  const StaffRecognitionEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!['house_points', 'awards'].any(
+            (key) =>
+                state.context?.isModuleOn(key) == true &&
+                allowsSchoolModule(state.context, key),
+          )) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.emoji_events_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.recognition),
             ),
           );
         },

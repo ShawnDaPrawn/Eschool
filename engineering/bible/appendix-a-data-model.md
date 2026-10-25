@@ -205,3 +205,62 @@ school_id with tenant scopes and foreign keys. Audit hashes sensitive text rathe
 than copying it into audit JSON; immutable encrypted receipts retain revisions.
 Destructive rollback refuses any retained activity data. No sensitive counselling
 case or medical record is stored in these tables.
+
+
+## Early warning and owned interventions
+
+`risk_settings` stores versioned academic coverage/threshold and attendance sample
+rules. `risk_observations` retains immutable school/year/grade/day/source facts,
+nullable scores, encrypted evidence and source fingerprints. `risk_caseloads`
+contains independent dated, revocable professional grants. `interventions` pins
+the reporting year, grade and original owner authority, with encrypted action and
+outcome; `intervention_versions` retains immutable encrypted revision and owner
+handoff records. All five are school scoped; populated rollback is refused.
+Metadata projections explicitly exclude action/outcome before SQL retrieval.
+
+
+## School discipline and detention
+
+`discipline_frameworks` and immutable `discipline_framework_versions` retain
+explicit year-specific levels, infraction/sanction dictionaries, counters and
+reset rules. `discipline_records` pins the dated year/grade, framework revision
+and infraction, with encrypted family description, staff note, decision text and
+basis. Immutable `discipline_record_versions` retains every reviewed change.
+`discipline_acknowledgements` is guardian- and revision-specific.
+`detention_sessions` retains school-timezone scheduling and the assigned
+supervisor; `detention_entries` keeps explicit unknown/present/absent/excused
+states; immutable `detention_versions` audits captures and reasoned corrections.
+All eight tables are school scoped and retained rows block destructive rollback.
+No permanent learner-profile field or automatic enrolment removal is introduced.
+`risk_operations` is the additive private HTTP operation ledger. Actor-scoped
+UUIDs and keyed intent hashes protect retry identity; encrypted LONGTEXT receipts
+retain metadata only. Its populated rollback is refused independently.
+
+## Intake and admissions
+
+`intakes` pins an existing school year, selected profile definition IDs, a stable
+form fingerprint, sensitivity classification, opening/closing UTC instants,
+integer-cent fee, requested document categories and bounded retention days.
+`intake_grades` holds grade capacities. `applications` encrypts answers/contact,
+stores only keyed email lookup and hashed ownership capabilities, and retains
+revisioned state, fee acknowledgement and canonical learner reference.
+`application_documents` contains opaque private encrypted file metadata and
+scanner evidence. `offers` distinguishes an acceptance deadline from an accepted
+reservation. `application_links` stores single-use, expiring resume-token hashes.
+`application_events` encrypts private review/receipt evidence; global audit records
+contain references/revisions only. `admission_operations` stores actor-scoped UUID
+intent hashes and encrypted reference receipts. All eight tables are school owned;
+populated rollback refuses erasure. Application retention never removes the
+resulting learner, guardian link, invitation or canonical educational records.
+
+## Private gallery
+
+`gallery_settings` records the guardian-first school consent rule and revision.
+`gallery_photos` holds school/year/source metadata, an encrypted caption and opaque
+private ciphertext references. `photo_tags` holds learner-owned consent state,
+revision and the explicit transfer-retention marker. `gallery_transfer_choices`
+freezes a guardian's encrypted fingerprinted selection against the immutable
+academic consent. `gallery_operations` stores encrypted idempotent references;
+`gallery_events` holds minimal audit references without image or caption bodies.
+All six are school owned. Withdrawn image bytes are erased without deleting the
+minimal consent history; rollback refuses populated tables.

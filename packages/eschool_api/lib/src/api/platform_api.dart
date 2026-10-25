@@ -20,6 +20,10 @@ import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.da
 import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/facilitator_session_response.dart';
+import 'package:eschool_api/src/model/facilitator_sign_in_input.dart';
+import 'package:eschool_api/src/model/facilitator_sign_in_response.dart';
+import 'package:eschool_api/src/model/facilitator_sign_out_response.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
 import 'package:eschool_api/src/model/guardian_handle_proposals_response.dart';
 import 'package:eschool_api/src/model/guardian_invitation_accepted_response.dart';
@@ -145,6 +149,7 @@ class PlatformApi {
   /// Parameters:
   /// * [learner]
   /// * [createLearnerEnrolmentRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -158,6 +163,7 @@ class PlatformApi {
   Future<Response<EnrolmentResponse>> createLearnerEnrolment({
     required int learner,
     required CreateLearnerEnrolmentRequest createLearnerEnrolmentRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -175,6 +181,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -254,6 +261,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [createProfileCategoryRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -266,6 +274,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileCategoryResponse>> createProfileCategory({
     required CreateProfileCategoryRequest createProfileCategoryRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -278,6 +287,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -357,6 +367,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [createProfileFieldRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -369,6 +380,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileDefinitionResponse>> createProfileField({
     required CreateProfileFieldRequest createProfileFieldRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -381,6 +393,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -461,6 +474,7 @@ class PlatformApi {
   /// Parameters:
   /// * [learner]
   /// * [decideGuardianApprovalRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -474,6 +488,7 @@ class PlatformApi {
   Future<Response<ApprovalStateResponse>> decideGuardianApproval({
     required int learner,
     required DecideGuardianApprovalRequest decideGuardianApprovalRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -491,6 +506,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -571,6 +587,7 @@ class PlatformApi {
   /// Parameters:
   /// * [proposal]
   /// * [decideGuardianHandleProposalRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -585,6 +602,7 @@ class PlatformApi {
     required int proposal,
     required DecideGuardianHandleProposalRequest
     decideGuardianHandleProposalRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -602,6 +620,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -681,6 +700,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [category] - The authorised current-school record.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -693,6 +713,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileSavedResponse>> deleteProfileCategory({
     required int category,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -710,6 +731,7 @@ class PlatformApi {
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -774,6 +796,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [definition] - The authorised current-school record.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -786,6 +809,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileSavedResponse>> deleteProfileField({
     required int definition,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -803,6 +827,7 @@ class PlatformApi {
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -862,10 +887,100 @@ class PlatformApi {
     );
   }
 
+  /// getFacilitatorSession
+  /// Fresh dated school membership and an explicit facilitator session profile are required. This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements before issuing a session; only current accepted policy versions and a completed password change allow authentication. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FacilitatorSessionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FacilitatorSessionResponse>> getFacilitatorSession({
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/facilitator/session';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FacilitatorSessionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<FacilitatorSessionResponse, FacilitatorSessionResponse>(
+              rawData,
+              'FacilitatorSessionResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FacilitatorSessionResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// List linked learners and current consent
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -877,6 +992,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [GuardianApprovalsResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GuardianApprovalsResponse>> getGuardianApprovals({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -889,6 +1005,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -952,6 +1069,7 @@ class PlatformApi {
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -963,6 +1081,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [GuardianHandleProposalsResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GuardianHandleProposalsResponse>> getGuardianHandleProposals({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -975,6 +1094,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1114,6 +1234,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [learner]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [date]
   /// * [page] - The page of a list, from 1.
@@ -1129,6 +1250,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<EnrolmentListResponse>> getLearnerEnrolments({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     DateTime? date,
     int? page = 1,
@@ -1149,6 +1271,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1219,6 +1342,7 @@ class PlatformApi {
   /// What an app needs to set itself up: the user and their roles, the schools they belong to, the current school (branding, timezone, year and terms), which modules it has on, its notification rules and feature flags, the sign-in methods it offers and, for a parent, each child with that child&#39;s school. Apps fetch it at start-up, after signing in and when the user changes school, and keep a cached copy. Every profile may call it. Budget: 150 ms at p95.  The answer is for the school the request works in: the one &#x60;X-School-Id&#x60; names (one of the user&#39;s &#x60;schools&#x60;), or else the user&#39;s first school. &#x60;user.roles&#x60; are the roles there; each entry of &#x60;schools&#x60; lists the user&#39;s roles at that school. The answer is composed by contributor classes (&#x60;config/context.php&#x60;); a key or field is only ever added.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1230,6 +1354,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [ContextResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContextResponse>> getMeContext({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1242,6 +1367,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1305,6 +1431,7 @@ class PlatformApi {
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1316,6 +1443,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [HandleStateResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<HandleStateResponse>> getMyHandle({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1328,6 +1456,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1391,6 +1520,7 @@ class PlatformApi {
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1403,6 +1533,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<NotificationPreferencesResponse>>
   getMyNotificationPreferences({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1415,6 +1546,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1477,6 +1609,7 @@ class PlatformApi {
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [profileType] - The person profile at the current school; defaults to the first active profile.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1489,6 +1622,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [ProfileFormResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileFormResponse>> getMyProfile({
+    int? xAccountId,
     int? xSchoolId,
     String? profileType,
     CancelToken? cancelToken,
@@ -1502,6 +1636,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1571,6 +1706,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [school]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1583,6 +1719,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<MySchoolResponse>> getMySchool({
     required int school,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1600,6 +1737,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1664,6 +1802,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [person] - The authorised current-school record.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [profileType] - The person profile at the current school; defaults to the first active profile.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1677,6 +1816,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileFormResponse>> getPersonProfile({
     required int person,
+    int? xAccountId,
     int? xSchoolId,
     String? profileType,
     CancelToken? cancelToken,
@@ -1695,6 +1835,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1763,6 +1904,7 @@ class PlatformApi {
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [profileType] - The person profile at the current school; defaults to the first active profile.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1775,6 +1917,7 @@ class PlatformApi {
   /// Returns a [Future] containing a [Response] with a [ProfileConfigurationResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileConfigurationResponse>> getProfileConfiguration({
+    int? xAccountId,
     int? xSchoolId,
     String? profileType,
     CancelToken? cancelToken,
@@ -1788,6 +1931,7 @@ class PlatformApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1856,6 +2000,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [guardian]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1868,6 +2013,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GuardianInvitationIssuedResponse>> issueGuardianInvitation({
     required int guardian,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1885,6 +2031,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1948,6 +2095,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [setMyHandleRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1960,6 +2108,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<HandleStateResponse>> setMyHandle({
     required SetMyHandleRequest setMyHandleRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1972,6 +2121,7 @@ class PlatformApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2046,11 +2196,188 @@ class PlatformApi {
     );
   }
 
+  /// signInFacilitator
+  /// Fresh dated school membership and an explicit facilitator session profile are required. This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements before issuing a session; only current accepted policy versions and a completed password change allow authentication. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [facilitatorSignInInput]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FacilitatorSignInResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FacilitatorSignInResponse>> signInFacilitator({
+    required FacilitatorSignInInput facilitatorSignInInput,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/facilitator/sign-in';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{'secure': <Map<String, String>>[], ...?extra},
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(facilitatorSignInInput);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FacilitatorSignInResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<FacilitatorSignInResponse, FacilitatorSignInResponse>(
+              rawData,
+              'FacilitatorSignInResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FacilitatorSignInResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// signOutFacilitator
+  /// Fresh dated school membership and an explicit facilitator session profile are required. This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements before issuing a session; only current accepted policy versions and a completed password change allow authentication. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [FacilitatorSignOutResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<FacilitatorSignOutResponse>> signOutFacilitator({
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/facilitator/sign-out';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    FacilitatorSignOutResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<FacilitatorSignOutResponse, FacilitatorSignOutResponse>(
+              rawData,
+              'FacilitatorSignOutResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<FacilitatorSignOutResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Change an optional notification channel
   ///
   ///
   /// Parameters:
   /// * [updateMyNotificationPreferencesRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2065,6 +2392,7 @@ class PlatformApi {
   updateMyNotificationPreferences({
     required UpdateMyNotificationPreferencesRequest
     updateMyNotificationPreferencesRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2077,6 +2405,7 @@ class PlatformApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2155,6 +2484,7 @@ class PlatformApi {
   ///
   /// Parameters:
   /// * [updateMyProfileRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2167,6 +2497,7 @@ class PlatformApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ProfileSavedResponse>> updateMyProfile({
     required UpdateMyProfileRequest updateMyProfileRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2179,6 +2510,7 @@ class PlatformApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2259,6 +2591,7 @@ class PlatformApi {
   /// Parameters:
   /// * [person] - The authorised current-school record.
   /// * [updatePersonProfileRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2272,6 +2605,7 @@ class PlatformApi {
   Future<Response<ProfileSavedResponse>> updatePersonProfile({
     required int person,
     required UpdatePersonProfileRequest updatePersonProfileRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2289,6 +2623,7 @@ class PlatformApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2369,6 +2704,7 @@ class PlatformApi {
   /// Parameters:
   /// * [category] - The authorised current-school record.
   /// * [updateProfileCategoryRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2382,6 +2718,7 @@ class PlatformApi {
   Future<Response<ProfileCategoryResponse>> updateProfileCategory({
     required int category,
     required UpdateProfileCategoryRequest updateProfileCategoryRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2399,6 +2736,7 @@ class PlatformApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2479,6 +2817,7 @@ class PlatformApi {
   /// Parameters:
   /// * [definition] - The authorised current-school record.
   /// * [updateProfileFieldRequest]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2492,6 +2831,7 @@ class PlatformApi {
   Future<Response<ProfileDefinitionResponse>> updateProfileField({
     required int definition,
     required UpdateProfileFieldRequest updateProfileFieldRequest,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2509,6 +2849,7 @@ class PlatformApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2590,6 +2931,7 @@ class PlatformApi {
   /// * [field]
   /// * [profileType]
   /// * [document]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2604,6 +2946,7 @@ class PlatformApi {
     required String field,
     required String profileType,
     required MultipartFile document,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2621,6 +2964,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2706,6 +3050,7 @@ class PlatformApi {
   /// * [field]
   /// * [profileType]
   /// * [document]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2721,6 +3066,7 @@ class PlatformApi {
     required String field,
     required String profileType,
     required MultipartFile document,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2745,6 +3091,7 @@ class PlatformApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },

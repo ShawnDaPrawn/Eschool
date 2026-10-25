@@ -1,0 +1,833 @@
+tags:
+- name: Growth
+  description: Private learner growth, mastery and supported practice.
+paths:
+  /growth/mastery/configuration:
+    get:
+      operationId: getMasteryConfiguration
+      tags:
+      - Growth
+      summary: getMasteryConfiguration
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/groups/{group}/learners:
+    get:
+      operationId: getMasteryRoster
+      tags:
+      - Growth
+      summary: getMasteryRoster
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryRosterResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/groups/{group}/learners/{learner}:
+    get:
+      operationId: getMasteryStaff
+      tags:
+      - Growth
+      summary: getMasteryStaff
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryViewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/learners/{learner}/subjects:
+    get:
+      operationId: getMasterySubjects
+      tags:
+      - Growth
+      summary: getMasterySubjects
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterySubjectListResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/learners/{learner}:
+    get:
+      operationId: getMasteryFamily
+      tags:
+      - Growth
+      summary: getMasteryFamily
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryViewResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /growth/mastery/subjects/{subject}/graph:
+    get:
+      operationId: getMasteryGraph
+      tags:
+      - Growth
+      summary: getMasteryGraph
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryGraphResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: saveMasteryGraph
+      tags:
+      - Growth
+      summary: saveMasteryGraph
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: subject
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryGraphResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasteryGraphWrite'
+  /growth/mastery/groups/{group}/rebuild:
+    post:
+      operationId: queueMasteryRebuild
+      tags:
+      - Growth
+      summary: queueMasteryRebuild
+      description: Fresh module, school, role and own-learner authority is checked before validation and idempotent
+        replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence;
+        raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
+        exact assessment-term references only.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Private school-scoped mastery response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasteryRebuildResponse'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  schemas:
+    MasterySettings:
+      type: object
+      additionalProperties: false
+      required:
+      - family_marks_enabled
+      - revision
+      - policy_version
+      properties:
+        family_marks_enabled:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 0
+        policy_version:
+          type: string
+    MasteryNode:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - topic_key
+      - name
+      - grade_level_id
+      - grade_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        topic_key:
+          type: string
+          format: uuid
+        name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+    MasteryLink:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - prerequisite_id
+      - source
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        prerequisite_id:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          minLength: 3
+          maxLength: 1000
+    MasteryTopicView:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - topic_key
+      - name
+      - grade_level_id
+      - grade_name
+      - level
+      - confidence_bp
+      - evidence_count
+      - computed_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        topic_key:
+          type: string
+          format: uuid
+        name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+        level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 4
+        confidence_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        evidence_count:
+          type: integer
+          minimum: 0
+          maximum: 20
+        computed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    MasteryPriority:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - name
+      - level
+      - confidence_bp
+      - reason
+      - path
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 4
+        confidence_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        reason:
+          type: string
+          enum:
+          - not_yet_assessed
+          - prerequisite_gap
+          - topic_gap
+        path:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 100
+    MasteryView:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - subject_id
+      - audience
+      - marks_visible
+      - policy_version
+      - topics
+      - target_topic_ids
+      - priorities
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        audience:
+          type: string
+          enum:
+          - staff
+          - family
+        marks_visible:
+          type: boolean
+        policy_version:
+          type: string
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryTopicView'
+          maxItems: 5000
+        target_topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 5000
+        priorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryPriority'
+          maxItems: 3
+    MasterySubjectChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    MasterySubjectList:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - subjects
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        subjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasterySubjectChoice'
+          maxItems: 500
+    MasteryGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_id
+      - subject_name
+      - grade_level_id
+      - grade_name
+      - session_year_id
+      - year_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        year_name:
+          type: string
+    MasteryConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - can_manage
+      - settings
+      - groups
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        can_manage:
+          type: boolean
+        settings:
+          $ref: '#/components/schemas/MasterySettings'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryGroup'
+          maxItems: 500
+    MasteryRosterLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - display_name
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        display_name:
+          type: string
+    MasteryRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - current_page
+      - last_page
+      - total
+      - learners
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryRosterLearner'
+          maxItems: 100
+    MasteryGraph:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - settings
+      - nodes
+      - links
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        settings:
+          $ref: '#/components/schemas/MasterySettings'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryNode'
+          maxItems: 5000
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryLink'
+          maxItems: 10000
+    MasteryGraphWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - expected_revision
+      - family_marks_enabled
+      - links
+      properties:
+        expected_revision:
+          type: integer
+          minimum: 0
+        family_marks_enabled:
+          type: boolean
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/MasteryLink'
+          maxItems: 10000
+    MasteryRebuild:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - queued
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        queued:
+          type: boolean
+    MasteryViewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryView'
+    MasteryConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryConfiguration'
+    MasteryRosterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryRoster'
+    MasteryGraphResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryGraph'
+    MasteryRebuildResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasteryRebuild'
+    MasterySubjectListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/MasterySubjectList'

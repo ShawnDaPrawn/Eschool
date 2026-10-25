@@ -16,8 +16,11 @@ use App\Models\User;
 use App\Policies\Academics\ContentPolicy;
 use App\Services\Academics\Attendance\RegisterRosters;
 use App\Services\Communication\MessageDelivery;
+use App\Services\Growth\ProgressNotices;
+use App\Services\Pastoral\CoverNotices;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Transfers\TransferNotices;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -86,6 +89,18 @@ class DeliveryGuard
                     || ((int) $learner->user_id !== (int) $user->id && ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id))) {
                     return false;
                 }
+            }
+            if (! app(PrivateNoticeScopes::class)->permitsDelivery($user, $type, $context)) {
+                return false;
+            }
+            if (str_starts_with($type, 'transfer.') && ! app(TransferNotices::class)->allows($user, $type, $context)) {
+                return false;
+            }
+            if (str_starts_with($type, 'progress.') && ! app(ProgressNotices::class)->allows($user, $type, $context)) {
+                return false;
+            }
+            if (str_starts_with($type, 'pastoral.cover') && ! app(CoverNotices::class)->allows($user, $type, $context)) {
+                return false;
             }
             $currentAddress = $channel === 'email' ? $user->email : $user->fcm_id;
 

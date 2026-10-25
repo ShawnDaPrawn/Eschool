@@ -70,6 +70,7 @@ void main() {
                 children: [
                   const AcademicText('Save marks'),
                   const AcademicText('School messages'),
+                  const AcademicText('Mastery map'),
                   Builder(
                     builder: (context) =>
                         Text(academicLabel(context, 'learner')),
@@ -84,6 +85,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(labels['Save marks']), findsOneWidget);
       expect(find.text(labels['School messages']), findsOneWidget);
+      expect(find.text(labels['Mastery map']), findsOneWidget);
+      expect(find.text('Mastery map'), findsNothing);
       expect(find.text(labels['Learner']), findsOneWidget);
       expect(find.text('Save marks'), findsNothing);
       expect(find.text('Uncatalogued synthetic text'), findsOneWidget);

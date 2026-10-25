@@ -71,8 +71,8 @@ class MasteryService
         }
         $graph['nodes'] = array_values(array_filter($graph['nodes'], fn ($node) => isset($visible[$node['id']])));
         $enabled = $audience === 'staff' || $graph['settings']['family_marks_enabled'];
-        $records = $enabled ? MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->where('audience', $audience)
-            ->whereIn('topic_id', array_column($graph['nodes'], 'id'))->get()->keyBy('topic_id') : collect();
+        $records = MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->where('audience', $enabled ? $audience : 'practice')
+            ->whereIn('topic_id', array_column($graph['nodes'], 'id'))->get()->keyBy('topic_id');
         $topics = [];
         foreach ($graph['nodes'] as $node) {
             $record = $records->get($node['id']);
@@ -89,7 +89,7 @@ class MasteryService
         }
 
         return ['learner_id' => $learnerId, 'subject_id' => $subjectId, 'audience' => $audience, 'marks_visible' => $enabled,
-            'policy_version' => MasteryScore::VERSION, 'topics' => $topics, 'target_topic_ids' => $targetIds, 'priorities' => $this->roots($topics, $graph['links'], $targetIds)];
+            'policy_version' => MasteryScore::VERSION, 'topics' => $topics, 'target_topic_ids' => $targetIds, 'priorities' => ($enabled || $records->contains(fn ($record) => $record->evidence_count > 0)) ? $this->roots($topics, $graph['links'], $targetIds) : []];
     }
 
     /** A supervisor supplies an authorized group; family calls remain own-child only. */
@@ -129,7 +129,7 @@ class MasteryService
                 if ($weak === []) {
                     $node = $nodes[$id];
                     $found[$id] ??= ['topic_id' => $id, 'name' => $node['name'], 'level' => $node['level'], 'confidence_bp' => $node['confidence_bp'],
-                        'reason' => $node['level'] === null ? 'not_yet_assessed' : 'prerequisite_gap', 'path' => $path];
+                        'reason' => $node['level'] === null ? 'not_yet_assessed' : (count($path) > 1 ? 'prerequisite_gap' : 'topic_gap'), 'path' => $path];
                 } else {
                     foreach ($weak as $next) {
                         $stack[] = [...$path, $next];

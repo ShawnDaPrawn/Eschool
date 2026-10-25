@@ -67,6 +67,29 @@ void main() {
   }
 
   test(
+    'pinned requests send account binding and anonymous requests omit it',
+    () async {
+      await client.send(
+        method: 'GET',
+        url: 'https://school.test/api/v2/private',
+        accountId: 12,
+        schoolId: 7,
+      );
+      expect(adapter.requests.single.headers['X-Account-Id'], '12');
+      await client.send(
+        method: 'GET',
+        url: 'https://school.test/public',
+        accountId: 12,
+        useAuthToken: false,
+      );
+      expect(
+        adapter.requests.last.headers.containsKey('X-Account-Id'),
+        isFalse,
+      );
+    },
+  );
+
+  test(
     'HTTP error status survives translation for private access clearing',
     () async {
       for (final status in [401, 403, 404, 409, 422, 500, 503]) {

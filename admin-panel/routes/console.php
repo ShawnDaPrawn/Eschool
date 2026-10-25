@@ -9,6 +9,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\IdempotencyKey;
 use App\Models\Platform\School;
 use App\Models\Settings;
+use App\Services\Consultations\Consultations;
 use App\Services\People\EnrolmentService;
 use App\Services\Platform\Identity\GuardianInvitations;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -82,3 +83,21 @@ Schedule::job(new ApplyRetention)->dailyAt('02:40')->name('academic-export-reten
 Schedule::job(new RecoverContentConversions)->everyMinute()->name('content-conversion-recovery')->withoutOverlapping();
 
 Schedule::job(new RecoverMessages)->everyMinute()->name('communication-message-recovery')->withoutOverlapping();
+
+Schedule::command('leadership:prune-activity')->dailyAt('02:50')->name('learner-activity-retention')->withoutOverlapping();
+
+Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-copy-retention')->withoutOverlapping();
+
+// Refresh current-day evidence even when no source event arrives.
+Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);
+
+Schedule::command('admissions:maintain')->everyMinute()->name('admissions-offer-recovery')->withoutOverlapping();
+Schedule::command('admissions:maintain --retention')->dailyAt('03:10')->name('admissions-private-retention')->withoutOverlapping();
+// Retained scheduled consultations advance independently of an app request.
+Schedule::call(function () {
+    School::query()->active()->each(function ($school) {
+        app(CurrentSchool::class)->run((int) $school->id, fn () => app(Consultations::class)->advance());
+    });
+})->everyMinute()->name('consultations-advance')->withoutOverlapping();
+
+Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-private-retention')->withoutOverlapping();

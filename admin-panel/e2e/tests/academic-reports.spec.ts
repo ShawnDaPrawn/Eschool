@@ -28,6 +28,7 @@ for (const width of [1024, 1280]) {
     await expect(page.getByRole('heading', { name: 'Evidence preview', exact: true })).toBeVisible();
     await expect(page.getByText('Provisional running report', { exact: true }).last()).toBeVisible();
     await page.getByRole('button', { name: 'Prepare reviewed reports', exact: true }).click();
+    await expect(page).toHaveURL(/[?&]batch_id=[1-9]\d*/);
     const batchId = Number(new URL(page.url()).searchParams.get('batch_id'));
     expect(batchId).toBeGreaterThan(0);
     const comment = page.getByRole('form', { name: /Comment for .* Report rehearsal subject/ }).first();

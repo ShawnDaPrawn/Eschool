@@ -1,3 +1,5 @@
+import 'package:eschool_teacher/facilitator/facilitator_app.dart';
+import 'package:eschool_teacher/facilitator/facilitator_repository.dart';
 import 'package:eschool_teacher/app/staffBuildIdentity.dart';
 import 'package:eschool_teacher/app/staffBuildUnavailable.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -33,19 +35,29 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-Future<void> initializeApp() => startStaffBuild(
-  identity: StaffBuildIdentity.current,
-  startTeacher: () async {
-    // A web build shows each screen's address without the '#'.
-    usePathUrlStrategy();
-    await prepareApp();
-    runApp(const MyApp());
-  },
-  startUnavailable: (identity) {
-    WidgetsFlutterBinding.ensureInitialized();
-    runApp(StaffBuildUnavailable(identity: identity));
-  },
-);
+Future<void> initializeApp({FacilitatorRepository? facilitatorRepository}) =>
+    startStaffBuild(
+      identity: StaffBuildIdentity.current,
+      startTeacher: () async {
+        // A web build shows each screen's address without the '#'.
+        usePathUrlStrategy();
+        await prepareApp();
+        runApp(const MyApp());
+      },
+      startFacilitator: () async {
+        WidgetsFlutterBinding.ensureInitialized();
+        AppConfig.assertValid();
+        runApp(
+          FacilitatorApp(
+            repository: facilitatorRepository ?? FacilitatorRepository(),
+          ),
+        );
+      },
+      startUnavailable: (identity) {
+        WidgetsFlutterBinding.ensureInitialized();
+        runApp(StaffBuildUnavailable(identity: identity));
+      },
+    );
 
 /// Everything the app needs before its first frame. The integration smoke
 /// flows pass [useFirebase] false: they run against a fake API, with no

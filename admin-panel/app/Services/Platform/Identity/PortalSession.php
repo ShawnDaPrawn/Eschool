@@ -60,6 +60,7 @@ final class PortalSession
         $portal = match ($app) {
             AppTokens::PARENT => 'parent',
             AppTokens::TEACHER => 'teacher',
+            AppTokens::FACILITATOR => 'facilitator',
             default => 'learner',
         };
         abort_unless(app(ModuleGate::class)->allows('web_'.$portal), 403, 'Web access is unavailable at this school.');
@@ -71,6 +72,12 @@ final class PortalSession
         $request->session()->put('password_hash_web', $user->getAuthPassword());
         $request->session()->put('portal_app', $app);
         $request->attributes->set(self::SIGNED_IN, true);
+        // FormRequest is a validated clone; the cleanup middleware observes
+        // the canonical request, whose per-request marker must agree.
+        $canonical = app('request');
+        if ($canonical !== $request) {
+            $canonical->attributes->set(self::SIGNED_IN, true);
+        }
 
         return '';
     }
@@ -97,7 +104,9 @@ final class PortalSession
     {
         $token = $user->currentAccessToken();
         if ($token instanceof PersonalAccessToken) {
-            $user->update(['fcm_id' => '']);
+            if ($token->name !== AppTokens::FACILITATOR) {
+                $user->update(['fcm_id' => '']);
+            }
             AppTokens::signOut($user, $token);
         }
 

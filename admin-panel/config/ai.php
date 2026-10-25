@@ -13,6 +13,8 @@ return [
     'inference' => [
         'enabled' => false,
         'features' => [],
+        // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
+        'feature_policies' => [],
     ],
     'transcribe' => [
         'provider' => 'local-whisper-base',

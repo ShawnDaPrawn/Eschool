@@ -6318,6 +6318,7 @@ document.addEventListener("DOMContentLoaded", function () {
             $studentTable.bootstrapTable("removeAll");
 
             function refreshStudentTable() {
+                if (window.panelYearSwitchPending) return;
                 var sessionYear = $("#filter_session_year_global").val();
                 var classSection = $("#filter_class_section_id").val();
                 if (sessionYear && classSection) {
@@ -6333,6 +6334,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             window.studentDetailsqueryParams = function (p) {
+                if (window.panelYearSwitchPending) return false;
                 return {
                     limit: p.limit,
                     offset: p.offset,
@@ -6358,10 +6360,12 @@ document.addEventListener("DOMContentLoaded", function () {
             // For restricted teachers: reload class section dropdown when session year changes
             if ($("#is_restricted_teacher").val() === "1") {
                 function loadStudentClassSections(session_year_id) {
+                    if (window.panelYearSwitchPending) return;
                     var url = $("#student_class_sections_url").val();
                     var data = { session_year_id: session_year_id };
 
                     function successCallback(response) {
+                        if (window.panelYearSwitchPending || String(session_year_id) !== String($("#filter_session_year_global").val())) return;
                         var filterHtml = "";
                         var editHtml =
                             '<option value="">' +
@@ -6440,6 +6444,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             // Fallback for pages that don't have the student table
             window.studentDetailsqueryParams = function (p) {
+                if (window.panelYearSwitchPending) return false;
                 return {
                     limit: p.limit,
                     offset: p.offset,
@@ -7665,10 +7670,18 @@ $("#filter_session_year_global").on("change", function (event) {
     // year, rather than racing this write with a request using the old session.
     event.stopImmediatePropagation();
 
-    sessionStorage.setItem("session_year_id_global", value);
-    sessionStorage.setItem("session_year_id_table", value);
-
-    syncSessionYear(value).then(() => {
+    // A prior class-list response may still run its callback while this write
+    // is pending. Keep both DOM and storage on the confirmed year until the
+    // server accepts the new one, so that callback cannot issue new-year reads.
+    const previous = this.getAttribute("data-selected");
+    window.panelYearSwitchPending = true;
+    this.value = previous;
+    this.disabled = true;
+    syncSessionYear(value).then((response) => {
+        if (!response.ok) throw new Error("School year change was refused.");
+        sessionStorage.setItem("session_year_id_global", value);
+        sessionStorage.setItem("session_year_id_table", value);
+        this.value = value;
         document.dispatchEvent(
             new CustomEvent("session-year-synced", { detail: { value } }),
         );
@@ -7676,6 +7689,13 @@ $("#filter_session_year_global").on("change", function (event) {
         // Reload, so the read-only banner, the disabled writes and every list
         // follow the chosen year (dashboard.js also reloads on the event above).
         window.location.reload();
+    }).catch(() => {
+        window.panelYearSwitchPending = false;
+        this.value = previous;
+        this.disabled = false;
+        if (typeof showErrorToast === "function") {
+            showErrorToast("The school year could not be changed. Try again.");
+        }
     });
 });
 

@@ -21,9 +21,22 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
-        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_operations',
+        'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
+        'practice_items', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',
+        'intakes', 'intake_grades', 'applications', 'application_documents', 'application_links', 'application_events', 'offers', 'admission_operations',
+        'consultations', 'consultation_questions', 'consultation_options', 'consultation_candidates', 'consultation_participation', 'consultation_responses', 'consultation_configuration_events', 'consultation_operations',
+        'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
+        'discipline_acknowledgements', 'detention_sessions', 'detention_entries', 'detention_versions',
+        'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations',
+        'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
+        'learner_activity_days',
+        'risk_settings', 'risk_observations', 'risk_caseloads', 'interventions', 'intervention_versions', 'risk_operations',
+        'wellbeing_notice_intents', 'incident_photos', 'wellbeing_categories', 'wellbeing_team_assignments', 'incident_reports', 'incident_threads', 'support_cases', 'support_case_assignments', 'support_case_entries', 'wellbeing_appointments', 'wellbeing_operations', 'wellbeing_events',
+        'learner_note_operations', 'progress_band_states', 'progress_band_alerts', 'progress_band_settings', 'learner_notes', 'learner_note_revisions', 'learner_note_assignments',
+        'support_assignments', 'support_plans', 'support_plan_versions', 'support_reviews', 'support_disclosures', 'support_operations',
         'cover_absences', 'cover_assignments', 'cover_operations',
         'mastery_settings', 'mastery_topics', 'topic_links', 'mastery_evidence', 'mastery_records', 'mastery_scopes',
+        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_operations',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',

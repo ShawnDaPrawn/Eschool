@@ -3,6 +3,17 @@
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
 return [
+    'gallery' => ['name' => 'Private photo gallery', 'default' => false, 'dependencies' => ['people']],
+    'daily_practice' => ['name' => 'Daily practice', 'default' => false, 'dependencies' => ['academics']],
+    'consultations' => ['name' => 'Polls, surveys and nonstatutory elections', 'default' => false, 'dependencies' => ['people', 'communication']],
+    'house_points' => ['name' => 'House points', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'awards' => ['name' => 'Awards', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'school_transfers' => ['name' => 'School transfers', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'leadership_dashboard' => ['name' => 'Leadership dashboard', 'default' => false, 'dependencies' => ['academics']],
+    'discipline' => ['name' => 'Discipline', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'early_warning' => ['name' => 'Early warning and interventions', 'default' => false, 'dependencies' => ['people', 'academics']],
+    'wellbeing' => ['name' => 'Incident reporting and counsellor support', 'default' => false],
+    'support_plans' => ['name' => 'Support plans', 'default' => false, 'dependencies' => ['people', 'academics']],
     'relief_cover' => ['name' => 'Relief cover', 'default' => false, 'dependencies' => ['academics']],
     'mastery' => ['name' => 'Mastery map', 'default' => false, 'dependencies' => ['academics']],
     'school' => ['name' => 'School setup and branding', 'always_on' => true],
@@ -17,5 +28,6 @@ return [
     'intake' => ['name' => 'Online registration', 'default' => false, 'legacy' => true],
     'web_learner' => ['name' => 'Learner web portal', 'default' => true],
     'web_parent' => ['name' => 'Parent web portal', 'default' => true],
+    'web_facilitator' => ['name' => 'Facilitator web portal', 'default' => true],
     'web_teacher' => ['name' => 'Teacher web portal', 'default' => true],
 ];

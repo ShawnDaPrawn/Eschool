@@ -32,11 +32,14 @@ final class AppTokens
 
     public const TEACHER = 'teacher-app';
 
+    public const FACILITATOR = 'facilitator-app';
+
     /** The role each app is for. */
     public const APPS = [
         self::STUDENT => 'Student',
         self::PARENT => 'Parent',
         self::TEACHER => 'Teacher',
+        self::FACILITATOR => 'Facilitator',
     ];
 
     /** Revokes the account's earlier tokens for this app and issues a new one. */
@@ -54,6 +57,11 @@ final class AppTokens
     /** Revokes the account's tokens for one app; returns how many. */
     public static function revokeApp(User $user, string $app): int
     {
+        // This new profile has no legacy tokens; never revoke another app's
+        // pre-profile tokens, and allow its logout after school-role revocation.
+        if ($app === self::FACILITATOR) {
+            return $user->tokens()->where('name', self::FACILITATOR)->delete();
+        }
         $legacyAreThisApps = ! self::usesAnotherApp($user, $app);
 
         return $user->tokens()
@@ -70,6 +78,12 @@ final class AppTokens
     public static function signOut(User $user, ?PersonalAccessToken $token): void
     {
         if ($token === null) {
+            return;
+        }
+
+        if ($token->name === self::FACILITATOR) {
+            $token->delete();
+
             return;
         }
 

@@ -6,17 +6,39 @@ namespace App\Services\Ai\Providers;
 
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Inference\Capability;
+use App\Services\Ai\Inference\InferenceNotDispatched;
 use App\Services\Ai\Inference\InferenceProvider;
 use App\Services\Ai\Inference\ProviderRequest;
 use App\Services\Ai\Inference\ProviderResponse;
 
 class OpenAiProvider implements InferenceProvider
 {
-    public function infer(ProviderRequest $request): ProviderResponse
+    private function payload(ProviderRequest $request): array
     {
         ProviderProtocol::input($request);
         if ($request->capability === Capability::Embed) {
-            $data = app(ProviderTransport::class)->post('openai', '/embeddings', ['model' => $request->model, 'input' => $request->input, 'user' => $request->anonymousActor, 'encoding_format' => 'float'], $request->operationId);
+            return ['/embeddings', ['model' => $request->model, 'input' => $request->input, 'user' => $request->anonymousActor, 'encoding_format' => 'float']];
+        }
+        if ($request->capability !== Capability::Complete) {
+            throw new InferenceNotDispatched('media_policy_required');
+        }
+
+        return ['/chat/completions', ['model' => $request->model,
+            'messages' => [['role' => 'system', 'content' => $request->systemPrompt], ['role' => 'user', 'content' => $request->input]],
+            'max_completion_tokens' => $request->maximumTokens, 'n' => 1, 'stream' => false, 'store' => false, 'user' => $request->anonymousActor]];
+    }
+
+    public function preflight(ProviderRequest $request): void
+    {
+        [$path, $payload] = $this->payload($request);
+        app(ProviderTransport::class)->preflight('openai', $path, $payload, $request->operationId, deadline: $request->deadline);
+    }
+
+    public function infer(ProviderRequest $request): ProviderResponse
+    {
+        [$path, $payload] = $this->payload($request);
+        $data = app(ProviderTransport::class)->post('openai', $path, $payload, $request->operationId, deadline: $request->deadline);
+        if ($request->capability === Capability::Embed) {
             $vectors = $data['data'] ?? null;
             $tokens = $data['usage']['total_tokens'] ?? null;
             if (($data['model'] ?? null) !== $request->model || ! is_array($vectors) || count($vectors) !== 1 || ($vectors[0]['index'] ?? null) !== 0
@@ -32,12 +54,6 @@ class OpenAiProvider implements InferenceProvider
 
             return new ProviderResponse($vectors[0]['embedding'], $tokens);
         }
-        if ($request->capability !== Capability::Complete) {
-            throw new AiUnavailable('media_policy_required');
-        }
-        $data = app(ProviderTransport::class)->post('openai', '/chat/completions', ['model' => $request->model,
-            'messages' => [['role' => 'system', 'content' => $request->systemPrompt], ['role' => 'user', 'content' => $request->input]],
-            'max_completion_tokens' => $request->maximumTokens, 'n' => 1, 'stream' => false, 'store' => false, 'user' => $request->anonymousActor], $request->operationId);
 
         return $this->chat($data, $request);
     }

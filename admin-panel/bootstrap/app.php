@@ -1,6 +1,8 @@
 <?php
 
+use App\Exceptions\AdmissionsExceptionRenderer;
 use App\Exceptions\ApiV2ExceptionRenderer;
+use App\Exceptions\PublicReportingExceptionRenderer;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckChild;
@@ -21,6 +23,8 @@ use App\Http\Middleware\EnsureUserIsStaff;
 use App\Http\Middleware\HandleIdempotencyKey;
 use App\Http\Middleware\LanguageManager;
 use App\Http\Middleware\LimitRequestInput;
+use App\Http\Middleware\ObserveLearnerActivity;
+use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RejectDangerousUploads;
 use App\Http\Middleware\RequireParentPolicyAcceptance;
@@ -38,6 +42,7 @@ use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Auth\Middleware\RequirePassword;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Cookie\Middleware\EncryptCookies as BaseEncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -69,6 +74,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')->group(__DIR__.'/../routes/internal.php');
             Route::middleware(['api', 'auth:sanctum', 'school.context', 'role.any', 'learner.approved'])
                 ->prefix('protected/profile-files')->name('profile-files.')->group(__DIR__.'/../routes/profile_files.php');
+            Route::group([], __DIR__.'/../routes/public_wellbeing.php');
+            Route::group([], __DIR__.'/../routes/public_admissions.php');
             ModuleRoutes::apply(Route::getRoutes());
         },
     )
@@ -104,6 +111,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(ResetSchoolContext::class);
         // Outermost, so every response and every log line of the request has its id.
         $middleware->prepend(AssignRequestId::class);
+        // Keep private route refusals inside the response boundary, including
+        // authentication failures. Subclasses such as PrivateWellbeing inherit it.
+        $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: PrivateDomainResponse::class);
         // The school is chosen right after authentication, before route model
         // binding or anything else reads school-owned rows.
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: SetSchoolContext::class);
@@ -137,6 +147,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SubstituteBindings::class,
         ]);
         $middleware->api(append: [
+            ObserveLearnerActivity::class,
             RejectDangerousUploads::class,
         ]);
 
@@ -206,5 +217,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*') || $request->expectsJson());
         // API v2 answers every error in the {error, message, data, code} envelope
         // with its real HTTP status (v1 keeps Laravel's own error bodies).
+        $exceptions->render(fn (Throwable $e, Request $request) => AdmissionsExceptionRenderer::render($e, $request));
+        $exceptions->render(fn (Throwable $e, Request $request) => PublicReportingExceptionRenderer::render($e, $request));
         $exceptions->render(fn (Throwable $e, Request $request) => ApiV2ExceptionRenderer::render($e, $request));
     })->create();

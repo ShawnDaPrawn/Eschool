@@ -135,6 +135,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [template]
   /// * [termTemplateApplyWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -149,6 +150,7 @@ class AcademicsApi {
   Future<Response<TermTemplateApplyResponse>> applyTermTemplate({
     required int template,
     required TermTemplateApplyWrite termTemplateApplyWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -167,6 +169,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -248,6 +251,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [item]
   /// * [contentArchiveWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -261,6 +265,7 @@ class AcademicsApi {
   Future<Response<ContentReceiptResponse>> archiveAcademicContent({
     required int item,
     required ContentArchiveWrite contentArchiveWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -278,6 +283,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -359,6 +365,7 @@ class AcademicsApi {
   /// * [group]
   /// * [task]
   /// * [academicMarkWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -374,6 +381,7 @@ class AcademicsApi {
     required int group,
     required int task,
     required AcademicMarkWrite academicMarkWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -399,6 +407,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -479,6 +488,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicTimetableCommitWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -492,6 +502,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTimetableCommitResponse>> commitAcademicTimetable({
     required AcademicTimetableCommitWrite academicTimetableCommitWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -505,6 +516,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -584,6 +596,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicTransitionCommit]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -596,6 +609,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTransitionRecordResponse>> commitAcademicTransition({
     required AcademicTransitionCommit academicTransitionCommit,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -608,6 +622,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -687,6 +702,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [plan]
   /// * [curriculumCopyWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -700,6 +716,7 @@ class AcademicsApi {
   Future<Response<CurriculumPlanResponse>> copyCurriculumPlan({
     required int plan,
     required CurriculumCopyWrite curriculumCopyWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -717,6 +734,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -798,6 +816,7 @@ class AcademicsApi {
   /// * [group]
   /// * [task]
   /// * [academicMarkWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -813,6 +832,7 @@ class AcademicsApi {
     required int group,
     required int task,
     required AcademicMarkWrite academicMarkWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -838,6 +858,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -919,6 +940,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [kind]
   /// * [academicAssignmentWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -932,6 +954,7 @@ class AcademicsApi {
   Future<Response<AcademicAssignmentResponse>> createAcademicAllocation({
     required String kind,
     required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -949,6 +972,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1028,6 +1052,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicBellsWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1041,6 +1066,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicBellsResponse>> createAcademicBells({
     required AcademicBellsWrite academicBellsWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -1054,6 +1080,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -1134,6 +1161,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicRoomWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1147,6 +1175,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRoomResponse>> createAcademicRoom({
     required AcademicRoomWrite academicRoomWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -1160,6 +1189,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -1240,6 +1270,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [curriculumPlanWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1252,6 +1283,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CurriculumPlanResponse>> createCurriculumPlan({
     required CurriculumPlanWrite curriculumPlanWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1264,6 +1296,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1345,6 +1378,7 @@ class AcademicsApi {
   /// * [group]
   /// * [kind]
   /// * [academicAssignmentWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1359,6 +1393,7 @@ class AcademicsApi {
     required int group,
     required String kind,
     required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1383,6 +1418,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1462,6 +1498,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [schoolSubjectFromStandardWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1476,6 +1513,7 @@ class AcademicsApi {
   Future<Response<SchoolSubjectStandardResponse>>
   createSchoolSubjectFromStandard({
     required SchoolSubjectFromStandardWrite schoolSubjectFromStandardWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -1489,6 +1527,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -1568,6 +1607,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [schoolTermWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1581,6 +1621,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SchoolTermResponse>> createSchoolTerm({
     required SchoolTermWrite schoolTermWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -1594,6 +1635,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -1674,6 +1716,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [teachingGroupWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1686,6 +1729,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<TeachingGroupResponse>> createTeachingGroup({
     required TeachingGroupWrite teachingGroupWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1698,6 +1742,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1781,6 +1826,7 @@ class AcademicsApi {
   /// * [school] - Current school.
   /// * [expires] - Signed URL expiry timestamp.
   /// * [signature] - Server signature.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1797,6 +1843,7 @@ class AcademicsApi {
     required int school,
     required int expires,
     required String signature,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1816,6 +1863,7 @@ class AcademicsApi {
       method: r'GET',
       responseType: ResponseType.bytes,
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1887,6 +1935,7 @@ class AcademicsApi {
   /// * [staff] - Server-issued signed download parameter. Do not modify.
   /// * [expires] - Server-issued signed download parameter. Do not modify.
   /// * [signature] - Server-issued signed download parameter. Do not modify.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -1904,6 +1953,7 @@ class AcademicsApi {
     required String staff,
     required String expires,
     required String signature,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1922,6 +1972,7 @@ class AcademicsApi {
       method: r'GET',
       responseType: ResponseType.bytes,
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1989,6 +2040,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [kind]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [subjectId]
@@ -2007,6 +2059,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicAssignmentsResponse>> getAcademicAllocations({
     required String kind,
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     int? subjectId,
@@ -2030,6 +2083,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2103,6 +2157,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner] - Current-school learner identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2115,6 +2170,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicAttendanceTodayResponse>> getAcademicAttendanceToday({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2132,6 +2188,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2195,6 +2252,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [item]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -2208,6 +2266,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentItemResponse>> getAcademicContent({
     required int item,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -2226,6 +2285,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2292,6 +2352,7 @@ class AcademicsApi {
   /// Private, no-store. Fresh school, role, author and dated group access are checked before each operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -2305,6 +2366,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentConfigurationResponse>>
   getAcademicContentConfiguration({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     CancelToken? cancelToken,
@@ -2318,6 +2380,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2386,6 +2449,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [version]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2398,6 +2462,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentVersionResponse>> getAcademicContentVersion({
     required int version,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2415,6 +2480,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2479,6 +2545,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [package] - Current-school identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2491,6 +2558,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicExitPackageResponse>> getAcademicExitPackage({
     required int package,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2508,6 +2576,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2571,6 +2640,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner] - Current-school learner identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page] - Comment card page (50 cards per page).
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -2584,6 +2654,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportFamilyResponse>> getAcademicLearnerReports({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -2602,6 +2673,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2667,6 +2739,7 @@ class AcademicsApi {
   /// Read-only reference for active school members. Thresholds are integer basis points, not new calculations of existing learner marks.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2678,6 +2751,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [AcademicReferenceResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReferenceResponse>> getAcademicReference({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2690,6 +2764,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2754,6 +2829,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [register] - Current-school register identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2766,6 +2842,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRegisterMatrixResponse>> getAcademicRegister({
     required int register,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2783,6 +2860,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2845,6 +2923,7 @@ class AcademicsApi {
   /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [onDate] - Defaults to school-local today.
   /// * [sessionYearId] - An applicable school calendar.
@@ -2858,6 +2937,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [AcademicRegisterChoicesResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRegisterChoicesResponse>> getAcademicRegisterChoices({
+    int? xAccountId,
     int? xSchoolId,
     String? onDate,
     int? sessionYearId,
@@ -2872,6 +2952,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -2941,6 +3022,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner] - Current-school learner identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -2953,6 +3035,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRegisterQrResponse>> getAcademicRegisterQr({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2970,6 +3053,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3033,6 +3117,7 @@ class AcademicsApi {
   /// Fresh school, role and allocation/guardian rights are checked on every call. Teachers amend the school-local current day; current grade heads correct earlier days with a reason. Sync operation IDs are durable: exact retries replay after fresh authorization; changed reuse, stale rows, roster changes and out-of-order operations return409 without partial writes. QR identifiers contain no names or birth dates and never authorize attendance. Family reads contain no peer rosters. No fee condition applies.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -3045,6 +3130,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRegisterSettingsResponse>>
   getAcademicRegisterSettings({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3057,6 +3143,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3120,6 +3207,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [card] - Current-school card identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -3132,6 +3220,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportAccessResponse>> getAcademicReportAccess({
     required int card,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3149,6 +3238,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3212,6 +3302,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -3224,6 +3315,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportDetailResponse>> getAcademicReportBatch({
     required int batch,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3241,6 +3333,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3304,6 +3397,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [sessionYearId] - Explicit reporting school year.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page] - Comment card page (50 cards per page).
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3317,6 +3411,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportBatchesResponse>> getAcademicReportBatches({
     required int sessionYearId,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -3330,6 +3425,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3399,6 +3495,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [sessionYearId] - Explicit reporting school year.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page] - Comment card page (50 cards per page).
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3412,6 +3509,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportCommentsResponse>> getAcademicReportComments({
     required int sessionYearId,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -3425,6 +3523,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3493,6 +3592,7 @@ class AcademicsApi {
   /// Fresh school, role, allocation and own-child rights precede every request and idempotent replay. Report preparation and signatures pin immutable evidence; changed sources return409 before release. Grade-head approval precedes principal approval. PDF generation is queued and private. Signed downloads expire and are requester/school bound. Fees never withhold a report. Selected learners can progress independently.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId] - Explicit reporting school year.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3506,6 +3606,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportConfigurationResponse>>
   getAcademicReportConfiguration({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     CancelToken? cancelToken,
@@ -3519,6 +3620,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3587,6 +3689,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -3600,6 +3703,7 @@ class AcademicsApi {
   Future<Response<AcademicReportReleasePreviewResponse>>
   getAcademicReportReleasePreview({
     required int batch,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3618,6 +3722,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3682,6 +3787,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [sessionYearId] - Reporting year.
   /// * [classSectionId] - Authorized homeroom.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [termId] - Omit for annual reporting.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3696,6 +3802,7 @@ class AcademicsApi {
   Future<Response<AcademicReportRosterResponse>> getAcademicReportRoster({
     required int sessionYearId,
     required int classSectionId,
+    int? xAccountId,
     int? xSchoolId,
     int? termId,
     CancelToken? cancelToken,
@@ -3709,6 +3816,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3779,6 +3887,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -3792,6 +3901,7 @@ class AcademicsApi {
   Future<Response<AcademicReportSourceResponse>>
   getAcademicReportSourcePreview({
     required int batch,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3810,6 +3920,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3872,6 +3983,7 @@ class AcademicsApi {
   /// Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and remain requester owned. No learner is activated and no billing is posted. Canonical educational records are retained.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId] - Optional explicit school year.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3885,6 +3997,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTransitionConfigurationResponse>>
   getAcademicTransitionConfiguration({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     CancelToken? cancelToken,
@@ -3898,6 +4011,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -3970,6 +4084,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner] - Current-school identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page] - Page of 50 changes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3984,6 +4099,7 @@ class AcademicsApi {
   Future<Response<AcademicTransitionLearnerResponse>>
   getAcademicTransitionLearner({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -4002,6 +4118,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4068,6 +4185,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [class_]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -4080,6 +4198,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ClassGradeResponse>> getClassGradeLevel({
     required int class_,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4097,6 +4216,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4161,6 +4281,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [plan]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -4173,6 +4294,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CurriculumPlanResponse>> getCurriculumPlan({
     required int plan,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4190,6 +4312,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4253,6 +4376,7 @@ class AcademicsApi {
   /// Published headers and term plans are immutable. Use a copy for a new version. Drafts may be incomplete; publication validates the affected term. Decimal marks are strings; weights are integer basis points (10000 &#x3D; 100%).
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [subjectId]
   /// * [gradeLevelId]
@@ -4270,6 +4394,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [CurriculumPlansResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CurriculumPlansResponse>> getCurriculumPlans({
+    int? xAccountId,
     int? xSchoolId,
     int? subjectId,
     int? gradeLevelId,
@@ -4288,6 +4413,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4363,6 +4489,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [group]
   /// * [kind]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [subjectId]
@@ -4382,6 +4509,7 @@ class AcademicsApi {
   Future<Response<AcademicAssignmentsResponse>> getGroupAssignments({
     required int group,
     required String kind,
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     int? subjectId,
@@ -4412,6 +4540,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4486,6 +4615,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [group]
   /// * [termId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [perPage]
@@ -4501,6 +4631,7 @@ class AcademicsApi {
   Future<Response<AcademicMatrixResponse>> getMarkMatrix({
     required int group,
     required int termId,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     int? perPage,
@@ -4520,6 +4651,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4590,6 +4722,7 @@ class AcademicsApi {
   /// Fresh current-school rights precede idempotent replay. Managers configure and preview placements; commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash. A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [learnerId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -4602,6 +4735,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [AcademicTimetableNextResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTimetableNextResponse>> getNextAcademicPeriod({
+    int? xAccountId,
     int? xSchoolId,
     int? learnerId,
     CancelToken? cancelToken,
@@ -4615,6 +4749,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4683,6 +4818,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -4695,6 +4831,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReleasePeriodsResponse>> getReleasedMarkPeriods({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4712,6 +4849,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4776,6 +4914,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [learner]
   /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [termId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -4790,6 +4929,7 @@ class AcademicsApi {
   Future<Response<AcademicReleasedResponse>> getReleasedMarks({
     required int learner,
     required int sessionYearId,
+    int? xAccountId,
     int? xSchoolId,
     int? termId,
     CancelToken? cancelToken,
@@ -4808,6 +4948,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4878,6 +5019,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [subject]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -4890,6 +5032,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SchoolSubjectStandardResponse>> getSchoolSubjectStandard({
     required int subject,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4907,6 +5050,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -4970,6 +5114,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [grade] - Grade R is 0; omit to read every grade range.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -4983,6 +5128,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SchoolTermsResponse>> getSchoolTerms({
     required int sessionYearId,
+    int? xAccountId,
     int? xSchoolId,
     int? grade,
     CancelToken? cancelToken,
@@ -4996,6 +5142,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5065,6 +5212,7 @@ class AcademicsApi {
   ///
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [framework]
   /// * [grade]
@@ -5081,6 +5229,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [SubjectStandardsResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SubjectStandardsResponse>> getSubjectStandards({
+    int? xAccountId,
     int? xSchoolId,
     String? framework,
     int? grade,
@@ -5098,6 +5247,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5171,6 +5321,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [group]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [subjectId]
@@ -5189,6 +5340,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<TeachingGroupResponse>> getTeachingGroup({
     required int group,
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     int? subjectId,
@@ -5212,6 +5364,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5285,6 +5438,7 @@ class AcademicsApi {
   /// Academic structure management requires explicit school permission. Teachers read only allocated groups. Kind memberships requires learner_id and mark_rule; teachers requires teacher_id; homerooms requires teacher_id, class_section_id and session_year_id; leadership requires user_id, session_year_id and kind, with grade_level_id required for grade heads and omitted or null for principals. Date intervals stay within the year. Updates require revision and all context fields; history is audited. Weights and marks are not changed by an allocation.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [subjectId]
@@ -5302,6 +5456,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [TeachingGroupsResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<TeachingGroupsResponse>> getTeachingGroups({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     int? subjectId,
@@ -5320,6 +5475,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5393,6 +5549,7 @@ class AcademicsApi {
   /// Requires term-list. Templates contain calendar metadata only.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -5404,6 +5561,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [TermTemplatesResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<TermTemplatesResponse>> getTermTemplates({
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -5416,6 +5574,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5480,6 +5639,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -5493,6 +5653,7 @@ class AcademicsApi {
   Future<Response<AcademicTimetableConfigurationResponse>>
   getTimetableConfiguration({
     required int sessionYearId,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -5505,6 +5666,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5576,6 +5738,7 @@ class AcademicsApi {
   /// Omit starts_on for the current school-local week and omit session_year_id for its school calendar.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [startsOn]
@@ -5590,6 +5753,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [AcademicTimetableWeekResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTimetableWeekResponse>> getTimetableWeek({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     String? startsOn,
@@ -5605,6 +5769,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5676,6 +5841,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
   /// * [academicReportActionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -5690,6 +5856,7 @@ class AcademicsApi {
   Future<Response<AcademicReportBatchResponse>> gradeSignAcademicReports({
     required int batch,
     required AcademicReportActionWrite academicReportActionWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -5708,6 +5875,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -5787,6 +5955,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicTimetableImportWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -5800,6 +5969,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTimetablePreviewResponse>> importAcademicTimetable({
     required AcademicTimetableImportWrite academicTimetableImportWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -5813,6 +5983,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -5891,6 +6062,7 @@ class AcademicsApi {
   /// Private, no-store. Fresh school, role, author and dated group access are checked before each operation and operation-UUID replay. Converted drafts require a current clean scan and explicit human review to publish. Published versions are immutable. Source capabilities are never returned to app clients.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [page]
@@ -5904,6 +6076,7 @@ class AcademicsApi {
   /// Returns a [Future] containing a [Response] with a [ContentListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentListResponse>> listAcademicContent({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     int? page,
@@ -5918,6 +6091,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -5988,6 +6162,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -6001,6 +6176,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentLibraryResponse>> listLearnerContent({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -6019,6 +6195,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -6087,6 +6264,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [learner]
   /// * [version]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -6100,6 +6278,7 @@ class AcademicsApi {
   Future<Response<ContentReadReceiptResponse>> markLearnerContentRead({
     required int learner,
     required int version,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -6125,6 +6304,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -6191,6 +6371,7 @@ class AcademicsApi {
   /// * [group]
   /// * [task]
   /// * [academicModerationWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -6206,6 +6387,7 @@ class AcademicsApi {
     required int group,
     required int task,
     required AcademicModerationWrite academicModerationWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -6231,6 +6413,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -6311,6 +6494,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicRegisterTargetWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -6323,6 +6507,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRegisterMatrixResponse>> openAcademicRegister({
     required AcademicRegisterTargetWrite academicRegisterTargetWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -6335,6 +6520,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -6413,6 +6599,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicExitPrepare]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -6425,6 +6612,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicExitPackageResponse>> prepareAcademicExitPackage({
     required AcademicExitPrepare academicExitPrepare,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -6437,6 +6625,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -6515,6 +6704,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicReportPrepareWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -6528,6 +6718,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportBatchResponse>> prepareAcademicReports({
     required AcademicReportPrepareWrite academicReportPrepareWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -6541,6 +6732,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -6620,6 +6812,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [version]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -6632,6 +6825,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentPreviewResponse>> previewAcademicContentPublication({
     required int version,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -6649,6 +6843,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -6713,6 +6908,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicExitSelection]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -6725,6 +6921,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicExitPreviewResponse>> previewAcademicExitPackage({
     required AcademicExitSelection academicExitSelection,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -6737,6 +6934,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -6817,6 +7015,7 @@ class AcademicsApi {
   /// * [group]
   /// * [task]
   /// * [academicMarkWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -6832,6 +7031,7 @@ class AcademicsApi {
     required int group,
     required int task,
     required AcademicMarkWrite academicMarkWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -6857,6 +7057,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -6937,6 +7138,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicReportSelection]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -6949,6 +7151,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportPreviewResponse>> previewAcademicReports({
     required AcademicReportSelection academicReportSelection,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -6961,6 +7164,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -7039,6 +7243,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicTimetablePreviewWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -7052,6 +7257,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTimetablePreviewResponse>> previewAcademicTimetable({
     required AcademicTimetablePreviewWrite academicTimetablePreviewWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -7065,6 +7271,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -7144,6 +7351,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicTransitionInput]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -7157,6 +7365,7 @@ class AcademicsApi {
   Future<Response<AcademicTransitionPreviewResponse>>
   previewAcademicTransition({
     required AcademicTransitionInput academicTransitionInput,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -7169,6 +7378,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -7248,6 +7458,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
   /// * [academicReportActionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -7262,6 +7473,7 @@ class AcademicsApi {
   Future<Response<AcademicReportBatchResponse>> principalSignAcademicReports({
     required int batch,
     required AcademicReportActionWrite academicReportActionWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -7281,6 +7493,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -7361,6 +7574,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [version]
   /// * [contentPublishWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -7374,6 +7588,7 @@ class AcademicsApi {
   Future<Response<ContentReceiptResponse>> publishAcademicContent({
     required int version,
     required ContentPublishWrite contentPublishWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -7391,6 +7606,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -7472,6 +7688,7 @@ class AcademicsApi {
   /// * [plan]
   /// * [assessment]
   /// * [curriculumPublishWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -7486,6 +7703,7 @@ class AcademicsApi {
     required int plan,
     required int assessment,
     required CurriculumPublishWrite curriculumPublishWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -7511,6 +7729,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -7590,6 +7809,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicRegisterSettingsData]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -7604,6 +7824,7 @@ class AcademicsApi {
   Future<Response<AcademicRegisterSettingsResponse>>
   putAcademicRegisterSettings({
     required AcademicRegisterSettingsData academicRegisterSettingsData,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -7617,6 +7838,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -7697,6 +7919,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [card] - Current-school card identifier.
   /// * [academicReportCommentWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -7711,6 +7934,7 @@ class AcademicsApi {
   Future<Response<AcademicReportCommentResponse>> putAcademicReportComment({
     required int card,
     required AcademicReportCommentWrite academicReportCommentWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -7729,6 +7953,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -7808,6 +8033,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicReportCommentBankWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -7822,6 +8048,7 @@ class AcademicsApi {
   Future<Response<AcademicReportBankSavedResponse>>
   putAcademicReportCommentBank({
     required AcademicReportCommentBankWrite academicReportCommentBankWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -7835,6 +8062,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -7914,6 +8142,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicReportTemplateWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -7927,6 +8156,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportTemplateResponse>> putAcademicReportTemplate({
     required AcademicReportTemplateWrite academicReportTemplateWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -7940,6 +8170,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8019,6 +8250,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [card] - Current-school card identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -8032,6 +8264,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicReportReadResponse>> readAcademicReport({
     required int card,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -8050,6 +8283,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8116,6 +8350,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [learner]
   /// * [version]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -8129,6 +8364,7 @@ class AcademicsApi {
   Future<Response<ContentReaderResponse>> readLearnerContent({
     required int learner,
     required int version,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -8153,6 +8389,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -8218,6 +8455,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
   /// * [academicReportActionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -8232,6 +8470,7 @@ class AcademicsApi {
   Future<Response<AcademicReportBatchResponse>> refreshAcademicReports({
     required int batch,
     required AcademicReportActionWrite academicReportActionWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -8250,6 +8489,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8330,6 +8570,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [group]
   /// * [academicReleaseCommitWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -8344,6 +8585,7 @@ class AcademicsApi {
   Future<Response<AcademicReleaseResponse>> releaseAcademicMarks({
     required int group,
     required AcademicReleaseCommitWrite academicReleaseCommitWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -8362,6 +8604,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8443,6 +8686,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
   /// * [academicReportActionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -8457,6 +8701,7 @@ class AcademicsApi {
   Future<Response<AcademicReportBatchResponse>> releaseAcademicReports({
     required int batch,
     required AcademicReportActionWrite academicReportActionWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -8475,6 +8720,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8555,6 +8801,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [group]
   /// * [academicReleaseWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -8569,6 +8816,7 @@ class AcademicsApi {
   Future<Response<AcademicReleasePreviewResponse>> releasepreviewAcademicMarks({
     required int group,
     required AcademicReleaseWrite academicReleaseWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -8587,6 +8835,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8666,6 +8915,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [term]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -8679,6 +8929,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CalendarRemovedResponse>> removeSchoolTerm({
     required int term,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -8697,6 +8948,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'DELETE',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -8767,6 +9019,7 @@ class AcademicsApi {
   /// * [operationId]
   /// * [itemRevision]
   /// * [versionRevision]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -8784,6 +9037,7 @@ class AcademicsApi {
     required String operationId,
     required int itemRevision,
     required int versionRevision,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -8801,6 +9055,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -8887,6 +9142,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [version]
   /// * [contentRevisionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -8900,6 +9156,7 @@ class AcademicsApi {
   Future<Response<ContentReceiptResponse>> retryAcademicContentConversion({
     required int version,
     required ContentRevisionWrite contentRevisionWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -8917,6 +9174,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -8996,6 +9254,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [package] - Current-school identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -9008,6 +9267,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicExitPackageResponse>> retryAcademicExitPackage({
     required int package,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -9025,6 +9285,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -9089,6 +9350,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [batch] - Current-school batch identifier.
   /// * [academicReportActionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -9103,6 +9365,7 @@ class AcademicsApi {
   Future<Response<AcademicReportBatchResponse>> retryAcademicReportGeneration({
     required int batch,
     required AcademicReportActionWrite academicReportActionWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -9121,6 +9384,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -9201,6 +9465,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [learner]
   /// * [contentSavedAccessWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -9214,6 +9479,7 @@ class AcademicsApi {
   Future<Response<ContentSavedAccessResponse>> revalidateSavedLearnerContent({
     required int learner,
     required ContentSavedAccessWrite contentSavedAccessWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -9232,6 +9498,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -9311,6 +9578,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [learner] - Current-school learner identifier.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -9324,6 +9592,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicRegisterQrResponse>> rotateAcademicRegisterQr({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -9343,6 +9612,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -9409,6 +9679,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [version]
   /// * [contentDraftWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -9422,6 +9693,7 @@ class AcademicsApi {
   Future<Response<ContentReceiptResponse>> saveAcademicContentDraft({
     required int version,
     required ContentDraftWrite contentDraftWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -9439,6 +9711,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -9518,6 +9791,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [contentSettings]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -9530,6 +9804,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<ContentSettingsResponse>> saveAcademicContentSettings({
     required ContentSettings contentSettings,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -9542,6 +9817,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -9621,6 +9897,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [academicTransitionRetentionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -9634,6 +9911,7 @@ class AcademicsApi {
   Future<Response<AcademicTransitionRetentionResponse>>
   saveAcademicExitRetention({
     required AcademicTransitionRetentionWrite academicTransitionRetentionWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -9646,6 +9924,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -9725,6 +10004,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [grade] - Current-school identifier.
   /// * [academicTransitionPolicyWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -9739,6 +10019,7 @@ class AcademicsApi {
   saveAcademicTransitionGradePolicy({
     required int grade,
     required AcademicTransitionPolicyWrite academicTransitionPolicyWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -9756,6 +10037,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -9834,6 +10116,7 @@ class AcademicsApi {
   ///
   /// Parameters:
   /// * [termTemplateWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -9847,6 +10130,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<TermTemplateResponse>> saveTermTemplate({
     required TermTemplateWrite termTemplateWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -9860,6 +10144,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -9939,6 +10224,7 @@ class AcademicsApi {
   /// Office academic authority is checked freshly. Changes use explicit dates, immutable operation UUIDs and reviewed source fingerprints. Private exit exports additionally require sensitive-export permission and remain requester owned. No learner is activated and no billing is posted. Canonical educational records are retained.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [search] - Learner first or last name.
   /// * [page] - Page of 50 learners.
@@ -9953,6 +10239,7 @@ class AcademicsApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcademicTransitionSearchResponse>>
   searchAcademicTransitionLearners({
+    int? xAccountId,
     int? xSchoolId,
     String? search,
     int? page,
@@ -9967,6 +10254,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -10037,6 +10325,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [subject]
   /// * [schoolSubjectStandardWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -10051,6 +10340,7 @@ class AcademicsApi {
   Future<Response<SchoolSubjectStandardResponse>> setSchoolSubjectStandard({
     required int subject,
     required SchoolSubjectStandardWrite schoolSubjectStandardWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -10069,6 +10359,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -10149,6 +10440,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [register] - Current-school register identifier.
   /// * [academicRegisterSyncWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -10162,6 +10454,7 @@ class AcademicsApi {
   Future<Response<AcademicRegisterSyncResponse>> syncAcademicRegister({
     required int register,
     required AcademicRegisterSyncWrite academicRegisterSyncWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -10179,6 +10472,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -10259,6 +10553,7 @@ class AcademicsApi {
   /// * [kind]
   /// * [entry]
   /// * [academicAssignmentWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -10273,6 +10568,7 @@ class AcademicsApi {
     required String kind,
     required int entry,
     required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -10297,6 +10593,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -10377,6 +10674,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [schedule]
   /// * [academicBellsWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -10391,6 +10689,7 @@ class AcademicsApi {
   Future<Response<AcademicBellsResponse>> updateAcademicBells({
     required int schedule,
     required AcademicBellsWrite academicBellsWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -10409,6 +10708,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -10490,6 +10790,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [room]
   /// * [academicRoomWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -10504,6 +10805,7 @@ class AcademicsApi {
   Future<Response<AcademicRoomResponse>> updateAcademicRoom({
     required int room,
     required AcademicRoomWrite academicRoomWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -10522,6 +10824,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -10603,6 +10906,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [class_]
   /// * [classGradeWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -10617,6 +10921,7 @@ class AcademicsApi {
   Future<Response<ClassGradeResponse>> updateClassGradeLevel({
     required int class_,
     required ClassGradeWrite classGradeWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -10635,6 +10940,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -10716,6 +11022,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [plan]
   /// * [curriculumPlanWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -10729,6 +11036,7 @@ class AcademicsApi {
   Future<Response<CurriculumPlanResponse>> updateCurriculumPlan({
     required int plan,
     required CurriculumPlanWrite curriculumPlanWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -10746,6 +11054,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -10828,6 +11137,7 @@ class AcademicsApi {
   /// * [kind]
   /// * [entry]
   /// * [academicAssignmentWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -10843,6 +11153,7 @@ class AcademicsApi {
     required String kind,
     required int entry,
     required AcademicAssignmentWrite academicAssignmentWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -10873,6 +11184,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -10953,6 +11265,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [term]
   /// * [schoolTermWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -10967,6 +11280,7 @@ class AcademicsApi {
   Future<Response<SchoolTermResponse>> updateSchoolTerm({
     required int term,
     required SchoolTermWrite schoolTermWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -10985,6 +11299,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -11066,6 +11381,7 @@ class AcademicsApi {
   /// Parameters:
   /// * [group]
   /// * [teachingGroupWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -11079,6 +11395,7 @@ class AcademicsApi {
   Future<Response<TeachingGroupResponse>> updateTeachingGroup({
     required int group,
     required TeachingGroupWrite teachingGroupWrite,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -11096,6 +11413,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -11177,6 +11495,7 @@ class AcademicsApi {
   /// * [selection] - JSON-encoded ContentSelection object; source is a separate binary part.
   /// * [source_] - Private PDF, DOCX, PPTX, XLSX, text, Markdown, audio or video, at most 25 MiB.
   /// * [operationId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -11191,6 +11510,7 @@ class AcademicsApi {
     required String selection,
     required MultipartFile source_,
     required String operationId,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -11203,6 +11523,7 @@ class AcademicsApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },

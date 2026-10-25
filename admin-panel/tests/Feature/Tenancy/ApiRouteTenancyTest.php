@@ -6,6 +6,7 @@ namespace Tests\Feature\Tenancy;
 
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
+use App\Http\Middleware\PublicReportingBoundary;
 use App\Models\Parents;
 use App\Models\Students;
 use App\Models\TermTemplate;
@@ -49,6 +50,13 @@ class ApiRouteTenancyTest extends TestCase
      * it short: everything else needs a token.
      */
     public const PUBLIC = [
+        'GET api/v2/wellbeing/public/{schoolSlug}/configuration' => 'explicit active school slug and public category/emergency metadata only',
+        'POST api/v2/wellbeing/public/{schoolSlug}/reports' => 'stateless anonymous submission scoped to explicit school slug',
+        'POST api/v2/wellbeing/public/{schoolSlug}/follow-up' => 'school-scoped 256-bit private code in body, no authenticated identity inferred',
+        'POST api/v2/wellbeing/public/{schoolSlug}/follow-up/replies' => 'school-scoped private code and immutable reply request in body',
+        'POST api/v2/wellbeing/public/{schoolSlug}/photos' => 'school-scoped private code and bounded scanned anonymous photo',
+        'POST api/v2/wellbeing/public/{schoolSlug}/photos/download' => 'school-scoped code and photo authority in POST body, no public file URL',
+        'POST api/v2/facilitator/sign-in' => 'credentials verified before a fresh eligible membership school is selected',
         'GET api/v2/guardian/invitations/{token}' => 'private expiring invitation token, no unscoped list',
         'POST api/v2/guardian/invitations/{token}/accept' => 'one-use emailed token verifies the guardian mailbox',
         'POST api/student/login' => 'sign-in',
@@ -72,9 +80,10 @@ class ApiRouteTenancyTest extends TestCase
 
     /**
      * Signed-in routes with no role group because every profile uses them.
-     * v1 only: v2 routes for every profile sit in the role.any group.
+     * v2 data routes use role.any; current-token logout is account scoped.
      */
     public const ANY_PROFILE = [
+        'POST api/v2/facilitator/sign-out' => 'self current-profile token revocation, including after role/membership withdrawal; no tenant records returned',
         'POST api/logout' => 'every app signs out (v1)',
         'POST api/change-password' => 'every app changes its own password (v1)',
     ];
@@ -112,7 +121,15 @@ class ApiRouteTenancyTest extends TestCase
 
         if (array_key_exists($label, self::PUBLIC)) {
             $this->assertFalse($route->requiresAuthentication(), "$label is on the public list but needs a token: take it off the list");
-            $this->assertTrue($this->hasMiddleware($route, ['school.context:public', 'school.context:sign-in']), "$label is public: it needs school.context:public (or :sign-in)");
+            if ($label === 'POST api/v2/facilitator/sign-in') {
+                // This credential entry point chooses school only after proof;
+                // its owned sign-in tests cover actual membership selection.
+                $this->assertContains('portal.sign-in', $route->middleware);
+                $this->assertIsolated($route);
+
+                return;
+            }
+            $this->assertTrue($this->hasMiddleware($route, ['school.context:public', 'school.context:sign-in', PublicReportingBoundary::class]), "$label is public: it needs school.context:public (or :sign-in)");
             $this->assertIsolated($route);
 
             return;
@@ -125,6 +142,13 @@ class ApiRouteTenancyTest extends TestCase
             $this->assertFalse($route->hasRoleGroup(), "$label is on the any-profile list but has a role group: take it off the list");
         } else {
             $this->assertTrue($route->hasRoleGroup(), "$label is in no role group: put it in role:<Role>, staff or role.any");
+        }
+        if ($label === 'POST api/v2/facilitator/sign-out') {
+            // Logout must remain usable after school access is revoked. The
+            // controller verifies ownership and revokes only the current token.
+            $this->assertIsolated($route);
+
+            return;
         }
         $this->assertTrue($this->hasMiddleware($route, ['school.context', 'school.context:optional']), "$label needs school.context after auth:sanctum");
         $this->assertGreaterThan(

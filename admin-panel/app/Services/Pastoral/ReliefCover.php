@@ -116,6 +116,7 @@ class ReliefCover
             $before = ['state' => $cover->state, 'substitute_teacher_id' => $cover->substitute_teacher_id, 'revision' => $cover->revision];
             $cover->fill(['state' => 'assigned', 'substitute_teacher_id' => $substitute, 'revision' => $cover->revision + 1])->save();
             Audit::record('cover.assigned', $cover, $before, ['state' => 'assigned', 'substitute_teacher_id' => $substitute, 'revision' => $cover->revision]);
+            app(CoverNotices::class)->assigned($cover);
 
             return $cover;
         });

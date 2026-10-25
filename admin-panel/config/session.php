@@ -20,6 +20,15 @@ return [
 
     'driver' => env('SESSION_DRIVER', 'file'),
 
+    // Concurrent AJAX reads must not save an older copy over a school/year
+    // switch or sign-out. Laravel locks before reading and releases after save.
+    // Cloud Run instances share the database lock store; local installs use
+    // file locks without requiring database tables during first installation.
+    'block' => true,
+    'block_store' => env('SESSION_BLOCK_STORE', env('K_SERVICE') && is_file(storage_path('installed')) ? 'database' : 'file'),
+    'block_lock_seconds' => 120,
+    'block_wait_seconds' => 30,
+
     /*
     |--------------------------------------------------------------------------
     | Session Lifetime

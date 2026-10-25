@@ -28,6 +28,15 @@ void main() {
       return ok(data);
     }
 
+    Map<String, dynamic> liveReader({int learner = 11}) {
+      final clock = DateTime.now().toUtc();
+      return {
+        ...contentReaderFixture(learner: learner, account: 21),
+        'server_time': clock.toIso8601String(),
+        'offline_until': clock.add(const Duration(hours: 1)).toIso8601String(),
+      };
+    }
+
     final api = await startSmokeApp(tester, {
       ...parentOfTwoRoutes(),
       'GET v2/me/context': ok({
@@ -66,7 +75,7 @@ void main() {
         contentLibraryFixture(learner: 12),
       ),
       'GET v2/academics/content/learners/12/versions/11': ok(
-        contentReaderFixture(learner: 12, account: 21),
+        liveReader(learner: 12),
       ),
       'POST v2/academics/content/learners/12/versions/11/read': ok({
         'id': 11,
@@ -75,15 +84,18 @@ void main() {
       }),
       'GET v2/academics/content/learners/11/versions/11': (
         RequestOptions request,
-      ) => connected(request, contentReaderFixture(account: 21)),
+      ) => connected(request, liveReader()),
       'POST v2/academics/content/learners/11/saved-access':
           (RequestOptions request) => connected(request, {
             'school_id': 1,
             'reader_id': 21,
             'learner_id': 11,
             'allowed_version_ids': [11],
-            'server_time': '2026-10-24T09:00:00Z',
-            'offline_until': '2026-10-25T09:00:00Z',
+            'server_time': DateTime.now().toUtc().toIso8601String(),
+            'offline_until': DateTime.now()
+                .toUtc()
+                .add(const Duration(hours: 1))
+                .toIso8601String(),
           }),
       'POST v2/academics/content/learners/11/versions/11/read': ok({
         'id': 11,

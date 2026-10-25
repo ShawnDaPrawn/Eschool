@@ -13,7 +13,7 @@ lock, fresh roles/module state, UUID payload receipts and optimistic revisions.
 Cancellation retains audited history and releases the assignment.
 
 Substitutes must be current active teachers, available on the occurrence date,
-with no overlapping own lesson, valid other cover or known absence. Source
+with no overlapping own lesson, reserved other cover or known absence. Source
 lesson/period/allocation changes mark a mapping as needing review. Refresh is
 explicit, re-maps occurrences and clears stale assignments. Assignment itself
 never updates permanent teaching allocations or grants marks/case access.
@@ -33,3 +33,10 @@ stale revisions and UUID conflicts; own-lesson/cover/absence clashes; changed
 source evidence and no permanent allocation grants; encrypted reason and audit
 redaction; and safe migration retention. Live classroom/device acceptance remains
 separate from implementation and automated evidence.
+
+API writes deliberately use durable domain UUID receipts instead of caching
+private HTTP result bodies. A repeat call rechecks current access and returns the
+current authorized record. Request windows and occurrences are separate typed
+resources; substitutes cannot retrieve the absence resource or its reason.
+Unmapped legacy checks respect the actual term dates. Mutation context changes
+roll back all rows and restore the caller school.

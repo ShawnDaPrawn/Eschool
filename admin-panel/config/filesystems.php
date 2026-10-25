@@ -29,9 +29,25 @@ return [
     */
 
     'disks' => [
+        'gallery_private' => ['driver' => 'local', 'root' => storage_path('app/private/gallery'), 'visibility' => 'private', 'throw' => true],
+        'admissions_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/admissions'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
         'academic_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/academics'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
+
+        'wellbeing_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/wellbeing-media'),
             'visibility' => 'private',
             'directory_visibility' => 'private',
             'throw' => true,

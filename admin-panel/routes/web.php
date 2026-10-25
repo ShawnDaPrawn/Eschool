@@ -38,10 +38,23 @@ use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
+use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
+use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
+use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
+use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
+use App\Http\Controllers\Panel\Growth\ProgressPanelController;
+use App\Http\Controllers\Panel\Growth\RiskPanelController;
+use App\Http\Controllers\Panel\Leadership\DashboardController;
+use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
+use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
+use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
 use App\Http\Controllers\Panel\SearchController;
+use App\Http\Controllers\Panel\Transfers\TransferPanelController;
+use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
@@ -69,8 +82,16 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeConsultationPanel;
+use App\Http\Middleware\AuthorizeIntake;
+use App\Http\Middleware\AuthorizeRecognition;
+use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\EnforceReadOnlyYears;
 use App\Http\Middleware\PrivateAcademicContent;
+use App\Http\Middleware\PrivateDomainResponse;
+use App\Http\Middleware\PrivateMastery;
+use App\Http\Middleware\PrivateWellbeing;
+use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -222,6 +243,23 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('download', [$c, 'download'])->name('download');
         });
 
+        Route::prefix('growth-mastery')->name('mastery.')->middleware(['module:mastery', PrivateMastery::class])->group(function () {
+            $controller = MasteryWorkbenchController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            Route::post('subjects/{subject}', [$controller, 'save'])->whereNumber('subject')->name('save');
+            Route::post('subjects/{subject}/refresh', [$controller, 'refresh'])->whereNumber('subject')->name('refresh');
+            Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->name('rebuild');
+        });
+        Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
+            $c = ActivityWorkbenchController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('groups', [$c, 'write'])->name('create');
+            Route::post('groups/{group}', [$c, 'write'])->whereNumber('group')->name('save');
+            foreach (['membership', 'staff', 'session', 'material'] as $kind) {
+                Route::post('groups/{group}/'.$kind.'/{record?}', [$c, 'write'])->whereNumber(['group', 'record'])->name($kind.'-save');
+            }
+            Route::post('groups/{group}/attendance/{session}', [$c, 'write'])->whereNumber(['group', 'session'])->name('attendance-save');
+        });
         Route::prefix('communication-centre')->name('communication-centre.')->middleware(['module:communication', 'cache.headers:private;no_store'])->group(function () {
             $c = MessageWorkbenchController::class;
             Route::get('/', [$c, 'index'])->name('index');
@@ -244,6 +282,50 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::prefix('school-consultations')->name('consultations-panel.')->middleware([PrivateDomainResponse::class, 'module:consultations,read', AuthorizeConsultationPanel::class])->group(function () {
+            $c = ConsultationPanelController::class;
+            Route::get('/', [$c, 'index'])->defaults('operation', 'index')->name('index');
+            Route::get('new', [$c, 'form'])->defaults('operation', 'new')->name('new');
+            Route::post('new', [$c, 'write'])->defaults('operation', 'create')->name('create');
+            Route::get('{consultation}/edit', [$c, 'form'])->whereNumber('consultation')->defaults('operation', 'edit')->name('edit');
+            Route::get('{consultation}/results', [$c, 'results'])->whereNumber('consultation')->defaults('operation', 'results')->name('results');
+            Route::get('{consultation}/history', [$c, 'history'])->whereNumber('consultation')->defaults('operation', 'history')->name('history');
+            Route::get('{consultation}', [$c, 'ballot'])->whereNumber('consultation')->defaults('operation', 'ballot')->name('ballot');
+            foreach (['save', 'publish', 'close', 'cancel', 'vote'] as $operation) {
+                Route::post('{consultation}/'.$operation, [$c, 'write'])->whereNumber('consultation')->defaults('operation', $operation)->name($operation);
+            }
+        });
+        Route::prefix('school-transfers')->name('school-transfers.')->middleware(AuthorizeTransfer::class)->group(function () {
+            $c = TransferPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('{lane}/{record}/archive', [$c, 'archive'])->whereIn('lane', ['outgoing', 'incoming', 'receipts'])->whereNumber('record')->name('archive');
+            Route::post('packages', [$c, 'write'])->name('prepare');
+            foreach (['release', 'cancel', 'accept'] as $action) {
+                Route::post('packages/{package}/'.$action, [$c, 'write'])->whereNumber('package')->name($action);
+            }
+        });
+        Route::prefix('admissions')->name('admissions-panel.')->middleware([AuthorizeIntake::class])->group(function () {
+            $c = IntakePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('/new', [$c, 'configuration'])->name('new');
+            Route::get('/intakes/{intake}/edit', [$c, 'configuration'])->whereNumber('intake')->name('edit');
+            Route::post('/intakes/new', [$c, 'configure'])->defaults('operation', 'configure')->name('create');
+            Route::post('/intakes/{intake}', [$c, 'configure'])->whereNumber('intake')->defaults('operation', 'configure')->name('configure');
+            Route::post('/bulk/{operation}', [$c, 'write'])->whereIn('operation', ['offers', 'bulk-enrol'])->name('bulk');
+            Route::get('/applications/{application}', [$c, 'detail'])->whereNumber('application')->name('detail');
+            Route::post('/applications/{application}/{operation}', [$c, 'write'])->whereNumber('application')->whereIn('operation', ['review', 'fee', 'enrol'])->name('write');
+            Route::get('/applications/{application}/documents/{handle}', [$c, 'document'])->whereNumber('application')->whereUuid('handle')->name('document');
+        });
+
+        Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'awards'])->name('recognition.')->middleware([AuthorizeRecognition::class])->group(function () {
+            $c = RecognitionPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('catalogue/{kind}', [$c, 'write'])->defaults('operation', 'catalogue')->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->name('catalogue-create');
+            Route::post('catalogue/{kind}/{record}', [$c, 'write'])->defaults('operation', 'catalogue')->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->whereNumber('record')->name('catalogue-save');
+            Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['configure', 'issue', 'nominate', 'present', 'outside'])->name('create');
+            Route::post('actions/{operation}/{record}', [$c, 'write'])->whereIn('operation', ['reverse', 'review', 'withdraw', 'void'])->whereNumber('record')->name('change');
+        });
+        Route::get('leadership-dashboard', [DashboardController::class, 'index'])->middleware(['module:leadership_dashboard', 'cache.headers:private;no_store'])->name('leadership-dashboard.index');
         Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
             $controller = TransitionWorkbenchController::class;
             Route::get('/', [$controller, 'index'])->name('index');
@@ -271,6 +353,34 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             foreach (['open', 'sync', 'review', 'settings'] as $action) {
                 Route::post($action, [$controller, $action])->name($action);
             }
+        });
+        Route::prefix('wellbeing')->name('wellbeing.')->middleware([PrivateWellbeing::class, 'module:wellbeing'])->group(function () {
+            $controller = WellbeingPanelController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            Route::get('reports/{report}/photos/{photo}', [$controller, 'photoDownload'])->whereNumber('report')->whereUuid('photo')->name('photo-download');
+            foreach (['categories' => 'category-create', 'categories/{category}' => 'category-save', 'categories/{category}/team' => 'team-create', 'categories/{category}/team/{assignment}' => 'team-save',
+                'cases' => 'case-create', 'cases/{case}/assignments' => 'case-assignment-create', 'cases/{case}/assignments/{assignment}' => 'case-assignment-save',
+                'reports/{report}/replies' => 'report-respond', 'cases/{case}/entries' => 'case-entry', 'cases/{case}/incident-link' => 'case-link', 'cases/{case}/status' => 'case-status',
+                'cases/{case}/appointments' => 'appointment-create', 'cases/{case}/appointments/{appointment}' => 'appointment-save', 'cases/{case}/professional-choices' => 'case-choices'] as $path => $operation) {
+                Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'report', 'assignment', 'appointment'])->name($operation);
+            }
+        });
+        Route::prefix('support-plans')->name('support-plans.')->middleware('module:support_plans')->group(function () {
+            $c = SupportPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            foreach (['assignments' => 'assign', 'plans' => 'create', 'plans/{plan}/save' => 'save', 'plans/{plan}/reviews' => 'review', 'plans/{plan}/close' => 'close', 'plans/{plan}/disclosures' => 'disclose', 'assignments/{assignment}/revoke' => 'revoke-assignment', 'disclosures/{disclosure}/revoke' => 'revoke-disclosure'] as $path => $action) {
+                Route::post($path, [$c, 'write'])->whereNumber(['plan', 'assignment', 'disclosure'])->name($action);
+            }
+        });
+        Route::prefix('relief-cover')->name('relief-cover.')->middleware('module:relief_cover')->group(function () {
+            $c = CoverPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('{absence}', [$c, 'index'])->whereNumber('absence')->name('show');
+            Route::post('requests', [$c, 'write'])->name('request');
+            foreach (['refresh', 'cancel'] as $operation) {
+                Route::post('{absence}/'.$operation, [$c, 'write'])->whereNumber('absence')->name($operation);
+            }
+            Route::post('occurrences/{occurrence}/assignment', [$c, 'write'])->whereNumber('occurrence')->name('assign');
         });
         Route::get('academic-timetable', [TimetableWorkbenchController::class, 'index'])->name('academic-timetable.index');
         foreach (['room' => 'room', 'bells' => 'bells', 'preview' => 'preview', 'commit' => 'commit', 'import-map' => 'mapImport', 'import-preview' => 'previewImport'] as $path => $action) {
@@ -724,4 +834,36 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+});
+
+Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {
+    Route::get('/', [ProgressPanelController::class, 'index'])->name('index');
+    Route::post('learners/{learner}/notes', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('create');
+    Route::post('notes/{note}', [ProgressPanelController::class, 'write'])->whereNumber('note')->name('update');
+    Route::post('learners/{learner}/assignments', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('assign');
+    Route::post('learners/{learner}/assignments/revoke', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('revoke-assignment');
+    Route::post('settings', [ProgressPanelController::class, 'write'])->name('configure');
+});
+
+Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:early_warning', EnforceReadOnlyYears::class])->prefix('risk-interventions')->name('risk-interventions.')->group(function () {
+    Route::get('/', [RiskPanelController::class, 'index'])->name('index');
+    Route::post('learners/{learner}/interventions', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('create');
+    Route::post('interventions/{intervention}', [RiskPanelController::class, 'write'])->whereNumber('intervention')->name('update');
+    Route::post('interventions/{intervention}/owner', [RiskPanelController::class, 'write'])->whereNumber('intervention')->name('transfer');
+    Route::post('learners/{learner}/assignments', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('assign');
+    Route::post('learners/{learner}/assignments/revoke', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('revoke');
+    Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
+});
+
+Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:discipline', EnforceReadOnlyYears::class])->prefix('school-discipline')->name('discipline-panel.')->group(function () {
+    $c = DisciplinePanelController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('framework', [$c, 'write'])->name('configure');
+    Route::post('learners/{learner}/records', [$c, 'write'])->whereNumber('learner')->name('create');
+    Route::post('records/{record}/review', [$c, 'write'])->whereNumber('record')->name('review');
+    Route::post('records/{record}/hearing', [$c, 'write'])->whereNumber('record')->name('hearing');
+    Route::post('detentions', [$c, 'write'])->name('detention_create');
+    Route::post('detentions/{detention}/entries', [$c, 'write'])->whereNumber('detention')->name('enroll');
+    Route::post('detentions/{detention}/entries/{entry}/attendance', [$c, 'write'])->whereNumber('detention')->whereNumber('entry')->name('attendance');
+    Route::post('detentions/{detention}/cancel', [$c, 'write'])->whereNumber('detention')->name('cancel');
 });

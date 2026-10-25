@@ -1,0 +1,102 @@
+{
+  "reference": "https://github.com/open-spaced-repetition/fsrs4anki/blob/8180871d9ef7e93943a60829533e46ab6d785ef4/fsrs4anki_scheduler.js",
+  "cases": [
+    {
+      "memory": null,
+      "elapsed_days": 0,
+      "choices": {
+        "1": {
+          "difficulty": 6.81,
+          "stability_days": 0.4
+        },
+        "2": {
+          "difficulty": 5.87,
+          "stability_days": 0.6
+        },
+        "3": {
+          "difficulty": 4.93,
+          "stability_days": 2.4
+        },
+        "4": {
+          "difficulty": 3.99,
+          "stability_days": 5.8
+        }
+      }
+    },
+    {
+      "memory": {
+        "difficulty": 4.93,
+        "stability_days": 2.4
+      },
+      "elapsed_days": 3,
+      "choices": {
+        "1": {
+          "difficulty": 6.63,
+          "stability_days": 1.19
+        },
+        "2": {
+          "difficulty": 5.78,
+          "stability_days": 4.13
+        },
+        "3": {
+          "difficulty": 4.93,
+          "stability_days": 9.35
+        },
+        "4": {
+          "difficulty": 4.08,
+          "stability_days": 23.07
+        }
+      }
+    },
+    {
+      "memory": {
+        "difficulty": 8.1,
+        "stability_days": 12.6
+      },
+      "elapsed_days": 30,
+      "choices": {
+        "1": {
+          "difficulty": 9.77,
+          "stability_days": 3.62
+        },
+        "2": {
+          "difficulty": 8.92,
+          "stability_days": 17.74
+        },
+        "3": {
+          "difficulty": 8.07,
+          "stability_days": 37.57
+        },
+        "4": {
+          "difficulty": 7.22,
+          "stability_days": 96.67
+        }
+      }
+    },
+    {
+      "memory": {
+        "difficulty": 1,
+        "stability_days": 99.4
+      },
+      "elapsed_days": 0,
+      "choices": {
+        "1": {
+          "difficulty": 2.74,
+          "stability_days": 7.86
+        },
+        "2": {
+          "difficulty": 1.89,
+          "stability_days": 99.4
+        },
+        "3": {
+          "difficulty": 1.04,
+          "stability_days": 99.4
+        },
+        "4": {
+          "difficulty": 1,
+          "stability_days": 99.4
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+tags:
+- name: PrivateStaffNotices
+  description: Registered source-scoped generic private staff inbox.
+paths:
+  /staff/private-notices:
+    get:
+      operationId: listStaffPrivateNotices
+      tags:
+      - PrivateStaffNotices
+      summary: listStaffPrivateNotices
+      description: Dedicated freshly authorized staff only. Exact registered types, actual recipient links, selected
+        school and source scopes filter SQL before counts or payload selection. Generic text and feature keys only;
+        no source IDs, stored bodies, URLs or family-only notices. Mark-read is idempotent and accepts no query
+        or body fields; original domain read authority is preserved.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Fresh registered private staff result; no cache or source body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStaffPrivateNoticesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /staff/private-notices/{notice}/read:
+    post:
+      operationId: readStaffPrivateNotice
+      tags:
+      - PrivateStaffNotices
+      summary: readStaffPrivateNotice
+      description: Dedicated freshly authorized staff only. Exact registered types, actual recipient links, selected
+        school and source scopes filter SQL before counts or payload selection. Generic text and feature keys only;
+        no source IDs, stored bodies, URLs or family-only notices. Mark-read is idempotent and accepts no query
+        or body fields; original domain read authority is preserved.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: notice
+        in: path
+        required: true
+        schema: &id001
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh registered private staff result; no cache or source body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadStaffPrivateNoticeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  schemas:
+    StaffPrivateNotice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - feature
+      - title
+      - message
+      - writable
+      - read_at
+      properties:
+        id: *id001
+        feature:
+          type: string
+          pattern: ^[a-z_]{1,50}$
+        title:
+          type: string
+          maxLength: 128
+        message:
+          type: string
+          maxLength: 256
+        writable:
+          type: boolean
+        read_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+    StaffPrivateNoticePage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - writable
+      - items
+      - page
+      - last_page
+      - unread_count
+      properties:
+        school_id: *id001
+        reader_id: *id001
+        writable:
+          type: boolean
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/StaffPrivateNotice'
+        page: *id001
+        last_page: *id001
+        unread_count:
+          type: integer
+          minimum: 0
+    StaffPrivateNoticeRead:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - reader_id
+      - read_at
+      properties:
+        id: *id001
+        school_id: *id001
+        reader_id: *id001
+        read_at:
+          type: string
+          format: date-time
+    ListStaffPrivateNoticesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/StaffPrivateNoticePage'
+        code:
+          type: integer
+    ReadStaffPrivateNoticeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/StaffPrivateNoticeRead'
+        code:
+          type: integer

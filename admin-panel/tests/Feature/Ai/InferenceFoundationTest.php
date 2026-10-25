@@ -323,6 +323,8 @@ class TestProvider implements InferenceProvider
 
     public static mixed $after = null;
 
+    public function preflight(ProviderRequest $request): void {}
+
     public function infer(ProviderRequest $request): ProviderResponse
     {
         self::$calls[] = $request;
@@ -344,6 +346,8 @@ class TestModerator implements InferenceModerator
     public static array $flags = [];
 
     public static bool $failure = false;
+
+    public function preflight(Capability $capability, string|array $input, ModerationContext $context): void {}
 
     public function flags(Capability $capability, string $direction, string|array $content, ModerationContext $context): array
     {

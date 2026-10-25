@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Growth;
 
 use App\Models\Academics\CurriculumTopic;
+use App\Models\Academics\GradeLevel;
 use App\Models\Growth\MasterySettings;
 use App\Models\Growth\MasteryTopic;
 use App\Models\Growth\TopicLink;
@@ -55,16 +56,21 @@ class TopicGraph
         return ['family_marks_enabled' => $setting?->family_marks_enabled ?? false, 'revision' => (int) ($setting?->revision ?? 0), 'policy_version' => MasteryScore::VERSION];
     }
 
+    public static function rules(): array
+    {
+        return ['expected_revision' => ['required', 'integer', 'min:0'],
+            'family_marks_enabled' => ['required', 'boolean'], 'links' => ['present', 'array', 'max:10000'],
+            'links.*.topic_id' => ['required', 'integer', 'min:1'], 'links.*.prerequisite_id' => ['required', 'integer', 'min:1'],
+            'links.*.source' => ['required', 'string', 'min:3', 'max:1000']];
+    }
+
     public function save(User $actor, int $subjectId, array $input): array
     {
         $gate = app(ModuleGate::class);
         $gate->forget();
         abort_unless($gate->writable('mastery'), 403, 'The mastery module is disabled.');
         app(AcademicAccess::class)->actor($actor, 'curriculum-publish');
-        $data = Validator::make($input, ['expected_revision' => ['required', 'integer', 'min:0'],
-            'family_marks_enabled' => ['required', 'boolean'], 'links' => ['required', 'array', 'max:10000'],
-            'links.*.topic_id' => ['required', 'integer', 'min:1'], 'links.*.prerequisite_id' => ['required', 'integer', 'min:1'],
-            'links.*.source' => ['required', 'string', 'min:3', 'max:1000']])->validate();
+        $data = Validator::make($input, self::rules())->validate();
 
         return DB::transaction(function () use ($actor, $subjectId, $data) {
             School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
@@ -107,9 +113,10 @@ class TopicGraph
         Subject::query()->findOrFail($subjectId);
         $nodes = $this->nodes($subjectId);
         $allowed = $nodes->pluck('id')->all();
+        $grades = GradeLevel::query()->whereIn('id', $nodes->pluck('grade_level_id'))->pluck('name', 'id');
 
         return ['subject_id' => $subjectId, 'settings' => $this->settings(), 'nodes' => $nodes->map(fn ($n) => ['id' => (int) $n->id, 'topic_key' => $n->topic_key,
-            'name' => $n->name, 'grade_level_id' => (int) $n->grade_level_id])->all(),
+            'name' => $n->name, 'grade_level_id' => (int) $n->grade_level_id, 'grade_name' => (string) $grades->get($n->grade_level_id)])->all(),
             'links' => TopicLink::query()->where('subject_id', $subjectId)->whereIn('topic_id', $allowed)->whereIn('prerequisite_id', $allowed)->orderBy('id')->get()
                 ->map(fn ($l) => ['topic_id' => (int) $l->topic_id, 'prerequisite_id' => (int) $l->prerequisite_id, 'source' => $l->source])->all()];
     }

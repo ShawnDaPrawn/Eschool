@@ -16,19 +16,19 @@ part 'communication_withdraw_write.g.dart';
 class CommunicationWithdrawWrite {
   /// Returns a new [CommunicationWithdrawWrite] instance.
   CommunicationWithdrawWrite({
-    required this.revision,
-
     required this.operationId,
+
+    required this.revision,
 
     required this.reason,
   });
 
+  @JsonKey(name: r'operation_id', required: true, includeIfNull: false)
+  final String operationId;
+
   // minimum: 1
   @JsonKey(name: r'revision', required: true, includeIfNull: false)
   final int revision;
-
-  @JsonKey(name: r'operation_id', required: true, includeIfNull: false)
-  final String operationId;
 
   @JsonKey(name: r'reason', required: true, includeIfNull: false)
   final String reason;
@@ -37,13 +37,13 @@ class CommunicationWithdrawWrite {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is CommunicationWithdrawWrite &&
-          other.revision == revision &&
           other.operationId == operationId &&
+          other.revision == revision &&
           other.reason == reason;
 
   @override
   int get hashCode =>
-      revision.hashCode + operationId.hashCode + reason.hashCode;
+      operationId.hashCode + revision.hashCode + reason.hashCode;
 
   factory CommunicationWithdrawWrite.fromJson(Map<String, dynamic> json) =>
       _$CommunicationWithdrawWriteFromJson(json);

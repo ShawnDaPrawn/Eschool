@@ -8,6 +8,16 @@ import 'package:flutter/foundation.dart';
 /// the existing route of the same screen. A route's own name works as a path
 /// too, so reloading a page in the browser lands on it again.
 const List<DeepLinkRoute> deepLinkRoutes = [
+  DeepLinkRoute(Routes.schoolDiscipline, Routes.schoolDiscipline),
+  DeepLinkRoute('/school-discipline', Routes.schoolDiscipline),
+  DeepLinkRoute(Routes.recognition, Routes.recognition),
+  DeepLinkRoute(Routes.riskInterventions, Routes.riskInterventions),
+  DeepLinkRoute('/risk-interventions', Routes.riskInterventions),
+  DeepLinkRoute(Routes.reliefCover, Routes.reliefCover),
+  DeepLinkRoute('/relief-cover', Routes.reliefCover),
+  DeepLinkRoute(Routes.supportPlans, Routes.supportPlans),
+  DeepLinkRoute(Routes.wellbeing, Routes.wellbeing),
+  DeepLinkRoute('/support-plans', Routes.supportPlans),
   DeepLinkRoute(
     Routes.schoolMessages,
     Routes.schoolMessages,
@@ -24,6 +34,9 @@ const List<DeepLinkRoute> deepLinkRoutes = [
     arguments: contentLinkArguments,
   ),
   DeepLinkRoute(Routes.academicReports, Routes.academicReports),
+  DeepLinkRoute(Routes.mastery, Routes.mastery),
+  DeepLinkRoute('/learner-notes', Routes.progressNotes),
+  DeepLinkRoute(Routes.progressNotes, Routes.progressNotes),
   DeepLinkRoute(Routes.academicMarks, Routes.academicMarks),
   DeepLinkRoute('/notifications', Routes.notifications),
   DeepLinkRoute('/notices', Routes.announcements),

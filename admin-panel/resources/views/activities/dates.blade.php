@@ -1,0 +1,2 @@
+<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="date" name="starts_on" :label="__('Starts on')" :value="$draft['starts_on'] ?? $group['starts_on'] ?? substr($year->start_date,0,10)" required />
+<x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="date" name="ends_on" :label="__('Ends on')" :value="$draft['ends_on'] ?? $group['ends_on'] ?? substr($year->end_date,0,10)" required />

@@ -5,9 +5,22 @@ declare(strict_types=1);
 namespace App\Services\Panel;
 
 use App\Models\User;
+use App\Services\Admissions\IntakeAuthority;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Consultations\ConsultationAccess;
+use App\Services\Discipline\DisciplineQueries;
+use App\Services\Growth\ProgressQueries;
+use App\Services\Growth\RiskQueries;
+use App\Services\Leadership\LeadershipAuthority;
+use App\Services\Pastoral\CoverAuthority;
+use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Recognition\RecognitionAuthority;
+use App\Services\Transfers\TransferAuthority;
+use App\Services\Wellbeing\WellbeingAccess;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * The admin panel's navigation by job, built from config/navigation.php.
@@ -122,6 +135,51 @@ class Navigation
         if (($item['communication_author'] ?? false) && ! app(CommunicationRules::class)->authorAvailable($user)) {
             return false;
         }
+        if (($item['cover_actor'] ?? false) && ! app(CoverAuthority::class)->available($user, (int) schoolSetting('session_year'))) {
+            return false;
+        }
+        if (($item['discipline_actor'] ?? false) && ! app(DisciplineQueries::class)->available($user)) {
+            return false;
+        }
+        if (($item['risk_actor'] ?? false) && ! app(RiskQueries::class)->available($user)) {
+            return false;
+        }
+        if (($item['progress_actor'] ?? false) && ! app(ProgressQueries::class)->available($user)) {
+            return false;
+        }
+        if (($item['support_actor'] ?? false) && ! app(SupportAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['wellbeing_actor'] ?? false) && ! app(WellbeingAccess::class)->panelAvailable($user)) {
+            return false;
+        }
+        if (($item['principal_dashboard'] ?? false) && ! app(LeadershipAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
+            return false;
+        }
+        if ($item['consultation_actor'] ?? false) {
+            try {
+                app(ConsultationAccess::class)->actor($user);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
+        }
+        if ($item['intake_actor'] ?? false) {
+            try {
+                app(IntakeAuthority::class)->staff($user);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
+        }
+        if (isset($item['recognition_module'])) {
+            try {
+                app(RecognitionAuthority::class)->staff($user, $item['recognition_module']);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
+        }
         $permissions = $item['permissions'] ?? [];
 
         return $permissions === [] || $user->canAny($permissions);
@@ -138,13 +196,16 @@ class Navigation
     /** @param array<string, mixed> $item */
     public function url(array $item): string
     {
-        return isset($item['route']) ? route($item['route']) : url($item['url']);
+        return isset($item['route']) ? route($item['route'], $item['params'] ?? []) : url($item['url']);
     }
 
     /** @param array<string, mixed> $item */
     public function isActive(array $item): bool
     {
         $request = request();
+        if (isset($item['recognition_module']) && $request->route('module') !== $item['recognition_module']) {
+            return false;
+        }
         $patterns = $item['active'] ?? null;
         if ($patterns === null) {
             $patterns = isset($item['route']) ? [$item['route']] : [$item['url'], $item['url'].'/*'];

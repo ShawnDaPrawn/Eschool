@@ -87,7 +87,16 @@ assert launch.count('FirebaseApp.configure()')==1
 plugins=swift_body(launch,'func didInitializeImplicitFlutterEngine(')
 # Ignore comments while verifying the early return precedes any plugin call.
 plugins=re.sub(r'//[^\n]*','',plugins).strip()
-assert plugins.startswith('guard isTeacherBuild else { return }')
+assert swift_body(launch,'private var isFacilitatorBuild: Bool').strip() == 'Bundle.main.bundleIdentifier == "tech.tokensoft.navigateed.facilitator"'
+assert plugins.startswith('if isFacilitatorBuild {')
+fac_plugins=swift_body(plugins,'if isFacilitatorBuild')
+assert 'URLLauncherPlugin.register(with: registrar)' in fac_plugins
+assert 'registrar(forPlugin: "URLLauncherPlugin")' in fac_plugins
+assert 'GeneratedPluginRegistrant' not in fac_plugins and 'Firebase' not in fac_plugins
+assert fac_plugins.strip().endswith('return')
+assert launch.count('URLLauncherPlugin.register(')==1
+fac_end=plugins.index('guard isTeacherBuild else { return }')
+assert plugins[fac_end:].startswith('guard isTeacherBuild else { return }')
 assert plugins.count('GeneratedPluginRegistrant.register(')==launch.count('GeneratedPluginRegistrant.register(')==1
 assert plugins.index('guard isTeacherBuild') < plugins.index('GeneratedPluginRegistrant.register(')
 

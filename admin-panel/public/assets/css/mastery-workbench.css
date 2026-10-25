@@ -1,0 +1,14 @@
+.mastery-workbench { display: grid; gap: 24px; min-width: 0; }
+.mastery-columns { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); gap: 24px; }
+.mastery-panel { min-width: 0; padding: 24px; background: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface); border: 1px solid var(--md-sys-color-outline-variant); border-radius: 20px; overflow-wrap: anywhere; }
+.mastery-form { display: grid; gap: 16px; margin-block: 16px; min-width: 0; }
+.mastery-evidence { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.mastery-topic { padding: 16px; margin-block: 12px; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 16px; min-width: 0; }
+.mastery-topic h3 { font-size: 1.125rem; }
+.mastery-topic progress { width: 100%; accent-color: var(--md-sys-color-primary); }
+.mastery-edge { display: grid; gap: 12px; min-width: 0; border: 1px solid var(--md-sys-color-outline-variant); border-radius: 16px; padding: 16px; margin-block: 16px; }
+.mastery-edge legend { float: none; width: auto; font-size: 1rem; padding-inline: 8px; }
+.mastery-actions, .mastery-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-block: 16px; }
+.mastery-subject { max-width: 560px; }
+.mastery-workbench .m3-button { white-space: normal; }
+@media (max-width: 900px) { .mastery-columns { grid-template-columns: minmax(0,1fr); } .mastery-panel { padding: 16px; } }

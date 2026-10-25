@@ -29,7 +29,7 @@ class GroupController extends Controller
 
     public function roster(ActivityRequest $r, int $group): JsonResponse
     {
-        return $this->response($r, app(ActivityGroups::class)->roster($r->user(), $group));
+        return $this->response($r, app(ActivityGroups::class)->roster($r->user(), $group, $r->has('session_id') ? (int) $r->validated('session_id') : null));
     }
 
     public function create(ActivityRequest $r): JsonResponse
