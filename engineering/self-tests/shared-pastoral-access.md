@@ -15,3 +15,10 @@ UI or per-case assignment behavior is claimed. Those are consuming features.
 
 Local tests use a dedicated synthetic `eschool_pastoral_test` database. No real
 school accounts, platform operators or production settings were changed.
+
+Authorization integration follow-up: the route-wide role matrix explicitly
+includes Facilitator, Counsellor and Safeguarding. All **11 matrix cases pass
+(27 assertions)**. The tenancy rehearsal now discovers subsequent feature
+migrations, rolls children back before their parents and reapplies every feature;
+its check passes **1 test, 165 assertions**. This prevents later school-owned
+tables from silently escaping rollback coverage. No role/tenancy check is waived.

@@ -123,14 +123,14 @@ class TenancyMigrationsTest extends TestCase
 
     private function down(): void
     {
-        foreach (array_reverse(self::MIGRATIONS) as $name) {
+        foreach (array_reverse($this->migrationNames()) as $name) {
             $this->migration($name)->down();
         }
     }
 
     private function up(): void
     {
-        foreach (self::MIGRATIONS as $name) {
+        foreach ($this->migrationNames() as $name) {
             $this->migration($name)->up();
         }
     }
@@ -138,5 +138,21 @@ class TenancyMigrationsTest extends TestCase
     private function migration(string $name): object
     {
         return require database_path("migrations/{$name}.php");
+    }
+
+    /** Include later feature migrations before dropping their school/academic parents. */
+    private function migrationNames(): array
+    {
+        $names = self::MIGRATIONS;
+        foreach (glob(database_path('migrations/*.php')) ?: [] as $path) {
+            $name = pathinfo($path, PATHINFO_FILENAME);
+            if (strcmp($name, self::MIGRATIONS[0]) >= 0) {
+                $names[] = $name;
+            }
+        }
+        $names = array_values(array_unique($names));
+        sort($names, SORT_STRING);
+
+        return $names;
     }
 }
