@@ -180,6 +180,34 @@ import 'package:eschool_api/src/model/academic_transition_search_response.dart';
 import 'package:eschool_api/src/model/academic_transition_state.dart';
 import 'package:eschool_api/src/model/academic_transition_year.dart';
 import 'package:eschool_api/src/model/accept_guardian_invitation_request.dart';
+import 'package:eschool_api/src/model/activity_attendance.dart';
+import 'package:eschool_api/src/model/activity_attendance_entry_write.dart';
+import 'package:eschool_api/src/model/activity_attendance_receipt.dart';
+import 'package:eschool_api/src/model/activity_attendance_receipt_response.dart';
+import 'package:eschool_api/src/model/activity_attendance_write.dart';
+import 'package:eschool_api/src/model/activity_group.dart';
+import 'package:eschool_api/src/model/activity_group_detail.dart';
+import 'package:eschool_api/src/model/activity_group_detail_response.dart';
+import 'package:eschool_api/src/model/activity_group_list.dart';
+import 'package:eschool_api/src/model/activity_group_list_response.dart';
+import 'package:eschool_api/src/model/activity_group_response.dart';
+import 'package:eschool_api/src/model/activity_group_roster.dart';
+import 'package:eschool_api/src/model/activity_group_roster_response.dart';
+import 'package:eschool_api/src/model/activity_group_staff.dart';
+import 'package:eschool_api/src/model/activity_group_staff_response.dart';
+import 'package:eschool_api/src/model/activity_group_write.dart';
+import 'package:eschool_api/src/model/activity_material.dart';
+import 'package:eschool_api/src/model/activity_material_response.dart';
+import 'package:eschool_api/src/model/activity_material_view.dart';
+import 'package:eschool_api/src/model/activity_material_write.dart';
+import 'package:eschool_api/src/model/activity_membership.dart';
+import 'package:eschool_api/src/model/activity_membership_response.dart';
+import 'package:eschool_api/src/model/activity_membership_write.dart';
+import 'package:eschool_api/src/model/activity_roster_member.dart';
+import 'package:eschool_api/src/model/activity_session.dart';
+import 'package:eschool_api/src/model/activity_session_response.dart';
+import 'package:eschool_api/src/model/activity_session_write.dart';
+import 'package:eschool_api/src/model/activity_staff_write.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
@@ -1045,6 +1073,94 @@ ReturnType deserialize<ReturnType, BaseType>(
       return AcceptGuardianInvitationRequest.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'ActivityAttendance':
+      return ActivityAttendance.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityAttendanceEntryWrite':
+      return ActivityAttendanceEntryWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ActivityAttendanceReceipt':
+      return ActivityAttendanceReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityAttendanceReceiptResponse':
+      return ActivityAttendanceReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ActivityAttendanceWrite':
+      return ActivityAttendanceWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroup':
+      return ActivityGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupDetail':
+      return ActivityGroupDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupDetailResponse':
+      return ActivityGroupDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupList':
+      return ActivityGroupList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupListResponse':
+      return ActivityGroupListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupResponse':
+      return ActivityGroupResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupRoster':
+      return ActivityGroupRoster.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupRosterResponse':
+      return ActivityGroupRosterResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupStaff':
+      return ActivityGroupStaff.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupStaffResponse':
+      return ActivityGroupStaffResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityGroupWrite':
+      return ActivityGroupWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMaterial':
+      return ActivityMaterial.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMaterialResponse':
+      return ActivityMaterialResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMaterialView':
+      return ActivityMaterialView.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMaterialWrite':
+      return ActivityMaterialWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMembership':
+      return ActivityMembership.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMembershipResponse':
+      return ActivityMembershipResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMembershipWrite':
+      return ActivityMembershipWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityRosterMember':
+      return ActivityRosterMember.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivitySession':
+      return ActivitySession.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivitySessionResponse':
+      return ActivitySessionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivitySessionWrite':
+      return ActivitySessionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityStaffWrite':
+      return ActivityStaffWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ApprovalLearner':
       return ApprovalLearner.fromJson(value as Map<String, dynamic>)

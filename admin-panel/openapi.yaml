@@ -167,6 +167,8 @@ tags:
   description: Academic references and explicit school class mapping.
 - name: Platform
   description: Who is signed in and the school they work in.
+- name: Activities
+  description: Scoped seasonal groups, allocations, session registers and materials.
 paths:
   /academics/teaching-groups:
     get:
@@ -6534,6 +6536,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -6572,6 +6575,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -6616,6 +6620,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -6653,6 +6658,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -6691,6 +6697,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: audience
         in: path
@@ -6735,6 +6742,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -6767,6 +6775,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: role
         in: path
@@ -6811,6 +6820,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: page
         in: query
@@ -6848,6 +6858,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -6886,6 +6897,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -6923,6 +6935,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -6967,6 +6980,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -7005,6 +7019,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -7049,6 +7064,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -7093,6 +7109,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -7137,6 +7154,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: page
         in: query
@@ -7175,6 +7193,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -7213,6 +7232,7 @@ paths:
         validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications
         contain generic text only.
       parameters:
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
       - $ref: '#/components/parameters/SchoolId'
       - name: message
         in: path
@@ -7241,6 +7261,625 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /activities/groups:
+    get:
+      operationId: listActivityGroups
+      tags:
+      - Activities
+      summary: List currently authorized activity groups
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: List currently authorized activity groups.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createActivityGroup
+      tags:
+      - Activities
+      summary: Create a seasonal activity group
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Create a seasonal activity group.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityGroupWrite'
+  /activities/groups/{group}:
+    get:
+      operationId: readActivityGroup
+      tags:
+      - Activities
+      summary: Read an authorized activity group and materials
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read an authorized activity group and materials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: saveActivityGroup
+      tags:
+      - Activities
+      summary: Update a seasonal group revision
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Update a seasonal group revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityGroupWrite'
+  /activities/groups/{group}/roster:
+    get:
+      operationId: readActivityGroupRoster
+      tags:
+      - Activities
+      summary: Read an allocated staff roster and session attendance
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Read an allocated staff roster and session attendance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupRosterResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /activities/groups/{group}/memberships:
+    post:
+      operationId: createActivityMembership
+      tags:
+      - Activities
+      summary: Create an activity memberships record
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Create an activity memberships record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMembershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityMembershipWrite'
+  /activities/groups/{group}/memberships/{allocation}:
+    put:
+      operationId: saveActivityMembership
+      tags:
+      - Activities
+      summary: Update an activity memberships revision
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: allocation
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Update an activity memberships revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMembershipResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityMembershipWrite'
+  /activities/groups/{group}/staff:
+    post:
+      operationId: createActivityStaffAllocation
+      tags:
+      - Activities
+      summary: Create an activity staff record
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Create an activity staff record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupStaffResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityStaffWrite'
+  /activities/groups/{group}/staff/{allocation}:
+    put:
+      operationId: saveActivityStaffAllocation
+      tags:
+      - Activities
+      summary: Update an activity staff revision
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: allocation
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Update an activity staff revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityGroupStaffResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityStaffWrite'
+  /activities/groups/{group}/sessions:
+    post:
+      operationId: createActivitySession
+      tags:
+      - Activities
+      summary: Create an activity sessions record
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Create an activity sessions record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivitySessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivitySessionWrite'
+  /activities/groups/{group}/sessions/{session}:
+    put:
+      operationId: saveActivitySession
+      tags:
+      - Activities
+      summary: Update an activity sessions revision
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Update an activity sessions revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivitySessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivitySessionWrite'
+  /activities/groups/{group}/materials:
+    post:
+      operationId: createActivityMaterial
+      tags:
+      - Activities
+      summary: Create an activity materials record
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Create an activity materials record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMaterialResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityMaterialWrite'
+  /activities/groups/{group}/materials/{material}:
+    put:
+      operationId: saveActivityMaterial
+      tags:
+      - Activities
+      summary: Update an activity materials revision
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: material
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Update an activity materials revision.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMaterialResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityMaterialWrite'
+  /activities/sessions/{session}/attendance:
+    put:
+      operationId: captureActivitySessionAttendance
+      tags:
+      - Activities
+      summary: Capture explicit dated session attendance
+      description: School-scoped private activity data. Fresh membership, role and group authority precede validation
+        and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only
+        their own groups. Learners and guardians never receive peer rosters.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Capture explicit dated session attendance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityAttendanceReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityAttendanceWrite'
 components:
   securitySchemes:
     bearerAuth:
@@ -7328,6 +7967,17 @@ components:
         minLength: 1
         maxLength: 255
         pattern: ^[\x21-\x7E]+$
+    ActivityGroupsCapability:
+      name: activity_groups
+      in: query
+      description: Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves
+        legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants
+        no group authority.
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 1
+        default: 0
   headers:
     X-RateLimit-Limit:
       description: Requests allowed in the current minute.
@@ -15768,6 +16418,7 @@ components:
           - grade
           - homeroom
           - group
+          - activity_group
           - custom
         session_year_id:
           type: integer
@@ -15795,6 +16446,7 @@ components:
           - grade
           - homeroom
           - group
+          - activity_group
           - custom
         session_year_id:
           type: integer
@@ -15999,6 +16651,7 @@ components:
           - grade
           - homeroom
           - group
+          - activity_group
           - custom
         target_id:
           type:
@@ -16727,3 +17380,857 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/CommunicationReadReceipt'
+
+    ActivityGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - session_year_id
+      - parent_id
+      - name
+      - discipline
+      - season
+      - starts_on
+      - ends_on
+      - gender
+      - minimum_grade
+      - maximum_grade
+      - minimum_age
+      - maximum_age
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        parent_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        discipline:
+          type: string
+          maxLength: 100
+        season:
+          type: string
+          maxLength: 100
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        gender:
+          type: string
+          enum:
+          - any
+          - male
+          - female
+        minimum_grade:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 12
+        maximum_grade:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 12
+        minimum_age:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 25
+        maximum_age:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 25
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    ActivityMembership:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - learner_id
+      - role
+      - active
+      - starts_on
+      - ends_on
+      - reason
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+          enum:
+          - member
+          - captain
+        active:
+          type: boolean
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 2000
+        revision:
+          type: integer
+          minimum: 1
+    ActivityGroupStaff:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - user_id
+      - role
+      - cascade
+      - active
+      - starts_on
+      - ends_on
+      - reason
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+          enum:
+          - admin
+          - facilitator
+        cascade:
+          type: boolean
+        active:
+          type: boolean
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 2000
+        revision:
+          type: integer
+          minimum: 1
+    ActivitySession:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - on_date
+      - name
+      - venue
+      - status
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        name:
+          type: string
+          maxLength: 191
+        venue:
+          type: string
+          maxLength: 191
+        status:
+          type: string
+          enum:
+          - scheduled
+          - completed
+          - cancelled
+        revision:
+          type: integer
+          minimum: 1
+    ActivityAttendance:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_session_id
+      - learner_id
+      - status
+      - recorded_by
+      - reason
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_session_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - present
+          - absent
+          - late
+          - excused
+        recorded_by:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 2000
+        revision:
+          type: integer
+          minimum: 1
+    ActivityMaterial:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - author_id
+      - title
+      - markdown
+      - published
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        markdown:
+          type: string
+          maxLength: 65536
+        published:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    ActivityRosterMember:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - learner_id
+      - role
+      - active
+      - starts_on
+      - ends_on
+      - reason
+      - revision
+      - learner_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+          enum:
+          - member
+          - captain
+        active:
+          type: boolean
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 2000
+        revision:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+          maxLength: 383
+    ActivityMaterialView:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - author_id
+      - title
+      - markdown
+      - published
+      - revision
+      - html
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        markdown:
+          type: string
+          maxLength: 65536
+        published:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        html:
+          type: string
+          maxLength: 262144
+    ActivityGroupWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - session_year_id
+      - name
+      - discipline
+      - season
+      - starts_on
+      - ends_on
+      - gender
+      - active
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        session_year_id:
+          type: integer
+          minimum: 1
+        parent_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        name:
+          type: string
+          maxLength: 191
+        discipline:
+          type: string
+          maxLength: 100
+        season:
+          type: string
+          maxLength: 100
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        gender:
+          type: string
+          enum:
+          - any
+          - male
+          - female
+        minimum_grade:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 12
+        maximum_grade:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 12
+        minimum_age:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 25
+        maximum_age:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 25
+        active:
+          type: boolean
+    ActivityMembershipWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - learner_id
+      - role
+      - starts_on
+      - ends_on
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        learner_id:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+          enum:
+          - member
+          - captain
+        active:
+          type: boolean
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+    ActivityStaffWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - user_id
+      - role
+      - cascade
+      - starts_on
+      - ends_on
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        user_id:
+          type: integer
+          minimum: 1
+        role:
+          type: string
+          enum:
+          - admin
+          - facilitator
+        cascade:
+          type: boolean
+        active:
+          type: boolean
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+    ActivitySessionWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - on_date
+      - name
+      - venue
+      - status
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        name:
+          type: string
+          maxLength: 191
+        venue:
+          type: string
+          maxLength: 191
+        status:
+          type: string
+          enum:
+          - scheduled
+          - completed
+          - cancelled
+    ActivityMaterialWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - title
+      - markdown
+      - published
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        title:
+          type: string
+          maxLength: 191
+        markdown:
+          type: string
+          maxLength: 20000
+        published:
+          type: boolean
+    ActivityAttendanceEntryWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - status
+      - revision
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - present
+          - absent
+          - late
+          - excused
+        revision:
+          type: integer
+          minimum: 0
+    ActivityAttendanceWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      - entries
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityAttendanceEntryWrite'
+          minItems: 1
+          maxItems: 500
+    ActivityGroupList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityGroup'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+    ActivityGroupDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - group
+      - materials
+      - sessions
+      - can_manage
+      - can_capture
+      properties:
+        group:
+          $ref: '#/components/schemas/ActivityGroup'
+        materials:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityMaterialView'
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivitySession'
+        can_manage:
+          type: boolean
+        can_capture:
+          type: boolean
+    ActivityGroupRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - memberships
+      - staff
+      - attendance
+      properties:
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityRosterMember'
+        staff:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityGroupStaff'
+        attendance:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityAttendance'
+    ActivityAttendanceReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - session_revision
+      - items
+      - unrecorded_count
+      properties:
+        session_revision:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityAttendance'
+        unrecorded_count:
+          type: integer
+          minimum: 0
+    ActivityGroupResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityGroup'
+    ActivityMembershipResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityMembership'
+    ActivityGroupStaffResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityGroupStaff'
+    ActivitySessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivitySession'
+    ActivityMaterialResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityMaterial'
+    ActivityGroupListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityGroupList'
+    ActivityGroupDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityGroupDetail'
+    ActivityGroupRosterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityGroupRoster'
+    ActivityAttendanceReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/ActivityAttendanceReceipt'

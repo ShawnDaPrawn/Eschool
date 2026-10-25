@@ -69,6 +69,7 @@ const _$CommunicationAudienceSnapshotKindEnumEnumMap = {
   CommunicationAudienceSnapshotKindEnum.grade: 'grade',
   CommunicationAudienceSnapshotKindEnum.homeroom: 'homeroom',
   CommunicationAudienceSnapshotKindEnum.group: 'group',
+  CommunicationAudienceSnapshotKindEnum.activityGroup: 'activity_group',
   CommunicationAudienceSnapshotKindEnum.custom: 'custom',
   CommunicationAudienceSnapshotKindEnum.unknownDefaultOpenApi:
       'unknown_default_open_api',

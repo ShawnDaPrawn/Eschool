@@ -6,6 +6,7 @@ namespace App\Services\Communication;
 
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingGroup;
+use App\Models\Activities\ActivityGroup;
 use App\Models\ClassSection;
 use App\Models\Communication\Message;
 use App\Models\Communication\MessageRead;
@@ -15,13 +16,14 @@ use App\Models\User;
 use App\Policies\Communication\MessagePolicy;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class MessageQueries
 {
-    public function configuration(User $actor, ?int $year): array
+    public function configuration(User $actor, ?int $year, bool $activityGroups = false): array
     {
         $fresh = app(CommunicationRules::class)->actor($actor);
         $staff = array_diff(app(ProfilePolicy::class)->roles($fresh), ['Student', 'Parent']) !== [];
@@ -60,6 +62,11 @@ class MessageQueries
         foreach (TeachingGroup::where('active', true)->where('session_year_id', $year)->orderBy('id')->get() as $group) {
             $add('group', (int) $group->id, $group->name);
         }
+        if ($activityGroups && app(ModuleGate::class)->allows('groups')) {
+            foreach (ActivityGroup::where('active', true)->where('session_year_id', $year)->orderBy('id')->get() as $group) {
+                $add('activity_group', (int) $group->id, $group->name);
+            }
+        }
         $data['scopes'] = $scopes;
         $data['audiences'] = app(CommunicationAudiences::class)->listing($actor, $year);
 
@@ -82,9 +89,12 @@ class MessageQueries
             'updated_at' => $message->updated_at->toIso8601String()];
     }
 
-    public function editor(User $actor, int $id): array
+    public function editor(User $actor, int $id, bool $activityGroups = false): array
     {
         $m = app(MessagePolicy::class)->staff($actor, $id);
+        if (($m->audience['kind'] ?? null) === 'activity_group') {
+            app(ActivityMessageCapability::class)->requireSupport($activityGroups);
+        }
 
         return $this->summary($m) + ['markdown' => $m->markdown, 'audience' => $m->audience, 'channels' => $m->channels,
             'scheduled_local' => $m->scheduled_at?->copy()->setTimezone(app(CurrentSchool::class)->school()->timezone)->format('Y-m-d\TH:i'),
@@ -94,13 +104,13 @@ class MessageQueries
             'recipient_count' => $m->recipient_count, 'read_count' => MessageRead::where('message_id', $id)->count()];
     }
 
-    public function drafts(User $actor, int $page): array
+    public function drafts(User $actor, int $page, bool $activityGroups = false): array
     {
         app(CommunicationRules::class)->staff($actor);
         // Count only the candidate pages, never leak private subjects of other authors.
         $query = Message::where(fn ($q) => $q->where('author_id', $actor->id)->orWhereIn('state', ['pending', 'approved', 'blocked']))->orderByDesc('id');
         $rows = $query->paginate(20, ['*'], 'page', $page);
-        $items = $rows->filter(fn ($m) => (int) $m->author_id === (int) $actor->id || app(MessagePolicy::class)->canReview($actor, $m))
+        $items = $rows->filter(fn ($m) => ($activityGroups || ($m->audience['kind'] ?? null) !== 'activity_group') && ((int) $m->author_id === (int) $actor->id || app(MessagePolicy::class)->canReview($actor, $m)))
             ->map(fn ($m) => $this->summary($m) + ['is_author' => (int) $m->author_id === (int) $actor->id, 'can_review' => app(MessagePolicy::class)->canReview($actor, $m)])->values()->all();
 
         return ['page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'items' => $items];

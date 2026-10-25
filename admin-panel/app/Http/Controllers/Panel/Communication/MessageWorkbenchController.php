@@ -24,9 +24,9 @@ class MessageWorkbenchController extends Controller
     public function index(MessagePanelRequest $r): Response
     {
         $queries = app(MessageQueries::class);
-        $message = $r->validated('message_id') === null ? null : $queries->editor($r->user(), (int) $r->validated('message_id'));
-        $config = $queries->configuration($r->user(), $message['audience']['session_year_id'] ?? ($r->validated('session_year_id') === null ? null : (int) $r->validated('session_year_id')));
-        $messages = $queries->drafts($r->user(), (int) $r->validated('page', 1));
+        $message = $r->validated('message_id') === null ? null : $queries->editor($r->user(), (int) $r->validated('message_id'), true);
+        $config = $queries->configuration($r->user(), $message['audience']['session_year_id'] ?? ($r->validated('session_year_id') === null ? null : (int) $r->validated('session_year_id')), true);
+        $messages = $queries->drafts($r->user(), (int) $r->validated('page', 1), true);
         $contacts = $queries->contacts($r->user(), $config['session_year_id'], (int) $r->validated('contact_page', 1));
         $audience = $r->validated('audience_id') === null ? null : app(CommunicationAudiences::class)->owned($r->user(), (int) $r->validated('audience_id'));
         $restored = app(MessageDraftRestoration::class)->read($r, $message['id'] ?? null);
@@ -74,7 +74,7 @@ class MessageWorkbenchController extends Controller
                 throw $error;
             }
 
-            return response()->view('communication.conflict', ['submitted' => $r->validated(), 'current' => app(MessageQueries::class)->editor($r->user(), $message)], 409);
+            return response()->view('communication.conflict', ['submitted' => $r->validated(), 'current' => app(MessageQueries::class)->editor($r->user(), $message, true)], 409);
         }
     }
 

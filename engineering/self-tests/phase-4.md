@@ -76,3 +76,67 @@ Five isolated negative audit fixtures were also rejected: unconditional Firebase
 startup, admitting the facilitator native ID, removing the native plugin guard,
 hardcoding the teacher plist identity and admitting a reserved symbol upload.
 The production source was unchanged by these temporary mutation checks.
+
+
+## Activity groups backend and communication integration
+
+Implemented the school-scoped seasonal hierarchy, eligibility, dated staff/member
+allocations with cancellation, session registers, encrypted authored Markdown and
+UUID/hash receipts. Activity audiences cascade only through authorized groups.
+The module starts disabled. The group-management panel/shared groups screens and
+usable facilitator sign-in shell are separate follow-on work; none is claimed here.
+
+Evidence: all 14 activity operations have successful response-contract coverage
+and per-route guest/wrong-current-role/foreign-school refusal checks. Tests cover
+owner/group boundaries, revoked roles/guardians, scoped descendant grants,
+transaction rollback, optimistic conflicts, role/module revocation before replay,
+cancellation of current/future grants and retained attendance. A parent who is
+also staff never gains peer roster/draft/contact access from parent visibility.
+
+Legacy v2 message editors are protected by explicit activity_groups=1 negotiation.
+Default scopes/draft lists exclude unsupported activity kinds; direct legacy
+editing gets a clear upgrade response. Published readers keep their old payload.
+The existing panel explicitly opts in and its actual HTTP form saves activity
+scopes. The shared app editor remains opted out until the UI follow-on tests it.
+
+Pinned SDK generation uses date-only strings and preserves false cancellation
+flags; full group PUT clears omitted nullable eligibility fields consistently.
+Group read models include school_id for client-side identity binding.
+
+No new group-management browser screen, native facilitator app, binary material
+upload, provider/device/staging/performance or production qualification is claimed
+from this backend slice. Final verification counts and CI are recorded on its PR.
+
+Local backend/communication/contracts/tenancy/authorization/language cohort:
+667 passed, 28,312 assertions. After final future-session and read-scope identity
+checks, the focused activity/migration cohort passes 23 tests, 423 assertions.
+Full SDK suite: 53 passed, including four activity-specific wire tests; generator
+7.25.0 reproduces 811 Dart files. SDK analysis has zero errors/warnings (296
+generated style infos). Configured strict OpenAPI lint, changed PHP Pint and
+full Larastan pass. Final complete CI/review remains required before merge.
+
+Activity-list revocation follow-up: cancelled learner memberships are excluded from list metadata as well as detail, audiences and attendance. The existing cancellation regression was first observed failing without the filter, then passed after the fix.
+
+Hierarchy review follow-up: reparenting validates the full retained subtree
+height, including archived descendants, against the proposed ancestor depth.
+A regression first produced HTTP 200 for a depth-13 move, then returned 422 with
+no partial mutation/receipt. The test also refuses an archived descendant at
+depth 13 and permits the exact depth-12 boundary. The cancellation regression
+now exercises list and detail HTTP routes directly. Full activity suite: 22 tests /
+433 assertions; final reparent/cancellation focus: 2 tests / 37 assertions. Full
+Larastan passed. Existing panel and Flutter branches receive this shared fix.
+
+Private-write header follow-up: activity API responses explicitly set private,
+no-store on every method; Laravel's GET-oriented cache middleware alone does not
+cover POST/PUT. The complete 14-operation contract case asserts those headers
+on reads and writes: 1 test / 89 assertions passed.
+
+
+### Large operation receipt review correction, 25 October 2026
+
+A real MySQL regression with 40 learners and a 2,000-character attendance reason
+reproduced silent truncation to exactly 65,535 bytes under the configured SQL mode.
+Initial and forward migrations now use LONGTEXT. The regression passes after
+simulating an existing TEXT installation and applying the upgrade: complete
+ciphertext, exact decrypted retry, 40 rows, one receipt, one session revision
+advance, and refusal to narrow oversized retained history (1 test / 7 assertions).
