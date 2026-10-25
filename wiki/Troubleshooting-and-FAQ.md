@@ -90,7 +90,7 @@ The release build type always uses the signing config read from `android/key.pro
 
 **The force-update dialog appears on every launch, or never.**
 `UiUtils.forceUpdate` compares the installed `version+build` with `app_version` / `ios_app_version` from the server:
-- The iOS projects hard-code `FLUTTER_BUILD_NUMBER = 3`, so a server value with a build number such as `+39` forces an update on iOS every time.
+- iOS builds made before the October 2026 fix report build number 3 whatever `pubspec.yaml` says, so a server value with a build number such as `+39` forces an update on them every time. Builds since then report the `pubspec.yaml` build number, as Android does.
 - Version parts are compared one by one, so give the full `x.y.z` form.
 
 See [Building and Releasing Apps](Building-and-Releasing-Apps#versioning).
