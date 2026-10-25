@@ -19,6 +19,7 @@ use App\Services\Growth\MasteryRecompute;
 use App\Services\Growth\TopicGraph;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -82,7 +83,7 @@ class DailyPractice
             }
             try {
                 app(PracticeAccess::class)->topic($group, (int) $item->topic_id);
-            } catch (HttpExceptionInterface|\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
                 continue;
             }
             $memory = $memories->get($item->id);
