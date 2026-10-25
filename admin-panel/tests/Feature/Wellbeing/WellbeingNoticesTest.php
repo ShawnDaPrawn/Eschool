@@ -29,11 +29,13 @@ use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\NotificationVisibility;
 use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Notifications\StaffPrivateNotices;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Wellbeing\IncidentReporting;
 use App\Services\Wellbeing\WellbeingNotices;
 use App\Services\Wellbeing\WellbeingSettings;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -356,5 +358,33 @@ class WellbeingNoticesTest extends TestCase
         $this->getJson('/api/v2/wellbeing/notices')->assertOk()->assertJsonPath('data.unread_count', 0)->assertJsonCount(0, 'data.items');
         $this->postJson('/api/v2/wellbeing/notices/'.$notice->id.'/read', [])->assertNotFound();
         $this->assertSame(1, NoticeIntent::whereNotNull('read_at')->count());
+    }
+
+    public function test_shared_staff_inbox_preserves_existing_intent_read_authority_and_source_revocation(): void
+    {
+        ParentPolicyService::acceptCurrent($this->professional);
+        $this->submit();
+        $firstIntent = NoticeIntent::sole();
+        $first = $this->queue($firstIntent);
+        $this->fanout($first, $this->professional);
+        $this->secret = bin2hex(random_bytes(32));
+        $this->submit();
+        $secondIntent = NoticeIntent::whereKeyNot($firstIntent->id)->sole();
+        $second = $this->queue($secondIntent);
+        $this->fanout($second, $this->professional);
+        $shared = app(StaffPrivateNotices::class);
+        $legacy = app(WellbeingNotices::class);
+        $this->assertSame(2, $shared->inbox($this->professional)['unread_count']);
+        $legacy->markRead($this->professional, (int) $first->id);
+        $this->assertSame(1, $shared->inbox($this->professional)['unread_count']);
+        $this->assertNotNull(collect($shared->inbox($this->professional)['items'])->firstWhere('id', $first->id)['read_at']);
+        $shared->markRead($this->professional, (int) $second->id);
+        $this->assertNotNull($secondIntent->fresh()->read_at);
+        $this->assertSame(0, $legacy->inbox($this->professional, area: 'staff')['unread_count']);
+        $this->assertSame(0, $shared->inbox($this->professional)['unread_count']);
+        TeamAssignment::query()->update(['active' => false]);
+        $this->assertSame([], $shared->inbox($this->professional)['items']);
+        $this->expectException(ModelNotFoundException::class);
+        $shared->markRead($this->professional, (int) $second->id);
     }
 }

@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
+use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
@@ -519,3 +520,10 @@ Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'award
             Route::post($path, [$c, $method])->whereNumber('record')->name($method);
         }
     });
+
+// Dedicated staff purpose: exact registered private types and source grants;
+// this never opens the legacy Teacher/Firebase notification controller.
+Route::prefix('staff/private-notices')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:communication'])->name('api.v2.staff-private-notices.')->group(function () {
+    Route::get('/', [PrivateStaffNoticeController::class, 'index'])->name('index');
+    Route::post('{notice}/read', [PrivateStaffNoticeController::class, 'read'])->whereNumber('notice')->name('read');
+});

@@ -140,6 +140,12 @@ class WellbeingNotices implements PrivateNoticeDelivery, PrivateNoticeScope
         });
     }
 
+    /** Shared staff inbox bridge; never includes named-reporter replies. */
+    public function staffReadIntents(User $actor): Builder
+    {
+        return $this->permitted($actor)->whereIn('kind', ['report_staff', 'case_staff']);
+    }
+
     public function apply(Builder $notifications, User $actor): void
     {
         $allowed = $this->permitted($actor);

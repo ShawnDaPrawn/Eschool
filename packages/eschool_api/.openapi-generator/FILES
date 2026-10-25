@@ -8,6 +8,7 @@ lib/src/api/discipline_api.dart
 lib/src/api/growth_api.dart
 lib/src/api/pastoral_api.dart
 lib/src/api/platform_api.dart
+lib/src/api/private_staff_notices_api.dart
 lib/src/api/recognition_api.dart
 lib/src/api/school_transfers_api.dart
 lib/src/api/wellbeing_api.dart
@@ -493,6 +494,7 @@ lib/src/model/learner_note_metadata.dart
 lib/src/model/learner_note_revision.dart
 lib/src/model/learner_note_update.dart
 lib/src/model/link_wellbeing_case_incident_response.dart
+lib/src/model/list_staff_private_notices_response.dart
 lib/src/model/list_wellbeing_appointments_response.dart
 lib/src/model/list_wellbeing_case_assignments_response.dart
 lib/src/model/list_wellbeing_case_incident_choices_response.dart
@@ -564,6 +566,7 @@ lib/src/model/progress_roster.dart
 lib/src/model/progress_roster_response.dart
 lib/src/model/progress_staff_band.dart
 lib/src/model/progress_staff_band_response.dart
+lib/src/model/read_staff_private_notice_response.dart
 lib/src/model/read_wellbeing_notice_response.dart
 lib/src/model/recognition_access.dart
 lib/src/model/recognition_access_response.dart
@@ -658,6 +661,9 @@ lib/src/model/school_terms_response_data.dart
 lib/src/model/session_year.dart
 lib/src/model/set_my_handle_request.dart
 lib/src/model/set_wellbeing_case_status_response.dart
+lib/src/model/staff_private_notice.dart
+lib/src/model/staff_private_notice_page.dart
+lib/src/model/staff_private_notice_read.dart
 lib/src/model/subject_standard.dart
 lib/src/model/subject_standards_response.dart
 lib/src/model/subject_standards_response_data.dart

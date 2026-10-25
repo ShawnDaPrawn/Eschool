@@ -16,6 +16,8 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.privateNotices,
+
     this.housePoints,
 
     this.awards,
@@ -34,6 +36,10 @@ class FacilitatorFeatures {
 
     this.learnerNotes,
   });
+
+  /// Optional fresh dedicated staff inbox capability; absence means unavailable. Every notice still requires its source grant.
+  @JsonKey(name: r'private_notices', required: false, includeIfNull: false)
+  final bool? privateNotices;
 
   /// Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
   @JsonKey(name: r'house_points', required: false, includeIfNull: false)
@@ -72,6 +78,7 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.privateNotices == privateNotices &&
           other.housePoints == housePoints &&
           other.awards == awards &&
           other.discipline == discipline &&
@@ -84,6 +91,7 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      privateNotices.hashCode +
       housePoints.hashCode +
       awards.hashCode +
       discipline.hashCode +

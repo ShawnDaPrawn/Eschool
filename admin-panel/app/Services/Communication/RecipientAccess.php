@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Communication;
 
+use App\Models\Communication\MessageRecipient;
 use App\Models\Students;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
@@ -32,13 +33,13 @@ class RecipientAccess
 
                 return $learner !== null && $this->learner($learner);
             }
-            foreach ($reason['learner_ids'] ?? [] as $id) {
+            foreach (in_array('Student', $roles, true) ? ($reason['learner_ids'] ?? []) : [] as $id) {
                 $learner = Students::where('user_id', $fresh->id)->find($id);
                 if ($learner !== null && $this->learner($learner)) {
                     return true;
                 }
             }
-            foreach ($reason['guardian_of'] ?? [] as $id) {
+            foreach (in_array('Parent', $roles, true) ? ($reason['guardian_of'] ?? []) : [] as $id) {
                 $learner = Students::find($id);
                 if ($learner !== null && app(GuardianService::class)->guardianUserIds($learner)->contains((int) $fresh->id)) {
                     return true;
@@ -53,6 +54,35 @@ class RecipientAccess
 
             return false;
         }
+    }
+
+    /**
+     * Authorize encrypted recipient metadata before the inbox loads message
+     * bodies or computes pagination. Equal reasons share one decision only
+     * within this call; no role/guardian decision survives a request/job.
+     *
+     * @return list<int>
+     */
+    public function messageIds(User $actor): array
+    {
+        $fresh = app(CommunicationRules::class)->actor($actor);
+        $decisions = [];
+        $ids = [];
+        foreach (MessageRecipient::where('user_id', $fresh->id)->select(['message_id', 'access_reason'])->cursor() as $recipient) {
+            $reason = $recipient->access_reason;
+            if (! is_array($reason)) {
+                continue;
+            }
+            $key = hash('sha256', json_encode($reason, JSON_THROW_ON_ERROR));
+            if (! array_key_exists($key, $decisions)) {
+                $decisions[$key] = $this->allows($fresh, $reason);
+            }
+            if ($decisions[$key]) {
+                $ids[] = (int) $recipient->message_id;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     private function learner(Students $learner): bool
