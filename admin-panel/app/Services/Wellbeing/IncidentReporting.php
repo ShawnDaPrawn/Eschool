@@ -152,6 +152,12 @@ class IncidentReporting
         });
     }
 
+    /** Trusted domain adapters only; no caller identity is inferred for anonymous codes. */
+    public function authorizedReportId(string $secret, ?User $actor = null, bool $write = false): int
+    {
+        return (int) $this->bySecret($secret, $actor, $write)->id;
+    }
+
     public function read(User $actor, int $id): array
     {
         $row = $this->access->report($actor, $id);
