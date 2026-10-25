@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Facilitators;
 
 use App\Models\Platform\School;
-use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Policies\Growth\LearnerNotesPolicy;
 use App\Policies\People\ProfilePolicy;
@@ -18,6 +17,7 @@ use App\Services\Pastoral\SensitiveRecordsAccess;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\StaffPrivateNotices;
@@ -77,7 +77,8 @@ class FacilitatorAccess
     {
         $fresh = $this->ready($actor);
         $school = app(CurrentSchool::class)->school();
-        $choices = School::whereIn('id', SchoolMembership::active()->where('user_id', $fresh->id)->whereIn('role', self::ROLES)->select('school_id'))->orderBy('name')->get();
+        $schools = app(MembershipService::class)->active($fresh)->whereIn('role', self::ROLES)->pluck('school_id')->unique();
+        $choices = School::whereIn('id', $schools)->orderBy('name')->get();
         app(ModuleGate::class)->forget();
         $roles = app(ProfilePolicy::class)->roles($fresh);
         $groups = array_intersect($roles, ['Teacher', 'Facilitator', 'Parent', 'Student']) !== [] || app(ProfilePolicy::class)->permission($fresh, 'activity-groups-manage');
