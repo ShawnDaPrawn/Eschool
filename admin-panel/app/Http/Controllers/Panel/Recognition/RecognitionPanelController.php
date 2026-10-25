@@ -51,7 +51,7 @@ class RecognitionPanelController extends Controller
                 $history = app(HousePoints::class)->history($r->user(), $learner, $year, false, (int) $r->input('before', 0));
                 $membership = HouseMembership::where('learner_id', $learner)->where('session_year_id', $year)->where('active', true)->whereDate('starts_on', '<=', $config['access']['today'])->where(fn ($s) => $s->whereNull('ends_on')->orWhereDate('ends_on', '>=', $config['access']['today']))->first();
             } else {
-                $profile = app(AwardPresentations::class)->profile($r->user(), $learner);
+                $profile = app(AwardPresentations::class)->profile($r->user(), $learner, false, (int) $r->input('before', 0));
             }
         }
         $choices = $q->learners($r->user(), $module, (string) $r->input('search', ''), (int) $r->input('after', 0));
@@ -70,9 +70,9 @@ class RecognitionPanelController extends Controller
         $account = (int) $r->user()->id;
         $school = $config['access']['school_id'];
         $canWrite = $config['access']['can_write'] && ! app(SessionYearContext::class)->isReadOnly() && $year === $config['access']['session_year_id'];
-        $assembly = (bool) $r->input('assembly', false);
+        $assembly = $module === 'awards' && (bool) $r->input('assembly', false);
         $draft = [];
-        if (! $r->isMethodSafe()) {
+        if (! $r->isMethodSafe() && ! $assembly) {
             foreach (['reason' => 4000, 'criteria' => 4000, 'title' => 160, 'event' => 191, 'outside_organisation' => 160, 'name' => 160] as $key => $limit) {
                 if (is_string($r->input($key))) {
                     $draft[$key] = mb_substr($r->input($key), 0, $limit);
@@ -186,6 +186,13 @@ class RecognitionPanelController extends Controller
             return $this->failure($r, [$e->getMessage(), __('Review the current recognition record before trying again.')], $e->getStatusCode());
         }
 
-        return redirect()->route('recognition.index', ['module' => $module] + ($r->filled('learner_id') ? ['learner_id' => (int) $r->input('learner_id')] : []))->with('success', __('Recognition change saved'))->header('Cache-Control', 'private, no-store');
+        $selection = ['module' => $module];
+        if ($module === 'awards' && (bool) $r->input('assembly', false)) {
+            $selection += ['assembly' => 1, 'session_year_id' => (int) $r->input('session_year_id', schoolSetting('session_year'))];
+        } elseif ($r->filled('learner_id')) {
+            $selection['learner_id'] = (int) $r->input('learner_id');
+        }
+
+        return redirect()->route('recognition.index', $selection)->with('success', __('Recognition change saved'))->header('Cache-Control', 'private, no-store');
     }
 }

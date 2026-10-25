@@ -711,6 +711,54 @@ class HousesAwardsTest extends TestCase
         $this->assertSame((int) $second->id, (int) $p->scope_id);
         ActivityMembership::where('activity_group_id', $first->id)->update(['active' => true]);
         $this->assertSame($p->id, app(HousePoints::class)->issue($staff, $d)->id);
-        $this->assertCount(1,app(HousePoints::class)->history($staff,$this->learner,$this->year)['items']);
+        $this->assertCount(1, app(HousePoints::class)->history($staff, $this->learner, $this->year)['items']);
+    }
+
+    public function test_assembly_context_survives_successful_presentation_without_private_evidence(): void
+    {
+        $n = app(AwardNominations::class)->nominate($this->head, $this->nomination());
+        app(AwardNominations::class)->review($this->head, (int) $n->id, $this->op(['revision' => 1, 'decision' => 'approved', 'reason' => 'Private projected reviewer evidence']));
+        $response = $this->actingAs($this->admin)->post('/recognition/awards/actions/present', $this->panel($this->presentation((int) $n->id) + ['assembly' => 1]));
+        $response->assertRedirect(route('recognition.index', ['module' => 'awards', 'assembly' => 1, 'session_year_id' => $this->year]));
+        $this->get($response->headers->get('Location'))->assertOk()->assertDontSee('Private projected reviewer evidence')->assertDontSee('Consistent synthetic service evidence')->assertSee('name="assembly"', false);
+    }
+
+    public function test_assembly_refusal_preserves_projection_and_never_renders_private_drafts(): void
+    {
+        $n = app(AwardNominations::class)->nominate($this->head, $this->nomination());
+        app(AwardNominations::class)->review($this->head, (int) $n->id, $this->op(['revision' => 1, 'decision' => 'approved', 'reason' => 'Private reviewer for refused presentation']));
+        $d = $this->panel($this->presentation((int) $n->id) + ['assembly' => 1, 'reason' => 'Private unsaved projection draft']);
+        $d['presented_on'] = '2026-02-11';
+        $this->actingAs($this->admin)->post('/recognition/awards/actions/present', $d)->assertUnprocessable()->assertDontSee('Private unsaved projection draft')->assertDontSee('Private reviewer for refused presentation')->assertSee('name="assembly"', false)->assertSessionMissing('_old_input.reason');
+    }
+
+    public function test_older_permanent_awards_cursor_reaches_records_beyond_first_fifty(): void
+    {
+        $ids = [];
+        for ($i = 1; $i <= 53; $i++) {
+            $ids[$i] = (int) AwardPresentation::create(['learner_id' => $this->learner, 'session_year_id' => $this->year, 'grade_level_id' => $this->grade, 'presented_by' => $this->admin->id, 'presented_on' => '2026-02-10', 'title' => 'Retained award '.$i, 'criteria' => 'Synthetic pagination evidence', 'source_kind' => 'outside', 'state' => 'active', 'revision' => 1])->id;
+        }
+        $this->actingAs($this->admin)->get('/recognition/awards?learner_id='.$this->learner)->assertOk()->assertSee('>Retained award 53<', false)->assertDontSee('>Retained award 1<', false);
+        $this->get('/recognition/awards?learner_id='.$this->learner.'&before='.$ids[4])->assertOk()->assertSee('>Retained award 1<', false)->assertSee('>Retained award 3<', false)->assertDontSee('>Retained award 53<', false);
+    }
+
+    public function test_archived_group_category_and_ancestor_retain_authorized_permanent_awards(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        $group = $this->recognitionGroup($staff, 'Archived music catalogue');
+        $c = app(RecognitionCatalog::class);
+        $scope = ['scope_kind' => 'group', 'activity_group_id' => $group->id, 'active' => true];
+        $parent = $c->awardCategory($this->admin, $this->op($scope + ['name' => 'Historical music', 'parent_id' => null]));
+        $child = $c->awardCategory($this->admin, $this->op($scope + ['name' => 'Historical performance', 'parent_id' => $parent->id]));
+        foreach ([$parent, $child] as $category) {
+            $definition = $c->definition($this->admin, $this->op(['award_category_id' => $category->id, 'name' => $category->name.' merit', 'criteria' => 'Retained achievement', 'frequency' => 'repeatable', 'active' => true]));
+            $d = $this->presentation();
+            $d['award_definition_id'] = (int) $definition->id;
+            app(AwardPresentations::class)->present($this->admin, $d);
+        }
+        $c->awardCategory($this->admin, $this->op(['revision' => $parent->revision, 'name' => $parent->name, 'scope_kind' => 'group', 'activity_group_id' => $group->id, 'parent_id' => null, 'active' => false]), (int) $parent->id);
+        $this->assertCount(2, app(AwardPresentations::class)->profile($staff, $this->learner)['items']);
+        $d['operation_id'] = (string) Str::uuid();
+        $this->refuse(409, fn () => app(AwardPresentations::class)->present($this->admin, $d));
     }
 }
