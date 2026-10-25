@@ -9,6 +9,7 @@ use App\Models\Academics\MarkReleaseEntry;
 use App\Models\Academics\MarkSnapshot;
 use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
+use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Growth\ProgressBandAlert;
 use App\Models\Growth\ProgressBandState;
 use App\Models\Notification;
@@ -40,7 +41,9 @@ class ProgressNotices
         $group = TeachingGroup::where('active', true)->findOrFail($id);
         foreach (app(MarkDefinitions::class)->plans($group) as $plan) {
             app(MarkSnapshots::class)->recompute($id, (int) $plan->term_id);
-            $rows = MarkSnapshot::where('subject_id', $group->subject_id)->where('grade_level_id', $group->grade_level_id)
+            $today = app(AcademicAuthority::class)->today();
+            $members = TeachingGroupMembership::where('teaching_group_id', $id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id');
+            $rows = MarkSnapshot::whereIn('learner_id', $members)->where('subject_id', $group->subject_id)->where('grade_level_id', $group->grade_level_id)
                 ->where('session_year_id', $group->session_year_id)->where('period_key', 'term:'.$plan->term_id)->orderByDesc('version')->get()->unique('learner_id');
             foreach ($rows as $snapshot) {
                 $alert = $this->observe($snapshot, 'staff', null, $id);

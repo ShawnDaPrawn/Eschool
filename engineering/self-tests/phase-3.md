@@ -444,3 +444,18 @@ The global route/contract catalogue passes **331 tests, 1,571 assertions**. A
 second clean pinned regeneration reproduces every generated Dart byte.
 Panel/native interaction acceptance remains the next increment; no family risk
 labels, clinical evidence projection or live-school acceptance is claimed.
+
+
+## Parallel teaching-group progress alert isolation
+
+A real second maths group with another dated learner and teacher reproduced the
+reviewed transition-starvation bug: group A consumed group B's learner snapshot
+and attached its own group to the alert. The red regression failed before the
+fix. Snapshot observation is now narrowed to the requested group's current dated
+learner memberships before the shared band transition is evaluated. The green
+regression checks the correct alert group, rightful teacher eligibility, refused
+other teacher and the exact queued fanout recipient. No private payload is added.
+
+All **8 alert tests, 46 assertions** pass, including ended/future membership
+refusal. Changed-file Pint passes. Complete configured Larastan passed after the
+source change; the final extra regression changes test fixtures only.
