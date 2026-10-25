@@ -389,6 +389,8 @@ class ActivityGroupsTest extends TestCase
         app(ActivityGroups::class)->allocation($this->superAdmin(), $group['id'], $member['id'], false, $this->dates(['revision' => 1, 'learner_id' => $this->schoolA->ids['asha'], 'role' => 'member', 'active' => false]));
         $parent = User::findOrFail($this->schoolA->ids['farid_user']);
         $this->assertSame([], app(CommunityAuthority::class)->visible($parent, $this->year));
+        $this->api($parent)->getJson('/api/v2/activities/groups')->assertOk()->assertJsonCount(0, 'data.items');
+        $this->getJson('/api/v2/activities/groups/'.$group['id'])->assertNotFound();
         $definition = ['kind' => 'activity_group', 'session_year_id' => $this->year, 'target_id' => $group['id'], 'parents' => true];
         $this->assertSame([], app(MessagePolicy::class)->recipients($this->superAdmin(), $definition, '2026-02-10'));
         $future = app(ActivityGroups::class)->allocation($this->superAdmin(), $group['id'], null, true, $this->dates(['starts_on' => '2026-05-01', 'user_id' => $coach->id, 'role' => 'facilitator', 'cascade' => false]));
@@ -489,5 +491,26 @@ class ActivityGroupsTest extends TestCase
         $this->get(route('activity-groups.index', ['group_id' => $group['id']]))->assertOk()->assertSee('This school year is read-only.')->assertSee('disabled', false);
         $this->post(route('activity-groups.save', ['group' => $group['id']]), $this->data(['session_year_id' => $year->id, 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31', 'revision' => 1]))->assertStatus(423);
         $this->assertSame(1, ActivityGroup::findOrFail($group['id'])->revision);
+    }
+
+    public function test_reparenting_keeps_the_entire_retained_subtree_within_twelve_levels(): void
+    {
+        $parent = null;
+        for ($depth = 1; $depth <= 11; $depth++) {
+            $parent = $this->group(['name' => 'Level '.$depth, 'parent_id' => $parent['id'] ?? null]);
+        }
+        $moving = $this->group(['name' => 'Moving root']);
+        $child = $this->group(['name' => 'Retained child', 'parent_id' => $moving['id']]);
+        $before = ActivityOperation::count();
+        $this->api($this->superAdmin())->putJson('/api/v2/activities/groups/'.$moving['id'], $this->data(['name' => 'Moving root', 'revision' => 1, 'parent_id' => $parent['id']]))->assertUnprocessable();
+        $this->assertNull(ActivityGroup::findOrFail($moving['id'])->parent_id);
+        $this->assertSame([$child['id'], $moving['id']], app(CommunityAuthority::class)->lineage(ActivityGroup::findOrFail($child['id'])));
+        $this->assertSame($before, ActivityOperation::count());
+        $this->assertCount(13, app(CommunityAuthority::class)->visible($this->superAdmin(), $this->year));
+        $this->putJson('/api/v2/activities/groups/'.$child['id'], $this->data(['name' => 'Retained child', 'revision' => 1, 'parent_id' => $moving['id'], 'active' => false]))->assertOk();
+        $this->putJson('/api/v2/activities/groups/'.$moving['id'], $this->data(['name' => 'Moving root', 'revision' => 1, 'parent_id' => $parent['id']]))->assertUnprocessable();
+        $this->putJson('/api/v2/activities/groups/'.$moving['id'], $this->data(['name' => 'Moving root', 'revision' => 1, 'parent_id' => $parent['parent_id']]))->assertOk();
+        $this->assertCount(12, app(CommunityAuthority::class)->lineage(ActivityGroup::findOrFail($child['id'])));
+
     }
 }

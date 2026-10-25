@@ -143,3 +143,12 @@ own-origin console/network checks. The browser run first exposed indistinct
 inline session links; underlines fixed the accessibility failure. Missing demo
 avatar storage linking and canonical demo enrolments were fixture setup issues
 fixed without weakening assertions. Browser tests use synthetic data only.
+
+Hierarchy review follow-up: reparenting validates the full retained subtree
+height, including archived descendants, against the proposed ancestor depth.
+A regression first produced HTTP 200 for a depth-13 move, then returned 422 with
+no partial mutation/receipt. The test also refuses an archived descendant at
+depth 13 and permits the exact depth-12 boundary. The cancellation regression
+now exercises list and detail HTTP routes directly. Full activity suite: 22 tests /
+433 assertions; final reparent/cancellation focus: 2 tests / 37 assertions. Full
+Larastan passed. Existing panel and Flutter branches receive this shared fix.
