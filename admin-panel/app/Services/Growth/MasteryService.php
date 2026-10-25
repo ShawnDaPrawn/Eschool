@@ -49,8 +49,8 @@ class MasteryService
         if ($contexts === []) {
             $releasedEntries = MarkReleaseEntry::query()->where('learner_id', $learnerId)->whereHas('release', fn ($q) => $q->where('subject_id', $subjectId))->with('snapshot')->latest('id')->limit(100)->get();
             $taskIds = $releasedEntries->flatMap(fn ($entry) => array_column($entry->snapshot->inputs['tasks'] ?? [], 'id'))->unique()->all();
-            foreach (AssessmentTask::withTrashed()->whereIn('id', $taskIds)->get() as $task) {
-                $keys = array_merge($keys, $task->topic_keys ?? []);
+            foreach (AssessmentTask::withTrashed()->with(['questions' => fn ($query) => $query->withTrashed()])->whereIn('id', $taskIds)->get() as $task) {
+                $keys = array_merge($keys, $task->topic_keys ?? [], $task->questions->flatMap(fn ($question) => $question->topic_keys ?? [])->all());
             }
         }
         $targetIds = array_column(array_values(array_filter($graph['nodes'], fn ($node) => in_array($node['topic_key'], $keys, true))), 'id');

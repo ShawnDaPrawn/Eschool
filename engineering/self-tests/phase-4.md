@@ -116,3 +116,17 @@ generated style infos). Configured strict OpenAPI lint, changed PHP Pint and
 full Larastan pass. Final complete CI/review remains required before merge.
 
 Activity-list revocation follow-up: cancelled learner memberships are excluded from list metadata as well as detail, audiences and attendance. The existing cancellation regression was first observed failing without the filter, then passed after the fix.
+
+Hierarchy review follow-up: reparenting validates the full retained subtree
+height, including archived descendants, against the proposed ancestor depth.
+A regression first produced HTTP 200 for a depth-13 move, then returned 422 with
+no partial mutation/receipt. The test also refuses an archived descendant at
+depth 13 and permits the exact depth-12 boundary. The cancellation regression
+now exercises list and detail HTTP routes directly. Full activity suite: 22 tests /
+433 assertions; final reparent/cancellation focus: 2 tests / 37 assertions. Full
+Larastan passed. Existing panel and Flutter branches receive this shared fix.
+
+Private-write header follow-up: activity API responses explicitly set private,
+no-store on every method; Laravel's GET-oriented cache middleware alone does not
+cover POST/PUT. The complete 14-operation contract case asserts those headers
+on reads and writes: 1 test / 89 assertions passed.

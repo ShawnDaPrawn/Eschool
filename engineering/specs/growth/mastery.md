@@ -62,3 +62,11 @@ client-computed scores. Rebuild jobs coalesce pending identical school/group wor
 canonical complete contract and pinned generated Dart SDK include the parallel
 Phase 4 activity contract. App and panel navigation/views follow separately;
 these APIs do not claim completed learner-facing Phase 3 or live acceptance.
+The derived mutex is school/subject-wide because a learner projection aggregates
+evidence across grades and years. Rebuilds acquire it before any evidence
+snapshot and hold it through replacement and aggregate writes. After-commit jobs
+share this mutex with standalone verified-evidence aggregate refreshes; source
+School/Subject rows are not locked. The initial, unmerged feature migration uses
+one mutex row per school/subject. Former group members resolve released target
+topics from both retained task and question definitions, so question-only tags
+remain visible subject to the current published graph filter.

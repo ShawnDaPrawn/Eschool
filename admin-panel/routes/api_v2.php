@@ -37,6 +37,7 @@ use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\PrivateAcademicContent;
+use App\Http\Middleware\PrivateMastery;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -316,7 +317,7 @@ Route::prefix('communication')->middleware(['auth:sanctum', 'school.context', 'r
     Route::post('messages/{message}/read', [$c, 'read'])->whereNumber('message')->name('read');
 });
 
-Route::prefix('growth/mastery')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:mastery', 'cache.headers:private;no_store'])->name('api.v2.mastery.')->group(function () {
+Route::prefix('growth/mastery')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:mastery', PrivateMastery::class])->name('api.v2.mastery.')->group(function () {
     $controller = MasteryController::class;
     $policy = AuthorizeMastery::class;
     Route::get('configuration', [$controller, 'configuration'])->middleware($policy.':configuration')->name('configuration');

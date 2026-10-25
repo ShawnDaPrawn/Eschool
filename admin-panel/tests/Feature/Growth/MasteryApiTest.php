@@ -87,13 +87,13 @@ class MasteryApiTest extends TestCase
     {
         $url = '/api/v2/growth/mastery/subjects/'.$this->subject.'/graph';
         $this->actingAs($this->superAdmin())->putJson($url, ['expected_revision' => 0, 'family_marks_enabled' => true, 'links' => []], ['Idempotency-Key' => (string) Str::uuid()])
-            ->assertOk()->assertJsonPath('data.settings.revision', 1)->assertJsonPath('data.links', []);
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.settings.revision', 1)->assertJsonPath('data.links', []);
         $edge = ['topic_id' => $this->nodes[$this->keys[1]], 'prerequisite_id' => $this->nodes[$this->keys[0]], 'source' => 'Synthetic source reference'];
         $this->putJson($url, ['expected_revision' => 1, 'family_marks_enabled' => true, 'links' => [$edge]], ['Idempotency-Key' => (string) Str::uuid()])->assertOk();
         $this->assertSame(1, TopicLink::count());
         $this->putJson($url, ['expected_revision' => 2, 'family_marks_enabled' => true, 'links' => []], ['Idempotency-Key' => (string) Str::uuid()])->assertOk()->assertJsonPath('data.settings.revision', 3);
         $this->assertSame(0, TopicLink::count());
-        $this->putJson($url, ['expected_revision' => 2, 'family_marks_enabled' => true, 'links' => []], ['Idempotency-Key' => (string) Str::uuid()])->assertConflict();
+        $this->putJson($url, ['expected_revision' => 2, 'family_marks_enabled' => true, 'links' => []], ['Idempotency-Key' => (string) Str::uuid()])->assertConflict()->assertHeader('Cache-Control', 'no-store, private');
     }
 
     public function test_graph_receipt_replay_is_reauthorized_after_membership_revocation(): void
@@ -102,8 +102,8 @@ class MasteryApiTest extends TestCase
         $url = '/api/v2/growth/mastery/subjects/'.$this->subject.'/graph';
         $input = ['expected_revision' => 0, 'family_marks_enabled' => true, 'links' => []];
         $headers = ['Idempotency-Key' => (string) Str::uuid()];
-        $this->actingAs($actor)->putJson($url, $input, $headers)->assertOk()->assertJsonPath('data.settings.revision', 1);
-        $this->putJson($url, $input, $headers)->assertOk()->assertJsonPath('data.settings.revision', 1);
+        $this->actingAs($actor)->putJson($url, $input, $headers)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.settings.revision', 1);
+        $this->putJson($url, $input, $headers)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.settings.revision', 1);
         SchoolMembership::query()->where('school_id', 1)->where('user_id', $actor->id)->update(['status' => 'ended']);
         $this->putJson($url, $input, $headers)->assertForbidden();
     }
@@ -112,7 +112,7 @@ class MasteryApiTest extends TestCase
     {
         Queue::fake();
         $this->actingAs($this->actor())->postJson('/api/v2/growth/mastery/groups/'.$this->group.'/rebuild', [], ['Idempotency-Key' => (string) Str::uuid()])
-            ->assertOk()->assertJsonPath('data.queued', true);
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.queued', true);
         Queue::assertPushed(RecomputeMastery::class, fn ($job) => $job->schoolId === 1 && $job->groupId === $this->group);
         $this->actingAs($this->actor('asha'))->getJson('/api/v2/growth/mastery/learners/'.$this->schoolA->ids['asha'].'?subject_id='.$this->subject)->assertForbidden();
     }

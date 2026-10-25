@@ -102,6 +102,28 @@ class CommunityAuthority
         return $ids;
     }
 
+    /** Include archived descendants: reactivation must not reveal an invalid tree. */
+    public function subtreeHeight(ActivityGroup $group): int
+    {
+        $front = [(int) $group->id];
+        $seen = $front;
+        $height = 1;
+        while ($front !== []) {
+            $children = ActivityGroup::where('session_year_id', $group->session_year_id)->whereIn('parent_id', $front)->pluck('id')->map(fn ($id) => (int) $id)->all();
+            if ($children === []) {
+                return $height;
+            }
+            abort_if(array_intersect($seen, $children) !== [], 409, 'Invalid activity group ancestry.');
+            $seen = [...$seen, ...$children];
+            abort_if(count($seen) > 1000, 422, 'Activity subtree is too large.');
+            $height++;
+            abort_if($height > 12, 422, 'Activity tree exceeds twelve levels.');
+            $front = $children;
+        }
+
+        return $height;
+    }
+
     public function assigned(User $actor, ActivityGroup $group, ?string $date = null): bool
     {
         $ids = $this->lineage($group);

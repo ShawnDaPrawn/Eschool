@@ -12,12 +12,13 @@ use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryScope;
 use App\Models\Growth\MasteryTopic;
+use App\Models\Subject;
 use App\Services\Academics\MarkInputs;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 
-/** Derived learning evidence, serialized by subject/grade/year without locking mark writes. */
+/** A school/subject mutex protects evidence replacement and the aggregate across grades/years. */
 class MasteryRecompute
 {
     private array $definitions = [];
@@ -26,12 +27,8 @@ class MasteryRecompute
     {
         $this->definitions = [];
         $group = TeachingGroup::query()->findOrFail($groupId);
-        $identity = ['school_id' => app(CurrentSchool::class)->id(), 'subject_id' => $group->subject_id,
-            'grade_level_id' => $group->grade_level_id, 'session_year_id' => $group->session_year_id];
-        SchoolTable::query('mastery_scopes')->insertOrIgnore($identity + ['created_at' => now(), 'updated_at' => now()]);
 
-        return DB::transaction(function () use ($group, $identity) {
-            $scope = MasteryScope::query()->where($identity)->lockForUpdate()->firstOrFail();
+        return $this->serialised((int) $group->subject_id, function () use ($group) {
             app(TopicGraph::class)->sync((int) $group->subject_id);
             $topics = MasteryTopic::query()->where('subject_id', $group->subject_id)->get()->keyBy('topic_key');
             $prepared = app(MarkInputs::class)->prepare($group, null);
@@ -74,12 +71,11 @@ class MasteryRecompute
                 }
             }
             foreach (array_unique($learnerIds) as $learnerId) {
-                $this->learner((int) $learnerId, (int) $group->subject_id);
+                $this->aggregate((int) $learnerId, (int) $group->subject_id);
             }
-            $scope->update(['computed_at' => now()]);
 
             return ['group_id' => (int) $group->id, 'learners' => count(array_unique($learnerIds)), 'evidence_written' => $written];
-        }, 3);
+        });
     }
 
     private function task(TeachingGroup $group, int $learnerId, string $audience, string $kind, array $entry, string $source, mixed $observed, $topics): int
@@ -120,7 +116,32 @@ class MasteryRecompute
         return $written;
     }
 
+    /** Verified practice/tutor adapters must share the same aggregate serialization. */
     public function learner(int $learnerId, int $subjectId): void
+    {
+        $this->serialised($subjectId, function () use ($learnerId, $subjectId) {
+            $this->aggregate($learnerId, $subjectId);
+        });
+    }
+
+    private function serialised(int $subjectId, callable $run): mixed
+    {
+        Subject::query()->findOrFail($subjectId);
+        $identity = ['school_id' => app(CurrentSchool::class)->id(), 'subject_id' => $subjectId];
+        SchoolTable::query('mastery_scopes')->insertOrIgnore($identity + ['created_at' => now(), 'updated_at' => now()]);
+
+        return DB::transaction(function () use ($identity, $run) {
+            // Lock before any evidence snapshot. Grade/year locks are insufficient:
+            // each learner projection includes evidence from every grade and year.
+            $scope = MasteryScope::query()->where($identity)->lockForUpdate()->firstOrFail();
+            $result = $run();
+            $scope->update(['computed_at' => now()]);
+
+            return $result;
+        }, 3);
+    }
+
+    private function aggregate(int $learnerId, int $subjectId): void
     {
         $topicIds = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->pluck('topic_id')
             ->merge(MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->pluck('topic_id'))->unique();
