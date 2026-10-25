@@ -53,3 +53,8 @@ release are separate checks. None is inferred from these synthetic tests.
 Final SDK verification: all 74 tests pass. Analysis has zero errors/warnings and
 657 generated informational lints. The date regression now passes with exact
 YYYY-MM-DD input/output. Final owned/canonical definition comparison passes.
+
+Transport follow-up: all private-code inputs explicitly reject a `secret` query
+parameter, even when a valid body also exists. Write validation reads the body,
+never merged query input. The final seven actual HTTP tests pass 401 assertions
+and full Larastan/Pint pass after this additional body-only enforcement.

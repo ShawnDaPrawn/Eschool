@@ -89,6 +89,8 @@ class WellbeingApiTest extends TestCase
         $one = $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up/replies', $reply)->assertOk()->json('data');
         $this->assertSame($one, $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up/replies', $reply)->assertOk()->json('data'));
         $this->assertSame(1, IncidentThread::count());
+        $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up?secret='.$this->secret, [])->assertUnprocessable();
+        $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up?secret='.str_repeat('0', 64), ['secret' => $this->secret])->assertUnprocessable();
         $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up', ['secret' => str_repeat('0', 64)])->assertNotFound();
         $this->postJson('/api/v2/wellbeing/public/baobab-high/follow-up', ['secret' => $this->secret])->assertNotFound();
     }

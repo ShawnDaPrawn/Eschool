@@ -21,6 +21,16 @@ class WellbeingRequest extends FormRequest
         return Str::after((string) $this->route()->getName(), 'api.v2.wellbeing.');
     }
 
+    protected function prepareForValidation(): void
+    {
+        abort_if($this->query->has('secret'), 422, 'Enter the private code in the form, never in a URL.');
+    }
+
+    public function validationData(): array
+    {
+        return $this->isMethod('GET') ? $this->query->all() : $this->getInputSource()->all();
+    }
+
     public function rules(): array
     {
         $action = $this->action();
