@@ -27,6 +27,14 @@ class RestrictFixtureScope implements PrivateNoticeScope
         $notifications->where('title', 'Allowed synthetic private notice');
     }
 }
+class PrecomputedFixtureScope implements PrivateNoticeScope
+{
+    public function apply(Builder $notifications, User $actor): void
+    {
+        $ids = Notification::where('title', 'Allowed synthetic private notice')->pluck('id')->all();
+        $notifications->whereIn('id', $ids);
+    }
+}
 class BroadFixtureScope implements PrivateNoticeScope
 {
     public function apply(Builder $notifications, User $actor): void
@@ -124,6 +132,40 @@ class PrivateNoticeScopesTest extends TestCase
         $private = $this->notice('private.updated', 'No changed context');
         $this->assertNull($this->visible()->find($private->id));
         $this->assertSame(1, app(CurrentSchool::class)->id());
+    }
+
+    public function test_initially_denied_context_cannot_become_authorized_by_a_later_context_reset(): void
+    {
+        $notice = $this->notice('other.updated', 'Owned private');
+        $school = app(CurrentSchool::class);
+        $school->impersonate(School::findOrFail(1));
+        $impersonated = $this->visible()->whereKey($notice->id);
+        $school->set(1);
+        $this->assertSame(0, $impersonated->count());
+        $school->allowAcrossSchools();
+        $across = $this->visible()->whereKey($notice->id);
+        $school->set(1);
+        $this->assertSame(0, $across->count());
+        $this->actor()->forceFill(['password_change_required' => true])->save();
+        $setup = $this->visible()->whereKey($notice->id);
+        $this->actor()->forceFill(['password_change_required' => false])->save();
+        $this->assertSame(0, $setup->count());
+        $this->assertNotNull($this->visible()->find($notice->id));
+    }
+
+    public function test_each_execution_refreshes_source_scope_without_mutating_the_prepared_builder(): void
+    {
+        config(['private_notices.scopes' => ['private.' => PrecomputedFixtureScope::class]]);
+        $notice = $this->notice('private.updated', 'Allowed synthetic private notice');
+        $query = $this->visible()->whereKey($notice->id);
+        $this->assertSame(1, $query->count());
+        $notice->forceFill(['title' => 'Denied after preparation'])->save();
+        $this->assertSame(0, $query->count());
+        $this->assertNull($query->first());
+        $notice->forceFill(['title' => 'Allowed synthetic private notice'])->save();
+        $this->assertSame(1, $query->count());
+        SchoolMembership::where('school_id', 1)->where('user_id', $this->actor()->id)->update(['status' => 'ended']);
+        $this->assertSame(0, $query->count());
     }
 
     public function test_prefix_underscores_are_literal_and_do_not_hide_a_sibling_type(): void

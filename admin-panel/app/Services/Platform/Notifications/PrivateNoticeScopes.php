@@ -71,6 +71,52 @@ class PrivateNoticeScopes
         if (! is_array($providers)) {
             throw new RuntimeException('Private notice scope configuration must be a map.');
         }
+        foreach ($providers as $prefix => $class) {
+            if (! is_string($prefix) || preg_match('/^[a-z]+(?:[._][a-z]+)*[._]?$/D', $prefix) !== 1 || ! is_string($class)) {
+                throw new RuntimeException('Private notice scope needs a literal dotted prefix and provider class.');
+            }
+        }
+        $school = app(CurrentSchool::class);
+        $schoolId = $school->isSet() ? $school->id() : null;
+        $initiallyAllowed = $schoolId !== null && ! $school->isAcrossSchools() && ! $school->isImpersonating()
+            && School::active()->whereKey($schoolId)->exists();
+        if ($initiallyAllowed) {
+            try {
+                $fresh = app(ProfilePolicy::class)->actor(User::findOrFail($actorId));
+                $initiallyAllowed = ! $fresh->password_change_required && ! PlatformStaffIdentity::where('user_id', $actorId)->where('active', true)->exists();
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                $initiallyAllowed = false;
+            }
+        }
+        // Eloquent reapplies this scope to each SQL execution, including the
+        // separate pagination count and row reads. A prepared allowed-ID list
+        // must not preserve source authority after a permission withdrawal.
+        $key = 'private_notice_sources:'.$actorId.':'.($schoolId ?? 0).':'.(int) $initiallyAllowed;
+
+        return $notifications->withGlobalScope($key, function (Builder $query) use ($actorId, $schoolId, $initiallyAllowed, $providers) {
+            $current = app(CurrentSchool::class);
+            if (! $initiallyAllowed || ! $current->isSet() || $current->id() !== $schoolId || $current->isAcrossSchools() || $current->isImpersonating()) {
+                foreach (array_keys($providers) as $prefix) {
+                    $prefix = (string) $prefix;
+                    $type = $query->qualifyColumn('type');
+                    $query->whereRaw("LEFT(COALESCE($type, ''), ?) <> ?", [strlen($prefix), $prefix]);
+                }
+
+                return;
+            }
+            $this->applyNow($query, $actorId);
+        });
+    }
+
+    private function applyNow(Builder $notifications, int $actorId): Builder
+    {
+        $providers = config('private_notices.scopes', []);
+        if ($providers === []) {
+            return $notifications;
+        }
+        if (! is_array($providers)) {
+            throw new RuntimeException('Private notice scope configuration must be a map.');
+        }
         $school = app(CurrentSchool::class);
         $schoolId = $school->isSet() ? $school->id() : null;
         $actor = null;
