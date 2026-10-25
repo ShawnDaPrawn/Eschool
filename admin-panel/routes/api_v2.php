@@ -428,7 +428,6 @@ Route::prefix('pastoral/support')->middleware(['auth:sanctum', 'school.context',
     }
 });
 
-
 Route::prefix('growth/risk')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'staff', 'module:early_warning'])->name('api.v2.risk.')->group(function () {
     $c = RiskController::class;
     Route::get('configuration', [$c, 'configuration'])->name('configuration');

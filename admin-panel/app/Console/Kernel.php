@@ -12,8 +12,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('risk:evaluate')->hourly()->withoutOverlapping(55);
-
         // $schedule->command('inspire')->hourly();
     }
 

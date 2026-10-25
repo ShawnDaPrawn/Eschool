@@ -389,3 +389,26 @@ The global route/contract catalogue passes **331 tests, 1,571 assertions**. A
 second clean pinned regeneration reproduces every generated Dart byte.
 Panel/native interaction acceptance remains the next increment; no family risk
 labels, clinical evidence projection or live-school acceptance is claimed.
+
+## Current risk observation ordering and active scheduling
+
+Both reviewed bugs first reproduced with real red regressions: canonical daily
+attendance changed present → absent → present while the displayed risk stayed
+absent, and the configured application's schedule omitted the hourly refresh.
+After the retained-safe index/append fix and active scheduler registration, the
+risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions**.
+Repeated identical refreshes stay idempotent; genuine reversions retain all three
+ordered observations and classroom readers show the latest corrected state.
+Changed-file Pint and complete configured Larastan pass.
+
+The inherited SetSchoolContext/PortalSession formatting is corrected and the
+complete **1,283-file Pint** check passes. The already reviewed Phase 4 Android
+smoke matrix is backported unchanged: family, classic Teacher and native
+facilitator each run their matching target/profile. No startup assertion is
+weakened; emulator execution remains CI verification.
+
+Risk API integration now includes the retained observation-ordering migration and
+active hourly scheduler corrections. Its refreshed focused cohort passes **26
+tests, 371 assertions**, full **1,290-file Pint**, and configured Larastan with no
+errors. The inherited Android smoke jobs use their actual family, Teacher and
+facilitator profiles; emulator execution remains CI evidence.

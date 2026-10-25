@@ -187,10 +187,15 @@ class RiskRecompute
             }
             $evidence = $facts['evidence'] + ['settings_revision' => $rules['revision'], 'rule_version' => $rules['rule_version']];
             $fingerprint = hash('sha256', json_encode([$facts['score'], $facts['signal_count'], $facts['reason_code'], $evidence], JSON_THROW_ON_ERROR));
-            RiskObservation::firstOrCreate(['learner_id' => $learner, 'session_year_id' => $year, 'grade_level_id' => $grade,
-                'as_of' => $today, 'source' => $source, 'fingerprint' => $fingerprint],
-                ['window_start' => $start, 'score' => $facts['score'], 'signal_count' => $facts['signal_count'], 'reason_code' => $facts['reason_code'],
+            $identity = ['learner_id' => $learner, 'session_year_id' => $year, 'grade_level_id' => $grade, 'as_of' => $today, 'source' => $source];
+            $latest = RiskObservation::where($identity)->latest('id')->first();
+            // Only an immediately repeated observation is a replay. A -> B -> A
+            // is a genuine later transition and must retain its own ordered row.
+            if ($latest === null || ! hash_equals($latest->fingerprint, $fingerprint)) {
+                RiskObservation::create($identity + ['fingerprint' => $fingerprint, 'window_start' => $start,
+                    'score' => $facts['score'], 'signal_count' => $facts['signal_count'], 'reason_code' => $facts['reason_code'],
                     'evidence' => $evidence, 'created_at' => now()]);
+            }
             $verify();
         });
     }
