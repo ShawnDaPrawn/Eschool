@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_academics/eschool_academics.dart'
+    show SecurePracticeApprovalStore;
 import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/foundation.dart';
 
@@ -302,6 +304,13 @@ class FacilitatorRepository extends ChangeNotifier {
     if (busy || profile == null || id == _school) return;
     final choice = profile!.schools.where((s) => s.id == id).firstOrNull;
     if (choice == null) return;
+    final original = profile!;
+    unawaited(
+      SecurePracticeApprovalStore.revokeScope(
+        original.userId,
+        original.schoolId,
+      ).catchError((Object _) {}),
+    );
     preferredSchool = choice.slug;
     epoch++;
     _school = id;
@@ -312,6 +321,15 @@ class FacilitatorRepository extends ChangeNotifier {
 
   Future<void> signOut() async {
     final headers = _headers();
+    final original = profile;
+    if (original != null) {
+      unawaited(
+        SecurePracticeApprovalStore.revokeScope(
+          original.userId,
+          original.schoolId,
+        ).catchError((Object _) {}),
+      );
+    }
     clear();
     final generation = epoch;
     busy = true;

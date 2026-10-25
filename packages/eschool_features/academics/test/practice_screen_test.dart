@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -150,6 +151,112 @@ void main() {
       expect(find.text('One half as a decimal?'), findsNothing);
     },
   );
+  testWidgets('saved questions expire while the app stays in the foreground', (
+    tester,
+  ) async {
+    final repo = FakePracticeRepository()
+      ..error = const FileSystemException('Synthetic offline');
+    final store = MemoryContentStore(), now = DateTime.now().toUtc();
+    final value = PracticeDailySet.fromJson({
+      ...practiceSet(time: now).toJson(),
+      'offline_until': now.add(const Duration(seconds: 5)).toIso8601String(),
+    });
+    final cache = PracticeCache(
+      repo,
+      store: () async => store,
+      canQueue: () => true,
+    );
+    await cache.save(value, requestedAt: now, writable: true);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PracticeScreen(
+          repository: repo,
+          cache: cache,
+          canRead: () => true,
+          canWrite: () => true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tapPractice(tester, 'Open saved practice');
+    await tapPractice(tester, '2026-10-25 · 1 questions');
+    expect(find.text('One half as a decimal?'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump();
+    expect(find.text('One half as a decimal?'), findsNothing);
+    expect(
+      find.text(
+        'This saved practice copy has expired. Sync pending answers after refreshing access.',
+      ),
+      findsOneWidget,
+    );
+    expect(repo.writes, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets(
+    'inflight approval keeps its exact identity through background and fresh recovery',
+    (tester) async {
+      final repo = FakePracticeRepository()..staff = true;
+      repo.approved = PracticeBankItem(
+        id: 21,
+        topicId: 22,
+        revision: 3,
+        active: true,
+        contentVersionId: 23,
+        estimatedSeconds: 120,
+        definition: practiceSet().items.single.definition,
+      );
+      final response = Completer<PracticeApproval>(),
+          store = MemoryContentStore();
+      repo.approving = (intent) => response.future;
+      final approvals = PracticeApprovalOutbox(repo, store: () async => store);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PracticeBankScreen(
+            repository: repo,
+            approvals: approvals,
+            canRead: () => true,
+            canWrite: () => true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tapPractice(tester, 'One half as a decimal?');
+      final prompt = find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.labelText == 'Question',
+      );
+      await tester.enterText(prompt, 'Pending original altered question');
+      final approve = find.text('Approve question revision');
+      await tester.scrollUntilVisible(
+        approve,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(approve);
+      await tester.pump();
+      expect(repo.writes.length, 1);
+      final original = repo.writes.single;
+      expect((await store.keys()).length, 1);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.text('Pending original altered question'), findsNothing);
+      response.complete(
+        PracticeApproval(id: 21, versionId: 31, revision: 4, active: true),
+      );
+      await tester.pump();
+      repo.approving = (intent) async =>
+          PracticeApproval(id: 21, versionId: 31, revision: 4, active: true);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('Retry exact operation'), findsOneWidget);
+      expect(find.text('Pending original altered question'), findsNothing);
+      await tapPractice(tester, 'Retry exact operation');
+      expect(repo.writes.length, 2);
+      expect(repo.writes.last.body, original.body);
+      expect(await store.keys(), isEmpty);
+      expect(tester.takeException(), isNull);
+    },
+  );
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets('teacher approves a real bounded question at width $width', (
       tester,
@@ -163,6 +270,10 @@ void main() {
         MaterialApp(
           home: PracticeBankScreen(
             repository: repo,
+            approvals: PracticeApprovalOutbox(
+              repo,
+              store: () async => MemoryContentStore(),
+            ),
             canRead: () => true,
             canWrite: () => true,
           ),
@@ -220,6 +331,10 @@ void main() {
         MaterialApp(
           home: PracticeBankScreen(
             repository: repo,
+            approvals: PracticeApprovalOutbox(
+              repo,
+              store: () async => MemoryContentStore(),
+            ),
             canRead: () => true,
             canWrite: () => true,
           ),

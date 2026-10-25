@@ -57,6 +57,11 @@ class AuthRepository {
     final clearLogin = setIsLogIn(false), clearToken = setJwtToken('');
     await Future.wait([clearLogin, clearToken]);
     try {
+      await SecurePracticeApprovalStore.purge();
+    } catch (_) {
+      /* Scope is already signed out. */
+    }
+    try {
       await SecureRegisterStore.purge();
     } catch (_) {
       /* A closed register key cannot serve another context. */

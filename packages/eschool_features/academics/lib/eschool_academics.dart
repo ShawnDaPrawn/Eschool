@@ -105,3 +105,5 @@ export 'src/practice/practice_session_boundary.dart';
 export 'src/gallery/gallery_repository.dart';
 export 'src/gallery/gallery_screen.dart';
 export 'src/gallery/gallery_session_boundary.dart';
+export 'src/practice/practice_approval_outbox.dart';
+export 'src/practice/practice_approval_store.dart';

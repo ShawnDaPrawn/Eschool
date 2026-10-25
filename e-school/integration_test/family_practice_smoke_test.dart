@@ -16,6 +16,7 @@ void main() {
       '${parent ? 'Parent' : 'Student'} practice entry and owned study boundaries',
       (tester) async {
         final fixture = PracticeProtocolFixture(staff: false, reader: 11);
+        fixture.offlineLease = const Duration(seconds: 15);
         final api = await startSmokeApp(tester, {
           ...(parent ? parentOfTwoRoutes() : learnerRoutes()),
           'GET v2/me/context': ok({
@@ -77,6 +78,11 @@ void main() {
           await tapWhenReady(tester, find.text('Mathematics · Grade 7'));
           await pumpUntilFound(tester, find.text('One half as a decimal?'));
           expect(find.text('Divide one by two to get 0.5.'), findsNothing);
+          await tapWhenReady(tester, find.text('Save for offline'));
+          await pumpUntilFound(
+            tester,
+            find.text('Encrypted practice copy saved for offline use.'),
+          );
           final field = find.byWidgetPredicate(
             (w) =>
                 w is TextField &&
@@ -86,6 +92,14 @@ void main() {
           await tapWhenReady(tester, find.text('Check answer'));
           await pumpUntilFound(tester, find.text('Correct'));
           expect(find.text('Divide one by two to get 0.5.'), findsOneWidget);
+          expect(fixture.reviewed, isFalse);
+          await tester.pump(const Duration(seconds: 16));
+          await tester.pump();
+          expect(find.text('One half as a decimal?'), findsNothing);
+          await tapWhenReady(tester, find.text('Open saved practice'));
+          await pumpUntilFound(tester, find.text('Sync saved answers (1)'));
+          await tapWhenReady(tester, find.text('Sync saved answers (1)'));
+          await pumpUntilFound(tester, find.text('Answers synchronized.'));
           expect(fixture.reviewed, isTrue);
           expect(
             api.requests

@@ -157,7 +157,13 @@ class PracticeCache {
         throw const FormatException('Invalid pending scope.');
       }
       raw['last_seen'] = time.toIso8601String();
-      if (!time.isBefore(expiry)) raw['set'] = null;
+      if (!time.isBefore(expiry)) {
+        if (pending.isEmpty) {
+          await box.remove(key);
+          return null;
+        }
+        raw['set'] = null;
+      }
     } on FormatException {
       await box.remove(key);
       rethrow;
@@ -176,6 +182,18 @@ class PracticeCache {
     required DateTime requestedAt,
     bool writable = false,
   }) => _locked((box) async {
+    // Reclaim expired empty copies before the physical store enforces its quota.
+    for (final key in await box.keys()) {
+      final scope = await box.read(key);
+      if (scope == null || scope['learner'] is! int || scope['id'] is! int) {
+        continue;
+      }
+      try {
+        await _raw(box, scope['learner'] as int, scope['id'] as int);
+      } on FormatException {
+        /* A malformed copy was erased by _raw. */
+      }
+    }
     if (!_valid(value)) {
       throw const FormatException('Invalid own practice set.');
     }

@@ -13,7 +13,7 @@ import 'support/wellbeing_fixture.dart';
 import 'support/smoke.dart' show pumpUntilFound, tapWhenReady;
 
 class PracticeStaffFixture extends ClinicalStaffFixture {
-  final practice = PracticeProtocolFixture();
+  final practice = PracticeProtocolFixture()..loseFirstApprovalResponse = true;
   bool practiceGranted = true;
   @override
   Map<String, dynamic> profile() {
@@ -35,6 +35,21 @@ void main() {
     (tester) async {
       expect(StaffBuildIdentity.current.canStartFacilitator, isTrue);
       final fixture = PracticeStaffFixture();
+      Future<void> retryReady(String phase) async {
+        try {
+          await pumpUntilFound(tester, find.text('Retry exact operation'));
+        } catch (error) {
+          final texts = tester
+              .widgetList<Text>(find.byType(Text))
+              .map((w) => w.data)
+              .whereType<String>()
+              .toList();
+          throw TestFailure(
+            '$phase: $error; approvals=${fixture.practice.approvalCreates}; visible=$texts',
+          );
+        }
+      }
+
       final repo = FacilitatorRepository(
         mode: AuthMode.bearer,
         createDio: () => Dio()..httpClientAdapter = fixture.api,
@@ -71,7 +86,29 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       await tapWhenReady(tester, find.text('Approve question revision'));
+      await retryReady('After uncertain response');
+      final original = Map<String, dynamic>.from(
+        fixture.practice.lastApproval!,
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is TextField && w.decoration?.labelText == 'Worked explanation',
+        ),
+        findsNothing,
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      // A fresh dedicated-profile epoch replaces private routes on resume.
+      // Reopening must recover the encrypted intent, not recreate an editor draft.
+      await pumpUntilFound(tester, find.text('Your school activities'));
+      await tapWhenReady(tester, find.text('Practice question bank'));
+      await retryReady('After background recovery');
+      await tapWhenReady(tester, find.text('Retry exact operation'));
       await pumpUntilFound(tester, find.text('Question revision approved.'));
+      expect(fixture.practice.approvalCreates, 1);
+      expect(fixture.practice.lastApproval, original);
       expect(fixture.practice.lastApproval?['expected_revision'], 1);
       expect(
         fixture.api.requests

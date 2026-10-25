@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../localization/academic_text.dart';
 import 'practice_answers.dart';
+import 'practice_approval_outbox.dart';
+import 'practice_approval_store.dart';
 import 'practice_repository.dart';
 
 /// A teacher explicitly approves each immutable self-study question revision.
@@ -12,9 +14,11 @@ class PracticeBankScreen extends StatefulWidget {
     required this.repository,
     required this.canRead,
     required this.canWrite,
+    this.approvals,
     super.key,
   });
   final PracticeRepository repository;
+  final PracticeApprovalOutbox? approvals;
   final bool Function() canRead, canWrite;
   @override
   State<PracticeBankScreen> createState() => _PracticeBankScreenState();
@@ -22,6 +26,22 @@ class PracticeBankScreen extends StatefulWidget {
 
 class _PracticeBankScreenState extends State<PracticeBankScreen>
     with WidgetsBindingObserver {
+  late final PracticeApprovalOutbox _approvals =
+      widget.approvals ?? _defaultApprovals();
+  PracticeApprovalOutbox _defaultApprovals() {
+    late final PracticeApprovalOutbox result;
+    result = PracticeApprovalOutbox(
+      widget.repository,
+      store: () => SecurePracticeApprovalStore.open(
+        widget.repository.readerId,
+        widget.repository.schoolId,
+        active: () => result.isActive,
+      ),
+    );
+    return result;
+  }
+
+  bool _blockedApproval = false, _confirmed = false;
   PracticeAccess? _access;
   PracticeBankChoices? _choices;
   PracticeBankPage? _bank;
@@ -52,6 +72,7 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
   bool get _write =>
       _active &&
       widget.canWrite() &&
+      !_blockedApproval &&
       _access?.writable == true &&
       _choices?.writable == true;
   bool _current(int epoch) => _active && epoch == _epoch;
@@ -67,6 +88,7 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
     _epoch++;
     WidgetsBinding.instance.removeObserver(this);
     _scroll.dispose();
+    _approvals.close();
     _prompt.dispose();
     _explanation.dispose();
     _answer.dispose();
@@ -99,6 +121,8 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
     _editing = null;
     _editor = false;
     _pending = null;
+    _confirmed = false;
+    _blockedApproval = false;
     _topic = null;
     _source = null;
     _prompt.clear();
@@ -124,7 +148,6 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
         _error = 'Reopen practice to check your access.';
       } else if (error is ApiException &&
           [409, 422].contains(error.statusCode)) {
-        _pending = null;
         _error =
             'The revision or input was refused. Refresh the bank before approving a changed revision.';
       } else if (error is FormatException) {
@@ -142,7 +165,9 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
   }
 
   Future<void> _load({int? group, int page = 1}) async {
-    if (!_active || _pending != null) return;
+    if (!_active || (_pending != null && (group == null || group == _group))) {
+      return;
+    }
     final epoch = ++_epoch;
     setState(() {
       _busy = true;
@@ -163,12 +188,24 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
       final bank = id == null
           ? null
           : await widget.repository.bank(id, page: page);
+      final recovery = id == null
+          ? const PracticeApprovalRecovery()
+          : await _approvals.restore(id);
       if (!_current(epoch)) return;
       setState(() {
         _access = access;
         _group = id;
         _choices = choices;
         _bank = bank;
+        _pending = recovery.intent;
+        _blockedApproval = recovery.blocked;
+        if (recovery.intent != null) {
+          _status = 'A saved approval is awaiting its exact retry.';
+        }
+        if (recovery.blocked) {
+          _status =
+              'A saved approval requires access to its original published topic and source.';
+        }
         _busy = false;
       });
     } catch (e) {
@@ -284,13 +321,22 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
   Future<void> _send(PracticeIntent intent) async {
     if (!_write || _busy) return;
     final epoch = _epoch;
+    var stored = _confirmed;
     setState(() {
       _busy = true;
       _pending = intent;
       _error = '';
     });
     try {
-      await widget.repository.approve(intent);
+      if (!_confirmed) {
+        await _approvals.stage(intent);
+        stored = true;
+        if (!_current(epoch)) return;
+        await widget.repository.approve(intent);
+        if (!_current(epoch)) return;
+        _confirmed = true;
+      }
+      await _approvals.complete(intent);
       if (!_current(epoch)) return;
       setState(() {
         _pending = null;
@@ -299,8 +345,23 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
         _busy = false;
       });
       await _load(group: _group, page: _page);
-    } catch (e) {
-      _fail(e, epoch);
+    } catch (error) {
+      if (!_current(epoch)) return;
+      if (!stored) {
+        _pending = null;
+      }
+      if (stored &&
+          !_confirmed &&
+          error is ApiException &&
+          [409, 422].contains(error.statusCode)) {
+        try {
+          await _approvals.complete(intent);
+          _pending = null;
+        } catch (_) {
+          /* Keep the exact operation until its local receipt can be cleared. */
+        }
+      }
+      _fail(error, epoch);
     }
   }
 
@@ -350,13 +411,13 @@ class _PracticeBankScreenState extends State<PracticeBankScreen>
                     child: Text('${g.subjectName} · ${g.name}'),
                   ),
               ],
-              onChanged: !_busy && _pending == null
-                  ? (g) => _load(group: g)
-                  : null,
+              onChanged: !_busy ? (g) => _load(group: g) : null,
             ),
           if (_pending != null) ...[
             AcademicText(
-              'The outcome is unknown. Retry this exact saved operation before changing it.',
+              _confirmed
+                  ? 'Approval confirmed. Retry device cleanup before continuing.'
+                  : 'The outcome is unknown. Retry this exact saved operation before changing it.',
             ),
             FilledButton(
               onPressed: !_busy && _write ? () => _send(_pending!) : null,
