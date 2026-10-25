@@ -116,3 +116,30 @@ generated style infos). Configured strict OpenAPI lint, changed PHP Pint and
 full Larastan pass. Final complete CI/review remains required before merge.
 
 Activity-list revocation follow-up: cancelled learner memberships are excluded from list metadata as well as detail, audiences and attendance. The existing cancellation regression was first observed failing without the filter, then passed after the fix.
+
+## Group management panel
+
+Implemented manager-only group definitions/tree/eligibility/seasons, named dated
+learner and staff allocations, cancellation, sessions, explicit attendance and
+sanitized Markdown materials in the existing Material 3 panel. Failed form data
+stays in its private response without plain session flash; conflict review uses
+the current revision and a new operation. Shared apps remain the next increment.
+
+Initial domain/panel integration: 24 tests / 450 assertions passed. Additional
+malformed-input, navigation, read-only-year, localization and browser checks are
+recorded when run below; no unrun browser/device evidence is inferred here.
+
+Panel evidence: 34 backend/panel/navigation/bootstrap tests with 1,007 assertions,
+plus the explicit historical-year write regression (1 test / 5 assertions).
+Malformed form arrays return 422 without a rendering exception or plain old-input
+flash. Language catalogue checks: 4 tests / 22,237 assertions. Full Larastan: no
+errors. TypeScript: no errors. Pint and whitespace checks passed.
+
+Actual Playwright group workflow passed at 1024px and 1280px: create group,
+choose a named school learner, allocate, schedule, record explicit late status,
+create a private Markdown material and refuse the foreign-school group URL.
+Both widths passed serious/critical axe, unique-ID, horizontal overflow and
+own-origin console/network checks. The browser run first exposed indistinct
+inline session links; underlines fixed the accessibility failure. Missing demo
+avatar storage linking and canonical demo enrolments were fixture setup issues
+fixed without weakening assertions. Browser tests use synthetic data only.

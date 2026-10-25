@@ -1,0 +1,56 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { expect, test } from '@playwright/test';
+import { accounts, signIn } from '../support/accounts';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+
+test.describe.configure({ mode: 'serial' });
+test.use({ storageState: { cookies: [], origins: [] } });
+test.beforeAll(() => execFileSync('php', ['artisan', 'tinker', '--execute', "require base_path('e2e/support/activity-fixture.php');"], {cwd: path.resolve(process.cwd(), '..')}));
+for (const width of [1024, 1280]) {
+  test(`manage activity group and explicit register at ${width}px`, async ({page, baseURL}) => {
+    await page.setViewportSize({width, height: 900});
+    await signIn(page, accounts.admin);
+    const errors = collectErrors(page, baseURL!);
+    await page.goto('/activity-groups');
+    const name = `Activity rehearsal ${width} ${Date.now()}`;
+    let form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save group', exact: true})});
+    await form.getByRole('textbox', {name: 'Group name', exact: true}).fill(name);
+    await form.getByRole('textbox', {name: 'Discipline', exact: true}).fill('Culture');
+    await form.getByRole('textbox', {name: 'Season', exact: true}).fill('Browser rehearsal');
+    await form.getByRole('button', {name: 'Save group', exact: true}).click();
+    await expect(page.getByRole('status').filter({hasText: 'Activity saved'})).toBeVisible();
+    const groupUrl = page.url();
+    form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save allocation', exact: true})}).filter({has: page.getByRole('combobox', {name: 'Learner', exact: true})});
+    const learner = form.getByRole('combobox', {name: 'Learner', exact: true});
+    const first = await learner.locator('option').nth(1).getAttribute('value');
+    expect(first).toBeTruthy();
+    await learner.selectOption(first!);
+    await form.getByRole('textbox', {name: 'Reason', exact: true}).fill('Synthetic browser allocation');
+    await form.getByRole('button', {name: 'Save allocation', exact: true}).click();
+    form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save session', exact: true})});
+    await form.getByLabel('Session date', {exact: false}).fill(new Date().toLocaleDateString('en-CA', {timeZone: 'Africa/Johannesburg'}));
+    await form.getByRole('textbox', {name: 'Session name', exact: true}).fill('Rehearsal session');
+    await form.getByRole('textbox', {name: 'Venue', exact: true}).fill('Culture room');
+    await form.getByRole('button', {name: 'Save session', exact: true}).click();
+    await page.getByRole('link', {name: 'Open attendance', exact: true}).click();
+    form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save attendance', exact: true})});
+    await expect(form.getByRole('combobox').first()).toHaveValue('');
+    await form.getByRole('combobox').first().selectOption('late');
+    await form.getByRole('textbox', {name: 'Attendance reason', exact: true}).fill('Observed in browser rehearsal');
+    await form.getByRole('button', {name: 'Save attendance', exact: true}).click();
+    form = page.locator('form').filter({has: page.getByRole('button', {name: 'Save material', exact: true})});
+    await form.getByRole('textbox', {name: 'Material title', exact: true}).fill('Rehearsal note');
+    await form.getByRole('textbox', {name: 'Material Markdown', exact: true}).fill('# Culture meeting\n\nBring your notes.');
+    await form.getByRole('button', {name: 'Save material', exact: true}).click();
+    await expect(page.getByRole('heading', {name: 'Rehearsal note', exact: true})).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    const ids = await page.locator('[id]').evaluateAll(nodes => nodes.map(n => n.id));
+    expect(ids.length).toBe(new Set(ids).size);
+    expect(errors).toEqual([]);
+    await page.context().clearCookies();
+    await signIn(page, accounts.adminB);
+    expect((await page.goto(groupUrl))?.status()).toBe(404);
+  });
+}

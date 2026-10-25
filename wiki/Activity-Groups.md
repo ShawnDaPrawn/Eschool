@@ -1,11 +1,11 @@
 Activity groups extend the current Laravel academic/communication platform with
 seasonal school-life groups and dated authority. The initial backend is available
-through API v2; group-management panel and shared app screens follow separately.
+through API v2 and the group-management panel. Shared app screens follow separately.
 
 ## Enable and allocate
 
 The groups module is entitled in the declared school packages but starts off.
-School managers enable it through the existing module controls. The explicit
+School managers enable it through the existing module controls, then open Activities → Activity groups. The workbench manages definitions, eligibility, seasons, dated people, sessions, explicit attendance and authored materials. The explicit
 activity-groups-manage permission controls definitions and staff/membership edits.
 Facilitator memberships have no Teacher or Super Admin permissions. Assign a
 teacher or facilitator to a group with dates; a group administrator's subtree

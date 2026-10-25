@@ -311,6 +311,9 @@ return [
             'label' => 'nav_activities',
             'icon' => 'activities',
             'groups' => [
+                'groups' => ['label' => 'nav_activity_groups', 'items' => [
+                    ['key' => 'activity-groups', 'label' => 'nav_activity_groups', 'route' => 'activity-groups.index', 'permissions' => ['activity-groups-manage'], 'module' => 'groups', 'active' => ['activity-groups.*'], 'keywords' => ['sport', 'coach', 'culture', 'season', 'facilitator']],
+                ]],
                 'events' => [
                     'label' => 'nav_group_events_gallery',
                     'items' => [
