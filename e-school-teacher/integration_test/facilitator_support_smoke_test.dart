@@ -33,8 +33,10 @@ void main() {
       await tapWhenReady(tester, find.text('Sign in'));
       await pumpUntilFound(tester, find.text('Your school activities'));
       await tapWhenReady(tester, find.text('Support plans'));
-      await pumpUntilFound(tester, find.byType(DropdownButtonFormField<int>));
-      await tester.tap(find.byType(DropdownButtonFormField<int>));
+      // The home school picker has the same widget type during navigation.
+      // Bind this wait to the actual support learner field, including slow loads.
+      final learnerPicker = find.byKey(const ValueKey('learner-null'));
+      await tapWhenReady(tester, learnerPicker);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Synthetic Learner').last);
       await tester.pumpAndSettle();
