@@ -1,0 +1,1 @@
+<label for="{{ $prefix }}-{{ $field }}">{{ __($label) }}<input id="{{ $prefix }}-{{ $field }}" name="{{ $field }}" type="{{ $type ?? 'text' }}" @if($required ?? true) required @endif value="{{ $value ?? '' }}" @if(isset($max)) maxlength="{{ $max }}" @endif @if(isset($min)) min="{{ $min }}" @endif @if(isset($maximum)) max="{{ $maximum }}" @endif></label>

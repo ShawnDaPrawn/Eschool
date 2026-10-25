@@ -18,7 +18,6 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Subject;
 use App\Models\User;
-use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Audit\Audit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
@@ -120,6 +119,7 @@ class RecognitionCatalog
 
     public function membership(User $actor, array $input, ?int $id = null): HouseMembership
     {
+        $input = RecognitionRules::normalise($input, 'membership');
         $a = app(RecognitionAuthority::class);
         $a->manage($actor, 'house_points');
         if ($id !== null) {
@@ -156,6 +156,7 @@ class RecognitionCatalog
 
     public function awardCategory(User $actor, array $input, ?int $id = null): AwardCategory
     {
+        $input = RecognitionRules::normalise($input, 'awardCategory');
         $a = app(RecognitionAuthority::class);
         $a->staff($actor, 'awards', true);
         $current = $id === null ? null : AwardCategory::findOrFail($id);
@@ -269,13 +270,14 @@ class RecognitionCatalog
 
         return $this->save($actor, 'award-admin.save', 'awards', $d, fn () => $a->manage($actor, 'awards'), function () use ($d, $id) {
             AwardCategory::findOrFail($d['award_category_id']);
-            $person = User::findOrFail($d['user_id']);
-            $fresh = app(RecognitionAuthority::class)->staff($person, 'awards');
-            abort_unless(array_diff(app(ProfilePolicy::class)->roles($fresh), ['Parent', 'Student']) !== [], 422, 'Choose an active school staff member.');
             $row = $id === null ? new AwardCategoryAdmin : AwardCategoryAdmin::lockForUpdate()->findOrFail($id);
             if ($id !== null) {
                 $this->revision($row, $d);
                 abort_unless((int) $row->award_category_id === $d['award_category_id'] && (int) $row->user_id === $d['user_id'], 422);
+            }
+            if ($id === null || $d['active']) {
+                $person = User::findOrFail($d['user_id']);
+                app(RecognitionAuthority::class)->staff($person, 'awards');
             }
             $row->fill(array_diff_key($d, ['operation_id' => true, 'revision' => true]) + ['revision' => (int) ($row->revision ?? 0) + 1])->save();
             Audit::record('recognition.award_admin_saved', $row, [], ['revision' => $row->revision, 'user_id' => $d['user_id']]);

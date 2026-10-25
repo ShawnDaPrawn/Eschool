@@ -161,8 +161,8 @@ class RecognitionController extends Controller
 
     public function void(RecognitionRequest $r): JsonResponse
     {
-        $this->module($r,'awards');
+        $this->module($r, 'awards');
 
-        return $this->reference(app(AwardPresentations::class)->void($r->user(),(int) $r->route('record'),$r->validated()));
+        return $this->reference(app(AwardPresentations::class)->void($r->user(), (int) $r->route('record'), $r->validated()));
     }
 }
