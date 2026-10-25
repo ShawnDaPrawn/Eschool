@@ -145,3 +145,40 @@ activity-subtree checks. The integrated mastery/activity cohort passes **48 test
 An explicit private-response middleware now covers every HTTP method, including
 graph receipts, conflict errors, cached receipt replay and repair POST responses;
 Laravel's cache-header middleware only covers cacheable methods.
+
+## Mastery app and panel views
+
+Implemented shared learner/parent/staff Material 3 screens, own-subject and
+allocated group/learner selectors, paginated rosters, three root topics, human
+grade/path labels and a separate evidence view. Phones expose bottom navigation;
+tablet/desktop layouts use a rail. Home, Settings, module guards and deep links
+are wired in both existing apps. Reader/account/school/child boundaries,
+backgrounding, refused refreshes and late responses suppress private state; no
+mastery cache is persisted. Hidden evidence is distinct from assessed zero.
+
+The panel provides scoped learner guidance, published-source refresh and a
+sourced acyclic prerequisite editor with empty/add/remove/clear behavior,
+school-wide family opt-in wording, optimistic conflict comparison and escaped
+validation draft recovery. Ordinary teachers have no graph editor. Private-cache
+headers cover all response methods. New en/af/zu labels are supplied; all other
+existing app languages retain explicit English fallback keys. Human language
+review remains external acceptance, not an automated fluency claim.
+
+Verification: **30 PHP tests passed, 308 assertions**, changed-file Pint and full
+configured Larastan pass. **21 shared Flutter unit/widget/localization tests
+passed**, including account/school/token/subject/audience refusal races, lifecycle
+clearing, unknown-versus-zero, hidden evidence, pagination and 390/820/1280px
+layouts. Full-app headless Chrome flows pass for **learner, parent and teacher**
+using synthetic HTTP fixtures. The actual panel Playwright workflow passes at
+**390, 820 and 1280px**, including saved edge/source values, teacher read-only
+authority, no serious/critical axe issues, no horizontal overflow and no console
+or request failures. TypeScript typecheck and JavaScript syntax check pass.
+Physical devices, live school datasets, calibrated learning judgments and human
+staging acceptance were not run. Tutor/practice evidence adapters remain tied
+to their upcoming verified review workflows.
+
+The mastery-specific session boundary also unmounts private evidence when the
+same account receives changed roles, guardian-child authority or module context;
+three regression tests pass. Both app language/shared-label suites pass (six tests
+each), and focused new Dart sources/tests analyze without issues. The new
+learner/parent and teacher Chrome flows are included in the CI matrix.

@@ -178,6 +178,14 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('mastery') ==
+            true &&
+        allowsSchoolModule(context.watch<MeContextCubit>().context, 'mastery'))
+      tile(
+        title: label('Mastery map'),
+        icon: Icons.account_tree_outlined,
+        onTap: () => open(Routes.mastery),
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
               'communication_messages',
             ) ==
@@ -716,6 +724,99 @@ class SchoolMessagesEntry extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Navigator.of(context).pushNamed(Routes.schoolMessages),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> masteryRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final auth = context.read<AuthCubit>();
+    final children = context.read<ChildSelectionCubit>();
+    final parent = auth.isParent();
+    final child = parent ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    final school = parent ? child?.schoolId : me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        learner == null ||
+        learner <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        me.isFeatureOn('mastery') != true ||
+        !allowsSchoolModule(me, 'mastery')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Mastery map'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: MasterySessionBoundary(
+        pinned: me,
+        child: MasteryScreen(
+          learner: learner,
+          learnerName:
+              child?.child.name ?? auth.getStudentDetails().getFullName(),
+          repository: ApiMasteryRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                masteryAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!parent ||
+                    children.selected?.id == learner &&
+                        children.selected?.schoolId == school) &&
+                session.context?.isFeatureOn('mastery') == true &&
+                allowsSchoolModule(session.context, 'mastery'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class MasteryEntry extends StatelessWidget {
+  const MasteryEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state.context?.isFeatureOn('mastery') != true ||
+              !allowsSchoolModule(state.context, 'mastery')) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.account_tree_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Mastery map'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.mastery),
             ),
           );
         },

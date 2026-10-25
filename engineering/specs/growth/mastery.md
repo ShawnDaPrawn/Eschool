@@ -62,6 +62,25 @@ client-computed scores. Rebuild jobs coalesce pending identical school/group wor
 canonical complete contract and pinned generated Dart SDK include the parallel
 Phase 4 activity contract. App and panel navigation/views follow separately;
 these APIs do not claim completed learner-facing Phase 3 or live acceptance.
+
+## Shared app and panel views
+
+The learner/parent route resolves the signed-in learner or the selected own child
+and binds school, reader identity, child and module capability before retrieval.
+Staff selects an allocated teaching group, a paginated roster and learner. The
+shared Material 3 screen shows up to three root topics and a separate evidence
+view; phones have bottom navigation and larger screens a rail. Unknown evidence
+is distinct from assessed level zero; school-hidden evidence never becomes an
+invented zero count or no-gap claim. Account/school/child changes, backgrounding,
+refusals and stale responses clear private state. No mastery cache is persisted.
+
+The native panel adds scoped learner guidance and a curriculum-manager sourced
+prerequisite editor. It explains that family evidence opt-in applies to the whole
+school and still requires released marks/ownership/approval. Managers can refresh
+published anchors, add/remove/clear sourced edges and compare a stale revision
+with their escaped submitted text. Ordinary teachers cannot edit sources.
+Historical panel contexts hide write controls. Client and panel verification is
+recorded separately from human language, physical-device and live acceptance.
 The derived mutex is school/subject-wide because a learner projection aggregates
 evidence across grades and years. Rebuilds acquire it before any evidence
 snapshot and hold it through replacement and aggregate writes. After-commit jobs

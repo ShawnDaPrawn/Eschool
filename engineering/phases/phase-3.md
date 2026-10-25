@@ -16,7 +16,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | First staff-only foundation in progress; [spec](../specs/ai/gateway-foundation.md) |
 | Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Queued; counselling needs restricted shared policy |
 | Tutor sessions, subject/source lock, scanned photo feedback and summaries | Reviewed gateway, notes, content | Queued; no learner inference enabled by the foundation |
-| Topic dependencies, evidence and mastery map | Question marks and published curriculum | Backend engine implemented; [spec](../specs/growth/mastery.md); v2/shared views follow |
+| Topic dependencies, evidence and mastery map | Question marks and published curriculum | Marks engine, private v2 contract and shared app/panel views implemented and automated checks passed; tutor/practice evidence adapters follow their features; [spec](../specs/growth/mastery.md) |
 | Daily practice, FSRS reviews, offline daily sets and streaks | Mastery, published content, gateway | Queued |
 | Licensed past papers and exam coach | Mastery, timetable, vision/media safety | Queued |
 | Staff-approved teaching drafts and task insights | Marks, content and gateway | Queued |
