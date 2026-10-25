@@ -3,6 +3,7 @@
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
 return [
+    'wellbeing' => ['name' => 'Incident reporting and counsellor support', 'default' => false],
     'relief_cover' => ['name' => 'Relief cover', 'default' => false, 'dependencies' => ['academics']],
     'mastery' => ['name' => 'Mastery map', 'default' => false, 'dependencies' => ['academics']],
     'school' => ['name' => 'School setup and branding', 'always_on' => true],

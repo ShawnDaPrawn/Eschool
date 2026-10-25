@@ -9,7 +9,7 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 1a | Native staff build identities / App | Existing teacher shell | community/staff-build-identities.md |
 | 1b | Scoped facilitator role, API and menu / Backend + App | Dated owned groups from step 2 | community/facilitator-access.md |
 | 2 | Activity tree, seasons, dated members/staff, sessions, materials and cascading audiences / Backend + App | Phase 2 Files, Notifier and audiences | activities/groups.md; activities/group-surfaces.md |
-| 3 | Anonymous incidents, token follow-up, restricted counselling cases and appointments / Backend + App | Shared safeguarding policy with Phase 3; no impersonation access | Before implementation |
+| 3 | Anonymous incidents, token follow-up, restricted counselling cases and appointments / Backend + App | Shared safeguarding policy with Phase 3; no impersonation access | community/wellbeing.md |
 | 4 | Polls, surveys and non-statutory elections / Backend + App | Audiences, scheduler, separate participation and responses | Before implementation |
 | 5 | House caps/reversals, reusable awards and assembly mode / Backend + App | Groups and audited permissions | Before implementation |
 | 6 | Signed/rotating cards, freeze, scan log and printer exports / Backend + App | Identity; physical chip/printer qualification | Before implementation |
@@ -56,3 +56,10 @@ consent, live-channel authorization and app flows have the Bible's relevant
 security and profile checks. Record actual results in self-tests/phase-4.md.
 Device/card/provider, staging performance, user acceptance and production approval
 are separate evidence; no cancelled pilot run or unrun check is called passed.
+
+
+Wellbeing domain services are implemented in the current feature branch: separate
+team/case assignments, anonymous secret follow-up, explicit identification, encrypted
+case history and appointments. HTTP contracts, private media, panel and app views
+remain in active follow-up work; the disabled module is not yet a completed user
+workflow. Separate support-plan/learner-note permissions never grant these cases.
