@@ -6,7 +6,6 @@ namespace App\Services\Ai;
 
 use App\Models\Academics\ContentSource;
 use App\Models\Academics\ContentVersion;
-use App\Models\Ai\AiFlag;
 use App\Models\Ai\AiUsage;
 use App\Models\Platform\School;
 use App\Models\User;
@@ -19,6 +18,7 @@ use App\Services\Ai\Inference\FeatureInferenceRequest;
 use App\Services\Ai\Inference\InferenceGateway;
 use App\Services\Ai\Inference\InferenceRequest;
 use App\Services\Ai\Inference\ProviderResponse;
+use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -95,9 +95,7 @@ class AiGateway
             DB::transaction(function () use ($usage, $result, $flags) {
                 School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
                 $usage->update(['state' => $flags === [] ? 'completed' : 'quarantined', 'reserved_units' => 0, 'used_units' => $result['duration_seconds'], 'output_sha256' => hash('sha256', $result['markdown']), 'completed_at' => now()]);
-                foreach ($flags as $flag) {
-                    AiFlag::create(['ai_usage_id' => $usage->id, 'code' => $flag]);
-                }
+                app(AiQuarantine::class)->capture($usage, 'output', $flags, $result['markdown']);
                 Audit::record('ai.transcription_metered', $usage, [], ['seconds' => $result['duration_seconds'], 'provider' => $usage->provider, 'quarantined' => $flags !== [], 'cost_cents' => 0]);
             });
             if ($flags !== []) {

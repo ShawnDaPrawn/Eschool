@@ -438,6 +438,11 @@ class _StaffHome extends StatelessWidget {
                         repository.client,
                         schoolId: school,
                         accountId: user,
+                        changes: recognitionLiveChanges(
+                          LiveUpdatesScope.eventsOf(context),
+                          refreshes: LiveUpdatesScope.refreshesOf(context),
+                          schoolId: school,
+                        ),
                         contextActive: () =>
                             repository.matches(generation, school, user) &&
                             modules.every(

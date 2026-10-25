@@ -50,6 +50,8 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getMyGradeAccess requires auth' => [null, 'GET', 'api/v2/my-grade/access', [], 401],
+            'getMyGradeDashboard requires auth' => [null, 'GET', 'api/v2/my-grade/grades/1', [], 401],
             'getWeeklyDigestAccess requires auth' => [null, 'GET', 'api/v2/digests/access', [], 401],
             'listWeeklyDigestTemplates requires auth' => [null, 'GET', 'api/v2/digests/templates', [], 401],
             'createWeeklyDigestTemplate requires auth' => [null, 'POST', 'api/v2/digests/templates', [], 401],

@@ -16,6 +16,8 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.myGrade,
+
     this.liveUpdates,
 
     this.gallery,
@@ -44,6 +46,10 @@ class FacilitatorFeatures {
 
     this.learnerNotes,
   });
+
+  /// A current dated grade-head working hub is available.
+  @JsonKey(name: r'my_grade', required: false, includeIfNull: false)
+  final bool? myGrade;
 
   /// Optional fresh live-session capability, emitted only when the live transport is implemented and authorized.
   @JsonKey(name: r'live_updates', required: false, includeIfNull: false)
@@ -102,6 +108,7 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.myGrade == myGrade &&
           other.liveUpdates == liveUpdates &&
           other.gallery == gallery &&
           other.dailyPractice == dailyPractice &&
@@ -119,6 +126,7 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      myGrade.hashCode +
       liveUpdates.hashCode +
       gallery.hashCode +
       dailyPractice.hashCode +

@@ -170,6 +170,9 @@ components:
           type: boolean
           description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
             record-specific authority is still required.
+        my_grade:
+          type: boolean
+          description: A current dated grade-head working hub is available.
     FacilitatorProfile:
       type: object
       additionalProperties: false

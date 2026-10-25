@@ -9,6 +9,7 @@ lib/src/api/discipline_api.dart
 lib/src/api/gallery_api.dart
 lib/src/api/growth_api.dart
 lib/src/api/live_updates_api.dart
+lib/src/api/my_grade_api.dart
 lib/src/api/pastoral_api.dart
 lib/src/api/platform_api.dart
 lib/src/api/practice_api.dart
@@ -609,6 +610,18 @@ lib/src/model/mastery_topic_view.dart
 lib/src/model/mastery_view.dart
 lib/src/model/mastery_view_response.dart
 lib/src/model/module.dart
+lib/src/model/my_grade_access.dart
+lib/src/model/my_grade_access_response.dart
+lib/src/model/my_grade_actions.dart
+lib/src/model/my_grade_award_choice.dart
+lib/src/model/my_grade_awards.dart
+lib/src/model/my_grade_choice.dart
+lib/src/model/my_grade_dashboard.dart
+lib/src/model/my_grade_dashboard_response.dart
+lib/src/model/my_grade_discipline_queue.dart
+lib/src/model/my_grade_learner.dart
+lib/src/model/my_grade_pending_record.dart
+lib/src/model/my_grade_signal.dart
 lib/src/model/my_school_info.dart
 lib/src/model/my_school_response.dart
 lib/src/model/notification_channel_preference.dart

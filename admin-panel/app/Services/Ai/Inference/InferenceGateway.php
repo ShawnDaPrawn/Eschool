@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Ai\Inference;
 
-use App\Models\Ai\AiFlag;
 use App\Models\Ai\AiUsage;
 use App\Models\Platform\School;
 use App\Models\Students;
@@ -13,6 +12,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\ReleasedMarks;
 use App\Services\Ai\PromptRegistry;
+use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +131,7 @@ class InferenceGateway
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
             $inputFlags = $moderator->flags($capability, 'input', $request->input, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
-            $this->quarantine($usage, $inputFlags);
+            $this->quarantine($usage, $inputFlags, 'input', $request->input);
             $dispatched = true;
             $result = $provider->infer($providerRequest);
             $this->validResult($capability, $result, $reserve);
@@ -139,7 +139,7 @@ class InferenceGateway
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
             $outputFlags = $moderator->flags($capability, 'output', $result->output, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
-            $this->quarantine($usage, $outputFlags);
+            $this->quarantine($usage, $outputFlags, 'output', $result->output);
             $usage->update(['state' => 'completed', 'reserved_units' => 0, 'used_units' => $result->tokens, 'reserved_cost_cents' => 0,
                 'cost_cents' => $this->cost($result->tokens, $config['cents_per_million_tokens']), 'inference_output' => ['output' => $result->output],
                 'output_sha256' => hash('sha256', json_encode($result->output, JSON_THROW_ON_ERROR)), 'completed_at' => now()]);
@@ -249,20 +249,12 @@ class InferenceGateway
         return $config;
     }
 
-    private function quarantine(AiUsage $usage, array $flags): void
+    private function quarantine(AiUsage $usage, array $flags, string $stage, string|array|null $content): void
     {
         if ($flags === []) {
             return;
         }
-        DB::transaction(function () use ($usage, $flags) {
-            foreach (array_unique($flags) as $flag) {
-                if (! is_string($flag) || ! preg_match('/^[a-z][a-z0-9_]{0,63}$/D', $flag)) {
-                    throw new AiUnavailable('moderation_invalid');
-                }
-                AiFlag::create(['ai_usage_id' => $usage->id, 'code' => $flag]);
-            }
-            $usage->update(['state' => 'quarantined']);
-        });
+        app(AiQuarantine::class)->capture($usage, $stage, $flags, $content);
         throw new AiUnavailable('inference_quarantined');
     }
 

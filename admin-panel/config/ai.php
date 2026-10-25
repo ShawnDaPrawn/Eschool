@@ -2,6 +2,7 @@
 
 // Offline transcription is unchanged; inference has no active production feature/provider.
 return [
+    'quarantine' => ['retention_days' => 30, 'participants' => []],
     'providers' => [
         'openai' => ['qualified' => false, 'key' => env('AI_OPENAI_API_KEY'), 'moderation_model' => 'omni-moderation-2024-09-26'],
         'anthropic' => ['qualified' => false, 'key' => env('AI_ANTHROPIC_API_KEY')],

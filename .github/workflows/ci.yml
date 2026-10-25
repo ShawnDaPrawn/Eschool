@@ -31,8 +31,13 @@ jobs:
           python-version: '3.12'
       - name: Install pinned conversion and test dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
+          # The runner mirror stalled on individual media packages. Keep Ubuntu
+          # signature checks and use its official HTTPS archive for this job.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i -E 's#https?://azure.archive.ubuntu.com/ubuntu/?#https://archive.ubuntu.com/ubuntu/#g' /etc/apt/apt-mirrors.txt
+          fi
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y --no-install-recommends ffmpeg
           python -m pip install --require-hashes -r requirements-dev.txt
       - name: Audit the resolved production Python dependencies
         run: |
@@ -231,6 +236,8 @@ jobs:
 
   # The integration_test/ smoke flows (sign in, reach Home, open a screen)
   # against the fake API in integration_test/support/fixtures.dart: no server.
+  # The two explicit live browser fixtures require loopback Reverb/control and
+  # stay in Chrome below; native Reverb end-to-end qualification is pending.
   apps-smoke-android:
     name: Flutter smoke flows on Android (${{ matrix.app }} ${{ matrix.flavor }})
     # Pin the emulator host while ubuntu-latest migrates to Ubuntu 26.
@@ -243,13 +250,13 @@ jobs:
         include:
           - app: e-school
             flavor: family
-            command: flutter test integration_test
+            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'family_live_recognition_smoke_test.dart' | sort)
           - app: e-school-teacher
             flavor: teacher
             command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' | sort)
           - app: e-school-teacher
             flavor: facilitator
-            command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator integration_test/facilitator*_test.dart
+            command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator $(find integration_test -maxdepth 1 -name 'facilitator*_test.dart' ! -name 'facilitator_live_smoke_test.dart' | sort)
     steps:
       - uses: actions/checkout@v7
       # Hardware acceleration for the emulator on GitHub's Linux runners.
@@ -346,6 +353,8 @@ jobs:
             flow: family_progress_smoke_test.dart
           - app: e-school
             flow: family_recognition_smoke_test.dart
+          - app: e-school
+            flow: family_live_recognition_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_recognition_smoke_test.dart
             flavor: facilitator
@@ -413,18 +422,18 @@ jobs:
           cache: true
       - run: flutter pub get --enforce-lockfile
       - name: Set up PHP for the real live browser transport fixture
-        if: matrix.flow == 'facilitator_live_smoke_test.dart'
+        if: contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3.36'
           extensions: mbstring, intl, sodium, pdo_mysql
           coverage: none
       - name: Install the pinned Reverb runtime
-        if: matrix.flow == 'facilitator_live_smoke_test.dart'
+        if: contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
         working-directory: admin-panel
         run: composer install --no-dev --no-interaction --prefer-dist --no-progress
       - name: Start loopback Reverb and the synthetic signed browser publisher
-        if: matrix.flow == 'facilitator_live_smoke_test.dart'
+        if: contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
         working-directory: admin-panel
         run: |
           APP_ENV=testing APP_KEY=base64:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8= REVERB_APP_ID=qualification-browser REVERB_APP_KEY=qualification-browser-key REVERB_APP_SECRET=qualification-browser-secret-32-characters php artisan reverb:start --host=127.0.0.1 --port=8088 > "$RUNNER_TEMP/live-browser-reverb.log" 2>&1 &
@@ -444,7 +453,7 @@ jobs:
           -d web-server --browser-name=chrome --headless
           --no-web-resources-cdn
       - name: Stop the isolated live browser fixture
-        if: always() && matrix.flow == 'facilitator_live_smoke_test.dart'
+        if: always() && contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
         run: |
           for service in reverb control; do
             pid_file="$RUNNER_TEMP/live-browser-$service.pid"
