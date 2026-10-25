@@ -21,7 +21,10 @@ checks pass. Existing operations and schemas remain semantically unchanged.
 
 Panel labels were authored in English, Afrikaans and isiZulu, with fallback
 catalogue entries retained for other supported locales. Fluent review remains
-external acceptance. Actual browser accessibility/layout checks are being completed
-before this increment is marked ready. Shared phone/desktop support screens follow
+external acceptance. Actual Playwright flows passed at 1024 and 1280 pixels (two tests, 27 seconds):
+professional create/disclose/close, principal metadata without clinical bodies,
+teacher approved instructions without SIAS/needs, and withdrawal after closure.
+Serious/critical axe, unique control IDs, horizontal overflow and own-origin
+console/network checks pass. Inline case links now have visible underlines. Shared phone/desktop support screens follow
 this contract increment; no whole-feature or phase completion is claimed here.
 No real learner data, production activation or provider calls were used.

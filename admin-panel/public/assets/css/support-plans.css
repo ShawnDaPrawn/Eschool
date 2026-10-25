@@ -6,3 +6,4 @@
 .support-workbench .page-section { margin-block: 2rem; }
 .support-workbench nav { display: flex; flex-wrap: wrap; gap: .5rem; }
 @media (max-width: 600px) { .support-fields { display: block; } .support-fields .page-field { margin-block: 1rem; } }
+.support-workbench .page-section p > a { text-decoration: underline; text-underline-offset: .15em; }
