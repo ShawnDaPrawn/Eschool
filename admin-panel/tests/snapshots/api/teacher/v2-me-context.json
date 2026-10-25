@@ -47,6 +47,7 @@
                 "academic_reports": "bool",
                 "academic_timetable": "bool",
                 "communication_messages": "bool",
+                "mastery": "bool",
                 "module_switches": "bool"
             },
             "modules": [

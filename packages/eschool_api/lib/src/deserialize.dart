@@ -335,6 +335,27 @@ import 'package:eschool_api/src/model/guardian_invitation_preview_response.dart'
 import 'package:eschool_api/src/model/handle_proposal.dart';
 import 'package:eschool_api/src/model/handle_state.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
+import 'package:eschool_api/src/model/mastery_configuration.dart';
+import 'package:eschool_api/src/model/mastery_configuration_response.dart';
+import 'package:eschool_api/src/model/mastery_graph.dart';
+import 'package:eschool_api/src/model/mastery_graph_response.dart';
+import 'package:eschool_api/src/model/mastery_graph_write.dart';
+import 'package:eschool_api/src/model/mastery_group.dart';
+import 'package:eschool_api/src/model/mastery_link.dart';
+import 'package:eschool_api/src/model/mastery_node.dart';
+import 'package:eschool_api/src/model/mastery_priority.dart';
+import 'package:eschool_api/src/model/mastery_rebuild.dart';
+import 'package:eschool_api/src/model/mastery_rebuild_response.dart';
+import 'package:eschool_api/src/model/mastery_roster.dart';
+import 'package:eschool_api/src/model/mastery_roster_learner.dart';
+import 'package:eschool_api/src/model/mastery_roster_response.dart';
+import 'package:eschool_api/src/model/mastery_settings.dart';
+import 'package:eschool_api/src/model/mastery_subject_choice.dart';
+import 'package:eschool_api/src/model/mastery_subject_list.dart';
+import 'package:eschool_api/src/model/mastery_subject_list_response.dart';
+import 'package:eschool_api/src/model/mastery_topic_view.dart';
+import 'package:eschool_api/src/model/mastery_view.dart';
+import 'package:eschool_api/src/model/mastery_view_response.dart';
 import 'package:eschool_api/src/model/module.dart';
 import 'package:eschool_api/src/model/my_school_info.dart';
 import 'package:eschool_api/src/model/my_school_response.dart';
@@ -1584,6 +1605,66 @@ ReturnType deserialize<ReturnType, BaseType>(
       return HandleState.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'HandleStateResponse':
       return HandleStateResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryConfiguration':
+      return MasteryConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryConfigurationResponse':
+      return MasteryConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'MasteryGraph':
+      return MasteryGraph.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MasteryGraphResponse':
+      return MasteryGraphResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryGraphWrite':
+      return MasteryGraphWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryGroup':
+      return MasteryGroup.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MasteryLink':
+      return MasteryLink.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MasteryNode':
+      return MasteryNode.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MasteryPriority':
+      return MasteryPriority.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryRebuild':
+      return MasteryRebuild.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryRebuildResponse':
+      return MasteryRebuildResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryRoster':
+      return MasteryRoster.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryRosterLearner':
+      return MasteryRosterLearner.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryRosterResponse':
+      return MasteryRosterResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasterySettings':
+      return MasterySettings.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasterySubjectChoice':
+      return MasterySubjectChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasterySubjectList':
+      return MasterySubjectList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasterySubjectListResponse':
+      return MasterySubjectListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryTopicView':
+      return MasteryTopicView.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MasteryView':
+      return MasteryView.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MasteryViewResponse':
+      return MasteryViewResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'Module':
       return Module.fromJson(value as Map<String, dynamic>) as ReturnType;

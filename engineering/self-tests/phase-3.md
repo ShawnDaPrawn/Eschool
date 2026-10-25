@@ -42,6 +42,53 @@ authority before any quarantine flag is written. Final focused run: **16 tests
 passed, 93 assertions**, including both callback directions, zero foreign flags,
 original-school settlement and suppressed output. Changed-file Pint passes.
 
+## Mastery graph and canonical evidence engine
+
+Implemented published stable-topic anchors, explicit sourced acyclic prerequisite
+links, separate staff/family evidence and projections, exact integer 0–4 levels,
+unknown-versus-zero handling, bounded recent-evidence confidence and up to three
+root-gap recommendations. Current grade/year topics plus published prerequisite
+closure are eligible; unrelated future-grade and draft nodes are excluded.
+
+Staff uses canonical current question marks. Family uses frozen released snapshot
+question evidence plus explicit school opt-in, with fresh own-child/approval and
+module/visibility checks. Later raw edits do not alter released mastery. Dedicated
+subject/grade/year lock rows serialize derived rebuilds without taking the school
+mark-write lock. Mark, release, definition and module-enable events queue rebuilds;
+`mastery:rebuild <school> --group=<owned-group>` supports trusted bounded repair.
+The module is registered off by default and may be explicitly enabled through the
+existing school module management. No learner self-score endpoint exists.
+
+Verification: affected mastery/mark/tenancy cohort **40 passed, 800 assertions**.
+Final focused engine/repair-command suite **14 passed, 64 assertions**; changed-file
+Pint and complete configured Larastan analysis pass. Covered role/school/owner,
+approval/guardian/module/visibility revocation, frozen release versus raw edits,
+missing question values, cyclic/duplicate/cross-subject links, draft/future topic
+exclusion, replay without duplicate evidence, integer boundaries, empty rollback/
+reapply and retained-data rollback refusal.
+
+This backend engine does not claim completed mastery app/panel UX or v2 contract
+publication. Those follow after the parallel Phase 4 contract/SDK publication slot.
+Practice/tutor evidence adapters arrive with their verified review workflows.
+Confidence is a versioned evidence-sufficiency heuristic, not a calibrated risk
+probability, diagnostic label or promotion rule. No official CAPS prerequisite
+edges, live model evidence, device/staging acceptance or production release is
+invented.
+
+Mastery publication review follow-up: a published curriculum header is insufficient
+when assessment terms publish independently. Source anchoring and every graph/read
+projection now require a published assessment for the exact curriculum and topic
+term. A regression publishes then withdraws a second-term reference, verifies no
+unreviewed/withdrawn label or edge reaches views, and confirms historical node/link
+rows remain retained. With the shared pastoral-role/migration rehearsal changes,
+**27 tests passed, 269 assertions** (mastery, role matrix, tenant migrations).
+Changed-file Pint and complete configured Larastan analysis pass.
+
+Fresh teaching-authority follow-up: merged the shared role-transition guard, which
+requires the current Teacher role before retained Teacher profiles/allocations can
+authorize academic reads. The mastery/role/migration cohort remains **27 passed,
+269 assertions**; the three Counsellor/Facilitator/Safeguarding transitions pass
+**3 tests, 21 assertions**. Complete configured Larastan analysis passes.
 ## Provider and moderation protocol adapters
 
 Implemented fixed-origin HTTPS protocols for OpenAI text/embedding, Anthropic
@@ -57,3 +104,26 @@ interface. Changed-file Pint and full configured Larastan analysis pass.
 No real endpoint was contacted and no provider was enabled or qualified.
 These are protocol tests, not real-model safety, privacy, latency or cost evidence.
 See the provider adapter spec and qualification record for the release boundary.
+
+## Scoped mastery API and generated SDK
+
+Eight private no-store v2 operations now cover staff configuration/allocated
+rosters/learner views, own-family subject selection/views, graph read/write and
+queued scoped repair. Fresh role/module/school/owner checks precede replay; empty
+graph creation and clearing are supported with exact optimistic revisions. Family
+marks hidden by school policy produce no artificial gap recommendations.
+
+The canonical contract combines the parallel activity-group contract before the
+pinned SDK generation. Final affected API plus complete contract cohort: **247
+tests passed, 1,375 assertions**. The preceding integrated run also passed all
+15 engine tests, 21 activity tests and the tenant migration rehearsal; its five
+API/route coverage failures were corrected and rerun in the final cohort. Added
+negative HTTP transitions for Counsellor, Safeguarding and Facilitator with
+retained Teacher profiles. Changed-file Pint and full configured Larastan pass.
+SDK generation completed (854 Dart files); six mastery/activity SDK roundtrip
+tests pass. SDK analysis reports only 310 generated informational lints, with no
+errors or warnings. The owned fragment matches the canonical paths/schemas.
+
+App and panel entry points, layouts and interaction checks are a separate next
+increment; this contract PR does not claim those views or whole Phase 3 complete.
+No real provider calls, production changes or human/staging acceptance occurred.
