@@ -13,6 +13,7 @@ use App\Listeners\Discipline\QueueDisciplineNotices;
 use App\Listeners\Growth\QueueMasteryRecompute;
 use App\Listeners\Growth\QueueProgressBands;
 use App\Listeners\Growth\QueueRiskEvaluate;
+use App\Listeners\Live\QueueLiveInvalidation;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
@@ -46,6 +47,10 @@ return [
         // App\Services\Platform\Events\OutboxListener and receives the stored
         // event. Listeners for one event run in one database transaction.
         'listeners' => [
+            'house_points.changed' => [QueueLiveInvalidation::class],
+            'recognition.changed' => [QueueLiveInvalidation::class],
+            'consultations.counts_changed' => [QueueLiveInvalidation::class],
+            'activity.group_changed' => [QueueLiveInvalidation::class],
             'academics.content_published' => [NotifyContentPublished::class],
             'academics.content_uploaded' => [QueueContentConversion::class],
             'academics.report_published' => [NotifyReportPublished::class],

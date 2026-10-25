@@ -8,6 +8,7 @@ lib/src/api/consultations_api.dart
 lib/src/api/discipline_api.dart
 lib/src/api/gallery_api.dart
 lib/src/api/growth_api.dart
+lib/src/api/live_updates_api.dart
 lib/src/api/pastoral_api.dart
 lib/src/api/platform_api.dart
 lib/src/api/practice_api.dart
@@ -577,6 +578,14 @@ lib/src/model/list_wellbeing_managed_cases_response.dart
 lib/src/model/list_wellbeing_notices_response.dart
 lib/src/model/list_wellbeing_reports_response.dart
 lib/src/model/list_wellbeing_team_assignments_response.dart
+lib/src/model/live_authorization.dart
+lib/src/model/live_authorization_response.dart
+lib/src/model/live_authorize_request.dart
+lib/src/model/live_presence.dart
+lib/src/model/live_presence_request.dart
+lib/src/model/live_presence_response.dart
+lib/src/model/live_session_configuration.dart
+lib/src/model/live_session_response.dart
 lib/src/model/mastery_configuration.dart
 lib/src/model/mastery_configuration_response.dart
 lib/src/model/mastery_graph.dart

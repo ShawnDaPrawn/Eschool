@@ -50,6 +50,10 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'openLiveSession requires auth' => [null, 'POST', 'api/v2/live/session', [], 401],
+            'authorizeLiveChannel requires auth' => [null, 'POST', 'api/v2/live/authorize', [], 401],
+            'joinLiveGroupPresence requires auth' => [null, 'POST', 'api/v2/live/groups/1/presence', [], 401],
+            'leaveLiveGroupPresence requires auth' => [null, 'DELETE', 'api/v2/live/groups/1/presence', [], 401],
             'getGalleryConfiguration requires auth' => [null, 'GET', 'api/v2/gallery/configuration', [], 401],
             'getPersonalGallery requires auth' => [null, 'GET', 'api/v2/gallery/learners/1/photos', [], 401],
             'getGroupGallery requires auth' => [null, 'GET', 'api/v2/gallery/groups/1/photos', [], 401],

@@ -91,51 +91,65 @@ class _FacilitatorAppState extends State<FacilitatorApp>
         ),
         builder: (context, child) {
           final waiting = repo.signedIn && !repo.ready;
-          return Stack(
-            children: [
-              Offstage(offstage: _hidden || waiting, child: child!),
-              if (waiting && !_hidden)
-                Scaffold(
-                  body: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (repo.busy) const CircularProgressIndicator(),
-                          if (repo.error != null) ...[
-                            Text(
-                              SharedUiUtils.getTranslatedLabel(
-                                context,
-                                repo.error!,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            FilledButton(
-                              onPressed: repo.refresh,
-                              child: Text(
+          final profile = repo.profile;
+          final generation = repo.epoch;
+          final school = profile?.schoolId ?? 0, account = profile?.userId ?? 0;
+          return LiveUpdatesHost(
+            client: repo.client,
+            schoolId: school,
+            accountId: account,
+            enabled: repo.ready && profile?.features['live_updates'] == true,
+            authorizationKey: generation,
+            contextActive: () =>
+                repo.matches(generation, school, account) &&
+                repo.profile?.features['live_updates'] == true,
+            origin: 'https://teach.navigateed.co.za',
+            child: Stack(
+              children: [
+                Offstage(offstage: _hidden || waiting, child: child!),
+                if (waiting && !_hidden)
+                  Scaffold(
+                    body: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (repo.busy) const CircularProgressIndicator(),
+                            if (repo.error != null) ...[
+                              Text(
                                 SharedUiUtils.getTranslatedLabel(
                                   context,
-                                  'Retry',
+                                  repo.error!,
                                 ),
                               ),
-                            ),
-                            TextButton(
-                              onPressed: repo.signOut,
-                              child: Text(
-                                SharedUiUtils.getTranslatedLabel(
-                                  context,
-                                  'Sign out',
+                              const SizedBox(height: 12),
+                              FilledButton(
+                                onPressed: repo.refresh,
+                                child: Text(
+                                  SharedUiUtils.getTranslatedLabel(
+                                    context,
+                                    'Retry',
+                                  ),
                                 ),
                               ),
-                            ),
+                              TextButton(
+                                onPressed: repo.signOut,
+                                child: Text(
+                                  SharedUiUtils.getTranslatedLabel(
+                                    context,
+                                    'Sign out',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           );
         },
       );

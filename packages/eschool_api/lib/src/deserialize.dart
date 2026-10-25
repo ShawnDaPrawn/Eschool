@@ -553,6 +553,14 @@ import 'package:eschool_api/src/model/list_wellbeing_managed_cases_response.dart
 import 'package:eschool_api/src/model/list_wellbeing_notices_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_reports_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_team_assignments_response.dart';
+import 'package:eschool_api/src/model/live_authorization.dart';
+import 'package:eschool_api/src/model/live_authorization_response.dart';
+import 'package:eschool_api/src/model/live_authorize_request.dart';
+import 'package:eschool_api/src/model/live_presence.dart';
+import 'package:eschool_api/src/model/live_presence_request.dart';
+import 'package:eschool_api/src/model/live_presence_response.dart';
+import 'package:eschool_api/src/model/live_session_configuration.dart';
+import 'package:eschool_api/src/model/live_session_response.dart';
 import 'package:eschool_api/src/model/mastery_configuration.dart';
 import 'package:eschool_api/src/model/mastery_configuration_response.dart';
 import 'package:eschool_api/src/model/mastery_graph.dart';
@@ -2811,6 +2819,29 @@ ReturnType deserialize<ReturnType, BaseType>(
       return ListWellbeingTeamAssignmentsResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'LiveAuthorization':
+      return LiveAuthorization.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveAuthorizationResponse':
+      return LiveAuthorizationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveAuthorizeRequest':
+      return LiveAuthorizeRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LivePresence':
+      return LivePresence.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'LivePresenceRequest':
+      return LivePresenceRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LivePresenceResponse':
+      return LivePresenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveSessionConfiguration':
+      return LiveSessionConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LiveSessionResponse':
+      return LiveSessionResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'MasteryConfiguration':
       return MasteryConfiguration.fromJson(value as Map<String, dynamic>)

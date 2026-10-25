@@ -144,6 +144,10 @@ jobs:
           done
           CONTENT_CLAMAV_INTEGRATION=true php artisan test tests/Unit/ClamAvIntegrationTest.php
       - run: php artisan test
+      - name: Qualify actual private Reverb socket and immediate committed relay
+        env:
+          LIVE_REVERB_INTEGRATION: 'true'
+        run: php vendor/bin/phpunit tests/Feature/Live/ReverbIntegrationTest.php
       # The container's Apache answers the portals' requests for uploaded files
       # with CORS headers (docker/storage-cors.conf); the runner has apache2.
       - name: Storage CORS in Apache

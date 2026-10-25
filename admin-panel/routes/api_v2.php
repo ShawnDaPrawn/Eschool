@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
+use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
@@ -568,4 +569,12 @@ Route::prefix('gallery')->middleware([PrivateDomainResponse::class, 'auth:sanctu
     Route::post('tags/{tag}/decision', [$controller, 'decide'])->whereNumber('tag')->name('decide');
     Route::post('tags/{tag}/remove', [$controller, 'remove'])->whereNumber('tag')->name('remove');
     Route::post('settings', [$controller, 'settings'])->name('settings');
+});
+
+Route::prefix('live')->name('api.v2.live.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:live_updates,read'])->group(function () {
+    $controller = LiveController::class;
+    Route::post('session', [$controller, 'session'])->name('session');
+    Route::post('authorize', [$controller, 'authorizeChannel'])->name('authorize');
+    Route::post('groups/{group}/presence', [$controller, 'presence'])->whereNumber('group')->name('presence');
+    Route::delete('groups/{group}/presence', [$controller, 'presence'])->whereNumber('group')->name('leave');
 });

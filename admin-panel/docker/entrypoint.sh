@@ -2,13 +2,15 @@
 set -euo pipefail
 cd /var/www/html
 
-# One image, three jobs on Cloud Run, chosen by CONTAINER_ROLE:
+# One image, bounded runtime roles, chosen by CONTAINER_ROLE:
 #   web             Apache serving the panel, the API and the public pages (the
 #                   default). The only role that migrates the database and runs
 #                   the installer seeders.
 #   worker          php artisan queue:work, restarted whenever it exits (it stops
 #                   itself after an hour); no migrations.
 #   content-worker  bounded long-running private conversion queue; no migrations.
+#   live-worker     dedicated database/live invalidation relay; no migrations.
+#   reverb          signed private websocket service; no migrations.
 #   scheduler       one php artisan schedule:run, then exit: a Cloud Run Job that
 #                   Cloud Scheduler starts every minute. The schedule itself lives
 #                   only in routes/console.php.
@@ -19,8 +21,8 @@ cd /var/www/html
 #                     --update-env-vars=CONTAINER_ROLE=artisan --args=queue:retry,all
 ROLE="${CONTAINER_ROLE:-web}"
 case "$ROLE" in
-    web|worker|content-worker|scheduler|scheduler-loop|artisan) ;;
-    *) echo "Unknown CONTAINER_ROLE '$ROLE' (expected web, worker, content-worker, scheduler, scheduler-loop or artisan)" >&2; exit 64 ;;
+    web|worker|content-worker|live-worker|reverb|scheduler|scheduler-loop|artisan) ;;
+    *) echo "Unknown CONTAINER_ROLE '$ROLE' (expected web, worker, content-worker, live-worker, reverb, scheduler, scheduler-loop or artisan)" >&2; exit 64 ;;
 esac
 
 mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
@@ -53,6 +55,9 @@ run_worker() {
     local queue_args=(--tries=3 --timeout=120 --sleep=3 --max-time=3600)
     if [ "$ROLE" = content-worker ]; then
         queue_args=(academic_content --queue=content --tries=3 --timeout=330 --sleep=3 --max-time=3600)
+    fi
+    if [ "$ROLE" = live-worker ]; then
+        queue_args=(database --queue=live --tries=4 --timeout=20 --sleep=1 --max-time=3600)
     fi
     # Cloud Run sends a service traffic only on $PORT and checks that something
     # listens there; the worker has no public ingress, so this answers only
@@ -102,8 +107,11 @@ case "$ROLE" in
         export STORAGE_CORS_ORIGINS
         exec apache2-foreground
         ;;
-    worker|content-worker)
+    worker|content-worker|live-worker)
         run_worker
+        ;;
+    reverb)
+        exec "${AS_APP[@]}" php artisan reverb:start --host=0.0.0.0 --port="${PORT:-8080}"
         ;;
     scheduler)
         exec "${AS_APP[@]}" php artisan schedule:run
