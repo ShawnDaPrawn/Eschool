@@ -38,6 +38,7 @@ use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
+use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
@@ -230,6 +231,16 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('subjects/{subject}', [$controller, 'save'])->whereNumber('subject')->name('save');
             Route::post('subjects/{subject}/refresh', [$controller, 'refresh'])->whereNumber('subject')->name('refresh');
             Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->name('rebuild');
+        });
+        Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
+            $c = ActivityWorkbenchController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('groups', [$c, 'write'])->name('create');
+            Route::post('groups/{group}', [$c, 'write'])->whereNumber('group')->name('save');
+            foreach (['membership', 'staff', 'session', 'material'] as $kind) {
+                Route::post('groups/{group}/'.$kind.'/{record?}', [$c, 'write'])->whereNumber(['group', 'record'])->name($kind.'-save');
+            }
+            Route::post('groups/{group}/attendance/{session}', [$c, 'write'])->whereNumber(['group', 'session'])->name('attendance-save');
         });
         Route::prefix('communication-centre')->name('communication-centre.')->middleware(['module:communication', 'cache.headers:private;no_store'])->group(function () {
             $c = MessageWorkbenchController::class;

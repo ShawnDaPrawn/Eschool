@@ -49,6 +49,7 @@ class ApiMasteryRepository implements MasteryRepository {
       method: 'GET',
       url: '${AppConfig.apiV2Url}growth/mastery/$path',
       schoolId: schoolId,
+      accountId: readerId,
       queryParameters: query,
       requestTimeout: const Duration(seconds: 20),
     );

@@ -39,6 +39,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [communicationAudienceWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -53,6 +54,7 @@ class CommunicationApi {
   Future<Response<CommunicationAudienceReceiptResponse>>
   createCommunicationAudience({
     required CommunicationAudienceWrite communicationAudienceWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -66,6 +68,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -153,6 +156,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [communicationMessageWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -167,6 +171,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>>
   createSchoolMessageDraft({
     required CommunicationMessageWrite communicationMessageWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -180,6 +185,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -268,6 +274,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationDecisionWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -282,6 +289,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> decideSchoolMessage({
     required int message,
     required CommunicationDecisionWrite communicationDecisionWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -300,6 +308,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -386,6 +395,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
@@ -400,6 +410,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationConfigurationResponse>>
   getCommunicationConfiguration({
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     int? sessionYearId,
@@ -414,6 +425,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -483,6 +495,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -496,6 +509,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageEditorResponse>> getSchoolMessageEditor({
     required int message,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -514,6 +528,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -582,6 +597,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -596,6 +612,7 @@ class CommunicationApi {
   Future<Response<CommunicationAudienceListResponse>>
   listCommunicationAudiences({
     required int sessionYearId,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -609,6 +626,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -678,6 +696,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [sessionYearId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
@@ -692,6 +711,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationContactListResponse>> listCommunicationContacts({
     required int sessionYearId,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     int? page,
@@ -706,6 +726,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -775,6 +796,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -787,6 +809,7 @@ class CommunicationApi {
   /// Returns a [Future] containing a [Response] with a [CommunicationRuleListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationRuleListResponse>> listCommunicationRoleRules({
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -800,6 +823,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -867,6 +891,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
@@ -880,6 +905,7 @@ class CommunicationApi {
   /// Returns a [Future] containing a [Response] with a [CommunicationMessageListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageListResponse>> listSchoolMessageDrafts({
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     int? page,
@@ -894,6 +920,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -962,6 +989,7 @@ class CommunicationApi {
   /// Private no-store school messages. Fresh school, role, owner and audience checks run before validation and operation-UUID replay. Published bodies and recipient snapshots are immutable. Notifications contain generic text only.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
@@ -975,6 +1003,7 @@ class CommunicationApi {
   /// Returns a [Future] containing a [Response] with a [CommunicationMessageListResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageListResponse>> listSchoolMessageInbox({
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     int? page,
@@ -989,6 +1018,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1058,6 +1088,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1071,6 +1102,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationReadReceiptResponse>> markSchoolMessageRead({
     required int message,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1089,6 +1121,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1157,6 +1190,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1170,6 +1204,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessagePreviewResponse>> previewSchoolMessage({
     required int message,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1188,6 +1223,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1256,6 +1292,7 @@ class CommunicationApi {
   ///
   /// Parameters:
   /// * [message]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1269,6 +1306,7 @@ class CommunicationApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CommunicationMessageReaderResponse>> readSchoolMessage({
     required int message,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1287,6 +1325,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1356,6 +1395,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [audience]
   /// * [communicationAudienceWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1371,6 +1411,7 @@ class CommunicationApi {
   saveCommunicationAudience({
     required int audience,
     required CommunicationAudienceWrite communicationAudienceWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1389,6 +1430,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1477,6 +1519,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [role]
   /// * [communicationRuleWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1491,6 +1534,7 @@ class CommunicationApi {
   Future<Response<CommunicationRoleRuleResponse>> saveCommunicationRoleRule({
     required int role,
     required CommunicationRuleWrite communicationRuleWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1509,6 +1553,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1597,6 +1642,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationMessageWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1611,6 +1657,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> saveSchoolMessageDraft({
     required int message,
     required CommunicationMessageWrite communicationMessageWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1629,6 +1676,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1717,6 +1765,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationSubmitWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1731,6 +1780,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> submitSchoolMessage({
     required int message,
     required CommunicationSubmitWrite communicationSubmitWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1749,6 +1799,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -1837,6 +1888,7 @@ class CommunicationApi {
   /// Parameters:
   /// * [message]
   /// * [communicationWithdrawWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [activityGroups] - Set 1 only for a client that can render and round-trip activity-group audience kinds. Default 0 preserves legacy compose scopes and excludes activity drafts. Published inbox/read payloads are unchanged. This flag grants no group authority.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1851,6 +1903,7 @@ class CommunicationApi {
   Future<Response<CommunicationMessageReceiptResponse>> withdrawSchoolMessage({
     required int message,
     required CommunicationWithdrawWrite communicationWithdrawWrite,
+    int? xAccountId,
     int? activityGroups = 0,
     int? xSchoolId,
     CancelToken? cancelToken,
@@ -1869,6 +1922,7 @@ class CommunicationApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },

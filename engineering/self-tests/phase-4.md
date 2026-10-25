@@ -117,6 +117,33 @@ full Larastan pass. Final complete CI/review remains required before merge.
 
 Activity-list revocation follow-up: cancelled learner memberships are excluded from list metadata as well as detail, audiences and attendance. The existing cancellation regression was first observed failing without the filter, then passed after the fix.
 
+## Group management panel
+
+Implemented manager-only group definitions/tree/eligibility/seasons, named dated
+learner and staff allocations, cancellation, sessions, explicit attendance and
+sanitized Markdown materials in the existing Material 3 panel. Failed form data
+stays in its private response without plain session flash; conflict review uses
+the current revision and a new operation. Shared apps remain the next increment.
+
+Initial domain/panel integration: 24 tests / 450 assertions passed. Additional
+malformed-input, navigation, read-only-year, localization and browser checks are
+recorded when run below; no unrun browser/device evidence is inferred here.
+
+Panel evidence: 34 backend/panel/navigation/bootstrap tests with 1,007 assertions,
+plus the explicit historical-year write regression (1 test / 5 assertions).
+Malformed form arrays return 422 without a rendering exception or plain old-input
+flash. Language catalogue checks: 4 tests / 22,237 assertions. Full Larastan: no
+errors. TypeScript: no errors. Pint and whitespace checks passed.
+
+Actual Playwright group workflow passed at 1024px and 1280px: create group,
+choose a named school learner, allocate, schedule, record explicit late status,
+create a private Markdown material and refuse the foreign-school group URL.
+Both widths passed serious/critical axe, unique-ID, horizontal overflow and
+own-origin console/network checks. The browser run first exposed indistinct
+inline session links; underlines fixed the accessibility failure. Missing demo
+avatar storage linking and canonical demo enrolments were fixture setup issues
+fixed without weakening assertions. Browser tests use synthetic data only.
+
 Hierarchy review follow-up: reparenting validates the full retained subtree
 height, including archived descendants, against the proposed ancestor depth.
 A regression first produced HTTP 200 for a depth-13 move, then returned 422 with
@@ -130,3 +157,31 @@ Private-write header follow-up: activity API responses explicitly set private,
 no-store on every method; Laravel's GET-oriented cache middleware alone does not
 cover POST/PUT. The complete 14-operation contract case asserts those headers
 on reads and writes: 1 test / 89 assertions passed.
+
+Panel private-response follow-up: successful form redirects and failed-validation
+responses explicitly forbid caching. API/panel header and form checks passed:
+5 tests / 134 assertions. The shared browser-flow configuration retains the
+serialized seeded-write project from #109 while adding activity coverage.
+
+
+## Shared activity app views
+
+Implemented shared group lists/detail, coach session/material editing and explicit
+attendance, with entries/routes in both existing teacher and family apps. The
+family view never loads a peer roster. Activity audience compose now opts in only
+after widget tests proved exact kind/group/guardian round trips.
+
+Actual verification: complete shared academic feature suite 196 tests passed,
+including activity views at 390/1024/1280, no implicit attendance, immutable retry,
+conflict review, calendar-date planning, pending-resume privacy, role revocation,
+offline draft retention and stale-account response refusal. Complete teacher app
+40 tests passed; complete learner/parent app 51 tests passed. Both route suites
+refuse a disabled groups deep route before private state loads. Both app analyses
+have zero errors/warnings (existing style infos 24 teacher / 26 family); shared
+analysis retains only the recorded existing message-file style infos.
+
+No new native iOS compilation, physical device, store listing, live delivery timing
+or production/staging qualification is inferred from unit/widget tests. The
+facilitator identity still deliberately stops before teacher startup until its
+separate scoped sign-in and restricted shell are implemented. Authored group
+Markdown is available; private binary materials remain separate follow-up work.

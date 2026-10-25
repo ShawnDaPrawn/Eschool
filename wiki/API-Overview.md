@@ -804,3 +804,10 @@ replays. Responses are private/no-store. Reader data binds school/account/learne
 body checksum, server time and an offline lease of at most one day; source
 capabilities never enter the client contract. See openapi.yaml for the complete
 types and statuses. The generated client is updated through tool/generate.sh.
+
+Private app views can send `X-Account-Id` with their pinned signed-in account.
+The server refuses a mismatch before school data or operation replay, including
+when another browser tab has replaced the session cookie. This optional header
+adds no permission; old clients may omit it. Shared `ApiClient.send` accepts
+`accountId`, and the generated SDK exposes the optional header on authenticated
+operations. Use the authenticated account ID, not the selected learner's ID.

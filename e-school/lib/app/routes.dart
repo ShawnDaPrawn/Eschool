@@ -150,6 +150,7 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
   static const String academicAttendance = '/academics/attendance';
@@ -168,6 +169,7 @@ class Routes {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
       mastery => 'mastery',
+      activityGroups => 'groups',
       schoolMessages => 'communication',
       chatUserPage ||
       chatMessages ||
@@ -369,6 +371,8 @@ class Routes {
         return academicTimetableRoute();
       case mastery:
         return masteryRoute();
+      case activityGroups:
+        return activityGroupsRoute();
       case schoolMessages:
         return schoolMessagesRoute(routeSettings.arguments);
       case academicContent:

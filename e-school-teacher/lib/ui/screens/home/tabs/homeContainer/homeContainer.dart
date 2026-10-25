@@ -46,6 +46,12 @@ class _HomeContainerState extends State<HomeContainer> {
         iconPath: Assets.resultIcon,
         titleKey: 'Mastery map',
       ),
+    if (allowsSchoolModule(context.watch<MeContextCubit>().context, 'groups'))
+      MenuContainerDetails(
+        route: Routes.activityGroups,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Activity groups',
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
               'communication_messages',
             ) ==

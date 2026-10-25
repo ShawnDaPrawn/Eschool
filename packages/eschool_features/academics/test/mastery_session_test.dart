@@ -1,5 +1,7 @@
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_session/eschool_session.dart';
+import 'package:eschool_core/eschool_core.dart';
+import 'mastery_test_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,6 +55,42 @@ class _ContextRepository implements MeContextRepository {
 }
 
 void main() {
+  testWidgets(
+    'same-account permission refresh reloads configuration even when context fields stay identical',
+    (tester) async {
+      final contextRepository = _ContextRepository();
+      final session = MeContextCubit(
+        repository: contextRepository,
+        cache: InMemoryMeContextCache(),
+      );
+      await session.load();
+      addTearDown(session.close);
+      final pinned = session.context!, repository = FakeMasteryRepository();
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: session,
+          child: MaterialApp(
+            home: MasterySessionBoundary(
+              pinned: pinned,
+              child: MasteryScreen(repository: repository),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Fractions foundation'), findsOneWidget);
+      repository.error = ApiException('Permission withdrawn', statusCode: 403);
+      await session.load();
+      await tester.pumpAndSettle();
+      expect(masteryAccessStillCurrent(pinned, session.context), isTrue);
+      expect(find.text('Fractions foundation'), findsNothing);
+      expect(
+        find.text('Mastery is unavailable for this account or school.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
   for (final change in ['role', 'module', 'guardian']) {
     testWidgets(
       'same account context $change revocation unmounts private mastery',

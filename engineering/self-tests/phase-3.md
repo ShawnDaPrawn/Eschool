@@ -182,3 +182,15 @@ same account receives changed roles, guardian-child authority or module context;
 three regression tests pass. Both app language/shared-label suites pass (six tests
 each), and focused new Dart sources/tests analyze without issues. The new
 learner/parent and teacher Chrome flows are included in the CI matrix.
+
+Cookie-session account replacement is now rejected before mastery data loading:
+all mastery app reads send the optional expected-account header, and the owned
+contract fragment matches the shared canonical contract. A same-account context
+refresh recreates the mastery state and reloads server authorization even when
+roles/module flags remain identical, covering direct allocation or permission
+revocation. Cookie replacement and unchanged-profile permission refresh have
+specific regression tests. Combined mastery/API/panel/activity checks pass:
+**40 PHP tests, 758 assertions**; full Larastan and Pint pass. The shared suite
+now passes **23 tests** and focused changed Dart analysis has no issues. The
+shared expected-account, SDK and activity application additions are retained.
+These new regression checks do not claim physical-device or live-school testing.

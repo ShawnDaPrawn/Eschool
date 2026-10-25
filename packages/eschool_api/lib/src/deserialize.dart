@@ -294,6 +294,22 @@ import 'package:eschool_api/src/model/content_year.dart';
 import 'package:eschool_api/src/model/context.dart';
 import 'package:eschool_api/src/model/context_response.dart';
 import 'package:eschool_api/src/model/context_user.dart';
+import 'package:eschool_api/src/model/cover_absence.dart';
+import 'package:eschool_api/src/model/cover_absence_response.dart';
+import 'package:eschool_api/src/model/cover_absence_summary.dart';
+import 'package:eschool_api/src/model/cover_assignment_input.dart';
+import 'package:eschool_api/src/model/cover_candidates.dart';
+import 'package:eschool_api/src/model/cover_candidates_response.dart';
+import 'package:eschool_api/src/model/cover_change_input.dart';
+import 'package:eschool_api/src/model/cover_configuration.dart';
+import 'package:eschool_api/src/model/cover_configuration_response.dart';
+import 'package:eschool_api/src/model/cover_create_input.dart';
+import 'package:eschool_api/src/model/cover_mine.dart';
+import 'package:eschool_api/src/model/cover_mine_response.dart';
+import 'package:eschool_api/src/model/cover_occurrence.dart';
+import 'package:eschool_api/src/model/cover_occurrence_response.dart';
+import 'package:eschool_api/src/model/cover_source.dart';
+import 'package:eschool_api/src/model/cover_teacher.dart';
 import 'package:eschool_api/src/model/create_learner_enrolment_request.dart';
 import 'package:eschool_api/src/model/create_profile_category_request.dart';
 import 'package:eschool_api/src/model/create_profile_field_request.dart';
@@ -1466,6 +1482,50 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ContextUser':
       return ContextUser.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CoverAbsence':
+      return CoverAbsence.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CoverAbsenceResponse':
+      return CoverAbsenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverAbsenceSummary':
+      return CoverAbsenceSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverAssignmentInput':
+      return CoverAssignmentInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverCandidates':
+      return CoverCandidates.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverCandidatesResponse':
+      return CoverCandidatesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverChangeInput':
+      return CoverChangeInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverConfiguration':
+      return CoverConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverConfigurationResponse':
+      return CoverConfigurationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverCreateInput':
+      return CoverCreateInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverMine':
+      return CoverMine.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CoverMineResponse':
+      return CoverMineResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverOccurrence':
+      return CoverOccurrence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverOccurrenceResponse':
+      return CoverOccurrenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CoverSource':
+      return CoverSource.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CoverTeacher':
+      return CoverTeacher.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'CreateLearnerEnrolmentRequest':
       return CreateLearnerEnrolmentRequest.fromJson(
             value as Map<String, dynamic>,

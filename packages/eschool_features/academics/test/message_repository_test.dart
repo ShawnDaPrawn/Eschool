@@ -37,7 +37,15 @@ void main() {
     await repo.reader(11);
     await repo.read(11);
     expect(
-      api.requests.every((request) => request.headers['X-School-Id'] == '1'),
+      api.requests.every((r) => r.queryParameters['activity_groups'] == 1),
+      isTrue,
+    );
+    expect(
+      api.requests.every(
+        (request) =>
+            request.headers['X-School-Id'] == '1' &&
+            request.headers['X-Account-Id'] == '12',
+      ),
       isTrue,
     );
     expect(

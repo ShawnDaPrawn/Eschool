@@ -27,6 +27,7 @@ class GrowthApi {
   /// Fresh module, school, role and own-learner authority is checked before validation and idempotent replay. Family mark-derived mastery requires explicit school opt-in and immutable released question evidence; raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and exact assessment-term references only.
   ///
   /// Parameters:
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [sessionYearId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -39,6 +40,7 @@ class GrowthApi {
   /// Returns a [Future] containing a [Response] with a [MasteryConfigurationResponse] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<MasteryConfigurationResponse>> getMasteryConfiguration({
+    int? xAccountId,
     int? xSchoolId,
     int? sessionYearId,
     CancelToken? cancelToken,
@@ -52,6 +54,7 @@ class GrowthApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -121,6 +124,7 @@ class GrowthApi {
   /// Parameters:
   /// * [learner]
   /// * [subjectId]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -134,6 +138,7 @@ class GrowthApi {
   Future<Response<MasteryViewResponse>> getMasteryFamily({
     required int learner,
     required int subjectId,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -151,6 +156,7 @@ class GrowthApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -218,6 +224,7 @@ class GrowthApi {
   ///
   /// Parameters:
   /// * [subject]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [groupId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -231,6 +238,7 @@ class GrowthApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<MasteryGraphResponse>> getMasteryGraph({
     required int subject,
+    int? xAccountId,
     int? xSchoolId,
     int? groupId,
     CancelToken? cancelToken,
@@ -249,6 +257,7 @@ class GrowthApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -318,6 +327,7 @@ class GrowthApi {
   ///
   /// Parameters:
   /// * [group]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [page]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -331,6 +341,7 @@ class GrowthApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<MasteryRosterResponse>> getMasteryRoster({
     required int group,
+    int? xAccountId,
     int? xSchoolId,
     int? page,
     CancelToken? cancelToken,
@@ -349,6 +360,7 @@ class GrowthApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -417,6 +429,7 @@ class GrowthApi {
   /// Parameters:
   /// * [group]
   /// * [learner]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -430,6 +443,7 @@ class GrowthApi {
   Future<Response<MasteryViewResponse>> getMasteryStaff({
     required int group,
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -454,6 +468,7 @@ class GrowthApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -518,6 +533,7 @@ class GrowthApi {
   ///
   /// Parameters:
   /// * [learner]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -530,6 +546,7 @@ class GrowthApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<MasterySubjectListResponse>> getMasterySubjects({
     required int learner,
+    int? xAccountId,
     int? xSchoolId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -547,6 +564,7 @@ class GrowthApi {
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         ...?headers,
       },
@@ -611,6 +629,7 @@ class GrowthApi {
   ///
   /// Parameters:
   /// * [group]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -624,6 +643,7 @@ class GrowthApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<MasteryRebuildResponse>> queueMasteryRebuild({
     required int group,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -642,6 +662,7 @@ class GrowthApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,
@@ -708,6 +729,7 @@ class GrowthApi {
   /// Parameters:
   /// * [subject]
   /// * [masteryGraphWrite]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -722,6 +744,7 @@ class GrowthApi {
   Future<Response<MasteryGraphResponse>> saveMasteryGraph({
     required int subject,
     required MasteryGraphWrite masteryGraphWrite,
+    int? xAccountId,
     int? xSchoolId,
     String? idempotencyKey,
     CancelToken? cancelToken,
@@ -740,6 +763,7 @@ class GrowthApi {
     final _options = Options(
       method: r'PUT',
       headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
         if (xSchoolId != null) r'X-School-Id': xSchoolId,
         if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
         ...?headers,

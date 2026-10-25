@@ -50,6 +50,15 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getCoverConfiguration requires auth' => [null, 'GET', 'api/v2/pastoral/cover/configuration', [], 401],
+            'getMyCover requires auth' => [null, 'GET', 'api/v2/pastoral/cover/mine', [], 401],
+            'createCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences', [], 401],
+            'getCoverAbsence requires auth' => [null, 'GET', 'api/v2/pastoral/cover/absences/1', [], 401],
+            'refreshCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences/1/refresh', [], 401],
+            'cancelCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences/1/cancel', [], 401],
+            'getCoverOccurrence requires auth' => [null, 'GET', 'api/v2/pastoral/cover/occurrences/1', [], 401],
+            'getCoverCandidates requires auth' => [null, 'GET', 'api/v2/pastoral/cover/occurrences/1/candidates', [], 401],
+            'assignCoverOccurrence requires auth' => [null, 'PUT', 'api/v2/pastoral/cover/occurrences/1/assignment', [], 401],
             'listActivityGroups module-off' => ['superadmin', 'GET', 'api/v2/activities/groups', [], 404],
             'createActivityGroup module-off' => ['superadmin', 'POST', 'api/v2/activities/groups', [], 404],
             'readActivityGroup module-off' => ['superadmin', 'GET', 'api/v2/activities/groups/999999', [], 404],

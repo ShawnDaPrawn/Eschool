@@ -13,6 +13,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -54,6 +55,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -101,6 +103,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path
@@ -148,6 +151,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -189,6 +193,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: learner
         in: path
@@ -236,6 +241,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: subject
         in: path
@@ -282,6 +288,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: subject
         in: path
@@ -330,6 +337,7 @@ paths:
         raw captured marks never populate family results. Unknown evidence is null, not zero. Published topic and
         exact assessment-term references only.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: group
         in: path

@@ -8,14 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Activities\ActivityRequest;
 use App\Http\Resources\Activities\ActivityResource;
 use App\Services\Activities\ActivityGroups;
-use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 
 class GroupController extends Controller
 {
     private function response(ActivityRequest $r, array $data): JsonResponse
     {
-        return ResponseService::successResponse('data_fetch_successfully', (new ActivityResource($data))->resolve($r))->header('Cache-Control', 'private, no-store');
+        return response()->json(['error' => false, 'message' => trans('data_fetch_successfully'), 'data' => (new ActivityResource($data))->resolve($r), 'code' => 200], 200, ['Cache-Control' => 'private, no-store']);
     }
 
     public function index(ActivityRequest $r): JsonResponse

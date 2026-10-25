@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Platform\School;
 use App\Models\User;
+use App\Services\Platform\Identity\ExpectedAccount;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -72,6 +73,8 @@ class SetSchoolContext
             // Guests: the auth middleware refuses them.
             return $next($request);
         }
+        ExpectedAccount::check($request);
+
         if ($this->currentSchool->isImpersonating()) {
             return $next($request);
         }

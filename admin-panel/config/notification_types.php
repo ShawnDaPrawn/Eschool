@@ -8,6 +8,7 @@ $mail = ['push' => 'off', 'email' => 'mandatory', 'in_app' => 'off'];
 $required = ['push' => 'mandatory', 'email' => 'mandatory', 'in_app' => 'mandatory'];
 
 return [
+    'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'account.verify_email' => ['label' => 'Verify email', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.password_reset' => ['label' => 'Password reset', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.invitation' => ['label' => 'School invitation', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],

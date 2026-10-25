@@ -10,9 +10,11 @@ void main() {
     FakeApi api, {
     bool Function()? active,
     String Function()? token,
+    bool bearer = true,
   }) => ApiMasteryRepository(
     ApiClient(
       authToken: token ?? () => 'synthetic',
+      sendsBearerToken: bearer,
       onUnauthorized: () {},
       createDio: () => Dio()..httpClientAdapter = api,
     ),
@@ -31,6 +33,7 @@ void main() {
           routes: {
             'GET v2/growth/mastery/learners/11': (RequestOptions request) {
               expect(request.headers['X-School-Id'], '1');
+              expect(request.headers['X-Account-Id'], '12');
               expect(request.queryParameters['subject_id'], 4);
               return {'error': false, 'data': data};
             },
@@ -41,6 +44,34 @@ void main() {
           throwsA(isA<ApiException>()),
         );
       }
+    },
+  );
+  test(
+    'cookie account replacement is refused using the pinned expected-account header',
+    () async {
+      var cookieAccount = 12;
+      final api = FakeApi(
+        routes: {
+          'GET v2/growth/mastery/learners/11': (RequestOptions request) {
+            expect(request.headers['X-Account-Id'], '12');
+            expect(request.headers.containsKey('Authorization'), isFalse);
+            return request.headers['X-Account-Id'] == '$cookieAccount'
+                ? {'error': false, 'data': masteryFixture()}
+                : const FakeResponse({
+                    'message': 'Account changed',
+                  }, status: 403);
+          },
+        },
+      );
+      final repo = repository(api, bearer: false);
+      expect((await repo.family(11, 4)).learnerId, 11);
+      cookieAccount = 99;
+      await expectLater(
+        repo.family(11, 4),
+        throwsA(
+          isA<ApiException>().having((e) => e.statusCode, 'statusCode', 403),
+        ),
+      );
     },
   );
   test(

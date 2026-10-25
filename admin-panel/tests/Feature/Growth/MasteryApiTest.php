@@ -39,6 +39,14 @@ class MasteryApiTest extends TestCase
         $this->getJson('/api/v2/growth/mastery/subjects/'.$this->subject.'/graph?group_id='.$this->group)->assertOk();
     }
 
+    public function test_expected_account_mismatch_refuses_before_any_staff_mastery_is_returned(): void
+    {
+        $actor = $this->actor();
+        $this->actingAs($actor)->getJson('/api/v2/growth/mastery/configuration', ['X-Account-Id' => (string) $actor->id])->assertOk();
+        $this->getJson('/api/v2/growth/mastery/configuration', ['X-Account-Id' => (string) $this->actor('farid')->id])
+            ->assertForbidden()->assertDontSee('Maths learning group');
+    }
+
     public function test_parent_reads_only_own_frozen_released_evidence(): void
     {
         $this->capture();
