@@ -1,0 +1,5 @@
+# Tutor safeguarding crop reader
+
+The feature adapter implements the shared `QuarantineMediaResolver` contract. It requires fresh Safeguarding role/capability and an unexpired exact snapshot reference, then binds the private approved crop to the fresh usage's school, feature, actor, learner, session and operation. It checks the fixed private path, hash and bounded pixel PNG and repeats reviewer/source checks after file I/O. No original upload, filename, public URL or generic staff/parent grant is introduced. This distinct safeguarding purpose remains available after the learner's module or guardian access is withdrawn, until the bounded quarantine expires or the crop is revoked/purged.
+
+Four native MySQL/private-filesystem tests pass **15 assertions**: exact cropped media through the real review service; teacher/parent/platform/wrong-school and unbound-reference denial; expiry and purge; and reviewer membership withdrawal during private file I/O. Full configured PHPStan reports no errors; changed-file Pint passes. The tests use synthetic uploaded pixels and local protocol responses, not physical-camera or live-provider acceptance.

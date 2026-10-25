@@ -99,7 +99,12 @@ final readonly class ApiRoute
 
     public function sampleParameter(string $name): string
     {
+        if (str_starts_with($this->uri, 'api/v2/tutor/') && in_array($name, ['session', 'operation', 'photo'], true)) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         return match ($name) {
+            'consent' => str_starts_with($this->uri, 'api/v2/family-forms/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',
             'card', 'scan', 'device' => str_starts_with($this->uri, 'api/v2/cards/') || str_starts_with($this->uri, 'api/v2/card-device/') || str_starts_with($this->uri, 'api/v2/card-readers/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',
             'field' => 'test_field',
             'audience' => str_contains($this->uri, '/pastoral/support/configuration/') ? 'principal' : '1',

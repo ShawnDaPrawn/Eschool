@@ -16,7 +16,29 @@ abstract interface class RegisterRepository {
 }
 
 class ApiRegisterRepository implements RegisterRepository {
-  ApiRegisterRepository(this.client, {required this.schoolId});
+  ApiRegisterRepository(
+    this.client, {
+    required this.schoolId,
+    this.accountId,
+    this.contextActive,
+  }) : _token = client.authToken();
+  final int? accountId;
+  final bool Function()? contextActive;
+  final String _token;
+  bool get _bound => accountId != null || contextActive != null;
+  void _guard() {
+    if (schoolId < 1 ||
+        (accountId != null && accountId! < 1) ||
+        !(contextActive?.call() ?? true) ||
+        (_bound && client.sendsBearerToken && client.authToken() != _token)) {
+      throw ApiException(
+        'Reopen My grade to check your access.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+  }
+
   final ApiClient client;
   @override
   final int schoolId;
@@ -26,13 +48,17 @@ class ApiRegisterRepository implements RegisterRepository {
     Map<String, dynamic>? query,
     Object? data,
   }) async {
+    _guard();
     final envelope = await client.send(
       method: method,
       url: '${AppConfig.apiV2Url}academics/registers/$path',
       schoolId: schoolId,
+      accountId: accountId,
+      privateRequest: _bound,
       queryParameters: query,
       data: data,
     );
+    _guard();
     final result = envelope?['data'];
     if (result is! Map) {
       throw ApiException(ApiErrorCodes.defaultErrorMessageKey);

@@ -28,6 +28,8 @@ class InstallationSeeder extends Seeder
         // Add Permissions
         $permissions = [
             ['name' => 'family-forms-manage'], ['name' => 'family-health-read'], ['name' => 'family-health-manage'],
+            ['name' => 'ai-settings-manage'],
+            ['name' => 'ai-flags-review'],
             ['name' => 'cards-manage'], ['name' => 'cards-readers-manage'],
             ['name' => 'pastoral-sensitive-access'], ['name' => 'activity-groups-manage'], ['name' => 'wellbeing-configure'],
             ['name' => 'marks-view-all'], ['name' => 'marks-release'],

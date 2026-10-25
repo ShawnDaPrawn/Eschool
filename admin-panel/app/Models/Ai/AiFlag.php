@@ -15,8 +15,10 @@ class AiFlag extends Model
 
     protected $hidden = [];
 
+    protected $attributes = ['review_revision' => 1, 'review_status' => 'open'];
+
     protected function casts(): array
     {
-        return [];
+        return ['review_revision' => 'integer'];
     }
 }

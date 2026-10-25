@@ -349,6 +349,8 @@ return [
                 'absence' => [
                     'label' => 'nav_group_absence',
                     'items' => [
+                        ['key' => 'ai-settings', 'label' => 'AI settings and caps', 'route' => 'ai-controls.index', 'permissions' => [], 'ai_manager' => true, 'module' => null, 'active' => ['ai-controls.*'], 'keywords' => ['AI', 'caps', 'limits', 'availability']],
+                        ['key' => 'ai-flags', 'label' => 'Flagged learning content', 'route' => 'ai-review.index', 'permissions' => [], 'ai_reviewer' => true, 'module' => null, 'active' => ['ai-review.*'], 'keywords' => ['safeguarding', 'flagged learning', 'review']],
                         ['key' => 'wellbeing', 'label' => 'Incidents and counselling', 'route' => 'wellbeing.index', 'permissions' => [], 'wellbeing_actor' => true, 'module' => 'wellbeing', 'active' => ['wellbeing.*'], 'keywords' => ['incident reports', 'safeguarding', 'restricted cases']],
                         ['key' => 'support-plans', 'label' => 'Support plans', 'route' => 'support-plans.index', 'permissions' => [], 'support_actor' => true, 'module' => 'support_plans', 'active' => ['support-plans.*'], 'keywords' => ['SIAS', 'accommodations', 'support reviews']],
                         ['key' => 'relief-cover', 'label' => 'Relief cover', 'route' => 'relief-cover.index', 'permissions' => [], 'cover_actor' => true, 'module' => 'relief_cover', 'active' => ['relief-cover.*'], 'keywords' => ['substitute', 'teacher absence', 'cover lessons']],

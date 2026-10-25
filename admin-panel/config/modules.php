@@ -4,6 +4,7 @@
 // cannot be enabled merely by changing a database row.
 return [
     'family_forms' => ['name' => 'Health forms and family consents', 'default' => false, 'dependencies' => ['people']],
+    'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics']],
     'digest' => ['name' => 'Weekly parent digest', 'default' => false, 'dependencies' => ['people', 'academics', 'communication']],
     'live_updates' => ['name' => 'Live school updates', 'default' => false, 'dependencies' => ['people', 'communication']],
     'my_grade' => ['name' => 'My grade', 'default' => false, 'dependencies' => ['academics']],

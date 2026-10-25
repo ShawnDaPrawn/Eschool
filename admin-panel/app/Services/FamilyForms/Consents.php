@@ -20,6 +20,20 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class Consents
 {
+    public static function rules(string $action): array
+    {
+        return match ($action) {
+            'create' => ['operation_id' => ['required', 'uuid'], 'activity_group_id' => ['required', 'integer', 'min:1'],
+                'title' => ['required', 'string', 'max:191'], 'wording' => ['required', 'string', 'max:20000'],
+                'event_starts_at' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/D'], 'event_ends_at' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/D', 'after:event_starts_at'],
+                'respond_by' => ['required', 'date', 'regex:/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/D', 'before_or_equal:event_starts_at'],
+                'learner_ids' => ['required', 'array', 'min:1', 'max:500'], 'learner_ids.*' => ['integer', 'min:1', 'distinct']],
+            'respond' => ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'],
+                'fingerprint' => ['required', 'string', 'size:64'], 'decision' => ['required', 'in:yes,no'], 'acknowledged' => ['required', 'accepted'], 'signed_name' => ['required', 'string', 'max:191']],
+            'cancel' => ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1']],
+        };
+    }
+
     private function fingerprint(ConsentRequest $request, ?array $ids = null): string
     {
         $ids ??= ConsentRecipient::where('request_id', $request->id)->pluck('learner_id')->map(fn ($id) => (int) $id)->all();
@@ -32,10 +46,15 @@ class Consents
 
     private function validSignature(ConsentRequest $request, ConsentResponse $response, int $learner): bool
     {
-        $expected = hash_hmac('sha256', json_encode([$request->id, $learner, (int) $response->guardian_user_id, $response->request_fingerprint, $response->decision,
-            $response->signed_name, $response->revision, $response->signed_at->toIso8601String()], JSON_THROW_ON_ERROR), (string) config('app.key'));
+        $payload = json_encode([$request->id, $learner, (int) $response->guardian_user_id, $response->request_fingerprint, $response->decision,
+            $response->signed_name, $response->revision, $response->signed_at->toIso8601String()], JSON_THROW_ON_ERROR);
+        $matches = false;
+        foreach (array_unique([(string) config('app.key'), ...config('app.previous_keys', [])]) as $key) {
+            $matches = hash_equals(hash_hmac('sha256', $payload, $key), $response->signature) || $matches;
+        }
 
-        return hash_equals($request->fingerprint, $response->request_fingerprint) && hash_equals($expected, $response->signature);
+        return hash_equals($request->fingerprint, $response->request_fingerprint) && $matches;
+
     }
 
     private function dates(ConsentRequest $request): array
@@ -77,14 +96,20 @@ class Consents
         app(FamilyFormAccess::class)->eventLearner($learner, (int) $request->activity_group_id, (int) $request->session_year_id, $from, $to);
     }
 
+    public function managedRequest(User $actor, string $id): ConsentRequest
+    {
+        app(FamilyFormAccess::class)->actor($actor);
+        $request = ConsentRequest::findOrFail($id);
+        $this->staff($actor, $request);
+        abort_unless(hash_equals($request->fingerprint, $this->fingerprint($request)), 409, 'This consent wording could not be verified.');
+
+        return $request;
+    }
+
     public function create(User $actor, array $input): array
     {
         app(FamilyFormAccess::class)->actor($actor, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'activity_group_id' => ['required', 'integer', 'min:1'],
-            'title' => ['required', 'string', 'max:191'], 'wording' => ['required', 'string', 'max:20000'],
-            'event_starts_at' => ['required', 'date_format:Y-m-d\TH:i:sP'], 'event_ends_at' => ['required', 'date_format:Y-m-d\TH:i:sP', 'after:event_starts_at'],
-            'respond_by' => ['required', 'date_format:Y-m-d\TH:i:sP', 'before_or_equal:event_starts_at'],
-            'learner_ids' => ['required', 'array', 'min:1', 'max:500'], 'learner_ids.*' => ['integer', 'min:1', 'distinct']])->validate();
+        $data = Validator::make($input, self::rules('create'))->validate();
         $group = app(CommunityAuthority::class)->groupStaff($actor, (int) $data['activity_group_id'], true);
         $request = new ConsentRequest(['session_year_id' => $group->session_year_id, 'activity_group_id' => $group->id,
             'title' => $data['title'], 'wording' => $data['wording'], 'event_starts_at' => CarbonImmutable::parse($data['event_starts_at'])->utc(),
@@ -131,20 +156,20 @@ class Consents
     public function respond(User $actor, string $id, int $learner, array $input): array
     {
         app(FamilyFormAccess::class)->actor($actor, revocation: true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'],
-            'fingerprint' => ['required', 'string', 'size:64'], 'decision' => ['required', 'in:yes,no'], 'acknowledged' => ['required', 'accepted'], 'signed_name' => ['required', 'string', 'max:191']])->validate();
+        $data = Validator::make($input, self::rules('respond'))->validate();
         $negative = $data['decision'] === 'no';
         $authorize = function () use ($actor, $id, $learner, $data, $negative) {
-            $fresh = app(FamilyFormAccess::class)->guardian($actor, $learner, true, $negative);
+            app(FamilyFormAccess::class)->guardian($actor, $learner, revocation: $negative, attest: true);
             $request = ConsentRequest::findOrFail($id);
             ConsentRecipient::where('request_id', $id)->where('learner_id', $learner)->firstOrFail();
             abort_unless(hash_equals($request->fingerprint, $this->fingerprint($request)) && hash_equals($request->fingerprint, $data['fingerprint']), 409, 'Read the exact current consent wording.');
-            abort_unless(mb_strtolower(trim($fresh->full_name)) === mb_strtolower(trim($data['signed_name'])), 422, 'Sign using the name on your guardian account.');
 
         };
         $bound = ['request_id' => $id, 'learner_id' => $learner] + $data;
 
         return app(FamilyFormOperations::class)->once($actor, 'consent.respond', $bound, $authorize, function () use ($actor, $id, $learner, $data, $negative) {
+            $fresh = app(FamilyFormAccess::class)->guardian($actor, $learner, true, $negative);
+            abort_unless(mb_strtolower(trim($fresh->full_name)) === mb_strtolower(trim($data['signed_name'])), 422, 'Sign using the name on your guardian account.');
             if (! $negative) {
                 $request = ConsentRequest::findOrFail($id);
                 abort_unless($request->status === 'open' && $request->respond_by->isFuture(), 409, 'The consent response period has closed.');
@@ -167,7 +192,7 @@ class Consents
     public function cancel(User $actor, string $id, array $input): array
     {
         app(FamilyFormAccess::class)->actor($actor, revocation: true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1']])->validate();
+        $data = Validator::make($input, self::rules('cancel'))->validate();
         $authorize = function () use ($actor, $id) {
             $request = ConsentRequest::findOrFail($id);
             $this->staff($actor, $request);

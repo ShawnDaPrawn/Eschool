@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
+use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
 use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
+use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
@@ -626,4 +628,34 @@ Route::prefix('digests')->middleware([PrivateDomainResponse::class, 'auth:sanctu
 Route::prefix('card-readers')->name('api.v2.cards.readers.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
     Route::post('/', [CardController::class, 'write'])->name('register');
     Route::delete('{device}', [CardController::class, 'write'])->whereUuid('device')->name('revoke');
+});
+
+// Private learner tutoring; parent authority applies only to template summaries.
+Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:tutor'])->name('api.v2.tutor.')->group(function () {
+    $c = TutorController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::get('sessions', [$c, 'index'])->name('index');
+    Route::post('sessions', [$c, 'create'])->middleware('throttle:20,1')->name('create');
+    Route::get('sessions/{session}', [$c, 'show'])->whereUuid('session')->name('show');
+    Route::post('sessions/{session}/close', [$c, 'close'])->whereUuid('session')->name('close');
+    Route::post('sessions/{session}/messages', [$c, 'send'])->whereUuid('session')->middleware('throttle:20,1')->name('send');
+    Route::get('sessions/{session}/turns/{operation}', [$c, 'turn'])->whereUuid('session')->whereUuid('operation')->name('turn');
+    Route::post('sessions/{session}/photos', [$c, 'upload'])->whereUuid('session')->middleware('throttle:20,1')->name('upload');
+    Route::get('sessions/{session}/photos/{photo}', [$c, 'preview'])->whereUuid('session')->whereUuid('photo')->name('preview');
+    Route::post('sessions/{session}/photos/{photo}/revoke', [$c, 'revoke'])->whereUuid('session')->whereUuid('photo')->name('revoke');
+    Route::get('parent/learners/{learner}/subjects/{subject}/summary', [$c, 'summary'])->whereNumber('learner')->whereNumber('subject')->name('summary');
+});
+
+// Private health categories and exact, authenticated activity/trip consent.
+Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = FamilyFormController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('consents', [$controller, 'read'])->name('listing');
+    Route::post('consents', [$controller, 'write'])->name('create');
+    Route::get('consents/{consent}', [$controller, 'read'])->whereUuid('consent')->name('read');
+    Route::get('consents/{consent}/managed', [$controller, 'read'])->whereUuid('consent')->name('managed');
+    Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->name('cancel');
+    Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
+    Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
+    Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
 });

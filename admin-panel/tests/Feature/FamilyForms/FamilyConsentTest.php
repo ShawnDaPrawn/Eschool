@@ -18,24 +18,29 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\ProfileFieldDefinition;
 use App\Models\Platform\ProfileFieldValue;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolModule;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\FamilyForms\Consents;
 use App\Services\FamilyForms\HealthForms;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class FamilyConsentTest extends TestCase
 {
     use UsesTwoSchools;
+    use ValidatesOpenApiResponses;
 
     private User $admin;
 
@@ -308,5 +313,68 @@ class FamilyConsentTest extends TestCase
         PlatformStaffIdentity::create(['user_id' => $this->parent->id, 'active' => true]);
         $schema = app(ProfileForms::class)->schema($this->parent, User::findOrFail($this->schoolA->ids['asha_user']), 'learner');
         $this->assertSame([], array_values(array_filter($schema['categories'], fn ($category) => $category['key'] === 'health')));
+    }
+
+    private function api(User $actor): self
+    {
+        $this->app['auth']->forgetGuards();
+
+        return $this->flushHeaders()->withToken($actor->createToken('family-form-api')->plainTextToken)->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $actor->id]);
+    }
+
+    public function test_private_http_connects_configuration_publication_signing_managed_roster_and_health(): void
+    {
+        $this->api($this->parent)->getJson('/api/v2/family-forms/configuration')->assertOk()->assertJsonPath('data.children.0.id', $this->learner)->assertJsonPath('data.children.0.person_id', $this->schoolA->ids['asha_user'])->assertJsonPath('data.school_id', 1)->assertJsonPath('data.reader_id', (int) $this->parent->id)->assertJsonCount(0, 'data.groups');
+        $this->api($this->teacher)->getJson('/api/v2/family-forms/configuration')->assertOk()->assertJsonPath('data.groups.0.id', $this->group->id);
+        $input = ['operation_id' => (string) Str::uuid(), 'activity_group_id' => $this->group->id, 'title' => 'Synthetic API trip', 'wording' => 'Exact API consent wording',
+            'event_starts_at' => '2026-02-20T08:00:00.000Z', 'event_ends_at' => '2026-02-20T10:00:00.000000Z', 'respond_by' => '2026-02-19T10:00:00Z', 'learner_ids' => [$this->learner]];
+        $request = $this->api($this->teacher)->postJson('/api/v2/family-forms/consents', $input)->assertOk()->json('data');
+        $url = '/api/v2/family-forms/consents/'.$request['id'];
+        $this->api($this->parent)->getJson('/api/v2/family-forms/consents?learner_id='.$this->learner)->assertOk()->assertJsonPath('data.items.0.title', 'Synthetic API trip');
+        $this->getJson($url.'?learner_id='.$this->learner)->assertOk()->assertJsonPath('data.wording', 'Exact API consent wording');
+        $this->postJson($url.'/learners/'.$this->learner.'/response', $this->response($request))->assertOk()->assertJsonPath('data.decision', 'yes');
+        $this->getJson($url.'/managed')->assertForbidden()->assertDontSee('Exact API consent wording');
+        $this->api($this->teacher)->getJson($url.'/managed')->assertOk()->assertJsonPath('data.recipients.0.effective', true);
+        $this->api($this->parent)->putJson('/api/v2/family-forms/learners/'.$this->learner.'/health', ['values' => ['medical_alerts' => ['text' => 'Synthetic private HTTP medical value']]])->assertOk()->assertJsonPath('data.categories.0.key', 'health');
+        $this->getJson('/api/v2/family-forms/learners/'.$this->learner.'/health')->assertOk()->assertSee('Synthetic private HTTP medical value')->assertHeader('Cache-Control', 'no-store, private');
+        $this->api($this->teacher)->getJson('/api/v2/family-forms/learners/'.$this->learner.'/health')->assertForbidden()->assertDontSee('Synthetic private HTTP medical value');
+    }
+
+    public function test_family_http_refusals_and_validation_are_private_before_auth_without_flash(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->getJson('/api/v2/family-forms/configuration')->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->api($this->parent)->withHeader('X-Account-Id', (string) $this->teacher->id)->getJson('/api/v2/family-forms/configuration')->assertForbidden();
+        $this->api($this->teacher)->withHeader('Accept', 'text/html')->post('/api/v2/family-forms/consents', ['title' => 'Synthetic private unsaved wording'])->assertUnprocessable()->assertJsonPath('error', true)->assertSessionMissing('_old_input')->assertHeader('Cache-Control', 'no-store, private');
+        $this->api($this->parent)->putJson('/api/v2/family-forms/learners/'.$this->learner.'/health?values=private', ['values' => ['medical_alerts' => ['text' => 'Synthetic query bypass']]])->assertUnprocessable()->assertSessionMissing('_old_input');
+        PlatformStaffIdentity::create(['user_id' => $this->parent->id, 'active' => true]);
+        $this->api($this->parent)->getJson('/api/v2/family-forms/configuration')->assertForbidden();
+    }
+
+    public function test_exact_signed_receipt_survives_account_name_change_and_read_only_without_new_writes(): void
+    {
+        $request = $this->create();
+        $input = $this->response($request);
+        $first = app(Consents::class)->respond($this->parent, $request['id'], $this->learner, $input);
+        $this->parent->update(['first_name' => 'Renamed guardian']);
+        config(['modules.family_forms.always_on' => false]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'family_forms'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $this->assertSame($first, app(Consents::class)->respond($this->parent, $request['id'], $this->learner, $input));
+        $this->assertTrue(app(Consents::class)->effective($this->teacher, $request['id'], $this->learner));
+        $this->expectException(HttpException::class);
+        app(Consents::class)->respond($this->parent, $request['id'], $this->learner, $this->response($request, ['revision' => 1, 'signed_name' => $this->parent->full_name]));
+    }
+
+    public function test_signed_history_survives_application_key_rotation_with_retained_verification_keys(): void
+    {
+        $request = $this->create();
+        app(Consents::class)->respond($this->parent, $request['id'], $this->learner, $this->response($request));
+        $old = config('app.key');
+        config(['app.previous_keys' => [$old], 'app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+        $this->app->forgetInstance('encrypter');
+        Crypt::clearResolvedInstance('encrypter');
+        $this->assertTrue(app(Consents::class)->effective($this->teacher, $request['id'], $this->learner));
+        $this->assertSame('yes', app(Consents::class)->read($this->parent, $request['id'], $this->learner)['decision']);
     }
 }

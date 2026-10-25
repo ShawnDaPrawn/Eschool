@@ -47,6 +47,8 @@ class FacilitatorFeatures {
     this.learnerNotes,
 
     this.cards,
+
+    this.familyForms,
   });
 
   /// A current dated grade-head working hub is available.
@@ -110,6 +112,10 @@ class FacilitatorFeatures {
   @JsonKey(name: r'cards', required: false, includeIfNull: false)
   final bool? cards;
 
+  /// Fresh staff family-form capability; does not grant guardian or clinical access.
+  @JsonKey(name: r'family_forms', required: false, includeIfNull: false)
+  final bool? familyForms;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -129,7 +135,8 @@ class FacilitatorFeatures {
           other.counselling == counselling &&
           other.supportPlans == supportPlans &&
           other.learnerNotes == learnerNotes &&
-          other.cards == cards;
+          other.cards == cards &&
+          other.familyForms == familyForms;
 
   @override
   int get hashCode =>
@@ -148,7 +155,8 @@ class FacilitatorFeatures {
       counselling.hashCode +
       supportPlans.hashCode +
       learnerNotes.hashCode +
-      cards.hashCode;
+      cards.hashCode +
+      familyForms.hashCode;
 
   factory FacilitatorFeatures.fromJson(Map<String, dynamic> json) =>
       _$FacilitatorFeaturesFromJson(json);

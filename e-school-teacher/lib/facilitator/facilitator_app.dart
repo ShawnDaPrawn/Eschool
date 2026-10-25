@@ -629,6 +629,26 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
+          if (profile.features['my_grade'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.groups_outlined),
+                title: Text(l('My grade')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'my_grade',
+                  MyGradeClientScreen(
+                    client: repository.client,
+                    schoolId: school,
+                    readerId: user,
+                    owner: repository,
+                    contextActive: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['my_grade'] == true,
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['discipline'] == true)
             Card(
               child: ListTile(

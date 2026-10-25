@@ -186,6 +186,9 @@ components:
         cards:
           type: boolean
           description: Fresh card module/account access; does not grant issuance or device management rights.
+        family_forms:
+          type: boolean
+          description: Fresh staff family-form capability; does not grant guardian or clinical access.
     FacilitatorProfile:
       type: object
       additionalProperties: false

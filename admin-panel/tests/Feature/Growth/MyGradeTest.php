@@ -15,7 +15,9 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
+use App\Services\Facilitators\FacilitatorAccess;
 use App\Services\Growth\MyGrade;
+use App\Services\ParentPolicyService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -76,6 +78,17 @@ class MyGradeTest extends TestCase
         $this->assertFalse($s->available($this->actor()));
         $head->update(['starts_on' => '2026-02-11', 'ends_on' => '2026-12-31']);
         $this->assertFalse($s->available($this->actor()));
+    }
+
+    public function test_dedicated_staff_profile_tracks_the_fresh_grade_head_appointment(): void
+    {
+        ParentPolicyService::acceptCurrent($this->actor());
+        $profiles = app(FacilitatorAccess::class);
+        $this->assertFalse($profiles->profile($this->actor())['features']['my_grade']);
+        $head = $this->appoint();
+        $this->assertTrue($profiles->profile($this->actor())['features']['my_grade']);
+        $head->update(['ends_on' => '2026-02-09']);
+        $this->assertFalse($profiles->profile($this->actor())['features']['my_grade']);
     }
 
     public function test_optional_modules_remain_independent_and_missing_attendance_is_never_an_absence(): void
