@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\Concerns\ValidatesOpenApiResponses;
@@ -175,6 +176,57 @@ class ActivityGroupsTest extends TestCase
         ActivityStaff::where('user_id', $teacher->id)->update(['starts_on' => '2026-02-10']);
         ActivitySession::whereKey($session['id'])->update(['on_date' => '2026-02-09']);
         $this->api($teacher)->getJson($path.'?session_id='.$session['id'])->assertNotFound();
+    }
+
+    public static function inactiveCurrentLearnerStates(): array
+    {
+        return ['ended school membership' => ['membership'], 'suspended account' => ['account']];
+    }
+
+    private function endCurrentLearnerAccess(string $kind): void
+    {
+        $user = $this->schoolA->ids['asha_user'];
+        if ($kind === 'membership') {
+            SchoolMembership::where('school_id', 1)->where('user_id', $user)->where('role', 'Student')->update(['status' => 'ended']);
+            // An active role in another school must not authorize this school's group.
+            SchoolMembership::create(['school_id' => 2, 'user_id' => $user, 'role' => 'Student', 'status' => 'active', 'starts_on' => '2026-01-01']);
+        } else {
+            User::whereKey($user)->update(['status' => 0]);
+        }
+    }
+
+    #[DataProvider('inactiveCurrentLearnerStates')]
+    public function test_current_parent_group_read_requires_current_learner_account_and_student_membership(string $kind): void
+    {
+        $group = $this->group();
+        $teacher = $this->coach($group['id']);
+        $this->member($group['id']);
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $path = '/api/v2/activities/groups/'.$group['id'];
+        $this->api($parent)->getJson($path)->assertOk();
+        $this->endCurrentLearnerAccess($kind);
+        $this->assertTrue(Enrolment::where('learner_id', $this->schoolA->ids['asha'])->exists());
+        $this->assertTrue(ActivityMembership::where('learner_id', $this->schoolA->ids['asha'])->where('active', true)->exists());
+        $this->api($parent)->getJson($path)->assertNotFound();
+        $this->api($teacher)->getJson($path)->assertOk();
+    }
+
+    #[DataProvider('inactiveCurrentLearnerStates')]
+    public function test_current_group_parent_audience_excludes_inactive_child_without_changing_historical_links(string $kind): void
+    {
+        $group = $this->group();
+        $this->member($group['id']);
+        $parent = $this->schoolA->ids['farid_user'];
+        $definition = ['kind' => 'activity_group', 'target_id' => $group['id'], 'session_year_id' => $this->year, 'parents' => true];
+        $resolver = app(CommunicationRecipients::class);
+        Enrolment::create(['learner_id' => $this->schoolA->ids['ben'], 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Retained valid classmate']);
+        ActivityMembership::create(['activity_group_id' => $group['id'], 'learner_id' => $this->schoolA->ids['ben'], 'role' => 'member', 'active' => true, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Valid classmate', 'revision' => 1]);
+        $this->assertArrayHasKey($parent, $resolver->standard($definition, '2026-02-10'));
+        $this->endCurrentLearnerAccess($kind);
+        $remaining = $resolver->standard($definition, '2026-02-10');
+        $this->assertArrayNotHasKey($parent, $remaining);
+        $this->assertArrayHasKey($this->schoolA->ids['gina_user'], $remaining);
+        $this->assertSame(1, SchoolMembership::active()->where('school_id', 1)->where('user_id', $parent)->where('role', 'Parent')->count());
     }
 
     public function test_guardian_relationship_revocation_and_expired_staff_remove_current_reads(): void
