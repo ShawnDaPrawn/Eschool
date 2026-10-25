@@ -8,6 +8,8 @@ $mail = ['push' => 'off', 'email' => 'mandatory', 'in_app' => 'off'];
 $required = ['push' => 'mandatory', 'email' => 'mandatory', 'in_app' => 'mandatory'];
 
 return [
+    'progress.staff_band_changed' => ['label' => 'Teaching progress updates', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'progress.band_changed' => ['label' => 'Learning progress updates', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'account.verify_email' => ['label' => 'Verify email', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.password_reset' => ['label' => 'Password reset', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],

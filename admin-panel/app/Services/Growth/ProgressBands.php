@@ -14,6 +14,8 @@ use App\Policies\Growth\LearnerNotesPolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\MarkSnapshots;
 use App\Services\Academics\ReleasedMarks;
+use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Events\ProgressBandsConfigured;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +57,7 @@ class ProgressBands
             $row ??= new ProgressBandSettings;
             $row->fill(['high_bp' => (int) $data['high_bp'], 'secure_bp' => (int) $data['secure_bp'],
                 'minimum_coverage_bp' => (int) $data['minimum_coverage_bp'], 'revision' => (int) ($row->revision ?? 0) + 1])->save();
+            Outbox::record(new ProgressBandsConfigured(app(CurrentSchool::class)->id(), (int) schoolSetting('session_year')));
 
             return $this->configuration();
         });

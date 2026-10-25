@@ -6,6 +6,7 @@ namespace App\Services\Panel;
 
 use App\Models\User;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Modules\ModuleGate;
@@ -128,6 +129,9 @@ class Navigation
             return false;
         }
         if (($item['support_actor'] ?? false) && ! app(SupportAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['principal_dashboard'] ?? false) && ! app(LeadershipAuthority::class)->available($user)) {
             return false;
         }
         $permissions = $item['permissions'] ?? [];

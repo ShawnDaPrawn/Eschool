@@ -329,3 +329,41 @@ new panel or app surface and does not claim clinical user acceptance.
 The complete canonical route/contract catalogue passes **284 tests, 1,383
 assertions**. Strict OpenAPI lint and all **68 SDK tests** pass. SDK analysis
 contains 593 generated informational lints and no errors or warnings.
+
+
+## Queued progress-band alerts
+
+Independent staff-running and family-released band state, minimum coverage,
+transition deduplication, immutable alert revisions, outbox jobs and threshold
+rechecks are implemented. Generic notification payloads expose no learner or mark
+values. Fresh source/role/guardian/approval and destination checks run at fanout,
+Notifier and transport; older release events cannot overwrite newer family state.
+
+The affected domain/notes/tenant migration cohort passes **18 tests, 316
+assertions**. The broader alert/Notifier/preferences cohort passes **34 tests,
+135 assertions**. Final focused qualification passes **6 tests, 37 assertions**,
+including stringified push IDs, boolean refusal, changed destination, stale
+snapshot, out-of-order released evidence and settings requeue. Changed-file Pint
+and complete configured Larastan pass. Tests use synthetic schools, fake dispatch
+and no actual transport or provider. Generic inbox history contains no private
+learner values; application progress readers enforce current per-record access.
+
+
+## Early warning domain and owned interventions
+
+The current domain cohort passes **16 tests, 87 assertions**, including immutable
+current-day evidence, unknown versus zero, minimum coverage/sample, dated rosters,
+wrong school/role/owner, fresh professional grant withdrawal, encrypted maximum
+multibyte history, body-free metadata/owner handoff and retained-year care. A real
+second MySQL connection proves the grade mutex protects source reads; a simulated
+source callback replacing school context is refused and restored. A grade change
+after source read cannot append stale old-grade observations. Metadata body
+affordances also recheck the original authority after a grant is revoked.
+
+The prior affected risk/dashboard/actual-tenant-migration cohort passes **24 tests,
+335 assertions**; complete configured Larastan and changed-file Pint pass. Final
+merged Admin-viewer/dashboard/actual-tenant-migration checks pass **26 tests, 340
+assertions**, with changed-file Pint and complete configured Larastan passing.
+No actual counsellor review, diagnosis, clinical risk disclosure, real-school
+observation or staff panel/app acceptance is claimed by this service increment.
+The HTTP contracts and staff workflows remain the next increment.

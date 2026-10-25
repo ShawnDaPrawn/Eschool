@@ -205,3 +205,15 @@ school_id with tenant scopes and foreign keys. Audit hashes sensitive text rathe
 than copying it into audit JSON; immutable encrypted receipts retain revisions.
 Destructive rollback refuses any retained activity data. No sensitive counselling
 case or medical record is stored in these tables.
+
+
+## Early warning and owned interventions
+
+`risk_settings` stores versioned academic coverage/threshold and attendance sample
+rules. `risk_observations` retains immutable school/year/grade/day/source facts,
+nullable scores, encrypted evidence and source fingerprints. `risk_caseloads`
+contains independent dated, revocable professional grants. `interventions` pins
+the reporting year, grade and original owner authority, with encrypted action and
+outcome; `intervention_versions` retains immutable encrypted revision and owner
+handoff records. All five are school scoped; populated rollback is refused.
+Metadata projections explicitly exclude action/outcome before SQL retrieval.

@@ -113,4 +113,36 @@ void main() {
       expect(api.requests, hasLength(1));
     },
   );
+  test(
+    'selected choices use independent ID filters without inheriting a search page',
+    () async {
+      final api = FakeApi(
+        routes: {
+          'GET v2/pastoral/support/configuration/principal': {
+            'error': false,
+            'data': {
+              'audience': 'principal',
+              'page': 1,
+              'last_page': 1,
+              'learners': [
+                {'id': 3, 'name': 'Learner'},
+              ],
+              'staff': [
+                {'id': 4, 'name': 'Professional'},
+              ],
+              'staff_last_page': 1,
+            },
+          },
+        },
+      );
+      await repository(
+        api,
+      ).configuration('principal', learnerId: 3, staffId: 4);
+      expect(api.requests.single.queryParameters, {
+        'page': 1,
+        'learner_id': 3,
+        'user_id': 4,
+      });
+    },
+  );
 }
