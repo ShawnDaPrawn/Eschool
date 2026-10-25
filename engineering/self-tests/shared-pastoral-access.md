@@ -22,3 +22,13 @@ includes Facilitator, Counsellor and Safeguarding. All **11 matrix cases pass
 migrations, rolls children back before their parents and reapplies every feature;
 its check passes **1 test, 165 assertions**. This prevents later school-owned
 tables from silently escaping rollback coverage. No role/tenancy check is waived.
+
+Role-transition privacy regression: all three new staff profiles reproduced
+retained teacher IDs/group access after replacing a Teacher role. AcademicAuthority
+now requires a fresh active Teacher membership before using retained teacher
+profiles/allocations. Teacher records are retained; they grant no implicit rights.
+The transition/route-matrix/sensitive-access/timetable cohort passes **48 tests,
+354 assertions**. Explicit leadership and management grants remain separate.
+
+The existing mark-engine regression passes **24 tests, 264 assertions** after
+the Teacher-role guard. Changed-file Pint and full configured Larastan pass.

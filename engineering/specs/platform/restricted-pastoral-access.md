@@ -32,7 +32,9 @@ System Counsellor and Safeguarding roles receive only the base restricted
 permission. Facilitator starts with none. Super Admin receives activity-group
 management but no restricted permission. Existing custom role configurations
 are retained, including names that collide with a newly introduced system role;
-they require explicit reviewed permission assignment. No users are auto-appointed.
+they require explicit reviewed permission assignment. No users are auto-appointed. AcademicAuthority also requires a current Teacher
+membership before retained teacher profiles or allocations can supply teaching
+rights; a role conversion preserves history without preserving implicit access.
 
 The additive migration upgrades existing school role catalogues; fresh installs
 retain the original role creation order. Authorization rows are not removed by

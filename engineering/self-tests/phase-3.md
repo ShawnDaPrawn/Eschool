@@ -83,3 +83,9 @@ unreviewed/withdrawn label or edge reaches views, and confirms historical node/l
 rows remain retained. With the shared pastoral-role/migration rehearsal changes,
 **27 tests passed, 269 assertions** (mastery, role matrix, tenant migrations).
 Changed-file Pint and complete configured Larastan analysis pass.
+
+Fresh teaching-authority follow-up: merged the shared role-transition guard, which
+requires the current Teacher role before retained Teacher profiles/allocations can
+authorize academic reads. The mastery/role/migration cohort remains **27 passed,
+269 assertions**; the three Counsellor/Facilitator/Safeguarding transitions pass
+**3 tests, 21 assertions**. Complete configured Larastan analysis passes.
