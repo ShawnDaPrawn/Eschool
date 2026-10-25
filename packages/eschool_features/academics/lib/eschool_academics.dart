@@ -57,3 +57,8 @@ export 'src/growth/mastery_cubit.dart';
 export 'src/growth/mastery_screen.dart';
 export 'src/growth/mastery_session_boundary.dart';
 export 'src/cover/cover_session_boundary.dart';
+
+export 'src/progress_notes/progress_repository.dart';
+export 'src/progress_notes/progress_notes_screen.dart';
+export 'src/progress_notes/family_progress_screen.dart';
+export 'src/progress_notes/progress_session_boundary.dart';

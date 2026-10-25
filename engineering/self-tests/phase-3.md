@@ -309,6 +309,28 @@ analyzes with no errors or warnings (27 existing informational lints). The lates
 reviewed support browser fixes and flow selector are retained.
 
 
+## Progress and notes panel/shared readers
+
+The actual PHP-backed panel browser passed **two widths (390 and 1280px)** in
+47.8 seconds. It exercised Teacher academic create/read with escaped script text,
+assigned professional clinical reading, principal metadata with no body/editor,
+immediate revoke and former-professional 404 refusal. Both widths had zero
+serious/critical axe findings, duplicate IDs and console/network errors; horizontal
+overflow was at most one pixel. The browser exposed an unpublished-assessment
+409 from the optional band card; the panel now keeps note authoring available
+when that independent band source is not yet published.
+
+Shared Flutter qualification passes **17 tests**: three staff widths, clinical
+own-caseload discovery without teaching APIs, principal metadata without note/body
+APIs, exact immutable unknown-outcome retry, background private-state clearing and
+late-response discard, immediate erasure on fresh read refusal, family-only
+released bands with unknown distinct from zero, pinned transport identity and
+private URL logging suppression, plus four session-refresh/revocation boundaries.
+Classic/native app menu wiring and actual application Chrome qualification follow
+this shared library. These checks do not claim physical-device, live-school,
+clinical-language or human clinical acceptance. Queued alerts are not built here.
+
+
 ## Immediate restricted-note caseload revocation
 
 Principals can explicitly end a dated note-only grant immediately, including on
@@ -329,3 +351,10 @@ new panel or app surface and does not claim clinical user acceptance.
 The complete canonical route/contract catalogue passes **284 tests, 1,383
 assertions**. Strict OpenAPI lint and all **68 SDK tests** pass. SDK analysis
 contains 593 generated informational lints and no errors or warnings.
+
+Panel automated verification passes **7 tests, 52 assertions**, including
+independent notes when the term assessment remains unpublished, private escaped
+validation/conflict drafts without session flash, historical-year authorization,
+cookie replacement, role/owner/school refusal and immediate clinical revocation.
+Changed-file Pint and complete configured Larastan pass. Final combined shared
+qualification passes **17 tests** and changed Dart analysis reports no issues.

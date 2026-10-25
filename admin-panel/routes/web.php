@@ -41,6 +41,7 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
+use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
@@ -763,4 +764,13 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+});
+
+Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {
+    Route::get('/', [ProgressPanelController::class, 'index'])->name('index');
+    Route::post('learners/{learner}/notes', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('create');
+    Route::post('notes/{note}', [ProgressPanelController::class, 'write'])->whereNumber('note')->name('update');
+    Route::post('learners/{learner}/assignments', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('assign');
+    Route::post('learners/{learner}/assignments/revoke', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('revoke-assignment');
+    Route::post('settings', [ProgressPanelController::class, 'write'])->name('configure');
 });

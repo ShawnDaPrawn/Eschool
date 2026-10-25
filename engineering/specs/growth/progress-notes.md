@@ -43,3 +43,27 @@ before tenant data retrieval. Every response forbids caches.
 The facilitator profile has optional support_plans/learner_notes booleans,
 without defaults or new required fields: older sessions preserve omission.
 Availability exposes no case or note bodies and grants no per-record authority.
+
+
+## Private panel and shared readers
+
+The panel workbench and shared Flutter readers implement academic notes, explicit
+clinical caseloads, principal assignment metadata, retained history, author-only
+revisions, archive and immediate revocation/regrant. Author text is always plain
+escaped text. No note or draft is persisted by the app; lifecycle suspension
+clears private state. Routes must pin account/school/context and remount after
+any context refresh. Optional band unavailability does not block independently
+authorized note authoring. Unknown writes retain the exact operation UUID and
+payload for an explicit retry; conflicts require reviewing the current revision.
+
+Panel private validation and historical-year refusal preserve only the current
+caller's bounded draft directly in the private response, without session input
+flash. Account/school and current role/caseload authorization run first. The
+principal assignment view never requests clinical bodies. Family progress reads
+only released periods and bands and never calls notes or caseload endpoints.
+The optional ApiClient privateRequest suppresses record URLs in debug logging.
+
+Classic app route/menu integration and the native clinical Notes card follow the
+shared reader library; an exported screen alone is not a completed app entry.
+Queued band notifications remain the next independent increment. English,
+Afrikaans and isiZulu labels retain explicit human-language review acceptance.
