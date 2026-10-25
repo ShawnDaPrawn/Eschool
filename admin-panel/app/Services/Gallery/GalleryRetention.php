@@ -6,6 +6,9 @@ namespace App\Services\Gallery;
 
 use App\Models\Gallery\GalleryPhoto;
 use App\Models\Gallery\PhotoTag;
+use App\Models\People\Enrolment;
+use App\Models\Platform\School;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\Transfers\TransferPackage;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -31,13 +34,21 @@ class GalleryRetention
         // unconsented tags when that departure has actually taken effect.
         TransferPackage::where(fn ($q) => $q->where('state', 'accepted')->orWhere(fn ($external) => $external->where('state', 'released')->whereNull('to_school_id')))
             ->whereExists(fn ($departure) => $departure->selectRaw('1')->from('academic_transitions')->whereColumn('academic_transitions.operation_id', 'transfer_packages.public_id')->where('academic_transitions.school_id', app(CurrentSchool::class)->id())->where('academic_transitions.kind', 'leave'))
-            ->whereDate('last_attended_on', '<', now()->toDateString())->select(['id', 'learner_id'])->orderBy('id')->chunkById(100, function ($rows): void {
+            ->whereDate('last_attended_on', '<', now()->toDateString())->select(['id', 'learner_id', 'last_attended_on'])->orderBy('id')->chunkById(100, function ($rows): void {
                 foreach ($rows as $package) {
-                    $learner = Students::find($package->learner_id);
-                    if ($learner === null || app(GalleryQueries::class)->currentLearner($learner)) {
-                        continue; // A later return to this school is a new authorised episode.
-                    }
                     DB::transaction(function () use ($package): void {
+                        School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
+                        $learner = Students::select(['id', 'user_id'])->lockForUpdate()->find($package->learner_id);
+                        if ($learner === null || app(GalleryQueries::class)->currentLearner($learner)) {
+                            return;
+                        }
+                        // A recorded return remains a separate episode after
+                        // suspension, later departure or school deactivation.
+                        $last = $package->last_attended_on->toDateString();
+                        if (Enrolment::withTrashed()->where('learner_id', $learner->id)->whereDate('starts_on', '>', $last)->exists()
+                            || SchoolMembership::where('school_id', app(CurrentSchool::class)->id())->where('user_id', $learner->user_id)->where('role', 'Student')->whereDate('starts_on', '>', $last)->exists()) {
+                            return;
+                        }
                         foreach (PhotoTag::where('learner_id', $package->learner_id)->where('retained_on_transfer', false)->whereIn('status', ['proposed', 'approved'])->orderBy('id')->lockForUpdate()->get() as $tag) {
                             $tag->update(['status' => 'removed', 'revision' => $tag->revision + 1]);
                             app(GalleryEvents::class)->record('departure_tag_removed', tag: $tag);
