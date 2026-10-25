@@ -13,6 +13,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardCategoryAdmin;
+use App\Models\Recognition\AwardWindow;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
@@ -230,6 +231,17 @@ class RecognitionAuthority
         abort(409, 'Award category trees may contain at most eight levels.');
     }
 
+    /** Reusable category identity, explicitly assigned to a dated annual group. */
+    public function categoryGroup(AwardCategory $category, int $year): ?int
+    {
+        $mapped = AwardWindow::where('award_category_id', $category->id)->where('session_year_id', $year)->value('activity_group_id');
+        if ($mapped !== null) {
+            return (int) $mapped;
+        }
+
+        return ActivityGroup::where('session_year_id', $year)->whereKey($category->activity_group_id)->exists() ? (int) $category->activity_group_id : null;
+    }
+
     public function categoryAdmin(User $actor, AwardCategory $category, bool $write = false): bool
     {
         $fresh = $this->staff($actor, 'awards', $write);
@@ -245,7 +257,7 @@ class RecognitionAuthority
             return app(AcademicAuthority::class)->currentLeadership($fresh, 'grade_head', (int) $category->grade_level_id);
         }
         if ($category->scope_kind === 'group' && app(ModuleGate::class)->allows('groups')) {
-            $group = ActivityGroup::where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->find($category->activity_group_id);
+            $group = ActivityGroup::where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->find($this->categoryGroup($category, (int) schoolSetting('session_year')));
             if ($group !== null) {
                 $community = app(CommunityAuthority::class);
                 $ancestors = $community->lineage($group);
@@ -273,7 +285,7 @@ class RecognitionAuthority
         }
         if ($category->scope_kind === 'group') {
             abort_unless(app(ModuleGate::class)->allows('groups'), 403);
-            $group = ActivityGroup::where('active', true)->where('session_year_id', $place->session_year_id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->findOrFail($category->activity_group_id);
+            $group = ActivityGroup::where('active', true)->where('session_year_id', $place->session_year_id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->findOrFail($this->categoryGroup($category, (int) $place->session_year_id));
             foreach (app(CommunityAuthority::class)->lineage($group) as $ancestor) {
                 abort_unless(ActivityGroup::where('active', true)->where('session_year_id', $place->session_year_id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->whereKey($ancestor)->exists(), 404);
             }

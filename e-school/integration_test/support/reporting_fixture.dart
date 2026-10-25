@@ -34,6 +34,25 @@ class ReportingFixture {
     'photos': photos,
   };
   late final Map<String, Object> routes = {
+    'GET v2/wellbeing/notices': (RequestOptions request) => ok({
+      'items': [
+        {
+          'id': 71,
+          'title': 'Private school update',
+          'message': 'Generic private update',
+          'link': '/report-concern',
+          'created_at': '2026-02-10T08:00:00Z',
+          'read_at': null,
+        },
+      ],
+      'page': 1,
+      'last_page': 1,
+      'unread_count': 1,
+    }),
+    'POST v2/wellbeing/notices/71/read': ok({
+      'id': 71,
+      'read_at': '2026-02-10T09:00:00Z',
+    }),
     'GET v2/wellbeing/access': (RequestOptions _) => denied
         ? const FakeResponse({'message': 'Forbidden'}, status: 403)
         : ok({

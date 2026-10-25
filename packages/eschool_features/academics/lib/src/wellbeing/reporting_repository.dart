@@ -1,9 +1,11 @@
+import 'wellbeing_notice_repository.dart';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 
-abstract interface class ReportingRepository {
+abstract interface class ReportingRepository
+    implements WellbeingNoticeRepository {
   bool get isActive;
   Future<WellbeingAccess> access();
   Future<IncidentPublicConfiguration> configuration(String slug);
@@ -49,7 +51,11 @@ class ApiReportingRepository implements ReportingRepository {
       );
   }
 
-  Future<Map<String, dynamic>> _send(String path, {Object? body}) async {
+  Future<Map<String, dynamic>> _send(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? query,
+  }) async {
     _guard();
     final result = await client.send(
       method: body == null ? 'GET' : 'POST',
@@ -57,6 +63,7 @@ class ApiReportingRepository implements ReportingRepository {
       schoolId: schoolId,
       accountId: accountId,
       data: body,
+      queryParameters: query,
       privateRequest: true,
       requestTimeout: const Duration(seconds: 30),
     );
@@ -71,6 +78,17 @@ class ApiReportingRepository implements ReportingRepository {
       throw ArgumentError.value(value, 'school');
     return value;
   }
+
+  @override
+  Future<WellbeingNoticePage> notices(int page) async =>
+      WellbeingNoticePage.fromJson(
+        await _send('notices', query: {'page': page, 'area': 'reporter'}),
+      );
+  @override
+  Future<WellbeingNoticeReadReceipt> readNotice(int id) async =>
+      WellbeingNoticeReadReceipt.fromJson(
+        await _send('notices/$id/read', body: {}),
+      );
 
   @override
   Future<WellbeingAccess> access() async =>

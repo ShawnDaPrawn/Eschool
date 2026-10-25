@@ -1172,3 +1172,101 @@ class SchoolTransfersEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> familyRecognitionRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        auth = context.read<AuthCubit>(),
+        children = context.read<ChildSelectionCubit>();
+    final parent = auth.isParent(),
+        child = auth.isParent() ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    final school = parent ? child?.schoolId : me?.currentSchoolId,
+        account = me?.user?.id;
+    final modules = [
+      for (final key in ['house_points', 'awards'])
+        if (me?.isModuleOn(key) == true && allowsSchoolModule(me, key)) key,
+    ];
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        learner == null ||
+        learner <= 0 ||
+        me.currentSchoolId != school ||
+        modules.isEmpty ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: RecognitionSessionBoundary(
+        pinned: me,
+        modules: modules,
+        builder: (active) => RecognitionScreen(
+          repository: ApiRecognitionRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!parent ||
+                    children.selected?.id == learner &&
+                        children.selected?.schoolId == school),
+          ),
+          modules: modules,
+          family: true,
+          learnerId: learner,
+          learnerName:
+              child?.child.name ?? auth.getStudentDetails().getFullName(),
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyRecognitionEntry extends StatelessWidget {
+  const FamilyRecognitionEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!['house_points', 'awards'].any(
+            (key) =>
+                state.context?.isModuleOn(key) == true &&
+                allowsSchoolModule(state.context, key),
+          )) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.emoji_events_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.recognition),
+            ),
+          );
+        },
+      );
+}

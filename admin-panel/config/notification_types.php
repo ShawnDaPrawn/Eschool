@@ -39,4 +39,6 @@ return [
     'progress.staff_band_changed' => ['label' => 'Teaching progress updates', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'progress.band_changed' => ['label' => 'Learning progress updates', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'recognition.points_changed' => ['label' => 'House point updates', 'module' => 'house_points', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'recognition.award_presented' => ['label' => 'Award presentations', 'module' => 'awards', 'portals' => ['learner', 'parent'], 'channels' => $on],
 ];

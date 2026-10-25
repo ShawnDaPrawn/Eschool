@@ -18,6 +18,7 @@ use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Wellbeing\WellbeingAccess;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -81,7 +82,18 @@ class FacilitatorAccess
             'roles' => array_values(array_intersect(app(ProfilePolicy::class)->roles($fresh), self::ROLES)),
             'schools' => $choices->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name, 'slug' => $row->slug])->all(),
             'features' => ['groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
-                'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh), 'risk_interventions' => $this->riskAvailable($fresh)]];
+                'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh), 'risk_interventions' => $this->riskAvailable($fresh), 'house_points' => $this->recognitionAvailable($fresh, 'house_points'), 'awards' => $this->recognitionAvailable($fresh, 'awards')]];
+    }
+
+    private function recognitionAvailable(User $actor, string $module): bool
+    {
+        try {
+            app(RecognitionAuthority::class)->staff($actor, $module);
+
+            return true;
+        } catch (HttpExceptionInterface|ModelNotFoundException $error) {
+            return false;
+        }
     }
 
     private function notesAvailable(User $actor): bool

@@ -364,6 +364,7 @@ class _HomeContainerState extends State<HomeContainer> {
                     const AcademicReportsEntry(),
                     const SchoolMessagesEntry(),
                     const FamilyProgressEntry(),
+                    const FamilyRecognitionEntry(),
                     const ReportConcernEntry(),
                     const MasteryEntry(),
                     const ActivityGroupsEntry(),

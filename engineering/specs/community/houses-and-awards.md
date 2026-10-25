@@ -30,3 +30,17 @@ The first domain increment passes 22 MySQL tests (97 assertions), Pint and the
 configured whole-application static analysis. See
 [the domain qualification](../../self-tests/houses-awards-domain.md). API, UI and
 live delivery remain separate integration work; no phase completion is asserted.
+
+## Annual groups and private delivery
+
+A reusable group category can explicitly select a different dated activity group
+for each school year through its award window. The original category scope stays
+immutable; no name matching grants authority. Group subcategories keep their
+parent's annual group, and a year with nominations or presentations cannot be
+remapped. Current group heads and current learner membership govern new entries.
+
+Family notices use current source/relationship checks before counting and delivery.
+Private recognition invalidations contain source references and go only to fresh
+family recipients. School counters retain aggregate-only events. App readers clear
+private content across account, school, child, capability and lifecycle changes;
+background resume requires fresh authorization.

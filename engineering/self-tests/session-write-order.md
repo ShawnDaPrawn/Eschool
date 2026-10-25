@@ -18,3 +18,11 @@ Disabling blocking reproduced the old year overwriting the new one. Enabling it
 passed with both file and database lock stores:2tests/6assertions. Whole-app static
 analysis passes in the combined development tree. This source/test evidence does
 not claim production rollout or a new cloud resource has been provisioned.
+
+The browser also keeps the header DOM and local filter storage on the confirmed
+year until a successful server response. A still-running class-list callback must
+not send the newly selected year's filters before persistence. Failed responses
+restore the old selection. The original browser assertion caught the early reads;
+it passes unchanged after this fix (5.5seconds), including the read-only banner,
+filtered list, refused423 write and return to the current year. JavaScript syntax
+validation passes. Other recognition, transfer and dated-teaching workflows pass.

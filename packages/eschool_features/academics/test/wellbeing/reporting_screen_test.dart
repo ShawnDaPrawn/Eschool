@@ -75,6 +75,24 @@ Future<void> chooseCategory(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('private updates preserve an unsent family report draft', (
+    tester,
+  ) async {
+    final repo = FakeReporting();
+    await show(tester, repo);
+    await enter(tester, 'What happened?', 'Unsent family concern');
+    await tester.tap(find.byTooltip('Private updates'));
+    await tester.pumpAndSettle();
+    expect(find.text('Unsent family concern'), findsNothing);
+    await tester.tap(find.text('Return to private area'));
+    await tester.pumpAndSettle();
+    await seek(tester, field('What happened?'));
+    expect(
+      tester.widget<TextField>(field('What happened?')).controller!.text,
+      'Unsent family concern',
+    );
+  });
+
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets('emergency guidance and both reporting choices fit $width', (
       tester,

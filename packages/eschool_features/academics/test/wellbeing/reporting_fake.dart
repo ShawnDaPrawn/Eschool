@@ -19,6 +19,26 @@ class FakeReporting implements ReportingRepository {
   }
 
   @override
+  Future<WellbeingNoticePage> notices(int page) async {
+    guard();
+    return WellbeingNoticePage(
+      items: [],
+      page: page,
+      lastPage: page,
+      unreadCount: 0,
+    );
+  }
+
+  @override
+  Future<WellbeingNoticeReadReceipt> readNotice(int id) async {
+    guard();
+    return WellbeingNoticeReadReceipt(
+      id: id,
+      readAt: DateTime.utc(2026, 2, 10),
+    );
+  }
+
+  @override
   Future<WellbeingAccess> access() async {
     guard();
     return WellbeingAccess(

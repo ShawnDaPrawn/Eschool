@@ -32,9 +32,8 @@ return app(CurrentSchool::class)->run(1, function (): array {
     $gate->change('awards', true, $admin);
     $gate->forget();
     $year = SessionYear::findOrFail((int) schoolSetting('session_year'));
-    $start = now('Africa/Johannesburg')->format('Y').'-01-01';
-    $end = now('Africa/Johannesburg')->format('Y').'-12-31';
-    $year->update(['start_date' => $start, 'end_date' => $end]);
+    $start = substr((string) $year->start_date, 0, 10);
+    $end = substr((string) $year->end_date, 0, 10);
     $room = ClassSection::with('class')->whereHas('class', fn ($q) => $q->where('name', 'Grade 5'))->firstOrFail();
     $grade = (int) GradeLevel::where('code', '5')->value('id');
     $room->class->forceFill(['grade_level_id' => $grade])->save();

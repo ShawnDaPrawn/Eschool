@@ -127,6 +127,17 @@ void main() {
             'Private ${parentProfile ? 'parent' : 'learner'} browser concern';
         await seek(field('What happened?'));
         await tester.enterText(field('What happened?'), body);
+        await tester.tap(find.byTooltip('Private updates'));
+        await tester.pumpAndSettle();
+        expect(find.text(body), findsNothing);
+        expect(find.text('Unread private updates: 1'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('wellbeing-notice-71')));
+        await tester.pumpAndSettle();
+        await seek(field('What happened?'));
+        expect(
+          tester.widget<TextField>(field('What happened?')).controller!.text,
+          body,
+        );
         final consent = find.widgetWithText(
           CheckboxListTile,
           'I agree to identify myself to the school safeguarding team for this report.',
