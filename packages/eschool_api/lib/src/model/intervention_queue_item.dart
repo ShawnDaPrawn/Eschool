@@ -16,6 +16,10 @@ part 'intervention_queue_item.g.dart';
 class InterventionQueueItem {
   /// Returns a new [InterventionQueueItem] instance.
   InterventionQueueItem({
+    this.learnerName,
+
+    this.ownerName,
+
     required this.id,
 
     required this.learnerId,
@@ -32,6 +36,12 @@ class InterventionQueueItem {
 
     required this.canReadBody,
   });
+
+  @JsonKey(name: r'learner_name', required: false, includeIfNull: false)
+  final String? learnerName;
+
+  @JsonKey(name: r'owner_name', required: false, includeIfNull: false)
+  final String? ownerName;
 
   // minimum: 1
   @JsonKey(name: r'id', required: true, includeIfNull: false)
@@ -71,6 +81,8 @@ class InterventionQueueItem {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is InterventionQueueItem &&
+          other.learnerName == learnerName &&
+          other.ownerName == ownerName &&
           other.id == id &&
           other.learnerId == learnerId &&
           other.ownerId == ownerId &&
@@ -82,6 +94,8 @@ class InterventionQueueItem {
 
   @override
   int get hashCode =>
+      learnerName.hashCode +
+      ownerName.hashCode +
       id.hashCode +
       learnerId.hashCode +
       ownerId.hashCode +

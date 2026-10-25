@@ -11,6 +11,7 @@ use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Transfers\TransferAuthority;
 use App\Services\Wellbeing\WellbeingAccess;
 use Illuminate\Support\Facades\Route;
 
@@ -140,6 +141,9 @@ class Navigation
             return false;
         }
         if (($item['principal_dashboard'] ?? false) && ! app(LeadershipAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
             return false;
         }
         $permissions = $item['permissions'] ?? [];

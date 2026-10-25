@@ -130,6 +130,10 @@ components:
       - messages
       - counselling
       properties:
+        risk_interventions:
+          type: boolean
+          description: Fresh original-kind authority for private risk interventions; absence
+            means unavailable.
         groups: &id002
           type: boolean
         messages: *id002

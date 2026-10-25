@@ -444,3 +444,36 @@ The global route/contract catalogue passes **331 tests, 1,571 assertions**. A
 second clean pinned regeneration reproduces every generated Dart byte.
 Panel/native interaction acceptance remains the next increment; no family risk
 labels, clinical evidence projection or live-school acceptance is claimed.
+Panel automated verification passes **7 tests, 52 assertions**, including
+independent notes when the term assessment remains unpublished, private escaped
+validation/conflict drafts without session flash, historical-year authorization,
+cookie replacement, role/owner/school refusal and immediate clinical revocation.
+Changed-file Pint and complete configured Larastan pass. Final combined shared
+qualification passes **17 tests** and changed Dart analysis reports no issues.
+
+
+## Application progress and note entry points
+
+Classic Teacher home/settings routes, learner and parent home cards/deep links,
+and the native clinical Notes card are wired with fresh school/account/child/module
+boundaries. Support and activity-group navigation remain present. The updated
+Support selected-ID contract and latest wellbeing/roster SDK are preserved without
+another generation; its reader suppresses private URL debug logging too.
+
+Actual Chrome passed **all four affected profiles**: native Counsellor startup
+and clinical body access/refresh withdrawal; learner and parent released-band
+selection with unknown distinct from zero and resume refusal; and classic Teacher
+allocated note reading with role withdrawal erasure. The browser caught a missing
+ParentHome card, which is now present, and a fixture path mismatch corrected to
+the canonical /periods and /bands. A positive transport regression now proves the
+canonical family calls, avoiding an unregistered fake endpoint masquerading as an
+authorization refusal. New browser flows are in the existing CI matrix.
+
+Private notes API and panel writes also reject query parameters before merged
+validation or historical draft reflection. The real HTTP cohort passes **19 tests,
+347 assertions**, with complete Larastan and Pint. Final combined shared tests
+pass **25 tests**, including the positive family transport and Support private-log
+regression. The focused staff app suite passes **20 tests**, and family entry/label
+checks pass **3 tests**. Both app analyzers have no errors or warnings; remaining
+informational lints belong to existing shared route/style patterns. No physical
+device, live-school, fluent clinical-language or production acceptance is claimed.

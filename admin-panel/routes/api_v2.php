@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
+use App\Http\Controllers\Api\V2\Transfers\TransferController;
 use App\Http\Controllers\Api\V2\Wellbeing\PublicReportingController;
 use App\Http\Controllers\Api\V2\Wellbeing\WellbeingController;
 use App\Http\Middleware\AuthorizeClassGrade;
@@ -45,6 +46,7 @@ use App\Http\Middleware\AuthorizeSupport;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
+use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateMastery;
@@ -428,7 +430,6 @@ Route::prefix('pastoral/support')->middleware(['auth:sanctum', 'school.context',
     }
 });
 
-
 Route::prefix('growth/risk')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'staff', 'module:early_warning'])->name('api.v2.risk.')->group(function () {
     $c = RiskController::class;
     Route::get('configuration', [$c, 'configuration'])->name('configuration');
@@ -447,4 +448,17 @@ Route::prefix('growth/risk')->middleware([PrivateMastery::class, 'auth:sanctum',
     Route::get('interventions/{intervention}/history', [$c, 'history'])->whereNumber('intervention')->name('history');
     Route::put('interventions/{intervention}', [$c, 'update'])->whereNumber('intervention')->name('update');
     Route::post('interventions/{intervention}/owner', [$c, 'transfer'])->whereNumber('intervention')->name('transfer');
+});
+
+Route::prefix('transfers')->middleware(['auth:sanctum', 'school.context', 'role.any', AuthorizeTransfer::class])->name('api.v2.transfers.')->group(function () {
+    $c = TransferController::class;
+    Route::get('access', [$c, 'access'])->name('access');
+    Route::get('choices/{kind}', [$c, 'choices'])->whereIn('kind', ['learners', 'destinations', 'guardians', 'reports', 'documents', 'years', 'rooms', 'categories'])->name('choices');
+    Route::post('packages', [$c, 'prepare'])->name('prepare');
+    foreach (['consent', 'withdraw', 'release', 'cancel', 'accept'] as $action) {
+        Route::post('packages/{package}/'.$action, [$c, $action])->whereNumber('package')->name($action);
+    }
+    Route::get('{lane}', [$c, 'index'])->whereIn('lane', ['outgoing', 'incoming', 'consents', 'receipts'])->name('index');
+    Route::get('{lane}/{record}', [$c, 'show'])->whereIn('lane', ['outgoing', 'incoming', 'consents', 'receipts'])->whereNumber('record')->name('show');
+    Route::get('{lane}/{record}/archive', [$c, 'archive'])->whereIn('lane', ['outgoing', 'incoming', 'consents', 'receipts'])->whereNumber('record')->name('archive');
 });

@@ -16,6 +16,10 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(Map<String, dynamic> json) =>
           requiredKeys: const ['groups', 'messages', 'counselling'],
         );
         final val = FacilitatorFeatures(
+          riskInterventions: $checkedConvert(
+            'risk_interventions',
+            (v) => v as bool?,
+          ),
           groups: $checkedConvert('groups', (v) => v as bool),
           messages: $checkedConvert('messages', (v) => v as bool),
           counselling: $checkedConvert('counselling', (v) => v as bool),
@@ -25,6 +29,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(Map<String, dynamic> json) =>
         return val;
       },
       fieldKeyMap: const {
+        'riskInterventions': 'risk_interventions',
         'supportPlans': 'support_plans',
         'learnerNotes': 'learner_notes',
       },
@@ -33,6 +38,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$FacilitatorFeaturesToJson(
   FacilitatorFeatures instance,
 ) => <String, dynamic>{
+  'risk_interventions': ?instance.riskInterventions,
   'groups': instance.groups,
   'messages': instance.messages,
   'counselling': instance.counselling,

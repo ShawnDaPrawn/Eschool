@@ -17,6 +17,7 @@ use App\Services\Pastoral\CoverNotices;
 use App\Services\Platform\Events\NotificationRequested;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Transfers\TransferNotices;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -72,6 +73,9 @@ class Notifier
     /** Each allowed channel is claimed independently, so retrying a fanout never repeats earlier recipients. */
     public function send(User $user, string $type, string $title, string $body, ?string $link = null, ?Notification $notice = null, ?array $channels = null): array
     {
+        if (str_starts_with($type, 'transfer.') && ! app(TransferNotices::class)->allows($user, $type, $notice?->delivery_payload ?? [])) {
+            return [];
+        }
         if (str_starts_with($type, 'progress.') && ! app(ProgressNotices::class)->allows($user, $type, $notice?->delivery_payload ?? [])) {
             return [];
         }

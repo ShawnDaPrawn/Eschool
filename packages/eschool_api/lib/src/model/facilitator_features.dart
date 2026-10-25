@@ -16,6 +16,8 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.riskInterventions,
+
     required this.groups,
 
     required this.messages,
@@ -26,6 +28,10 @@ class FacilitatorFeatures {
 
     this.learnerNotes,
   });
+
+  /// Fresh original-kind authority for private risk interventions; absence means unavailable.
+  @JsonKey(name: r'risk_interventions', required: false, includeIfNull: false)
+  final bool? riskInterventions;
 
   @JsonKey(name: r'groups', required: true, includeIfNull: false)
   final bool groups;
@@ -48,6 +54,7 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.riskInterventions == riskInterventions &&
           other.groups == groups &&
           other.messages == messages &&
           other.counselling == counselling &&
@@ -56,6 +63,7 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      riskInterventions.hashCode +
       groups.hashCode +
       messages.hashCode +
       counselling.hashCode +

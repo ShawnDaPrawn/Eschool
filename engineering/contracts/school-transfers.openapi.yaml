@@ -1,0 +1,1166 @@
+tags:
+- name: SchoolTransfers
+  description: Signed consented academic history and atomic enrolment handoffs.
+paths:
+  /transfers/access:
+    get:
+      operationId: getTransferAccess
+      tags:
+      - SchoolTransfers
+      summary: getTransferAccess
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /transfers/choices/{kind}:
+    get:
+      operationId: getTransferChoices
+      tags:
+      - SchoolTransfers
+      summary: getTransferChoices
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - learners
+          - destinations
+          - guardians
+          - reports
+          - documents
+          - years
+          - rooms
+          - categories
+      - name: search
+        in: query
+        required: false
+        schema:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: guardian_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: selected
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 64
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferChoicePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /transfers/packages:
+    post:
+      operationId: prepareTransfer
+      tags:
+      - SchoolTransfers
+      summary: prepareTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferPrepareInput'
+  /transfers/packages/{package}/consent:
+    post:
+      operationId: consentTransfer
+      tags:
+      - SchoolTransfers
+      summary: consentTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferConsentInput'
+  /transfers/packages/{package}/withdraw:
+    post:
+      operationId: withdrawTransfer
+      tags:
+      - SchoolTransfers
+      summary: withdrawTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRevisionInput'
+  /transfers/packages/{package}/release:
+    post:
+      operationId: releaseTransfer
+      tags:
+      - SchoolTransfers
+      summary: releaseTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRevisionInput'
+  /transfers/packages/{package}/cancel:
+    post:
+      operationId: cancelTransfer
+      tags:
+      - SchoolTransfers
+      summary: cancelTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRevisionInput'
+  /transfers/packages/{package}/accept:
+    post:
+      operationId: acceptTransfer
+      tags:
+      - SchoolTransfers
+      summary: acceptTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: package
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferAcceptInput'
+  /transfers/{lane}:
+    get:
+      operationId: getTransfers
+      tags:
+      - SchoolTransfers
+      summary: getTransfers
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: lane
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - outgoing
+          - incoming
+          - consents
+          - receipts
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /transfers/{lane}/{record}:
+    get:
+      operationId: getTransfer
+      tags:
+      - SchoolTransfers
+      summary: getTransfer
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: lane
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - outgoing
+          - incoming
+          - consents
+          - receipts
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /transfers/{lane}/{record}/archive:
+    get:
+      operationId: downloadTransferArchive
+      tags:
+      - SchoolTransfers
+      summary: downloadTransferArchive
+      description: Fresh school and account authority precedes validation and exact operation replay. Only school
+        administrators and principals manage packages; the named verified guardian consents to the fingerprint and
+        destination. Receiving acceptance is atomic. Private writes use bodies; no private HTTP receipts or shared
+        caches. Archived source marks remain historical and learner approval remains separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: lane
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - outgoing
+          - incoming
+          - consents
+          - receipts
+      - name: record
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private school transfer.
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  schemas:
+    TransferAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - staff
+      - guardian
+      - can_write
+      - consent_version
+      - today
+      properties:
+        staff:
+          type: boolean
+        guardian:
+          type: boolean
+        can_write:
+          type: boolean
+        consent_version:
+          type: string
+        today:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    TransferChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - key
+      - label
+      - detail
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        detail:
+          type: string
+    TransferChoicePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - has_more
+      properties:
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/TransferChoice'
+        page:
+          type: integer
+          minimum: 1
+        has_more:
+          type: boolean
+    TransferSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - public_id
+      - state
+      - revision
+      - fingerprint
+      - learner_name
+      - student_number
+      - guardian_name
+      - from_school_name
+      - to_school_name
+      - last_attended_on
+      - starts_on
+      - expires_at
+      - export_only
+      - report_count
+      - document_count
+      - mark_count
+      - attendance_count
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        public_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - awaiting_consent
+          - consented
+          - released
+          - accepted
+          - cancelled
+          - expired
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        learner_name:
+          type: string
+        student_number:
+          type:
+          - string
+          - 'null'
+        guardian_name:
+          type: string
+        from_school_name:
+          type: string
+        to_school_name:
+          type: string
+        last_attended_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        export_only:
+          type: boolean
+        report_count:
+          type: integer
+          minimum: 0
+        document_count:
+          type: integer
+          minimum: 0
+        mark_count:
+          type: integer
+          minimum: 0
+        attendance_count:
+          type: integer
+          minimum: 0
+    TransferPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - has_more
+      properties:
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/TransferSummary'
+        page:
+          type: integer
+          minimum: 1
+        has_more:
+          type: boolean
+    TransferReport:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - sha256
+      - year_name
+      - term_name
+      - released_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        sha256:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        year_name:
+          type: string
+        term_name:
+          type: string
+        released_at:
+          type: string
+          format: date-time
+    TransferDocument:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - definition_id
+      - name
+      - mime
+      - extension
+      - bytes
+      properties:
+        id:
+          type: string
+          format: uuid
+        definition_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        mime:
+          type: string
+        extension:
+          type: string
+        bytes:
+          type: integer
+          minimum: 0
+    TransferMark:
+      type: object
+      additionalProperties: false
+      required:
+      - release_id
+      - release_version
+      - subject_name
+      - grade_level_id
+      - session_year_id
+      - term_id
+      - mode
+      - percentage_bp
+      - rating_level
+      - coverage_bp
+      - fingerprint
+      - released_at
+      properties:
+        release_id:
+          type: integer
+          minimum: 1
+        release_version:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        mode:
+          type: string
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        coverage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        released_at:
+          type: string
+          format: date-time
+    TransferAttendance:
+      type: object
+      additionalProperties: false
+      required:
+      - on_date
+      - kind
+      - state
+      properties:
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        kind:
+          type: string
+        state:
+          type: string
+    TransferDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - public_id
+      - state
+      - revision
+      - fingerprint
+      - learner_name
+      - student_number
+      - guardian_name
+      - from_school_name
+      - to_school_name
+      - last_attended_on
+      - starts_on
+      - expires_at
+      - export_only
+      - report_count
+      - document_count
+      - mark_count
+      - attendance_count
+      - consent_version
+      - reports
+      - documents
+      - released_marks
+      - attendance
+      - can_consent
+      - can_withdraw
+      - can_release
+      - can_cancel
+      - can_accept
+      - can_download
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        public_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - awaiting_consent
+          - consented
+          - released
+          - accepted
+          - cancelled
+          - expired
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        learner_name:
+          type: string
+        student_number:
+          type:
+          - string
+          - 'null'
+        guardian_name:
+          type: string
+        from_school_name:
+          type: string
+        to_school_name:
+          type: string
+        last_attended_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        export_only:
+          type: boolean
+        report_count:
+          type: integer
+          minimum: 0
+        document_count:
+          type: integer
+          minimum: 0
+        mark_count:
+          type: integer
+          minimum: 0
+        attendance_count:
+          type: integer
+          minimum: 0
+        consent_version:
+          type: string
+        reports:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/TransferReport'
+        documents:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/TransferDocument'
+        released_marks:
+          type: array
+          maxItems: 10000
+          items:
+            $ref: '#/components/schemas/TransferMark'
+        attendance:
+          type: array
+          maxItems: 20000
+          items:
+            $ref: '#/components/schemas/TransferAttendance'
+        can_consent:
+          type: boolean
+        can_withdraw:
+          type: boolean
+        can_release:
+          type: boolean
+        can_cancel:
+          type: boolean
+        can_accept:
+          type: boolean
+        can_download:
+          type: boolean
+    TransferWriteReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - kind
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - package
+          - receipt
+    TransferPrepareInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - guardian_id
+      - to_school_id
+      - external_school
+      - last_attended_on
+      - starts_on
+      - report_ids
+      - document_ids
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        guardian_id:
+          type: integer
+          minimum: 1
+        to_school_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        external_school:
+          type:
+          - string
+          - 'null'
+          maxLength: 160
+        last_attended_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        report_ids:
+          type: array
+          maxItems: 200
+          items:
+            type: integer
+            minimum: 1
+        document_ids:
+          type: array
+          maxItems: 20
+          items:
+            type: string
+            format: uuid
+    TransferRevisionInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+    TransferConsentInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - fingerprint
+      - version
+      - confirmation
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        version:
+          type: string
+          maxLength: 64
+        confirmation:
+          type: boolean
+    TransferAcceptInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - fingerprint
+      - session_year_id
+      - class_section_id
+      - category_id
+      - confirmation
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        session_year_id:
+          type: integer
+          minimum: 1
+        class_section_id:
+          type: integer
+          minimum: 1
+        category_id:
+          type: integer
+          minimum: 1
+        confirmation:
+          type: boolean
+    TransferAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TransferAccess'
+    TransferChoicePageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TransferChoicePage'
+    TransferPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TransferPage'
+    TransferDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TransferDetail'
+    TransferWriteReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/TransferWriteReceipt'
