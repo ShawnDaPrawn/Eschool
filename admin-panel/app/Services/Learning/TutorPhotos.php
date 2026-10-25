@@ -25,6 +25,13 @@ class TutorPhotos
 {
     public const DISK = 'academic_private';
 
+    private function capacity(User $actor): void
+    {
+        $active = TutorPhoto::where('user_id', $actor->id)->whereNull('revoked_at')->whereNull('purged_at');
+        abort_if((clone $active)->count() >= 100 || (clone $active)->whereNotIn('operation_id', TutorMessage::where('user_id', $actor->id)->select('operation_id'))->count() >= 20,
+            422, 'Remove an unused working crop before uploading another.');
+    }
+
     private function guard(User $actor, string $session, int $school): void
     {
         abort_unless(app(CurrentSchool::class)->id() === $school, 403);
@@ -56,6 +63,7 @@ class TutorPhotos
 
             return ['id' => $prior->id, 'sha256' => $prior->sha256, 'mime' => 'image/png', 'operation_id' => $operation];
         }
+        $this->capacity($actor);
         $this->scan($original);
         $this->guard($actor, $sessionId, $school);
         $image = app(VisionPhotoCropper::class)->crop((string) Str::uuid(), $original, $crop, $approved);
@@ -74,6 +82,7 @@ class TutorPhotos
                     return $prior->only('id', 'sha256') + ['mime' => 'image/png', 'operation_id' => $operation];
                 }
                 abort_if(TutorPhoto::where('tutor_session_id', $sessionId)->where('operation_id', $operation)->count() >= 3, 422, 'Use at most three approved working crops per turn.');
+                $this->capacity($actor);
                 $path = app(CurrentSchool::class)->storagePath('tutor-photos').'/'.$image->id.'.enc';
                 abort_unless(Storage::disk(self::DISK)->put($path, Crypt::encryptString($image->bytes)), 503);
                 $this->guard($actor, $sessionId, $school);
@@ -129,5 +138,20 @@ class TutorPhotos
                 Storage::disk(self::DISK)->delete($photo->path);
             }
         });
+    }
+
+    public function preview(User $actor, string $session, string $id): array
+    {
+        $school = app(CurrentSchool::class)->id();
+        app(TutorAccess::class)->session($actor, $session);
+        $photo = TutorPhoto::where('tutor_session_id', $session)->where('user_id', $actor->id)->whereNotNull('approved_at')->whereNull('revoked_at')->whereNull('purged_at')->findOrFail($id);
+        abort_unless($photo->path === app(CurrentSchool::class)->storagePath('tutor-photos').'/'.$photo->id.'.enc', 404);
+        $bytes = Crypt::decryptString(Storage::disk(self::DISK)->get($photo->path));
+        abort_unless(app(CurrentSchool::class)->id() === $school, 403);
+        app(TutorAccess::class)->session($actor, $session);
+        $fresh = TutorPhoto::whereNull('revoked_at')->whereNull('purged_at')->findOrFail($id);
+        $image = new VisionImage($fresh->id, $fresh->sha256, $bytes);
+
+        return ['bytes' => $image->bytes, 'mime' => 'image/png'];
     }
 }

@@ -6,6 +6,7 @@ namespace App\Services\Panel;
 
 use App\Models\User;
 use App\Services\Admissions\IntakeAuthority;
+use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Ai\Quarantine\AiReviewAuthority;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
@@ -163,6 +164,9 @@ class Navigation
             return false;
         }
         if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {
             return false;
         }
         if (($item['ai_reviewer'] ?? false) && ! app(AiReviewAuthority::class)->available($user)) {

@@ -6,6 +6,7 @@ namespace App\Services\Learning;
 
 use App\Models\Ai\AiUsage;
 use App\Models\Learning\TutorMessage;
+use App\Models\Learning\TutorPhoto;
 use App\Models\Learning\TutorSession;
 use App\Models\Platform\School;
 use App\Models\User;
@@ -180,9 +181,13 @@ class TutorSessions
         if ($safe) {
             app(TutorFeaturePolicy::class)->message($actor, $message->id);
         }
+        // Own human-authored drafts can be recovered after an unknown write.
+        // AI output still needs the full source guard; quarantined/purged input
+        // never returns to the conversation or a parent summary.
+        $ownInput = in_array($message->state, ['pending', 'failed', 'completed'], true) && $message->purged_at === null;
 
         return ['id' => $message->id, 'operation_id' => $message->operation_id, 'state' => $message->state,
-            'question' => $safe ? $message->learner_text : null, 'working' => $safe ? $message->working : null, 'response' => $safe ? $message->response : null,
+            'question' => $ownInput ? $message->learner_text : null, 'working' => $ownInput ? $message->working : null, 'response' => $safe ? $message->response : null,
             'failure_code' => $message->failure_code, 'support_message' => $message->state === 'quarantined' ? self::SUPPORT_MESSAGE : null,
             'provisional' => true];
     }
@@ -198,9 +203,21 @@ class TutorSessions
         $session = app(TutorAccess::class)->session($actor, $id);
         $rows = TutorMessage::where('tutor_session_id', $id)->orderBy('created_at')->orderBy('id')->paginate(20, ['*'], 'page', max(1, $page));
         $data = $rows->getCollection()->map(fn ($row) => $this->turnData($actor, $row))->all();
+        $pendingPhotos = TutorPhoto::where('tutor_session_id', $id)->where('user_id', $actor->id)->whereNull('revoked_at')->whereNull('purged_at')->whereNotNull('approved_at')
+            ->whereNotIn('operation_id', TutorMessage::where('user_id', $actor->id)->select('operation_id'))->orderBy('id')->limit(20)->get()
+            ->map(fn ($photo) => ['id' => $photo->id, 'sha256' => $photo->sha256, 'mime' => 'image/png', 'operation_id' => $photo->operation_id,
+                'school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id])->all();
         app(TutorAccess::class)->session($actor, $id);
 
         return $this->sessionData($session) + ['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id,
-            'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'turns' => $data];
+            'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'turns' => $data, 'pending_photos' => $pendingPhotos];
+    }
+
+    public function turnByOperation(User $actor, string $session, string $operation): array
+    {
+        app(TutorAccess::class)->session($actor, $session);
+        $message = TutorMessage::where('tutor_session_id', $session)->where('operation_id', $operation)->firstOrFail();
+
+        return $this->turnData($actor, $message);
     }
 }

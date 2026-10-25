@@ -9,6 +9,8 @@ use App\Services\Learning\TutorVisionResolver;
 
 // Offline transcription is unchanged; inference has no active production feature/provider.
 return [
+    // New priced inference receipts use this server-owned quote currency.
+    'billing_currency' => 'USD',
     'quarantine' => ['retention_days' => 30, 'participants' => ['tutor' => TutorQuarantineParticipant::class],
         'media_resolvers' => ['tutor' => TutorQuarantineMedia::class]],
     'providers' => [

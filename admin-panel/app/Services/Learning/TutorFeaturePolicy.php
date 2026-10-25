@@ -31,6 +31,9 @@ class TutorFeaturePolicy implements InferenceFeaturePolicy
         abort_unless(in_array($meta->state, ['pending', 'completed'], true), 409, 'This tutor turn is unavailable.');
         $message = TutorMessage::findOrFail($meta->id);
         app(TutorContext::class)->reauthorize($actor, $session, $message->source_manifest);
+        if ($message->media_ids !== []) {
+            app(TutorPhotos::class)->references($actor, $message);
+        }
 
         return $message;
     }
@@ -74,8 +77,5 @@ class TutorFeaturePolicy implements InferenceFeaturePolicy
         $session = app(TutorAccess::class)->session($actor, $message->tutor_session_id, true);
         abort_unless((int) $session->learner_id === $scope->learnerId && (int) $session->subject_id === $scope->subjectId
             && (int) $actor->id === $scope->actorId && app(CurrentSchool::class)->id() === $scope->schoolId, 403);
-        if ($message->media_ids !== []) {
-            app(TutorPhotos::class)->references($actor, $message);
-        }
     }
 }

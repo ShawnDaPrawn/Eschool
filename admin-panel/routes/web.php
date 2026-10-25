@@ -40,6 +40,7 @@ use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
+use App\Http\Controllers\Panel\Ai\AiControlPanelController;
 use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
@@ -155,6 +156,8 @@ Route::middleware('school.context:public')->group(function () {
         Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
     });
 });
+
+Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
 
 // EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
 Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnlyYears::class]], function () {
@@ -286,6 +289,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::get('ai-settings', [AiControlPanelController::class, 'index'])->middleware(PrivateDomainResponse::class)->name('ai-controls.index');
+        Route::post('ai-settings', [AiControlPanelController::class, 'save'])->middleware(PrivateDomainResponse::class)->name('ai-controls.save');
+
         Route::prefix('ai-flags')->name('ai-review.')->middleware([PrivateDomainResponse::class])->group(function () {
             $c = AiReviewPanelController::class;
             Route::get('/', [$c, 'index'])->name('index');

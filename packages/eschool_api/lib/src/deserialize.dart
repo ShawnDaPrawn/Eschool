@@ -856,6 +856,30 @@ import 'package:eschool_api/src/model/transfer_revision_input.dart';
 import 'package:eschool_api/src/model/transfer_summary.dart';
 import 'package:eschool_api/src/model/transfer_write_receipt.dart';
 import 'package:eschool_api/src/model/transfer_write_receipt_response.dart';
+import 'package:eschool_api/src/model/tutor_configuration.dart';
+import 'package:eschool_api/src/model/tutor_configuration_response.dart';
+import 'package:eschool_api/src/model/tutor_feedback.dart';
+import 'package:eschool_api/src/model/tutor_group_choice.dart';
+import 'package:eschool_api/src/model/tutor_operation_write.dart';
+import 'package:eschool_api/src/model/tutor_parent_summary.dart';
+import 'package:eschool_api/src/model/tutor_parent_summary_response.dart';
+import 'package:eschool_api/src/model/tutor_photo_receipt.dart';
+import 'package:eschool_api/src/model/tutor_photo_receipt_response.dart';
+import 'package:eschool_api/src/model/tutor_photo_revocation.dart';
+import 'package:eschool_api/src/model/tutor_photo_revocation_response.dart';
+import 'package:eschool_api/src/model/tutor_session_detail.dart';
+import 'package:eschool_api/src/model/tutor_session_detail_response.dart';
+import 'package:eschool_api/src/model/tutor_session_list.dart';
+import 'package:eschool_api/src/model/tutor_session_list_item.dart';
+import 'package:eschool_api/src/model/tutor_session_list_response.dart';
+import 'package:eschool_api/src/model/tutor_session_result.dart';
+import 'package:eschool_api/src/model/tutor_session_result_response.dart';
+import 'package:eschool_api/src/model/tutor_session_write.dart';
+import 'package:eschool_api/src/model/tutor_source_choice.dart';
+import 'package:eschool_api/src/model/tutor_turn.dart';
+import 'package:eschool_api/src/model/tutor_turn_result.dart';
+import 'package:eschool_api/src/model/tutor_turn_result_response.dart';
+import 'package:eschool_api/src/model/tutor_turn_write.dart';
 import 'package:eschool_api/src/model/update_consultation_response.dart';
 import 'package:eschool_api/src/model/update_my_notification_preferences_request.dart';
 import 'package:eschool_api/src/model/update_my_profile_request.dart';
@@ -3859,6 +3883,79 @@ ReturnType deserialize<ReturnType, BaseType>(
       return TransferWriteReceiptResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'TutorConfiguration':
+      return TutorConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorConfigurationResponse':
+      return TutorConfigurationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorFeedback':
+      return TutorFeedback.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorGroupChoice':
+      return TutorGroupChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorOperationWrite':
+      return TutorOperationWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorParentSummary':
+      return TutorParentSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorParentSummaryResponse':
+      return TutorParentSummaryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorPhotoReceipt':
+      return TutorPhotoReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorPhotoReceiptResponse':
+      return TutorPhotoReceiptResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorPhotoRevocation':
+      return TutorPhotoRevocation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorPhotoRevocationResponse':
+      return TutorPhotoRevocationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TutorSessionDetail':
+      return TutorSessionDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionDetailResponse':
+      return TutorSessionDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionList':
+      return TutorSessionList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionListItem':
+      return TutorSessionListItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionListResponse':
+      return TutorSessionListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionResult':
+      return TutorSessionResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionResultResponse':
+      return TutorSessionResultResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSessionWrite':
+      return TutorSessionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorSourceChoice':
+      return TutorSourceChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorTurn':
+      return TutorTurn.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'TutorTurnResult':
+      return TutorTurnResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorTurnResultResponse':
+      return TutorTurnResultResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorTurnWrite':
+      return TutorTurnWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'UpdateConsultationResponse':
       return UpdateConsultationResponse.fromJson(value as Map<String, dynamic>)
