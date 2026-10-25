@@ -62,3 +62,7 @@ default on the server. Group roster is never fetched for family read-only views.
 The facilitator native identity remains unavailable pending its dedicated fresh
 server-authenticated shell; these shared group screens are usable in teacher and
 family apps without granting facilitator identities teacher access.
+
+Panel attendance binds the session to the URL's group before dispatch. The
+read-only-year decision uses that actual session group's year. A current-group
+URL cannot bypass a retained session's historical-year refusal.
