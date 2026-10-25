@@ -42,6 +42,7 @@ class SchoolRoles
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
+        'ai-settings-manage',
         'cards-manage', 'cards-readers-manage',
         'marks-view-all', 'marks-release',
         'academic-structure-manage', 'communication-manage', 'consultations-manage', 'activity-groups-manage', 'wellbeing-configure',

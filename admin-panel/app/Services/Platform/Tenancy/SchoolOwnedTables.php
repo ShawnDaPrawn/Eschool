@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',
         'ai_quarantine_snapshots',
         'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations',
@@ -95,6 +96,7 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',

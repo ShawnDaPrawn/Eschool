@@ -16,12 +16,19 @@ class AnthropicProvider implements InferenceProvider
     private function payload(ProviderRequest $request): array
     {
         ProviderProtocol::input($request);
-        if ($request->capability !== Capability::Complete) {
+        if (! in_array($request->capability, [Capability::Complete, Capability::Vision], true)) {
             throw new InferenceNotDispatched('media_policy_required');
+        }
+        $content = $request->input;
+        if ($request->capability === Capability::Vision) {
+            $content = [['type' => 'text', 'text' => $request->input['text']]];
+            foreach ($request->input['images'] as $image) {
+                $content[] = ['type' => 'image', 'source' => ['type' => 'base64', 'media_type' => 'image/png', 'data' => $image['data']]];
+            }
         }
 
         return ['model' => $request->model, 'system' => $request->systemPrompt,
-            'messages' => [['role' => 'user', 'content' => $request->input]], 'metadata' => ['user_id' => $request->anonymousActor],
+            'messages' => [['role' => 'user', 'content' => $content]], 'metadata' => ['user_id' => $request->anonymousActor],
             'max_tokens' => $request->maximumTokens, 'stream' => false];
     }
 

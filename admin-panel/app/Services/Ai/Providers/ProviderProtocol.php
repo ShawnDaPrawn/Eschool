@@ -5,20 +5,32 @@ declare(strict_types=1);
 namespace App\Services\Ai\Providers;
 
 use App\Services\Ai\Inference\AiUnavailable;
+use App\Services\Ai\Inference\Capability;
 use App\Services\Ai\Inference\InferenceNotDispatched;
 use App\Services\Ai\Inference\ProviderRequest;
+use App\Services\Ai\Inference\ResolvedVisionInput;
 use Illuminate\Support\Str;
 
 class ProviderProtocol
 {
     public static function input(ProviderRequest $request): void
     {
+        if ($request->capability === Capability::Vision && is_string($request->input)) {
+            throw new InferenceNotDispatched('media_policy_required');
+        }
+        try {
+            $units = is_string($request->input) ? strlen($request->input)
+                : ($request->capability === Capability::Vision ? ResolvedVisionInput::units($request->input) : throw new AiUnavailable('vision_media_invalid'));
+        } catch (AiUnavailable) {
+            throw new InferenceNotDispatched('provider_request_invalid');
+        }
         if (! Str::isUuid($request->operationId) || ! preg_match('/^[a-f0-9]{64}$/D', $request->anonymousActor)
             || ! preg_match('/^[a-zA-Z0-9._:-]{1,128}$/D', $request->model)
-            || ! is_string($request->input) || ! mb_check_encoding($request->input, 'UTF-8') || str_contains($request->input, "\0")
-            || strlen($request->input) > 65536 || strlen($request->systemPrompt) > 32768 || ! mb_check_encoding($request->systemPrompt, 'UTF-8')
+            || (is_string($request->input) && (! mb_check_encoding($request->input, 'UTF-8') || str_contains($request->input, "\0") || strlen($request->input) > 65536))
+            || ($request->capability === Capability::Vision && ! is_array($request->input))
+            || strlen($request->systemPrompt) > 32768 || ! mb_check_encoding($request->systemPrompt, 'UTF-8')
             || $request->maximumTokens < 1 || $request->maximumTokens > 32768 || $request->maximumTotalTokens > 131072
-            || $request->maximumTotalTokens < strlen($request->input) + strlen($request->systemPrompt) + 256 + $request->maximumTokens) {
+            || $request->maximumTotalTokens < $units + strlen($request->systemPrompt) + 256 + $request->maximumTokens) {
             throw new InferenceNotDispatched('provider_request_invalid');
         }
     }

@@ -1,0 +1,1266 @@
+tags:
+- name: SecureCards
+  description: Private school identity cards and isolated online gate readers.
+paths:
+  /cards/configuration:
+    get:
+      operationId: getSecureCardConfiguration
+      tags:
+      - SecureCards
+      summary: getSecureCardConfiguration
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/mine:
+    get:
+      operationId: getMySecureCards
+      tags:
+      - SecureCards
+      summary: getMySecureCards
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/managed:
+    get:
+      operationId: getManagedSecureCards
+      tags:
+      - SecureCards
+      summary: getManagedSecureCards
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/people:
+    get:
+      operationId: getSecureCardPeople
+      tags:
+      - SecureCards
+      summary: getSecureCardPeople
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: type
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^(learner|staff|guardian)$
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardPeoplePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards:
+    post:
+      operationId: issueSecureCard
+      tags:
+      - SecureCards
+      summary: issueSecureCard
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardIssue'
+  /cards/portraits:
+    post:
+      operationId: uploadSecureCardPortrait
+      tags:
+      - SecureCards
+      summary: uploadSecureCardPortrait
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardPortraitReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SecureCardPortraitUpload'
+  /card-readers:
+    post:
+      operationId: registerSecureCardReader
+      tags:
+      - SecureCards
+      summary: registerSecureCardReader
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardReaderCredentialResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardReaderRegister'
+  /card-readers/{device}:
+    delete:
+      operationId: revokeSecureCardReader
+      tags:
+      - SecureCards
+      summary: revokeSecureCardReader
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: device
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardRevocationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardEmpty'
+  /cards/{card}:
+    get:
+      operationId: getSecureCard
+      tags:
+      - SecureCards
+      summary: getSecureCard
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/{card}/portrait:
+    get:
+      operationId: getSecureCardPortrait
+      tags:
+      - SecureCards
+      summary: getSecureCardPortrait
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private sanitized JPEG pixels. Never cache or persist these bytes.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/{card}/credential:
+    post:
+      operationId: issueSecureCardCredential
+      tags:
+      - SecureCards
+      summary: issueSecureCardCredential
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardCredentialResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardEmpty'
+  /cards/{card}/freeze:
+    post:
+      operationId: freezeSecureCard
+      tags:
+      - SecureCards
+      summary: freezeSecureCard
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardReason'
+  /cards/{card}/replace:
+    post:
+      operationId: replaceSecureCard
+      tags:
+      - SecureCards
+      summary: replaceSecureCard
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardReplacementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardReason'
+  /cards/{card}/restore:
+    post:
+      operationId: restoreSecureCard
+      tags:
+      - SecureCards
+      summary: restoreSecureCard
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: card
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardRestore'
+  /card-device/scan/qr:
+    post:
+      operationId: scanSecureCardQr
+      tags:
+      - SecureCards
+      summary: scanSecureCardQr
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardScanReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+      - CardDeviceCredential: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardQrScan'
+  /card-device/scan/sun:
+    post:
+      operationId: scanSecureCardSun
+      tags:
+      - SecureCards
+      summary: scanSecureCardSun
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Authorized private card result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureCardScanReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+      - CardDeviceCredential: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureCardSunScan'
+  /card-device/scans/{scan}/portrait:
+    get:
+      operationId: getScannedSecureCardPortrait
+      tags:
+      - SecureCards
+      summary: getScannedSecureCardPortrait
+      description: Current school/person/card authority is checked on every read and operation replay. Device credentials
+        are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are
+        separate.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: scan
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private sanitized JPEG pixels. Never cache or persist these bytes.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+      - CardDeviceCredential: []
+components:
+  securitySchemes:
+    CardDeviceCredential:
+      type: http
+      scheme: bearer
+      bearerFormat: NED1
+      description: A delegated expiring school-bound reader credential; never a user token.
+  schemas:
+    SecureCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - person_id
+      - type
+      - status
+      - revision
+      - issued_at
+      - frozen_at
+      - replaced_by
+      - has_chip
+      properties:
+        id:
+          type: string
+          format: uuid
+        school_id:
+          type: integer
+          minimum: 1
+        person_id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          pattern: ^(learner|staff|guardian)$
+        status:
+          type: string
+          pattern: ^(active|frozen|replaced)$
+        revision:
+          type: integer
+          minimum: 1
+        issued_at:
+          type: string
+          format: date-time
+        frozen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        replaced_by:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        has_chip:
+          type: boolean
+    SecureCardConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - can_manage
+      - can_manage_readers
+      - writable
+      - types
+      properties:
+        can_manage:
+          type: boolean
+        can_manage_readers:
+          type: boolean
+        writable:
+          type: boolean
+        types:
+          type: array
+          items:
+            type: string
+    SecureCardPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecureCard'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    SecureCardPerson:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - type
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        type:
+          type: string
+    SecureCardPeoplePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecureCardPerson'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    SecureCardCredential:
+      type: object
+      additionalProperties: false
+      required:
+      - card
+      - credential
+      - expires_at
+      - key_id
+      - public_key
+      properties:
+        card:
+          $ref: '#/components/schemas/SecureCard'
+        credential:
+          type: string
+          maxLength: 1024
+        expires_at:
+          type: string
+          format: date-time
+        key_id:
+          type: string
+          format: uuid
+        public_key:
+          type: string
+          maxLength: 64
+    SecureCardIssue:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - person_id
+      - type
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        person_id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          pattern: ^(learner|staff|guardian)$
+    SecureCardPortraitUpload:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - person_id
+      - type
+      - photo
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        person_id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          pattern: ^(learner|staff|guardian)$
+        photo:
+          type: string
+          format: binary
+    SecureCardPortraitReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - person_id
+      - portrait_id
+      - revision
+      properties:
+        person_id:
+          type: integer
+          minimum: 1
+        portrait_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+    SecureCardReason:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 2000
+    SecureCardRestore:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          maxLength: 2000
+        picc:
+          type: string
+          pattern: ^[a-fA-F0-9]{32}$
+        mac:
+          type: string
+          pattern: ^[a-fA-F0-9]{16}$
+    SecureCardReplacement:
+      type: object
+      additionalProperties: false
+      required:
+      - previous
+      - current
+      properties:
+        previous:
+          $ref: '#/components/schemas/SecureCard'
+        current:
+          $ref: '#/components/schemas/SecureCard'
+    SecureCardReaderRegister:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - name
+      - kind
+      - public_key
+      - days
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        kind:
+          type: string
+          pattern: ^(gate|encoder)$
+        public_key:
+          type: string
+          maxLength: 64
+        days:
+          type: integer
+          minimum: 1
+          maximum: 30
+    SecureCardReaderCredential:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - credential
+      - kind
+      - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        credential:
+          type: string
+          maxLength: 160
+        kind:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+    SecureCardRevocation:
+      type: object
+      additionalProperties: false
+      required:
+      - revoked
+      properties:
+        revoked:
+          type: boolean
+    SecureCardQrScan:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - credential
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        credential:
+          type: string
+          maxLength: 1024
+    SecureCardSunScan:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - card_id
+      - picc
+      - mac
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        picc:
+          type: string
+          pattern: ^[a-fA-F0-9]{32}$
+        mac:
+          type: string
+          pattern: ^[a-fA-F0-9]{16}$
+    SecureCardScanReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - scan_id
+      - card_id
+      - person_id
+      - type
+      - outcome
+      - scanned_at
+      properties:
+        scan_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        person_id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+        outcome:
+          type: string
+          pattern: ^accepted$
+        scanned_at:
+          type: string
+          format: date-time
+    SecureCardEmpty:
+      type: object
+      additionalProperties: false
+      required: []
+      properties: {}
+    SecureCardConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardConfiguration'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardPeoplePageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardPeoplePage'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCard'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardPortraitReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardPortraitReceipt'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardReaderCredentialResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardReaderCredential'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardRevocationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardRevocation'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardCredentialResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardCredential'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardReplacementResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardReplacement'
+        code:
+          type: integer
+          enum:
+          - 200
+    SecureCardScanReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureCardScanReceipt'
+        code:
+          type: integer
+          enum:
+          - 200

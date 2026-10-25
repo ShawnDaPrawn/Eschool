@@ -13,7 +13,7 @@ automated isolation/authority tests and affected-profile self-test record.
 
 | Work | Depends on | State / specification |
 | --- | --- | --- |
-| AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | Staff gateway, protocol adapters and feature-scoped ownership/approval/caps/deadline service implemented; domain sources, media and operations UI continue; [spec](../specs/ai/feature-inference.md) |
+| AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | Staff gateway, protocol adapters and feature-scoped ownership/approval/caps/deadline service implemented. Registered private vision resolution, approved crop/pixel checks and OpenAI/Anthropic image/moderation protocols are implemented and software-tested; concrete Tutor media storage and operations UI continue; [feature spec](../specs/ai/feature-inference.md), [vision spec](../specs/ai/vision-inference.md) |
 | Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Encrypted domain, private v2/typed SDK, panel/shared readers and all four app-profile entries implemented and verified in review; queued rule-aware alerts are in independent review; [spec](../specs/growth/progress-notes.md) |
 | Tutor sessions, subject/source lock, scanned photo feedback and summaries | Reviewed gateway, notes, content | Queued; no learner inference enabled by the foundation |
 | Topic dependencies, evidence and mastery map | Question marks and published curriculum | Engine, v2 contract, panel and learner/parent/teacher views implemented in review; [spec](../specs/growth/mastery.md); verified practice/tutor evidence adapters follow |

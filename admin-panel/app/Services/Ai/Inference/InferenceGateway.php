@@ -11,6 +11,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\ReleasedMarks;
+use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Ai\PromptRegistry;
 use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Platform\Identity\ApprovalService;
@@ -60,10 +61,22 @@ class InferenceGateway
         if ($request->prompt !== $config['prompt']) {
             throw new AiUnavailable('prompt_not_allowed');
         }
-        if ($capability === Capability::Vision || ! is_string($request->input)) {
+        $input = $request->input;
+        $vision = null;
+        if ($capability === Capability::Vision) {
+            if ($scope === null || $policy === null) {
+                throw new AiUnavailable('media_policy_required');
+            }
+            $vision = app(VisionMediaRegistry::class)->resolver($request->feature)->resolve($actor, $scope);
+            $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
+            if ($vision->manifest() !== $request->input) {
+                throw new AiUnavailable('vision_manifest_changed');
+            }
+            $input = $vision->payload();
+        } elseif (! is_string($input)) {
             throw new AiUnavailable('media_policy_required');
         }
-        $reserve = strlen($request->input) + strlen($prompt['system']) + 256 + $config['maximum_output_tokens'];
+        $reserve = ($vision === null ? strlen($input) : ResolvedVisionInput::units($input)) + strlen($prompt['system']) + 256 + $config['maximum_output_tokens'];
         if ($reserve > 131072) {
             throw new AiUnavailable('request_too_large');
         }
@@ -90,6 +103,9 @@ class InferenceGateway
             }
             $day = now(app(CurrentSchool::class)->school()->timezone)->toDateString();
             $daily = AiUsage::query()->where('unit', 'tokens')->where('usage_date', $day);
+            if ((clone $daily)->where(fn ($query) => $query->whereNull('billing_currency')->orWhere('billing_currency', '!=', $config['billing_currency']))->where(fn ($query) => $query->where('cost_cents', '>', 0)->orWhere('reserved_cost_cents', '>', 0))->exists()) {
+                throw new AiUnavailable('budget_currency_changed');
+            }
             $budgets = ['school', 'actor', ...($scope?->learnerId === null ? [] : ['learner'])];
             foreach ($budgets as $budget) {
                 $query = clone $daily;
@@ -106,7 +122,7 @@ class InferenceGateway
 
             return AiUsage::create(['user_id' => $actor->id, 'learner_id' => $scope?->learnerId, 'feature' => $request->feature, 'provider' => $config['provider'], 'model' => $config['model'],
                 'operation_id' => $request->operationId, 'request_hash' => $hash, 'usage_date' => $day, 'unit' => 'tokens', 'state' => 'reserved',
-                'reserved_units' => $reserve, 'reserved_cost_cents' => $cost, 'prompt_key' => $prompt['key'], 'prompt_version' => $prompt['version'],
+                'reserved_units' => $reserve, 'reserved_cost_cents' => $cost, 'billing_currency' => $config['billing_currency'], 'prompt_key' => $prompt['key'], 'prompt_version' => $prompt['version'],
                 'prompt_sha256' => $prompt['sha256'], 'inference_sources' => $request->sources]);
         });
         if ($usage->state === 'completed') {
@@ -123,13 +139,13 @@ class InferenceGateway
             $identity = $scope?->learnerId === null ? 'actor:'.$actor->id : 'learner:'.$scope->learnerId;
             $anonymous = hash_hmac('sha256', $schoolId.':'.$identity, (string) config('app.key'));
             $moderationContext = new ModerationContext($request->operationId, $anonymous, $deadline);
-            $providerRequest = new ProviderRequest($capability, $request->operationId, $config['model'], $anonymous, $prompt['system'], $request->input,
+            $providerRequest = new ProviderRequest($capability, $request->operationId, $config['model'], $anonymous, $prompt['system'], $input,
                 $config['maximum_output_tokens'], $reserve, $deadline);
             // No HTTP in preflight. Fail before even external moderation when the provider cannot dispatch.
             $provider->preflight($providerRequest);
-            $moderator->preflight($capability, $request->input, $moderationContext);
+            $moderator->preflight($capability, $input, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
-            $inputFlags = $moderator->flags($capability, 'input', $request->input, $moderationContext);
+            $inputFlags = $moderator->flags($capability, 'input', $input, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
             $this->quarantine($usage, $inputFlags, 'input', $request->input);
             $dispatched = true;
@@ -245,8 +261,18 @@ class InferenceGateway
                 throw new AiUnavailable('adapter_unavailable');
             }
         }
+        if ($capability === Capability::Vision && $scope !== null) {
+            // Resolver withdrawal/replacement invalidates an in-flight authorization.
+            $config['vision_resolver_class'] = get_class(app(VisionMediaRegistry::class)->resolver($feature));
+        }
 
-        return $config;
+        $currency = config('ai.billing_currency');
+        if (! is_string($currency) || ! preg_match('/^[A-Z]{3}$/D', $currency)) {
+            throw new AiUnavailable('budget_not_configured');
+        }
+        $config['billing_currency'] = $currency;
+
+        return app(AiSchoolControls::class)->apply($config);
     }
 
     private function quarantine(AiUsage $usage, array $flags, string $stage, string|array|null $content): void

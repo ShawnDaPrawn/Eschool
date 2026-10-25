@@ -2,6 +2,8 @@
 
 // Offline transcription is unchanged; inference has no active production feature/provider.
 return [
+    // New priced inference receipts use this server-owned quote currency.
+    'billing_currency' => 'USD',
     'quarantine' => ['retention_days' => 30, 'participants' => []],
     'providers' => [
         'openai' => ['qualified' => false, 'key' => env('AI_OPENAI_API_KEY'), 'moderation_model' => 'omni-moderation-2024-09-26'],
@@ -16,6 +18,8 @@ return [
         'features' => [],
         // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
         'feature_policies' => [],
+        // Only explicit feature-owned resolvers may load approved private derivatives.
+        'vision_resolvers' => [],
     ],
     'transcribe' => [
         'provider' => 'local-whisper-base',
