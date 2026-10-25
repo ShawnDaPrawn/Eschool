@@ -125,8 +125,10 @@ class Casework
                 $zone = app(CurrentSchool::class)->school()->timezone;
                 $this->access->professionalDuring(User::findOrFail($data['professional_user_id']), $start->setTimezone($zone)->toDateString(), $end->setTimezone($zone)->toDateString());
                 abort_unless(CaseAssignment::where('support_case_id', $caseId)->where('user_id', $data['professional_user_id'])->where('active', true)->whereDate('starts_on', '<=', $start->setTimezone($zone)->toDateString())->whereDate('ends_on', '>=', $end->setTimezone($zone)->toDateString())->exists(), 422, 'The professional must be assigned throughout the appointment.');
+                $learnerId = $this->access->case($actor, $caseId, true)->learner_id;
+                $learnerCases = CareCase::where('learner_id', $learnerId)->select('id');
                 abort_if(Appointment::where('status', '!=', 'cancelled')->when($id !== null, fn ($q) => $q->where('id', '!=', $id))
-                    ->where(fn ($q) => $q->where('professional_user_id', $data['professional_user_id'])->orWhere('support_case_id', $caseId))
+                    ->where(fn ($q) => $q->where('professional_user_id', $data['professional_user_id'])->orWhereIn('support_case_id', $learnerCases))
                     ->where('starts_at', '<', $end)->where('ends_at', '>', $start)->exists(), 409, 'This learner or professional already has an overlapping appointment.');
             }
             $row = $id === null ? new Appointment : Appointment::where('support_case_id', $caseId)->findOrFail($id);

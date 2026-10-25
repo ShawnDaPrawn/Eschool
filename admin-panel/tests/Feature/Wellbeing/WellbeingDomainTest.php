@@ -217,6 +217,43 @@ class WellbeingDomainTest extends TestCase
         $this->assertCount(2, $service->appointments($this->professional, $case['id'], '2026-02-01', '2026-02-28'));
     }
 
+    public function test_another_schools_longer_professional_membership_does_not_cover_an_appointment(): void
+    {
+        $case = $this->careCase();
+        SchoolMembership::where('school_id', 1)->where('user_id', $this->professional->id)->update(['ends_on' => '2026-02-10']);
+        SchoolMembership::create(['school_id' => 2, 'user_id' => $this->professional->id, 'role' => 'Counsellor', 'status' => 'active', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31']);
+        $this->refuses(fn () => app(Casework::class)->appointment($this->professional, $case['id'], null, [
+            'operation_id' => (string) Str::uuid(), 'revision' => 0, 'professional_user_id' => $this->professional->id,
+            'starts_at' => '2026-02-11T08:00:00Z', 'ends_at' => '2026-02-11T08:30:00Z',
+            'location' => 'Synthetic private room', 'notes' => '', 'status' => 'scheduled',
+        ]), 422);
+        $this->assertSame(0, Appointment::count());
+    }
+
+    public function test_same_learner_cannot_overlap_appointments_across_cases_and_professionals(): void
+    {
+        $firstCase = $this->careCase();
+        $secondCase = $this->careCase();
+        $other = $this->professional('second-case');
+        app(WellbeingSettings::class)->assignCase($this->superAdmin(), $secondCase['id'], null, $this->grant($other));
+        $input = ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'professional_user_id' => $this->professional->id,
+            'starts_at' => '2026-02-11T08:00:00Z', 'ends_at' => '2026-02-11T08:30:00Z',
+            'location' => 'Synthetic private room', 'notes' => '', 'status' => 'scheduled'];
+        $service = app(Casework::class);
+        $service->appointment($this->professional, $firstCase['id'], null, $input);
+        $this->refuses(fn () => $service->appointment($other, $secondCase['id'], null, array_replace($input, [
+            'operation_id' => (string) Str::uuid(), 'professional_user_id' => $other->id,
+            'starts_at' => '2026-02-11T08:15:00Z', 'ends_at' => '2026-02-11T08:45:00Z',
+        ])), 409);
+        $this->assertSame(1, Appointment::count());
+        // Adjacent appointments remain valid, including across separate professionals.
+        $service->appointment($other, $secondCase['id'], null, array_replace($input, [
+            'operation_id' => (string) Str::uuid(), 'professional_user_id' => $other->id,
+            'starts_at' => '2026-02-11T08:30:00Z', 'ends_at' => '2026-02-11T09:00:00Z',
+        ]));
+        $this->assertSame(2, Appointment::count());
+    }
+
     public function test_cross_school_token_and_records_are_not_reachable_and_module_off_blocks_replay(): void
     {
         $service = app(IncidentReporting::class);

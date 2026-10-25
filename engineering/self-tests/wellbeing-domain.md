@@ -30,3 +30,12 @@ ignore an authenticated cookie/actor instead of silently identifying the person.
 Secrets stay out of URLs and database/audit fields. Ingress/request logging,
 physical devices, live emergency response, scanner/media qualification, staging,
 acceptance and release are external checks; none is inferred from these tests.
+
+Review corrections: the selected school's professional membership must cover the
+appointment dates; another school's longer role cannot extend that authority.
+Learner overlap checks span every case for that learner, including appointments
+with different professionals. Both regression tests failed against the previous
+implementation before the fixes. Adjacent appointments remain permitted.
+
+Review-fix verification: complete wellbeing domain suite 16 tests / 100 assertions
+passed; full Larastan zero errors, Pint and whitespace checks passed.

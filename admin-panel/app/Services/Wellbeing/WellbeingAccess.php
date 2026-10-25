@@ -67,7 +67,7 @@ class WellbeingAccess
     public function professionalDuring(User $actor, string $from, string $to): User
     {
         $fresh = $this->professional($actor, true);
-        abort_unless(SchoolMembership::where('user_id', $fresh->id)->where('status', 'active')->whereIn('role', ['Counsellor', 'Safeguarding'])
+        abort_unless(SchoolMembership::where('school_id', app(CurrentSchool::class)->id())->where('user_id', $fresh->id)->where('status', 'active')->whereIn('role', ['Counsellor', 'Safeguarding'])
             ->where(fn ($q) => $q->whereNull('starts_on')->orWhereDate('starts_on', '<=', $from))
             ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $to))->exists(), 422, 'The professional school role must cover the appointment.');
 
