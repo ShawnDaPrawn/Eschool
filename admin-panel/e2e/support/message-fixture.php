@@ -9,6 +9,7 @@ use App\Models\Academics\TeachingGroupMembership;
 use App\Models\ClassSection;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Subject;
@@ -20,7 +21,11 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 
-// Synthetic, dedicated author and inactive learner; no real deliveries or activation.
+// Synthetic, current author and learner; only the isolated test mail transport is used.
+$database = (string) config('database.connections.'.config('database.default').'.database');
+if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
+    throw new RuntimeException('Message browser fixtures require an isolated test database.');
+}
 Model::unguarded(function () {
     app(CurrentSchool::class)->run(1, function () {
         $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
@@ -39,8 +44,10 @@ Model::unguarded(function () {
         if (! TeachingAllocation::where('teaching_group_id', $group->id)->where('teacher_id', $teacher->id)->exists()) {
             app(TeachingGroups::class)->dated($admin, 'teachers', $dated + ['teacher_id' => $teacher->id], $group->id);
         }
-        $user = User::firstOrCreate(['email' => 'message.learner@demo.navigateed.test'], ['first_name' => 'Message', 'last_name' => 'Inactive Learner', 'password' => Hash::make('NavigateDemo2026'), 'status' => 0]);
+        $user = User::firstOrCreate(['email' => 'message.learner@demo.navigateed.test'], ['first_name' => 'Message', 'last_name' => 'Rehearsal Learner', 'password' => Hash::make('NavigateDemo2026'), 'status' => 1]);
+        $user->update(['status' => 1]);
         $user->assignRole('Student');
+        SchoolMembership::updateOrCreate(['school_id' => 1, 'user_id' => $user->id, 'role' => 'Student'], ['status' => 'active', 'starts_on' => $year->start_date, 'ends_on' => $year->end_date]);
         $learner = Students::firstOrCreate(['user_id' => $user->id], ['class_id' => $room->class_id, 'class_section_id' => $room->id, 'category_id' => Students::whereNotNull('category_id')->value('category_id'), 'admission_no' => 'MESSAGE-DEMO', 'roll_number' => 998, 'admission_date' => $year->start_date]);
         Enrolment::firstOrCreate(['learner_id' => $learner->id, 'session_year_id' => $year->id, 'class_section_id' => $room->id], $dated);
         if (! TeachingGroupMembership::where('teaching_group_id', $group->id)->where('learner_id', $learner->id)->exists()) {

@@ -45,6 +45,13 @@ class MyGrade
 
     public function available(User $actor): bool
     {
+        $school = app(CurrentSchool::class);
+        // Visibility can short-circuit a disabled switch from this request's
+        // module snapshot. Enabled access still uses the full fresh authority.
+        if (! $school->isSet() || $school->isAcrossSchools() || $school->isImpersonating()
+            || ! app(ModuleGate::class)->allows('my_grade')) {
+            return false;
+        }
         try {
             $this->access($actor);
 
