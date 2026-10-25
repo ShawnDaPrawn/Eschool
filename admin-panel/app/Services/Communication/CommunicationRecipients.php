@@ -19,6 +19,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Activities\CommunityAuthority;
+use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,7 +38,8 @@ class CommunicationRecipients
     {
         SessionYear::findOrFail($year);
 
-        return Enrolment::where('session_year_id', $year)->onDate($date);
+        return Enrolment::where('session_year_id', $year)->onDate($date)
+            ->whereHas('learner', fn ($learner) => $learner->whereIn('user_id', app(CurrentLearnerMembership::class)->users()->select('id')));
     }
 
     public function learners(array $definition, string $date): Collection
