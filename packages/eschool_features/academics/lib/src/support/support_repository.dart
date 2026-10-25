@@ -72,6 +72,7 @@ class ApiSupportRepository implements SupportRepository {
       queryParameters: query,
       data: payload,
       requestTimeout: const Duration(seconds: 30),
+      privateRequest: true,
     );
     _guard();
     final data = response?['data'];

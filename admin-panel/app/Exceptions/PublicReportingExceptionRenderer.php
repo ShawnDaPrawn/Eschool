@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Exceptions;
 
 use App\Services\Wellbeing\PublicReportingPage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -24,6 +25,15 @@ class PublicReportingExceptionRenderer
             return $page->failedDraft($request, array_values($error->errors()), 422);
         }
         $status = $error instanceof HttpExceptionInterface ? $error->getStatusCode() : 500;
+        if ($status === 404 && in_array($request->route()?->getName(), ['public.wellbeing.submit', 'public.wellbeing.reply'], true)) {
+            try {
+                if (! $page->writable($request)) {
+                    return $page->failedDraft($request, [[__('Reporting is temporarily read-only. Keep your unsent draft privately and use the urgent guidance if you need help now.')]], 423);
+                }
+            } catch (ModelNotFoundException|HttpExceptionInterface) {
+                // A disabled/missing school stays unavailable, without draft reflection.
+            }
+        }
         if (in_array($status, [409, 422], true) && ! $request->query->has('secret')) {
             return $page->failedDraft($request, [[__($status === 409 ? 'This request changed. Check your private follow-up before trying again.' : 'Check the form and try again.')]], $status);
         }

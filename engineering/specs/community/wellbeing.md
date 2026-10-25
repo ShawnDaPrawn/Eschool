@@ -57,5 +57,6 @@ Calendar-only fields use constrained YYYY-MM-DD strings in the generated client
 contract; server validation rejects timestamps in those fields. The selected
 school scopes professional-choice pagination explicitly because SchoolMembership
 has no automatic tenant scope. No exposed metadata operation grants clinical
-body access. Public HTML, private media and restricted app/panel screens remain
-separate implementation increments until their complete flows are verified.
+body access. Public HTML and the restricted panel are implemented and browser verified in
+separate increments. Private media, notices and restricted app screens remain
+follow-on work until their complete flows are verified.

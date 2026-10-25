@@ -20,6 +20,8 @@ use App\Services\Pastoral\SensitiveRecordsAccess;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class WellbeingAccess
 {
@@ -63,6 +65,28 @@ class WellbeingAccess
         $fresh = app(SensitiveRecordsAccess::class)->actor($actor);
 
         return $this->actor($fresh, $write);
+    }
+
+    public function professionalAvailable(User $actor): bool
+    {
+        try {
+            $this->professional($actor);
+
+            return true;
+        } catch (ModelNotFoundException|HttpExceptionInterface) {
+            return false;
+        }
+    }
+
+    public function panelAvailable(User $actor): bool
+    {
+        try {
+            $this->configure($actor);
+
+            return true;
+        } catch (ModelNotFoundException|HttpExceptionInterface) {
+            return $this->professionalAvailable($actor);
+        }
     }
 
     public function professionalDuring(User $actor, string $from, string $to): User

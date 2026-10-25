@@ -27,6 +27,29 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ProgressQueries
 {
+    public function available(User $actor): bool
+    {
+        try {
+            app(LearnerNotesPolicy::class)->enabled();
+            $authority = app(AcademicAuthority::class);
+            $fresh = $authority->staff($actor);
+            $roles = app(ProfilePolicy::class)->roles($fresh);
+            if (in_array(SchoolRoles::TEACHER, $roles, true) || $authority->manages($fresh)) {
+                return true;
+            }
+            if (array_intersect($roles, [SchoolRoles::COUNSELLOR, SchoolRoles::SAFEGUARDING]) !== []) {
+                app(SensitiveRecordsAccess::class)->actor($fresh);
+
+                return true;
+            }
+
+            return AcademicLeadership::query()->where('user_id', $fresh->id)->where('session_year_id', (int) schoolSetting('session_year'))
+                ->whereDate('starts_on', '<=', $authority->today())->whereDate('ends_on', '>=', $authority->today())->exists();
+        } catch (HttpException|ModelNotFoundException $error) {
+            return false;
+        }
+    }
+
     public function configuration(User $actor): array
     {
         app(LearnerNotesPolicy::class)->enabled();

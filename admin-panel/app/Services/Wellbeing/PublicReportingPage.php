@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Wellbeing;
 
 use App\Models\Platform\School;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class PublicReportingPage
     {
         $school = $this->school((string) $request->route('schoolSlug'));
         $configuration = app(CurrentSchool::class)->run($school, fn () => app(WellbeingSettings::class)->categories());
+        $canWrite = $this->writable($request);
         $posted = $request->isMethod('POST') ? ($request->isJson() ? $request->json()->all() : $request->request->all()) : [];
         $reportMode = in_array($request->route()->getName(), ['public.wellbeing.form', 'public.wellbeing.submit'], true);
         $provided = $posted['secret'] ?? null;
@@ -36,7 +38,14 @@ class PublicReportingPage
             'category_id' => is_scalar($posted['category_id'] ?? null) ? (string) $posted['category_id'] : '',
             'urgency' => in_array($posted['urgency'] ?? null, ['routine', 'urgent'], true) ? $posted['urgency'] : 'routine'];
 
-        return $this->view('wellbeing.public-reporting', compact('school', 'configuration', 'secret', 'reportMode', 'thread', 'draft', 'message', 'errors') + ['operationId' => (string) Str::uuid()], $status);
+        return $this->view('wellbeing.public-reporting', compact('school', 'configuration', 'secret', 'reportMode', 'thread', 'draft', 'message', 'errors', 'canWrite') + ['operationId' => (string) Str::uuid()], $status);
+    }
+
+    public function writable(Request $request): bool
+    {
+        $school = $this->school((string) $request->route('schoolSlug'));
+
+        return app(CurrentSchool::class)->run($school, fn () => app(ModuleGate::class)->writable('wellbeing'));
     }
 
     public function failedDraft(Request $request, array $errors, int $status): Response

@@ -139,6 +139,7 @@ return [
                             'keywords' => ['sections', 'divisions', 'a b c']],
                         ['key' => 'academic-sasams', 'label' => 'SA-SAMS exports', 'route' => 'academic-sasams.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics', 'keywords' => ['SA-SAMS', 'learners', 'attendance', 'marks', 'export']],
                         ['key' => 'academic-transitions', 'label' => 'Mid-year learner changes', 'route' => 'academic-transitions.index', 'permissions' => ['academic-structure-manage'], 'module' => 'academics', 'keywords' => ['join', 'leave', 'subject change', 'exit package']],
+                        ['key' => 'learner-notes', 'label' => 'Learner progress and notes', 'route' => 'learner-notes.index', 'permissions' => [], 'progress_actor' => true, 'module' => 'academics', 'active' => ['learner-notes.*'], 'keywords' => ['progress bands', 'teaching notes', 'counselling notes']],
                         ['key' => 'mastery', 'label' => 'Mastery map', 'route' => 'mastery.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'mastery', 'keywords' => ['growth', 'topics', 'prerequisites', 'learning support']],
                         ['key' => 'academic-content', 'label' => 'Learning content', 'route' => 'academic-content.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['content', 'upload', 'markdown', 'transcript', 'curriculum topics']],
                         ['key' => 'academic-reports', 'label' => 'Academic report cards', 'route' => 'academic-reports.index', 'permissions' => ['curriculum-read', 'academic-structure-manage'], 'module' => 'academics', 'keywords' => ['reports', 'comments', 'principal', 'grade head', 'report release']],
@@ -336,6 +337,7 @@ return [
                 'absence' => [
                     'label' => 'nav_group_absence',
                     'items' => [
+                        ['key' => 'wellbeing', 'label' => 'Incidents and counselling', 'route' => 'wellbeing.index', 'permissions' => [], 'wellbeing_actor' => true, 'module' => 'wellbeing', 'active' => ['wellbeing.*'], 'keywords' => ['incident reports', 'safeguarding', 'restricted cases']],
                         ['key' => 'support-plans', 'label' => 'Support plans', 'route' => 'support-plans.index', 'permissions' => [], 'support_actor' => true, 'module' => 'support_plans', 'active' => ['support-plans.*'], 'keywords' => ['SIAS', 'accommodations', 'support reviews']],
                         ['key' => 'relief-cover', 'label' => 'Relief cover', 'route' => 'relief-cover.index', 'permissions' => [], 'cover_actor' => true, 'module' => 'relief_cover', 'active' => ['relief-cover.*'], 'keywords' => ['substitute', 'teacher absence', 'cover lessons']],
                         ['key' => 'learner-leave', 'label' => 'nav_learner_leave', 'route' => 'student-leave-request.index', 'permissions' => ['student-leave-approve'], 'module' => null,

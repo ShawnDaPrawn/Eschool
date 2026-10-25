@@ -159,10 +159,25 @@ class IncidentReporting
         return $this->staffView($row);
     }
 
-    private function staffView(IncidentReport $row): array
+    public function readPage(User $actor, int $id, ?int $before = null): array
     {
-        return $row->only(['id', 'category_id', 'anonymous', 'reporter_user_id', 'learner_id', 'body', 'urgency', 'status', 'identified_at', 'revision', 'created_at']) +
-            ['threads' => IncidentThread::where('incident_report_id', $row->id)->orderByDesc('id')->limit(100)->get()->map(fn ($thread) => $thread->only(['id', 'staff_user_id', 'author_type', 'internal', 'body', 'created_at']))->all()];
+        $row = $this->access->report($actor, $id);
+        if ($before !== null) {
+            Validator::make(['before' => $before], ['before' => ['integer', 'min:1']])->validate();
+        }
+
+        return $this->staffView($row, $before, true);
+    }
+
+    private function staffView(IncidentReport $row, ?int $before = null, bool $paged = false): array
+    {
+        $threads = IncidentThread::where('incident_report_id', $row->id)->when($before !== null, fn ($query) => $query->where('id', '<', $before))->orderByDesc('id')->limit(101)->get();
+        $more = $threads->count() > 100;
+        $threads = $threads->take(100);
+        $result = $row->only(['id', 'category_id', 'anonymous', 'reporter_user_id', 'learner_id', 'body', 'urgency', 'status', 'identified_at', 'revision', 'created_at']) +
+            ['threads' => $threads->map(fn ($thread) => $thread->only(['id', 'staff_user_id', 'author_type', 'internal', 'body', 'created_at']))->all()];
+
+        return $paged ? $result + ['has_older' => $more, 'next_before' => $more ? $threads->last()?->id : null] : $result;
     }
 
     public function respond(User $actor, int $id, array $input): array

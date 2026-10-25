@@ -6,6 +6,7 @@ namespace App\Models\Platform;
 
 use App\Models\User;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,10 +58,11 @@ class SchoolMembership extends Model
         return $this->belongsTo(School::class);
     }
 
-    /** Active today, at a school that is active. */
+    /** Active on the selected school calendar; cross-school sign-in uses MembershipService. */
     public function scopeActive(Builder $query): Builder
     {
-        $today = now()->toDateString();
+        $timezone = app(CurrentSchool::class)->school()?->timezone ?? config('app.timezone', 'UTC');
+        $today = now($timezone)->toDateString();
 
         return $query->where('school_memberships.status', self::ACTIVE)
             ->where(fn (Builder $q) => $q->whereNull('school_memberships.starts_on')->orWhere('school_memberships.starts_on', '<=', $today))

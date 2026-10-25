@@ -152,6 +152,7 @@ class ApiClient {
     int? accountId,
     String? idempotencyKey,
     Duration? requestTimeout,
+    bool privateRequest = false,
   }) async {
     final cancellation = requestTimeout == null ? null : CancelToken();
     var deadlineElapsed = false;
@@ -164,7 +165,7 @@ class ApiClient {
     try {
       final Dio dio = _createDio();
 
-      debugPrint('API Called $method: $url');
+      if (!privateRequest) debugPrint('API Called $method: $url');
 
       final response = await dio.request<dynamic>(
         url,

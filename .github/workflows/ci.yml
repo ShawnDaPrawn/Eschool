@@ -228,7 +228,7 @@ jobs:
   # The integration_test/ smoke flows (sign in, reach Home, open a screen)
   # against the fake API in integration_test/support/fixtures.dart: no server.
   apps-smoke-android:
-    name: Flutter smoke flows on Android (${{ matrix.app }})
+    name: Flutter smoke flows on Android (${{ matrix.app }} ${{ matrix.flavor }})
     # Pin the emulator host while ubuntu-latest migrates to Ubuntu 26.
     # Android SDK and KVM availability must not change under a release.
     runs-on: ubuntu-24.04
@@ -236,7 +236,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher]
+        include:
+          - app: e-school
+            flavor: family
+            command: flutter test integration_test
+          - app: e-school-teacher
+            flavor: teacher
+            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' | sort)
+          - app: e-school-teacher
+            flavor: facilitator
+            command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator integration_test/facilitator*_test.dart
     steps:
       - uses: actions/checkout@v7
       # Hardware acceleration for the emulator on GitHub's Linux runners.
@@ -265,7 +274,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           working-directory: ${{ matrix.app }}
-          script: flutter test integration_test
+          script: ${{ matrix.command }}
 
   apps-smoke-chrome:
     name: Flutter smoke flow in Chrome (${{ matrix.flow }})
@@ -325,6 +334,13 @@ jobs:
             flow: teacher_cover_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_support_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
+            flow: family_progress_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_notes_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_notes_smoke_test.dart
             flavor: facilitator
     defaults:
       run:

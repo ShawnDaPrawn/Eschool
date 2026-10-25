@@ -15,6 +15,7 @@
 <aside aria-label="{{ __('Urgent help') }}"><h2>{{ __('If you are unsafe') }}</h2><p>{{ $configuration['emergency_guidance'] }}</p><p>{{ __('This form is not an emergency response service. Do not wait for a school reply if someone is in immediate danger.') }}</p></aside>
 @if($message)<section role="status"><p>{{ $message }}</p></section>@endif
 @if($errors)<section class="error" role="alert"><h2>{{ __('Check your request') }}</h2><ul>@foreach($errors as $messages)@foreach((array)$messages as $error)<li>{{ $error }}</li>@endforeach @endforeach</ul></section>@endif
+@if(!$canWrite)<section role="status"><p>{{ __('Reporting is temporarily read-only. Keep your unsent draft privately and use the urgent guidance if you need help now.') }}</p>@if($errors && $draft['body']!=='')<h2>{{ __('Your unsent draft') }}</h2><p class="text">{{ $draft['body'] }}</p>@endif</section>@endif
 @if($thread !== null)
 <section><h2>{{ __('Your private follow-up') }}</h2>
 <label for="saved-code">{{ __('Your private code') }}</label><input class="code" id="saved-code" value="{{ $secret }}" readonly autocomplete="off" spellcheck="false">
@@ -22,10 +23,10 @@
 <p><strong>{{ __('Status') }}:</strong> {{ __($thread['status']) }}</p><h3>{{ __('Your report') }}</h3><p class="text">{{ $thread['body'] }}</p>
 @foreach($thread['threads'] as $item)<article class="thread"><h3>{{ $item['author']==='school' ? __('School reply') : __('Your follow-up') }}</h3><p class="text">{{ $item['body'] }}</p><small>{{ $item['created_at'] }}</small></article>@endforeach
 @if($thread['has_older'])<form method="post" action="{{ route('public.wellbeing.follow-up',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><input type="hidden" name="before" value="{{ $thread['next_before'] }}"><button class="btn btn-primary" type="submit">{{ __('Read older replies') }}</button></form>@endif
-<form method="post" action="{{ route('public.wellbeing.reply',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><input type="hidden" name="operation_id" value="{{ $operationId }}"><label for="reply-body">{{ __('Add a follow-up') }}</label><textarea id="reply-body" name="body" maxlength="20000" required>{{ $errors ? $draft['body'] : '' }}</textarea><button class="btn btn-primary" type="submit">{{ __('Send follow-up') }}</button></form>
+@if($canWrite)<form method="post" action="{{ route('public.wellbeing.reply',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><input type="hidden" name="operation_id" value="{{ $operationId }}"><label for="reply-body">{{ __('Add a follow-up') }}</label><textarea id="reply-body" name="body" maxlength="20000" required>{{ $errors ? $draft['body'] : '' }}</textarea><button class="btn btn-primary" type="submit">{{ __('Send follow-up') }}</button></form>@endif
 <form method="post" action="{{ route('public.wellbeing.follow-up',['schoolSlug'=>$school->slug]) }}"><input type="hidden" name="secret" value="{{ $secret }}"><button class="btn btn-primary" type="submit">{{ __('Refresh school replies') }}</button></form>
 </section>
-@elseif($reportMode)
+@elseif($reportMode && $canWrite)
 <section><h2>{{ __('Make an anonymous report') }}</h2><p>{{ __('This page does not use your signed-in school account. Avoid names or identifying details if you want to remain anonymous.') }}</p>
 <form method="post" action="{{ route('public.wellbeing.submit',['schoolSlug'=>$school->slug]) }}" autocomplete="off"><input type="hidden" name="anonymous" value="1">
 <label for="report-code">{{ __('Save your private code before sending') }}</label><input class="code" id="report-code" name="secret" value="{{ $secret }}" readonly spellcheck="false" aria-describedby="code-help"><small id="code-help">{{ __('Keep this code privately. You need it to read replies. The school cannot recover a lost anonymous code.') }}</small>

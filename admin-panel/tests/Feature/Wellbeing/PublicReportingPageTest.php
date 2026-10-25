@@ -61,7 +61,7 @@ class PublicReportingPageTest extends TestCase
         $this->post($this->path.'/replies', $reply)->assertOk()->assertSee($reply['body']);
         $this->post($this->path.'/replies', $reply)->assertOk();
         $this->assertSame(1, IncidentThread::count());
-        IncidentThread::create(['incident_report_id' => IncidentReport::firstOrFail()->id, 'author_type' => 'staff', 'staff_user_id' => $this->superAdmin()->id, 'body' => 'INTERNAL PRIVATE TRIAGE', 'internal' => true, 'operation_id' => (string) Str::uuid()]);
+        IncidentThread::create(['incident_report_id' => IncidentReport::firstOrFail()->id, 'author_type' => 'staff', 'staff_user_id' => $this->superAdmin()->id, 'body' => 'INTERNAL PRIVATE TRIAGE', 'internal' => true, 'request_hash' => hash('sha256', 'synthetic internal triage'), 'operation_id' => (string) Str::uuid()]);
         $this->post($this->path.'/follow-up', ['secret' => $secret])->assertOk()->assertDontSee('INTERNAL PRIVATE TRIAGE');
     }
 
@@ -88,6 +88,19 @@ class PublicReportingPageTest extends TestCase
         $this->post($this->path.'/replies', array_replace($reply, ['body' => 'CHANGED REPLY DRAFT']))->assertConflict()->assertSee('CHANGED REPLY DRAFT');
         $this->assertSame(1, IncidentThread::count());
         $this->assertFalse($this->app['request']->hasSession());
+    }
+
+    public function test_read_only_reporting_keeps_guidance_and_old_reads_but_never_promises_to_send_a_new_draft(): void
+    {
+        $secret = bin2hex(random_bytes(32));
+        $this->post($this->path, $this->report($secret))->assertOk();
+        DB::table('school_modules')->where('school_id', 1)->where('module', 'wellbeing')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->get($this->path)->assertOk()->assertSee('Reporting is temporarily read-only.')->assertDontSee('Send anonymous report');
+        $this->post($this->path, $this->report(bin2hex(random_bytes(32)), ['body' => 'UNSENT READ ONLY DRAFT']))->assertStatus(423)->assertSee('UNSENT READ ONLY DRAFT')->assertSessionMissing('_old_input');
+        $this->post($this->path.'/follow-up', ['secret' => $secret])->assertOk()->assertSee('Synthetic private report.')->assertDontSee('Send follow-up');
+        $this->assertSame(1, IncidentReport::count());
+        $this->assertSame(0, IncidentThread::count());
     }
 
     public function test_wrong_school_code_identified_report_and_disabled_module_do_not_reveal_private_content(): void
