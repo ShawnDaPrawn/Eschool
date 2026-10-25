@@ -7,8 +7,8 @@ This plan grows the existing Laravel backend and Flutter shells.
 
 ## Feature order and ownership
 
-The Phase 3 agent owns implementation; the lead owns shared contracts, review and
-integration. Each row becomes one or more small feature PRs with its own spec,
+The Phase 3 agent owns steps 1–11; the lead owns shared contracts, review,
+integration and step 12 (cover/support/dashboard) plus step 13 (transfers). Each row becomes one or more small feature PRs with its own spec,
 automated isolation/authority tests and affected-profile self-test record.
 
 | Work | Depends on | State / specification |
@@ -16,7 +16,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | First staff-only foundation in progress; [spec](../specs/ai/gateway-foundation.md) |
 | Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Queued; counselling needs restricted shared policy |
 | Tutor sessions, subject/source lock, scanned photo feedback and summaries | Reviewed gateway, notes, content | Queued; no learner inference enabled by the foundation |
-| Topic dependencies, evidence and mastery map | Question marks and published curriculum | Queued; publish read contracts early for Phase 4 |
+| Topic dependencies, evidence and mastery map | Question marks and published curriculum | Backend engine implemented; [spec](../specs/growth/mastery.md); v2/shared views follow |
 | Daily practice, FSRS reviews, offline daily sets and streaks | Mastery, published content, gateway | Queued |
 | Licensed past papers and exam coach | Mastery, timetable, vision/media safety | Queued |
 | Staff-approved teaching drafts and task insights | Marks, content and gateway | Queued |

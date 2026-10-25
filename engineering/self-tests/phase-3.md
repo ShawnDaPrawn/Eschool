@@ -41,3 +41,36 @@ Both input/output moderation results now recheck the original school and fresh
 authority before any quarantine flag is written. Final focused run: **16 tests
 passed, 93 assertions**, including both callback directions, zero foreign flags,
 original-school settlement and suppressed output. Changed-file Pint passes.
+
+## Mastery graph and canonical evidence engine
+
+Implemented published stable-topic anchors, explicit sourced acyclic prerequisite
+links, separate staff/family evidence and projections, exact integer 0–4 levels,
+unknown-versus-zero handling, bounded recent-evidence confidence and up to three
+root-gap recommendations. Current grade/year topics plus published prerequisite
+closure are eligible; unrelated future-grade and draft nodes are excluded.
+
+Staff uses canonical current question marks. Family uses frozen released snapshot
+question evidence plus explicit school opt-in, with fresh own-child/approval and
+module/visibility checks. Later raw edits do not alter released mastery. Dedicated
+subject/grade/year lock rows serialize derived rebuilds without taking the school
+mark-write lock. Mark, release, definition and module-enable events queue rebuilds;
+`mastery:rebuild <school> --group=<owned-group>` supports trusted bounded repair.
+The module is registered off by default and may be explicitly enabled through the
+existing school module management. No learner self-score endpoint exists.
+
+Verification: affected mastery/mark/tenancy cohort **40 passed, 800 assertions**.
+Final focused engine/repair-command suite **14 passed, 64 assertions**; changed-file
+Pint and complete configured Larastan analysis pass. Covered role/school/owner,
+approval/guardian/module/visibility revocation, frozen release versus raw edits,
+missing question values, cyclic/duplicate/cross-subject links, draft/future topic
+exclusion, replay without duplicate evidence, integer boundaries, empty rollback/
+reapply and retained-data rollback refusal.
+
+This backend engine does not claim completed mastery app/panel UX or v2 contract
+publication. Those follow after the parallel Phase 4 contract/SDK publication slot.
+Practice/tutor evidence adapters arrive with their verified review workflows.
+Confidence is a versioned evidence-sufficiency heuristic, not a calibrated risk
+probability, diagnostic label or promotion rule. No official CAPS prerequisite
+edges, live model evidence, device/staging acceptance or production release is
+invented.
