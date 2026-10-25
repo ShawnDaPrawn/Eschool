@@ -13,6 +13,7 @@ class Photos implements PrivateGalleryRepository {
   @override
   bool isActive = true;
   bool approve = false, deny = false, offline = false, removed = false;
+  bool configurationOffline = false;
   final writes = <Map<String, dynamic>>[],
       familyReads = <int>[],
       groupReads = <int>[];
@@ -86,6 +87,8 @@ class Photos implements PrivateGalleryRepository {
   });
   @override
   Future<GalleryConfiguration> configuration() async {
+    if (configurationOffline)
+      throw ApiException('Network unavailable', isTransportFailure: true);
     if (deny)
       throw ApiException(
         'Photo access withdrawn',
@@ -205,6 +208,13 @@ void main() {
       expect(repo.writes.single['caption'], 'Private upload caption');
       expect(repo.writes.single['learner_id'], 2);
       expect(repo.writes.single['scope'], 'family');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      repo.configurationOffline = true;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('Private upload caption'), findsNothing);
+      repo.configurationOffline = false;
       await tap(tester, find.text('Retry same change'));
       expect(repo.writes.first, repo.writes.last);
     },
@@ -269,8 +279,11 @@ void main() {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       await tester.pump();
       expect(find.text('Private family caption'), findsNothing);
+      repo.configurationOffline = true;
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
       await tester.pumpAndSettle();
+      expect(find.text('Private family caption'), findsNothing);
+      repo.configurationOffline = false;
       await tap(tester, find.text('Retry same change'));
       expect(repo.writes, hasLength(2));
       expect(repo.writes.first, repo.writes.last);

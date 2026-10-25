@@ -194,8 +194,15 @@ class _PrivateGalleryScreenState extends State<PrivateGalleryScreen>
       setState(() => _loading = false);
     } catch (error) {
       if (!mounted || epoch != _epoch) return;
+      // A lost refresh says nothing about a previously dispatched write. Keep
+      // its bounded exact retry intent; all visible private data stays erased.
+      final uncertain =
+          error is! ApiException ||
+          error.isTransportFailure ||
+          error.statusCode == null ||
+          error.statusCode! >= 500;
       setState(() {
-        _erase();
+        _erase(intent: !uncertain);
         _loading = false;
         _error = error is ApiException && error.isApiMessage
             ? error.errorMessage
