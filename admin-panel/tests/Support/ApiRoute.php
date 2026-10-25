@@ -103,7 +103,7 @@ final readonly class ApiRoute
             'field' => 'test_field',
             'audience' => str_contains($this->uri, '/pastoral/support/configuration/') ? 'principal' : '1',
             'lane' => str_contains($this->uri, '/transfers/') ? 'outgoing' : '1',
-            'photo' => '8aef50e7-2429-4d2c-a523-668ae436c4d4',
+            'photo' => str_contains($this->uri, '/gallery/') ? '1' : '8aef50e7-2429-4d2c-a523-668ae436c4d4',
             'module' => str_contains($this->uri, '/recognition/') ? 'house_points' : '1',
             'kind' => str_contains($this->uri, '/recognition/') ? 'houses' : (str_contains($this->uri, '/transfers/choices/') ? 'learners' : (str_contains($this->uri, '/academics/allocations/') ? 'homerooms' : 'memberships')),
             default => '1',

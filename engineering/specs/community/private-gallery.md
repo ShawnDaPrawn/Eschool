@@ -39,3 +39,10 @@ known originals, thumbnails, fresh files and other schools are retained.
 Future-dated completed departures remove later unconsented tags only when the
 actual departure takes effect, and an intervening return is a new authorised
 membership episode rather than permission to apply an old departure again.
+
+The v2 API exposes ten private typed operations and returns only owned projections
+and protected JPEG bytes. Configuration includes the current account, school,
+year and upload-year choices for client leases. The transfer consent detail has an
+optional own-guardian gallery selection; omission of the optional keep flag keeps
+legacy remove-on-transfer behavior. Generated clients retain the typed optional
+choice without changing earlier contracts.

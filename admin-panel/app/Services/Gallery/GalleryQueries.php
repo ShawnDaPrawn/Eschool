@@ -7,6 +7,7 @@ namespace App\Services\Gallery;
 use App\Models\Gallery\GalleryPhoto;
 use App\Models\Gallery\PhotoTag;
 use App\Models\Platform\SchoolMembership;
+use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Activities\CommunityAuthority;
@@ -77,7 +78,9 @@ class GalleryQueries
         $settings = app(GallerySettings::class)->current();
         app(ModuleGate::class)->forget();
 
-        return ['children' => $this->children($actor), 'groups' => $groups, 'guardian_required' => $settings->guardian_required, 'settings_revision' => (int) $settings->revision,
+        return ['school_id' => app(CurrentSchool::class)->id(), 'account_id' => (int) $actor->id, 'session_year_id' => (int) schoolSetting('session_year'), 'today' => now()->toDateString(),
+            'years' => SessionYear::whereNotNull('start_date')->whereNotNull('end_date')->orderByDesc('start_date')->get()->map(fn ($year) => ['id' => (int) $year->id, 'name' => $year->name, 'starts_on' => substr((string) $year->start_date, 0, 10), 'ends_on' => substr((string) $year->end_date, 0, 10)])->all(),
+            'children' => $this->children($actor), 'groups' => $groups, 'guardian_required' => $settings->guardian_required, 'settings_revision' => (int) $settings->revision,
             'can_manage' => $manage, 'can_write' => app(ModuleGate::class)->writable('gallery')];
     }
 

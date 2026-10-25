@@ -25,6 +25,10 @@ class TransferConsentInput {
     required this.version,
 
     required this.confirmation,
+
+    this.keepPhotoTags,
+
+    this.galleryFingerprint,
   });
 
   @JsonKey(name: r'operation_id', required: true, includeIfNull: false)
@@ -43,6 +47,14 @@ class TransferConsentInput {
   @JsonKey(name: r'confirmation', required: true, includeIfNull: false)
   final bool confirmation;
 
+  /// Optional explicit guardian choice; omission removes tags on completion.
+  @JsonKey(name: r'keep_photo_tags', required: false, includeIfNull: false)
+  final bool? keepPhotoTags;
+
+  /// Fresh private selection fingerprint required when keep_photo_tags is true.
+  @JsonKey(name: r'gallery_fingerprint', required: false, includeIfNull: false)
+  final String? galleryFingerprint;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -51,7 +63,9 @@ class TransferConsentInput {
           other.revision == revision &&
           other.fingerprint == fingerprint &&
           other.version == version &&
-          other.confirmation == confirmation;
+          other.confirmation == confirmation &&
+          other.keepPhotoTags == keepPhotoTags &&
+          other.galleryFingerprint == galleryFingerprint;
 
   @override
   int get hashCode =>
@@ -59,7 +73,9 @@ class TransferConsentInput {
       revision.hashCode +
       fingerprint.hashCode +
       version.hashCode +
-      confirmation.hashCode;
+      confirmation.hashCode +
+      keepPhotoTags.hashCode +
+      (galleryFingerprint == null ? 0 : galleryFingerprint.hashCode);
 
   factory TransferConsentInput.fromJson(Map<String, dynamic> json) =>
       _$TransferConsentInputFromJson(json);

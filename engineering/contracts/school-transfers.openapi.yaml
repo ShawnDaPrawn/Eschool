@@ -940,6 +940,8 @@ components:
           type: boolean
         can_download:
           type: boolean
+        gallery_choice:
+          $ref: '#/components/schemas/TransferGalleryChoice'
     TransferWriteReceipt:
       type: object
       additionalProperties: false
@@ -1047,6 +1049,15 @@ components:
           maxLength: 64
         confirmation:
           type: boolean
+        keep_photo_tags:
+          type: boolean
+          description: Optional explicit guardian choice; omission removes tags on completion.
+        gallery_fingerprint:
+          type:
+          - string
+          - 'null'
+          pattern: ^[a-f0-9]{64}$
+          description: Fresh private selection fingerprint required when keep_photo_tags is true.
     TransferAcceptInput:
       type: object
       additionalProperties: false
@@ -1164,3 +1175,20 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/TransferWriteReceipt'
+    TransferGalleryChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - fingerprint
+      - photos
+      - can_keep
+      properties:
+        fingerprint:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        photos:
+          type: integer
+          minimum: 0
+          maximum: 200
+        can_keep:
+          type: boolean

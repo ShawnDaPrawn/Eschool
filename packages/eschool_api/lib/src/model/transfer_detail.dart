@@ -5,6 +5,7 @@
 // ignore_for_file: unused_element
 import 'package:eschool_api/src/model/transfer_attendance.dart';
 import 'package:eschool_api/src/model/transfer_document.dart';
+import 'package:eschool_api/src/model/transfer_gallery_choice.dart';
 import 'package:eschool_api/src/model/transfer_report.dart';
 import 'package:eschool_api/src/model/transfer_mark.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -77,6 +78,8 @@ class TransferDetail {
     required this.canAccept,
 
     required this.canDownload,
+
+    this.galleryChoice,
   });
 
   // minimum: 1
@@ -177,6 +180,9 @@ class TransferDetail {
   @JsonKey(name: r'can_download', required: true, includeIfNull: false)
   final bool canDownload;
 
+  @JsonKey(name: r'gallery_choice', required: false, includeIfNull: false)
+  final TransferGalleryChoice? galleryChoice;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -209,7 +215,8 @@ class TransferDetail {
           other.canRelease == canRelease &&
           other.canCancel == canCancel &&
           other.canAccept == canAccept &&
-          other.canDownload == canDownload;
+          other.canDownload == canDownload &&
+          other.galleryChoice == galleryChoice;
 
   @override
   int get hashCode =>
@@ -241,7 +248,8 @@ class TransferDetail {
       canRelease.hashCode +
       canCancel.hashCode +
       canAccept.hashCode +
-      canDownload.hashCode;
+      canDownload.hashCode +
+      galleryChoice.hashCode;
 
   factory TransferDetail.fromJson(Map<String, dynamic> json) =>
       _$TransferDetailFromJson(json);
