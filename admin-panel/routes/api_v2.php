@@ -86,7 +86,7 @@ Route::prefix('wellbeing/public/{schoolSlug}')->where(['schoolSlug' => '[a-z0-9]
         Route::post('follow-up/replies', [$controller, 'action'])->name('reply');
     });
 
-Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbeing::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:wellbeing'])->group(function () {
+Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbeing::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:wellbeing,read'])->group(function () {
     $controller = WellbeingController::class;
     $reads = ['access' => 'access', 'configuration' => 'configuration', 'management/cases' => 'managed-cases', 'categories/{category}/team' => 'team-assignments', 'management/cases/{case}/assignments' => 'case-assignments', 'reports' => 'reports', 'reports/{report}' => 'report', 'cases' => 'cases', 'cases/{case}' => 'case', 'cases/{case}/appointments' => 'appointments', 'cases/{case}/professionals' => 'case-professionals', 'cases/{case}/incident-choices' => 'case-report-choices'];
     foreach ($reads as $path => $action) {
@@ -95,7 +95,11 @@ Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbe
     $writes = ['categories' => 'category-create', 'categories/{category}' => 'category-save', 'categories/{category}/team' => 'team-create', 'categories/{category}/team/{assignment}' => 'team-save', 'management/cases' => 'case-create', 'management/cases/{case}/assignments' => 'case-assignment-create', 'management/cases/{case}/assignments/{assignment}' => 'case-assignment-save',
         'own/reports' => 'identified-submit', 'own/follow-up' => 'identified-read', 'own/follow-up/replies' => 'identified-reply', 'own/identify' => 'identify', 'reports/{report}/replies' => 'report-respond', 'cases/{case}/entries' => 'case-entry', 'cases/{case}/incident-link' => 'case-link', 'cases/{case}/status' => 'case-status', 'cases/{case}/appointments' => 'appointment-create', 'cases/{case}/appointments/{appointment}' => 'appointment-save'];
     foreach ($writes as $path => $action) {
-        Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'assignment', 'report', 'appointment'])->middleware(AuthorizeWellbeing::class.':'.$action)->name($action);
+        $middleware = [AuthorizeWellbeing::class.':'.$action];
+        if ($action !== 'identified-read') {
+            array_unshift($middleware, 'module:wellbeing,write');
+        }
+        Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'assignment', 'report', 'appointment'])->middleware($middleware)->name($action);
     }
 });
 

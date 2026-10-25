@@ -27,6 +27,7 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.academicReports, Routes.academicReports),
   DeepLinkRoute(Routes.mastery, Routes.mastery),
   DeepLinkRoute(Routes.familyProgress, Routes.familyProgress),
+  DeepLinkRoute(Routes.reportConcern, Routes.reportConcern),
   DeepLinkRoute(Routes.schoolTransfers, Routes.schoolTransfers),
   DeepLinkRoute(Routes.academicMarks, Routes.academicMarks),
   DeepLinkRoute('/notices', Routes.noticeBoard),

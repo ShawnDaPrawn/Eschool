@@ -21,7 +21,8 @@ class AuthorizeWellbeing
         try {
             $a = app(WellbeingAccess::class);
             $actor = $request->user();
-            $write = ! $request->isMethodSafe();
+            // The private code travels in a POST body, but follow-up is a read.
+            $write = ! $request->isMethodSafe() && $action !== 'identified-read';
             if (in_array($action, ['configuration', 'managed-cases', 'team-assignments', 'case-assignments', 'category-create', 'category-save', 'team-create', 'team-save', 'case-create', 'case-assignment-create', 'case-assignment-save'], true)) {
                 $a->configure($actor, $write);
             } elseif (in_array($action, ['access', 'identified-submit', 'identified-read', 'identified-reply', 'identify'], true)) {

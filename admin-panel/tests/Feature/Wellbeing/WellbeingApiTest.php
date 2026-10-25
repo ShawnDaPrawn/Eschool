@@ -8,6 +8,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolModule;
 use App\Models\User;
 use App\Models\Wellbeing\CaseAssignment;
 use App\Models\Wellbeing\IncidentReport;
@@ -226,6 +227,19 @@ class WellbeingApiTest extends TestCase
         $this->assertTrue($access->profile($this->professional)['features']['counselling']);
         PlatformStaffIdentity::create(['user_id' => $this->professional->id, 'active' => true]);
         $this->assertFalse($access->profile($this->professional)['features']['counselling']);
+    }
+
+    public function test_identified_follow_up_is_a_private_read_during_read_only_mode(): void
+    {
+        $this->submit();
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->api($parent)->postJson('/api/v2/wellbeing/own/identify', ['secret' => $this->secret, 'revision' => 1, 'identify_consent' => true, 'learner_id' => $this->schoolA->ids['asha']])->assertOk();
+        SchoolModule::where('module', 'wellbeing')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->postJson('/api/v2/wellbeing/own/follow-up', ['secret' => $this->secret])->assertOk()->assertJsonPath('data.body', 'Synthetic anonymous concern.')->assertHeader('Cache-Control', 'no-store, private');
+        $this->postJson('/api/v2/wellbeing/own/follow-up/replies', $this->operation(['secret' => $this->secret, 'body' => 'Unsent read-only reply']))->assertForbidden();
+        $this->api($this->professional)->postJson('/api/v2/wellbeing/own/follow-up', ['secret' => $this->secret])->assertForbidden();
+        $this->assertSame(0, IncidentThread::count());
     }
 
     public function test_identification_is_explicit_and_uses_bound_account_after_the_public_code_stops_working(): void
