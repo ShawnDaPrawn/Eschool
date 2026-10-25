@@ -452,3 +452,15 @@ overflow, unique-ID and own-origin error checks. Panel access and mutation
 regressions, catalogue checks, Pint and configured static analysis pass.
 Shared app cover screens and expected-account binding follow separately; no
 external classroom/staging/device acceptance or whole-phase completion claimed.
+
+## 2026-10-25 — houses, append-only points and permanent awards domain
+
+Added school-owned houses, dated memberships, categories, configurable daily staff
+issue limits and reasoned append-only reversals, plus scoped reusable award
+categories/definitions, year windows, versioned nominations, retained presentations
+and outside awards. Permanent profiles query award presentations only. Exact UUID
+receipts retain references and HMAC intent, with current authority before replay.
+The grade-head nomination adapter is now available for My grade integration.
+Twenty-two MySQL tests (97 assertions), Pint and whole-app static analysis pass;
+API/panel/app/live delivery and external acceptance follow separately. No production
+activation or whole-phase completion is claimed.

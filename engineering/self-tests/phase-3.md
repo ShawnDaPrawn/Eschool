@@ -504,3 +504,9 @@ risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions*
 Repeated identical refreshes stay idempotent; genuine reversions retain all three
 ordered observations and classroom readers show the latest corrected state.
 Changed-file Pint and complete configured Larastan pass.
+
+The inherited SetSchoolContext/PortalSession formatting is corrected and the
+complete **1,283-file Pint** check passes. The already reviewed Phase 4 Android
+smoke matrix is backported unchanged: family, classic Teacher and native
+facilitator each run their matching target/profile. No startup assertion is
+weakened; emulator execution remains CI verification.
