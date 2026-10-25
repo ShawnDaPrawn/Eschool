@@ -9,7 +9,7 @@ abstract interface class ActivityRepository {
   bool get isActive;
   Future<ActivityGroupList> groups({int page = 1});
   Future<ActivityGroupDetail> detail(int group);
-  Future<ActivityGroupRoster> roster(int group);
+  Future<ActivityGroupRoster> roster(int group, {int? sessionId});
   Future<ActivitySession> session(
     int group,
     int? id,
@@ -110,13 +110,31 @@ class ApiActivityRepository implements ActivityRepository {
   }
 
   @override
-  Future<ActivityGroupRoster> roster(int group) async {
+  Future<ActivityGroupRoster> roster(int group, {int? sessionId}) async {
     final result = ActivityGroupRoster.fromJson(
-      await _send('groups/$group/roster'),
+      await _send(
+        'groups/$group/roster',
+        query: sessionId == null ? null : {'session_id': sessionId},
+      ),
     );
     if (result.memberships.any((x) => x.activityGroupId != group) ||
         result.staff.any((x) => x.activityGroupId != group)) {
       throw ApiException('activity_scope_changed', statusCode: 403);
+    }
+    if (sessionId != null) {
+      final selected = result.sessionRoster;
+      if (selected == null) {
+        throw ApiException(
+          'Connect to the updated school service to open this register.',
+          isApiMessage: true,
+        );
+      }
+      if (selected.groupId != group ||
+          selected.sessionId != sessionId ||
+          selected.learners.map((x) => x.learnerId).toSet().length !=
+              selected.learners.length) {
+        throw ApiException('activity_scope_changed', statusCode: 403);
+      }
     }
     return result;
   }

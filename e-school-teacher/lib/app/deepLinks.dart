@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.reliefCover, Routes.reliefCover),
   DeepLinkRoute('/relief-cover', Routes.reliefCover),
+  DeepLinkRoute(Routes.supportPlans, Routes.supportPlans),
+  DeepLinkRoute('/support-plans', Routes.supportPlans),
   DeepLinkRoute(
     Routes.schoolMessages,
     Routes.schoolMessages,
@@ -26,6 +28,7 @@ const List<DeepLinkRoute> deepLinkRoutes = [
     arguments: contentLinkArguments,
   ),
   DeepLinkRoute(Routes.academicReports, Routes.academicReports),
+  DeepLinkRoute(Routes.mastery, Routes.mastery),
   DeepLinkRoute(Routes.academicMarks, Routes.academicMarks),
   DeepLinkRoute('/notifications', Routes.notifications),
   DeepLinkRoute('/notices', Routes.announcements),

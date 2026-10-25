@@ -9,3 +9,5 @@ export 'src/testing/report_fixtures.dart';
 export 'src/testing/content_fixtures.dart';
 
 export 'src/testing/message_fixtures.dart';
+
+export 'src/testing/mastery_fixtures.dart';

@@ -173,6 +173,8 @@ tags:
   description: Scoped seasonal groups, allocations, session registers and materials.
 - name: Pastoral
   description: Scoped school cover and restricted learner support.
+- name: Wellbeing
+  description: Anonymous incident reporting and independently assigned restricted casework.
 paths:
   /facilitator/sign-in:
     post:
@@ -7706,6 +7708,13 @@ paths:
         schema:
           type: integer
           minimum: 1
+      - name: session_id
+        in: query
+        required: false
+        description: Return the server-authorized dated session register, including retained captured corrections.
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Read an allocated staff roster and session attendance.
@@ -8941,6 +8950,3017 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CoverAssignmentInput'
+  /pastoral/support/access:
+    get:
+      operationId: getSupportAccess
+      tags:
+      - Pastoral
+      summary: getSupportAccess
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/configuration/{audience}:
+    get:
+      operationId: getSupportConfiguration
+      tags:
+      - Pastoral
+      summary: getSupportConfiguration
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: audience
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - principal
+          - professional
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/cases:
+    get:
+      operationId: listSupportCases
+      tags:
+      - Pastoral
+      summary: listSupportCases
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportCasesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/plans/{plan}:
+    get:
+      operationId: getSupportPlan
+      tags:
+      - Pastoral
+      summary: getSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPlanResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateSupportPlan
+      tags:
+      - Pastoral
+      summary: updateSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportSaveInput'
+  /pastoral/support/plans/{plan}/reviews:
+    get:
+      operationId: listSupportReviews
+      tags:
+      - Pastoral
+      summary: listSupportReviews
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportReviewsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: reviewSupportPlan
+      tags:
+      - Pastoral
+      summary: reviewSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReviewInput'
+  /pastoral/support/plans/{plan}/versions:
+    get:
+      operationId: listSupportVersions
+      tags:
+      - Pastoral
+      summary: listSupportVersions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportVersionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/plans/{plan}/disclosures:
+    get:
+      operationId: listSupportDisclosures
+      tags:
+      - Pastoral
+      summary: listSupportDisclosures
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportDisclosuresResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: discloseSupportInstructions
+      tags:
+      - Pastoral
+      summary: discloseSupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportDiscloseInput'
+  /pastoral/support/assignments:
+    get:
+      operationId: listSupportAssignments
+      tags:
+      - Pastoral
+      summary: listSupportAssignments
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportAssignmentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createSupportAssignment
+      tags:
+      - Pastoral
+      summary: createSupportAssignment
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportAssignInput'
+  /pastoral/support/teacher:
+    get:
+      operationId: listMySupportInstructions
+      tags:
+      - Pastoral
+      summary: listMySupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTeacherListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/teacher/{disclosure}:
+    get:
+      operationId: getMySupportInstructions
+      tags:
+      - Pastoral
+      summary: getMySupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: disclosure
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTeacherDisclosureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/plans:
+    post:
+      operationId: createSupportPlan
+      tags:
+      - Pastoral
+      summary: createSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportSaveInput'
+  /pastoral/support/plans/{plan}/close:
+    post:
+      operationId: closeSupportPlan
+      tags:
+      - Pastoral
+      summary: closeSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReasonInput'
+  /pastoral/support/assignments/{assignment}/revoke:
+    post:
+      operationId: revokeSupportAssignment
+      tags:
+      - Pastoral
+      summary: revokeSupportAssignment
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReasonInput'
+  /pastoral/support/disclosures/{disclosure}/revoke:
+    post:
+      operationId: revokeSupportInstructions
+      tags:
+      - Pastoral
+      summary: revokeSupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: disclosure
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReasonInput'
+  /growth/progress/configuration:
+    get:
+      operationId: getProgressConfiguration
+      tags:
+      - Growth
+      summary: getProgressConfiguration
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/settings:
+    put:
+      operationId: saveProgressBandSettings
+      tags:
+      - Growth
+      summary: saveProgressBandSettings
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressBandSettingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProgressBandSettingsWrite'
+  /growth/progress/caseload:
+    get:
+      operationId: getLearnerNoteCaseload
+      tags:
+      - Growth
+      summary: getLearnerNoteCaseload
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressLearnerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/assignment-learners:
+    get:
+      operationId: getLearnerNoteAssignmentLearners
+      tags:
+      - Growth
+      summary: getLearnerNoteAssignmentLearners
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressLearnerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/groups/{group}/learners:
+    get:
+      operationId: getProgressRoster
+      tags:
+      - Growth
+      summary: getProgressRoster
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressRosterResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/groups/{group}/learners/{learner}:
+    get:
+      operationId: getStaffProgressBand
+      tags:
+      - Growth
+      summary: getStaffProgressBand
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: term_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressStaffBandResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/learners/{learner}/periods:
+    get:
+      operationId: getProgressPeriods
+      tags:
+      - Growth
+      summary: getProgressPeriods
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcademicReleasePeriodsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/learners/{learner}/bands:
+    get:
+      operationId: getFamilyProgressBands
+      tags:
+      - Growth
+      summary: getFamilyProgressBands
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: term_id
+        in: query
+        required: false
+        schema:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressFamilyBandsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/learners/{learner}/notes:
+    get:
+      operationId: getLearnerNotes
+      tags:
+      - Growth
+      summary: getLearnerNotes
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: subject_id
+        in: query
+        required: false
+        schema:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+      - name: visibility
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - tutor
+          - staff
+          - counselling
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createLearnerNote
+      tags:
+      - Growth
+      summary: createLearnerNote
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnerNoteCreate'
+  /growth/progress/notes/{note}:
+    get:
+      operationId: getLearnerNote
+      tags:
+      - Growth
+      summary: getLearnerNote
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: note
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      operationId: updateLearnerNote
+      tags:
+      - Growth
+      summary: updateLearnerNote
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: note
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnerNoteUpdate'
+  /growth/progress/notes/{note}/history:
+    get:
+      operationId: getLearnerNoteHistory
+      tags:
+      - Growth
+      summary: getLearnerNoteHistory
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: note
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/learners/{learner}/assignments:
+    get:
+      operationId: getLearnerNoteAssignments
+      tags:
+      - Growth
+      summary: getLearnerNoteAssignments
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteAssignmentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /growth/progress/learners/{learner}/assignments/{staff}:
+    put:
+      operationId: saveLearnerNoteAssignment
+      tags:
+      - Growth
+      summary: saveLearnerNoteAssignment
+      description: Fresh school, role, assignment and owner checks precede private body loading and receipt
+        replay. Counselling requires a dedicated restricted role and current note-only caseload; principals
+        administer assignment metadata without body access. Platform identities and impersonation cannot
+        read counselling. Bodies and receipts are encrypted; visibility and ownership are immutable. Family
+        progress uses approved own-child frozen released snapshots only. Writes require a stable operation_id
+        UUID; historical note writes return 423. Every response forbids caching.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: staff
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnerNoteAssignmentWrite'
+  /growth/progress/learners/{learner}/assignments/{staff}/revoke:
+    post:
+      operationId: revokeLearnerNoteAssignment
+      tags:
+      - Growth
+      summary: revokeLearnerNoteAssignment
+      description: End this note-only caseload grant immediately after fresh principal, school and expected-account
+        checks. Original dates, private notes and audit history remain retained. Stable operation UUID
+        retries replay the encrypted receipt after renewed authorization. No counselling body is loaded.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: staff
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnerNoteAssignmentRevoke'
+  /wellbeing/public/{schoolSlug}/configuration:
+    get:
+      operationId: getPublicIncidentConfiguration
+      tags:
+      - Wellbeing
+      summary: getPublicIncidentConfiguration
+      description: 'Stateless anonymous reporting: no authenticated cookie or reporter identity is consulted.
+        A private 256-bit code is sent only in POST bodies; store no raw code or reporter/device/network
+        identifier with a report. Identified reports require their named freshly authorized reporter through
+        the authenticated endpoint. Keyed short-lived abuse counters are separate from records. Emergency
+        guidance is always returned; this is not an emergency response service.'
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPublicIncidentConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: schoolSlug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 191
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      security: []
+  /wellbeing/public/{schoolSlug}/reports:
+    post:
+      operationId: submitAnonymousIncident
+      tags:
+      - Wellbeing
+      summary: submitAnonymousIncident
+      description: 'Stateless anonymous reporting: no authenticated cookie or reporter identity is consulted.
+        A private 256-bit code is sent only in POST bodies; store no raw code or reporter/device/network
+        identifier with a report. Identified reports require their named freshly authorized reporter through
+        the authenticated endpoint. Keyed short-lived abuse counters are separate from records. Emergency
+        guidance is always returned; this is not an emergency response service.'
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitAnonymousIncidentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: schoolSlug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 191
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentSubmissionInput'
+  /wellbeing/public/{schoolSlug}/follow-up:
+    post:
+      operationId: getAnonymousIncidentFollowUp
+      tags:
+      - Wellbeing
+      summary: getAnonymousIncidentFollowUp
+      description: 'Stateless anonymous reporting: no authenticated cookie or reporter identity is consulted.
+        A private 256-bit code is sent only in POST bodies; store no raw code or reporter/device/network
+        identifier with a report. Identified reports require their named freshly authorized reporter through
+        the authenticated endpoint. Keyed short-lived abuse counters are separate from records. Emergency
+        guidance is always returned; this is not an emergency response service.'
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAnonymousIncidentFollowUpResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: schoolSlug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 191
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentFollowUpInput'
+  /wellbeing/public/{schoolSlug}/follow-up/replies:
+    post:
+      operationId: replyAnonymousIncident
+      tags:
+      - Wellbeing
+      summary: replyAnonymousIncident
+      description: 'Stateless anonymous reporting: no authenticated cookie or reporter identity is consulted.
+        A private 256-bit code is sent only in POST bodies; store no raw code or reporter/device/network
+        identifier with a report. Identified reports require their named freshly authorized reporter through
+        the authenticated endpoint. Keyed short-lived abuse counters are separate from records. Emergency
+        guidance is always returned; this is not an emergency response service.'
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyAnonymousIncidentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - name: schoolSlug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 191
+          pattern: ^[a-z0-9][a-z0-9-]*$
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentReplyInput'
+  /wellbeing/access:
+    get:
+      operationId: getWellbeingAccess
+      tags:
+      - Wellbeing
+      summary: getWellbeingAccess
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWellbeingAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /wellbeing/configuration:
+    get:
+      operationId: getWellbeingConfiguration
+      tags:
+      - Wellbeing
+      summary: getWellbeingConfiguration
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWellbeingConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+  /wellbeing/management/cases:
+    get:
+      operationId: listWellbeingManagedCases
+      tags:
+      - Wellbeing
+      summary: listWellbeingManagedCases
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingManagedCasesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+    post:
+      operationId: openWellbeingCase
+      tags:
+      - Wellbeing
+      summary: openWellbeingCase
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenWellbeingCaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingCaseOpenInput'
+  /wellbeing/categories/{category}/team:
+    get:
+      operationId: listWellbeingTeamAssignments
+      tags:
+      - Wellbeing
+      summary: listWellbeingTeamAssignments
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingTeamAssignmentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+    post:
+      operationId: createWellbeingTeamAssignment
+      tags:
+      - Wellbeing
+      summary: createWellbeingTeamAssignment
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWellbeingTeamAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingAssignmentInput'
+  /wellbeing/management/cases/{case}/assignments:
+    get:
+      operationId: listWellbeingCaseAssignments
+      tags:
+      - Wellbeing
+      summary: listWellbeingCaseAssignments
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingCaseAssignmentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+    post:
+      operationId: createWellbeingCaseAssignment
+      tags:
+      - Wellbeing
+      summary: createWellbeingCaseAssignment
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWellbeingCaseAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingAssignmentInput'
+  /wellbeing/reports:
+    get:
+      operationId: listWellbeingReports
+      tags:
+      - Wellbeing
+      summary: listWellbeingReports
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingReportsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+  /wellbeing/reports/{report}:
+    get:
+      operationId: getWellbeingReport
+      tags:
+      - Wellbeing
+      summary: getWellbeingReport
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWellbeingReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: report
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+  /wellbeing/cases:
+    get:
+      operationId: listWellbeingCases
+      tags:
+      - Wellbeing
+      summary: listWellbeingCases
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingCasesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+  /wellbeing/cases/{case}:
+    get:
+      operationId: getWellbeingCase
+      tags:
+      - Wellbeing
+      summary: getWellbeingCase
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWellbeingCaseResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+  /wellbeing/cases/{case}/appointments:
+    get:
+      operationId: listWellbeingAppointments
+      tags:
+      - Wellbeing
+      summary: listWellbeingAppointments
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingAppointmentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+    post:
+      operationId: createWellbeingAppointment
+      tags:
+      - Wellbeing
+      summary: createWellbeingAppointment
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWellbeingAppointmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingAppointmentInput'
+  /wellbeing/categories:
+    post:
+      operationId: createWellbeingCategory
+      tags:
+      - Wellbeing
+      summary: createWellbeingCategory
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWellbeingCategoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingCategoryInput'
+  /wellbeing/categories/{category}:
+    post:
+      operationId: saveWellbeingCategory
+      tags:
+      - Wellbeing
+      summary: saveWellbeingCategory
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveWellbeingCategoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingCategoryInput'
+  /wellbeing/categories/{category}/team/{assignment}:
+    post:
+      operationId: saveWellbeingTeamAssignment
+      tags:
+      - Wellbeing
+      summary: saveWellbeingTeamAssignment
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveWellbeingTeamAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingAssignmentInput'
+  /wellbeing/management/cases/{case}/assignments/{assignment}:
+    post:
+      operationId: saveWellbeingCaseAssignment
+      tags:
+      - Wellbeing
+      summary: saveWellbeingCaseAssignment
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveWellbeingCaseAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: assignment
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingAssignmentInput'
+  /wellbeing/own/reports:
+    post:
+      operationId: submitIdentifiedIncident
+      tags:
+      - Wellbeing
+      summary: submitIdentifiedIncident
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitIdentifiedIncidentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentSubmissionInput'
+  /wellbeing/own/follow-up:
+    post:
+      operationId: getIdentifiedIncidentFollowUp
+      tags:
+      - Wellbeing
+      summary: getIdentifiedIncidentFollowUp
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetIdentifiedIncidentFollowUpResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentFollowUpInput'
+  /wellbeing/own/follow-up/replies:
+    post:
+      operationId: replyIdentifiedIncident
+      tags:
+      - Wellbeing
+      summary: replyIdentifiedIncident
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyIdentifiedIncidentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentReplyInput'
+  /wellbeing/own/identify:
+    post:
+      operationId: identifyIncidentReporter
+      tags:
+      - Wellbeing
+      summary: identifyIncidentReporter
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentifyIncidentReporterResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentIdentifyInput'
+  /wellbeing/reports/{report}/replies:
+    post:
+      operationId: replyWellbeingReport
+      tags:
+      - Wellbeing
+      summary: replyWellbeingReport
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplyWellbeingReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: report
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingReportReplyInput'
+  /wellbeing/cases/{case}/entries:
+    post:
+      operationId: addWellbeingCaseEntry
+      tags:
+      - Wellbeing
+      summary: addWellbeingCaseEntry
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddWellbeingCaseEntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingCaseEntryInput'
+  /wellbeing/cases/{case}/incident-link:
+    post:
+      operationId: linkWellbeingCaseIncident
+      tags:
+      - Wellbeing
+      summary: linkWellbeingCaseIncident
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkWellbeingCaseIncidentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingCaseLinkInput'
+  /wellbeing/cases/{case}/status:
+    post:
+      operationId: setWellbeingCaseStatus
+      tags:
+      - Wellbeing
+      summary: setWellbeingCaseStatus
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetWellbeingCaseStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingCaseStatusInput'
+  /wellbeing/cases/{case}/appointments/{appointment}:
+    post:
+      operationId: saveWellbeingAppointment
+      tags:
+      - Wellbeing
+      summary: saveWellbeingAppointment
+      description: Private encrypted wellbeing data; fresh actor and dated category-team or case assignment
+        are checked before loading, validation and replay. Platform staff and impersonation have no professional
+        access. Configuration reveals only assignment metadata; clinical grants are independent from support
+        plans and learner notes. Responses forbid caching.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveWellbeingAppointmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: appointment
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WellbeingAppointmentInput'
 components:
   securitySchemes:
     bearerAuth:
@@ -9143,6 +12163,14 @@ components:
           type: boolean
         messages: *id002
         counselling: *id002
+        support_plans:
+          type: boolean
+          description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
+            record-specific authority is still required.
+        learner_notes:
+          type: boolean
+          description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
+            record-specific authority is still required.
     FacilitatorProfile:
       type: object
       additionalProperties: false
@@ -19744,6 +22772,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ActivityAttendance'
+        session_roster:
+          $ref: '#/components/schemas/ActivitySessionRoster'
     ActivityAttendanceReceipt:
       type: object
       additionalProperties: false
@@ -20375,3 +23405,3456 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/MasterySubjectList'
+    SupportNamedChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    SupportAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - audiences
+      - can_write
+      - today
+      properties:
+        audiences:
+          type: array
+          maxItems: 3
+          items:
+            type: string
+            pattern: ^(professional|principal|teacher)$
+        can_write:
+          type: boolean
+        today:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - audience
+      - page
+      - last_page
+      - learners
+      - staff
+      - staff_last_page
+      properties:
+        audience:
+          type: string
+          enum:
+          - principal
+          - professional
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportNamedChoice'
+        staff:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportNamedChoice'
+        staff_last_page:
+          type: integer
+          minimum: 1
+    SupportReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - author_id
+      - author_name
+      - reviewed_on
+      - next_review_on
+      - kind
+      - outcome
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        author_name:
+          type: string
+        reviewed_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        next_review_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        kind:
+          type: string
+          enum:
+          - review
+          - closure
+        outcome:
+          type: string
+    SupportDisclosureSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - user_id
+      - teacher_name
+      - expires_on
+      - accommodations
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        teacher_name:
+          type: string
+        expires_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        accommodations:
+          type: string
+    SupportDisclosureHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - user_id
+      - teacher_name
+      - expires_on
+      - accommodations
+      - active
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        teacher_name:
+          type: string
+        expires_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        accommodations:
+          type: string
+        active:
+          type: boolean
+    SupportTeacherDisclosure:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - revision
+      - expires_on
+      - accommodations
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        expires_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        accommodations:
+          type: string
+    SupportCaseSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - revision
+      - state
+      - review_due_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - active
+          - closed
+        review_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportPlan:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - revision
+      - state
+      - review_due_on
+      - started_on
+      - sias_stage
+      - needs
+      - accommodations
+      - reviews_has_more
+      - disclosures_has_more
+      - reviews
+      - disclosures
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - active
+          - closed
+        review_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        started_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        sias_stage:
+          type: string
+        needs:
+          type: string
+        accommodations:
+          type: string
+        reviews_has_more:
+          type: boolean
+        disclosures_has_more:
+          type: boolean
+        reviews:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportReview'
+        disclosures:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportDisclosureSummary'
+    SupportPlanContents:
+      type: object
+      additionalProperties: false
+      required:
+      - sias_stage
+      - needs
+      - accommodations
+      properties:
+        sias_stage:
+          type: string
+        needs:
+          type: string
+        accommodations:
+          type: string
+    SupportPlanSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+      - started_on
+      - review_due_on
+      - state
+      - contents
+      - accommodation_revision
+      properties:
+        started_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        review_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        state:
+          type: string
+          enum:
+          - active
+          - closed
+        contents:
+          $ref: '#/components/schemas/SupportPlanContents'
+        accommodation_revision:
+          type: integer
+          minimum: 1
+    SupportVersion:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - author_id
+      - recorded_at
+      - snapshot
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        recorded_at:
+          type: string
+          format: date-time
+        snapshot:
+          $ref: '#/components/schemas/SupportPlanSnapshot'
+    SupportAssignment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - user_id
+      - professional_name
+      - starts_on
+      - ends_on
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        user_id:
+          type: integer
+          minimum: 1
+        professional_name:
+          type: string
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    SupportWriteReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - kind
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - assignment
+          - plan
+          - review
+          - disclosure
+    SupportCases:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportCaseSummary'
+    SupportAssignments:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportAssignment'
+    SupportTeacherList:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportTeacherDisclosure'
+    SupportReviews:
+      type: object
+      additionalProperties: false
+      required:
+      - plan_id
+      - page
+      - last_page
+      - items
+      properties:
+        plan_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportReview'
+    SupportDisclosures:
+      type: object
+      additionalProperties: false
+      required:
+      - plan_id
+      - page
+      - last_page
+      - items
+      properties:
+        plan_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportDisclosureHistory'
+    SupportVersions:
+      type: object
+      additionalProperties: false
+      required:
+      - plan_id
+      - page
+      - last_page
+      - items
+      properties:
+        plan_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportVersion'
+    SupportAssignInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - reason
+      - learner_id
+      - user_id
+      - starts_on
+      - ends_on
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        learner_id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportSaveInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - started_on
+      - sias_stage
+      - needs
+      - accommodations
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        started_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        sias_stage:
+          type: string
+          minLength: 1
+          maxLength: 100
+        needs:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        accommodations:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        review_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reviewed_on
+      - outcome
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        reviewed_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        next_review_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        outcome:
+          type: string
+          minLength: 1
+          maxLength: 10000
+    SupportReasonInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+    SupportDiscloseInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      - user_id
+      - expires_on
+      - accommodations
+      - confirmation
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        user_id:
+          type: integer
+          minimum: 1
+        expires_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        accommodations:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        confirmation:
+          type: boolean
+          description: 'Must be true: explicit approval of these instructions for the named teacher.'
+    SupportAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportAccess'
+    SupportConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportConfiguration'
+    SupportCasesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportCases'
+    SupportPlanResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportPlan'
+    SupportReviewsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportReviews'
+    SupportVersionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportVersions'
+    SupportDisclosuresResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportDisclosures'
+    SupportAssignmentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportAssignments'
+    SupportTeacherListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportTeacherList'
+    SupportTeacherDisclosureResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportTeacherDisclosure'
+    SupportWriteReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportWriteReceipt'
+    ProgressBandSettings:
+      type: object
+      additionalProperties: false
+      required:
+      - high_bp
+      - secure_bp
+      - minimum_coverage_bp
+      - revision
+      properties:
+        high_bp:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        secure_bp:
+          type: integer
+          minimum: 0
+          maximum: 9999
+        minimum_coverage_bp:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        revision:
+          type: integer
+          minimum: 0
+    ProgressOption:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    ProgressGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_id
+      - subject_name
+      - grade_name
+      - session_year_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_id:
+          type: integer
+          minimum: 1
+        subject_name:
+          type: string
+        grade_name:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+    ProgressConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - can_manage_bands
+      - can_assign_counselling
+      - can_read_caseload
+      - settings
+      - restricted_staff
+      - years
+      - terms
+      - groups
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        can_manage_bands:
+          type: boolean
+        can_assign_counselling:
+          type: boolean
+        can_read_caseload:
+          type: boolean
+        settings:
+          $ref: '#/components/schemas/ProgressBandSettings'
+        restricted_staff:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressOption'
+          maxItems: 500
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressOption'
+          maxItems: 100
+        terms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressOption'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressGroup'
+          maxItems: 500
+    ProgressLearnerOption:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - display_name
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        display_name:
+          type: string
+    ProgressRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - current_page
+      - last_page
+      - total
+      - learners
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressLearnerOption'
+          maxItems: 100
+    ProgressLearnerList:
+      type: object
+      additionalProperties: false
+      required:
+      - current_page
+      - last_page
+      - total
+      - learners
+      properties:
+        current_page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressLearnerOption'
+          maxItems: 100
+    ProgressStaffBand:
+      type: object
+      additionalProperties: false
+      required:
+      - audience
+      - learner_id
+      - subject_id
+      - session_year_id
+      - term_id
+      - snapshot_id
+      - provisional
+      - band
+      - percentage_bp
+      - coverage_bp
+      - alerts_eligible
+      - settings_revision
+      properties:
+        audience:
+          type: string
+          enum:
+          - staff
+        learner_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type: integer
+          minimum: 1
+        snapshot_id:
+          type: integer
+          minimum: 1
+        provisional:
+          type: boolean
+        band:
+          type: string
+          enum:
+          - high
+          - secure
+          - support
+          - insufficient_evidence
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        coverage_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        alerts_eligible:
+          type: boolean
+        settings_revision:
+          type: integer
+          minimum: 0
+    ProgressReleasedBand:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_name
+      - grade_name
+      - release_id
+      - subject_id
+      - grade_level_id
+      - session_year_id
+      - term_id
+      - mode
+      - provisional
+      - rating_level
+      - released_at
+      - released_percentage_bp
+      - band
+      - percentage_bp
+      - coverage_bp
+      - alerts_eligible
+      - settings_revision
+      properties:
+        subject_name:
+          type: string
+        grade_name:
+          type: string
+        release_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        mode:
+          type: string
+          enum:
+          - running
+          - official
+        provisional:
+          type: boolean
+        rating_level:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        released_at:
+          type: string
+          format: date-time
+        released_percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        band:
+          type: string
+          enum:
+          - high
+          - secure
+          - support
+          - insufficient_evidence
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        coverage_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        alerts_eligible:
+          type: boolean
+        settings_revision:
+          type: integer
+          minimum: 0
+    ProgressFamilyBands:
+      type: object
+      additionalProperties: false
+      required:
+      - audience
+      - learner_id
+      - results
+      properties:
+        audience:
+          type: string
+          enum:
+          - family
+        learner_id:
+          type: integer
+          minimum: 1
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProgressReleasedBand'
+    LearnerNoteMetadata:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - subject_id
+      - session_year_id
+      - author_id
+      - author_name
+      - visibility
+      - revision
+      - archived
+      - updated_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        author_name:
+          type: string
+        visibility:
+          type: string
+          enum:
+          - tutor
+          - staff
+          - counselling
+        revision:
+          type: integer
+          minimum: 1
+        archived:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+    LearnerNoteDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - subject_id
+      - session_year_id
+      - author_id
+      - author_name
+      - visibility
+      - revision
+      - archived
+      - updated_at
+      - body
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        author_name:
+          type: string
+        visibility:
+          type: string
+          enum:
+          - tutor
+          - staff
+          - counselling
+        revision:
+          type: integer
+          minimum: 1
+        archived:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+        body:
+          type: string
+          maxLength: 20000
+    LearnerNoteList:
+      type: object
+      additionalProperties: false
+      required:
+      - notes
+      - next_after
+      properties:
+        notes:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerNoteMetadata'
+          maxItems: 100
+        next_after:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    LearnerNoteRevision:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - author_id
+      - author_name
+      - body
+      - archived
+      - created_at
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        author_name:
+          type: string
+        body:
+          type: string
+          maxLength: 20000
+        archived:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    LearnerNoteHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - note_id
+      - revisions
+      properties:
+        note_id:
+          type: integer
+          minimum: 1
+        revisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerNoteRevision'
+          maxItems: 100
+    LearnerNoteAssignment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - staff_user_id
+      - staff_name
+      - starts_on
+      - ends_on
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        staff_user_id:
+          type: integer
+          minimum: 1
+        staff_name:
+          type: string
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        revision:
+          type: integer
+          minimum: 1
+        revoked:
+          type: boolean
+          description: Optional for older servers; true means access ended immediately, while original grant dates remain retained.
+    LearnerNoteAssignments:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - assignments
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnerNoteAssignment'
+          maxItems: 100
+    LearnerNoteCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - visibility
+      - body
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          minimum: 1
+        subject_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        visibility:
+          type: string
+          enum:
+          - tutor
+          - staff
+          - counselling
+        body:
+          type: string
+          maxLength: 20000
+    LearnerNoteUpdate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - body
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        body:
+          type: string
+          maxLength: 20000
+        archive:
+          type: boolean
+    LearnerNoteAssignmentWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - starts_on
+      - ends_on
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 0
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    ProgressBandSettingsWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - high_bp
+      - secure_bp
+      - minimum_coverage_bp
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 0
+        high_bp:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        secure_bp:
+          type: integer
+          minimum: 0
+          maximum: 9999
+        minimum_coverage_bp:
+          type: integer
+          minimum: 1
+          maximum: 10000
+    ProgressBandSettingsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/ProgressBandSettings'
+    ProgressConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/ProgressConfiguration'
+    ProgressRosterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/ProgressRoster'
+    ProgressLearnerListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/ProgressLearnerList'
+    ProgressStaffBandResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/ProgressStaffBand'
+    ProgressFamilyBandsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/ProgressFamilyBands'
+    LearnerNoteDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/LearnerNoteDetail'
+    LearnerNoteListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/LearnerNoteList'
+    LearnerNoteHistoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/LearnerNoteHistory'
+    LearnerNoteAssignmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/LearnerNoteAssignment'
+    LearnerNoteAssignmentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/LearnerNoteAssignments'
+    LearnerNoteAssignmentRevoke:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+    ActivitySessionRosterLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - learner_name
+      - status
+      - revision
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+        revision:
+          type: integer
+          minimum: 0
+    ActivitySessionRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - session_id
+      - group_id
+      - session_revision
+      - learners
+      properties:
+        session_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        session_revision:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivitySessionRosterLearner'
+    WellbeingNamedChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    WellbeingLearnerChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - admission_no
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        admission_no:
+          type: string
+    WellbeingCategory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - emergency_guidance
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        emergency_guidance:
+          type: string
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - can_configure
+      - professional
+      - can_triage
+      - can_casework
+      - can_write
+      - today
+      - school_slug
+      - emergency_guidance
+      properties:
+        can_configure:
+          type: boolean
+        professional:
+          type: boolean
+        can_triage:
+          type: boolean
+        can_casework:
+          type: boolean
+        can_write:
+          type: boolean
+        today:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        school_slug:
+          type: string
+        emergency_guidance:
+          type: string
+    WellbeingConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - professional_choices
+      - professionals_last_page
+      - learner_choices
+      - learners_last_page
+      - categories
+      - categories_last_page
+      - page
+      properties:
+        professional_choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingNamedChoice'
+        professionals_last_page:
+          type: integer
+          minimum: 1
+        learner_choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingLearnerChoice'
+        learners_last_page:
+          type: integer
+          minimum: 1
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingCategory'
+        categories_last_page:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+    IncidentPublicConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - emergency_guidance
+      - categories
+      properties:
+        emergency_guidance:
+          type: string
+        categories:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            - emergency_guidance
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              name:
+                type: string
+              emergency_guidance:
+                type: string
+    IncidentSubmissionReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - received
+      - submitted_at
+      - emergency_guidance
+      properties:
+        received:
+          type: boolean
+        submitted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        emergency_guidance:
+          type: string
+    IncidentReplyReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - posted
+      - operation_id
+      - created_at
+      properties:
+        posted:
+          type: boolean
+        operation_id:
+          type: string
+          format: uuid
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+    IncidentPublicThread:
+      type: object
+      additionalProperties: false
+      required:
+      - author
+      - body
+      - created_at
+      properties:
+        author:
+          type: string
+          enum:
+          - reporter
+          - school
+        body:
+          type: string
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+    IncidentPublicView:
+      type: object
+      additionalProperties: false
+      required:
+      - anonymous
+      - body
+      - urgency
+      - status
+      - revision
+      - submitted_at
+      - emergency_guidance
+      - threads
+      - has_older
+      - next_before
+      properties:
+        anonymous:
+          type: boolean
+        body:
+          type: string
+        urgency:
+          type: string
+          enum:
+          - routine
+          - urgent
+        status:
+          type: string
+          enum:
+          - open
+          - triaged
+          - resolved
+        revision:
+          type: integer
+          minimum: 1
+        submitted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        emergency_guidance:
+          type: string
+        threads:
+          type: array
+          items:
+            $ref: '#/components/schemas/IncidentPublicThread'
+        has_older:
+          type: boolean
+        next_before:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    WellbeingReportSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - category_id
+      - anonymous
+      - urgency
+      - status
+      - revision
+      - created_at
+      - category_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        category_id:
+          type: integer
+          minimum: 1
+        anonymous:
+          type: boolean
+        urgency:
+          type: string
+          enum:
+          - routine
+          - urgent
+        status:
+          type: string
+          enum:
+          - open
+          - triaged
+          - resolved
+        revision:
+          type: integer
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        category_name:
+          type: string
+    WellbeingReportThread:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - staff_user_id
+      - author_type
+      - internal
+      - body
+      - created_at
+      - author_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        staff_user_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        author_type:
+          type: string
+          enum:
+          - reporter
+          - staff
+        internal:
+          type: boolean
+        body:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        author_name:
+          type: string
+    WellbeingReport:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - category_id
+      - anonymous
+      - reporter_user_id
+      - learner_id
+      - body
+      - urgency
+      - status
+      - identified_at
+      - revision
+      - created_at
+      - threads
+      - category_name
+      - reporter_name
+      - learner_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        category_id:
+          type: integer
+          minimum: 1
+        anonymous:
+          type: boolean
+        reporter_user_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        learner_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        body:
+          type: string
+        urgency:
+          type: string
+          enum:
+          - routine
+          - urgent
+        status:
+          type: string
+          enum:
+          - open
+          - triaged
+          - resolved
+        identified_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        revision:
+          type: integer
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        threads:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingReportThread'
+        category_name:
+          type: string
+        reporter_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+        learner_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+    WellbeingReportPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingReportSummary'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    WellbeingReportReplyReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - status
+      - thread_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - open
+          - triaged
+          - resolved
+        thread_id:
+          type: integer
+          minimum: 1
+    WellbeingAssignment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - user_id
+      - name
+      - starts_on
+      - ends_on
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        starts_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        ends_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingAssignmentPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      - owner_id
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingAssignment'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        owner_id:
+          type: integer
+          minimum: 1
+    WellbeingCaseSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - status
+      - opened_at
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        status:
+          type: string
+          enum:
+          - open
+          - closed
+        opened_at:
+          type: string
+          format: date-time
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingCasePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingCaseSummary'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    WellbeingCaseEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - author_id
+      - supersedes_id
+      - kind
+      - body
+      - happened_at
+      - created_at
+      - author_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        author_id:
+          type: integer
+          minimum: 1
+        supersedes_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        kind:
+          type: string
+          enum:
+          - note
+          - escalation
+          - status
+        body:
+          type: string
+        happened_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        author_name:
+          type: string
+    WellbeingCase:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - incident_report_id
+      - status
+      - opened_at
+      - revision
+      - entries
+      - has_older
+      - next_before
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        incident_report_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        status:
+          type: string
+          enum:
+          - open
+          - closed
+        opened_at:
+          type: string
+          format: date-time
+        revision:
+          type: integer
+          minimum: 1
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingCaseEntry'
+        has_older:
+          type: boolean
+        next_before:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    WellbeingCaseOpenReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - status
+      - opened_at
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - open
+          - closed
+        opened_at:
+          type: string
+          format: date-time
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingCaseEntryReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - case_revision
+      - entry
+      properties:
+        case_revision:
+          type: integer
+          minimum: 1
+        entry:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - author_id
+          - supersedes_id
+          - kind
+          - body
+          - happened_at
+          - created_at
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            author_id:
+              type: integer
+              minimum: 1
+            supersedes_id:
+              anyOf:
+              - type: integer
+                minimum: 1
+              - type: 'null'
+            kind:
+              type: string
+              enum:
+              - note
+              - escalation
+              - status
+            body:
+              type: string
+            happened_at:
+              type: string
+              format: date-time
+            created_at:
+              type: string
+              format: date-time
+    WellbeingCaseLinkReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - incident_report_id
+      - status
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        incident_report_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - open
+          - closed
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingCaseStatusReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - status
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - open
+          - closed
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingAppointment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - support_case_id
+      - professional_user_id
+      - starts_at
+      - ends_at
+      - location
+      - notes
+      - status
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        support_case_id:
+          type: integer
+          minimum: 1
+        professional_user_id:
+          type: integer
+          minimum: 1
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        location:
+          type: string
+        notes:
+          type: string
+        status:
+          type: string
+          enum:
+          - scheduled
+          - completed
+          - cancelled
+        revision:
+          type: integer
+          minimum: 1
+    WellbeingTeamReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - category_id
+      - user_id
+      - active
+      - revision
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        category_id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        ends_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+    WellbeingCaseAssignmentReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - support_case_id
+      - user_id
+      - active
+      - revision
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        support_case_id:
+          type: integer
+          minimum: 1
+        user_id:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        ends_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+    WellbeingCategoryInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - name
+      - emergency_guidance
+      - active
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        name:
+          type: string
+          maxLength: 191
+        emergency_guidance:
+          type: string
+          maxLength: 2000
+        active:
+          type: boolean
+    WellbeingAssignmentInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - user_id
+      - starts_on
+      - ends_on
+      - active
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        user_id:
+          type: integer
+          minimum: 1
+        starts_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        ends_on:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+        active:
+          type: boolean
+        reason:
+          type: string
+          maxLength: 2000
+    WellbeingCaseOpenInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+    IncidentSubmissionInput:
+      type: object
+      additionalProperties: false
+      required:
+      - secret
+      - category_id
+      - body
+      - urgency
+      - anonymous
+      properties:
+        secret:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: ^[a-f0-9]{64}$
+          writeOnly: true
+        category_id:
+          type: integer
+          minimum: 1
+        body:
+          type: string
+          maxLength: 20000
+        urgency:
+          type: string
+          enum:
+          - routine
+          - urgent
+        anonymous:
+          type: boolean
+        acknowledged_guidance:
+          type: boolean
+        identify_consent:
+          type: boolean
+        learner_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    IncidentFollowUpInput:
+      type: object
+      additionalProperties: false
+      required:
+      - secret
+      properties:
+        secret:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: ^[a-f0-9]{64}$
+          writeOnly: true
+        before:
+          type: integer
+          minimum: 1
+    IncidentReplyInput:
+      type: object
+      additionalProperties: false
+      required:
+      - secret
+      - operation_id
+      - body
+      properties:
+        secret:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: ^[a-f0-9]{64}$
+          writeOnly: true
+        operation_id:
+          type: string
+          format: uuid
+        body:
+          type: string
+          maxLength: 20000
+    IncidentIdentifyInput:
+      type: object
+      additionalProperties: false
+      required:
+      - secret
+      - revision
+      - identify_consent
+      properties:
+        secret:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: ^[a-f0-9]{64}$
+          writeOnly: true
+        revision:
+          type: integer
+          minimum: 1
+        identify_consent:
+          type: boolean
+        learner_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    WellbeingReportReplyInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - body
+      - internal
+      - status
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        body:
+          type: string
+          maxLength: 20000
+        internal:
+          type: boolean
+        status:
+          type: string
+          enum:
+          - open
+          - triaged
+          - resolved
+    WellbeingCaseEntryInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - kind
+      - body
+      - happened_at
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - note
+          - escalation
+        body:
+          type: string
+          maxLength: 20000
+        happened_at:
+          type: string
+          format: date-time
+        supersedes_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    WellbeingCaseLinkInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - incident_report_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        incident_report_id:
+          type: integer
+          minimum: 1
+    WellbeingCaseStatusInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - status
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - open
+          - closed
+        reason:
+          type: string
+          maxLength: 2000
+    WellbeingAppointmentInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - professional_user_id
+      - starts_at
+      - ends_at
+      - location
+      - notes
+      - status
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        professional_user_id:
+          type: integer
+          minimum: 1
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        location:
+          type: string
+          maxLength: 500
+        notes:
+          anyOf:
+          - type: string
+            maxLength: 20000
+          - type: 'null'
+        status:
+          type: string
+          enum:
+          - scheduled
+          - completed
+          - cancelled
+    GetPublicIncidentConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentPublicConfiguration'
+        code:
+          type: integer
+    SubmitAnonymousIncidentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentSubmissionReceipt'
+        code:
+          type: integer
+    GetAnonymousIncidentFollowUpResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentPublicView'
+        code:
+          type: integer
+    ReplyAnonymousIncidentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentReplyReceipt'
+        code:
+          type: integer
+    GetWellbeingAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingAccess'
+        code:
+          type: integer
+    GetWellbeingConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingConfiguration'
+        code:
+          type: integer
+    ListWellbeingManagedCasesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCasePage'
+        code:
+          type: integer
+    ListWellbeingTeamAssignmentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingAssignmentPage'
+        code:
+          type: integer
+    ListWellbeingCaseAssignmentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingAssignmentPage'
+        code:
+          type: integer
+    ListWellbeingReportsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingReportPage'
+        code:
+          type: integer
+    GetWellbeingReportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingReport'
+        code:
+          type: integer
+    ListWellbeingCasesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCasePage'
+        code:
+          type: integer
+    GetWellbeingCaseResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCase'
+        code:
+          type: integer
+    ListWellbeingAppointmentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingAppointment'
+        code:
+          type: integer
+    CreateWellbeingCategoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCategory'
+        code:
+          type: integer
+    SaveWellbeingCategoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCategory'
+        code:
+          type: integer
+    CreateWellbeingTeamAssignmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingTeamReceipt'
+        code:
+          type: integer
+    SaveWellbeingTeamAssignmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingTeamReceipt'
+        code:
+          type: integer
+    OpenWellbeingCaseResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseOpenReceipt'
+        code:
+          type: integer
+    CreateWellbeingCaseAssignmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseAssignmentReceipt'
+        code:
+          type: integer
+    SaveWellbeingCaseAssignmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseAssignmentReceipt'
+        code:
+          type: integer
+    SubmitIdentifiedIncidentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentSubmissionReceipt'
+        code:
+          type: integer
+    GetIdentifiedIncidentFollowUpResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentPublicView'
+        code:
+          type: integer
+    ReplyIdentifiedIncidentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentReplyReceipt'
+        code:
+          type: integer
+    IdentifyIncidentReporterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/IncidentPublicView'
+        code:
+          type: integer
+    ReplyWellbeingReportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingReportReplyReceipt'
+        code:
+          type: integer
+    AddWellbeingCaseEntryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseEntryReceipt'
+        code:
+          type: integer
+    LinkWellbeingCaseIncidentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseLinkReceipt'
+        code:
+          type: integer
+    SetWellbeingCaseStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseStatusReceipt'
+        code:
+          type: integer
+    CreateWellbeingAppointmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingAppointment'
+        code:
+          type: integer
+    SaveWellbeingAppointmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingAppointment'
+        code:
+          type: integer

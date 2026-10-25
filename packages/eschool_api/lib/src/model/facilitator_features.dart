@@ -21,6 +21,10 @@ class FacilitatorFeatures {
     required this.messages,
 
     required this.counselling,
+
+    this.supportPlans,
+
+    this.learnerNotes,
   });
 
   @JsonKey(name: r'groups', required: true, includeIfNull: false)
@@ -32,17 +36,31 @@ class FacilitatorFeatures {
   @JsonKey(name: r'counselling', required: true, includeIfNull: false)
   final bool counselling;
 
+  /// Optional capability; absence preserves compatibility with older facilitator sessions. Fresh record-specific authority is still required.
+  @JsonKey(name: r'support_plans', required: false, includeIfNull: false)
+  final bool? supportPlans;
+
+  /// Optional capability; absence preserves compatibility with older facilitator sessions. Fresh record-specific authority is still required.
+  @JsonKey(name: r'learner_notes', required: false, includeIfNull: false)
+  final bool? learnerNotes;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
           other.groups == groups &&
           other.messages == messages &&
-          other.counselling == counselling;
+          other.counselling == counselling &&
+          other.supportPlans == supportPlans &&
+          other.learnerNotes == learnerNotes;
 
   @override
   int get hashCode =>
-      groups.hashCode + messages.hashCode + counselling.hashCode;
+      groups.hashCode +
+      messages.hashCode +
+      counselling.hashCode +
+      supportPlans.hashCode +
+      learnerNotes.hashCode;
 
   factory FacilitatorFeatures.fromJson(Map<String, dynamic> json) =>
       _$FacilitatorFeaturesFromJson(json);

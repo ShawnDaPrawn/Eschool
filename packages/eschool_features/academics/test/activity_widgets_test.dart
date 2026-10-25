@@ -100,6 +100,81 @@ void main() {
     ]);
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'session roster omits withdrawn learner and keeps valid classmates',
+    (tester) async {
+      final repo = FakeActivityRepository()
+        ..rosterData = {
+          ...activityRosterFixture(),
+          'session_roster': {
+            'session_id': 9,
+            'group_id': 7,
+            'session_revision': 1,
+            'learners': [
+              {
+                'learner_id': 17,
+                'learner_name': 'Asha Learner',
+                'status': null,
+                'revision': 0,
+              },
+            ],
+          },
+        };
+      await frame(tester, repo, 390);
+      await tap(tester, find.text('Hockey'));
+      await tap(tester, find.text('Open attendance'));
+      expect(find.text('Ben Learner'), findsNothing);
+      expect(find.byKey(const ValueKey('attendance-17')), findsOneWidget);
+      await tap(tester, find.byKey(const ValueKey('attendance-17')));
+      await tap(tester, find.text('present').last);
+      await tester.enterText(
+        field('Attendance reason'),
+        'Observed eligible classmates',
+      );
+      await tap(tester, find.text('Save activity'));
+      expect(repo.writes.single['entries'], [
+        {'learner_id': 17, 'status': 'present', 'revision': 0},
+      ]);
+    },
+  );
+
+  testWidgets(
+    'retained captured learner remains available without a membership row',
+    (tester) async {
+      final repo = FakeActivityRepository()
+        ..rosterData = {
+          ...activityRosterFixture(),
+          'session_roster': {
+            'session_id': 9,
+            'group_id': 7,
+            'session_revision': 2,
+            'learners': [
+              {
+                'learner_id': 19,
+                'learner_name': 'Former Learner',
+                'status': 'late',
+                'revision': 3,
+              },
+            ],
+          },
+        };
+      await frame(tester, repo, 390);
+      await tap(tester, find.text('Hockey'));
+      await tap(tester, find.text('Open attendance'));
+      expect(find.byKey(const ValueKey('attendance-19')), findsOneWidget);
+      expect(find.text('Asha Learner'), findsNothing);
+      await tester.enterText(
+        field('Attendance reason'),
+        'Correction of retained record',
+      );
+      await tap(tester, find.text('Save activity'));
+      expect(repo.writes.single['entries'], [
+        {'learner_id': 19, 'status': 'late', 'revision': 3},
+      ]);
+      expect(repo.writes.single['revision'], 2);
+    },
+  );
+
   testWidgets('uncertain material save retries immutable UUID and payload', (
     tester,
   ) async {

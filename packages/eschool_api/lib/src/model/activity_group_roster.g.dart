@@ -29,9 +29,15 @@ ActivityGroupRoster _$ActivityGroupRosterFromJson(
           .map((e) => ActivityAttendance.fromJson(e as Map<String, dynamic>))
           .toList(),
     ),
+    sessionRoster: $checkedConvert(
+      'session_roster',
+      (v) => v == null
+          ? null
+          : ActivitySessionRoster.fromJson(v as Map<String, dynamic>),
+    ),
   );
   return val;
-});
+}, fieldKeyMap: const {'sessionRoster': 'session_roster'});
 
 Map<String, dynamic> _$ActivityGroupRosterToJson(
   ActivityGroupRoster instance,
@@ -39,4 +45,5 @@ Map<String, dynamic> _$ActivityGroupRosterToJson(
   'memberships': instance.memberships.map((e) => e.toJson()).toList(),
   'staff': instance.staff.map((e) => e.toJson()).toList(),
   'attendance': instance.attendance.map((e) => e.toJson()).toList(),
+  'session_roster': ?instance.sessionRoster?.toJson(),
 };

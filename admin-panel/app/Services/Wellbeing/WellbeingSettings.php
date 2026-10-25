@@ -27,7 +27,7 @@ class WellbeingSettings
     public function saveCategory(User $actor, ?int $id, array $input): array
     {
         $this->access->configure($actor, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'name' => ['required', 'string', 'max:191'], 'emergency_guidance' => ['required', 'string', 'max:2000'], 'active' => ['required', 'boolean']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('category-save'))->validate();
         $authority = function () use ($actor, $id) {
             $this->access->configure($actor, true);
             if ($id !== null) {
@@ -58,7 +58,7 @@ class WellbeingSettings
     private function assignment(User $actor, string $kind, int $ownerId, ?int $id, array $input): array
     {
         $this->access->configure($actor, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'user_id' => ['required', 'integer', 'min:1'], 'starts_on' => ['required', 'date_format:Y-m-d'], 'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'], 'active' => ['required', 'boolean'], 'reason' => ['required', 'string', 'max:2000']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('assignment-save'))->validate();
         $authority = function () use ($actor, $kind, $ownerId, $id, $data) {
             $this->access->configure($actor, true);
             if ($data['active']) {
@@ -96,7 +96,7 @@ class WellbeingSettings
     public function openCase(User $actor, array $input): array
     {
         $this->access->configure($actor, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'learner_id' => ['required', 'integer', 'min:1']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('case-open'))->validate();
         $authority = function () use ($actor, $data) {
             $this->access->configure($actor, true);
             $this->access->learner($data['learner_id']);

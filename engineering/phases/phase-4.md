@@ -60,6 +60,8 @@ are separate evidence; no cancelled pilot run or unrun check is called passed.
 
 Wellbeing domain services are implemented in the current feature branch: separate
 team/case assignments, anonymous secret follow-up, explicit identification, encrypted
-case history and appointments. HTTP contracts, private media, panel and app views
-remain in active follow-up work; the disabled module is not yet a completed user
+case history and appointments. Thirty-one typed HTTP operations and their
+generated SDK now implement actual scoped reporting, triage, casework and metadata
+configuration. Public HTML, private media, panel and app views remain in active
+follow-up work; the disabled module is not yet a completed user
 workflow. Separate support-plan/learner-note permissions never grant these cases.

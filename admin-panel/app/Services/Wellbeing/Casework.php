@@ -13,7 +13,6 @@ use App\Models\Wellbeing\IncidentReport;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class Casework
 {
@@ -47,7 +46,7 @@ class Casework
     public function entry(User $actor, int $id, array $input): array
     {
         $this->access->case($actor, $id, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1'], 'kind' => ['required', Rule::in(['note', 'escalation'])], 'body' => ['required', 'string', 'max:20000'], 'happened_at' => ['required', 'date', 'before_or_equal:now'], 'supersedes_id' => ['nullable', 'integer', 'min:1']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('case-entry'))->validate();
 
         return $this->operations->once($actor, 'case-entry:'.$id, $data, fn () => $this->access->case($actor, $id, true), function () use ($actor, $id, $data) {
             $case = $this->access->case($actor, $id, true);
@@ -67,7 +66,7 @@ class Casework
     public function linkIncident(User $actor, int $id, array $input): array
     {
         $this->access->case($actor, $id, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1'], 'incident_report_id' => ['required', 'integer', 'min:1']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('case-link'))->validate();
         $authority = function () use ($actor, $id, $data) {
             $case = $this->access->case($actor, $id, true);
             $report = $this->access->report($actor, $data['incident_report_id'], true);
@@ -89,7 +88,7 @@ class Casework
     public function status(User $actor, int $id, array $input): array
     {
         $this->access->case($actor, $id, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1'], 'status' => ['required', Rule::in(['open', 'closed'])], 'reason' => ['required', 'string', 'max:2000']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('case-status'))->validate();
 
         return $this->operations->once($actor, 'case-status:'.$id, $data, fn () => $this->access->case($actor, $id, true), function () use ($actor, $id, $data) {
             $case = $this->access->case($actor, $id, true);
@@ -105,7 +104,8 @@ class Casework
     public function appointment(User $actor, int $caseId, ?int $id, array $input): array
     {
         $this->access->case($actor, $caseId, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'], 'professional_user_id' => ['required', 'integer', 'min:1'], 'starts_at' => ['required', 'date'], 'ends_at' => ['required', 'date', 'after:starts_at'], 'location' => ['required', 'string', 'max:500'], 'notes' => ['present', 'string', 'max:20000'], 'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])]])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('appointment-save'))->validate();
+        $data['notes'] = $data['notes'] ?? '';
         $start = CarbonImmutable::parse($data['starts_at'])->utc();
         $end = CarbonImmutable::parse($data['ends_at'])->utc();
         abort_if($end->diffInMinutes($start, true) > 480, 422, 'Keep an appointment within eight hours.');

@@ -33,7 +33,7 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
   final _fields = <String, TextEditingController>{};
   final _statuses = <int, String>{};
   ActivityGroupRoster? _roster;
-  List<ActivityRosterMember> _members = [];
+  List<ActivitySessionRosterLearner> _members = [];
   Map<String, dynamic>? _pending, _current;
   ActivityGroupRoster? _currentRoster;
   String _operation = const Uuid().v4(), _status = 'scheduled';
@@ -80,39 +80,32 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
     super.dispose();
   }
 
-  List<ActivityRosterMember> _eligible(ActivityGroupRoster roster) {
-    final date = widget.record!['on_date'] as String;
-    final retained = roster.attendance
-        .where((x) => x.activitySessionId == widget.record!['id'])
-        .map((x) => x.learnerId)
-        .toSet();
-    final seen = <int>{};
-    return roster.memberships
-        .where(
-          (m) =>
-              (m.active &&
-                      m.startsOn.compareTo(date) <= 0 &&
-                      m.endsOn.compareTo(date) >= 0 ||
-                  retained.contains(m.learnerId)) &&
-              seen.add(m.learnerId),
-        )
-        .toList();
+  List<ActivitySessionRosterLearner> _eligible(ActivityGroupRoster roster) {
+    final selected = roster.sessionRoster;
+    if (selected == null ||
+        selected.sessionId != widget.record!['id'] ||
+        selected.groupId != group) {
+      throw ApiException(
+        'Connect to the updated school service to open this register.',
+        isApiMessage: true,
+      );
+    }
+    return selected.learners;
   }
 
   Future<void> _loadRoster() async {
     setState(() => _busy = true);
     try {
-      final result = await widget.repository.roster(group);
+      final result = await widget.repository.roster(
+        group,
+        sessionId: widget.record!['id'] as int,
+      );
       if (!mounted) return;
-      final saved = {
-        for (final a in result.attendance.where(
-          (a) => a.activitySessionId == widget.record!['id'],
-        ))
-          a.learnerId: a,
-      };
-      if (saved.values.any(
+      final members = _eligible(result);
+      if (members.any(
         (a) =>
-            !['present', 'absent', 'late', 'excused'].contains(a.status.value),
+            a.status != null &&
+            !['present', 'absent', 'late', 'excused'].contains(a.status),
       )) {
         setState(() {
           _busy = false;
@@ -123,9 +116,10 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
       }
       setState(() {
         _roster = result;
-        _members = _eligible(result);
+        _members = members;
+        _revision = result.sessionRoster!.sessionRevision;
         for (final m in _members) {
-          _statuses[m.learnerId] = saved[m.learnerId]?.status.value ?? '';
+          _statuses[m.learnerId] = m.status ?? '';
         }
         _busy = false;
       });
@@ -190,12 +184,6 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
       });
     }
     if (widget.mode == 'attendance') {
-      final saved = {
-        for (final a in _roster!.attendance.where(
-          (a) => a.activitySessionId == widget.record!['id'],
-        ))
-          a.learnerId: a,
-      };
       result.addAll({
         'reason': _fields['reason']!.text.trim(),
         'entries': [
@@ -204,7 +192,7 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
               {
                 'learner_id': m.learnerId,
                 'status': _statuses[m.learnerId],
-                'revision': saved[m.learnerId]?.revision ?? 0,
+                'revision': m.revision,
               },
         ],
       });
@@ -280,7 +268,10 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
         throw ApiException('activity_scope_changed', statusCode: 404);
       }
       final roster = widget.mode == 'attendance'
-          ? await widget.repository.roster(group)
+          ? await widget.repository.roster(
+              group,
+              sessionId: widget.record!['id'] as int,
+            )
           : null;
       if (!mounted) return;
       setState(() {
@@ -299,6 +290,7 @@ class _ActivityWriteScreenState extends State<ActivityWriteScreen> {
       if (_currentRoster != null) {
         _roster = _currentRoster;
         _members = _eligible(_currentRoster!);
+        _revision = _currentRoster!.sessionRoster!.sessionRevision;
         for (final m in _members) {
           _statuses.putIfAbsent(m.learnerId, () => '');
         }

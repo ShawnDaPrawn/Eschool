@@ -38,6 +38,7 @@ class WellbeingAccess
         $this->environment($write);
         abort_if(PlatformStaffIdentity::where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $fresh = app(ProfilePolicy::class)->actor($actor);
+        abort_if($fresh->password_change_required, 403, 'Complete your password change before opening private wellbeing records.');
         app(ApprovalService::class)->assertAccess($fresh);
 
         return $fresh;

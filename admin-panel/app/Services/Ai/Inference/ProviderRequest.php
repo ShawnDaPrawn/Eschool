@@ -16,5 +16,6 @@ final readonly class ProviderRequest
         public string|array $input,
         public int $maximumTokens,
         public int $maximumTotalTokens,
+        public ?InferenceDeadline $deadline = null,
     ) {}
 }

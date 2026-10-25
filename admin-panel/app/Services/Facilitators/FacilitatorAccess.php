@@ -7,15 +7,20 @@ namespace App\Services\Facilitators;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Policies\Growth\LearnerNotesPolicy;
 use App\Policies\People\ProfilePolicy;
 use App\Services\ParentPolicyService;
+use App\Services\Pastoral\SensitiveRecordsAccess;
+use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class FacilitatorAccess
 {
@@ -72,6 +77,19 @@ class FacilitatorAccess
         return ['user_id' => (int) $fresh->id, 'school_id' => (int) $school->id, 'name' => trim($fresh->first_name.' '.$fresh->last_name),
             'roles' => array_values(array_intersect(app(ProfilePolicy::class)->roles($fresh), self::ROLES)),
             'schools' => $choices->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name, 'slug' => $row->slug])->all(),
-            'features' => ['groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => false]];
+            'features' => ['groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => false,
+                'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh)]];
+    }
+
+    private function notesAvailable(User $actor): bool
+    {
+        try {
+            app(LearnerNotesPolicy::class)->enabled();
+            app(SensitiveRecordsAccess::class)->actor($actor);
+
+            return true;
+        } catch (HttpException|ModelNotFoundException $error) {
+            return false;
+        }
     }
 }

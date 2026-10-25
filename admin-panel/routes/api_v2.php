@@ -17,7 +17,9 @@ use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
+use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
+use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -28,6 +30,8 @@ use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
+use App\Http\Controllers\Api\V2\Wellbeing\PublicReportingController;
+use App\Http\Controllers\Api\V2\Wellbeing\WellbeingController;
 use App\Http\Middleware\AuthorizeClassGrade;
 use App\Http\Middleware\AuthorizeCover;
 use App\Http\Middleware\AuthorizeCurriculum;
@@ -36,12 +40,16 @@ use App\Http\Middleware\AuthorizeMastery;
 use App\Http\Middleware\AuthorizeRegister;
 use App\Http\Middleware\AuthorizeReport;
 use App\Http\Middleware\AuthorizeSubjectStandard;
+use App\Http\Middleware\AuthorizeSupport;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
+use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateMastery;
+use App\Http\Middleware\PrivateWellbeing;
 use Illuminate\Support\Facades\Route;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +71,30 @@ use Illuminate\Support\Facades\Route;
 | New endpoints follow the domain recipe: a thin controller in
 | Api/V2/<Domain>, a FormRequest, a service and a JSON Resource.
 */
+
+// Anonymous transport is deliberately stateless even when a portal cookie exists.
+Route::prefix('wellbeing/public/{schoolSlug}')->where(['schoolSlug' => '[a-z0-9][a-z0-9-]*'])->name('api.v2.wellbeing.public.')
+    ->withoutMiddleware([EnsureFrontendRequestsAreStateful::class, 'throttle:api'])
+    ->middleware([PrivateWellbeing::class, 'throttle:wellbeing-public'])->group(function () {
+        $controller = PublicReportingController::class;
+        Route::get('configuration', [$controller, 'action'])->name('categories');
+        Route::post('reports', [$controller, 'action'])->middleware('throttle:wellbeing-submit')->name('submit');
+        Route::post('follow-up', [$controller, 'action'])->name('read');
+        Route::post('follow-up/replies', [$controller, 'action'])->name('reply');
+    });
+
+Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbeing::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:wellbeing'])->group(function () {
+    $controller = WellbeingController::class;
+    $reads = ['access' => 'access', 'configuration' => 'configuration', 'management/cases' => 'managed-cases', 'categories/{category}/team' => 'team-assignments', 'management/cases/{case}/assignments' => 'case-assignments', 'reports' => 'reports', 'reports/{report}' => 'report', 'cases' => 'cases', 'cases/{case}' => 'case', 'cases/{case}/appointments' => 'appointments'];
+    foreach ($reads as $path => $action) {
+        Route::get($path, [$controller, 'read'])->whereNumber(['category', 'case', 'report'])->middleware(AuthorizeWellbeing::class.':'.$action)->name($action);
+    }
+    $writes = ['categories' => 'category-create', 'categories/{category}' => 'category-save', 'categories/{category}/team' => 'team-create', 'categories/{category}/team/{assignment}' => 'team-save', 'management/cases' => 'case-create', 'management/cases/{case}/assignments' => 'case-assignment-create', 'management/cases/{case}/assignments/{assignment}' => 'case-assignment-save',
+        'own/reports' => 'identified-submit', 'own/follow-up' => 'identified-read', 'own/follow-up/replies' => 'identified-reply', 'own/identify' => 'identify', 'reports/{report}/replies' => 'report-respond', 'cases/{case}/entries' => 'case-entry', 'cases/{case}/incident-link' => 'case-link', 'cases/{case}/status' => 'case-status', 'cases/{case}/appointments' => 'appointment-create', 'cases/{case}/appointments/{appointment}' => 'appointment-save'];
+    foreach ($writes as $path => $action) {
+        Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'assignment', 'report', 'appointment'])->middleware(AuthorizeWellbeing::class.':'.$action)->name($action);
+    }
+});
 
 Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     $c = SessionController::class;
@@ -354,4 +386,43 @@ Route::prefix('pastoral/cover')->middleware(['auth:sanctum', 'school.context', '
     Route::get('occurrences/{occurrence}', [$c, 'occurrence'])->whereNumber('occurrence')->middleware($a.':occurrence')->name('occurrence');
     Route::get('occurrences/{occurrence}/candidates', [$c, 'candidates'])->whereNumber('occurrence')->middleware($a.':candidates')->name('candidates');
     Route::put('occurrences/{occurrence}/assignment', [$c, 'assign'])->whereNumber('occurrence')->middleware($a.':assign')->name('assign');
+});
+
+Route::prefix('growth/progress')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:academics', PrivateMastery::class])->name('api.v2.progress.')->group(function () {
+    $c = ProgressNotesController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::put('settings', [$c, 'configure'])->name('configure');
+    Route::get('caseload', [$c, 'caseload'])->name('caseload');
+    Route::get('assignment-learners', [$c, 'assignmentLearners'])->name('assignment-learners');
+    Route::get('groups/{group}/learners', [$c, 'roster'])->whereNumber('group')->name('roster');
+    Route::get('groups/{group}/learners/{learner}', [$c, 'staff'])->whereNumber('group')->whereNumber('learner')->name('staff');
+    Route::get('learners/{learner}/periods', [$c, 'periods'])->whereNumber('learner')->name('periods');
+    Route::get('learners/{learner}/bands', [$c, 'family'])->whereNumber('learner')->name('family');
+    Route::get('learners/{learner}/notes', [$c, 'notes'])->whereNumber('learner')->name('notes');
+    Route::post('learners/{learner}/notes', [$c, 'create'])->whereNumber('learner')->name('create');
+    Route::get('notes/{note}', [$c, 'note'])->whereNumber('note')->name('note');
+    Route::put('notes/{note}', [$c, 'update'])->whereNumber('note')->name('update');
+    Route::get('notes/{note}/history', [$c, 'history'])->whereNumber('note')->name('history');
+    Route::get('learners/{learner}/assignments', [$c, 'assignments'])->whereNumber('learner')->name('assignments');
+    Route::put('learners/{learner}/assignments/{staff}', [$c, 'assign'])->whereNumber('learner')->whereNumber('staff')->name('assign');
+    Route::post('learners/{learner}/assignments/{staff}/revoke', [$c, 'revokeAssignment'])->whereNumber('learner')->whereNumber('staff')->name('revoke-assignment');
+});
+
+Route::prefix('pastoral/support')->middleware(['auth:sanctum', 'school.context', 'staff', 'module:support_plans'])->name('api.v2.support.')->group(function () {
+    $c = SupportController::class;
+    $a = AuthorizeSupport::class;
+    $routes = [
+        ['get', 'access', 'access', 'access'], ['get', 'configuration/{audience}', 'configuration', 'configuration'],
+        ['get', 'cases', 'cases', 'cases'], ['get', 'plans/{plan}', 'plan', 'plan'],
+        ['get', 'plans/{plan}/reviews', 'reviews', 'reviews'], ['get', 'plans/{plan}/versions', 'versions', 'versions'],
+        ['get', 'plans/{plan}/disclosures', 'disclosures', 'disclosures'],
+        ['get', 'assignments', 'assignments', 'assignments'], ['get', 'teacher', 'teacher', 'teacher'], ['get', 'teacher/{disclosure}', 'disclosure', 'disclosure'],
+        ['post', 'assignments', 'assign', 'assign'], ['post', 'plans', 'create', 'create'], ['put', 'plans/{plan}', 'save', 'save'],
+        ['post', 'plans/{plan}/reviews', 'review', 'review'], ['post', 'plans/{plan}/close', 'close', 'close'],
+        ['post', 'plans/{plan}/disclosures', 'disclose', 'disclose'], ['post', 'assignments/{assignment}/revoke', 'revokeAssignment', 'revoke-assignment'],
+        ['post', 'disclosures/{disclosure}/revoke', 'revokeDisclosure', 'revoke-disclosure'],
+    ];
+    foreach ($routes as [$verb, $path, $method, $name]) {
+        Route::$verb($path, [$c, $method])->where(['audience' => 'principal|professional', 'plan' => '[0-9]+', 'assignment' => '[0-9]+', 'disclosure' => '[0-9]+'])->middleware($a.':'.$name)->name($name);
+    }
 });

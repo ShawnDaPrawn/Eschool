@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Ai\Providers;
 
 use App\Services\Ai\Inference\AiUnavailable;
+use App\Services\Ai\Inference\InferenceNotDispatched;
 use App\Services\Ai\Inference\ProviderRequest;
 use Illuminate\Support\Str;
 
@@ -18,7 +19,7 @@ class ProviderProtocol
             || strlen($request->input) > 65536 || strlen($request->systemPrompt) > 32768 || ! mb_check_encoding($request->systemPrompt, 'UTF-8')
             || $request->maximumTokens < 1 || $request->maximumTokens > 32768 || $request->maximumTotalTokens > 131072
             || $request->maximumTotalTokens < strlen($request->input) + strlen($request->systemPrompt) + 256 + $request->maximumTokens) {
-            throw new AiUnavailable('provider_request_invalid');
+            throw new InferenceNotDispatched('provider_request_invalid');
         }
     }
 
@@ -27,7 +28,8 @@ class ProviderProtocol
         $input = $usage[$inputKey] ?? null;
         $output = $usage[$outputKey] ?? null;
         if (! is_int($input) || ! is_int($output) || $input < 0 || $output < 0 || $output > $request->maximumTokens
-            || $input + $output < 1 || $input + $output > $request->maximumTotalTokens) {
+            || $input + $output < 1 || $input + $output > $request->maximumTotalTokens
+            || (array_key_exists('total_tokens', $usage) && $usage['total_tokens'] !== $input + $output)) {
             throw new AiUnavailable('provider_usage_invalid');
         }
 

@@ -4,6 +4,7 @@
 // cannot be enabled merely by changing a database row.
 return [
     'wellbeing' => ['name' => 'Incident reporting and counsellor support', 'default' => false],
+    'support_plans' => ['name' => 'Support plans', 'default' => false, 'dependencies' => ['people', 'academics']],
     'relief_cover' => ['name' => 'Relief cover', 'default' => false, 'dependencies' => ['academics']],
     'mastery' => ['name' => 'Mastery map', 'default' => false, 'dependencies' => ['academics']],
     'school' => ['name' => 'School setup and branding', 'always_on' => true],

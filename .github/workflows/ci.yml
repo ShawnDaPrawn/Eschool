@@ -317,8 +317,15 @@ jobs:
             flow: family_messages_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_messages_smoke_test.dart
+          - app: e-school
+            flow: family_mastery_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_mastery_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_cover_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_support_smoke_test.dart
+            flavor: facilitator
     defaults:
       run:
         working-directory: ${{ matrix.app }}
@@ -339,6 +346,7 @@ jobs:
           flutter drive
           --driver=test_driver/integration_test.dart
           --target=integration_test/${{ matrix.flow }}
+          ${{ matrix.flavor && format('--flavor {0} --dart-define=FLAVOR={0}', matrix.flavor) || '' }}
           -d web-server --browser-name=chrome --headless
           --no-web-resources-cdn
 

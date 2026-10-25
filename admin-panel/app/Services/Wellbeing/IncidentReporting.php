@@ -12,7 +12,6 @@ use App\Policies\People\ProfilePolicy;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class IncidentReporting
 {
@@ -54,7 +53,7 @@ class IncidentReporting
     public function submit(array $input, ?User $identifiedActor = null): array
     {
         $this->access->environment(true);
-        $data = Validator::make($input, ['secret' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/D'], 'category_id' => ['required', 'integer', 'min:1'], 'body' => ['required', 'string', 'max:20000'], 'urgency' => ['required', Rule::in(['routine', 'urgent'])], 'anonymous' => ['required', 'boolean'], 'acknowledged_guidance' => ['sometimes', 'boolean'], 'identify_consent' => ['sometimes', 'boolean'], 'learner_id' => ['nullable', 'integer', 'min:1']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('report-submit'))->validate();
         abort_if($data['anonymous'] && (! empty($data['learner_id']) || ! empty($data['identify_consent'])), 422, 'Anonymous reports cannot carry an identity or learner reference.');
         $identity = null;
         if (! $data['anonymous']) {
@@ -117,7 +116,7 @@ class IncidentReporting
 
     public function reply(string $secret, array $input, ?User $actor = null): array
     {
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'body' => ['required', 'string', 'max:20000']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('reporter-reply'))->validate();
         $hash = $this->operations->digest(json_encode($data, JSON_THROW_ON_ERROR));
 
         return $this->operations->locked(function () use ($secret, $data, $hash, $actor) {
@@ -140,7 +139,7 @@ class IncidentReporting
 
     public function identify(User $actor, string $secret, array $input): array
     {
-        $data = Validator::make($input, ['revision' => ['required', 'integer', 'min:1'], 'identify_consent' => ['required', 'accepted'], 'learner_id' => ['nullable', 'integer', 'min:1']])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('identify'))->validate();
 
         return $this->operations->locked(function () use ($actor, $secret, $data) {
             $fresh = $this->reporter($actor, isset($data['learner_id']) ? (int) $data['learner_id'] : null);
@@ -169,7 +168,7 @@ class IncidentReporting
     public function respond(User $actor, int $id, array $input): array
     {
         $this->access->report($actor, $id, true);
-        $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1'], 'body' => ['required', 'string', 'max:20000'], 'internal' => ['required', 'boolean'], 'status' => ['required', Rule::in(['open', 'triaged', 'resolved'])]])->validate();
+        $data = Validator::make($input, WellbeingRules::rules('report-respond'))->validate();
 
         return $this->operations->once($actor, 'incident-reply:'.$id, $data, fn () => $this->access->report($actor, $id, true), function () use ($actor, $id, $data) {
             $row = $this->access->report($actor, $id, true);

@@ -67,6 +67,20 @@ Map<String, dynamic> activityRosterFixture() => {
   ],
   'staff': [],
   'attendance': [],
+  'session_roster': {
+    'session_id': 9,
+    'group_id': 7,
+    'session_revision': 1,
+    'learners': [
+      for (final id in [17, 18])
+        {
+          'learner_id': id,
+          'learner_name': id == 17 ? 'Asha Learner' : 'Ben Learner',
+          'status': null,
+          'revision': 0,
+        },
+    ],
+  },
 };
 
 class FakeActivityRepository implements ActivityRepository {
@@ -80,6 +94,7 @@ class FakeActivityRepository implements ActivityRepository {
   Object? readError, writeError;
   Future<ActivityGroupDetail> Function()? readDetail;
   int rosterReads = 0;
+  Map<String, dynamic>? rosterData;
   final writes = <Map<String, dynamic>>[];
   @override
   Future<ActivityGroupList> groups({int page = 1}) async {
@@ -101,10 +116,10 @@ class FakeActivityRepository implements ActivityRepository {
   }
 
   @override
-  Future<ActivityGroupRoster> roster(int group) async {
+  Future<ActivityGroupRoster> roster(int group, {int? sessionId}) async {
     rosterReads++;
     if (readError != null) throw readError!;
-    return ActivityGroupRoster.fromJson(activityRosterFixture());
+    return ActivityGroupRoster.fromJson(rosterData ?? activityRosterFixture());
   }
 
   void capture(Map<String, dynamic> input) {

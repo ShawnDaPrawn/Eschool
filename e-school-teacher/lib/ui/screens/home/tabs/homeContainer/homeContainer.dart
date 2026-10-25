@@ -38,6 +38,25 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('mastery') ==
+            true &&
+        allowsSchoolModule(context.watch<MeContextCubit>().context, 'mastery'))
+      MenuContainerDetails(
+        route: Routes.mastery,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Mastery map',
+      ),
+    if (context.watch<MeContextCubit>().context?.isModuleOn('support_plans') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'support_plans',
+        ))
+      MenuContainerDetails(
+        route: Routes.supportPlans,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Support plans',
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn('relief_cover') ==
             true &&
         allowsSchoolModule(

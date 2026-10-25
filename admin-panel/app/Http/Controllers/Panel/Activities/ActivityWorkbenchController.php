@@ -63,11 +63,11 @@ class ActivityWorkbenchController extends Controller
         abort_if($sessionId !== null && $session === null, 404);
         $attendance = [];
         if ($session !== null) {
-            $saved = collect($roster['attendance'])->where('activity_session_id', $session['id'])->keyBy('learner_id');
-            foreach ($roster['memberships'] as $member) {
-                if (($member['active'] && $member['starts_on'] <= $session['on_date'] && $member['ends_on'] >= $session['on_date']) || isset($saved[$member['learner_id']])) {
-                    $attendance[$member['learner_id']] = ['learner_id' => $member['learner_id'], 'learner_name' => $member['learner_name'], 'status' => $saved[$member['learner_id']]['status'] ?? '', 'revision' => $saved[$member['learner_id']]['revision'] ?? 0];
-                }
+            $sessionRoster = $service->roster($r->user(), (int) $id, (int) $session['id'])['session_roster'];
+            $session['revision'] = $sessionRoster['session_revision'];
+            foreach ($sessionRoster['learners'] as $member) {
+                $attendance[$member['learner_id']] = $member + ['status' => ''];
+                $attendance[$member['learner_id']]['status'] ??= '';
             }
         }
 

@@ -50,6 +50,12 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        // Abuse counters use short-lived keyed network pseudonyms, never a
+        // reporter identity or raw network address associated with a report.
+        $wellbeingKey = fn (Request $request) => hash_hmac('sha256', (string) $request->ip().'|'.(string) $request->route('schoolSlug'), (string) config('app.key'));
+        RateLimiter::for('wellbeing-public', fn (Request $request) => Limit::perMinute(120)->by('wellbeing-public:'.$wellbeingKey($request)));
+        RateLimiter::for('wellbeing-submit', fn (Request $request) => Limit::perMinute(30)->by('wellbeing-submit:'.$wellbeingKey($request)));
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

@@ -136,6 +136,47 @@ class ActivityGroupsTest extends TestCase
         $this->assertCount(1, app(ActivityGroups::class)->roster($teacher, $group['id'])['memberships']);
     }
 
+    public function test_session_roster_uses_dated_enrolment_and_retains_captured_corrections(): void
+    {
+        $service = app(ActivityGroups::class);
+        $group = $this->group();
+        $teacher = $this->coach($group['id']);
+        foreach (['asha', 'ben', 'cara'] as $name) {
+            if ($name !== 'asha') {
+                Enrolment::create(['learner_id' => $this->schoolA->ids[$name], 'session_year_id' => $this->year,
+                    'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic session roster']);
+            }
+            $service->allocation($this->superAdmin(), $group['id'], null, false, $this->dates(['learner_id' => $this->schoolA->ids[$name], 'role' => 'member']));
+        }
+        $session = $service->session($teacher, $group['id'], null, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'on_date' => '2026-02-10', 'name' => 'Training', 'venue' => 'Field', 'status' => 'scheduled']);
+        $captured = $service->attendance($teacher, $session['id'], ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'reason' => 'Observed before withdrawal', 'entries' => [['learner_id' => $this->schoolA->ids['cara'], 'status' => 'late', 'revision' => 0]]]);
+        Enrolment::whereIn('learner_id', [$this->schoolA->ids['ben'], $this->schoolA->ids['cara']])->update(['ends_on' => '2026-02-09']);
+        ActivityMembership::where('learner_id', $this->schoolA->ids['cara'])->update(['active' => false]);
+        $path = '/api/v2/activities/groups/'.$group['id'].'/roster';
+        $response = $this->api($teacher)->getJson($path.'?session_id='.$session['id'])->assertOk();
+        $roster = $response->json('data.session_roster');
+        $this->assertNotNull($roster);
+        $this->assertSame($session['id'], $roster['session_id']);
+        $this->assertSame($captured['session_revision'], $roster['session_revision']);
+        $this->assertSame([$this->schoolA->ids['asha'], $this->schoolA->ids['cara']], array_column($roster['learners'], 'learner_id'));
+        $this->assertSame('late', $roster['learners'][1]['status']);
+        $this->assertSame(1, $roster['learners'][1]['revision']);
+        $this->assertArrayNotHasKey('session_roster', $this->getJson($path)->assertOk()->json('data'));
+        $this->actingAs($this->superAdmin(), 'web')->get(route('activity-groups.index', ['group_id' => $group['id'], 'session_id' => $session['id']]))
+            ->assertOk()->assertViewHas('attendance', fn ($rows) => array_keys($rows) === [$this->schoolA->ids['asha'], $this->schoolA->ids['cara']]);
+        $service->attendance($teacher, $session['id'], ['operation_id' => (string) Str::uuid(), 'revision' => $roster['session_revision'], 'reason' => 'Correct retained session record', 'entries' => [
+            ['learner_id' => $this->schoolA->ids['asha'], 'status' => 'present', 'revision' => 0],
+            ['learner_id' => $this->schoolA->ids['cara'], 'status' => 'present', 'revision' => 1],
+        ]]);
+        $other = $this->group(['name' => 'Unrelated activity']);
+        $this->api($this->superAdmin())->getJson('/api/v2/activities/groups/'.$other['id'].'/roster?session_id='.$session['id'])->assertNotFound();
+        $this->api(User::findOrFail($this->schoolA->ids['farid_user']))->getJson($path.'?session_id='.$session['id'])->assertForbidden();
+        $this->api($teacher)->withHeader('X-School-Id', '2')->getJson($path.'?session_id='.$session['id'])->assertForbidden();
+        ActivityStaff::where('user_id', $teacher->id)->update(['starts_on' => '2026-02-10']);
+        ActivitySession::whereKey($session['id'])->update(['on_date' => '2026-02-09']);
+        $this->api($teacher)->getJson($path.'?session_id='.$session['id'])->assertNotFound();
+    }
+
     public function test_guardian_relationship_revocation_and_expired_staff_remove_current_reads(): void
     {
         $group = $this->group();
