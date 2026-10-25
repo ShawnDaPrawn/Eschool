@@ -6,6 +6,9 @@ use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\GradeLevel;
 use App\Models\ClassSection;
 use App\Models\People\Enrolment;
+use App\Models\Platform\GuardianLink;
+use App\Models\Platform\LearnerApproval;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardDefinition;
 use App\Models\Recognition\AwardNomination;
@@ -22,7 +25,13 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Recognition\AwardNominations;
 use App\Services\Recognition\AwardPresentations;
 use App\Services\Recognition\RecognitionCatalog;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+
+$database = (string) config('database.connections.'.config('database.default').'.database');
+if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
+    throw new RuntimeException('Recognition browser fixtures require an isolated test database.');
+}
 
 return app(CurrentSchool::class)->run(1, function (): array {
     $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
@@ -37,8 +46,23 @@ return app(CurrentSchool::class)->run(1, function (): array {
     $room = ClassSection::with('class')->whereHas('class', fn ($q) => $q->where('name', 'Grade 5'))->firstOrFail();
     $grade = (int) GradeLevel::where('code', '5')->value('id');
     $room->class->forceFill(['grade_level_id' => $grade])->save();
-    $learner = Students::with('user')->where('class_section_id', $room->id)->firstOrFail();
-    Enrolment::firstOrCreate(['learner_id' => $learner->id, 'session_year_id' => $year->id, 'class_section_id' => $room->id], ['starts_on' => $start, 'ends_on' => null, 'legacy_dates' => false]);
+    // Other workflows change demo placements and dates. Own the complete
+    // synthetic recognition identity instead of borrowing the first legacy row.
+    $person = User::firstOrCreate(['email' => 'recognition.learner@demo.navigateed.test'], ['first_name' => 'RecognitionBrowser', 'last_name' => 'Learner', 'password' => Hash::make('NavigateDemo2026'), 'status' => 0]);
+    $learner = Students::firstOrCreate(['user_id' => $person->id], ['class_id' => $room->class_id, 'class_section_id' => $room->id,
+        'category_id' => Students::whereNotNull('category_id')->value('category_id'), 'admission_no' => 'RECOGNITION-BROWSER', 'roll_number' => 990, 'admission_date' => $start]);
+    $guardian = User::firstOrCreate(['email' => 'recognition.guardian@demo.navigateed.test'], ['first_name' => 'RecognitionBrowser', 'last_name' => 'Guardian', 'password' => Hash::make('NavigateDemo2026'), 'status' => 1]);
+    $guardian->forceFill(['email_verified_at' => now()])->save();
+    foreach ([[$guardian, 'Parent'], [$person, 'Student']] as [$user, $role]) {
+        $user->assignRole($role);
+        SchoolMembership::updateOrCreate(['school_id' => 1, 'user_id' => $user->id, 'role' => $role], ['status' => 'active', 'starts_on' => $start, 'ends_on' => null]);
+    }
+    GuardianLink::updateOrCreate(['learner_id' => $learner->id, 'guardian_user_id' => $guardian->id], ['relationship' => 'guardian', 'status' => 'active', 'can_approve' => true]);
+    LearnerApproval::firstOrCreate(['learner_id' => $learner->id, 'guardian_user_id' => $guardian->id, 'consent_version' => config('identity.consent_version')], ['consented_at' => now()]);
+    // Activation follows the verified synthetic guardian's recorded consent.
+    $person->forceFill(['status' => 1])->save();
+    $learner->setRelation('user', $person);
+    Enrolment::updateOrCreate(['learner_id' => $learner->id, 'session_year_id' => $year->id, 'class_section_id' => $room->id], ['starts_on' => $start, 'ends_on' => $end, 'legacy_dates' => false]);
     AcademicLeadership::firstOrCreate(['user_id' => $head->id, 'session_year_id' => $year->id, 'kind' => 'grade_head', 'grade_level_id' => $grade], ['starts_on' => $start, 'ends_on' => $end, 'reason' => 'Synthetic recognition head', 'revision' => 1]);
     $op = fn (array $d) => ['operation_id' => (string) Str::uuid()] + $d;
     $catalog = app(RecognitionCatalog::class);
