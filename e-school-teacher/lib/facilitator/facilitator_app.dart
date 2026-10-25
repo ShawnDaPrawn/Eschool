@@ -403,6 +403,27 @@ class _StaffHome extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          if (profile.features['support_plans'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.health_and_safety_outlined),
+                title: Text(l('Support plans')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'support_plans',
+                  SupportScreen(
+                    repository: ApiSupportRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['support_plans'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['groups'] == true)
             Card(
               child: ListTile(
@@ -445,7 +466,11 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
-          if (!profile.features.values.any((v) => v))
+          if (![
+            'groups',
+            'messages',
+            'support_plans',
+          ].any((key) => profile.features[key] == true))
             Padding(
               padding: const EdgeInsets.all(24),
               child: Text(

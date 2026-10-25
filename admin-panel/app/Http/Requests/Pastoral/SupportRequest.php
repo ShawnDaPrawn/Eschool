@@ -18,7 +18,7 @@ class SupportRequest extends FormRequest
     {
         $op = substr((string) $this->route()->getName(), strlen('api.v2.support.'));
         if ($this->isMethod('GET')) {
-            return ['page' => ['sometimes', 'integer', 'min:1'], 'search' => ['sometimes', 'string', 'max:100']];
+            return ['page' => ['sometimes', 'integer', 'min:1'], 'search' => ['sometimes', 'nullable', 'string', 'max:100']];
         }
 
         return SupportPlans::rules(match ($op) {

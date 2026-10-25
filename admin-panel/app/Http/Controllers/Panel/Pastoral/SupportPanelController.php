@@ -36,7 +36,8 @@ class SupportPanelController extends Controller
         $listing = match ($audience) {
             'principal' => $q->assignments($r->user(), $page), 'professional' => $q->cases($r->user(), $page), 'teacher' => $q->teacher($r->user(), $page)
         };
-        $configuration = $audience === 'teacher' ? null : $q->configuration($r->user(), $audience, (string) $r->input('search', ''), $page);
+        $search = is_string($r->input('search')) ? mb_substr($r->input('search'), 0, 100) : '';
+        $configuration = $audience === 'teacher' ? null : $q->configuration($r->user(), $audience, $search, $page);
         $draft = [];
         if (! $r->isMethodSafe()) {
             foreach (['needs' => 20000, 'accommodations' => 20000, 'outcome' => 10000, 'reason' => 2000, 'sias_stage' => 100, 'learner_id' => 20, 'user_id' => 20, 'started_on' => 10, 'review_due_on' => 10, 'reviewed_on' => 10, 'next_review_on' => 10, 'expires_on' => 10, 'starts_on' => 10, 'ends_on' => 10] as $field => $limit) {
@@ -49,7 +50,7 @@ class SupportPanelController extends Controller
         $draftKey = $r->isMethodSafe() ? '' : $op.':'.$target;
         $operationId = ! $conflict && is_string($r->input('operation_id')) && Str::isUuid($r->input('operation_id')) ? $r->input('operation_id') : (string) Str::uuid();
 
-        return compact('access', 'audience', 'page', 'record', 'listing', 'configuration', 'history', 'historyKind', 'messages', 'conflict', 'draft', 'draftKey', 'operationId') + ['canWrite' => $access['can_write'] && ! app(SessionYearContext::class)->isReadOnly(), 'today' => $access['today']];
+        return compact('access', 'audience', 'search', 'page', 'record', 'listing', 'configuration', 'history', 'historyKind', 'messages', 'conflict', 'draft', 'draftKey', 'operationId') + ['canWrite' => $access['can_write'] && ! app(SessionYearContext::class)->isReadOnly(), 'today' => $access['today']];
     }
 
     public function index(SupportPanelRequest $r): Response

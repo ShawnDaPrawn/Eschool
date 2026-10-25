@@ -121,4 +121,14 @@ class SupportApiTest extends TestCase
         $this->postJson(self::BASE.'plans', $input)->assertNotFound();
         $this->assertSame(1, SupportPlan::count());
     }
+
+    public function test_empty_search_is_a_valid_unfiltered_configuration_request(): void
+    {
+        $this->actingAs($this->professional)->getJson(self::BASE.'configuration/professional?search=&page=1')->assertOk()->assertJsonPath('data.learners.0.id', $this->learner);
+    }
+
+    public function test_teacher_capabilities_are_read_only_even_when_the_module_is_writable(): void
+    {
+        $this->actingAs(User::findOrFail($this->schoolA->ids['theo_user']))->getJson(self::BASE.'access')->assertOk()->assertJsonPath('data.audiences', ['teacher'])->assertJsonPath('data.can_write', false);
+    }
 }

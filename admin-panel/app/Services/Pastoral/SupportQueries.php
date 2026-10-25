@@ -27,7 +27,7 @@ class SupportQueries
         $audiences = app(SupportAuthority::class)->audiences($actor);
         abort_unless($audiences !== [], 403);
 
-        return ['audiences' => $audiences, 'can_write' => app(ModuleGate::class)->writable('support_plans'), 'today' => app(AcademicAuthority::class)->today()];
+        return ['audiences' => $audiences, 'can_write' => app(ModuleGate::class)->writable('support_plans') && array_intersect($audiences, ['professional', 'principal']) !== [], 'today' => app(AcademicAuthority::class)->today()];
     }
 
     private function learnerName(int $id): string

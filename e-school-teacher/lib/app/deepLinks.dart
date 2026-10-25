@@ -10,6 +10,8 @@ import 'package:flutter/foundation.dart';
 const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.reliefCover, Routes.reliefCover),
   DeepLinkRoute('/relief-cover', Routes.reliefCover),
+  DeepLinkRoute(Routes.supportPlans, Routes.supportPlans),
+  DeepLinkRoute('/support-plans', Routes.supportPlans),
   DeepLinkRoute(
     Routes.schoolMessages,
     Routes.schoolMessages,

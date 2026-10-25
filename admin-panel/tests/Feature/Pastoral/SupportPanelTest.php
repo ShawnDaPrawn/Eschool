@@ -118,4 +118,30 @@ class SupportPanelTest extends TestCase
         $this->actingAs($this->professional)->post('/support-plans/plans/'.$plan->id.'/save', $input)->assertForbidden()->assertHeader('Cache-Control', 'no-store, private')->assertDontSee('Private draft from former authority');
         $this->assertSame(1, $plan->fresh()->revision);
     }
+
+    public function test_early_year_refusal_rechecks_caseload_for_an_unsaved_new_plan(): void
+    {
+        $past = SessionYear::create(['name' => 'Synthetic historical header', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31']);
+        $this->appointment->update(['active' => false]);
+        $this->actingAs($this->professional)->withSession(['session_year' => $past->id])->post('/support-plans/plans', $this->fields($this->body()))->assertForbidden()->assertDontSee('Private assessed support needs')->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(0, SupportPlan::count());
+    }
+
+    public function test_staff_picker_keeps_selected_plan_across_search_and_later_pages(): void
+    {
+        $plan = $this->plan();
+        $last = null;
+        for ($i = 0; $i < 52; $i++) {
+            $last = User::create(['first_name' => sprintf('ZebraTeacher%02d', $i), 'last_name' => 'Browser', 'email' => "support-picker-{$i}@example.test", 'password' => bcrypt('SyntheticOnly123'), 'status' => 1]);
+            $last->syncRoles(['Teacher']);
+        }
+        $base = '/support-plans?audience=professional&plan='.$plan->id;
+        $first = $this->actingAs($this->professional)->get($base)->assertOk()->assertSee('name="plan" value="'.$plan->id.'"', false)->assertDontSee('ZebraTeacher51 Browser');
+        $next = route('support-plans.index', ['audience' => 'professional', 'page' => 2, 'search' => '', 'plan' => $plan->id, 'history' => 'reviews']);
+        $first->assertSee($next);
+        $this->get($base.'&page=2')->assertOk()->assertSee('Private assessed support needs')->assertSee('Approve teacher instructions')->assertSee('ZebraTeacher51 Browser');
+        $this->get($base.'&search=ZebraTeacher51')->assertOk()->assertSee('Approve teacher instructions')->assertSee('ZebraTeacher51 Browser')->assertSee('Private assessed support needs');
+        $this->post('/support-plans/plans/'.$plan->id.'/disclosures', $this->fields(['operation_id' => (string) Str::uuid(), 'revision' => 1, 'user_id' => $last->id, 'expires_on' => '2026-03-01', 'accommodations' => 'Approved later-page seating', 'reason' => 'Limited instructions', 'confirmation' => true]))->assertRedirect();
+        $this->actingAs($last)->get('/support-plans?audience=teacher')->assertOk()->assertSee('Approved later-page seating')->assertDontSee('Private assessed support needs');
+    }
 }

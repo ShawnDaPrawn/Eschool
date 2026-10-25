@@ -13,7 +13,7 @@
     @if($messages)<div role="alert">@foreach($messages as $message)<p>{{ $message }}</p>@endforeach
 </div>@endif
 
-    @if(!$canWrite)<p role="status">{{ __('Changes are unavailable. Check the current school year and module access.') }}</p>@endif
+    @if($audience !== 'teacher' && !$canWrite)<p role="status">{{ __('Changes are unavailable. Check the current school year and module access.') }}</p>@endif
 
     <nav aria-label="{{ __('Support workbenches') }}">@foreach($access['audiences'] as $mode)<a class="m3-button m3-button--outlined" @if($mode === $audience) aria-current="page" @endif
  href="{{ route('support-plans.index', ['audience' => $mode]) }}">{{ $modeLabels[$mode] }}</a>@endforeach
@@ -21,7 +21,8 @@
     @if($audience !== 'teacher')
     <form method="GET" class="support-fields" action="{{ route('support-plans.index') }}" aria-label="{{ __('Find named support choices') }}">
         <input type="hidden" name="audience" value="{{ $audience }}">
-        <x-page.field id="support-search" name="search" :label="__('Find learner or staff member')" :value="request('search', '')" :restore-old-input="false" maxlength="100" />
+        @if($record)<input type="hidden" name="plan" value="{{ $record['id'] }}"><input type="hidden" name="history" value="{{ $historyKind }}">@endif
+        <x-page.field id="support-search" name="search" :label="__('Find learner or staff member')" :value="$search" :restore-old-input="false" maxlength="100" />
         <button class="m3-button m3-button--outlined" type="submit">{{ __('Search') }}</button>
     </form>
     @endif
@@ -64,7 +65,7 @@
 </section>
     @else
         <section class="page-section" aria-labelledby="support-cases"><h2 id="support-cases">{{ __('My support cases') }}</h2>
-        @forelse($listing['items'] as $case)<p><a href="{{ route('support-plans.index', ['audience' => 'professional', 'plan' => $case['id']]) }}">{{ $case['learner_name'] }}</a> · {{ __($case['state']) }} @if($case['review_due_on']) · {{ __('Review due') }} {{ $case['review_due_on'] }} @endif
+        @forelse($listing['items'] as $case)<p><a href="{{ route('support-plans.index', ['audience' => 'professional', 'plan' => $case['id'], 'search' => $search, 'page' => $page]) }}">{{ $case['learner_name'] }}</a> · {{ __($case['state']) }} @if($case['review_due_on']) · {{ __('Review due') }} {{ $case['review_due_on'] }} @endif
 </p>
 @empty
 <p>{{ __('No support plans in your current caseload.') }}</p>@endforelse
@@ -157,7 +158,7 @@
 
     @endif
 
-    <nav aria-label="{{ __('Support page navigation') }}">@foreach(['Previous page' => -1,'Next page' => 1] as $label => $offset)@if($page+$offset >= 1 && $page+$offset <= max($listing['last_page'],$configuration['last_page'] ?? 1,$configuration['staff_last_page'] ?? 1))<a class="m3-button m3-button--outlined" href="{{ route('support-plans.index', ['audience' => $audience,'page' => $page+$offset,'search' => request('search','')]) }}">{{ __($label) }}</a>@endif
+    <nav aria-label="{{ __('Support page navigation') }}">@foreach(['Previous page' => -1,'Next page' => 1] as $label => $offset)@if($page+$offset >= 1 && $page+$offset <= max($listing['last_page'],$configuration['last_page'] ?? 1,$configuration['staff_last_page'] ?? 1))<a class="m3-button m3-button--outlined" href="{{ route('support-plans.index', ['audience' => $audience,'page' => $page+$offset,'search' => $search,'plan' => $record['id'] ?? null,'history' => $historyKind]) }}">{{ __($label) }}</a>@endif
 @endforeach
 </nav>
 </div>

@@ -126,6 +126,7 @@ class Routes {
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
   static const String reliefCover = '/pastoral/cover';
+  static const String supportPlans = '/pastoral/support';
   static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
@@ -148,6 +149,7 @@ class Routes {
       activityGroups => 'groups',
       schoolMessages => 'communication',
       reliefCover => 'relief_cover',
+      supportPlans => 'support_plans',
       chatMessages ||
       chatUserProfile ||
       chatUserPage ||
@@ -326,6 +328,8 @@ class Routes {
         return masteryRoute();
       case reliefCover:
         return reliefCoverRoute();
+      case supportPlans:
+        return supportPlansRoute();
       case activityGroups:
         return activityGroupsRoute();
       case schoolMessages:
