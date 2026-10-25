@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Discipline;
 
 use App\Models\Academics\AcademicLeadership;
+use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Discipline\DisciplineAcknowledgement;
 use App\Models\Discipline\DisciplineOperation;
@@ -16,6 +17,7 @@ use App\Services\Discipline\DisciplineFrameworks;
 use App\Services\Discipline\DisciplineOperations;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -199,5 +201,31 @@ class DisciplineApiTest extends TestCase
         }
         $this->assertSame($before, DisciplineOperation::count());
         $this->assertSame(1, app(CurrentSchool::class)->id());
+    }
+
+    public function test_record_queue_pagination_does_not_count_cases_after_teaching_access_ends(): void
+    {
+        $this->configured();
+        $id = $this->actingAs($this->actor())->postJson($this->createUrl(), $this->input())->assertOk()->json('data.id');
+        $seed = DisciplineRecord::findOrFail($id);
+        for ($i = 0; $i < 50; $i++) {
+            $seed->replicate()->save();
+        }
+        $url = $this->prefix.'/records?session_year_id='.$this->year;
+        $this->getJson($url)->assertOk()->assertJsonPath('data.last_page', 2);
+        TeachingAllocation::where('teaching_group_id', $this->group)->update(['ends_on' => '2026-02-09']);
+        $this->getJson($url)->assertOk()->assertJsonCount(0, 'data.records')->assertJsonPath('data.last_page', 1);
+        $this->actor()->syncRoles([SchoolRoles::COUNSELLOR]);
+        $this->getJson($this->prefix.'/configuration')->assertForbidden();
+    }
+
+    public function test_readonly_configuration_explicitly_retains_reads_and_withholds_write_capability(): void
+    {
+        $this->configured();
+        SchoolModule::where('module', 'discipline')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->actingAs($this->actor())->getJson($this->prefix.'/configuration')->assertOk()->assertJsonPath('data.writable', false);
+        $this->postJson($this->createUrl(), $this->input())->assertForbidden();
+        $this->assertSame(0, DisciplineRecord::count());
     }
 }

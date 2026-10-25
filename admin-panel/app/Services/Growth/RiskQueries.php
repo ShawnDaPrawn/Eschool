@@ -15,6 +15,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Pastoral\SensitiveRecordsAccess;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -57,7 +58,7 @@ class RiskQueries
         $groups = app(ProgressQueries::class)->configuration($fresh)['groups'];
         abort_unless($principal || $professional || $head !== [] || $groups !== [], 403);
 
-        return ['session_year_id' => $year, 'today' => app(AcademicAuthority::class)->today(), 'can_manage' => $principal, 'can_read_signals' => $head !== [] || $professional,
+        return ['session_year_id' => $year, 'today' => app(AcademicAuthority::class)->today(), 'writable' => app(ModuleGate::class)->writable('early_warning'), 'can_manage' => $principal, 'can_read_signals' => $head !== [] || $professional,
             'grade_ids' => $head, 'groups' => $groups, 'settings' => app(RiskSettingsService::class)->values(),
             'years' => SessionYear::withTrashed()->orderByDesc('start_date')->limit(100)->get()->map(fn ($y) => ['id' => (int) $y->id, 'name' => $y->name])->all()];
     }

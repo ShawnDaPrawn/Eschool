@@ -6,6 +6,8 @@ namespace App\Services\Discipline;
 
 use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\GradeLevel;
+use App\Models\Academics\TeachingAllocation;
+use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Discipline\DetentionSession;
 use App\Models\Discipline\DisciplineRecord;
@@ -16,14 +18,38 @@ use App\Models\Students;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
-use App\Services\Growth\ProgressQueries;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /** Metadata discovery is bounded and never selects staff notes or decision text. */
 class DisciplineQueries
 {
+    public function available(User $actor): bool
+    {
+        try {
+            $this->configuration($actor);
+
+            return true;
+        } catch (HttpExceptionInterface|ModelNotFoundException) {
+            return false;
+        }
+    }
+
+    /** Current teaching rights for retained own records, before pagination. */
+    private function teachingLearners(User $actor): Builder
+    {
+        $a = app(AcademicAuthority::class);
+        $today = $a->today();
+        $groups = TeachingGroup::where('active', true)->where('session_year_id', (int) schoolSetting('session_year'))
+            ->whereIn('id', TeachingAllocation::whereIn('teacher_id', $a->teachers($actor))->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('teaching_group_id'));
+
+        return TeachingGroupMembership::whereIn('teaching_group_id', $groups->select('id'))
+            ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id');
+    }
+
     public function configuration(User $actor): array
     {
         $a = app(DisciplineAuthority::class);
@@ -33,9 +59,10 @@ class DisciplineQueries
         $heads = AcademicLeadership::where('user_id', $fresh->id)->where('kind', 'grade_head')->where('session_year_id', $year)
             ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->pluck('grade_level_id')->map(fn ($id) => (int) $id)->all();
         $manager = $a->manages($fresh);
+        abort_unless($manager || $heads !== [] || in_array('Teacher', app(ProfilePolicy::class)->roles($fresh), true), 403);
         $grades = GradeLevel::when(! $manager, fn ($q) => $q->whereIn('id', $heads))->orderBy('sort_order')->get(['id', 'name']);
 
-        return ['session_year_id' => $year, 'today' => $today, 'can_manage' => $manager,
+        return ['session_year_id' => $year, 'today' => $today, 'writable' => app(ModuleGate::class)->writable('discipline'), 'can_manage' => $manager,
             'can_hear' => app(AcademicAuthority::class)->currentLeadership($fresh, 'principal', 0),
             'grade_ids' => $heads, 'grades' => $grades->map(fn ($g) => ['id' => (int) $g->id, 'name' => $g->name])->all(),
             'years' => SessionYear::withTrashed()->orderByDesc('start_date')->limit(100)->get()->map(fn ($y) => ['id' => (int) $y->id, 'name' => $y->name])->all(),
@@ -50,8 +77,7 @@ class DisciplineQueries
         $today = app(AcademicAuthority::class)->today();
         $enrolled = Enrolment::where('session_year_id', $year)->onDate($today);
         if (! $config['can_manage']) {
-            $groups = array_column(app(ProgressQueries::class)->configuration($actor)['groups'], 'id');
-            $members = TeachingGroupMembership::whereIn('teaching_group_id', $groups)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id');
+            $members = $this->teachingLearners($actor);
             $enrolled->where(fn ($q) => $q->whereHas('homeroom.class', fn ($c) => $c->whereIn('grade_level_id', $config['grade_ids']))->orWhereIn('learner_id', $members));
         }
         $rows = Students::whereIn('id', $enrolled->select('learner_id'))->with('user')->when($search !== null && $search !== '',
@@ -75,7 +101,7 @@ class DisciplineQueries
         $config = $this->configuration($actor);
         app(DisciplineAuthority::class)->year($year);
         $rows = DisciplineRecord::select(DisciplineRecords::META)->where('session_year_id', $year)
-            ->when(! $config['can_manage'], fn ($q) => $q->where(fn ($s) => $s->where('recorded_by', $actor->id)->orWhereIn('grade_level_id', $config['grade_ids'])))
+            ->when(! $config['can_manage'], fn ($q) => $q->where(fn ($s) => $s->where(fn ($own) => $own->where('recorded_by', $actor->id)->whereIn('learner_id', $this->teachingLearners($actor)))->orWhereIn('grade_level_id', $config['grade_ids'])))
             ->when($status !== null, fn ($q) => $q->where('status', $status))->orderByDesc('occurred_on')->orderByDesc('id')->paginate(50, ['*'], 'page', max(1, $page));
         $items = [];
         foreach ($rows as $row) {

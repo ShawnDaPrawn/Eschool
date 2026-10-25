@@ -233,4 +233,13 @@ class RiskApiTest extends TestCase
         $this->getJson($this->prefix.'/learners/'.$this->schoolA->ids['asha'].'/assignments?session_year_id='.$this->year)->assertForbidden();
         $this->assertSame(0, Intervention::count());
     }
+
+    public function test_readonly_risk_configuration_keeps_authorized_reads_and_refuses_writes(): void
+    {
+        SchoolModule::where('module', 'early_warning')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->actingAs($this->actor())->getJson($this->prefix.'/configuration')->assertOk()->assertJsonPath('data.writable', false);
+        $this->postJson($this->createUrl(), $this->input())->assertForbidden();
+        $this->assertSame(0, Intervention::count());
+    }
 }
