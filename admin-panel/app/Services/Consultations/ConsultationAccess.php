@@ -9,7 +9,6 @@ use App\Models\Academics\TeachingGroup;
 use App\Models\Activities\ActivityGroup;
 use App\Models\Activities\ActivityStaff;
 use App\Models\ClassSection;
-use App\Models\Communication\Audience;
 use App\Models\Consultations\Consultation;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\SessionYear;
@@ -17,6 +16,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Activities\CommunityAuthority;
+use App\Services\Communication\CommunicationAudiences;
 use App\Services\Communication\CommunicationRecipients;
 use App\Services\Communication\RecipientAccess;
 use App\Services\ParentPolicyService;
@@ -62,10 +62,13 @@ class ConsultationAccess
         return $year;
     }
 
-    public function audience(array $input, int $year): array
+    public function audience(User $actor, array $input, int $year): array
     {
         $this->year($year);
         $kind = $input['kind'];
+        if ($kind === 'activity_group') {
+            abort_unless(app(ModuleGate::class)->allows('groups'), 403);
+        }
         $target = (int) ($input['target_id'] ?? 0);
         $definition = ['kind' => $kind, 'target_id' => $kind === 'school' ? null : $target, 'session_year_id' => $year,
             'parents' => (bool) ($input['parents'] ?? false), 'include_staff' => (bool) ($input['include_staff'] ?? false)];
@@ -79,7 +82,8 @@ class ConsultationAccess
             default => abort(422),
         };
         if ($kind === 'custom') {
-            $list = Audience::where('active', true)->findOrFail($target);
+            $list = app(CommunicationAudiences::class)->owned($actor, $target);
+            abort_unless($list->active, 404);
             $definition['user_ids'] = array_values(array_map('intval', $list->definition['user_ids']));
             $definition['parents'] = false;
         }
@@ -93,6 +97,9 @@ class ConsultationAccess
         $today = app(AcademicAuthority::class)->today();
         $definition = $row->audience;
         $resolver = app(CommunicationRecipients::class);
+        if ($definition['kind'] === 'activity_group' && ! app(ModuleGate::class)->allows('groups')) {
+            return [];
+        }
         if ($definition['kind'] === 'custom') {
             $all = $resolver->standard(['kind' => 'school', 'session_year_id' => $row->session_year_id, 'parents' => false], $today);
             foreach ($resolver->standard(['kind' => 'school', 'session_year_id' => $row->session_year_id, 'parents' => true], $today) as $id => $reason) {

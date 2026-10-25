@@ -1,0 +1,104 @@
+[
+  {
+    "method": "GET",
+    "path": "/consultations/access",
+    "operation_id": "getConsultationAccess",
+    "action": "access"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/audiences",
+    "operation_id": "listConsultationAudienceChoices",
+    "action": "audiences"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/managed",
+    "operation_id": "listManagedConsultations",
+    "action": "managed"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations",
+    "operation_id": "listConsultations",
+    "action": "mine"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}",
+    "operation_id": "getConsultationBallot",
+    "action": "ballot"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}/configuration",
+    "operation_id": "getConsultationConfiguration",
+    "action": "configuration"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}/results",
+    "operation_id": "getConsultationResults",
+    "action": "results"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}/managed-results",
+    "operation_id": "getManagedConsultationResults",
+    "action": "manager-results"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}/responses",
+    "operation_id": "listConsultationResponses",
+    "action": "responses"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}/history",
+    "operation_id": "listConsultationHistory",
+    "action": "history"
+  },
+  {
+    "method": "GET",
+    "path": "/consultations/{consultation}/history/{event}",
+    "operation_id": "getConsultationHistoryRecord",
+    "action": "history-entry"
+  },
+  {
+    "method": "POST",
+    "path": "/consultations",
+    "operation_id": "createConsultation",
+    "action": "create"
+  },
+  {
+    "method": "POST",
+    "path": "/consultations/{consultation}",
+    "operation_id": "updateConsultation",
+    "action": "edit"
+  },
+  {
+    "method": "POST",
+    "path": "/consultations/{consultation}/publish",
+    "operation_id": "publishConsultation",
+    "action": "publish"
+  },
+  {
+    "method": "POST",
+    "path": "/consultations/{consultation}/close",
+    "operation_id": "closeConsultation",
+    "action": "close"
+  },
+  {
+    "method": "POST",
+    "path": "/consultations/{consultation}/cancel",
+    "operation_id": "cancelConsultation",
+    "action": "cancel"
+  },
+  {
+    "method": "POST",
+    "path": "/consultations/{consultation}/vote",
+    "operation_id": "castConsultationVote",
+    "action": "vote"
+  }
+]

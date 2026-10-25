@@ -179,4 +179,23 @@ class StaffPrivateNoticesTest extends TestCase
         $this->assertSame(1, app(CurrentSchool::class)->id());
         $this->assertNull(UserNotification::where('notification_id', $notice->id)->value('private_read_at'));
     }
+
+    public function test_invalid_pagination_is_a_private_typed_envelope_without_session_flashing(): void
+    {
+        $this->withToken($this->schoolA->tokens['tara'])
+            ->get('/api/v2/staff/private-notices?page=0', ['Accept' => 'text/html'])
+            ->assertUnprocessable()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('code', 'validation_failed')->assertJsonStructure(['data' => ['errors' => ['page']]])
+            ->assertSessionMissing('_old_input');
+    }
+
+    public function test_unauthenticated_private_notice_reads_and_markers_never_cache(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->getJson('/api/v2/staff/private-notices')->assertUnauthorized()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->postJson('/api/v2/staff/private-notices/19/read')->assertUnauthorized()
+            ->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+    }
 }

@@ -54,7 +54,7 @@ class ConsultationOperations
     public function event(?User $actor, Consultation $row, string $action, ?string $reason = null, array $questions = []): void
     {
         ConfigurationEvent::create(['consultation_id' => $row->id, 'actor_id' => $actor?->id, 'action' => $action, 'revision' => $row->revision,
-            'snapshot' => ['type' => $row->type, 'title' => $row->title, 'audience' => $row->audience, 'anonymous' => $row->anonymous,
+            'snapshot' => ['type' => $row->type, 'title' => $row->title, 'instructions' => $row->instructions, 'session_year_id' => (int) $row->session_year_id, 'audience' => $row->audience, 'anonymous' => $row->anonymous,
                 'results_visibility' => $row->results_visibility, 'status' => $row->status, 'opens_at' => $row->opens_at->toISOString(),
                 'closes_at' => $row->closes_at->toISOString(), 'reason' => $reason, 'questions' => $questions]]);
     }

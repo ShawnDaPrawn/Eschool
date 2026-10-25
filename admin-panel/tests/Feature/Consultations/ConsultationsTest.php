@@ -147,7 +147,7 @@ class ConsultationsTest extends TestCase
         $this->assertSame(1, $results['response_count']);
         $this->assertSame([1, 0], array_column($results['questions'][0]['counts'], 'count'));
         $this->assertArrayNotHasKey('user_id', $results);
-        $this->assertSame([], $results['questions'][0]['texts']);
+        $this->assertArrayNotHasKey('texts', $results['questions'][0]);
         $this->refused(409, fn () => app(Consultations::class)->vote($this->superAdmin(), $row->id, $this->answers($row)));
     }
 
@@ -256,16 +256,17 @@ class ConsultationsTest extends TestCase
                 'questions' => [['kind' => 'text', 'label' => 'Optional feedback', 'required' => true]]]);
             $question = Question::where('consultation_id', $row->id)->sole();
             app(Consultations::class)->vote($this->learner, $row->id, [['question_id' => (int) $question->id, 'text' => 'Synthetic private answer']]);
-            $this->assertSame([], app(Consultations::class)->results($this->learner, $row->id)['questions'][0]['texts']);
+            $this->assertArrayNotHasKey('texts', app(Consultations::class)->results($this->learner, $row->id)['questions'][0]);
             $this->refused(403, fn () => app(Consultations::class)->responses($this->superAdmin(), $row->id));
             app(Consultations::class)->end($this->superAdmin(), $row->id, 'close', $this->op(['revision' => $row->revision, 'reason' => 'Synthetic close']));
             $page = app(Consultations::class)->responses($this->superAdmin(), $row->id);
             $this->assertCount(1, $page['items']);
-            $this->assertSame('Synthetic private answer', $page['items'][0]['answers'][$question->id]['text']);
+            $this->assertSame('Synthetic private answer', $page['items'][0]['answers'][0]['text']);
             if ($anonymous) {
-                $this->assertNull($page['items'][0]['respondent']);
+                $this->assertNull($page['items'][0]['respondent_user_id']);
+                $this->assertNull($page['items'][0]['respondent_name']);
             } else {
-                $this->assertSame((int) $this->learner->id, $page['items'][0]['respondent']['id']);
+                $this->assertSame((int) $this->learner->id, $page['items'][0]['respondent_user_id']);
             }
             $this->assertArrayNotHasKey('id', $page['items'][0]);
             $this->assertArrayNotHasKey('created_at', $page['items'][0]);

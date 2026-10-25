@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Platform;
 
+use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Services\Facilitators\FacilitatorAccess;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -32,7 +33,7 @@ class PrivateStaffNoticeRequest extends FormRequest
 
     protected function failedValidation(Validator $validator): void
     {
-        throw new HttpResponseException(response()->json(['error' => true, 'message' => 'Review the update selection.', 'errors' => $validator->errors()], 422)
-            ->header('Cache-Control', 'private, no-store'));
+        throw new HttpResponseException(ApiV2ExceptionRenderer::envelope(422, 'Review the update selection.',
+            ['errors' => $validator->errors()->toArray()], ['Cache-Control' => 'private, no-store']));
     }
 }

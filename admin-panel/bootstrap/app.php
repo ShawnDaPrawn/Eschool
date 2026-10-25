@@ -24,6 +24,7 @@ use App\Http\Middleware\HandleIdempotencyKey;
 use App\Http\Middleware\LanguageManager;
 use App\Http\Middleware\LimitRequestInput;
 use App\Http\Middleware\ObserveLearnerActivity;
+use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RejectDangerousUploads;
 use App\Http\Middleware\RequireParentPolicyAcceptance;
@@ -41,6 +42,7 @@ use Illuminate\Auth\Middleware\AuthenticateWithBasicAuth;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Auth\Middleware\RequirePassword;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Cookie\Middleware\EncryptCookies as BaseEncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -109,6 +111,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(ResetSchoolContext::class);
         // Outermost, so every response and every log line of the request has its id.
         $middleware->prepend(AssignRequestId::class);
+        // Keep private route refusals inside the response boundary, including
+        // authentication failures. Subclasses such as PrivateWellbeing inherit it.
+        $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: PrivateDomainResponse::class);
         // The school is chosen right after authentication, before route model
         // binding or anything else reads school-owned rows.
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: SetSchoolContext::class);

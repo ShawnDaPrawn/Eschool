@@ -46,3 +46,12 @@ readonly, queued delivery withdrawal, migration retention and real profile flows
 Live email/provider, deployed scheduling latency, statutory legal sign-off and
 external acceptance remain separate evidence; they do not freeze independent
 implementation.
+
+The additive API uses account binding and an early private-response boundary on
+success and refusals. Named audience pickers include current selected choices and
+paginate independently. The manager configuration history is paged separately
+from an encrypted event snapshot, avoiding large snapshot bodies in list reads.
+Aggregate results never include text answers. Only authorized managers can page
+individual closed-survey answers; anonymous entries have explicit null identity
+and no returned response UUID or timestamp. Clients get independent read/write
+capability metadata for read-only modules and historical records.
