@@ -77,6 +77,14 @@
   const selectedKind = editor.querySelector('[data-selected-kind]');
   const target = editor.querySelector('#audience-target');
   const targetLabel = editor.querySelector('[data-audience-target]');
+  const staffLabel = editor.querySelector('[data-staff-audience]');
+  const staff = staffLabel?.querySelector('input');
+  const setStaff = kind => {
+    if (!staffLabel || !staff) return;
+    const permitted = ['school','activity_group','custom'].includes(kind);
+    staffLabel.hidden = !permitted; staff.disabled = !permitted;
+    if (!permitted) staff.checked = false;
+  };
   const pickerStatus = picker.querySelector('[data-audience-status]');
   const save = editor.querySelector('[data-save-consultation]');
   const previous = picker.querySelector('[data-audience-previous]');
@@ -92,7 +100,7 @@
     save.disabled = true;
     pickerStatus.textContent = '';
     if (kind === 'school') {
-      selectedKind.value = kind;
+      selectedKind.value = kind; setStaff(kind);
       target.replaceChildren(); target.disabled = true; target.required = false; targetLabel.hidden = true;
       previous.hidden = true; next.hidden = true; save.disabled = false;
       return;
@@ -117,7 +125,7 @@
       if (data.selected_id && !rows.some(row => row.id === data.selected_id)) rows.unshift({id: data.selected_id, name: data.selected_name});
       target.replaceChildren(new Option(root.dataset.chooseAudience, ''));
       rows.forEach(row => { target.add(new Option(String(row.name), String(row.id), false, row.id === data.selected_id)); });
-      selectedKind.value = kind; target.disabled = false; target.required = true; targetLabel.hidden = false;
+      selectedKind.value = kind; setStaff(kind); target.disabled = false; target.required = true; targetLabel.hidden = false;
       page = data.page; lastPage = data.last_page;
       previous.hidden = page <= 1; next.hidden = page >= lastPage;
       if (rows.length === 0) pickerStatus.textContent = root.dataset.noAudience;
@@ -128,6 +136,7 @@
     }
   };
   target.required = selectedKind.value !== 'school';
+  setStaff(selectedKind.value);
   picker.addEventListener('submit', event => { event.preventDefault(); load(1); });
   previous.addEventListener('click', () => load(Math.max(1,page-1)));
   next.addEventListener('click', () => load(Math.min(lastPage,page+1)));

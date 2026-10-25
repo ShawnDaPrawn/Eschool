@@ -8,6 +8,7 @@ use App\Listeners\Academics\QueueAssessmentRecompute;
 use App\Listeners\Academics\QueueContentConversion;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Academics\QueueReportGeneration;
+use App\Listeners\Consultations\NotifyConsultationOpened;
 use App\Listeners\Growth\QueueMasteryRecompute;
 use App\Listeners\Growth\QueueProgressBands;
 use App\Listeners\Growth\QueueRiskEvaluate;
@@ -58,6 +59,7 @@ return [
             'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'wellbeing.notice_requested' => [QueuePrivateNotice::class],
+            'consultations.opened' => [NotifyConsultationOpened::class],
             'notification.requested' => [QueueNotificationFanout::class],
             'handle.proposed' => [NotifyHandleGuardians::class],
             'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],

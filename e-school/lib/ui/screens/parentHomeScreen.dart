@@ -738,6 +738,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                     const ReportConcernEntry(),
                                     const SchoolTransfersEntry(),
                                     const MasteryEntry(),
+                                    const ConsultationsEntry(),
                                     const ActivityGroupsEntry(),
                                     const AcademicContentEntry(),
                                     _buildChildrenContainer(),
