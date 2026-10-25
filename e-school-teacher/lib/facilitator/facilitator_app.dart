@@ -437,6 +437,27 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['gallery'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(l('Private photos')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'gallery',
+                  PrivateGalleryScreen(
+                    repository: ApiPrivateGalleryRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['gallery'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['private_notices'] == true)
             Card(
               child: ListTile(

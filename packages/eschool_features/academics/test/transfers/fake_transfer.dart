@@ -17,6 +17,7 @@ class FakeTransfer implements TransferRepository {
   Completer<TransferDetail>? delayed;
   Completer<Uint8List>? delayedArchive;
   bool denyArchive = false;
+  bool photoChoice = false;
   void guard() {
     if (deny) throw ApiException('Access withdrawn', statusCode: 403);
   }
@@ -42,13 +43,19 @@ class FakeTransfer implements TransferRepository {
     reads.add('detail:$id');
     guard();
     return delayed?.future ??
-        TransferDetail.fromJson(
-          transferDetailFixture(
+        TransferDetail.fromJson({
+          ...transferDetailFixture(
             state: state,
             revision: revision,
             writable: writable,
           ),
-        );
+          if (photoChoice)
+            'gallery_choice': {
+              'fingerprint': 'synthetic-photo-consent-fingerprint',
+              'photos': 1,
+              'can_keep': true,
+            },
+        });
   }
 
   @override

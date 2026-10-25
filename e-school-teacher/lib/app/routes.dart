@@ -127,6 +127,7 @@ class Routes {
   static const String mastery = '/growth/mastery';
   static const String progressNotes = '/growth/progress';
   static const String schoolDiscipline = '/discipline';
+  static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
   static const String riskInterventions = '/growth/risk';
   static const String reliefCover = '/pastoral/cover';
@@ -337,6 +338,8 @@ class Routes {
         return progressNotesRoute();
       case schoolDiscipline:
         return schoolDisciplineRoute();
+      case privateGallery:
+        return staffPrivateGalleryRoute();
       case recognition:
         return staffRecognitionRoute();
       case riskInterventions:

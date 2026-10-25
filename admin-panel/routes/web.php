@@ -43,6 +43,7 @@ use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
+use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
@@ -83,6 +84,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeConsultationPanel;
+use App\Http\Middleware\AuthorizeGalleryPanel;
 use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
@@ -282,6 +284,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::prefix('school-gallery')->name('gallery-panel.')->middleware([PrivateDomainResponse::class, 'module:gallery,read', AuthorizeGalleryPanel::class])->group(function () {
+            $controller = GalleryPanelController::class;
+            Route::get('/', [$controller, 'index'])->defaults('operation', 'index')->name('index');
+            Route::get('photos/{photo}', [$controller, 'image'])->whereNumber('photo')->defaults('operation', 'image')->name('image');
+            foreach (['upload', 'settings'] as $operation) {
+                Route::post($operation, [$controller, 'write'])->defaults('operation', $operation)->name($operation);
+            }
+            Route::post('photos/{photo}/tags', [$controller, 'write'])->whereNumber('photo')->defaults('operation', 'propose')->name('propose');
+            Route::post('photos/{photo}/withdraw', [$controller, 'write'])->whereNumber('photo')->defaults('operation', 'withdraw')->name('withdraw');
+        });
+
         Route::prefix('school-consultations')->name('consultations-panel.')->middleware([PrivateDomainResponse::class, 'module:consultations,read', AuthorizeConsultationPanel::class])->group(function () {
             $c = ConsultationPanelController::class;
             Route::get('/', [$c, 'index'])->defaults('operation', 'index')->name('index');

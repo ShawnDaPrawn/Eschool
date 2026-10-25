@@ -39,3 +39,40 @@ known originals, thumbnails, fresh files and other schools are retained.
 Future-dated completed departures remove later unconsented tags only when the
 actual departure takes effect, and an intervening return is a new authorised
 membership episode rather than permission to apply an old departure again.
+
+The v2 API exposes ten private typed operations and returns only owned projections
+and protected JPEG bytes. Configuration includes the current account, school,
+year and upload-year choices for client leases. The transfer consent detail has an
+optional own-guardian gallery selection; omission of the optional keep flag keeps
+legacy remove-on-transfer behavior. Generated clients retain the typed optional
+choice without changing earlier contracts.
+
+The panel's Private photos workbench uploads only to current authorized groups,
+proposes tags by approved handle, withdraws a photo, and lets a current manager
+change the school consent rule. Historical panel years refuse writes and retain
+only an authorized caption draft in the private refusal response, never session
+flash. Pinned private image routes do not grant administrators personal-gallery
+access.
+
+Student/Parent, Teacher and Facilitator clients use the same scoped gallery API.
+Family group choices contain only group-to-owned-child IDs, never a roster; a
+pinned child cannot silently fall back to a sibling. The Facilitator build uses
+its own authenticated client. Family history, pending proposals, explicit
+approval capability, removal, current group photos and bounded uploads are
+available from the respective home entries. Tightening guardian consent hides
+prior self-approved tags until a guardian approves them.
+
+Native pixels use a per-widget decoder and RawImage, without Flutter's shared
+ImageCache, disk caches or device downloads. Backgrounding clears rendered
+photos/captions and ordinary drafts; an unresolved mutation retains only its
+bounded exact intent in the same in-memory, account/school session until a
+current-access retry succeeds or is refused. Replacing that account, school or
+child destroys the intent. Photo-picker temporary copies are released through
+the supported plugin; physical-device behavior still needs device qualification.
+The optional transfer checkbox defaults off and binds retention to the separate
+photo fingerprint without changing the signed academic-package consent.
+
+`e2e/support/synthetic-photo-scanner.py` is a local test-only INSTREAM protocol
+fixture used by CI's gallery browser workflow. It always declares synthetic
+bytes clean and does not qualify malware detection. Production retains the
+normal ClamAV scanner binding and fail-closed handling.

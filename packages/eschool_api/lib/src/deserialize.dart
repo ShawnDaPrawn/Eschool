@@ -442,6 +442,25 @@ import 'package:eschool_api/src/model/facilitator_sign_in_data.dart';
 import 'package:eschool_api/src/model/facilitator_sign_in_input.dart';
 import 'package:eschool_api/src/model/facilitator_sign_in_response.dart';
 import 'package:eschool_api/src/model/facilitator_sign_out_response.dart';
+import 'package:eschool_api/src/model/gallery_child.dart';
+import 'package:eschool_api/src/model/gallery_configuration.dart';
+import 'package:eschool_api/src/model/gallery_configuration_response.dart';
+import 'package:eschool_api/src/model/gallery_configure.dart';
+import 'package:eschool_api/src/model/gallery_decision.dart';
+import 'package:eschool_api/src/model/gallery_family_page.dart';
+import 'package:eschool_api/src/model/gallery_family_page_response.dart';
+import 'package:eschool_api/src/model/gallery_group.dart';
+import 'package:eschool_api/src/model/gallery_group_page.dart';
+import 'package:eschool_api/src/model/gallery_group_page_response.dart';
+import 'package:eschool_api/src/model/gallery_photo.dart';
+import 'package:eschool_api/src/model/gallery_propose.dart';
+import 'package:eschool_api/src/model/gallery_reference.dart';
+import 'package:eschool_api/src/model/gallery_reference_response.dart';
+import 'package:eschool_api/src/model/gallery_revision.dart';
+import 'package:eschool_api/src/model/gallery_settings.dart';
+import 'package:eschool_api/src/model/gallery_settings_response.dart';
+import 'package:eschool_api/src/model/gallery_tagged_photo.dart';
+import 'package:eschool_api/src/model/gallery_year.dart';
 import 'package:eschool_api/src/model/get_anonymous_incident_follow_up_response.dart';
 import 'package:eschool_api/src/model/get_consultation_access_response.dart';
 import 'package:eschool_api/src/model/get_consultation_ballot_response.dart';
@@ -780,6 +799,7 @@ import 'package:eschool_api/src/model/transfer_consent_input.dart';
 import 'package:eschool_api/src/model/transfer_detail.dart';
 import 'package:eschool_api/src/model/transfer_detail_response.dart';
 import 'package:eschool_api/src/model/transfer_document.dart';
+import 'package:eschool_api/src/model/transfer_gallery_choice.dart';
 import 'package:eschool_api/src/model/transfer_mark.dart';
 import 'package:eschool_api/src/model/transfer_page.dart';
 import 'package:eschool_api/src/model/transfer_page_response.dart';
@@ -2390,6 +2410,61 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'FacilitatorSignOutResponse':
       return FacilitatorSignOutResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'GalleryChild':
+      return GalleryChild.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'GalleryConfiguration':
+      return GalleryConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryConfigurationResponse':
+      return GalleryConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GalleryConfigure':
+      return GalleryConfigure.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryDecision':
+      return GalleryDecision.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryFamilyPage':
+      return GalleryFamilyPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryFamilyPageResponse':
+      return GalleryFamilyPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryGroup':
+      return GalleryGroup.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'GalleryGroupPage':
+      return GalleryGroupPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryGroupPageResponse':
+      return GalleryGroupPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryPhoto':
+      return GalleryPhoto.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'GalleryPropose':
+      return GalleryPropose.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryReference':
+      return GalleryReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryReferenceResponse':
+      return GalleryReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryRevision':
+      return GalleryRevision.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GallerySettings':
+      return GallerySettings.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GallerySettingsResponse':
+      return GallerySettingsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryTaggedPhoto':
+      return GalleryTaggedPhoto.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GalleryYear':
+      return GalleryYear.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'GetAnonymousIncidentFollowUpResponse':
       return GetAnonymousIncidentFollowUpResponse.fromJson(
             value as Map<String, dynamic>,
@@ -3528,6 +3603,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'TransferDocument':
       return TransferDocument.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TransferGalleryChoice':
+      return TransferGalleryChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'TransferMark':
       return TransferMark.fromJson(value as Map<String, dynamic>) as ReturnType;

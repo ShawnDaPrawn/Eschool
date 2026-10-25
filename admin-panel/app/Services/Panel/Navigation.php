@@ -9,6 +9,7 @@ use App\Services\Admissions\IntakeAuthority;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
+use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
@@ -157,6 +158,9 @@ class Navigation
             return false;
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {
             return false;
         }
         if ($item['consultation_actor'] ?? false) {

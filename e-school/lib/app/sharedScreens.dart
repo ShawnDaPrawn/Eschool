@@ -1366,3 +1366,91 @@ class FamilyRecognitionEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> familyPrivateGalleryRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        auth = context.read<AuthCubit>(),
+        children = context.read<ChildSelectionCubit>();
+    final parent = auth.isParent(),
+        child = auth.isParent() ? children.selected : null;
+    final learner = parent ? child?.id : auth.getStudentDetails().id;
+    final school = parent ? child?.schoolId : me?.currentSchoolId,
+        account = me?.user?.id;
+
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        learner == null ||
+        learner <= 0 ||
+        me.currentSchoolId != school ||
+        !(me.isModuleOn('gallery') && allowsSchoolModule(me, 'gallery')) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Private photos'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: parent ? learner : null,
+      child: GallerySessionBoundary(
+        pinned: me,
+        builder: (active) => PrivateGalleryScreen(
+          repository: ApiPrivateGalleryRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!parent ||
+                    children.selected?.id == learner &&
+                        children.selected?.schoolId == school),
+          ),
+          family: true,
+          learnerId: learner,
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyPrivateGalleryEntry extends StatelessWidget {
+  const FamilyPrivateGalleryEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state.context?.isModuleOn('gallery') != true ||
+              !allowsSchoolModule(state.context, 'gallery'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Private photos'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.privateGallery),
+            ),
+          );
+        },
+      );
+}

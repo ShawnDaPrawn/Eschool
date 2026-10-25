@@ -472,6 +472,7 @@ class _HomeContainerState extends State<HomeContainer> {
                           children: [
                             const AcademicNextPeriod(),
                             const StaffRecognitionEntry(),
+                            const StaffPrivateGalleryEntry(),
 
                             ///[Class Teacher]
                             if (state.primaryClass?.isNotEmpty ?? false) ...[

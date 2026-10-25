@@ -111,24 +111,41 @@ class GalleryTags
         return PhotoTag::findOrFail($result['id']);
     }
 
+    public function decisionAuthority(User $actor, int $learner): string
+    {
+        $authority = app(GalleryAuthority::class);
+        try {
+            $authority->family($actor, $learner, true, true);
+
+            return 'guardian';
+        } catch (HttpExceptionInterface|ModelNotFoundException $error) {
+            if (app(GallerySettings::class)->current()->guardian_required || ! in_array('Student', app(ProfilePolicy::class)->roles($actor), true) || ! Students::whereKey($learner)->where('user_id', $actor->id)->exists()) {
+                throw $error;
+            }
+            $authority->family($actor, $learner, true);
+
+            return 'self';
+        }
+    }
+
     public function decide(User $actor, int $id, array $input): PhotoTag
     {
         $a = app(GalleryAuthority::class);
         $a->actor($actor, true);
         $tag = PhotoTag::findOrFail($id);
-        $a->family($actor, (int) $tag->learner_id, true, true);
+        $this->decisionAuthority($actor, (int) $tag->learner_id);
         $d = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1'], 'decision' => ['required', 'in:approve,reject']])->validate() + ['kind' => 'tag.decide', 'tag_id' => $id];
-        $authority = fn () => $a->family($actor, (int) $tag->learner_id, true, true);
+        $authority = fn () => $this->decisionAuthority($actor, (int) $tag->learner_id);
         $result = app(GalleryOperations::class)->once($actor, $d, $authority, function () use ($actor, $id, $d, $a): array {
             $initial = PhotoTag::findOrFail($id);
             $this->locks((int) $initial->learner_id);
             $row = PhotoTag::lockForUpdate()->findOrFail($id);
-            $a->family($actor, (int) $row->learner_id, true, true);
+            $kind = $this->decisionAuthority($actor, (int) $row->learner_id);
             abort_unless((int) $row->revision === (int) $d['revision'] && in_array($row->status, ['proposed', 'approved'], true), 409, 'Compare the current photo tag.');
             $photo = GalleryPhoto::where('active', true)->lockForUpdate()->findOrFail($row->gallery_photo_id);
             $a->eligible($photo, (int) $row->learner_id);
             $approved = $d['decision'] === 'approve';
-            $row->update(['status' => $approved ? 'approved' : 'rejected', 'approval_kind' => $approved ? 'guardian' : null, 'approved_by' => $actor->id, 'approved_at' => $approved ? now() : null, 'revision' => $row->revision + 1]);
+            $row->update(['status' => $approved ? 'approved' : 'rejected', 'approval_kind' => $approved ? $kind : null, 'approved_by' => $actor->id, 'approved_at' => $approved ? now() : null, 'revision' => $row->revision + 1]);
             app(GalleryEvents::class)->record($approved ? 'tag_approved' : 'tag_rejected', $actor, tag: $row);
             if (! $approved) {
                 $this->retireUnlinkedFamilyPhoto((int) $row->gallery_photo_id);

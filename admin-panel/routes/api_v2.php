@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
+use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
@@ -552,4 +553,19 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+});
+
+// Private family history and explicitly assigned current activity sources.
+Route::prefix('gallery')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:gallery'])->name('api.v2.gallery.')->group(function () {
+    $controller = GalleryController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('learners/{learner}/photos', [$controller, 'family'])->whereNumber('learner')->name('family');
+    Route::get('groups/{group}/photos', [$controller, 'group'])->whereNumber('group')->name('group');
+    Route::get('photos/{photo}/content', [$controller, 'content'])->whereNumber('photo')->name('content');
+    Route::post('photos', [$controller, 'upload'])->name('upload');
+    Route::post('photos/{photo}/withdraw', [$controller, 'withdraw'])->whereNumber('photo')->name('withdraw');
+    Route::post('photos/{photo}/tags', [$controller, 'propose'])->whereNumber('photo')->name('propose');
+    Route::post('tags/{tag}/decision', [$controller, 'decide'])->whereNumber('tag')->name('decide');
+    Route::post('tags/{tag}/remove', [$controller, 'remove'])->whereNumber('tag')->name('remove');
+    Route::post('settings', [$controller, 'settings'])->name('settings');
 });

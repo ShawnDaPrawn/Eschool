@@ -28,7 +28,11 @@ class _TransferConsentScreenState extends State<TransferConsentScreen>
   TransferDetail? _record;
   int _epoch = 0, _page = 1, _marksLimit = 25, _attendanceLimit = 50;
   int? _selected;
-  bool _busy = true, _suspended = false, _approved = false, _withdraw = false;
+  bool _busy = true,
+      _suspended = false,
+      _approved = false,
+      _withdraw = false,
+      _keepPhotoTags = false;
   String? _error, _pendingAction, _pendingPayload;
   bool get _active => mounted && !_suspended && widget.repository.isActive;
   bool get _editable =>
@@ -53,6 +57,7 @@ class _TransferConsentScreenState extends State<TransferConsentScreen>
     _listing = null;
     _record = null;
     _approved = false;
+    _keepPhotoTags = false;
     _withdraw = false;
     _pendingAction = null;
     _pendingPayload = null;
@@ -155,6 +160,10 @@ class _TransferConsentScreenState extends State<TransferConsentScreen>
           'fingerprint': record.fingerprint,
           'version': record.consentVersion,
           'confirmation': true,
+          if (_keepPhotoTags && record.galleryChoice?.canKeep == true) ...{
+            'keep_photo_tags': true,
+            'gallery_fingerprint': record.galleryChoice!.fingerprint,
+          },
         },
       });
     }
@@ -329,6 +338,20 @@ class _TransferConsentScreenState extends State<TransferConsentScreen>
           label: const AcademicText('Download signed transfer archive'),
         ),
       if (r.canConsent) ...[
+        if (r.galleryChoice?.canKeep == true)
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const AcademicText(
+              'Keep approved photo tags for this learner',
+            ),
+            subtitle: const AcademicText(
+              'Keep these photos in private family history. A receiving NavigateEd school gets a private family copy. This choice is optional.',
+            ),
+            value: _keepPhotoTags,
+            onChanged: _editable
+                ? (value) => setState(() => _keepPhotoTags = value == true)
+                : null,
+          ),
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
           title: const AcademicText(

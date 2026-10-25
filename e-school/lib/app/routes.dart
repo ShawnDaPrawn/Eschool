@@ -153,6 +153,7 @@ class Routes {
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
   static const String reportConcern = '/report-concern';
+  static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
   static const String schoolTransfers = '/academics/transfers';
   static const String activityGroups = '/activities/groups';
@@ -378,6 +379,8 @@ class Routes {
         return academicAttendanceRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case privateGallery:
+        return familyPrivateGalleryRoute();
       case recognition:
         return familyRecognitionRoute();
       case schoolTransfers:

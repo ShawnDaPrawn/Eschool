@@ -16,6 +16,10 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.liveUpdates,
+
+    this.gallery,
+
     this.dailyPractice,
 
     this.consultations,
@@ -40,6 +44,14 @@ class FacilitatorFeatures {
 
     this.learnerNotes,
   });
+
+  /// Optional fresh live-session capability, emitted only when the live transport is implemented and authorized.
+  @JsonKey(name: r'live_updates', required: false, includeIfNull: false)
+  final bool? liveUpdates;
+
+  /// Optional current gallery group capability. Every group, file and tag requires fresh source authority.
+  @JsonKey(name: r'gallery', required: false, includeIfNull: false)
+  final bool? gallery;
 
   /// Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized again.
   @JsonKey(name: r'daily_practice', required: false, includeIfNull: false)
@@ -90,6 +102,8 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.liveUpdates == liveUpdates &&
+          other.gallery == gallery &&
           other.dailyPractice == dailyPractice &&
           other.consultations == consultations &&
           other.privateNotices == privateNotices &&
@@ -105,6 +119,8 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      liveUpdates.hashCode +
+      gallery.hashCode +
       dailyPractice.hashCode +
       consultations.hashCode +
       privateNotices.hashCode +

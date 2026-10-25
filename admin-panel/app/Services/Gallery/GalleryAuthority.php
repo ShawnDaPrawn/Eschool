@@ -105,6 +105,16 @@ class GalleryAuthority
         $fresh = $this->actor($actor, $write);
         $a = app(CommunityAuthority::class);
         $group = $write ? $a->groupStaff($fresh, $id, true) : $a->read($fresh, $id);
+        if (! $write && ! $a->canStaff($fresh, $id)) {
+            $owned = false;
+            foreach (app(GalleryQueries::class)->children($fresh) as $child) {
+                if (! $child['archived'] && in_array($id, $this->eligibleGroups($child['id']), true)) {
+                    $owned = true;
+                    break;
+                }
+            }
+            abort_unless($owned, 404);
+        }
         foreach ($a->lineage($group) as $ancestor) {
             abort_unless(ActivityGroup::whereKey($ancestor)->where('active', true)->exists(), 404);
         }

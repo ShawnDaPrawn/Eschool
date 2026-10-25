@@ -1029,3 +1029,78 @@ class StaffRecognitionEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> staffPrivateGalleryRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !(me.isModuleOn('gallery') && allowsSchoolModule(me, 'gallery')) ||
+        !me.roles.any((role) => !['Parent', 'Student'].contains(role)) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Private photos'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: GallerySessionBoundary(
+        pinned: me,
+        builder: (active) => PrivateGalleryScreen(
+          repository: ApiPrivateGalleryRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class StaffPrivateGalleryEntry extends StatelessWidget {
+  const StaffPrivateGalleryEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state.context?.isModuleOn('gallery') != true ||
+              !allowsSchoolModule(state.context, 'gallery'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Private photos'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.privateGallery),
+            ),
+          );
+        },
+      );
+}
