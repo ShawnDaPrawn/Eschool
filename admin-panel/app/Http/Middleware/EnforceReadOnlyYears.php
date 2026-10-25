@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Services\Panel\SessionYearContext;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -76,7 +77,24 @@ class EnforceReadOnlyYears
         ]);
 
         if ($request->expectsJson() || $request->ajax()) {
-            return response()->json(['error' => true, 'message' => $message, 'code' => Response::HTTP_LOCKED], Response::HTTP_LOCKED);
+            return response()->json(['error' => true, 'message' => $message, 'code' => Response::HTTP_LOCKED], Response::HTTP_LOCKED)->header('Cache-Control', 'no-store, private');
+        }
+
+        foreach (config('panel_private_forms', []) as $form) {
+            if (! $request->is(...$form['paths'])) {
+                continue;
+            }
+            $draft = [];
+            foreach ($form['fields'] as $field => $definition) {
+                $value = $request->input($field);
+                if (is_string($value) && $value !== '') {
+                    $draft[] = ['label' => $definition['label'], 'value' => mb_substr($value, 0, $definition['limit'])];
+                }
+            }
+            $title = $form['title'];
+            $returnUrl = Route::has($form['route']) ? route($form['route']) : route('home');
+
+            return response()->view('errors.private-year-refusal', compact('message', 'draft', 'title', 'returnUrl'), Response::HTTP_LOCKED)->header('Cache-Control', 'no-store, private');
         }
 
         return redirect()->back()->withErrors(['read_only_year' => $message])->withInput();

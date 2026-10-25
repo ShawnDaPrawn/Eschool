@@ -185,3 +185,20 @@ or production/staging qualification is inferred from unit/widget tests. The
 facilitator identity still deliberately stops before teacher startup until its
 separate scoped sign-in and restricted shell are implemented. Authored group
 Markdown is available; private binary materials remain separate follow-up work.
+### Panel session/year review correction, 25 October 2026
+
+The regression first returned a redirect after an unauthorized historical
+attendance correction through a forged current-group URL. Session/group binding
+now returns 404; the matching historical-group URL returns 423. The existing
+attendance, session revision and operation-receipt count remain unchanged.
+Focused real-MySQL panel check: 1 test / 5 assertions passed.
+
+
+### Large operation receipt review correction, 25 October 2026
+
+A real MySQL regression with 40 learners and a 2,000-character attendance reason
+reproduced silent truncation to exactly 65,535 bytes under the configured SQL mode.
+Initial and forward migrations now use LONGTEXT. The regression passes after
+simulating an existing TEXT installation and applying the upgrade: complete
+ciphertext, exact decrypted retry, 40 rows, one receipt, one session revision
+advance, and refusal to narrow oversized retained history (1 test / 7 assertions).

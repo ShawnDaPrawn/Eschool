@@ -14,10 +14,11 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
-        required: true
+        required: false
         schema:
           type: integer
           minimum: 1
@@ -72,6 +73,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: session_year_id
         in: query
@@ -124,6 +126,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       responses:
         '200':
@@ -164,6 +167,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: absence
         in: path
@@ -204,6 +208,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: absence
         in: path
@@ -250,6 +255,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: absence
         in: path
@@ -296,6 +302,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: occurrence
         in: path
@@ -336,6 +343,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: occurrence
         in: path
@@ -376,6 +384,7 @@ paths:
         Source changes require explicit review and refresh. Read windows are limited to 31 days. No permanent
         teaching or marks access is granted.
       parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
       - name: occurrence
         in: path

@@ -13,6 +13,7 @@ use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class CoverAuthority
 {
@@ -28,6 +29,17 @@ class CoverAuthority
         abort_unless($write ? $gate->writable('relief_cover') : $gate->allows('relief_cover'), 403);
 
         return $fresh;
+    }
+
+    public function available(User $actor, int $year): bool
+    {
+        try {
+            $fresh = $this->actor($actor);
+
+            return $this->manages($fresh, $year) || Teacher::where('user_id', $fresh->id)->get()->contains(fn ($teacher) => $this->own($fresh, (int) $teacher->id));
+        } catch (HttpExceptionInterface) {
+            return false;
+        }
     }
 
     public function manages(User $actor, int $year): bool

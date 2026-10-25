@@ -6,6 +6,7 @@ namespace App\Services\Panel;
 
 use App\Models\User;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Pastoral\CoverAuthority;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\Route;
 
@@ -120,6 +121,9 @@ class Navigation
             return false;
         }
         if (($item['communication_author'] ?? false) && ! app(CommunicationRules::class)->authorAvailable($user)) {
+            return false;
+        }
+        if (($item['cover_actor'] ?? false) && ! app(CoverAuthority::class)->available($user, (int) schoolSetting('session_year'))) {
             return false;
         }
         $permissions = $item['permissions'] ?? [];

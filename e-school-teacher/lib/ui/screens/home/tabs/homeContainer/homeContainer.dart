@@ -38,6 +38,17 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('relief_cover') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'relief_cover',
+        ))
+      MenuContainerDetails(
+        route: Routes.reliefCover,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Relief cover',
+      ),
     if (allowsSchoolModule(context.watch<MeContextCubit>().context, 'groups'))
       MenuContainerDetails(
         route: Routes.activityGroups,

@@ -335,6 +335,7 @@ return [
                 'absence' => [
                     'label' => 'nav_group_absence',
                     'items' => [
+                        ['key' => 'relief-cover', 'label' => 'Relief cover', 'route' => 'relief-cover.index', 'permissions' => [], 'cover_actor' => true, 'module' => 'relief_cover', 'active' => ['relief-cover.*'], 'keywords' => ['substitute', 'teacher absence', 'cover lessons']],
                         ['key' => 'learner-leave', 'label' => 'nav_learner_leave', 'route' => 'student-leave-request.index', 'permissions' => ['student-leave-approve'], 'module' => null,
                             'keywords' => ['absence notes', 'sick note', 'student leave', 'leave requests']],
                     ],
