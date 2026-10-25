@@ -18026,12 +18026,6 @@ components:
       - status
       - revision
       properties:
-        activity_group_id:
-          type:
-          - integer
-          - 'null'
-          minimum: 1
-          description: Explicit group for this category and school year; omitted or null uses the original category group only within its own year.
         id:
           type: integer
           minimum: 1
