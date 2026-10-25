@@ -437,6 +437,30 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['discipline'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.assignment_ind_outlined),
+                title: Text(l('School discipline')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'discipline',
+                  SchoolDisciplineScreen(
+                    repository: ApiDisciplineRepository(
+                      repository.client,
+                      schoolId: school,
+                      readerId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['discipline'] == true,
+                    ),
+                    canRead: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['discipline'] == true,
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['risk_interventions'] == true)
             Card(
               child: ListTile(
@@ -572,6 +596,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'discipline',
             'groups',
             'messages',
             'support_plans',

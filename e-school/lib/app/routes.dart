@@ -150,6 +150,7 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
   static const String reportConcern = '/report-concern';
   static const String recognition = '/community/recognition';
@@ -173,6 +174,7 @@ class Routes {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
       schoolTransfers => 'school_transfers',
+      familyDiscipline => 'discipline',
       familyProgress => 'academics',
       reportConcern => 'wellbeing',
       mastery => 'mastery',
@@ -381,6 +383,8 @@ class Routes {
       case schoolTransfers:
         return schoolTransfersRoute();
 
+      case familyDiscipline:
+        return familyDisciplineRoute();
       case familyProgress:
         return familyProgressRoute();
       case reportConcern:

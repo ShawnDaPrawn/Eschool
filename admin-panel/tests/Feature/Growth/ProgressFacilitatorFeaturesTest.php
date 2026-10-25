@@ -71,4 +71,20 @@ class ProgressFacilitatorFeaturesTest extends TestCase
             $this->assertStringNotContainsString('from `support_plan_versions`', $sql);
         }
     }
+
+    public function test_discipline_entry_needs_fresh_classroom_or_leadership_rights_and_module(): void
+    {
+        $this->actor->syncRoles([SchoolRoles::TEACHER]);
+        SchoolModule::updateOrCreate(['module' => 'discipline'], ['enabled' => false, 'in_package' => true]);
+        $this->assertFalse($this->features()['discipline']);
+        SchoolModule::where('module', 'discipline')->update(['enabled' => true, 'read_only' => false]);
+        $this->assertTrue($this->features()['discipline']);
+        SchoolModule::where('module', 'discipline')->update(['read_only' => true]);
+        $this->assertTrue($this->features()['discipline'], 'Read-only modules still expose authorized saved readers.');
+        $this->actor->syncRoles([SchoolRoles::COUNSELLOR]);
+        $this->assertFalse($this->features()['discipline'], 'A retained Teacher model cannot keep the classroom queue entry.');
+        $this->actor->syncRoles([SchoolRoles::TEACHER]);
+        PlatformStaffIdentity::create(['user_id' => $this->actor->id]);
+        $this->assertFalse($this->features()['discipline']);
+    }
 }

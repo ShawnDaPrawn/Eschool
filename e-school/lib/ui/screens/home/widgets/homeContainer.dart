@@ -363,6 +363,7 @@ class _HomeContainerState extends State<HomeContainer> {
                     const AcademicTodayAttendance(),
                     const AcademicReportsEntry(),
                     const SchoolMessagesEntry(),
+                    const FamilyDisciplineEntry(),
                     const FamilyProgressEntry(),
                     const FamilyRecognitionEntry(),
                     const ReportConcernEntry(),

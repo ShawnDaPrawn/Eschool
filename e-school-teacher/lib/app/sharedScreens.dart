@@ -109,6 +109,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (allowsSchoolModule(
+      context.watch<MeContextCubit>().context,
+      'discipline',
+    ))
+      tile(
+        title: label('School discipline'),
+        icon: Icons.fact_check_outlined,
+        onTap: () => open(Routes.schoolDiscipline),
+      ),
     if (context.watch<MeContextCubit>().context?.isModuleOn('early_warning') ==
             true &&
         allowsSchoolModule(
@@ -874,6 +883,63 @@ Route<dynamic> riskInterventionsRoute() => AdaptivePageRoute(
                 (schools.state.selectedId == null ||
                     schools.state.selectedId == school) &&
                 allowsSchoolModule(session.context, 'early_warning'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> schoolDisciplineRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'discipline')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'School discipline'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: DisciplineSessionBoundary(
+        pinned: me,
+        child: SchoolDisciplineScreen(
+          canRead: () =>
+              disciplineAccessStillCurrent(me, session.context) &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+          repository: ApiDisciplineRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                disciplineAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                allowsSchoolModule(session.context, 'discipline'),
           ),
         ),
       ),

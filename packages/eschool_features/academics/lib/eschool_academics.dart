@@ -80,6 +80,10 @@ export 'src/wellbeing/reporting_repository.dart';
 export 'src/wellbeing/reporting_screen.dart';
 export 'src/wellbeing/reporting_session_boundary.dart';
 
+export 'src/discipline/discipline_repository.dart';
+export 'src/discipline/discipline_screen.dart';
+export 'src/discipline/family_discipline_screen.dart';
+export 'src/discipline/discipline_session_boundary.dart';
 export 'src/recognition/recognition_repository.dart';
 export 'src/recognition/recognition_screen.dart';
 export 'src/recognition/recognition_session_boundary.dart';

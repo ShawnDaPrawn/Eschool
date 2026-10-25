@@ -352,6 +352,13 @@ jobs:
           - app: e-school-teacher
             flow: teacher_notes_smoke_test.dart
           - app: e-school-teacher
+            flow: teacher_discipline_smoke_test.dart
+          - app: e-school
+            flow: family_discipline_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_discipline_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
             flow: teacher_risk_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_wellbeing_smoke_test.dart
