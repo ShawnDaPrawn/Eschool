@@ -6,6 +6,15 @@ namespace App\Services\Recognition;
 
 final class RecognitionRules
 {
+    public static function normalise(array $input, string $operation): array
+    {
+        return $input + match ($operation) {
+            'membership' => ['ends_on' => null],
+            'awardCategory' => ['parent_id' => null, 'grade_level_id' => null, 'subject_id' => null, 'activity_group_id' => null],
+            default => [],
+        };
+    }
+
     public static function for(string $operation, bool $existing = false): array
     {
         return match ($operation) {

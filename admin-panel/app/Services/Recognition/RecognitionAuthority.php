@@ -72,7 +72,7 @@ class RecognitionAuthority
     {
         $year = SessionYear::findOrFail((int) schoolSetting('session_year'));
         abort_unless(($id === null || $id === (int) $year->id) && $year->start_date !== null && $year->end_date !== null
-            && substr((string) $year->start_date, 0, 10) <= $this->today() && substr((string) $year->end_date, 0, 10) >= $this->today(), 423, 'New recognition entries use the current school year.');
+            && substr((string) $year->start_date, 0, 10) <= $this->today() && substr((string) $year->end_date, 0, 10) >= $this->today(), 409, 'New recognition entries use the current school year.');
 
         return $year;
     }
