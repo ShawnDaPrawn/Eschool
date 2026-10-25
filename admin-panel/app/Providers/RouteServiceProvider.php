@@ -56,6 +56,13 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('wellbeing-public', fn (Request $request) => Limit::perMinute(120)->by('wellbeing-public:'.$wellbeingKey($request)));
         RateLimiter::for('wellbeing-submit', fn (Request $request) => Limit::perMinute(30)->by('wellbeing-submit:'.$wellbeingKey($request)));
 
+        $admissionsKey = fn (Request $request) => hash_hmac('sha256', (string) $request->route('schoolSlug').':'.$request->ip(), (string) config('app.key'));
+        RateLimiter::for('admissions-public', fn (Request $request) => Limit::perMinute(120)->by('admissions-public:'.$admissionsKey($request)));
+        RateLimiter::for('admissions-create', fn (Request $request) => Limit::perMinute(10)->by('admissions-create:'.$admissionsKey($request)));
+        RateLimiter::for('admissions-resume', fn (Request $request) => Limit::perMinute(10)->by('admissions-resume:'.$admissionsKey($request)));
+        RateLimiter::for('admissions-exchange', fn (Request $request) => Limit::perMinute(20)->by('admissions-exchange:'.$admissionsKey($request)));
+        RateLimiter::for('admissions-upload', fn (Request $request) => Limit::perMinute(20)->by('admissions-upload:'.$admissionsKey($request)));
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

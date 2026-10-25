@@ -39,6 +39,7 @@ use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
@@ -80,6 +81,7 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\EnforceReadOnlyYears;
@@ -286,6 +288,19 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('packages/{package}/'.$action, [$c, 'write'])->whereNumber('package')->name($action);
             }
         });
+        Route::prefix('admissions')->name('admissions-panel.')->middleware([AuthorizeIntake::class])->group(function () {
+            $c = IntakePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('/new', [$c, 'configuration'])->name('new');
+            Route::get('/intakes/{intake}/edit', [$c, 'configuration'])->whereNumber('intake')->name('edit');
+            Route::post('/intakes/new', [$c, 'configure'])->defaults('operation', 'configure')->name('create');
+            Route::post('/intakes/{intake}', [$c, 'configure'])->whereNumber('intake')->defaults('operation', 'configure')->name('configure');
+            Route::post('/bulk/{operation}', [$c, 'write'])->whereIn('operation', ['offers', 'bulk-enrol'])->name('bulk');
+            Route::get('/applications/{application}', [$c, 'detail'])->whereNumber('application')->name('detail');
+            Route::post('/applications/{application}/{operation}', [$c, 'write'])->whereNumber('application')->whereIn('operation', ['review', 'fee', 'enrol'])->name('write');
+            Route::get('/applications/{application}/documents/{handle}', [$c, 'document'])->whereNumber('application')->whereUuid('handle')->name('document');
+        });
+
         Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'awards'])->name('recognition.')->middleware([AuthorizeRecognition::class])->group(function () {
             $c = RecognitionPanelController::class;
             Route::get('/', [$c, 'index'])->name('index');

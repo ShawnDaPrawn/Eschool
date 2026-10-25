@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Panel;
 
 use App\Models\User;
+use App\Services\Admissions\IntakeAuthority;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\Growth\ProgressQueries;
@@ -156,6 +157,13 @@ class Navigation
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
             return false;
+        }
+        if ($item['intake_actor'] ?? false) {
+            try {
+                app(IntakeAuthority::class)->staff($user);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
         }
         if (isset($item['recognition_module'])) {
             try {

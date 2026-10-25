@@ -89,3 +89,6 @@ Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-co
 
 // Refresh current-day evidence even when no source event arrives.
 Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);
+
+Schedule::command('admissions:maintain')->everyMinute()->name('admissions-offer-recovery')->withoutOverlapping();
+Schedule::command('admissions:maintain --retention')->dailyAt('03:10')->name('admissions-private-retention')->withoutOverlapping();
