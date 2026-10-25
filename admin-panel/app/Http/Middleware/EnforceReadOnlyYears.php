@@ -6,10 +6,13 @@ namespace App\Http\Middleware;
 
 use App\Services\Panel\SessionYearContext;
 use Closure;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 /**
  * Past (and not yet current) school years are read-only in the admin panel.
@@ -83,6 +86,16 @@ class EnforceReadOnlyYears
         foreach (config('panel_private_forms', []) as $form) {
             if (! $request->is(...$form['paths'])) {
                 continue;
+            }
+            if (isset($form['guard'])) {
+                try {
+                    app($form['guard'])->authorize($request);
+                } catch (HttpExceptionInterface|ModelNotFoundException $error) {
+                    $response = app(ExceptionHandler::class)->render($request, $error);
+                    $response->headers->set('Cache-Control', 'no-store, private');
+
+                    return $response;
+                }
             }
             $draft = [];
             foreach ($form['fields'] as $field => $definition) {

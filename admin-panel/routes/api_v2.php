@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
+use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -36,6 +37,7 @@ use App\Http\Middleware\AuthorizeMastery;
 use App\Http\Middleware\AuthorizeRegister;
 use App\Http\Middleware\AuthorizeReport;
 use App\Http\Middleware\AuthorizeSubjectStandard;
+use App\Http\Middleware\AuthorizeSupport;
 use App\Http\Middleware\AuthorizeTeachingGroup;
 use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
@@ -354,4 +356,23 @@ Route::prefix('pastoral/cover')->middleware(['auth:sanctum', 'school.context', '
     Route::get('occurrences/{occurrence}', [$c, 'occurrence'])->whereNumber('occurrence')->middleware($a.':occurrence')->name('occurrence');
     Route::get('occurrences/{occurrence}/candidates', [$c, 'candidates'])->whereNumber('occurrence')->middleware($a.':candidates')->name('candidates');
     Route::put('occurrences/{occurrence}/assignment', [$c, 'assign'])->whereNumber('occurrence')->middleware($a.':assign')->name('assign');
+});
+
+Route::prefix('pastoral/support')->middleware(['auth:sanctum', 'school.context', 'staff', 'module:support_plans'])->name('api.v2.support.')->group(function () {
+    $c = SupportController::class;
+    $a = AuthorizeSupport::class;
+    $routes = [
+        ['get', 'access', 'access', 'access'], ['get', 'configuration/{audience}', 'configuration', 'configuration'],
+        ['get', 'cases', 'cases', 'cases'], ['get', 'plans/{plan}', 'plan', 'plan'],
+        ['get', 'plans/{plan}/reviews', 'reviews', 'reviews'], ['get', 'plans/{plan}/versions', 'versions', 'versions'],
+        ['get', 'plans/{plan}/disclosures', 'disclosures', 'disclosures'],
+        ['get', 'assignments', 'assignments', 'assignments'], ['get', 'teacher', 'teacher', 'teacher'], ['get', 'teacher/{disclosure}', 'disclosure', 'disclosure'],
+        ['post', 'assignments', 'assign', 'assign'], ['post', 'plans', 'create', 'create'], ['put', 'plans/{plan}', 'save', 'save'],
+        ['post', 'plans/{plan}/reviews', 'review', 'review'], ['post', 'plans/{plan}/close', 'close', 'close'],
+        ['post', 'plans/{plan}/disclosures', 'disclose', 'disclose'], ['post', 'assignments/{assignment}/revoke', 'revokeAssignment', 'revoke-assignment'],
+        ['post', 'disclosures/{disclosure}/revoke', 'revokeDisclosure', 'revoke-disclosure'],
+    ];
+    foreach ($routes as [$verb, $path, $method, $name]) {
+        Route::$verb($path, [$c, $method])->where(['audience' => 'principal|professional', 'plan' => '[0-9]+', 'assignment' => '[0-9]+', 'disclosure' => '[0-9]+'])->middleware($a.':'.$name)->name($name);
+    }
 });
