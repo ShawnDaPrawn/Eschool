@@ -29,6 +29,10 @@ class SupportPanelScope
             $a->principal($actor, true);
         } else {
             $a->professional($actor, true);
+            $learner = $request->input('learner_id');
+            if ($operation === 'create' && (is_int($learner) || (is_string($learner) && ctype_digit($learner))) && (int) $learner > 0) {
+                $a->caseload($actor, (int) $learner, true);
+            }
             if ($request->route('plan') !== null) {
                 $a->plan($actor, (int) $request->route('plan'), true);
             }
