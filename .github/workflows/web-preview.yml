@@ -1,0 +1,274 @@
+name: Web app preview
+
+# Puts the learner and parent app and the teacher app on Firebase Hosting
+# preview channels of their portal sites (navigateed-app, navigateed-teach), so
+# they can be opened on a phone and added to its home screen (installed as a
+# PWA) before any store or production release. Each is the same `flutter build
+# web` the deploy workflow makes, in bearer mode: a preview's *.web.app address
+# never shares a site with the API, so the session cookie cannot work there.
+# The sites' live channels (the portals) are never changed here; that stays
+# with deploy-environment.yml after the production approval.
+#
+# A manual run deploys to the "preview" channel, whose address stays the same
+# from run to run, so a home-screen install keeps working after a new run. A
+# pull request that changes this workflow deploys to its own "pr-<number>"
+# channel for a week. After deploying, each job asks the server whether it
+# answers a browser on the preview's address (CORS) and whether it runs API v2,
+# and writes the address, the answers and how to install into the job summary.
+# Building and Releasing Apps in the wiki explains the rest.
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: 'Server the preview talks to (https, no path). Empty: the PREVIEW_API_BASE_URL variable, else the production address in config/production.json'
+        required: false
+        type: string
+      expires:
+        description: 'How long the preview stays up'
+        type: choice
+        options: [30d, 14d, 7d]
+        default: 30d
+  pull_request:
+    paths:
+      - '.github/workflows/web-preview.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-preview-${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Preview (${{ matrix.app }})
+    # Pull requests from forks get no secrets.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: e-school
+            flavor: learner
+            target: app
+            site: navigateed-app
+            name: NavigateEd (preview)
+            short_name: NE preview
+          - app: e-school-teacher
+            flavor: teacher
+            target: teach
+            site: navigateed-teach
+            name: NavigateEd Teacher (preview)
+            short_name: NE T preview
+    env:
+      PROJECT: navigateed-d8c06
+      APP: ${{ matrix.app }}
+      TARGET: ${{ matrix.target }}
+      SITE: ${{ matrix.site }}
+      CHANNEL: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'preview' }}
+      EXPIRES: ${{ github.event_name == 'pull_request' && '7d' || inputs.expires }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Choose the server
+        id: server
+        env:
+          INPUT_URL: ${{ inputs.api_base_url }}
+          VARIABLE_URL: ${{ vars.PREVIEW_API_BASE_URL }}
+        run: |
+          api="${INPUT_URL:-${VARIABLE_URL:-$(jq -r .API_BASE_URL "$APP/config/production.json")}}"
+          api="${api%/}"
+          pattern='^https://[A-Za-z0-9.-]+(:[0-9]+)?$'
+          if ! [[ "$api" =~ $pattern ]]; then
+            echo "::error::The server address must be https://<host> with no path, got \"$api\"."
+            exit 1
+          fi
+          host="${api#https://}"
+          environment=production
+          case "$host" in staging-*) environment=staging ;; esac
+          { echo "api=$api"; echo "environment=$environment"; } >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+
+      - name: Build the web app
+        working-directory: ${{ matrix.app }}
+        env:
+          API_BASE_URL: ${{ steps.server.outputs.api }}
+          ENVIRONMENT: ${{ steps.server.outputs.environment }}
+          FLAVOR: ${{ matrix.flavor }}
+          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter build web --release \
+            --dart-define=API_BASE_URL="$API_BASE_URL" \
+            --dart-define=ENV="$ENVIRONMENT" \
+            --dart-define=FLAVOR="$FLAVOR" \
+            --dart-define=WEB_AUTH_MODE=bearer
+          printf '%s\n' "$SOURCE_COMMIT" > build/web/source-commit.txt
+
+      # A home screen then shows the preview apart from the real portal and
+      # the store apps, and search engines are asked not to list it.
+      - name: Name the build as a preview
+        working-directory: ${{ matrix.app }}/build/web
+        env:
+          NAME: ${{ matrix.name }}
+          SHORT_NAME: ${{ matrix.short_name }}
+        run: |
+          jq --arg name "$NAME" --arg short "$SHORT_NAME" '.name = $name | .short_name = $short' manifest.json > manifest.json.tmp
+          mv manifest.json.tmp manifest.json
+          sed -i -E \
+            -e "s#<title>[^<]*</title>#<title>$NAME</title>#" \
+            -e "s#(name=\"apple-mobile-web-app-title\" content=\")[^\"]*#\1$SHORT_NAME#" \
+            -e "s#</head>#  <meta name=\"robots\" content=\"noindex\">\n</head>#" \
+            index.html
+          grep -qF "<title>$NAME</title>" index.html
+          grep -qF "content=\"$SHORT_NAME\"" index.html
+          grep -qF 'content="noindex"' index.html
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      # The documentation workflow's credential: a service account of
+      # navigateed-d8c06 that may deploy Firebase Hosting.
+      - name: Sign in to Firebase
+        env:
+          CREDENTIAL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
+        run: |
+          if [ -z "${CREDENTIAL// }" ]; then
+            echo "::error::The repository Actions secret FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 is missing or empty. It is the same secret the documentation workflow uses."
+            exit 1
+          fi
+          file="$RUNNER_TEMP/firebase-credential.json"
+          (umask 077 && printf '%s' "$CREDENTIAL" > "$file")
+          if ! jq -e '.type == "service_account" and .project_id == env.PROJECT' "$file" > /dev/null 2>&1; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 must be the whole service account JSON file of $PROJECT."
+            exit 1
+          fi
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$file" >> "$GITHUB_ENV"
+          npm install --global --no-audit --no-fund firebase-tools@15.32.1
+
+      # The portal sites are planned in engineering/runbooks/environments.md,
+      # step 3. Creating one changes nothing that is served: its live address
+      # stays empty until a production deploy.
+      - name: Make sure the portal site exists
+        run: |
+          if firebase hosting:sites:get "$SITE" --project "$PROJECT" > /dev/null 2>&1; then
+            echo "Firebase Hosting site $SITE exists."
+          elif firebase hosting:sites:create "$SITE" --project "$PROJECT" --non-interactive; then
+            echo "::notice::Created the Firebase Hosting site $SITE in $PROJECT (environments.md, step 3). Its live address stays empty until a production deploy."
+          else
+            echo "::error::Firebase Hosting site $SITE is not in $PROJECT and could not be created (its id may be taken, or the service account may not create sites). Create it once in the Firebase console (Hosting > Add another site) or with: firebase hosting:sites:create $SITE --project $PROJECT"
+            exit 1
+          fi
+
+      - name: Deploy to the preview channel
+        id: deploy
+        run: |
+          result="$RUNNER_TEMP/channel-deploy.json"
+          if ! firebase hosting:channel:deploy "$CHANNEL" --only "$TARGET" --expires "$EXPIRES" \
+            --project "$PROJECT" --non-interactive --json > "$result"; then
+            echo "::error::The channel deploy failed:"
+            cat "$result"
+            exit 1
+          fi
+          url="$(jq -r 'select(.status == "success") | [.result[] | .url] | first // empty' "$result")"
+          expires="$(jq -r 'select(.status == "success") | [.result[] | .expireTime] | first // empty' "$result")"
+          if [ -z "$url" ]; then
+            echo "::error::The channel deploy did not report an address:"
+            cat "$result"
+            exit 1
+          fi
+          { echo "url=$url"; echo "expires=$expires"; } >> "$GITHUB_OUTPUT"
+
+      # What the browser asks before a signed-in request (a CORS preflight from
+      # the preview's origin), and whether the server knows API v2's context
+      # route (401 when signed out; 404 on code from before Phase 0).
+      - name: Check the server answers this preview
+        id: check
+        env:
+          API: ${{ steps.server.outputs.api }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          origin="$(printf '%s' "$URL" | sed -E 's#^(https://[^/]+).*#\1#')"
+          headers="$RUNNER_TEMP/preflight-headers.txt"
+          : > "$headers"
+          preflight="$(curl -sS -o /dev/null -D "$headers" -w '%{http_code}' --max-time 30 -X OPTIONS "$API/api/settings" \
+            -H "Origin: $origin" \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: authorization,content-type')" || preflight=000
+          allowed="$(tr -d '\r' < "$headers" | awk 'tolower($0) ~ /^access-control-allow-origin:/ { sub(/^[^:]*:[ \t]*/, ""); value = $0 } END { print value }')"
+          context="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 -H 'Accept: application/json' "$API/api/v2/me/context")" || context=000
+          if [ "$preflight" = 000 ]; then
+            cors=unreachable
+          elif [ "$allowed" = "$origin" ] || [ "$allowed" = '*' ]; then
+            cors=yes
+          else
+            cors=no
+          fi
+          case "$context" in
+            401) v2=yes ;;
+            404) v2=no ;;
+            000) v2=unreachable ;;
+            *) v2="unexpected ($context)" ;;
+          esac
+          if [ "$cors" = unreachable ]; then
+            echo "::warning::$SITE: $API did not answer. The preview cannot sign in until the server is reachable."
+          elif [ "$cors" = no ]; then
+            echo "::warning::$SITE: $API does not allow browsers on $origin (CORS). Sign-in in the preview will fail until it does."
+          fi
+          case "$v2" in
+            yes | unreachable) ;;
+            *) echo "::warning::$SITE: $API answered $context for /api/v2/me/context. It does not run this repository's current code." ;;
+          esac
+          { echo "origin=$origin"; echo "cors=$cors"; echo "v2=$v2"; } >> "$GITHUB_OUTPUT"
+
+      - name: Write the summary
+        env:
+          NAME: ${{ matrix.name }}
+          API: ${{ steps.server.outputs.api }}
+          ENVIRONMENT: ${{ steps.server.outputs.environment }}
+          URL: ${{ steps.deploy.outputs.url }}
+          EXPIRES_AT: ${{ steps.deploy.outputs.expires }}
+          ORIGIN: ${{ steps.check.outputs.origin }}
+          CORS: ${{ steps.check.outputs.cors }}
+          V2: ${{ steps.check.outputs.v2 }}
+        run: |
+          expiry="for $EXPIRES"
+          [ -z "$EXPIRES_AT" ] || expiry="until $EXPIRES_AT"
+          prefix=
+          case "$ENVIRONMENT" in staging) prefix=staging- ;; esac
+          {
+            printf '## %s\n\n' "$NAME"
+            printf '**Open:** %s  \n' "$URL"
+            printf 'Channel `%s` on site `%s`, %s. Server: %s\n\n' "$CHANNEL" "$SITE" "$expiry" "$API"
+            printf '| Check | Answer |\n| --- | --- |\n'
+            printf '| The server lets a browser on this address call it (CORS) | %s |\n' "$CORS"
+            printf '| The server runs API v2 (current code) | %s |\n\n' "$V2"
+            if [ "$CORS" = unreachable ]; then
+              printf 'Sign-in will fail: the server did not answer. Check the address, or deploy the server first (engineering/runbooks/environments.md).\n\n'
+            elif [ "$CORS" != yes ]; then
+              printf 'Sign-in will fail: the server refuses browsers on `%s`. On a server running this repository, set `CORS_ALLOWED_ORIGINS` in `infra/gcp/env/%s.env` to the portal addresses (`https://%sapp.navigateed.co.za,https://%steach.navigateed.co.za`), this address and the other app'"'"'s preview address, then re-run `infra/gcp/provision.sh` (engineering/runbooks/environments.md).\n\n' "$ORIGIN" "$ENVIRONMENT" "$prefix" "$prefix"
+            fi
+            if [ "$V2" != yes ] && [ "$V2" != unreachable ]; then
+              printf 'The server does not run the current code, so screens that use API v2 will fail. Deploy it first (engineering/runbooks/environments.md), then run this workflow again.\n\n'
+            fi
+            printf '**Install on a phone:** Android, in Chrome: menu, then *Add to Home screen* or *Install app*. iPhone, in Safari: Share, then *Add to Home Screen*.\n\n'
+            printf 'This is the browser build of the app: there are no push notifications, and attaching files and paying fees ask for the phone app. '
+            if [ "$ENVIRONMENT" = production ]; then
+              printf 'It uses the **production** server: sign in with test accounts only and do not change real school data.\n'
+            else
+              printf 'It uses the %s server.\n' "$ENVIRONMENT"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the credential
+        if: always()
+        run: rm -f "$RUNNER_TEMP/firebase-credential.json"
