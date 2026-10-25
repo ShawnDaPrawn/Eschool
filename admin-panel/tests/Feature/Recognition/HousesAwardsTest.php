@@ -568,6 +568,6 @@ class HousesAwardsTest extends TestCase
         $this->assertSame(3, AwardNominationVersion::count());
         app(AwardPresentations::class)->void($this->head, (int) $p->id, $this->op(['revision' => 1, 'reason' => 'Correcting certificate']));
         $replacement = $n->nominate($this->head, $this->nomination());
-        $this->assertNotSame($row->id,$replacement->id);
+        $this->assertNotSame($row->id, $replacement->id);
     }
 }

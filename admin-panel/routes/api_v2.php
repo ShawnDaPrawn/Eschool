@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
+use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
@@ -466,6 +467,29 @@ Route::prefix('transfers')->middleware(['auth:sanctum', 'school.context', 'role.
     Route::get('{lane}/{record}/archive', [$c, 'archive'])->whereIn('lane', ['outgoing', 'incoming', 'consents', 'receipts'])->whereNumber('record')->name('archive');
 });
 
+// Private encrypted receipts are feature-owned; no global plaintext replay cache.
+Route::prefix('discipline')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'module:discipline'])->name('api.v2.discipline.')->group(function () {
+    $controller = DisciplineController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('framework', [$controller, 'framework'])->name('framework');
+    Route::post('framework', [$controller, 'configure'])->name('configure');
+    Route::get('learners', [$controller, 'learners'])->name('learners');
+    Route::get('records', [$controller, 'records'])->name('records');
+    Route::get('records/{record}', [$controller, 'detail'])->whereNumber('record')->name('detail');
+    Route::get('records/{record}/history', [$controller, 'history'])->whereNumber('record')->name('history');
+    Route::post('learners/{learner}/records', [$controller, 'create'])->whereNumber('learner')->name('create');
+    Route::post('records/{record}/review', [$controller, 'review'])->whereNumber('record')->name('review');
+    Route::post('records/{record}/hearing', [$controller, 'hearing'])->whereNumber('record')->name('hearing');
+    Route::get('family/learners/{learner}', [$controller, 'family'])->whereNumber('learner')->name('family');
+    Route::post('family/records/{record}/acknowledge', [$controller, 'acknowledge'])->whereNumber('record')->name('acknowledge');
+    Route::get('detentions', [$controller, 'detentions'])->name('detentions');
+    Route::get('supervisors', [$controller, 'supervisors'])->name('supervisors');
+    Route::post('detentions', [$controller, 'detentionCreate'])->name('detention_create');
+    Route::get('detentions/{detention}', [$controller, 'detentionDetail'])->whereNumber('detention')->name('detention_detail');
+    Route::post('detentions/{detention}/entries', [$controller, 'enroll'])->whereNumber('detention')->name('enroll');
+    Route::post('detentions/{detention}/entries/{entry}/attendance', [$controller, 'attendance'])->whereNumber('detention')->whereNumber('entry')->name('attendance');
+    Route::post('detentions/{detention}/cancel', [$controller, 'cancel'])->whereNumber('detention')->name('cancel');
+});
 Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'awards'])->name('api.v2.recognition.')
     ->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', AuthorizeRecognition::class])->group(function () {
         $c = RecognitionController::class;

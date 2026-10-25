@@ -10,6 +10,7 @@ import 'package:eschool_api/src/auth/oauth.dart';
 import 'package:eschool_api/src/api/academics_api.dart';
 import 'package:eschool_api/src/api/activities_api.dart';
 import 'package:eschool_api/src/api/communication_api.dart';
+import 'package:eschool_api/src/api/discipline_api.dart';
 import 'package:eschool_api/src/api/growth_api.dart';
 import 'package:eschool_api/src/api/pastoral_api.dart';
 import 'package:eschool_api/src/api/platform_api.dart';
@@ -156,6 +157,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   CommunicationApi getCommunicationApi() {
     return CommunicationApi(dio);
+  }
+
+  /// Get DisciplineApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  DisciplineApi getDisciplineApi() {
+    return DisciplineApi(dio);
   }
 
   /// Get GrowthApi instance, base route and serializer can be overridden by a given but be careful,

@@ -156,3 +156,15 @@ Hourly `risk:evaluate` jobs and academic/attendance events observe current-day
 canonical evidence. Unavailable wellbeing and discipline sources stay null until
 explicit authoritative adapters exist. No family risk labels or clinical-source
 counts are exposed. Leadership receives grade/date counts only.
+
+
+## Discipline
+
+`discipline` defaults off and depends on people/academics. Schools must explicitly
+publish a year framework; there is no invented punitive default.
+`discipline.framework_published` and `discipline.record_changed` are ID-only
+transactional events queuing current risk observations. No private reason or
+infraction label enters outbox/audit payloads. Family and grade-head notices
+follow with the private API/workflow increment. Confirmed official counts feed
+early warning and the aggregate-only leadership adapter; pending, overturned
+and unavailable records are distinguished from confirmed history.

@@ -179,6 +179,8 @@ tags:
   description: Scoped school cover and restricted learner support.
 - name: Wellbeing
   description: Anonymous incident reporting and independently assigned restricted casework.
+- name: Discipline
+  description: School-defined discipline, retained reviews, guardian acknowledgement and supervised detention.
 paths:
   /facilitator/sign-in:
     post:
@@ -14553,6 +14555,1031 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RecognitionVersionedCorrection'
+  /discipline/configuration:
+    get:
+      operationId: getDisciplineConfiguration
+      tags:
+      - Discipline
+      summary: getDisciplineConfiguration
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/framework:
+    get:
+      operationId: getDisciplineFramework
+      tags:
+      - Discipline
+      summary: getDisciplineFramework
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        description: session year id
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineFrameworkViewResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: saveDisciplineFramework
+      tags:
+      - Discipline
+      summary: saveDisciplineFramework
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineFrameworkResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineFrameworkWrite'
+  /discipline/learners:
+    get:
+      operationId: getDisciplineLearners
+      tags:
+      - Discipline
+      summary: getDisciplineLearners
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        description: session year id
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        description: page
+        schema:
+          type: integer
+          minimum: 1
+      - name: search
+        in: query
+        required: false
+        description: search
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 100
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineLearnerChoicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/records:
+    get:
+      operationId: getDisciplineRecords
+      tags:
+      - Discipline
+      summary: getDisciplineRecords
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        description: session year id
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        description: page
+        schema:
+          type: integer
+          minimum: 1
+      - name: status
+        in: query
+        required: false
+        description: status
+        schema:
+          type: string
+          enum:
+          - pending_review
+          - confirmed
+          - hearing
+          - overturned
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineRecordQueueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/records/{record}:
+    get:
+      operationId: getDisciplineRecord
+      tags:
+      - Discipline
+      summary: getDisciplineRecord
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: record
+        in: path
+        required: true
+        description: record
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineRecordDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/records/{record}/history:
+    get:
+      operationId: getDisciplineRecordHistory
+      tags:
+      - Discipline
+      summary: getDisciplineRecordHistory
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: record
+        in: path
+        required: true
+        description: record
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineRecordHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/learners/{learner}/records:
+    post:
+      operationId: createDisciplineRecord
+      tags:
+      - Discipline
+      summary: createDisciplineRecord
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        description: learner
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineRecordMetadataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineRecordWrite'
+  /discipline/records/{record}/review:
+    post:
+      operationId: reviewDisciplineRecord
+      tags:
+      - Discipline
+      summary: reviewDisciplineRecord
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: record
+        in: path
+        required: true
+        description: record
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineRecordMetadataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineReviewWrite'
+  /discipline/records/{record}/hearing:
+    post:
+      operationId: resolveDisciplineHearing
+      tags:
+      - Discipline
+      summary: resolveDisciplineHearing
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: record
+        in: path
+        required: true
+        description: record
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineRecordMetadataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineHearingWrite'
+  /discipline/family/learners/{learner}:
+    get:
+      operationId: getFamilyDisciplineHistory
+      tags:
+      - Discipline
+      summary: getFamilyDisciplineHistory
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        description: learner
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: true
+        description: session year id
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        description: page
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineFamilyHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/family/records/{record}/acknowledge:
+    post:
+      operationId: acknowledgeDisciplineRecord
+      tags:
+      - Discipline
+      summary: acknowledgeDisciplineRecord
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: record
+        in: path
+        required: true
+        description: record
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineAcknowledgementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineAcknowledgeWrite'
+  /discipline/detentions:
+    get:
+      operationId: getDisciplineDetentions
+      tags:
+      - Discipline
+      summary: getDisciplineDetentions
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        description: session year id
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        description: page
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineDetentionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createDisciplineDetention
+      tags:
+      - Discipline
+      summary: createDisciplineDetention
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineDetentionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineDetentionWrite'
+  /discipline/supervisors:
+    get:
+      operationId: getDisciplineSupervisors
+      tags:
+      - Discipline
+      summary: getDisciplineSupervisors
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: session_year_id
+        in: query
+        required: true
+        description: session year id
+        schema:
+          type: integer
+          minimum: 1
+      - name: grade_level_id
+        in: query
+        required: true
+        description: grade level id
+        schema:
+          type: integer
+          minimum: 1
+      - name: on_date
+        in: query
+        required: true
+        description: on date
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        required: false
+        description: page
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineSupervisorsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/detentions/{detention}:
+    get:
+      operationId: getDisciplineDetention
+      tags:
+      - Discipline
+      summary: getDisciplineDetention
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: detention
+        in: path
+        required: true
+        description: detention
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineDetentionDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /discipline/detentions/{detention}/entries:
+    post:
+      operationId: enrollDisciplineDetention
+      tags:
+      - Discipline
+      summary: enrollDisciplineDetention
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: detention
+        in: path
+        required: true
+        description: detention
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineDetentionEnrollmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineDetentionEnrollWrite'
+  /discipline/detentions/{detention}/entries/{entry}/attendance:
+    post:
+      operationId: captureDisciplineDetentionAttendance
+      tags:
+      - Discipline
+      summary: captureDisciplineDetentionAttendance
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: detention
+        in: path
+        required: true
+        description: detention
+        schema:
+          type: integer
+          minimum: 1
+      - name: entry
+        in: path
+        required: true
+        description: entry
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineDetentionAttendanceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineDetentionAttendanceWrite'
+  /discipline/detentions/{detention}/cancel:
+    post:
+      operationId: cancelDisciplineDetention
+      tags:
+      - Discipline
+      summary: cancelDisciplineDetention
+      description: School-configured discipline; no default sanctions or automatic expulsion. Fresh school/role
+        and dated allocation or grade leadership authorize staff records. Families see published owned history
+        only; only verified guardians acknowledge. Hearing decisions require an appointed principal. Private
+        body-only UUID writes use encrypted feature receipts and reauthorize before replay. Detention supervision
+        is a separate explicit session grant; unknown attendance remains null.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: detention
+        in: path
+        required: true
+        description: detention
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Fresh authorized discipline result; private body and metadata never cache.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisciplineDetentionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: The requested school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisciplineDetentionCancelWrite'
 components:
   securitySchemes:
     bearerAuth:
@@ -14731,6 +15758,1668 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    DisciplineChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 0
+          maxLength: 200
+    DisciplineLevel:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - name
+      - threshold
+      - kind
+      - sanctions
+      properties:
+        code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        name:
+          type: string
+          minLength: 0
+          maxLength: 150
+        threshold:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        kind:
+          type: string
+          enum:
+          - sanction
+          - hearing
+        sanctions:
+          type: array
+          minItems: 0
+          maxItems: 30
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]{0,39}$
+    DisciplineSanction:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - name
+      - kind
+      properties:
+        code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        name:
+          type: string
+          minLength: 0
+          maxLength: 150
+        kind:
+          type: string
+          enum:
+          - notice
+          - detention
+          - restorative
+    DisciplineInfraction:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - name
+      - base_level
+      properties:
+        code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        name:
+          type: string
+          minLength: 0
+          maxLength: 150
+        base_level:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+    DisciplineDefinition:
+      type: object
+      additionalProperties: false
+      required:
+      - counter_scope
+      - reset
+      - levels
+      - sanctions
+      - infractions
+      properties:
+        counter_scope:
+          type: string
+          enum:
+          - same_infraction
+          - all_infractions
+        reset:
+          type: string
+          enum:
+          - school_year
+          - term
+          - rolling_days
+        rolling_days:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 365
+        levels:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/DisciplineLevel'
+        sanctions:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items:
+            $ref: '#/components/schemas/DisciplineSanction'
+        infractions:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/DisciplineInfraction'
+    DisciplineFramework:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - revision
+      - definition
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 0
+          maxLength: 150
+        revision:
+          type: integer
+          minimum: 1
+        definition:
+          $ref: '#/components/schemas/DisciplineDefinition'
+    DisciplineOptionalFramework:
+      type:
+      - object
+      - 'null'
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - revision
+      - definition
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 0
+          maxLength: 150
+        revision:
+          type: integer
+          minimum: 1
+        definition:
+          $ref: '#/components/schemas/DisciplineDefinition'
+    DisciplineFrameworkView:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - framework
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        framework:
+          $ref: '#/components/schemas/DisciplineOptionalFramework'
+    DisciplineConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - today
+      - can_manage
+      - can_hear
+      - grade_ids
+      - grades
+      - years
+      - framework
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        today:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        can_manage:
+          type: boolean
+        can_hear:
+          type: boolean
+        grade_ids:
+          type: array
+          minItems: 0
+          maxItems: 100
+          items:
+            type: integer
+            minimum: 1
+        grades:
+          type: array
+          minItems: 0
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/DisciplineChoice'
+        years:
+          type: array
+          minItems: 0
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/DisciplineChoice'
+        framework:
+          $ref: '#/components/schemas/DisciplineOptionalFramework'
+    DisciplineFrameworkWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - expected_revision
+      - title
+      - counter_scope
+      - reset
+      - levels
+      - sanctions
+      - infractions
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          minimum: 1
+        expected_revision:
+          type: integer
+          minimum: 0
+        title:
+          type: string
+          minLength: 0
+          maxLength: 150
+        counter_scope:
+          type: string
+          enum:
+          - same_infraction
+          - all_infractions
+        reset:
+          type: string
+          enum:
+          - school_year
+          - term
+          - rolling_days
+        rolling_days:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 365
+        levels:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            $ref: '#/components/schemas/DisciplineLevel'
+        sanctions:
+          type: array
+          minItems: 1
+          maxItems: 30
+          items:
+            $ref: '#/components/schemas/DisciplineSanction'
+        infractions:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/DisciplineInfraction'
+    DisciplineRecordMetadata:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - session_year_id
+      - grade_level_id
+      - recorded_by
+      - occurred_on
+      - infraction_code
+      - level_code
+      - sanction_code
+      - status
+      - hearing_decision
+      - revision
+      - published
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        recorded_by:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        infraction_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        level_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        sanction_code:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 40
+        status:
+          type: string
+          enum:
+          - pending_review
+          - confirmed
+          - hearing
+          - overturned
+        hearing_decision:
+          type:
+          - string
+          - 'null'
+          enum:
+          - no_action
+          - sanction
+          - null
+        revision:
+          type: integer
+          minimum: 1
+        published:
+          type: boolean
+        learner_name:
+          type: string
+          minLength: 0
+          maxLength: 200
+    DisciplineRecordBasis:
+      type: object
+      additionalProperties: false
+      required:
+      - definition
+      - infraction_name
+      - window_start
+      - occurrence_count
+      properties:
+        definition:
+          $ref: '#/components/schemas/DisciplineDefinition'
+        infraction_name:
+          type: string
+          minLength: 0
+          maxLength: 150
+        window_start:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        occurrence_count:
+          type: integer
+          minimum: 1
+    DisciplineRecordDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - session_year_id
+      - grade_level_id
+      - recorded_by
+      - occurred_on
+      - infraction_code
+      - level_code
+      - sanction_code
+      - status
+      - hearing_decision
+      - revision
+      - published
+      - description
+      - staff_note
+      - decision_reason
+      - family_reason
+      - basis
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        recorded_by:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        infraction_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        level_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        sanction_code:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 40
+        status:
+          type: string
+          enum:
+          - pending_review
+          - confirmed
+          - hearing
+          - overturned
+        hearing_decision:
+          type:
+          - string
+          - 'null'
+          enum:
+          - no_action
+          - sanction
+          - null
+        revision:
+          type: integer
+          minimum: 1
+        published:
+          type: boolean
+        description:
+          type: string
+          minLength: 0
+          maxLength: 2000
+        staff_note:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 2000
+        decision_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        family_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        basis:
+          $ref: '#/components/schemas/DisciplineRecordBasis'
+    DisciplineVersionRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - session_year_id
+      - grade_level_id
+      - recorded_by
+      - occurred_on
+      - infraction_code
+      - level_code
+      - sanction_code
+      - status
+      - hearing_decision
+      - revision
+      - published
+      - description
+      - staff_note
+      - decision_reason
+      - family_reason
+      - basis
+      - event
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        recorded_by:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        infraction_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        level_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        sanction_code:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 40
+        status:
+          type: string
+          enum:
+          - pending_review
+          - confirmed
+          - hearing
+          - overturned
+        hearing_decision:
+          type:
+          - string
+          - 'null'
+          enum:
+          - no_action
+          - sanction
+          - null
+        revision:
+          type: integer
+          minimum: 1
+        published:
+          type: boolean
+        description:
+          type: string
+          minLength: 0
+          maxLength: 2000
+        staff_note:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 2000
+        decision_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        family_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        basis:
+          $ref: '#/components/schemas/DisciplineRecordBasis'
+        event:
+          type: string
+          enum:
+          - recorded
+          - confirm
+          - overturn
+          - hearing_resolved
+    DisciplineRecordVersion:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - actor_id
+      - created_at
+      - record
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        actor_id:
+          type: integer
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        record:
+          $ref: '#/components/schemas/DisciplineVersionRecord'
+    DisciplineRecordHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - record_id
+      - versions
+      properties:
+        record_id:
+          type: integer
+          minimum: 1
+        versions:
+          type: array
+          minItems: 0
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/DisciplineRecordVersion'
+    DisciplineRecordQueue:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - page
+      - last_page
+      - records
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        records:
+          type: array
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/DisciplineRecordMetadata'
+    DisciplineLearnerChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - grade_level_id
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 0
+          maxLength: 200
+        grade_level_id:
+          type: integer
+          minimum: 1
+    DisciplineLearnerChoices:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - page
+      - last_page
+      - learners
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/DisciplineLearnerChoice'
+    DisciplineRecordWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - occurred_on
+      - infraction_code
+      - description
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        infraction_code:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,39}$
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        staff_note:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 2000
+        sanction_code:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 40
+    DisciplineReviewWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - decision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum:
+          - confirm
+          - overturn
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 1000
+        family_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        sanction_code:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 40
+    DisciplineHearingWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - decision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum:
+          - no_action
+          - sanction
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 1000
+        family_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        sanction_code:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 40
+    DisciplineAcknowledgeWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+    DisciplineAcknowledgement:
+      type: object
+      additionalProperties: false
+      required:
+      - record_id
+      - revision
+      - acknowledged_at
+      properties:
+        record_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        acknowledged_at:
+          type: string
+          format: date-time
+    DisciplineFamilyDetention:
+      type: object
+      additionalProperties: false
+      required:
+      - session_id
+      - on_date
+      - starts_at
+      - ends_at
+      - timezone
+      - location
+      - attendance
+      - active
+      properties:
+        session_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        timezone:
+          type: string
+          minLength: 0
+          maxLength: 100
+        location:
+          type: string
+          minLength: 0
+          maxLength: 200
+        attendance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - present
+          - absent
+          - excused
+          - null
+        active:
+          type: boolean
+    DisciplineFamilyRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - occurred_on
+      - description
+      - infraction
+      - level
+      - sanction
+      - status
+      - family_reason
+      - revision
+      - acknowledged
+      - detentions
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        description:
+          type: string
+          minLength: 0
+          maxLength: 2000
+        infraction:
+          type: string
+          minLength: 0
+          maxLength: 150
+        level:
+          type: string
+          minLength: 0
+          maxLength: 150
+        sanction:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 150
+        status:
+          type: string
+          enum:
+          - pending_review
+          - confirmed
+          - hearing
+          - overturned
+        family_reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        revision:
+          type: integer
+          minimum: 1
+        acknowledged:
+          type: boolean
+        detentions:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/DisciplineFamilyDetention'
+    DisciplineFamilyHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - session_year_id
+      - page
+      - last_page
+      - records
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        records:
+          type: array
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/DisciplineFamilyRecord'
+    DisciplineDetention:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - session_year_id
+      - grade_level_id
+      - supervisor_id
+      - on_date
+      - starts_at
+      - ends_at
+      - timezone
+      - capacity
+      - status
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        supervisor_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        timezone:
+          type: string
+          minLength: 0
+          maxLength: 100
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 200
+        status:
+          type: string
+          enum:
+          - planned
+          - cancelled
+        revision:
+          type: integer
+          minimum: 1
+    DisciplineDetentionEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - record_id
+      - learner_id
+      - name
+      - attendance
+      - status
+      - source_valid
+      - reason
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        record_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 0
+          maxLength: 200
+        attendance:
+          type:
+          - string
+          - 'null'
+          enum:
+          - present
+          - absent
+          - excused
+          - null
+        status:
+          type: string
+          enum:
+          - active
+          - cancelled
+        source_valid:
+          type: boolean
+        reason:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          maxLength: 1000
+        revision:
+          type: integer
+          minimum: 1
+    DisciplineDetentionDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - session_year_id
+      - grade_level_id
+      - supervisor_id
+      - on_date
+      - starts_at
+      - ends_at
+      - timezone
+      - capacity
+      - status
+      - revision
+      - location
+      - entries
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        supervisor_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        timezone:
+          type: string
+          minLength: 0
+          maxLength: 100
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 200
+        status:
+          type: string
+          enum:
+          - planned
+          - cancelled
+        revision:
+          type: integer
+          minimum: 1
+        location:
+          type: string
+          minLength: 0
+          maxLength: 200
+        entries:
+          type: array
+          minItems: 0
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/DisciplineDetentionEntry'
+    DisciplineDetentions:
+      type: object
+      additionalProperties: false
+      required:
+      - session_year_id
+      - page
+      - last_page
+      - sessions
+      properties:
+        session_year_id:
+          type: integer
+          minimum: 1
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        sessions:
+          type: array
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/DisciplineDetention'
+    DisciplineSupervisors:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - supervisors
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        supervisors:
+          type: array
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/DisciplineChoice'
+    DisciplineDetentionWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - grade_level_id
+      - supervisor_id
+      - on_date
+      - starts_at
+      - ends_at
+      - location
+      - capacity
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        supervisor_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{2}:\d{2}$
+        location:
+          type: string
+          minLength: 1
+          maxLength: 200
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 200
+    DisciplineDetentionEnrollWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - record_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        record_id:
+          type: integer
+          minimum: 1
+        expected_revision:
+          type: integer
+          minimum: 1
+    DisciplineDetentionAttendanceWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - expected_session_revision
+      - attendance
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        expected_session_revision:
+          type: integer
+          minimum: 1
+        attendance:
+          type: string
+          enum:
+          - present
+          - absent
+          - excused
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 1000
+    DisciplineDetentionCancelWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 1000
+    DisciplineDetentionEnrollment:
+      type: object
+      additionalProperties: false
+      required:
+      - session_id
+      - entry_id
+      - session_revision
+      - entry_revision
+      properties:
+        session_id:
+          type: integer
+          minimum: 1
+        entry_id:
+          type: integer
+          minimum: 1
+        session_revision:
+          type: integer
+          minimum: 1
+        entry_revision:
+          type: integer
+          minimum: 1
+    DisciplineDetentionAttendance:
+      type: object
+      additionalProperties: false
+      required:
+      - session_id
+      - entry_id
+      - session_revision
+      - entry_revision
+      - attendance
+      properties:
+        session_id:
+          type: integer
+          minimum: 1
+        entry_id:
+          type: integer
+          minimum: 1
+        session_revision:
+          type: integer
+          minimum: 1
+        entry_revision:
+          type: integer
+          minimum: 1
+        attendance:
+          type: string
+          enum:
+          - present
+          - absent
+          - excused
+    DisciplineConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineConfiguration'
+    DisciplineFrameworkViewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineFrameworkView'
+    DisciplineFrameworkResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineFramework'
+    DisciplineLearnerChoicesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineLearnerChoices'
+    DisciplineRecordQueueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineRecordQueue'
+    DisciplineRecordDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineRecordDetail'
+    DisciplineRecordHistoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineRecordHistory'
+    DisciplineRecordMetadataResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineRecordMetadata'
+    DisciplineFamilyHistoryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineFamilyHistory'
+    DisciplineAcknowledgementResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineAcknowledgement'
+    DisciplineDetentionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineDetentions'
+    DisciplineSupervisorsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineSupervisors'
+    DisciplineDetentionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineDetention'
+    DisciplineDetentionDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineDetentionDetail'
+    DisciplineDetentionEnrollmentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineDetentionEnrollment'
+    DisciplineDetentionAttendanceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          minLength: 0
+          maxLength: 1000
+        code:
+          type: integer
+          minimum: 0
+        data:
+          $ref: '#/components/schemas/DisciplineDetentionAttendance'
     RecognitionAccess:
       type: object
       additionalProperties: false

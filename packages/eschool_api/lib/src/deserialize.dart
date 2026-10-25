@@ -339,6 +339,60 @@ import 'package:eschool_api/src/model/curriculum_topic.dart';
 import 'package:eschool_api/src/model/curriculum_topic_write.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.dart';
+import 'package:eschool_api/src/model/discipline_acknowledge_write.dart';
+import 'package:eschool_api/src/model/discipline_acknowledgement.dart';
+import 'package:eschool_api/src/model/discipline_acknowledgement_response.dart';
+import 'package:eschool_api/src/model/discipline_choice.dart';
+import 'package:eschool_api/src/model/discipline_configuration.dart';
+import 'package:eschool_api/src/model/discipline_configuration_response.dart';
+import 'package:eschool_api/src/model/discipline_definition.dart';
+import 'package:eschool_api/src/model/discipline_detention.dart';
+import 'package:eschool_api/src/model/discipline_detention_attendance.dart';
+import 'package:eschool_api/src/model/discipline_detention_attendance_response.dart';
+import 'package:eschool_api/src/model/discipline_detention_attendance_write.dart';
+import 'package:eschool_api/src/model/discipline_detention_cancel_write.dart';
+import 'package:eschool_api/src/model/discipline_detention_detail.dart';
+import 'package:eschool_api/src/model/discipline_detention_detail_response.dart';
+import 'package:eschool_api/src/model/discipline_detention_enroll_write.dart';
+import 'package:eschool_api/src/model/discipline_detention_enrollment.dart';
+import 'package:eschool_api/src/model/discipline_detention_enrollment_response.dart';
+import 'package:eschool_api/src/model/discipline_detention_entry.dart';
+import 'package:eschool_api/src/model/discipline_detention_response.dart';
+import 'package:eschool_api/src/model/discipline_detention_write.dart';
+import 'package:eschool_api/src/model/discipline_detentions.dart';
+import 'package:eschool_api/src/model/discipline_detentions_response.dart';
+import 'package:eschool_api/src/model/discipline_family_detention.dart';
+import 'package:eschool_api/src/model/discipline_family_history.dart';
+import 'package:eschool_api/src/model/discipline_family_history_response.dart';
+import 'package:eschool_api/src/model/discipline_family_record.dart';
+import 'package:eschool_api/src/model/discipline_framework.dart';
+import 'package:eschool_api/src/model/discipline_framework_response.dart';
+import 'package:eschool_api/src/model/discipline_framework_view.dart';
+import 'package:eschool_api/src/model/discipline_framework_view_response.dart';
+import 'package:eschool_api/src/model/discipline_framework_write.dart';
+import 'package:eschool_api/src/model/discipline_hearing_write.dart';
+import 'package:eschool_api/src/model/discipline_infraction.dart';
+import 'package:eschool_api/src/model/discipline_learner_choice.dart';
+import 'package:eschool_api/src/model/discipline_learner_choices.dart';
+import 'package:eschool_api/src/model/discipline_learner_choices_response.dart';
+import 'package:eschool_api/src/model/discipline_level.dart';
+import 'package:eschool_api/src/model/discipline_optional_framework.dart';
+import 'package:eschool_api/src/model/discipline_record_basis.dart';
+import 'package:eschool_api/src/model/discipline_record_detail.dart';
+import 'package:eschool_api/src/model/discipline_record_detail_response.dart';
+import 'package:eschool_api/src/model/discipline_record_history.dart';
+import 'package:eschool_api/src/model/discipline_record_history_response.dart';
+import 'package:eschool_api/src/model/discipline_record_metadata.dart';
+import 'package:eschool_api/src/model/discipline_record_metadata_response.dart';
+import 'package:eschool_api/src/model/discipline_record_queue.dart';
+import 'package:eschool_api/src/model/discipline_record_queue_response.dart';
+import 'package:eschool_api/src/model/discipline_record_version.dart';
+import 'package:eschool_api/src/model/discipline_record_write.dart';
+import 'package:eschool_api/src/model/discipline_review_write.dart';
+import 'package:eschool_api/src/model/discipline_sanction.dart';
+import 'package:eschool_api/src/model/discipline_supervisors.dart';
+import 'package:eschool_api/src/model/discipline_supervisors_response.dart';
+import 'package:eschool_api/src/model/discipline_version_record.dart';
 import 'package:eschool_api/src/model/enrolment.dart';
 import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
@@ -1892,6 +1946,206 @@ ReturnType deserialize<ReturnType, BaseType>(
       return DecideGuardianHandleProposalRequest.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'DisciplineAcknowledgeWrite':
+      return DisciplineAcknowledgeWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineAcknowledgement':
+      return DisciplineAcknowledgement.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineAcknowledgementResponse':
+      return DisciplineAcknowledgementResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineChoice':
+      return DisciplineChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineConfiguration':
+      return DisciplineConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineConfigurationResponse':
+      return DisciplineConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDefinition':
+      return DisciplineDefinition.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetention':
+      return DisciplineDetention.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetentionAttendance':
+      return DisciplineDetentionAttendance.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionAttendanceResponse':
+      return DisciplineDetentionAttendanceResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionAttendanceWrite':
+      return DisciplineDetentionAttendanceWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionCancelWrite':
+      return DisciplineDetentionCancelWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionDetail':
+      return DisciplineDetentionDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetentionDetailResponse':
+      return DisciplineDetentionDetailResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionEnrollWrite':
+      return DisciplineDetentionEnrollWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionEnrollment':
+      return DisciplineDetentionEnrollment.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionEnrollmentResponse':
+      return DisciplineDetentionEnrollmentResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineDetentionEntry':
+      return DisciplineDetentionEntry.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetentionResponse':
+      return DisciplineDetentionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetentionWrite':
+      return DisciplineDetentionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetentions':
+      return DisciplineDetentions.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineDetentionsResponse':
+      return DisciplineDetentionsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineFamilyDetention':
+      return DisciplineFamilyDetention.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineFamilyHistory':
+      return DisciplineFamilyHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineFamilyHistoryResponse':
+      return DisciplineFamilyHistoryResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineFamilyRecord':
+      return DisciplineFamilyRecord.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineFramework':
+      return DisciplineFramework.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineFrameworkResponse':
+      return DisciplineFrameworkResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineFrameworkView':
+      return DisciplineFrameworkView.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineFrameworkViewResponse':
+      return DisciplineFrameworkViewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineFrameworkWrite':
+      return DisciplineFrameworkWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineHearingWrite':
+      return DisciplineHearingWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineInfraction':
+      return DisciplineInfraction.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineLearnerChoice':
+      return DisciplineLearnerChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineLearnerChoices':
+      return DisciplineLearnerChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineLearnerChoicesResponse':
+      return DisciplineLearnerChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineLevel':
+      return DisciplineLevel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineOptionalFramework':
+      return DisciplineOptionalFramework.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordBasis':
+      return DisciplineRecordBasis.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordDetail':
+      return DisciplineRecordDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordDetailResponse':
+      return DisciplineRecordDetailResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineRecordHistory':
+      return DisciplineRecordHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordHistoryResponse':
+      return DisciplineRecordHistoryResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineRecordMetadata':
+      return DisciplineRecordMetadata.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordMetadataResponse':
+      return DisciplineRecordMetadataResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineRecordQueue':
+      return DisciplineRecordQueue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordQueueResponse':
+      return DisciplineRecordQueueResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineRecordVersion':
+      return DisciplineRecordVersion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineRecordWrite':
+      return DisciplineRecordWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineReviewWrite':
+      return DisciplineReviewWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineSanction':
+      return DisciplineSanction.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineSupervisors':
+      return DisciplineSupervisors.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DisciplineSupervisorsResponse':
+      return DisciplineSupervisorsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'DisciplineVersionRecord':
+      return DisciplineVersionRecord.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'Enrolment':
       return Enrolment.fromJson(value as Map<String, dynamic>) as ReturnType;

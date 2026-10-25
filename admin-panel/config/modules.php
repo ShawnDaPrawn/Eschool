@@ -7,6 +7,7 @@ return [
     'awards' => ['name' => 'Awards', 'default' => false, 'dependencies' => ['people', 'academics']],
     'school_transfers' => ['name' => 'School transfers', 'default' => false, 'dependencies' => ['people', 'academics']],
     'leadership_dashboard' => ['name' => 'Leadership dashboard', 'default' => false, 'dependencies' => ['academics']],
+    'discipline' => ['name' => 'Discipline', 'default' => false, 'dependencies' => ['people', 'academics']],
     'early_warning' => ['name' => 'Early warning and interventions', 'default' => false, 'dependencies' => ['people', 'academics']],
     'wellbeing' => ['name' => 'Incident reporting and counsellor support', 'default' => false],
     'support_plans' => ['name' => 'Support plans', 'default' => false, 'dependencies' => ['people', 'academics']],

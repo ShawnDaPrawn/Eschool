@@ -424,6 +424,29 @@ observation or staff panel/app acceptance is claimed by this service increment.
 The HTTP contracts and staff workflows remain the next increment.
 
 
+## Discipline framework, records and detention domain
+
+The combined discipline/risk/leadership/actual-tenant-migration cohort passes
+**38 tests, 425 assertions**, with changed-file Pint and complete configured
+Larastan passing. It covers configured escalation/reset, no automatic expulsion,
+principal-only hearing resolution, fresh grade-head withdrawal, reasoned retained
+overturn, encrypted large multibyte framework history, immutable revisions,
+wrong school/role/owner and no unauthorized body SQL. Calendar-term reset first
+proved a real Carbon-to-string return error, then passed after the day-string
+fix. Missing source/sample remains unknown; discipline observations and principal
+counts use confirmed records with immutable reporting year/grade.
+
+Family reads omit pending entries and staff notes. Verified current guardians
+acknowledge a specific revision; content review invalidates the current-version
+acknowledgement without deleting earlier receipts. Approved learners can read
+their own published history and cannot acknowledge as a parent. Separate
+detention assignment, unknown attendance, supervisor capture, reasoned grade-head
+correction and sanction withdrawal are covered. Guardian revocation, mandatory
+password change, platform identity and impersonation refuse access.
+
+These are service/domain checks, not school framework acceptance, a month of
+operation or panel/native UX verification. The typed contracts, notices and real
+workflow surfaces continue in the next increment.
 ## Early warning private API and typed client
 
 The combined private HTTP/domain/actual-tenant-migration cohort passes **25 tests,
@@ -510,6 +533,13 @@ complete **1,283-file Pint** check passes. The already reviewed Phase 4 Android
 smoke matrix is backported unchanged: family, classic Teacher and native
 facilitator each run their matching target/profile. No startup assertion is
 weakened; emulator execution remains CI verification.
+
+A grade-mapping correction no longer silently restarts the learner's configured
+school-year discipline counter. The original record keeps its reported grade;
+the next record retains the correct second-level review. This regression first
+fails with the old grade-filtered counter, then passes. The complete discipline
+cohort passes **13 tests, 82 assertions**, changed-file Pint and configured
+Larastan; scheduler/ordered-risk-observation corrections are inherited too.
 ## Grade calendars and in-flight band selection
 
 Progress configuration now publishes optional allowed term IDs per teaching
@@ -567,3 +597,32 @@ active hourly scheduler corrections. Its refreshed focused cohort passes **26
 tests, 371 assertions**, full **1,290-file Pint**, and configured Larastan with no
 errors. The inherited Android smoke jobs use their actual family, Teacher and
 facilitator profiles; emulator execution remains CI evidence.
+
+## Private discipline HTTP and typed clients
+
+Nineteen actual operations cover explicit framework configuration, scoped
+learner/record/supervisor discovery, private record/history, grade review and
+principal hearing, separate family published history/guardian acknowledgement,
+and detention creation, roster, attendance and cancellation. Private writes use
+an encrypted LONGTEXT feature receipt with keyed UUID intent, fresh authority
+before replay/settlement and current-school replacement rollback. No private
+body enters the global API replay cache or a query string.
+
+The contract-checked API/domain/risk/leadership/actual-tenant-migration cohort
+passes **47 tests, 686 assertions**, complete configured Larastan and full
+**1,388-file Pint**. It includes real HTTP exact replay, changed intent, retained
+history, unpublished family exclusion, verified guardian acknowledgement, ended
+relationship, wrong teacher/school/account, role/password/module/platform
+withdrawal, current hearing authority and detention unknown attendance. The
+complete global route/contract catalogue passes **382 tests, 1,775 assertions**.
+
+The combined canonical contract preserves all preceding recognition/risk/notes/
+transfer paths and schemas and adds nineteen operations and fifty-four schemas.
+Pinned generation produces **1,519 Dart files**. All **91 SDK tests** pass,
+including nullable unconfigured framework, calendar dates, unknown detention
+attendance and actual serialized UUID body with expected account/school headers.
+SDK analysis has 839 generated informational lints and no errors or warnings;
+strict OpenAPI lint and duplicate-key checks pass. Staff/family panel and app
+workflows, notices and MyGrade integration remain follow-on increments. No live
+school, fluent language, physical-device or month-long operational acceptance is
+claimed by this contract increment.
