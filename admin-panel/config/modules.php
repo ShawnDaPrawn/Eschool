@@ -3,6 +3,7 @@
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
 return [
+    'consultations' => ['name' => 'Polls, surveys and nonstatutory elections', 'default' => false, 'dependencies' => ['people', 'communication']],
     'house_points' => ['name' => 'House points', 'default' => false, 'dependencies' => ['people', 'academics']],
     'awards' => ['name' => 'Awards', 'default' => false, 'dependencies' => ['people', 'academics']],
     'school_transfers' => ['name' => 'School transfers', 'default' => false, 'dependencies' => ['people', 'academics']],

@@ -78,3 +78,11 @@ the disabled module is not yet a completed reporting workflow. Separate support-
 Parallel ownership: the root stream owns houses/awards (step 5), then intake
 (step 7) after its transfers work if still outstanding. This community stream
 continues the remaining retained Phase 4 features.
+
+Step4 consultation domain now implements scoped frozen configuration, audited
+revisioned changes, physically separate anonymous ballots/participation, unique
+one-person voting, validated options, scheduled opening/closure and private/public
+results with bounded individual-response paging. Seventeen domain/migration cases
+pass; API/panel/shared readers and notices remain active implementation, not a
+completed polling workflow. The root stream additionally owns personal gallery
+and transfer tag-retention consent after intake.

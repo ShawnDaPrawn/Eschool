@@ -29,6 +29,13 @@ return [
     */
 
     'disks' => [
+        'admissions_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/admissions'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+        ],
         'academic_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/academics'),

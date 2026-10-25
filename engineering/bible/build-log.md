@@ -487,3 +487,23 @@ private nomination/review reasons; private draft failures never enter session fl
 pass; actual Chromium award/reversal/assembly/certificate-correction workflows pass
 at390/820/1280 with accessibility, overflow, duplicate-ID and error checks. Native
 clients, guarded notices and live latency remain independent integration work.
+
+## 2026-10-25 — digital intake and admissions
+
+Added configured intakes, encrypted draft/contact/document storage, phone-friendly
+no-account forms with private email resumes, reviewed office pipeline, bulk offers,
+capacity-locked FIFO waiting lists, exact-cent office acknowledgements, balanced
+allocation and atomic individual/bulk enrolment with guardian invitations and no
+automatic learner approval. Session/account/school/year guards protect private
+forms; definition fingerprints prevent saved-answer reinterpretation. Daily
+retention deletes due application copies without deleting canonical learner
+records; delayed offer recovery cannot revive retention-due applicants.
+
+Final admissions30/208, prior integrated76/28,053, whole-application static analysis,
+selected Pint, TypeScript and actual390/820/1280 browser flows pass. All three
+browser flows cover real queued-email resume through office enrolment, with
+serious/critical accessibility and overflow checks. A numeric-throttle collision
+found by the browser run was fixed using separate named allowances. Live mail,
+scanner deployment, physical devices, fluent review and independent staging
+acceptance remain separately unqualified. No payment provider or production
+activation, nor whole Phase 4 completion, is claimed.
