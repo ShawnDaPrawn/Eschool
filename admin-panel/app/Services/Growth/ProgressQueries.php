@@ -58,6 +58,7 @@ class ProgressQueries
         $roles = app(ProfilePolicy::class)->roles($fresh);
         $today = $authority->today();
         $year = (int) schoolSetting('session_year');
+        $terms = Term::query()->where('session_year_id', $year)->orderBy('start_date')->get();
         $lead = AcademicLeadership::query()->where('user_id', $fresh->id)->where('session_year_id', $year)
             ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->get();
         $groups = TeachingGroup::query()->where('active', true)->whereHas('subject')->where('session_year_id', $year)->with('subject', 'gradeLevel')
@@ -88,9 +89,10 @@ class ProgressQueries
         return ['session_year_id' => $year, 'can_manage_bands' => $manage, 'can_assign_counselling' => $principal, 'can_read_caseload' => $clinical,
             'settings' => app(ProgressBands::class)->settings($fresh), 'restricted_staff' => $principal ? $this->restrictedStaff() : [],
             'years' => SessionYear::query()->orderByDesc('start_date')->limit(100)->get()->map(fn ($y) => ['id' => (int) $y->id, 'name' => $y->name])->all(),
-            'terms' => Term::query()->where('session_year_id', $year)->orderBy('start_date')->get()->map(fn ($t) => ['id' => (int) $t->id, 'name' => $t->name])->all(),
+            'terms' => $terms->map(fn ($t) => ['id' => (int) $t->id, 'name' => $t->name])->all(),
             'groups' => $groups->map(fn ($g) => ['id' => (int) $g->id, 'name' => $g->name, 'subject_id' => (int) $g->subject_id,
-                'subject_name' => $g->subject->name, 'grade_name' => $g->gradeLevel->name, 'session_year_id' => (int) $g->session_year_id])->all()];
+                'subject_name' => $g->subject->name, 'grade_name' => $g->gradeLevel->name, 'session_year_id' => (int) $g->session_year_id,
+                'term_ids' => $terms->filter(fn ($t) => $t->coversGrade((int) $g->gradeLevel->sort_order))->pluck('id')->map(fn ($id) => (int) $id)->values()->all()])->all()];
     }
 
     private function restrictedStaff(): array

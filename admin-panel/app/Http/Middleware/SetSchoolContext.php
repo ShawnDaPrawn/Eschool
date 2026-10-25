@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Platform\School;
 use App\Models\User;
+use App\Services\Facilitators\FacilitatorAccess;
 use App\Services\Platform\Identity\ExpectedAccount;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\StudentNumbers;
@@ -94,9 +95,8 @@ class SetSchoolContext
         // A facilitator profile cannot bypass fresh readiness through another
         // role's v1/v2 routes. Credential management/logout remain available.
         if ($request->is('api/*', 'protected/profile-files/*') && ! $request->is('api/change-password', 'api/logout')) {
-            app(\App\Services\Facilitators\FacilitatorAccess::class)->enforceProfile($request);
+            app(FacilitatorAccess::class)->enforceProfile($request);
         }
-
 
         return $next($request);
     }

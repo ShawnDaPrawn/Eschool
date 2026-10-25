@@ -385,3 +385,21 @@ regression. The focused staff app suite passes **20 tests**, and family entry/la
 checks pass **3 tests**. Both app analyzers have no errors or warnings; remaining
 informational lints belong to existing shared route/style patterns. No physical
 device, live-school, fluent clinical-language or production acceptance is claimed.
+
+## Grade calendars and in-flight band selection
+
+Progress configuration now publishes optional allowed term IDs per teaching
+group. Panel and app selectors use that grade calendar instead of the first
+school-wide term. Older servers without this optional field keep notes available
+and omit the independent band selector. Each band request pins its own group,
+learner, term and generation: a late success or refusal from an earlier term
+cannot replace or erase the newly selected band's private state.
+
+The real HTTP/panel cohort passes **21 tests, 360 assertions**, complete configured
+Larastan and **1,250-file Pint**. Both race regressions first fail with the guard
+removed, then pass after restoration; active-selection refusal still erases the
+reader. Shared calendar/notes/session/private-transport qualification passes **29
+tests**, all **75 SDK tests** pass, and SDK analysis has informational lints only.
+The focused Teacher and family entry tests pass **3** and **2** tests respectively.
+All offered locale files retain their translations and receive explicit English
+fallbacks for missing new keys; this is not fluent translation acceptance.

@@ -22,7 +22,7 @@
             @if($mode==='academic')
                 <label for="note-audience">{{ __('Note audience') }}<select id="note-audience" name="visibility"><option value="staff" @selected($visibility==='staff')>{{ __('Staff only') }}</option><option value="tutor" @selected($visibility==='tutor')>{{ __('Tutor-visible teaching notes') }}</option></select></label>
                 @if($group)<label for="note-subject">{{ __('Note scope') }}<select id="note-subject" name="subject_id"><option value="">{{ __('General teaching note') }}</option><option value="{{ $group->subject_id }}" @selected($subject===(int)$group->subject_id)>{{ $group->subject->name }}</option></select></label>@endif
-                <label for="note-term">{{ __('Progress term') }}<select id="note-term" name="term_id">@foreach($configuration['terms'] as $t)<option value="{{ $t['id'] }}" @selected($term===$t['id'])>{{ $t['name'] }}</option>@endforeach</select></label>
+                <label for="note-term">{{ __('Progress term') }}<select id="note-term" name="term_id">@foreach($availableTerms as $t)<option value="{{ $t['id'] }}" @selected($term===$t['id'])>{{ $t['name'] }}</option>@endforeach</select></label>
             @endif
             <button type="submit" class="btn btn-primary">{{ __('View notes') }}</button>
         </form>

@@ -101,4 +101,26 @@ void main() {
       'expected_revision': 1,
     });
   });
+  test(
+    'grade-scoped term IDs are optional without inventing calendar scope',
+    () {
+      final legacy = <String, dynamic>{
+        'id': 3,
+        'name': 'Maths',
+        'subject_id': 4,
+        'subject_name': 'Mathematics',
+        'grade_name': 'Grade 7',
+        'session_year_id': 7,
+      };
+      final older = ProgressGroup.fromJson(legacy);
+      expect(older.termIds, isNull);
+      expect(older.toJson(), legacy);
+      final current = ProgressGroup.fromJson({
+        ...legacy,
+        'term_ids': [8, 10],
+      });
+      expect(current.termIds, [8, 10]);
+      expect(current.toJson()['term_ids'], [8, 10]);
+    },
+  );
 }

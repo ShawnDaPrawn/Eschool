@@ -30,6 +30,7 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
   ProgressStaffBand? _band;
   int? _term;
   int? _group, _learner, _subject, _year;
+  int _bandEpoch = 0;
   int _epoch = 0, _page = 1, _lastPage = 1, _after = 0;
   String _mode = 'staff', _error = '';
   LearnerNoteDetail? _conflictCurrent;
@@ -46,6 +47,17 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
       (_detail == null ||
           (_detail!.authorId == widget.repository.readerId &&
               !_detail!.archived));
+  List<ProgressOption> get _groupTerms {
+    final ids = _config?.groups
+        .where((g) => g.id == _group)
+        .firstOrNull
+        ?.termIds;
+    // Older servers cannot prove a grade-valid term; notes remain independent.
+    return ids == null
+        ? []
+        : (_config?.terms.where((t) => ids.contains(t.id)).toList() ?? []);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -130,13 +142,14 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
       setState(() {
         _config = config;
         _year = config.sessionYearId;
-        _term = config.terms.firstOrNull?.id;
+        _term = null;
         _mode = config.groups.isNotEmpty
             ? 'staff'
             : config.canReadCaseload
             ? 'counselling'
             : 'assignments';
         _group = config.groups.isNotEmpty ? config.groups.first.id : null;
+        _term = _groupTerms.firstOrNull?.id;
         _learner = null;
         _subject = null;
       });
@@ -208,6 +221,8 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
       _pending = null;
       _uncertain = false;
       _conflict = false;
+      _band = null;
+      _bandEpoch++;
     });
     try {
       final result = await widget.repository.notes(
@@ -242,15 +257,23 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
   }
 
   Future<void> _loadBand(int epoch) async {
+    final bandEpoch = ++_bandEpoch;
+    final group = _group, learner = _learner, term = _term;
+    if (group == null || learner == null || term == null) return;
+    bool current() =>
+        _allowed &&
+        epoch == _epoch &&
+        bandEpoch == _bandEpoch &&
+        _group == group &&
+        _learner == learner &&
+        _term == term;
     try {
-      final band = await widget.repository.staffBand(
-        _group!,
-        _learner!,
-        _term!,
-      );
-      if (_allowed && epoch == _epoch) setState(() => _band = band);
+      final band = await widget.repository.staffBand(group, learner, term);
+      if (current() && band.termId == term && band.learnerId == learner) {
+        setState(() => _band = band);
+      }
     } catch (error) {
-      if (_allowed && epoch == _epoch) {
+      if (current()) {
         setState(() {
           _band = null;
           _withdraw(error);
@@ -519,6 +542,9 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
                         : (id) {
                             setState(() {
                               _group = id;
+                              _term = _groupTerms.firstOrNull?.id;
+                              _band = null;
+                              _bandEpoch++;
                               _subject = null;
                               _page = 1;
                             });
@@ -604,15 +630,15 @@ class _ProgressNotesScreenState extends State<ProgressNotesScreen>
                           },
                   ),
                   if (!_clinical) ...[
-                    if (_year == config.sessionYearId &&
-                        config.terms.isNotEmpty)
+                    if (_year == config.sessionYearId && _groupTerms.isNotEmpty)
                       DropdownButtonFormField<int>(
+                        key: ValueKey('progress-term-$_group-$_term'),
                         initialValue: _term,
                         isExpanded: true,
                         decoration: InputDecoration(
                           labelText: academicText(context, 'Progress term'),
                         ),
-                        items: config.terms
+                        items: _groupTerms
                             .map(
                               (t) => DropdownMenuItem(
                                 value: t.id,

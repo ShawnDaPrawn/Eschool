@@ -70,7 +70,12 @@ class ProgressPanelController extends Controller
             }
         }
         $band = null;
-        $term = $this->id($r->input('term_id'), $configuration['terms'][0]['id'] ?? 0);
+        $termIds = $group === null ? [] : (collect($configuration['groups'])->firstWhere('id', (int) $group->id)['term_ids'] ?? []);
+        $availableTerms = array_values(array_filter($configuration['terms'], fn ($option) => in_array($option['id'], $termIds, true)));
+        $term = $this->id($r->input('term_id'), $availableTerms[0]['id'] ?? 0);
+        if (! in_array($term, $termIds, true)) {
+            $term = $availableTerms[0]['id'] ?? 0;
+        }
         if ($mode === 'academic' && $learnerId > 0 && $group !== null && $term > 0 && $year === $configuration['session_year_id']) {
             try {
                 $band = app(ProgressBands::class)->staff($r->user(), (int) $group->id, $learnerId, $term);
@@ -90,7 +95,7 @@ class ProgressPanelController extends Controller
             'session_year_id' => $year, 'visibility' => $visibility, 'term_id' => $term ?: null], fn ($v) => $v !== null);
 
         return compact('configuration', 'mode', 'groupId', 'group', 'roster', 'learnerId', 'year', 'subject', 'visibility', 'record', 'listing',
-            'assignments', 'band', 'term', 'history', 'draft', 'operationId', 'canWrite', 'selection', 'messages', 'conflict') + ['actorId' => (int) $r->user()->id, 'schoolId' => app(CurrentSchool::class)->id()];
+            'assignments', 'band', 'term', 'availableTerms', 'history', 'draft', 'operationId', 'canWrite', 'selection', 'messages', 'conflict') + ['actorId' => (int) $r->user()->id, 'schoolId' => app(CurrentSchool::class)->id()];
     }
 
     private function id(mixed $value, int $default = 0): int

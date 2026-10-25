@@ -27,6 +27,8 @@ class ProgressGroup {
     required this.gradeName,
 
     required this.sessionYearId,
+
+    this.termIds,
   });
 
   // minimum: 1
@@ -50,6 +52,9 @@ class ProgressGroup {
   @JsonKey(name: r'session_year_id', required: true, includeIfNull: false)
   final int sessionYearId;
 
+  @JsonKey(name: r'term_ids', required: false, includeIfNull: false)
+  final List<int>? termIds;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -59,7 +64,8 @@ class ProgressGroup {
           other.subjectId == subjectId &&
           other.subjectName == subjectName &&
           other.gradeName == gradeName &&
-          other.sessionYearId == sessionYearId;
+          other.sessionYearId == sessionYearId &&
+          other.termIds == termIds;
 
   @override
   int get hashCode =>
@@ -68,7 +74,8 @@ class ProgressGroup {
       subjectId.hashCode +
       subjectName.hashCode +
       gradeName.hashCode +
-      sessionYearId.hashCode;
+      sessionYearId.hashCode +
+      termIds.hashCode;
 
   factory ProgressGroup.fromJson(Map<String, dynamic> json) =>
       _$ProgressGroupFromJson(json);
