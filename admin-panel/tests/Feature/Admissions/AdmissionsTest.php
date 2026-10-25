@@ -13,6 +13,7 @@ use App\Models\Admissions\Intake;
 use App\Models\Admissions\IntakeGrade;
 use App\Models\Admissions\Offer;
 use App\Models\ClassSection;
+use App\Models\Parents;
 use App\Models\Platform\GuardianInvitation;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
@@ -25,6 +26,7 @@ use App\Models\User;
 use App\Services\Admissions\AdmissionOffers;
 use App\Services\Admissions\AdmissionReview;
 use App\Services\Admissions\ApplicationDocuments;
+use App\Services\Admissions\ApplicationForms;
 use App\Services\Admissions\ApplicationLinks;
 use App\Services\Admissions\Applications;
 use App\Services\Admissions\EnrolApplication;
@@ -211,6 +213,8 @@ class AdmissionsTest extends TestCase
         $this->assertSame('enrolled', $enrolled->state);
         $this->assertSame(1, GuardianLink::where('learner_id', $enrolled->learner_id)->count());
         $this->assertSame(1, GuardianInvitation::count());
+        $this->assertSame(1, IntakeGrade::findOrFail($grade)->occupied_places);
+        $this->assertSame(1, app(AdmissionOffers::class)->reserved($grade));
         $this->assertSame(0, LearnerApproval::where('learner_id', $enrolled->learner_id)->count());
         $this->assertTrue(Students::with('user')->findOrFail($enrolled->learner_id)->user->password_change_required);
     }
@@ -229,6 +233,7 @@ class AdmissionsTest extends TestCase
         }
         $this->assertSame($before, [User::count(), Students::count(), GuardianInvitation::count()]);
         $this->assertSame('accepted', $row->fresh()->state);
+        $this->assertSame(0, IntakeGrade::findOrFail($row->intake_grade_id)->occupied_places);
     }
 
     public function test_wrong_role_wrong_school_and_wrong_owner_are_refused_before_answer_queries(): void
@@ -527,6 +532,55 @@ class AdmissionsTest extends TestCase
         $this->assertSame(1, GuardianLink::where('learner_id', $learner)->count());
         $this->assertSame(1, GuardianInvitation::count());
         $this->assertSame(0, LearnerApproval::where('learner_id', $learner)->count());
+    }
+
+    public function test_erasing_enrolled_application_never_reopens_its_occupied_place(): void
+    {
+        $this->intake->update(['keep_for_days' => 1]);
+        [$row] = $this->accepted('occupied');
+        [$waiting] = $this->submitted('waiting');
+        $offers = app(AdmissionOffers::class);
+        $offers->issue($this->admin, $this->op(['application_ids' => [$waiting->id]]));
+        $row = app(EnrolApplication::class)->enrol($this->admin, (int) $row->id, $this->op(['revision' => $row->revision, 'starts_on' => '2026-02-10', 'category_id' => $this->schoolA->ids['category']]));
+        $this->travelTo(now()->addDays(2));
+        $this->assertTrue($this->intake->closes_at->isFuture());
+        $this->assertTrue(app(IntakeRetention::class)->purge((int) $row->id));
+        $this->assertSame(1, IntakeGrade::findOrFail($row->intake_grade_id)->occupied_places);
+        $this->assertSame(1, $offers->reserved((int) $row->intake_grade_id));
+        $this->assertSame([], $offers->recover((int) $row->intake_grade_id));
+        $this->assertSame('waitlisted', $waiting->fresh()->state);
+        $this->assertSame(0, Offer::where('state', 'offered')->count());
+        $migration = require database_path('migrations/2026_10_25_221000_preserve_enrolled_intake_occupancy.php');
+        $this->expectException(\RuntimeException::class);
+        $migration->down();
+    }
+
+    public function test_selected_parent_identity_fields_are_imported_but_existing_global_identity_is_preserved(): void
+    {
+        $field = ProfileFieldDefinition::where('profile_type', 'parent')->where('source', 'user.mobile')->firstOrFail();
+        $ids = [...$this->intake->field_ids, (int) $field->id];
+        $selected = app(ApplicationForms::class)->selectable()->whereIn('id', $ids);
+        $this->intake->update(['field_ids' => $ids, 'form_fingerprint' => app(ApplicationForms::class)->fingerprint($selected)]);
+        foreach (['new', 'existing'] as $kind) {
+            IntakeGrade::query()->update(['places' => 2]);
+            $contact = $this->contact($kind);
+            $contact['mobile'] = null;
+            if ($kind === 'existing') {
+                app(CurrentSchool::class)->run(2, fn () => User::create(['first_name' => 'Existing', 'last_name' => 'Identity', 'email' => $contact['email'], 'mobile' => '+27829999999', 'gender' => 'Not specified', 'password' => bcrypt('SyntheticOnly2026'), 'status' => 1]));
+            }
+            $row = app(Applications::class)->begin($this->intake, (int) IntakeGrade::value('id'), (string) Str::uuid(), bin2hex(random_bytes(32)), $contact, $this->answers($kind) + [$field->id => '+27821111111']);
+            $token = bin2hex(random_bytes(32));
+            ApplicationLink::create(['application_id' => $row->id, 'token_hash' => hash('sha256', $token), 'email_hash' => $row->email_hash, 'expires_at' => now()->addMinutes(30)]);
+            $session = app(ApplicationLinks::class)->consume($this->intake, $token);
+            app(Applications::class)->submit((int) $row->id, $session['key'], 1);
+            app(AdmissionOffers::class)->issue($this->admin, $this->op(['application_ids' => [$row->id]]));
+            $row = app(AdmissionOffers::class)->decide((int) $row->id, $session['key'], (int) $row->fresh()->revision, 'accept');
+            $row = app(EnrolApplication::class)->enrol($this->admin, (int) $row->id, $this->op(['revision' => $row->revision, 'starts_on' => '2026-02-10', 'category_id' => $this->schoolA->ids['category']]));
+            $guardian = User::acrossSchools()->where('email', $contact['email'])->firstOrFail();
+            $this->assertSame($kind === 'new' ? '+27821111111' : '+27829999999', $guardian->mobile);
+            $this->assertSame($guardian->mobile, Parents::where('user_id', $guardian->id)->value('mobile'));
+            $this->assertSame(0, LearnerApproval::where('learner_id', $row->learner_id)->count());
+        }
     }
 
     public function test_normal_public_navigation_does_not_exhaust_separate_creation_allowance(): void

@@ -428,6 +428,7 @@ function onlineExamResultQueryParams(p) {
     };
 }
 function studentDetailsqueryParams(p) {
+    if (window.panelYearSwitchPending) return false;
     return {
         limit: p.limit,
         sort: p.sort,

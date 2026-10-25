@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Transfers;
 
+use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,7 +20,7 @@ class TransferPackage extends Model
 
     protected function casts(): array
     {
-        return ['last_attended_on' => 'date', 'starts_on' => 'date', 'revision' => 'integer', 'contents' => 'encrypted:array', 'manifest' => 'encrypted', 'signature' => 'encrypted:array', 'expires_at' => 'datetime', 'released_at' => 'datetime', 'accepted_at' => 'datetime'];
+        return ['last_attended_on' => 'date', 'starts_on' => 'date', 'revision' => 'integer', 'contents' => 'encrypted:array', 'manifest' => 'encrypted', 'signature' => 'encrypted:array', 'expires_at' => UtcInstant::class, 'released_at' => UtcInstant::class, 'accepted_at' => UtcInstant::class];
     }
 
     protected static function booted(): void

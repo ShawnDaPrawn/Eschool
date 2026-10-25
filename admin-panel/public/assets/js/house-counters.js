@@ -11,7 +11,7 @@
     try {
       const url = new URL(root.dataset.counterUrl, location.origin);
       url.searchParams.set('session_year_id', root.dataset.year);
-      const response = await fetch(url, {credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json','X-School-Id':root.dataset.school,'X-Account-Id':root.dataset.account,'X-Requested-With':'XMLHttpRequest'}});
+      const response = await fetch(url, {credentials:'same-origin',referrerPolicy:'same-origin',cache:'no-store',headers:{Accept:'application/json','X-School-Id':root.dataset.school,'X-Account-Id':root.dataset.account,'X-Requested-With':'XMLHttpRequest'}});
       if ([401,403,404,423].includes(response.status)) { erase(); return; }
       if (!response.ok) return;
       const data = (await response.json()).data;

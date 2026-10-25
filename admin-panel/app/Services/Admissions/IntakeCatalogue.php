@@ -48,7 +48,7 @@ class IntakeCatalogue
             }
             $row = $id === null ? new Intake : Intake::lockForUpdate()->findOrFail($id);
             abort_unless((int) ($row->revision ?? 0) === (int) $data['revision'], 409, 'Compare the current intake before saving.');
-            if ($row->exists && Application::where('intake_id', $row->id)->exists()) {
+            if ($row->exists && (Application::where('intake_id', $row->id)->exists() || IntakeGrade::where('intake_id', $row->id)->where('occupied_places', '>', 0)->exists())) {
                 abort_unless((int) $row->session_year_id === (int) $data['session_year_id'] && $row->field_ids === $ids
                     && (int) $row->application_fee_cents === (int) $data['application_fee_cents'] && $row->required_documents === array_values($data['required_documents']) && hash_equals($row->form_fingerprint, app(ApplicationForms::class)->fingerprint($fields)), 409, 'Keep the submitted form, fee and school year stable; create a new intake for a different form.');
             }
@@ -76,7 +76,7 @@ class IntakeCatalogue
                 $kept[] = (int) $slot->id;
             }
             foreach (IntakeGrade::where('intake_id', $row->id)->whereNotIn('id', $kept)->get() as $removed) {
-                abort_if(Application::where('intake_grade_id', $removed->id)->exists(), 409, 'Retain grades with existing applications.');
+                abort_if((int) $removed->occupied_places > 0 || Application::where('intake_grade_id', $removed->id)->exists(), 409, 'Retain grades with existing applications.');
                 $removed->delete();
             }
             Audit::record('admissions.intake_saved', $row, [], ['revision' => $row->revision]);

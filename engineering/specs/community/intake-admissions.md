@@ -57,3 +57,16 @@ Accepted places do not expire after their acceptance deadline. Accepted places r
 the application copy and its documents expire after the configured days; canonical
 learner profiles, guardian links, invitations and educational records are retained. Office acknowledgements do not post
 cash into a ledger. Provider-backed online payment is Phase 5 work.
+
+Occupied places are retained as a non-private count on each intake grade. An
+accepted offer moves into that count in the same transaction as enrolment;
+retries and enclosing rollbacks cannot count it twice. Erasing the private
+application after its retention period does not reopen the learner's place or
+permit removing/reassigning its intake grade. The corrective migration backfills
+still-retained enrolled applications and refuses to discard populated occupancy.
+
+Selected parent identity fields are imported into a newly created guardian,
+with application contact fields as defaults. A matching existing global identity
+keeps its identity values, including values held by another school; school-owned
+custom profile answers retain their separate school scope. Application contact
+email proof never substitutes for learner guardian approval.

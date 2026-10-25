@@ -13,6 +13,24 @@ test('last year is read-only until you switch back', async ({ page }) => {
   const year = new Date().getFullYear();
   await signIn(page, accounts.teacher2);
 
+  // Keep the first class-picker callback in flight until the switch begins.
+  // It must not issue list requests while the session write is pending.
+  let releaseClasses!: () => void;
+  const classesGate = new Promise<void>(resolve => { releaseClasses = resolve; });
+  let heldClasses = false;
+  await page.route('**/student-class-sections?**', async route => {
+    if (heldClasses) return route.continue();
+    heldClasses = true;
+    const response = await route.fetch();
+    await classesGate;
+    await route.fulfill({ response });
+  });
+  await page.route('**/set-session-year', async route => {
+    releaseClasses();
+    await page.waitForTimeout(200);
+    await route.continue();
+  });
+
   // This year: no banner, the homeroom's learners, writes allowed.
   await page.goto('/students');
   await expect(page.locator('.year-banner')).toHaveCount(0);
@@ -27,10 +45,10 @@ test('last year is read-only until you switch back', async ({ page }) => {
   });
   page.on('request', request => {
     const url = new URL(request.url());
+    if (url.pathname === '/set-session-year' && request.method() === 'POST') selectingYear = true;
     if (selectingYear && !persisted && ['/student-class-sections', '/students-list-data'].includes(url.pathname)) prematureFilters.push(url.pathname);
   });
   // Switch to last year from the header.
-  selectingYear = true;
   await Promise.all([page.waitForEvent('load'), page.getByRole('combobox', { name: 'School year' }).selectOption({ label: String(year - 1) })]);
   const banner = page.locator('.year-banner');
   await expect(banner).toBeVisible();

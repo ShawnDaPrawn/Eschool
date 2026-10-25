@@ -15,6 +15,12 @@ for (const width of [390, 820, 1280]) {
     await page.goto(`/recognition/house_points?learner_id=${fixture.learner}`);
     const contribution=`Recognition browser ${width}-${Date.now()} <script>window.recognitionExecuted=1</script>`;
     const baseline=Number(await page.locator(`[data-house="${fixture.house}"]`).textContent());
+    // The private page suppresses referrers by default. The live same-origin
+    // request must still authenticate through Sanctum's stateful cookie flow.
+    const poll=await page.waitForResponse(response=>response.url().includes('/api/v2/recognition/house_points/counters'),{timeout:12000});
+    expect(poll.status()).toBe(200);
+    expect((await poll.json()).data.session_year_id).toBe(Number(await page.locator('[data-counter-url]').getAttribute('data-year')));
+    await expect(page.locator(`[data-house="${fixture.house}"]`)).toHaveText(String(baseline));
     const issue=page.getByRole('form',{name:'Award house points',exact:true});
     await issue.locator('[name="point_category_id"]').selectOption(String(fixture.point_category));
     await issue.locator('[name="reason"]').fill(contribution);

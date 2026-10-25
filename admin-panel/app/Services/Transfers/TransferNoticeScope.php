@@ -22,7 +22,7 @@ class TransferNoticeScope implements PrivateNoticeDelivery, PrivateNoticeScope
         $school = app(CurrentSchool::class)->id();
         $payload = $notifications->qualifyColumn('delivery_payload');
         $safe = "IF(JSON_VALID($payload), $payload, '{}')";
-        $source = TransferPackage::where('guardian_id', $fresh->id)->where('state', 'awaiting_consent')->where('expires_at', '>', now())
+        $source = TransferPackage::where('guardian_id', $fresh->id)->where('state', 'awaiting_consent')->where('expires_at', '>', now()->utc())
             ->whereRaw("CAST(transfer_packages.id AS CHAR) = JSON_UNQUOTE(JSON_EXTRACT($safe, '$.transfer_package_id'))")
             ->whereRaw("CAST(transfer_packages.revision AS CHAR) = JSON_UNQUOTE(JSON_EXTRACT($safe, '$.transfer_revision'))")
             ->whereExists(fn ($q) => $q->selectRaw('1')->from('guardian_links')->where('guardian_links.school_id', $school)

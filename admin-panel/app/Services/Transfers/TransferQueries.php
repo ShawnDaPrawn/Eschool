@@ -123,7 +123,7 @@ class TransferQueries
             $a->staff($actor);
             $q = match ($lane) {
                 'outgoing' => TransferPackage::query(),
-                'incoming' => TransferPackage::acrossSchools()->where('to_school_id', app(CurrentSchool::class)->id())->where('state', 'released')->where('expires_at', '>', now()),
+                'incoming' => TransferPackage::acrossSchools()->where('to_school_id', app(CurrentSchool::class)->id())->where('state', 'released')->where('expires_at', '>', now()->utc()),
                 'receipts' => TransferReceipt::query(), default => abort(404),
             };
         }

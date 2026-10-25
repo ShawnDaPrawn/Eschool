@@ -27,6 +27,7 @@ use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
 use App\Models\SessionYear;
+use App\Models\Settings;
 use App\Models\Students;
 use App\Models\Transfers\TransferPackage;
 use App\Models\Transfers\TransferReceipt;
@@ -42,11 +43,13 @@ use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Notifications\PrivateNoticeScopes;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
+use App\Services\SettingsConfigService;
 use App\Services\Transfers\TransferAccept;
 use App\Services\Transfers\TransferAuthority;
 use App\Services\Transfers\TransferEnrollment;
 use App\Services\Transfers\TransferNotices;
 use App\Services\Transfers\TransferPackages;
+use App\Services\Transfers\TransferQueries;
 use App\Services\Transfers\TransferRetention;
 use App\Services\Transfers\TransferVault;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -135,6 +138,52 @@ class SchoolTransferTest extends TestCase
         } catch (HttpException|ModelNotFoundException $e) {
             $this->assertSame($status, $e instanceof HttpException ? $e->getStatusCode() : 404);
         }
+    }
+
+    public function test_cross_school_transfer_expiry_uses_one_instant_for_listing_detail_and_retention(): void
+    {
+        School::whereKey(1)->update(['timezone' => 'America/New_York']);
+        Settings::updateOrCreate(['type' => 'time_zone'], ['message' => 'America/New_York']);
+        SettingsConfigService::apply();
+        // Re-enter the source context so writes use its configured local clock.
+        $p = app(CurrentSchool::class)->run(1, fn () => $this->released());
+        $deadline = now()->addHour()->toImmutable();
+        app(CurrentSchool::class)->run(1, fn () => $p->update(['expires_at' => $deadline]));
+        $this->assertSame($deadline->utc()->format('Y-m-d H:i:s'), DB::table('transfer_packages')->where('id', $p->id)->value('expires_at'));
+        $queries = app(TransferQueries::class);
+        app(CurrentSchool::class)->run(2, function () use ($p, $deadline, $queries): void {
+            $this->travelTo($deadline->subSecond());
+            $rows = $queries->listing($this->receiver, 'incoming')['items'];
+            $this->assertSame([(int) $p->id], array_column($rows, 'id'));
+            $detail = $queries->show($this->receiver, 'incoming', (int) $p->id);
+            $this->assertTrue($detail['can_accept']);
+            $this->assertSame($deadline->utc()->toISOString(), $detail['expires_at']);
+            $this->travelTo($deadline);
+            $this->assertSame([], $queries->listing($this->receiver, 'incoming')['items']);
+        });
+        app(CurrentSchool::class)->run(1, fn () => app(TransferRetention::class)->expire());
+        $this->assertSame('expired', $p->fresh()->state);
+    }
+
+    public function test_existing_transfer_instants_are_migrated_from_each_owning_school_clock_without_resigning(): void
+    {
+        $p = $this->released();
+        $manifest = $p->getRawOriginal('manifest');
+        $signature = $p->getRawOriginal('signature');
+        School::whereKey(1)->update(['timezone' => 'America/New_York']);
+        Settings::updateOrCreate(['type' => 'time_zone'], ['message' => 'America/New_York']);
+        DB::table('transfer_packages')->where('id', $p->id)->update(['expires_at' => '2026-02-24 10:00:00', 'released_at' => '2026-02-10 10:00:00', 'accepted_at' => null]);
+        DB::table('transfer_stages')->where('school_id', 1)->update(['expires_at' => '2026-02-10 11:00:00']);
+        $migration = require database_path('migrations/2026_10_25_222000_normalize_transfer_instants.php');
+        $migration->up();
+        $this->assertSame('2026-02-24T15:00:00.000000Z', $p->fresh()->expires_at->toISOString());
+        $this->assertSame('2026-02-10T15:00:00.000000Z', $p->fresh()->released_at->toISOString());
+        $this->assertNull($p->fresh()->accepted_at);
+        $this->assertSame('2026-02-10 16:00:00', DB::table('transfer_stages')->where('school_id', 1)->value('expires_at'));
+        $this->assertSame($manifest, $p->fresh()->getRawOriginal('manifest'));
+        $this->assertSame($signature, $p->fresh()->getRawOriginal('signature'));
+        $this->expectException(\RuntimeException::class);
+        $migration->down();
     }
 
     public function test_consented_round_trip_closes_source_opens_destination_and_never_copies_online_approval(): void
