@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'consultations', 'consultation_questions', 'consultation_options', 'consultation_candidates', 'consultation_participation', 'consultation_responses', 'consultation_configuration_events', 'consultation_operations',
         'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
         'discipline_acknowledgements', 'detention_sessions', 'detention_entries', 'detention_versions',
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations',
