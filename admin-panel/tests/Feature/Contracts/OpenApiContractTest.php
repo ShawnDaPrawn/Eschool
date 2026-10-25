@@ -50,6 +50,14 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getPracticeAccess requires auth' => [null, 'GET', 'api/v2/learning/practice/access', [], 401],
+            'getPracticeBankChoices requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/choices', [], 401],
+            'getPracticeBank requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/bank', [], 401],
+            'approvePracticeQuestion requires auth' => [null, 'POST', 'api/v2/learning/practice/groups/1/bank', [], 401],
+            'revisePracticeQuestion requires auth' => [null, 'POST', 'api/v2/learning/practice/groups/1/bank/1', [], 401],
+            'issuePracticeDailySet requires auth' => [null, 'POST', 'api/v2/learning/practice/learners/1/groups/1/daily-sets', [], 401],
+            'getPracticeDailySet requires auth' => [null, 'GET', 'api/v2/learning/practice/learners/1/daily-sets/1', [], 401],
+            'reviewPracticeEntry requires auth' => [null, 'POST', 'api/v2/learning/practice/learners/1/daily-sets/1/entries/1/review', [], 401],
             'listStaffPrivateNotices requires auth' => [null, 'GET', 'api/v2/staff/private-notices', [], 401],
             'readStaffPrivateNotice requires auth' => [null, 'POST', 'api/v2/staff/private-notices/1/read', [], 401],
             'getConsultationAccess requires auth' => [null, 'GET', 'api/v2/consultations/access', [], 401],

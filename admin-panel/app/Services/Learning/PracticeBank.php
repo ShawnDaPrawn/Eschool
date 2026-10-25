@@ -7,7 +7,6 @@ namespace App\Services\Learning;
 use App\Models\Learning\PracticeItem;
 use App\Models\Learning\PracticeItemVersion;
 use App\Models\User;
-use App\Policies\Academics\ContentPolicy;
 use App\Services\Platform\Audit\Audit;
 use Illuminate\Support\Facades\Validator;
 
@@ -23,9 +22,7 @@ class PracticeBank
         $authorize = function () use ($actor, $groupId, $data) {
             $group = app(PracticeAccess::class)->staff($actor, $groupId, true);
             app(PracticeAccess::class)->topic($group, $data['topic_id'], true);
-            $source = app(ContentPolicy::class)->version($actor, $data['content_version_id']);
-            abort_unless($source->state === 'published' && $source->item->active && (int) $source->item->published_version_id === (int) $source->id
-                && (int) $source->item->subject_id === (int) $group->subject_id && $source->item->audienceGroups()->where('teaching_group_id', $groupId)->exists(), 404);
+            app(PracticeAccess::class)->source($actor, $group, $data['content_version_id']);
         };
 
         return app(PracticeOperations::class)->run($actor, $data + ['group_id' => $groupId, 'item_id' => $itemId], $authorize, function () use ($actor, $groupId, $itemId, $data) {

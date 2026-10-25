@@ -12,6 +12,7 @@ use App\Policies\People\ProfilePolicy;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\Growth\RiskQueries;
+use App\Services\Learning\PracticeChoices;
 use App\Services\ParentPolicyService;
 use App\Services\Pastoral\SensitiveRecordsAccess;
 use App\Services\Pastoral\SupportAuthority;
@@ -84,7 +85,7 @@ class FacilitatorAccess
         return ['user_id' => (int) $fresh->id, 'school_id' => (int) $school->id, 'name' => trim($fresh->first_name.' '.$fresh->last_name),
             'roles' => array_values(array_intersect(app(ProfilePolicy::class)->roles($fresh), self::ROLES)),
             'schools' => $choices->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name, 'slug' => $row->slug])->all(),
-            'features' => ['consultations' => $this->consultationsAvailable($fresh), 'private_notices' => app(StaffPrivateNotices::class)->available($fresh), 'discipline' => app(DisciplineQueries::class)->available($fresh), 'groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
+            'features' => ['daily_practice' => app(PracticeChoices::class)->availableStaff($fresh), 'consultations' => $this->consultationsAvailable($fresh), 'private_notices' => app(StaffPrivateNotices::class)->available($fresh), 'discipline' => app(DisciplineQueries::class)->available($fresh), 'groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
                 'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh), 'risk_interventions' => $this->riskAvailable($fresh), 'house_points' => $this->recognitionAvailable($fresh, 'house_points'), 'awards' => $this->recognitionAvailable($fresh, 'awards')]];
     }
 

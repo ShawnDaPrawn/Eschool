@@ -133,7 +133,7 @@ class DailyPractice
         abort_unless(app(CurrentSchool::class)->id() === $school, 403);
 
         return ['id' => $setId, 'school_id' => $school, 'reader_id' => (int) $actor->id, 'learner_id' => $learner, 'group_id' => (int) $group->id,
-            'practice_on' => $set->practice_on->toDateString(), 'offline_until' => $set->offline_until->toISOString(), 'estimated_seconds' => $seconds,
+            'practice_on' => $set->practice_on->toDateString(), 'server_time' => now()->utc()->toISOString(), 'offline_until' => $set->offline_until->toISOString(), 'estimated_seconds' => $seconds,
             'completed' => $set->completed_at !== null, 'items' => $rows, 'streak_days' => $this->streak($learner)];
     }
 

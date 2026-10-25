@@ -214,6 +214,7 @@ import 'package:eschool_api/src/model/add_wellbeing_case_entry_response.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
+import 'package:eschool_api/src/model/approve_practice_question_response.dart';
 import 'package:eschool_api/src/model/branding.dart';
 import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/cancel_consultation_response.dart';
@@ -449,6 +450,10 @@ import 'package:eschool_api/src/model/get_consultation_history_record_response.d
 import 'package:eschool_api/src/model/get_consultation_results_response.dart';
 import 'package:eschool_api/src/model/get_identified_incident_follow_up_response.dart';
 import 'package:eschool_api/src/model/get_managed_consultation_results_response.dart';
+import 'package:eschool_api/src/model/get_practice_access_response.dart';
+import 'package:eschool_api/src/model/get_practice_bank_choices_response.dart';
+import 'package:eschool_api/src/model/get_practice_bank_response.dart';
+import 'package:eschool_api/src/model/get_practice_daily_set_response.dart';
 import 'package:eschool_api/src/model/get_public_incident_configuration_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_access_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_case_response.dart';
@@ -496,6 +501,7 @@ import 'package:eschool_api/src/model/intervention_queue_response.dart';
 import 'package:eschool_api/src/model/intervention_update.dart';
 import 'package:eschool_api/src/model/intervention_version.dart';
 import 'package:eschool_api/src/model/intervention_version_record.dart';
+import 'package:eschool_api/src/model/issue_practice_daily_set_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
@@ -559,6 +565,22 @@ import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/pagination.dart';
+import 'package:eschool_api/src/model/practice_access.dart';
+import 'package:eschool_api/src/model/practice_approval.dart';
+import 'package:eschool_api/src/model/practice_approve_input.dart';
+import 'package:eschool_api/src/model/practice_bank_choices.dart';
+import 'package:eschool_api/src/model/practice_bank_item.dart';
+import 'package:eschool_api/src/model/practice_bank_page.dart';
+import 'package:eschool_api/src/model/practice_choice.dart';
+import 'package:eschool_api/src/model/practice_daily_set.dart';
+import 'package:eschool_api/src/model/practice_group_choice.dart';
+import 'package:eschool_api/src/model/practice_issue_input.dart';
+import 'package:eschool_api/src/model/practice_question.dart';
+import 'package:eschool_api/src/model/practice_question_option.dart';
+import 'package:eschool_api/src/model/practice_review.dart';
+import 'package:eschool_api/src/model/practice_review_input.dart';
+import 'package:eschool_api/src/model/practice_schedule.dart';
+import 'package:eschool_api/src/model/practice_set_entry.dart';
 import 'package:eschool_api/src/model/profile_attachment.dart';
 import 'package:eschool_api/src/model/profile_category_definition.dart';
 import 'package:eschool_api/src/model/profile_category_response.dart';
@@ -637,6 +659,8 @@ import 'package:eschool_api/src/model/recognition_year.dart';
 import 'package:eschool_api/src/model/reply_anonymous_incident_response.dart';
 import 'package:eschool_api/src/model/reply_identified_incident_response.dart';
 import 'package:eschool_api/src/model/reply_wellbeing_report_response.dart';
+import 'package:eschool_api/src/model/review_practice_entry_response.dart';
+import 'package:eschool_api/src/model/revise_practice_question_response.dart';
 import 'package:eschool_api/src/model/risk_assignment.dart';
 import 'package:eschool_api/src/model/risk_assignment_result.dart';
 import 'package:eschool_api/src/model/risk_assignment_result_response.dart';
@@ -1597,6 +1621,11 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ApprovalStateResponse':
       return ApprovalStateResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'ApprovePracticeQuestionResponse':
+      return ApprovePracticeQuestionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'Branding':
       return Branding.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'CalendarRemovedResponse':
@@ -2401,6 +2430,20 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'GetPracticeAccessResponse':
+      return GetPracticeAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GetPracticeBankChoicesResponse':
+      return GetPracticeBankChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GetPracticeBankResponse':
+      return GetPracticeBankResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GetPracticeDailySetResponse':
+      return GetPracticeDailySetResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'GetPublicIncidentConfigurationResponse':
       return GetPublicIncidentConfigurationResponse.fromJson(
             value as Map<String, dynamic>,
@@ -2560,6 +2603,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'InterventionVersionRecord':
       return InterventionVersionRecord.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'IssuePracticeDailySetResponse':
+      return IssuePracticeDailySetResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'LearnerNoteAssignment':
       return LearnerNoteAssignment.fromJson(value as Map<String, dynamic>)
@@ -2782,6 +2830,54 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PracticeAccess':
+      return PracticeAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeApproval':
+      return PracticeApproval.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeApproveInput':
+      return PracticeApproveInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeBankChoices':
+      return PracticeBankChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeBankItem':
+      return PracticeBankItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeBankPage':
+      return PracticeBankPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeChoice':
+      return PracticeChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeDailySet':
+      return PracticeDailySet.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeGroupChoice':
+      return PracticeGroupChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeIssueInput':
+      return PracticeIssueInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeQuestion':
+      return PracticeQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeQuestionOption':
+      return PracticeQuestionOption.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeReview':
+      return PracticeReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeReviewInput':
+      return PracticeReviewInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeSchedule':
+      return PracticeSchedule.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PracticeSetEntry':
+      return PracticeSetEntry.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'ProfileAttachment':
       return ProfileAttachment.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -3045,6 +3141,14 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ReplyWellbeingReportResponse':
       return ReplyWellbeingReportResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ReviewPracticeEntryResponse':
+      return ReviewPracticeEntryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'RevisePracticeQuestionResponse':
+      return RevisePracticeQuestionResponse.fromJson(
             value as Map<String, dynamic>,
           )
           as ReturnType;
