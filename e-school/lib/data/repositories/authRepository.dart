@@ -77,7 +77,11 @@ class AuthRepository {
     final clearLogin = setIsLogIn(false), clearToken = setJwtToken('');
     await Future.wait([clearLogin, clearToken]);
     try {
-      await SecureContentStore.purge();
+      try {
+        await SecureContentStore.purge();
+      } finally {
+        await SecurePracticeStore.purge();
+      }
     } catch (_) {
       /* Closed keys cannot serve another context. */
     }

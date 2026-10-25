@@ -150,6 +150,7 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String dailyPractice = '/learning/practice';
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
   static const String reportConcern = '/report-concern';
@@ -178,6 +179,7 @@ class Routes {
       familyProgress => 'academics',
       reportConcern => 'wellbeing',
       mastery => 'mastery',
+      dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
       chatUserPage ||
@@ -389,6 +391,8 @@ class Routes {
         return familyProgressRoute();
       case reportConcern:
         return reportConcernRoute();
+      case dailyPractice:
+        return dailyPracticeRoute();
       case mastery:
         return masteryRoute();
       case activityGroups:

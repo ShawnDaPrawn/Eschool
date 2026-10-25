@@ -362,6 +362,13 @@ jobs:
             flow: facilitator_private_inbox_smoke_test.dart
             flavor: facilitator
           - app: e-school-teacher
+            flow: teacher_practice_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_practice_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
+            flow: family_practice_smoke_test.dart
+          - app: e-school-teacher
             flow: teacher_risk_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_wellbeing_smoke_test.dart

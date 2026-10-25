@@ -38,6 +38,15 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (context.watch<MeContextCubit>().context?.isModuleOn('daily_practice') ==
+            true &&
+        context.watch<MeContextCubit>().context?.roles.contains('Teacher') ==
+            true)
+      MenuContainerDetails(
+        route: Routes.dailyPractice,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Practice question bank',
+      ),
     if (allowsSchoolModule(
       context.watch<MeContextCubit>().context,
       'discipline',

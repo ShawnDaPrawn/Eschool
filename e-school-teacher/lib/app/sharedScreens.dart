@@ -109,6 +109,15 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isModuleOn('daily_practice') ==
+            true &&
+        context.watch<MeContextCubit>().context?.roles.contains('Teacher') ==
+            true)
+      tile(
+        title: label('Practice question bank'),
+        icon: Icons.psychology_alt_outlined,
+        onTap: () => open(Routes.dailyPractice),
+      ),
     if (allowsSchoolModule(
       context.watch<MeContextCubit>().context,
       'discipline',
@@ -1029,3 +1038,61 @@ class StaffRecognitionEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> dailyPracticeRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !me.roles.contains('Teacher') ||
+        !me.isModuleOn('daily_practice') ||
+        !allowsSchoolModule(me, 'daily_practice')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Practice question bank',
+        ),
+        body: const Center(child: Text('Not available for this account')),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PracticeSessionBoundary(
+        pinned: me,
+        builder: (context, active) {
+          bool read() =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school);
+          return PracticeReaderHost(
+            create: () => PracticeBankScreen(
+              repository: ApiPracticeRepository(
+                Api.client,
+                schoolId: school,
+                readerId: account,
+                contextActive: read,
+              ),
+              canRead: read,
+              canWrite: () =>
+                  read() &&
+                  allowsSchoolModule(
+                    session.context,
+                    'daily_practice',
+                    write: true,
+                  ),
+            ),
+          );
+        },
+      ),
+    );
+  },
+);

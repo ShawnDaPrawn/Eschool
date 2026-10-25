@@ -1366,3 +1366,105 @@ class FamilyRecognitionEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> dailyPracticeRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (context.read<AuthCubit>().isParent() ||
+        me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !me.roles.contains('Student') ||
+        me.approval?.isApproved != true ||
+        !me.isModuleOn('daily_practice') ||
+        !allowsSchoolModule(me, 'daily_practice')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Daily practice'),
+        body: const Center(child: Text('Not available for this account')),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PracticeSessionBoundary(
+        pinned: me,
+        builder: (context, active) {
+          bool read() =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school);
+          bool write() =>
+              read() &&
+              allowsSchoolModule(
+                session.context,
+                'daily_practice',
+                write: true,
+              );
+          return PracticeReaderHost(
+            create: () {
+              final repo = ApiPracticeRepository(
+                Api.client,
+                schoolId: school,
+                readerId: account,
+                contextActive: read,
+              );
+              late PracticeCache cache;
+              cache = PracticeCache(
+                repo,
+                canQueue: write,
+                onRevoke: () =>
+                    SecurePracticeStore.revokeScope(account, school),
+                store: () => SecurePracticeStore.open(
+                  account,
+                  school,
+                  active: () => cache.isActive,
+                ),
+              );
+              return PracticeScreen(
+                repository: repo,
+                cache: cache,
+                canRead: read,
+                canWrite: write,
+              );
+            },
+          );
+        },
+      ),
+    );
+  },
+);
+
+class DailyPracticeEntry extends StatelessWidget {
+  const DailyPracticeEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (context.read<AuthCubit>().isParent() ||
+              me?.roles.contains('Student') != true ||
+              me?.approval?.isApproved != true ||
+              me?.isModuleOn('daily_practice') != true ||
+              !allowsSchoolModule(me, 'daily_practice'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.psychology_alt_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Daily practice'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.dailyPractice),
+            ),
+          );
+        },
+      );
+}

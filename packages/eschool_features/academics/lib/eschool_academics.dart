@@ -90,3 +90,10 @@ export 'src/recognition/recognition_session_boundary.dart';
 
 export 'src/private_notices/private_staff_notice_repository.dart';
 export 'src/private_notices/private_staff_inbox_screen.dart';
+export 'src/practice/practice_repository.dart';
+export 'src/practice/practice_answers.dart';
+export 'src/practice/practice_cache.dart';
+export 'src/practice/practice_store.dart';
+export 'src/practice/practice_screen.dart';
+export 'src/practice/practice_bank_screen.dart';
+export 'src/practice/practice_session_boundary.dart';

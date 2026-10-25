@@ -484,6 +484,34 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
+          if (profile.features['daily_practice'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.psychology_alt_outlined),
+                title: Text(l('Practice question bank')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'daily_practice',
+                  PracticeBankScreen(
+                    repository: ApiPracticeRepository(
+                      repository.client,
+                      schoolId: school,
+                      readerId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['daily_practice'] ==
+                              true,
+                    ),
+                    canRead: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['daily_practice'] == true,
+                    canWrite: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['daily_practice'] == true,
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['discipline'] == true)
             Card(
               child: ListTile(
@@ -645,6 +673,7 @@ class _StaffHome extends StatelessWidget {
           if (![
             'private_notices',
             'discipline',
+            'daily_practice',
             'groups',
             'messages',
             'support_plans',
