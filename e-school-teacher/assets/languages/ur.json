@@ -1582,5 +1582,11 @@
   "Supervised detention register": "Supervised detention register",
   "Unknown status": "Unknown status",
   "You acknowledged this revision": "You acknowledged this revision",
-  "Your school must publish its discipline framework before occurrences can be recorded.": "Your school must publish its discipline framework before occurrences can be recorded."
+  "Your school must publish its discipline framework before occurrences can be recorded.": "Your school must publish its discipline framework before occurrences can be recorded.",
+  "Private staff updates": "Private staff updates",
+  "Updates contain no private record details. Each school area checks your current access when opened.": "Updates contain no private record details. Each school area checks your current access when opened.",
+  "Refresh staff access before opening private updates.": "Refresh staff access before opening private updates.",
+  "Private updates are no longer available. Refresh staff access.": "Private updates are no longer available. Refresh staff access.",
+  "The read confirmation is unknown. Retry the same update.": "The read confirmation is unknown. Retry the same update.",
+  "Retry the same read confirmation": "Retry the same read confirmation"
 }

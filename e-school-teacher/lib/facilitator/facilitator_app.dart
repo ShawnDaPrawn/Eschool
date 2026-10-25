@@ -354,8 +354,8 @@ class _StaffHome extends StatelessWidget {
     final generation = repository.epoch,
         school = profile.schoolId,
         user = profile.userId;
-    void open(String module, Widget child) {
-      Navigator.of(context).push(
+    Future<void> open(String module, Widget child) async {
+      await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => AnimatedBuilder(
             animation: repository,
@@ -435,6 +435,53 @@ class _StaffHome extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+            ),
+          if (profile.features['private_notices'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.notifications_none),
+                title: Text(l('Private staff updates')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'private_notices',
+                  PrivateStaffInboxScreen(
+                    repository: ApiPrivateStaffNoticeRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['private_notices'] ==
+                              true,
+                    ),
+                    canOpen: (feature) =>
+                        feature == 'wellbeing' &&
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['counselling'] == true,
+                    openFeature: (feature) async {
+                      if (feature != 'wellbeing' ||
+                          !repository.matches(generation, school, user) ||
+                          repository.profile?.features['counselling'] != true) {
+                        return;
+                      }
+                      await open(
+                        'counselling',
+                        WellbeingScreen(
+                          repository: ApiWellbeingRepository(
+                            repository.client,
+                            schoolId: school,
+                            accountId: user,
+                            contextActive: () =>
+                                repository.matches(generation, school, user) &&
+                                repository.profile?.features['counselling'] ==
+                                    true,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           if (profile.features['discipline'] == true)
@@ -596,6 +643,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'private_notices',
             'discipline',
             'groups',
             'messages',
