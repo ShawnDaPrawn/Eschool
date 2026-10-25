@@ -104,3 +104,5 @@ Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-priva
 
 Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests')->withoutOverlapping(55);
 Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();
+
+Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-retention')->withoutOverlapping();
