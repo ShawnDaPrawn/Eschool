@@ -51,7 +51,8 @@
                 "academic_timetable": "bool",
                 "communication_messages": "bool",
                 "mastery": "bool",
-                "module_switches": "bool"
+                "module_switches": "bool",
+                "relief_cover": "bool"
             },
             "modules": [
                 {

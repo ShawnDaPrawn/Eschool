@@ -8,12 +8,6 @@ $mail = ['push' => 'off', 'email' => 'mandatory', 'in_app' => 'off'];
 $required = ['push' => 'mandatory', 'email' => 'mandatory', 'in_app' => 'mandatory'];
 
 return [
-    'wellbeing.staff_update' => ['label' => 'Private staff updates', 'module' => 'wellbeing', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'permission' => 'pastoral-sensitive-access'],
-    'wellbeing.report_reply' => ['label' => 'Private report replies', 'module' => 'wellbeing', 'portals' => ['learner', 'parent'], 'channels' => $on],
-    'transfer.consent_requested' => ['label' => 'School transfer review', 'module' => 'school_transfers', 'portals' => ['parent'], 'channels' => $on],
-    'progress.staff_band_changed' => ['label' => 'Teaching progress updates', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
-    'progress.band_changed' => ['label' => 'Learning progress updates', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
-    'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'account.verify_email' => ['label' => 'Verify email', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.password_reset' => ['label' => 'Password reset', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.invitation' => ['label' => 'School invitation', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
@@ -39,4 +33,10 @@ return [
     'fees.invoice' => ['label' => 'Fee invoice', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
     'fees.reminder' => ['label' => 'Fee reminder', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
     'fees.receipt' => ['label' => 'Payment receipt', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
+    'wellbeing.staff_update' => ['label' => 'Private staff updates', 'module' => 'wellbeing', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'permission' => 'pastoral-sensitive-access'],
+    'wellbeing.report_reply' => ['label' => 'Private report replies', 'module' => 'wellbeing', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'transfer.consent_requested' => ['label' => 'School transfer review', 'module' => 'school_transfers', 'portals' => ['parent'], 'channels' => $on],
+    'progress.staff_band_changed' => ['label' => 'Teaching progress updates', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'progress.band_changed' => ['label' => 'Learning progress updates', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
 ];

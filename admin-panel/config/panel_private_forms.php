@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\Discipline\DisciplinePanelScope;
 use App\Services\Growth\ProgressPanelScope;
 use App\Services\Growth\RiskPanelScope;
 use App\Services\Pastoral\SupportPanelScope;
@@ -10,6 +11,8 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['school-discipline', 'school-discipline/*'], 'title' => 'School discipline', 'route' => 'discipline-panel.index', 'guard' => DisciplinePanelScope::class,
+        'fields' => ['description' => ['label' => 'Your factual description draft', 'limit' => 2000], 'staff_note' => ['label' => 'Your private staff note draft', 'limit' => 2000], 'reason' => ['label' => 'Your review reason draft', 'limit' => 1000], 'family_reason' => ['label' => 'Your family-facing reason draft', 'limit' => 1000], 'location' => ['label' => 'Your supervised location draft', 'limit' => 200]]],
     ['paths' => ['recognition', 'recognition/*'], 'title' => 'Recognition', 'route' => 'home', 'guard' => RecognitionPanelScope::class, 'fields' => ['reason' => ['label' => 'Reason for this change', 'limit' => 4000], 'criteria' => ['label' => 'Award criteria', 'limit' => 4000], 'title' => ['label' => 'Award title', 'limit' => 160], 'event' => ['label' => 'Assembly or event', 'limit' => 191], 'outside_organisation' => ['label' => 'Outside organisation', 'limit' => 160]]],
     ['paths' => ['risk-interventions', 'risk-interventions/*'], 'title' => 'Early warning and interventions', 'route' => 'risk-interventions.index', 'guard' => RiskPanelScope::class,
         'fields' => ['action' => ['label' => 'Your intervention action draft', 'limit' => 20000], 'outcome' => ['label' => 'Your review outcome draft', 'limit' => 20000], 'reason' => ['label' => 'Your handoff reason draft', 'limit' => 1000]]],

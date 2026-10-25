@@ -1478,5 +1478,6 @@
   "Photos may identify people through their contents. Device and location metadata is removed, but visible details remain.": "Photos may identify people through their contents. Device and location metadata is removed, but visible details remain.",
   "Photo selected. Read the intended report before sending it.": "Photo selected. Read the intended report before sending it.",
   "Choose a JPEG or PNG photo up to 4 MB.": "Choose a JPEG or PNG photo up to 4 MB.",
-  "The photo was not sent. Check its type and size, then choose it again.": "The photo was not sent. Check its type and size, then choose it again."
+  "The photo was not sent. Check its type and size, then choose it again.": "The photo was not sent. Check its type and size, then choose it again.",
+  "Follow-up is read-only. Saved records remain available.": "Follow-up is read-only. Saved records remain available."
 }

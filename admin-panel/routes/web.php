@@ -40,6 +40,7 @@ use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
+use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
@@ -821,4 +822,17 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::post('learners/{learner}/assignments', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('assign');
     Route::post('learners/{learner}/assignments/revoke', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('revoke');
     Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
+});
+
+Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:discipline', EnforceReadOnlyYears::class])->prefix('school-discipline')->name('discipline-panel.')->group(function () {
+    $c = DisciplinePanelController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('framework', [$c, 'write'])->name('configure');
+    Route::post('learners/{learner}/records', [$c, 'write'])->whereNumber('learner')->name('create');
+    Route::post('records/{record}/review', [$c, 'write'])->whereNumber('record')->name('review');
+    Route::post('records/{record}/hearing', [$c, 'write'])->whereNumber('record')->name('hearing');
+    Route::post('detentions', [$c, 'write'])->name('detention_create');
+    Route::post('detentions/{detention}/entries', [$c, 'write'])->whereNumber('detention')->name('enroll');
+    Route::post('detentions/{detention}/entries/{entry}/attendance', [$c, 'write'])->whereNumber('detention')->whereNumber('entry')->name('attendance');
+    Route::post('detentions/{detention}/cancel', [$c, 'write'])->whereNumber('detention')->name('cancel');
 });

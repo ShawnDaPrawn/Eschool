@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/app.dart';
 import 'package:eschool_teacher/app/staffBuildIdentity.dart';
