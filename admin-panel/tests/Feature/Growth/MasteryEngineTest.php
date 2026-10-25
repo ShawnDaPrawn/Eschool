@@ -274,11 +274,19 @@ class MasteryEngineTest extends TestCase
     {
         DB::rollBack();
         try {
+            // Empty dependent practice tables must precede their topic parent.
+            $practicePath = database_path('migrations/2026_10_25_213000_create_daily_practice.php');
+            $practice = is_file($practicePath) ? require $practicePath : null;
+            $practice?->down();
             $migration = require database_path('migrations/2026_10_25_020000_create_mastery_graph_and_evidence.php');
             $migration->down();
             $this->assertFalse(Schema::hasTable('mastery_topics'));
             $migration->up();
+            $practice?->up();
             $this->assertTrue(Schema::hasTable('mastery_topics'));
+            if ($practice !== null) {
+                $this->assertTrue(Schema::hasTable('practice_items'));
+            }
         } finally {
             DB::beginTransaction();
         }

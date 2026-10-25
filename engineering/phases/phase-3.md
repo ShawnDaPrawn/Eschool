@@ -17,7 +17,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Encrypted domain, private v2/typed SDK, panel/shared readers and all four app-profile entries implemented and verified in review; queued rule-aware alerts are in independent review; [spec](../specs/growth/progress-notes.md) |
 | Tutor sessions, subject/source lock, scanned photo feedback and summaries | Reviewed gateway, notes, content | Queued; no learner inference enabled by the foundation |
 | Topic dependencies, evidence and mastery map | Question marks and published curriculum | Engine, v2 contract, panel and learner/parent/teacher views implemented in review; [spec](../specs/growth/mastery.md); verified practice/tutor evidence adapters follow |
-| Daily practice, FSRS reviews, offline daily sets and streaks | Mastery, published content, gateway | Queued |
+| Daily practice, FSRS reviews, offline daily sets and streaks | Mastery, published content, gateway | Pinned FSRS/answer engine published; approved versioned bank, bounded daily-set/review and separate practice-mastery domain implemented and tested; typed API, persistent offline client, screens and AI-assisted drafting remain |
 | Licensed past papers and exam coach | Mastery, timetable, vision/media safety | Queued |
 | Staff-approved teaching drafts and task insights | Marks, content and gateway | Queued |
 | Language-approved weekly parent digest | Own-child records, notifications and approved templates | Queued; no unreviewed free generation |

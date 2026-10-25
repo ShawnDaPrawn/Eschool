@@ -87,3 +87,6 @@ export 'src/discipline/discipline_session_boundary.dart';
 export 'src/recognition/recognition_repository.dart';
 export 'src/recognition/recognition_screen.dart';
 export 'src/recognition/recognition_session_boundary.dart';
+
+export 'src/private_notices/private_staff_notice_repository.dart';
+export 'src/private_notices/private_staff_inbox_screen.dart';
