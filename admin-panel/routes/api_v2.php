@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
+use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
@@ -539,4 +540,16 @@ Route::prefix('recognition/{module}')->whereIn('module', ['house_points', 'award
 Route::prefix('staff/private-notices')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:communication'])->name('api.v2.staff-private-notices.')->group(function () {
     Route::get('/', [PrivateStaffNoticeController::class, 'index'])->name('index');
     Route::post('{notice}/read', [PrivateStaffNoticeController::class, 'read'])->whereNumber('notice')->name('read');
+});
+
+Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:daily_practice'])->name('api.v2.practice.')->group(function () {
+    $c = PracticeController::class;
+    Route::get('access', [$c, 'access'])->name('access');
+    Route::get('groups/{group}/choices', [$c, 'choices'])->whereNumber('group')->name('choices');
+    Route::get('groups/{group}/bank', [$c, 'bank'])->whereNumber('group')->name('bank');
+    Route::post('groups/{group}/bank', [$c, 'approve'])->whereNumber('group')->name('approve');
+    Route::post('groups/{group}/bank/{item}', [$c, 'approve'])->whereNumber('group')->whereNumber('item')->name('revise');
+    Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
+    Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
+    Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
 });

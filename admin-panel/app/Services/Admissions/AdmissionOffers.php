@@ -17,7 +17,7 @@ class AdmissionOffers
     /** Accepted offers keep their place; expires_at is the acceptance deadline. */
     public function reserved(int $gradeId): int
     {
-        return Application::where('intake_grade_id', $gradeId)->where('state', 'enrolled')->count()
+        return (int) IntakeGrade::findOrFail($gradeId)->occupied_places
             + Offer::where('intake_grade_id', $gradeId)->where(fn ($q) => $q->where('state', 'accepted')->orWhere(fn ($offered) => $offered->where('state', 'offered')->where('expires_at', '>', now()->utc())))->count();
     }
 

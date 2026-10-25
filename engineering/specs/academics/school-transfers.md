@@ -68,3 +68,9 @@ an explicit tap. A denied or late export cannot save a private file. Large sourc
 histories expand in bounded batches. No transfer body enters an offline cache.
 The staff external-school select has an explicit blank destination; it cannot
 silently route an external request to the first NavigateEd school.
+
+Transfer expiry, release and acceptance are UTC instants, including staged-copy
+expiry. Reads and retention compare UTC bounds regardless of the selected
+receiving school's clock. The corrective migration translates existing naive
+values using each owning school's configured timezone in one transaction, without
+changing academic local dates, frozen contents, signatures or fingerprints.

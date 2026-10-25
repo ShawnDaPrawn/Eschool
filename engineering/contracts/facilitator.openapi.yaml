@@ -130,6 +130,9 @@ components:
       - messages
       - counselling
       properties:
+        daily_practice:
+          type: boolean
+          description: Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized again.
         consultations:
           type: boolean
           description: Optional current-school consultation capability; every ballot still requires fresh audience authority.

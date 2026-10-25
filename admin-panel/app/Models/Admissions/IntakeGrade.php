@@ -19,6 +19,6 @@ class IntakeGrade extends Model
 
     protected function casts(): array
     {
-        return ['places' => 'integer', 'revision' => 'integer'];
+        return ['places' => 'integer', 'occupied_places' => 'integer', 'revision' => 'integer'];
     }
 }

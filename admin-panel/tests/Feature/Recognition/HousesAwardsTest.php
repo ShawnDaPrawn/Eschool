@@ -41,6 +41,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Recognition\AwardNominations;
 use App\Services\Recognition\AwardPresentations;
 use App\Services\Recognition\HousePoints;
+use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Recognition\RecognitionCatalog;
 use App\Services\Recognition\RecognitionNotices;
 use App\Services\Recognition\RecognitionQueries;
@@ -840,6 +841,27 @@ class HousesAwardsTest extends TestCase
         app(AwardPresentations::class)->present($this->admin, $d);
         $rows = app(AwardPresentations::class)->profile($staff, $this->learner)['items'];
         $this->assertSame(['Scoped music merit'], array_column($rows, 'title'));
+    }
+
+    public function test_activity_only_staff_reads_reused_category_through_current_year_mapping(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        $group = $this->recognitionGroup($staff, 'Current-year music');
+        $oldYear = SessionYear::create(['name' => '2025', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $oldGroup = ActivityGroup::create(['session_year_id' => $oldYear->id, 'name' => 'Previous-year music', 'discipline' => 'Culture', 'season' => '2025', 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31', 'gender' => 'any', 'active' => true, 'revision' => 1]);
+        $c = app(RecognitionCatalog::class);
+        $category = $c->awardCategory($this->admin, $this->op(['name' => 'Reusable music awards', 'parent_id' => null, 'scope_kind' => 'group', 'activity_group_id' => $oldGroup->id, 'active' => true]));
+        $definition = $c->definition($this->admin, $this->op(['award_category_id' => $category->id, 'name' => 'Current music merit', 'criteria' => 'Current music evidence', 'frequency' => 'annual', 'active' => true]));
+        $c->window($this->admin, $this->op(['revision' => 0, 'award_category_id' => $category->id, 'session_year_id' => $this->year, 'activity_group_id' => $group->id, 'opens_on' => '2026-02-01', 'closes_on' => '2026-02-28', 'status' => 'open']));
+        $authority = app(RecognitionAuthority::class);
+        $this->assertFalse($authority->categoryAdmin($staff, $category));
+        app(AwardPresentations::class)->present($this->head, $this->presentation());
+        $d = $this->presentation();
+        $d['award_definition_id'] = (int) $definition->id;
+        app(AwardPresentations::class)->present($this->admin, $d);
+        $this->assertSame(['Current music merit'], array_column(app(AwardPresentations::class)->profile($staff, $this->learner)['items'], 'title'));
+        ActivityStaff::where('activity_group_id', $group->id)->where('user_id', $staff->id)->update(['active' => false]);
+        $this->refuse(404, fn () => app(AwardPresentations::class)->profile($staff, $this->learner));
     }
 
     public function test_explicit_category_administrator_gets_named_learners_and_only_owned_awards(): void

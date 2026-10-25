@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Transfers;
 
+use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,6 +20,6 @@ class TransferStage extends Model
 
     protected function casts(): array
     {
-        return ['expires_at' => 'datetime', 'adopted' => 'boolean'];
+        return ['expires_at' => UtcInstant::class, 'adopted' => 'boolean'];
     }
 }

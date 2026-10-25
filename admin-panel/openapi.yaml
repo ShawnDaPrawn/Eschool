@@ -185,6 +185,8 @@ tags:
   description: School-defined discipline, retained reviews, guardian acknowledgement and supervised detention.
 - name: PrivateStaffNotices
   description: Registered source-scoped generic private staff inbox.
+- name: Practice
+  description: Approved daily self-study and separate practice evidence.
 paths:
   /facilitator/sign-in:
     post:
@@ -16778,6 +16780,435 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ConsultationVoteInput'
+  /learning/practice/access:
+    get:
+      operationId: getPracticeAccess
+      tags:
+      - Practice
+      summary: getPracticeAccess
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/choices:
+    get:
+      operationId: getPracticeBankChoices
+      tags:
+      - Practice
+      summary: getPracticeBankChoices
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeBankChoicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/groups/{group}/bank:
+    get:
+      operationId: getPracticeBank
+      tags:
+      - Practice
+      summary: getPracticeBank
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeBankResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: approvePracticeQuestion
+      tags:
+      - Practice
+      summary: approvePracticeQuestion
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovePracticeQuestionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeApproveInput'
+  /learning/practice/groups/{group}/bank/{item}:
+    post:
+      operationId: revisePracticeQuestion
+      tags:
+      - Practice
+      summary: revisePracticeQuestion
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisePracticeQuestionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeApproveInput'
+  /learning/practice/learners/{learner}/groups/{group}/daily-sets:
+    post:
+      operationId: issuePracticeDailySet
+      tags:
+      - Practice
+      summary: issuePracticeDailySet
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuePracticeDailySetResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeIssueInput'
+  /learning/practice/learners/{learner}/daily-sets/{set}:
+    get:
+      operationId: getPracticeDailySet
+      tags:
+      - Practice
+      summary: getPracticeDailySet
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: set
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPracticeDailySetResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /learning/practice/learners/{learner}/daily-sets/{set}/entries/{entry}/review:
+    post:
+      operationId: reviewPracticeEntry
+      tags:
+      - Practice
+      summary: reviewPracticeEntry
+      description: Approved school-content practice only, never official assessment marks. Fresh learner approval/ownership
+        or dated Teacher allocation and all published topic/content sources authorize before reads, writes and encrypted
+        receipt replay. The module defaults off. Approved answers are deliberately included for offline self-study.
+        Writes accept body fields only; an unknown outcome retries the same operation. Offline synchronization uses
+        the server school calendar day.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: set
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly scoped private practice result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewPracticeEntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical school year is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeReviewInput'
 components:
   securitySchemes:
     bearerAuth:
@@ -20347,6 +20778,9 @@ components:
       - messages
       - counselling
       properties:
+        daily_practice:
+          type: boolean
+          description: Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized again.
         consultations:
           type: boolean
           description: Optional current-school consultation capability; every ballot still requires fresh audience authority.
@@ -37728,5 +38162,569 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/ConsultationVoteReceipt'
+        code:
+          type: integer
+    PracticeChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 255
+    PracticeQuestionOption:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - text
+      properties:
+        id:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,19}$
+        text:
+          type: string
+          maxLength: 1000
+    PracticeQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - prompt
+      - explanation
+      - options
+      - answers
+      properties:
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        explanation:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeQuestionOption'
+          maxItems: 6
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 100
+    PracticeGroupChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_name:
+          type: string
+        set_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    PracticeAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - reader_id
+      - learner_id
+      - practice_on
+      - writable
+      - staff_groups
+      - learner_groups
+      properties:
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        practice_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        writable:
+          type: boolean
+        staff_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeGroupChoice'
+          maxItems: 200
+        learner_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeGroupChoice'
+          maxItems: 200
+    PracticeBankChoices:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - topics
+      - sources
+      - writable
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeChoice'
+          maxItems: 5000
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeChoice'
+          maxItems: 500
+        writable:
+          type: boolean
+    PracticeBankItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - topic_id
+      - revision
+      - active
+      - content_version_id
+      - estimated_seconds
+      - definition
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        content_version_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        definition:
+          $ref: '#/components/schemas/PracticeQuestion'
+    PracticeBankPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeBankItem'
+          maxItems: 25
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    PracticeApproval:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - version_id
+      - revision
+      - active
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        version_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+    PracticeSchedule:
+      type: object
+      additionalProperties: false
+      required:
+      - version
+      - rating
+      - difficulty
+      - stability_days
+      - retrievability_before
+      - interval_days
+      properties:
+        version:
+          type: string
+          maxLength: 100
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 4
+        difficulty:
+          type: number
+          minimum: 1
+          maximum: 10
+        stability_days:
+          type: number
+          minimum: 0.01
+          maximum: 36500
+        retrievability_before:
+          anyOf:
+          - type: number
+            minimum: 0
+            maximum: 1
+          - type: 'null'
+        interval_days:
+          type: integer
+          minimum: 1
+          maximum: 36500
+    PracticeReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entry_id
+      - correct
+      - schedule
+      - reviewed_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        entry_id:
+          type: integer
+          minimum: 1
+        correct:
+          type: boolean
+        schedule:
+          $ref: '#/components/schemas/PracticeSchedule'
+        reviewed_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+    PracticeSetEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - item_id
+      - topic_id
+      - source_version_id
+      - estimated_seconds
+      - definition
+      - review
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        item_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        source_version_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        definition:
+          $ref: '#/components/schemas/PracticeQuestion'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/PracticeReview'
+          - type: 'null'
+    PracticeDailySet:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - reader_id
+      - learner_id
+      - group_id
+      - practice_on
+      - server_time
+      - offline_until
+      - estimated_seconds
+      - completed
+      - items
+      - streak_days
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        practice_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        server_time:
+          type: string
+          format: date-time
+        offline_until:
+          type: string
+          format: date-time
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 600
+        completed:
+          type: boolean
+        items:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PracticeSetEntry'
+        streak_days:
+          type: integer
+          minimum: 0
+          maximum: 365
+    PracticeApproveInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - topic_id
+      - content_version_id
+      - estimated_seconds
+      - active
+      - definition
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 0
+        topic_id:
+          type: integer
+          minimum: 1
+        content_version_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        active:
+          type: boolean
+        definition:
+          $ref: '#/components/schemas/PracticeQuestion'
+    PracticeIssueInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - practice_on
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        practice_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    PracticeReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - answer
+      - rating
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
+        rating:
+          type: integer
+          minimum: 2
+          maximum: 4
+    GetPracticeAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeAccess'
+        code:
+          type: integer
+    GetPracticeBankChoicesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeBankChoices'
+        code:
+          type: integer
+    GetPracticeBankResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeBankPage'
+        code:
+          type: integer
+    ApprovePracticeQuestionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeApproval'
+        code:
+          type: integer
+    RevisePracticeQuestionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeApproval'
+        code:
+          type: integer
+    IssuePracticeDailySetResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeDailySet'
+        code:
+          type: integer
+    GetPracticeDailySetResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeDailySet'
+        code:
+          type: integer
+    ReviewPracticeEntryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeReview'
         code:
           type: integer

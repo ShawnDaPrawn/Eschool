@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Learning;
 
+use App\Models\Academics\ContentVersion;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Growth\MasteryTopic;
 use App\Models\Platform\PlatformStaffIdentity;
@@ -59,8 +60,22 @@ class PracticeAccess
     private function current(TeachingGroup $group): void
     {
         $today = app(AcademicAuthority::class)->today();
-        abort_unless($group->active && (int) $group->session_year_id === (int) schoolSetting('session_year')
+        abort_unless($group->active && $group->subject()->exists() && (int) $group->session_year_id === (int) schoolSetting('session_year')
             && substr((string) $group->year?->start_date, 0, 10) <= $today && substr((string) $group->year?->end_date, 0, 10) >= $today, 404);
+    }
+
+    /** Filter source ownership and academic identity before loading encrypted metadata/body. */
+    public function source(User $actor, TeachingGroup $group, int $versionId): ContentVersion
+    {
+        $group = $this->staff($actor, (int) $group->id);
+        $lead = app(ContentPolicy::class)->leads($actor, (int) $group->grade_level_id);
+        ContentVersion::where('state', 'published')->whereHas('item', fn ($q) => $q->where('active', true)
+            ->where('subject_id', $group->subject_id)->where('grade_level_id', $group->grade_level_id)->where('session_year_id', $group->session_year_id)
+            ->whereColumn('published_version_id', 'content_versions.id')->when(! $lead, fn ($own) => $own->where('author_id', $actor->id))
+            ->whereHas('audienceGroups', fn ($g) => $g->where('teaching_group_id', $group->id)))
+            ->select('id')->findOrFail($versionId);
+
+        return app(ContentPolicy::class)->version($actor, $versionId);
     }
 
     public function topic(TeachingGroup $group, int $topic, bool $refresh = false): MasteryTopic

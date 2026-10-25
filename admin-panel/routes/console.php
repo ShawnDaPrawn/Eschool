@@ -99,3 +99,5 @@ Schedule::call(function () {
         app(CurrentSchool::class)->run((int) $school->id, fn () => app(Consultations::class)->advance());
     });
 })->everyMinute()->name('consultations-advance')->withoutOverlapping();
+
+Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-private-retention')->withoutOverlapping();

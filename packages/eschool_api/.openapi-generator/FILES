@@ -9,6 +9,7 @@ lib/src/api/discipline_api.dart
 lib/src/api/growth_api.dart
 lib/src/api/pastoral_api.dart
 lib/src/api/platform_api.dart
+lib/src/api/practice_api.dart
 lib/src/api/private_staff_notices_api.dart
 lib/src/api/recognition_api.dart
 lib/src/api/school_transfers_api.dart
@@ -235,6 +236,7 @@ lib/src/model/add_wellbeing_case_entry_response.dart
 lib/src/model/approval_learner.dart
 lib/src/model/approval_state.dart
 lib/src/model/approval_state_response.dart
+lib/src/model/approve_practice_question_response.dart
 lib/src/model/branding.dart
 lib/src/model/calendar_removed_response.dart
 lib/src/model/cancel_consultation_response.dart
@@ -471,6 +473,10 @@ lib/src/model/get_consultation_history_record_response.dart
 lib/src/model/get_consultation_results_response.dart
 lib/src/model/get_identified_incident_follow_up_response.dart
 lib/src/model/get_managed_consultation_results_response.dart
+lib/src/model/get_practice_access_response.dart
+lib/src/model/get_practice_bank_choices_response.dart
+lib/src/model/get_practice_bank_response.dart
+lib/src/model/get_practice_daily_set_response.dart
 lib/src/model/get_public_incident_configuration_response.dart
 lib/src/model/get_wellbeing_access_response.dart
 lib/src/model/get_wellbeing_case_response.dart
@@ -518,6 +524,7 @@ lib/src/model/intervention_queue_response.dart
 lib/src/model/intervention_update.dart
 lib/src/model/intervention_version.dart
 lib/src/model/intervention_version_record.dart
+lib/src/model/issue_practice_daily_set_response.dart
 lib/src/model/learner_note_assignment.dart
 lib/src/model/learner_note_assignment_response.dart
 lib/src/model/learner_note_assignment_revoke.dart
@@ -581,6 +588,22 @@ lib/src/model/notification_type_preference.dart
 lib/src/model/notification_type_preference_channels.dart
 lib/src/model/open_wellbeing_case_response.dart
 lib/src/model/pagination.dart
+lib/src/model/practice_access.dart
+lib/src/model/practice_approval.dart
+lib/src/model/practice_approve_input.dart
+lib/src/model/practice_bank_choices.dart
+lib/src/model/practice_bank_item.dart
+lib/src/model/practice_bank_page.dart
+lib/src/model/practice_choice.dart
+lib/src/model/practice_daily_set.dart
+lib/src/model/practice_group_choice.dart
+lib/src/model/practice_issue_input.dart
+lib/src/model/practice_question.dart
+lib/src/model/practice_question_option.dart
+lib/src/model/practice_review.dart
+lib/src/model/practice_review_input.dart
+lib/src/model/practice_schedule.dart
+lib/src/model/practice_set_entry.dart
 lib/src/model/profile_attachment.dart
 lib/src/model/profile_category_definition.dart
 lib/src/model/profile_category_response.dart
@@ -659,6 +682,8 @@ lib/src/model/recognition_year.dart
 lib/src/model/reply_anonymous_incident_response.dart
 lib/src/model/reply_identified_incident_response.dart
 lib/src/model/reply_wellbeing_report_response.dart
+lib/src/model/review_practice_entry_response.dart
+lib/src/model/revise_practice_question_response.dart
 lib/src/model/risk_assignment.dart
 lib/src/model/risk_assignment_result.dart
 lib/src/model/risk_assignment_result_response.dart

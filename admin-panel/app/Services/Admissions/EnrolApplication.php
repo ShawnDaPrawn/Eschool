@@ -83,10 +83,12 @@ class EnrolApplication
             abort_if($houseId !== null && ! in_array((int) $houseId, array_column($choices['houses'], 'id'), true), 422, 'Choose an available house or leave house allocation for later.');
             $contact = $row->parent_contact;
             $identity = $this->sources($intake, $row, 'learner');
+            $parentIdentity = array_filter($this->sources($intake, $row, 'parent'), fn ($value) => $value !== null && $value !== '');
+            $guardianDefaults = array_replace(['first_name' => $contact['first_name'], 'last_name' => $contact['last_name'],
+                'mobile' => $contact['mobile'] ?? null, 'gender' => 'Not specified'], $parentIdentity);
             // createOrFirst handles a concurrent global email insertion without
             // overwriting identity data held by another school.
-            $guardian = User::acrossSchools()->withTrashed()->firstOrCreate(['email' => $contact['email']], ['first_name' => $contact['first_name'], 'last_name' => $contact['last_name'],
-                'mobile' => $contact['mobile'] ?? null, 'gender' => 'Not specified', 'password' => bin2hex(random_bytes(32)), 'status' => 1]);
+            $guardian = User::acrossSchools()->withTrashed()->firstOrCreate(['email' => $contact['email']], $guardianDefaults + ['password' => bin2hex(random_bytes(32)), 'status' => 1]);
             $newGuardian = $guardian->wasRecentlyCreated;
             $guardian = User::acrossSchools()->withTrashed()->whereKey($guardian->id)->lockForUpdate()->firstOrFail();
             abort_if($guardian->trashed() || (int) $guardian->status !== 1, 409, 'The guardian identity needs review before enrolment.');
@@ -97,7 +99,7 @@ class EnrolApplication
             }
             $guardian->unsetRelation('roles')->unsetRelation('permissions')->assignRole('Parent');
             app(MembershipService::class)->forget($guardian);
-            $parent = Parents::firstOrCreate(['user_id' => $guardian->id], ['first_name' => $contact['first_name'], 'last_name' => $contact['last_name'], 'email' => $contact['email'], 'mobile' => $contact['mobile'] ?? null, 'gender' => 'Not specified']);
+            $parent = Parents::firstOrCreate(['user_id' => $guardian->id], ['first_name' => $guardian->first_name, 'last_name' => $guardian->last_name, 'email' => $guardian->email, 'mobile' => $guardian->mobile, 'gender' => $guardian->gender ?? 'Not specified']);
             $person = User::create(['first_name' => $identity['first_name'], 'last_name' => $identity['last_name'], 'dob' => $identity['dob'], 'gender' => $identity['gender'] ?? 'Not specified',
                 'email' => 'intake-'.$row->public_id.'@learners.invalid', 'password' => bin2hex(random_bytes(32)), 'status' => 1]);
             $person->forceFill(['password_change_required' => true])->save();
@@ -116,6 +118,9 @@ class EnrolApplication
             $this->customValues($intake, $row, 'parent', $guardian);
             $row->update(['state' => 'enrolled', 'learner_id' => $learner->id, 'enrolled_at' => now(), 'revision' => $row->revision + 1]);
             $offer->update(['state' => 'enrolled', 'revision' => $offer->revision + 1]);
+            // Occupancy outlives the private application and is committed under
+            // the same grade lock as the accepted-to-enrolled transition.
+            $grade->increment('occupied_places');
             app(AdmissionEvents::class)->record($row, 'enrolled', $actor, ['learner_id' => (int) $learner->id, 'class_section_id' => (int) $room->id, 'house_id' => $houseId]);
             // Email proof for an application never creates learner approval.
             app(GuardianInvitations::class)->issue($guardian, $actor);

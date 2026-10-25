@@ -164,7 +164,7 @@ class RecognitionAuthority
         $activities = $administratorsOnly ? [] : $this->activityScopes($actor, (int) $learner->id, (int) $place->session_year_id);
         foreach (AwardCategory::when($write, fn ($q) => $q->where('active', true))->orderBy('id')->get() as $category) {
             try {
-                if (! $this->categoryAdmin($actor, $category, $write) && ! ($category->scope_kind === 'group' && in_array((int) $category->activity_group_id, $activities, true))) {
+                if (! $this->categoryAdmin($actor, $category, $write) && ! ($category->scope_kind === 'group' && in_array($this->categoryGroup($category, (int) $place->session_year_id), $activities, true))) {
                     continue;
                 }
                 $this->eligible($category, $learner, $place, $write);

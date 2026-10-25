@@ -110,7 +110,7 @@ class ConsultationAccess
                 }
             }
 
-            return array_intersect_key($all, array_flip($definition['user_ids']));
+            return $this->staffSelection(array_intersect_key($all, array_flip($definition['user_ids'])), (bool) ($definition['include_staff'] ?? false));
         }
         $result = $resolver->standard($definition, $today);
         if ($definition['kind'] === 'activity_group' && ($definition['include_staff'] ?? false)) {
@@ -123,7 +123,19 @@ class ConsultationAccess
             }
         }
 
-        return $result;
+        return $this->staffSelection($result, (bool) ($definition['include_staff'] ?? false));
+    }
+
+    /** Communication audiences include staff by default; a ballot requires opt-in. */
+    private function staffSelection(array $result, bool $includeStaff): array
+    {
+        foreach ($result as &$reason) {
+            // Remove the staff reason, never a person's separate learner/guardian reason.
+            $reason['staff'] = $includeStaff && ($reason['staff'] ?? false);
+        }
+        unset($reason);
+
+        return array_filter($result, fn ($reason) => $reason['staff'] || $reason['learner_ids'] !== [] || $reason['guardian_of'] !== []);
     }
 
     public function voter(User $actor, Consultation $row, bool $write = false): User

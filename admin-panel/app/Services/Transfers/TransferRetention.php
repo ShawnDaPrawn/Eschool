@@ -14,9 +14,9 @@ class TransferRetention
 {
     public function expire(): void
     {
-        foreach (TransferStage::where('adopted', false)->where('expires_at', '<=', now())->orderBy('id')->pluck('id') as $id) {
+        foreach (TransferStage::where('adopted', false)->where('expires_at', '<=', now()->utc())->orderBy('id')->pluck('id') as $id) {
             DB::transaction(function () use ($id): void {
-                $row = TransferStage::where('adopted', false)->where('expires_at', '<=', now())->lockForUpdate()->find($id);
+                $row = TransferStage::where('adopted', false)->where('expires_at', '<=', now()->utc())->lockForUpdate()->find($id);
                 if ($row === null) {
                     return;
                 }
@@ -25,9 +25,9 @@ class TransferRetention
                 $row->delete();
             });
         }
-        foreach (TransferPackage::where('expires_at', '<=', now())->orderBy('id')->pluck('id') as $id) {
+        foreach (TransferPackage::where('expires_at', '<=', now()->utc())->orderBy('id')->pluck('id') as $id) {
             DB::transaction(function () use ($id): void {
-                $row = TransferPackage::where('expires_at', '<=', now())->lockForUpdate()->find($id);
+                $row = TransferPackage::where('expires_at', '<=', now()->utc())->lockForUpdate()->find($id);
                 if ($row === null) {
                     return;
                 }

@@ -12,8 +12,12 @@ use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Auth\Events\Attempting;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -48,13 +52,24 @@ class FacilitatorSignIn
     {
         $school = School::active()->where('slug', $input['school'])->first();
         $identity = app(StudentNumbers::class)->resolveLogin($input['email']);
-        abort_unless($school !== null && $identity !== null && $identity->status === 1 && Hash::check($input['password'], $identity->getAuthPassword()), 401, 'Invalid sign-in details.');
+        // Use the same account-wide events/key as legacy sign-in without
+        // authenticating a guard before school, role and setup checks pass.
+        $guard = PortalSession::isPortal($request) ? 'web' : 'sanctum';
+        $credentials = ['email' => $identity?->email ?: $input['email'], 'password' => $input['password']];
+        Event::dispatch(new Attempting($guard, $credentials, false));
+        if ($school === null || $identity === null || $identity->status !== 1 || ! Hash::check($input['password'], $identity->getAuthPassword())) {
+            Event::dispatch(new Failed($guard, $identity, $credentials));
+            abort(401, 'Invalid sign-in details.');
+        }
 
-        return app(CurrentSchool::class)->run($school, function () use ($identity, $request, $input) {
-            return DB::transaction(function () use ($identity, $request, $input) {
+        return app(CurrentSchool::class)->run($school, function () use ($identity, $request, $input, $guard, $credentials) {
+            $result = DB::transaction(function () use ($identity, $request, $input, $guard, $credentials) {
                 $user = User::whereKey($identity->id)->lockForUpdate()->firstOrFail();
                 // Recheck after the lock; a concurrent password reset cannot sign in.
-                abort_unless(Hash::check($input['password'], $user->getAuthPassword()), 401);
+                if (! Hash::check($input['password'], $user->getAuthPassword())) {
+                    Event::dispatch(new Failed($guard, $user, $credentials));
+                    abort(401);
+                }
                 $user = $this->access->actor($user);
                 $password = RequirePasswordChange::mustChange($user, $input['password']);
                 $requirements = $this->requirements($user, $password);
@@ -90,6 +105,13 @@ class FacilitatorSignIn
 
                 return ['authenticated' => true, 'token' => $token === '' ? null : $token, 'profile' => $this->access->profile($user), 'password_change_required' => false, 'documents' => []];
             }, 3);
+            if ($result['authenticated'] && ! PortalSession::isPortal($request)) {
+                // Cookie sign-in emits Login through the web guard already.
+                // Emit once after transaction retries, never during setup refusal.
+                Event::dispatch(new Login($guard, $identity, false));
+            }
+
+            return $result;
         });
     }
 }
