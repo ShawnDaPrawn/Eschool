@@ -130,6 +130,12 @@ components:
       - messages
       - counselling
       properties:
+        live_updates:
+          type: boolean
+          description: Optional fresh live-session capability, emitted only when the live transport is implemented and authorized.
+        gallery:
+          type: boolean
+          description: Optional current gallery group capability. Every group, file and tag requires fresh source authority.
         daily_practice:
           type: boolean
           description: Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized again.

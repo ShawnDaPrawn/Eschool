@@ -362,6 +362,20 @@ jobs:
             flow: facilitator_private_inbox_smoke_test.dart
             flavor: facilitator
           - app: e-school-teacher
+            flow: teacher_practice_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_practice_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
+            flow: family_practice_smoke_test.dart
+          - app: e-school
+            flow: family_consultations_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_consultations_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_consultations_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
             flow: teacher_risk_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_wellbeing_smoke_test.dart
@@ -475,6 +489,8 @@ jobs:
       DB_PASSWORD: root
       APP_URL: http://127.0.0.1:8000
       E2E_BASE_URL: http://127.0.0.1:8000
+      CONTENT_CLAMAV_HOST: 127.0.0.1
+      CONTENT_CLAMAV_PORT: 3317
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
@@ -494,6 +510,8 @@ jobs:
       # throttling the page sweep; four workers serve the parallel browsers.
       - name: Start the panel
         run: |
+          # Isolated protocol fixture; this does not qualify malware detection.
+          nohup python3 e2e/support/synthetic-photo-scanner.py > storage/logs/photo-scanner-fixture.log 2>&1 &
           PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --no-reload --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
           for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && exit 0; sleep 1; done
           cat storage/logs/serve.log

@@ -150,11 +150,14 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String dailyPractice = '/learning/practice';
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
   static const String reportConcern = '/report-concern';
+  static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
   static const String schoolTransfers = '/academics/transfers';
+  static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
@@ -178,6 +181,8 @@ class Routes {
       familyProgress => 'academics',
       reportConcern => 'wellbeing',
       mastery => 'mastery',
+      consultations => 'consultations',
+      dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
       chatUserPage ||
@@ -378,6 +383,8 @@ class Routes {
         return academicAttendanceRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case privateGallery:
+        return familyPrivateGalleryRoute();
       case recognition:
         return familyRecognitionRoute();
       case schoolTransfers:
@@ -389,8 +396,12 @@ class Routes {
         return familyProgressRoute();
       case reportConcern:
         return reportConcernRoute();
+      case dailyPractice:
+        return dailyPracticeRoute();
       case mastery:
         return masteryRoute();
+      case consultations:
+        return consultationsRoute(routeSettings.arguments);
       case activityGroups:
         return activityGroupsRoute();
       case schoolMessages:

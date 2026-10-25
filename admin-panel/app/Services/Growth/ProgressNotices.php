@@ -137,6 +137,9 @@ class ProgressNotices
             || filter_var($rawId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
             return false;
         }
+        if (($payload['link'] ?? null) !== ($type === self::STAFF_TYPE ? '/learner-notes' : '/growth/progress')) {
+            return false;
+        }
         try {
             app(LearnerNotesPolicy::class)->enabled();
             $alert = ProgressBandAlert::findOrFail($payload['progress_alert_id']);

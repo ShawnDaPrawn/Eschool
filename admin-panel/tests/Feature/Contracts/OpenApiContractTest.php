@@ -50,6 +50,16 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getGalleryConfiguration requires auth' => [null, 'GET', 'api/v2/gallery/configuration', [], 401],
+            'getPersonalGallery requires auth' => [null, 'GET', 'api/v2/gallery/learners/1/photos', [], 401],
+            'getGroupGallery requires auth' => [null, 'GET', 'api/v2/gallery/groups/1/photos', [], 401],
+            'getGalleryPhoto requires auth' => [null, 'GET', 'api/v2/gallery/photos/1/content', [], 401],
+            'uploadGalleryPhoto requires auth' => [null, 'POST', 'api/v2/gallery/photos', [], 401],
+            'withdrawGalleryPhoto requires auth' => [null, 'POST', 'api/v2/gallery/photos/1/withdraw', [], 401],
+            'proposeGalleryTag requires auth' => [null, 'POST', 'api/v2/gallery/photos/1/tags', [], 401],
+            'decideGalleryTag requires auth' => [null, 'POST', 'api/v2/gallery/tags/1/decision', [], 401],
+            'removeGalleryTag requires auth' => [null, 'POST', 'api/v2/gallery/tags/1/remove', [], 401],
+            'configureGallery requires auth' => [null, 'POST', 'api/v2/gallery/settings', [], 401],
             'getPracticeAccess requires auth' => [null, 'GET', 'api/v2/learning/practice/access', [], 401],
             'getPracticeBankChoices requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/choices', [], 401],
             'getPracticeBank requires auth' => [null, 'GET', 'api/v2/learning/practice/groups/1/bank', [], 401],

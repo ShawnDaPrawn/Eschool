@@ -66,6 +66,7 @@ class ConsultationAccess
     {
         $this->year($year);
         $kind = $input['kind'];
+        abort_if(($input['include_staff'] ?? false) && ! in_array($kind, ['school', 'activity_group', 'custom'], true), 422, 'Staff inclusion is available for the school, activity groups and saved recipient lists.');
         if ($kind === 'activity_group') {
             abort_unless(app(ModuleGate::class)->allows('groups'), 403);
         }
@@ -113,6 +114,16 @@ class ConsultationAccess
             return $this->staffSelection(array_intersect_key($all, array_flip($definition['user_ids'])), (bool) ($definition['include_staff'] ?? false));
         }
         $result = $resolver->standard($definition, $today);
+        if ($definition['kind'] === 'school' && $definition['parents'] && ($definition['include_staff'] ?? false)) {
+            // Parent audiences do not contain the communication resolver's staff branch.
+            // Add only that explicit reason, never the learner branch of its parallel read.
+            foreach ($resolver->standard(array_replace($definition, ['parents' => false]), $today) as $id => $reason) {
+                if ($reason['staff'] ?? false) {
+                    $result[$id] ??= ['direct' => false, 'staff' => false, 'learner_ids' => [], 'guardian_of' => []];
+                    $result[$id]['staff'] = true;
+                }
+            }
+        }
         if ($definition['kind'] === 'activity_group' && ($definition['include_staff'] ?? false)) {
             $group = ActivityGroup::where('active', true)->where('session_year_id', $row->session_year_id)->findOrFail($definition['target_id']);
             $ids = app(CommunityAuthority::class)->descendants($group);

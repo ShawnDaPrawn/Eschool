@@ -7,6 +7,7 @@ namespace App\Services\Gallery;
 use App\Models\Gallery\GalleryPhoto;
 use App\Models\Gallery\PhotoTag;
 use App\Models\Platform\SchoolMembership;
+use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Activities\CommunityAuthority;
@@ -33,7 +34,7 @@ class GalleryQueries
                 $person = User::acrossSchools()->whereKey($learner->user_id)->firstOrFail();
                 $approve = true;
                 try {
-                    $a->family($actor, (int) $learner->id, approve: true);
+                    app(GalleryTags::class)->decisionAuthority($actor, (int) $learner->id);
                 } catch (HttpExceptionInterface|ModelNotFoundException) {
                     $approve = false;
                 }
@@ -50,6 +51,16 @@ class GalleryQueries
     {
         $a = app(GalleryAuthority::class);
         $a->actor($actor);
+        $children = $this->children($actor);
+        $ownedGroups = [];
+        foreach ($children as $child) {
+            if ($child['archived']) {
+                continue;
+            }
+            foreach ($a->eligibleGroups($child['id']) as $groupId) {
+                $ownedGroups[$groupId][] = $child['id'];
+            }
+        }
         $groups = [];
         try {
             foreach (app(CommunityAuthority::class)->visible($actor) as $group) {
@@ -61,7 +72,7 @@ class GalleryQueries
                     } catch (HttpExceptionInterface|ModelNotFoundException) {
                         $write = false;
                     }
-                    $groups[] = ['id' => (int) $group->id, 'name' => $group->name, 'session_year_id' => (int) $group->session_year_id, 'can_upload' => $write];
+                    $groups[] = ['id' => (int) $group->id, 'name' => $group->name, 'session_year_id' => (int) $group->session_year_id, 'can_upload' => $write, 'learner_ids' => $ownedGroups[(int) $group->id] ?? []];
                 } catch (HttpExceptionInterface|ModelNotFoundException) {
                 }
             }
@@ -77,7 +88,9 @@ class GalleryQueries
         $settings = app(GallerySettings::class)->current();
         app(ModuleGate::class)->forget();
 
-        return ['children' => $this->children($actor), 'groups' => $groups, 'guardian_required' => $settings->guardian_required, 'settings_revision' => (int) $settings->revision,
+        return ['school_id' => app(CurrentSchool::class)->id(), 'account_id' => (int) $actor->id, 'session_year_id' => (int) schoolSetting('session_year'), 'today' => now()->toDateString(),
+            'years' => SessionYear::whereNotNull('start_date')->whereNotNull('end_date')->orderByDesc('start_date')->get()->map(fn ($year) => ['id' => (int) $year->id, 'name' => $year->name, 'starts_on' => substr((string) $year->start_date, 0, 10), 'ends_on' => substr((string) $year->end_date, 0, 10)])->all(),
+            'children' => $children, 'groups' => $groups, 'guardian_required' => $settings->guardian_required, 'settings_revision' => (int) $settings->revision,
             'can_manage' => $manage, 'can_write' => app(ModuleGate::class)->writable('gallery')];
     }
 
@@ -92,7 +105,7 @@ class GalleryQueries
     public function ownedTags(User $actor, int $learnerId, bool $pending = false): Builder
     {
         $a = app(GalleryAuthority::class);
-        $learner = $a->family($actor, $learnerId, approve: $pending);
+        $learner = $a->family($actor, $learnerId);
         $guardian = app(GallerySettings::class)->current()->guardian_required;
         $q = PhotoTag::where('learner_id', $learnerId)->whereExists(fn ($photos) => $photos->selectRaw('1')->from('gallery_photos')->whereColumn('gallery_photos.id', 'photo_tags.gallery_photo_id')->where('gallery_photos.school_id', app(CurrentSchool::class)->id())->where('gallery_photos.active', true));
         if (! $this->currentLearner($learner)) {
@@ -128,7 +141,7 @@ class GalleryQueries
             }
             $items[] = ['tag_id' => (int) $tag->id, 'tag_revision' => (int) $tag->revision, 'status' => $pending ? 'awaiting_guardian' : 'approved', 'retained_on_transfer' => $tag->retained_on_transfer, 'photo' => $this->photo($photo)];
         }
-        app(GalleryAuthority::class)->family($actor, $learnerId, approve: $pending);
+        app(GalleryAuthority::class)->family($actor, $learnerId);
         abort_unless((int) app(GallerySettings::class)->current()->revision === (int) $settings->revision, 409, 'The photo consent rule changed. Refresh this gallery.');
 
         return ['items' => $items, 'total' => $total, 'next_before' => $more ? (int) $rows->take(30)->last()->id : null];

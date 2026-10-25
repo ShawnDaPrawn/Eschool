@@ -15,7 +15,7 @@ class PruneGalleryCopies extends Command
 {
     protected $signature = 'gallery:prune-copies';
 
-    protected $description = 'Erase withdrawn private photos and old rollback orphans, preserving signed metadata';
+    protected $description = 'Erase withdrawn private photos and old rollback orphans, preserving consent metadata';
 
     public function handle(): int
     {

@@ -1,0 +1,906 @@
+tags:
+- name: Gallery
+  description: Private family photo history, consent and current activity sources.
+paths:
+  /gallery/configuration:
+    get:
+      operationId: getGalleryConfiguration
+      tags:
+      - Gallery
+      summary: getGalleryConfiguration
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /gallery/learners/{learner}/photos:
+    get:
+      operationId: getPersonalGallery
+      tags:
+      - Gallery
+      summary: getPersonalGallery
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: pending
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: session_year_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryFamilyPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /gallery/groups/{group}/photos:
+    get:
+      operationId: getGroupGallery
+      tags:
+      - Gallery
+      summary: getGroupGallery
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryGroupPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /gallery/photos/{photo}/content:
+    get:
+      operationId: getGalleryPhoto
+      tags:
+      - Gallery
+      summary: getGalleryPhoto
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: photo
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thumbnail
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /gallery/photos:
+    post:
+      operationId: uploadGalleryPhoto
+      tags:
+      - Gallery
+      summary: uploadGalleryPhoto
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GalleryUpload'
+  /gallery/photos/{photo}/withdraw:
+    post:
+      operationId: withdrawGalleryPhoto
+      tags:
+      - Gallery
+      summary: withdrawGalleryPhoto
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: photo
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryRevision'
+  /gallery/photos/{photo}/tags:
+    post:
+      operationId: proposeGalleryTag
+      tags:
+      - Gallery
+      summary: proposeGalleryTag
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: photo
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryPropose'
+  /gallery/tags/{tag}/decision:
+    post:
+      operationId: decideGalleryTag
+      tags:
+      - Gallery
+      summary: decideGalleryTag
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: tag
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryDecision'
+  /gallery/tags/{tag}/remove:
+    post:
+      operationId: removeGalleryTag
+      tags:
+      - Gallery
+      summary: removeGalleryTag
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: tag
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GalleryReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryRevision'
+  /gallery/settings:
+    post:
+      operationId: configureGallery
+      tags:
+      - Gallery
+      summary: configureGallery
+      description: Private owned family history or explicitly authorized current activity source. Guardian-first
+        consent, current account/school/module and ownership are rechecked before replay or pixels. No storage paths,
+        other learner tags or public image URLs. Query booleans accept true/false or 1/0.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Authorized private projection or JPEG pixels.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GallerySettingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryConfigure'
+components:
+  schemas:
+    GalleryChild:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - handle
+      - can_approve
+      - archived
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        handle:
+          type:
+          - string
+          - 'null'
+        can_approve:
+          type: boolean
+        archived:
+          type: boolean
+    GalleryGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - session_year_id
+      - can_upload
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        can_upload:
+          type: boolean
+        learner_ids:
+          type: array
+          description: Only the caller’s own eligible children in this group; never a roster.
+          items:
+            type: integer
+            minimum: 1
+    GalleryYear:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - starts_on
+      - ends_on
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        starts_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        ends_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    GalleryConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - account_id
+      - session_year_id
+      - today
+      - years
+      - children
+      - groups
+      - guardian_required
+      - settings_revision
+      - can_manage
+      - can_write
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        account_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        today:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        years:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryYear'
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryChild'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryGroup'
+        guardian_required:
+          type: boolean
+        settings_revision:
+          type: integer
+          minimum: 0
+        can_manage:
+          type: boolean
+        can_write:
+          type: boolean
+    GalleryPhoto:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - public_id
+      - caption
+      - captured_on
+      - school_year
+      - session_year_id
+      - activity_group_id
+      - scope
+      - width
+      - height
+      - active
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        public_id:
+          type: string
+          format: uuid
+        caption:
+          type:
+          - string
+          - 'null'
+        captured_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        school_year:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        activity_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        scope:
+          type: string
+          enum:
+          - family
+          - group
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    GalleryTaggedPhoto:
+      type: object
+      additionalProperties: false
+      required:
+      - tag_id
+      - tag_revision
+      - status
+      - retained_on_transfer
+      - photo
+      properties:
+        tag_id:
+          type: integer
+          minimum: 1
+        tag_revision:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+          - awaiting_guardian
+          - approved
+        retained_on_transfer:
+          type: boolean
+        photo:
+          $ref: '#/components/schemas/GalleryPhoto'
+    GalleryFamilyPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - total
+      - next_before
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryTaggedPhoto'
+        total:
+          type: integer
+          minimum: 0
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    GalleryGroupPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_before
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GalleryPhoto'
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    GalleryReference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+    GallerySettings:
+      type: object
+      additionalProperties: false
+      required:
+      - guardian_required
+      - revision
+      properties:
+        guardian_required:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    GalleryUpload:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - scope
+      - session_year_id
+      - captured_on
+      - photo
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        scope:
+          type: string
+          enum:
+          - family
+          - group
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        activity_group_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        captured_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        caption:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        photo:
+          type: string
+          format: binary
+    GalleryPropose:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        handle:
+          type:
+          - string
+          - 'null'
+          pattern: ^@?[a-z][a-z0-9._]{1,18}[a-z0-9]$
+    GalleryDecision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - decision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          enum:
+          - approve
+          - reject
+    GalleryRevision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+    GalleryConfigure:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - guardian_required
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        guardian_required:
+          type: boolean
+    GalleryConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GalleryConfiguration'
+        code:
+          type: integer
+          example: 200
+    GalleryFamilyPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GalleryFamilyPage'
+        code:
+          type: integer
+          example: 200
+    GalleryGroupPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GalleryGroupPage'
+        code:
+          type: integer
+          example: 200
+    GalleryReferenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GalleryReference'
+        code:
+          type: integer
+          example: 200
+    GallerySettingsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GallerySettings'
+        code:
+          type: integer
+          example: 200

@@ -437,6 +437,48 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['gallery'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(l('Private photos')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'gallery',
+                  PrivateGalleryScreen(
+                    repository: ApiPrivateGalleryRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['gallery'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (profile.features['consultations'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.how_to_vote_outlined),
+                title: Text(l('Polls, surveys and elections')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'consultations',
+                  ConsultationsScreen(
+                    repository: ApiConsultationRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['consultations'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['private_notices'] == true)
             Card(
               child: ListTile(
@@ -456,10 +498,40 @@ class _StaffHome extends StatelessWidget {
                               true,
                     ),
                     canOpen: (feature) =>
-                        feature == 'wellbeing' &&
                         repository.matches(generation, school, user) &&
-                        repository.profile?.features['counselling'] == true,
+                        ((feature == 'wellbeing' &&
+                                repository.profile?.features['counselling'] ==
+                                    true) ||
+                            (feature == 'consultations' &&
+                                repository.profile?.features['consultations'] ==
+                                    true)),
                     openFeature: (feature) async {
+                      if (feature == 'consultations' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['consultations'] ==
+                              true) {
+                        await open(
+                          'consultations',
+                          ConsultationsScreen(
+                            repository: ApiConsultationRepository(
+                              repository.client,
+                              schoolId: school,
+                              accountId: user,
+                              contextActive: () =>
+                                  repository.matches(
+                                    generation,
+                                    school,
+                                    user,
+                                  ) &&
+                                  repository
+                                          .profile
+                                          ?.features['consultations'] ==
+                                      true,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       if (feature != 'wellbeing' ||
                           !repository.matches(generation, school, user) ||
                           repository.profile?.features['counselling'] != true) {
@@ -480,6 +552,34 @@ class _StaffHome extends StatelessWidget {
                         ),
                       );
                     },
+                  ),
+                ),
+              ),
+            ),
+          if (profile.features['daily_practice'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.psychology_alt_outlined),
+                title: Text(l('Practice question bank')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'daily_practice',
+                  PracticeBankScreen(
+                    repository: ApiPracticeRepository(
+                      repository.client,
+                      schoolId: school,
+                      readerId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['daily_practice'] ==
+                              true,
+                    ),
+                    canRead: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['daily_practice'] == true,
+                    canWrite: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['daily_practice'] == true,
                   ),
                 ),
               ),
@@ -643,8 +743,11 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'gallery',
+            'consultations',
             'private_notices',
             'discipline',
+            'daily_practice',
             'groups',
             'messages',
             'support_plans',

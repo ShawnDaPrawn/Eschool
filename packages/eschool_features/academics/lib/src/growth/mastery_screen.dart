@@ -344,6 +344,16 @@ class MasteryOverview extends StatelessWidget {
                 ),
               ),
             ),
+          if (!view.marksVisible &&
+              view.topics.any((topic) => topic.level != null))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                l(
+                  'These levels use your own practice answers. Released report marks remain hidden.',
+                ),
+              ),
+            ),
           if (!showTopics &&
               view.priorities.isEmpty &&
               view.marksVisible &&

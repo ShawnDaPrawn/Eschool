@@ -112,6 +112,12 @@ TransferDetail _$TransferDetailFromJson(
       canCancel: $checkedConvert('can_cancel', (v) => v as bool),
       canAccept: $checkedConvert('can_accept', (v) => v as bool),
       canDownload: $checkedConvert('can_download', (v) => v as bool),
+      galleryChoice: $checkedConvert(
+        'gallery_choice',
+        (v) => v == null
+            ? null
+            : TransferGalleryChoice.fromJson(v as Map<String, dynamic>),
+      ),
     );
     return val;
   },
@@ -138,6 +144,7 @@ TransferDetail _$TransferDetailFromJson(
     'canCancel': 'can_cancel',
     'canAccept': 'can_accept',
     'canDownload': 'can_download',
+    'galleryChoice': 'gallery_choice',
   },
 );
 
@@ -172,6 +179,7 @@ Map<String, dynamic> _$TransferDetailToJson(TransferDetail instance) =>
       'can_cancel': instance.canCancel,
       'can_accept': instance.canAccept,
       'can_download': instance.canDownload,
+      'gallery_choice': ?instance.galleryChoice?.toJson(),
     };
 
 const _$TransferDetailStateEnumEnumMap = {

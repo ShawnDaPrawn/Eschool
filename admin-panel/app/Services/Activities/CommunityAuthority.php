@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -152,7 +153,7 @@ class CommunityAuthority
         $fresh = $this->actor($actor);
         $roles = app(ProfilePolicy::class)->roles($fresh);
         $ids = [];
-        $enrolled = Enrolment::onDate($this->today())->select('learner_id');
+        $enrolled = Enrolment::onDate($this->today())->whereHas('learner', fn ($learner) => $learner->whereIn('user_id', app(CurrentLearnerMembership::class)->users()->select('id')))->select('learner_id');
         if (in_array('Student', $roles, true)) {
             $ids = Students::where('user_id', $fresh->id)->whereIn('id', $enrolled)->pluck('id')->map(fn ($id) => (int) $id)->all();
         }

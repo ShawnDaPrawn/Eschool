@@ -45,13 +45,15 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\Sanctum;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class PrivateGalleryTest extends TestCase
 {
-    use UsesTwoSchools;
+    use UsesTwoSchools, ValidatesOpenApiResponses;
 
     private User $parent;
 
@@ -244,17 +246,36 @@ class PrivateGalleryTest extends TestCase
         $coach = User::findOrFail($this->schoolA->ids['tara_user']);
         ActivityStaff::create(['activity_group_id' => $group->id, 'user_id' => $coach->id, 'role' => 'coach', 'cascade' => false, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true, 'reason' => 'Synthetic photo assignment', 'revision' => 1]);
         $membership = ActivityMembership::create(['activity_group_id' => $group->id, 'learner_id' => $this->learner, 'role' => 'member', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true, 'reason' => 'Synthetic photo membership', 'revision' => 1]);
+        Enrolment::create(['learner_id' => $this->learner, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => null, 'reason' => 'Synthetic gallery enrolment', 'legacy_dates' => false]);
+        $this->apiAs($this->parent);
+        $this->getJson('/api/v2/gallery/configuration')->assertOk()->assertJsonPath('data.groups.0.learner_ids', [$this->learner]);
+        $this->apiAs($coach);
+        $this->getJson('/api/v2/gallery/configuration')->assertOk()->assertJsonPath('data.groups.0.learner_ids', []);
         $this->student->forceFill(['handle' => 'asha.demo'])->save();
         $photo = $this->upload($coach, ['scope' => 'group', 'activity_group_id' => $group->id]);
-        $tag = app(GalleryTags::class)->propose($coach, (int) $photo->id, $this->op(['handle' => '@asha.demo']));
+        $this->apiAs($coach);
+        $this->getJson('/api/v2/gallery/groups/'.$group->id.'/photos')->assertOk()->assertJsonPath('data.items.0.id', (int) $photo->id);
+        $reference = $this->postJson('/api/v2/gallery/photos/'.$photo->id.'/tags', $this->op(['handle' => '@asha.demo']))->assertOk();
+        $tag = PhotoTag::findOrFail($reference->json('data.id'));
         $this->assertSame($this->learner, (int) $tag->learner_id);
         $this->assertSame('proposed', $tag->status);
         $q = app(GalleryQueries::class);
         $this->assertSame(1, $q->family($this->parent, $this->learner, true)['total']);
+        $this->apiAs($this->parent);
+        $this->getJson('/api/v2/gallery/groups/'.$group->id.'/photos')->assertOk();
+        SchoolMembership::where('user_id', $this->student->id)->where('role', 'Student')->update(['status' => 'inactive']);
+        $this->getJson('/api/v2/gallery/groups/'.$group->id.'/photos')->assertNotFound()->assertDontSee('Private synthetic photograph');
+        $this->getJson('/api/v2/gallery/configuration')->assertOk()->assertJsonPath('data.groups', []);
+        SchoolMembership::where('user_id', $this->student->id)->where('role', 'Student')->update(['status' => 'active']);
+        $this->apiAs($coach);
         $membership->update(['active' => false]);
         $this->assertSame(0, $q->family($this->parent, $this->learner, true)['total']);
         $this->refuse(404, fn () => app(GalleryPhotos::class)->bytes($this->parent, (int) $photo->id));
         $this->refuse(404, fn () => app(GalleryTags::class)->decide($this->parent, (int) $tag->id, $this->op(['revision' => $tag->revision, 'decision' => 'approve'])));
+        $withdraw = $this->op(['revision' => $photo->revision]);
+        $this->postJson('/api/v2/gallery/photos/'.$photo->id.'/withdraw', $withdraw)->assertOk();
+        $this->postJson('/api/v2/gallery/photos/'.$photo->id.'/withdraw', $withdraw)->assertOk();
+        $this->getJson('/api/v2/gallery/groups/'.$group->id.'/photos')->assertOk()->assertJsonPath('data.items', []);
     }
 
     public function test_module_withdrawal_and_impersonation_deny_before_private_caption_query(): void
@@ -413,5 +434,111 @@ class PrivateGalleryTest extends TestCase
         Storage::disk(GalleryPhotos::DISK)->assertMissing($photo->path);
         $this->assertNotNull($photo->fresh()->erased_at);
         app(CurrentSchool::class)->run(2, fn () => $this->assertSame(0, GalleryPhoto::count()));
+    }
+
+    private function apiAs(User $actor): void
+    {
+        Sanctum::actingAs($actor);
+        $this->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $actor->id, 'Accept' => 'application/json']);
+    }
+
+    public function test_http_upload_pending_guardian_decision_private_pixels_and_removal_round_trip(): void
+    {
+        $this->apiAs($this->student);
+        $request = $this->op(['scope' => 'family', 'learner_id' => $this->learner, 'session_year_id' => $this->year, 'captured_on' => '2026-02-09', 'caption' => 'Private API photo']);
+        $result = $this->post('/api/v2/gallery/photos', $request + ['photo' => UploadedFile::fake()->image('private-name.jpg', 30, 20)])->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $photo = (int) $result->json('data.id');
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos')->assertOk()->assertJsonPath('data.total', 0);
+        $this->apiAs($this->parent);
+        $this->getJson('/api/v2/gallery/configuration')->assertOk()->assertJsonPath('data.guardian_required', true)->assertJsonPath('data.children.0.id', $this->learner);
+        $pending = $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos?pending=1')->assertOk()->assertJsonPath('data.total', 1);
+        $item = $pending->json('data.items.0');
+        $this->assertArrayNotHasKey('path', $item['photo']);
+        $this->get('/api/v2/gallery/photos/'.$photo.'/content?thumbnail=1')->assertOk()->assertHeader('Content-Type', 'image/jpeg')->assertHeader('Cache-Control', 'no-store, private');
+        $decision = $this->op(['revision' => $item['tag_revision'], 'decision' => 'approve']);
+        $approved = $this->postJson('/api/v2/gallery/tags/'.$item['tag_id'].'/decision', $decision)->assertOk();
+        $this->postJson('/api/v2/gallery/tags/'.$item['tag_id'].'/decision', $decision)->assertOk()->assertJsonPath('data.revision', $approved->json('data.revision'));
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos')->assertOk()->assertJsonPath('data.total', 1)->assertJsonPath('data.items.0.photo.caption', 'Private API photo');
+        $this->postJson('/api/v2/gallery/tags/'.$item['tag_id'].'/remove', $this->op(['revision' => $approved->json('data.revision')]))->assertOk();
+        $this->get('/api/v2/gallery/photos/'.$photo.'/content')->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(1, GalleryPhoto::count());
+    }
+
+    public function test_http_wrong_role_owner_school_and_account_refuse_before_caption_or_storage_retrieval(): void
+    {
+        $photo = $this->upload();
+        $teacher = User::findOrFail($this->schoolA->ids['tara_user']);
+        $this->apiAs($teacher);
+        DB::enableQueryLog();
+        $this->get('/api/v2/gallery/photos/'.$photo->id.'/content')->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos')->assertForbidden()->assertDontSee('Private synthetic photograph');
+        $this->postJson('/api/v2/gallery/tags/'.PhotoTag::firstOrFail()->id.'/decision', [])->assertForbidden();
+        $queries = array_column(DB::getQueryLog(), 'query');
+        DB::disableQueryLog();
+        $this->assertSame([], array_values(array_filter($queries, fn ($sql) => str_starts_with(strtolower($sql), 'select * from `gallery_photos`'))));
+        $this->apiAs($this->parent);
+        $this->withHeader('X-School-Id', '2')->get('/api/v2/gallery/photos/'.$photo->id.'/content')->assertForbidden()->assertDontSee('Private synthetic photograph');
+        $this->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $teacher->id])->getJson('/api/v2/gallery/configuration')->assertForbidden();
+    }
+
+    public function test_http_settings_require_current_manager_and_replay_never_bypasses_module_revocation(): void
+    {
+        $admin = $this->superAdmin();
+        $this->apiAs($this->parent);
+        $this->postJson('/api/v2/gallery/settings', [])->assertForbidden();
+        $this->apiAs($admin);
+        $settings = $this->op(['revision' => 0, 'guardian_required' => false]);
+        $this->postJson('/api/v2/gallery/settings', $settings)->assertOk()->assertJsonPath('data.guardian_required', false)->assertJsonPath('data.revision', 1);
+        $this->postJson('/api/v2/gallery/settings', $settings)->assertOk()->assertJsonPath('data.revision', 1);
+        config(['modules.gallery' => ['default' => false]]);
+        $this->postJson('/api/v2/gallery/settings', $settings)->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertFalse(app(GallerySettings::class)->current()->guardian_required);
+    }
+
+    public function test_http_transfer_choice_is_own_guardian_only_and_optional_retention_reaches_completion(): void
+    {
+        $this->upload();
+        [$package, $receiver] = $this->transferFixture();
+        $this->apiAs($this->parent);
+        $result = $this->getJson('/api/v2/transfers/consents/'.$package->id)->assertOk()->assertJsonPath('data.gallery_choice.photos', 1)->assertJsonPath('data.gallery_choice.can_keep', true);
+        $choice = $result->json('data.gallery_choice.fingerprint');
+        $this->postJson('/api/v2/transfers/packages/'.$package->id.'/consent', $this->op(['revision' => $package->revision, 'fingerprint' => $package->fingerprint, 'version' => config('school_transfers.consent_version'), 'confirmation' => true, 'keep_photo_tags' => true, 'gallery_fingerprint' => $choice]))->assertOk();
+        $this->assertSame(1, GalleryTransferChoice::count());
+        $this->acceptPhotoTransfer($package->fresh(), $receiver);
+        $this->assertTrue(PhotoTag::where('learner_id', $this->learner)->firstOrFail()->retained_on_transfer);
+        app(CurrentSchool::class)->run(2, fn () => $this->assertSame(1, GalleryPhoto::count()));
+    }
+
+    public function test_self_can_read_and_remove_own_pending_tag_without_guardian_approval_power(): void
+    {
+        $this->upload($this->student);
+        $tag = PhotoTag::firstOrFail();
+        $this->apiAs($this->student);
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos?pending=true')->assertOk()->assertJsonPath('data.total', 1)->assertJsonPath('data.items.0.tag_id', (int) $tag->id);
+        $this->postJson('/api/v2/gallery/tags/'.$tag->id.'/decision', $this->op(['revision' => $tag->revision, 'decision' => 'approve']))->assertNotFound();
+        $this->postJson('/api/v2/gallery/tags/'.$tag->id.'/remove', $this->op(['revision' => $tag->revision]))->assertOk();
+        $this->assertSame('removed', $tag->fresh()->status);
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos?pending=true')->assertOk()->assertJsonPath('data.total', 0);
+    }
+
+    public function test_existing_pending_tag_self_consent_requires_explicit_school_rule_and_fresh_replay_authority(): void
+    {
+        $this->upload($this->student);
+        $tag = PhotoTag::firstOrFail();
+        $settings = app(GallerySettings::class);
+        $settings->save($this->superAdmin(), $this->op(['revision' => 0, 'guardian_required' => false]));
+        $this->apiAs($this->student);
+        $this->getJson('/api/v2/gallery/configuration')->assertOk()->assertJsonPath('data.children.0.can_approve', true);
+        $decision = $this->op(['revision' => $tag->revision, 'decision' => 'approve']);
+        $this->postJson('/api/v2/gallery/tags/'.$tag->id.'/decision', $decision)->assertOk();
+        $this->assertSame('self', $tag->fresh()->approval_kind);
+        $settings->save($this->superAdmin(), $this->op(['revision' => 1, 'guardian_required' => true]));
+        $this->getJson('/api/v2/gallery/configuration')->assertOk()->assertJsonPath('data.children.0.can_approve', false);
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos')->assertOk()->assertJsonPath('data.total', 0);
+        $this->getJson('/api/v2/gallery/learners/'.$this->learner.'/photos?pending=true')->assertOk()->assertJsonPath('data.total', 1);
+        $this->postJson('/api/v2/gallery/tags/'.$tag->id.'/decision', $decision)->assertNotFound();
+        $this->apiAs($this->parent);
+        $this->postJson('/api/v2/gallery/tags/'.$tag->id.'/decision', $this->op(['revision' => $tag->fresh()->revision, 'decision' => 'approve']))->assertOk();
+        $this->assertSame('guardian', $tag->fresh()->approval_kind);
     }
 }

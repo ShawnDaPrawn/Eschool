@@ -178,7 +178,9 @@ class _SessionWatcherState extends State<SessionWatcher> {
             context.read<AuthCubit>().state is Authenticated,
         takeChangeNotice: () =>
             const NotificationPreferences().takeContextChanged(),
-        child: ContentCacheSessionGuard(child: widget.child),
+        child: PracticeCacheSessionGuard(
+          child: ContentCacheSessionGuard(child: widget.child),
+        ),
       ),
     );
   }

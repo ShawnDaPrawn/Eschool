@@ -41,4 +41,6 @@ return [
     'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'recognition.points_changed' => ['label' => 'House point updates', 'module' => 'house_points', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'recognition.award_presented' => ['label' => 'Award presentations', 'module' => 'awards', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'consultations.opened' => ['label' => 'School consultations', 'module' => 'consultations', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'consultations.staff_opened' => ['label' => 'Staff school consultations', 'module' => 'consultations', 'portals' => ['teacher', 'admin'], 'channels' => $on],
 ];

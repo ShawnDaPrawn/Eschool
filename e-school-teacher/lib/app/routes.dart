@@ -125,13 +125,16 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String dailyPractice = '/learning/practice';
   static const String progressNotes = '/growth/progress';
   static const String schoolDiscipline = '/discipline';
+  static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
   static const String riskInterventions = '/growth/risk';
   static const String reliefCover = '/pastoral/cover';
   static const String supportPlans = '/pastoral/support';
   static const String wellbeing = '/wellbeing';
+  static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
@@ -154,6 +157,8 @@ class Routes {
       schoolDiscipline => 'discipline',
       riskInterventions => 'early_warning',
       mastery => 'mastery',
+      consultations => 'consultations',
+      dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
       reliefCover => 'relief_cover',
@@ -337,10 +342,14 @@ class Routes {
         return progressNotesRoute();
       case schoolDiscipline:
         return schoolDisciplineRoute();
+      case privateGallery:
+        return staffPrivateGalleryRoute();
       case recognition:
         return staffRecognitionRoute();
       case riskInterventions:
         return riskInterventionsRoute();
+      case dailyPractice:
+        return dailyPracticeRoute();
       case mastery:
         return masteryRoute();
       case reliefCover:
@@ -349,6 +358,8 @@ class Routes {
         return supportPlansRoute();
       case wellbeing:
         return wellbeingRoute();
+      case consultations:
+        return consultationsRoute(routeSettings.arguments);
       case activityGroups:
         return activityGroupsRoute();
       case schoolMessages:

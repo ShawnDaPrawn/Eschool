@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\Transitions\ExitEvidence;
+use App\Services\Gallery\GalleryTransfers;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
@@ -191,6 +192,17 @@ class TransferQueries
             'can_cancel' => $writable && $lane === 'outgoing' && $open && ! $externalDone,
             'can_accept' => $writable && $lane === 'incoming' && $open && $row->state === 'released',
             'can_download' => $row instanceof TransferReceipt || ($open || $externalDone) && $row->expires_at->isFuture()];
+        if ($lane === 'consents' && $result['can_consent'] && app(ModuleGate::class)->allows('gallery')) {
+            try {
+                $result['gallery_choice'] = app(GalleryTransfers::class)->preview($actor, $row);
+            } catch (HttpException|ModelNotFoundException $error) {
+                // An unavailable private-gallery choice never grants access or
+                // blocks the independent academic consent workflow.
+                if ($error instanceof HttpException && ! in_array($error->getStatusCode(), [403, 404, 409, 422], true)) {
+                    throw $error;
+                }
+            }
+        }
         $this->record($actor, $lane, $id);
 
         return $result;

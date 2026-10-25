@@ -38,6 +38,15 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (context.watch<MeContextCubit>().context?.isModuleOn('daily_practice') ==
+            true &&
+        context.watch<MeContextCubit>().context?.roles.contains('Teacher') ==
+            true)
+      MenuContainerDetails(
+        route: Routes.dailyPractice,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Practice question bank',
+      ),
     if (allowsSchoolModule(
       context.watch<MeContextCubit>().context,
       'discipline',
@@ -109,6 +118,18 @@ class _HomeContainerState extends State<HomeContainer> {
         route: Routes.reliefCover,
         iconPath: Assets.announcementIcon,
         titleKey: 'Relief cover',
+      ),
+    if (context.watch<MeContextCubit>().state is MeContextLoaded &&
+        context.watch<MeContextCubit>().context?.isModuleOn('consultations') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'consultations',
+        ))
+      MenuContainerDetails(
+        route: Routes.consultations,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Polls, surveys and elections',
       ),
     if (allowsSchoolModule(context.watch<MeContextCubit>().context, 'groups'))
       MenuContainerDetails(
@@ -472,6 +493,7 @@ class _HomeContainerState extends State<HomeContainer> {
                           children: [
                             const AcademicNextPeriod(),
                             const StaffRecognitionEntry(),
+                            const StaffPrivateGalleryEntry(),
 
                             ///[Class Teacher]
                             if (state.primaryClass?.isNotEmpty ?? false) ...[
