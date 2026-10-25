@@ -1,0 +1,7 @@
+# Quarantined Tutor crop visibility
+
+The real HTTP regression first reproduced an approved crop returning **200** to its learner after its operation was quarantined. Preview now checks the current usage's quarantine/purge state before and after private file I/O. Prepared crop receipts exclude quarantined operations, and a turn's effective visibility uses the current usage marker even if the message's state/FK linkage is still pending. This closes the same late-linkage window for human input bodies.
+
+The original HTTP case is RED before the fix and GREEN afterward. The focused preview, recovery, quarantine and safeguarding cohort passes **10 tests / 163 assertions**; the extended photo-linked human draft recovery check passes **1 / 41**. Full PHPStan and changed-file Pint pass. Tests also quarantine an operation during file I/O, verify no bytes return, and retain the independent Safeguarding reader until its separate expiry/revocation/purge boundary. No SDK/contract change is needed.
+
+Pending/failed photo-operation receipts remain recoverable to the freshly authorized owner so the client can rebuild the original photo-ID intent without storing chat or original photos on the device. Completed and quarantined operations are excluded from that prepared list. No body is released to parents, staff or replacement accounts, and the change does not release model output or weaken quarantine retention.

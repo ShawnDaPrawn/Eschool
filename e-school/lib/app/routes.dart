@@ -158,6 +158,7 @@ class Routes {
   static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
   static const String schoolTransfers = '/academics/transfers';
+  static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
@@ -183,6 +184,7 @@ class Routes {
       reportConcern => 'wellbeing',
       mastery => 'mastery',
       consultations => 'consultations',
+      schoolCards => 'cards',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -403,6 +405,8 @@ class Routes {
         return dailyPracticeRoute();
       case mastery:
         return masteryRoute();
+      case schoolCards:
+        return schoolCardsRoute();
       case consultations:
         return consultationsRoute(routeSettings.arguments);
       case activityGroups:

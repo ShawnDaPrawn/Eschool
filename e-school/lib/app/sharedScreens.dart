@@ -178,6 +178,37 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    AvailableOnly(
+      featureKey:
+          'secure-cards:${context.watch<MeContextCubit>().context?.currentSchoolId}:${context.watch<MeContextCubit>().context?.user?.id}:${context.watch<MeContextCubit>().context?.roles.join(',')}',
+      enabled:
+          context.watch<MeContextCubit>().context?.isModuleOn('cards') ==
+              true &&
+          allowsSchoolModule(context.watch<MeContextCubit>().context, 'cards'),
+      probe: () async {
+        final session = context.read<MeContextCubit>();
+        final pinned = session.context;
+        if (pinned?.currentSchoolId == null ||
+            pinned?.user?.id == null ||
+            session.state is! MeContextLoaded)
+          return false;
+        return cardsDeployed(
+          ApiCardRepository(
+            Api.client,
+            schoolId: pinned!.currentSchoolId!,
+            accountId: pinned.user!.id,
+            contextActive: () =>
+                session.state is MeContextLoaded &&
+                cardAccessStillCurrent(pinned, session.context),
+          ),
+        );
+      },
+      child: tile(
+        title: label('School identity cards'),
+        icon: Icons.badge_outlined,
+        onTap: () => open(Routes.schoolCards),
+      ),
+    ),
     if (context.watch<MeContextCubit>().context?.isModuleOn('wellbeing') ==
             true &&
         allowsSchoolModule(
@@ -1825,4 +1856,127 @@ class FamilyWeeklyDigestEntry extends StatelessWidget {
           );
         },
       );
+}
+
+Route<dynamic> schoolCardsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('cards') != true ||
+        !allowsSchoolModule(me, 'cards')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'School identity cards',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me!;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        cardAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    final people = <CardPersonChoice>[
+      CardPersonChoice(
+        account,
+        pinned.user!.name,
+        pinned.roles.any((r) => r != 'Parent' && r != 'Student')
+            ? 'staff'
+            : pinned.roles.contains('Student')
+            ? 'learner'
+            : 'guardian',
+      ),
+      if (pinned.roles.contains('Parent'))
+        for (final child in pinned.children ?? <MeChild>[])
+          if (child.child.userId > 0 &&
+              child.child.school.id == school &&
+              child.approved == true)
+            CardPersonChoice(child.child.userId, child.child.name, 'learner'),
+    ];
+    return BlocListener<MeContextCubit, MeContextState>(
+      listener: (context, state) {
+        if (!active()) Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: ContentContextBoundary(
+        schoolId: school,
+        readerId: account,
+        child: CardSessionBoundary(
+          pinned: pinned,
+          builder: (_, generationActive) => SchoolCardsScreen(
+            repository: ApiCardRepository(
+              Api.client,
+              schoolId: school,
+              accountId: account,
+              contextActive: () => generationActive() && active(),
+            ),
+            people: people,
+            schoolName: pinned.currentSchool!.name,
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class SchoolCardsEntry extends StatelessWidget {
+  const SchoolCardsEntry({super.key});
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<MeContextCubit, MeContextState>(
+    builder: (context, state) {
+      final me = state.context;
+      if (state is! MeContextLoaded ||
+          me?.currentSchoolId == null ||
+          me?.user?.id == null ||
+          me?.isModuleOn('cards') != true ||
+          !allowsSchoolModule(me, 'cards'))
+        return const SizedBox.shrink();
+      return AvailableOnly(
+        featureKey:
+            'secure-cards:${me!.currentSchoolId}:${me.user!.id}:${me.roles.join(',')}',
+        probe: () => cardsDeployed(
+          ApiCardRepository(
+            Api.client,
+            schoolId: me.currentSchoolId!,
+            accountId: me.user!.id,
+            contextActive: () =>
+                context.read<MeContextCubit>().state is MeContextLoaded &&
+                cardAccessStillCurrent(
+                  me,
+                  context.read<MeContextCubit>().context,
+                ),
+          ),
+        ),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: Text(
+              SharedUiUtils.getTranslatedLabel(
+                context,
+                'School identity cards',
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed(Routes.schoolCards),
+          ),
+        ),
+      );
+    },
+  );
 }

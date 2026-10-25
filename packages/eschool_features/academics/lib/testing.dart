@@ -16,3 +16,5 @@ export 'src/testing/transfer_fixtures.dart';
 export 'src/testing/consultation_fixtures.dart';
 export 'src/testing/practice_fixtures.dart';
 export 'src/testing/gallery_fixtures.dart';
+
+export 'src/testing/card_fixtures.dart';

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ai;
 
+use App\Models\Ai\AiSchoolLimit;
 use App\Models\Ai\AiUsage;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
@@ -51,6 +52,35 @@ class InferenceFoundationTest extends TestCase
             'cents_per_million_tokens' => 1000, 'school_daily_tokens' => 100000, 'actor_daily_tokens' => 50000,
             'school_daily_cents' => 1000, 'actor_daily_cents' => 500,
         ]]);
+    }
+
+    public function test_school_override_and_pause_block_before_any_provider_dispatch(): void
+    {
+        $row = AiSchoolLimit::create(['revision' => 1, 'paused' => false, 'limits' => ['school_daily_tokens' => 1]]);
+        $this->refusal(fn () => app(AiGateway::class)->complete($this->actor(), $this->request()), 'school_daily_cap');
+        $row->update(['paused' => true]);
+        $this->refusal(fn () => app(AiGateway::class)->complete($this->actor(), $this->request()), 'school_inference_paused');
+        $this->assertCount(0, TestProvider::$calls);
+        $this->assertSame(0, AiUsage::count());
+    }
+
+    public function test_limit_withdrawal_during_provider_work_suppresses_output_and_preserves_charge(): void
+    {
+        $row = AiSchoolLimit::create(['revision' => 1, 'paused' => false, 'limits' => []]);
+        TestProvider::$after = fn () => $row->update(['limits' => ['school_daily_tokens' => 0]]);
+        $this->refusal(fn () => app(AiGateway::class)->complete($this->actor(), $this->request()), 'inference_context_changed');
+        $usage = AiUsage::firstOrFail();
+        $this->assertNull($usage->inference_output);
+        $this->assertGreaterThan(0, $usage->cost_cents);
+        $this->assertSame('USD', $usage->billing_currency);
+    }
+
+    public function test_unknown_priced_ledger_currency_cannot_be_silently_combined_with_new_quote(): void
+    {
+        app(AiGateway::class)->complete($this->actor(), $this->request());
+        AiUsage::query()->update(['billing_currency' => null]);
+        $this->refusal(fn () => app(AiGateway::class)->complete($this->actor(), $this->request()), 'budget_currency_changed');
+        $this->assertCount(1, TestProvider::$calls);
     }
 
     private function actor(string $name = 'tara'): User
