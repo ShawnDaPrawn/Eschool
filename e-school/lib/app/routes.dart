@@ -151,6 +151,7 @@ class Routes {
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
   static const String familyProgress = '/growth/progress';
+  static const String schoolTransfers = '/academics/transfers';
   static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
@@ -169,6 +170,7 @@ class Routes {
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
+      schoolTransfers => 'school_transfers',
       familyProgress => 'academics',
       mastery => 'mastery',
       activityGroups => 'groups',
@@ -371,6 +373,9 @@ class Routes {
         return academicAttendanceRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case schoolTransfers:
+        return schoolTransfersRoute();
+
       case familyProgress:
         return familyProgressRoute();
       case mastery:

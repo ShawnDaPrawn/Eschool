@@ -44,3 +44,40 @@ informational lints and no errors or warnings. Calendar days round-trip as dates
 unknown source marks remain null and consent carries the exact fingerprint and
 version. Actual browser and parent-app interaction evidence follows separately.
 New Afrikaans and isiZulu labels are authored; fluent review remains external.
+
+
+## Parent app and actual browser qualification
+
+The real Parent application passed its Chrome integration flow: signed-out
+startup, legitimate Parent sign-in, home card, account-level transfer access with
+no approved selected child, named destination/history review, exact-fingerprint
+consent, original account/school headers and private-body erasure after a denied
+resume. This is the real family app shell using a synthetic in-process API.
+It does not substitute for device or live-school acceptance.
+
+All 318 shared academic tests pass. The 19 focused transfer tests cover 390,
+820 and 1280 widths, unknown-result immutable retries, fresh conflict comparison,
+read-only capabilities, withdrawal, late body refusal, permanently invalidated
+context generations, private cookie headers and explicit archive export denial.
+The family app passes all 56 tests; staff locale qualification passes five tests;
+the shared API client passes 28 tests. Focused transfer analysis reports zero
+issues. Family app analysis has no errors/warnings; existing shared-screen style
+information remains. Locale parity, placeholders and the working school glossary
+pass after aligning the new attendance labels. Fluent review remains external.
+
+Actual Chromium also passed two complete staff/guardian/receiving-school handoffs
+at 390 and 1280 pixels, plus external-school selection with another active
+NavigateEd school and ordinary-Teacher refusal. The guardian's positive consent
+uses the real private HTTP surface; the receiving ZIP is signed/encrypted server
+output. Serious/critical axe, duplicate IDs, own-origin errors and horizontal
+overflow checks pass. Browser evidence identified and fixed contrast for code
+and captions and an inaccessible exact-label selector. The external destination
+placeholder is proven through an actual submitted package, resolving its review.
+The final two targeted browser checks pass in 7.5 seconds. TypeScript checks pass.
+
+The integrated transfer/parallel-alert/schema/actual-migration cohort passes 36
+tests with 1,079 assertions, including a real queued mail recipient's current
+rights recheck without sending transport. Full Larastan and changed-file Pint
+pass. The published current-state risk ordering/scheduler correction is retained
+in this integration. No real learner records, external delivery, production or
+paid-provider activation was used.

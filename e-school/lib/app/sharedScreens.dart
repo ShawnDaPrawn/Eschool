@@ -1003,3 +1003,76 @@ class FamilyProgressEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> schoolTransfersRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final pinned = session.context;
+    final school = pinned?.currentSchoolId;
+    final account = pinned?.user?.id;
+    if (!context.read<AuthCubit>().isParent() ||
+        pinned == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !pinned.isModuleOn('school_transfers') ||
+        !allowsSchoolModule(pinned, 'school_transfers') ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'School transfers'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return TransferSessionBoundary(
+      pinned: pinned,
+      builder: (active) => TransferConsentScreen(
+        repository: ApiTransferRepository(
+          Api.client,
+          schoolId: school,
+          accountId: account,
+          contextActive: () =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+        ),
+      ),
+    );
+  },
+);
+
+class SchoolTransfersEntry extends StatelessWidget {
+  const SchoolTransfersEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!context.read<AuthCubit>().isParent() ||
+              state.context?.isModuleOn('school_transfers') != true ||
+              !allowsSchoolModule(state.context, 'school_transfers')) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.transfer_within_a_station),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'School transfers'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.schoolTransfers),
+            ),
+          );
+        },
+      );
+}

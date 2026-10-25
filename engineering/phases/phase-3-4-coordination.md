@@ -88,3 +88,13 @@ stream from main before its next feature; resolve shared-file changes explicitly
 Keep implementation, integration and external acceptance status distinct in the
 phase plans and verification records. Hardware, fluent review, source licences
 and live-provider evidence are never replaced with fabricated passes.
+
+
+The lead additionally owns the Phase 4 house-points/awards increment and then
+intake/admissions, while the Phase 4 agent continues wellbeing, consultations,
+cards, forms, gallery and live/community consumers. These use the existing shared
+identity, dated academic authority and private-file services. Gallery tag handling
+must subscribe to completed transfers; retaining tags needs an explicit guardian
+choice bound to that specific signed consent. It must not extend old-school
+membership or generic image access. That integration remains subsequent gallery
+work while this transfer increment is reviewed.

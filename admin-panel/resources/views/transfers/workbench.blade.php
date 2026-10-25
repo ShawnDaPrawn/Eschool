@@ -61,7 +61,7 @@
         <form method="POST" action="{{ route('school-transfers.prepare') }}" class="transfer-fields" aria-label="{{ __('Prepare a transfer for guardian review') }}">
             @include('transfers.hidden')
             <input type="hidden" name="learner_id" value="{{ $learner }}"><input type="hidden" name="guardian_id" value="{{ $guardian }}">
-            <x-page.field id="transfer-destination" name="to_school_id" type="select" :label="__('NavigateEd receiving school')" :options="$options('destinations')" :value="$draft['to_school_id'] ?? ''" :restore-old-input="false" :help="__('Leave blank for an external school.')" />
+            <x-page.field id="transfer-destination" name="to_school_id" type="select" :label="__('NavigateEd receiving school')" :placeholder="__('External receiving school')" :options="$options('destinations')" :value="$draft['to_school_id'] ?? ''" :restore-old-input="false" :help="__('Leave blank for an external school.')" />
             <x-page.field id="transfer-external" name="external_school" :label="__('External receiving school')" :value="$draft['external_school'] ?? ''" :restore-old-input="false" maxlength="160" />
             <x-page.field id="transfer-last" name="last_attended_on" type="date" :label="__('Last attended date')" :value="$draft['last_attended_on'] ?? $access['today']" :restore-old-input="false" required />
             <x-page.field id="transfer-start" name="starts_on" type="date" :label="__('Receiving start date')" :value="$draft['starts_on'] ?? ''" :restore-old-input="false" required />

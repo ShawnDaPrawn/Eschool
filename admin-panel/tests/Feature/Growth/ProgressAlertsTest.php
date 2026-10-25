@@ -8,14 +8,21 @@ use App\Jobs\Growth\CheckProgressBands;
 use App\Listeners\Growth\QueueProgressBands;
 use App\Models\Academics\MarkRelease;
 use App\Models\Academics\TeachingAllocation;
+use App\Models\Academics\TeachingGroup;
+use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Growth\ProgressBandAlert;
 use App\Models\Growth\ProgressBandState;
 use App\Models\Notification;
+use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Teacher;
+use App\Services\Academics\MarkRecording;
+use App\Services\Academics\MarkSnapshots;
+use App\Services\Academics\TeachingGroups;
 use App\Services\Growth\ProgressBands;
 use App\Services\Growth\ProgressNotices;
 use App\Services\Platform\Notifications\DeliveryGuard;
@@ -174,5 +181,50 @@ class ProgressAlertsTest extends TestCase
         app(QueueProgressBands::class)->handle($event);
         Bus::assertDispatched(CheckProgressBands::class, fn ($job) => $job->groupId === $this->group);
         Bus::assertDispatched(CheckProgressBands::class, fn ($job) => $job->releaseId === $newer);
+    }
+
+    public function test_parallel_group_snapshot_cannot_consume_another_learner_transition_or_starve_the_right_teacher(): void
+    {
+        $group = TeachingGroup::findOrFail($this->group);
+        $b = app(TeachingGroups::class)->save($this->superAdmin(), ['name' => 'Parallel maths group', 'subject_id' => $this->subject,
+            'grade_level_id' => $group->grade_level_id, 'session_year_id' => $this->year, 'class_section_id' => null, 'active' => true]);
+        Enrolment::create(['learner_id' => $this->schoolA->ids['ben'], 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic parallel enrolment']);
+        app(TeachingGroups::class)->dated($this->superAdmin(), 'teachers', ['teacher_id' => Teacher::where('user_id', $this->actor('theo')->id)->value('id'),
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Own parallel teaching allocation'], (int) $b->id);
+        app(TeachingGroups::class)->dated($this->superAdmin(), 'memberships', ['learner_id' => $this->schoolA->ids['ben'], 'mark_rule' => 'catch_up',
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Own parallel learner'], (int) $b->id);
+        app(MarkRecording::class)->capture($this->actor('theo'), (int) $b->id, $this->task, ['rows' => [[
+            'learner_id' => $this->schoolA->ids['ben'], 'expected_revision' => 0, 'disposition' => 'recorded', 'mark' => null,
+            'question_marks' => [['question_id' => $this->questions[0], 'mark' => '8.00'], ['question_id' => $this->questions[1], 'mark' => '8.00']],
+        ]]]);
+        app(MarkSnapshots::class)->recompute((int) $b->id, $this->term);
+        $this->capture('8.00', '8.00');
+        $this->notices()->group($this->group);
+        $this->assertFalse(ProgressBandState::where('learner_id', $this->schoolA->ids['ben'])->exists(), 'Another group must not consume this learner transition.');
+        $this->notices()->group((int) $b->id);
+        $state = ProgressBandState::where('learner_id', $this->schoolA->ids['ben'])->where('audience', 'staff')->sole();
+        $alert = ProgressBandAlert::where('state_id', $state->id)->sole();
+        $this->assertSame((int) $b->id, (int) $alert->group_id);
+        $notice = Notification::findOrFail($alert->notification_id);
+        $this->assertTrue($this->notices()->allows($this->actor('theo'), ProgressNotices::STAFF_TYPE, $notice->delivery_payload));
+        $this->assertFalse($this->notices()->allows($this->actor(), ProgressNotices::STAFF_TYPE, $notice->delivery_payload));
+        $fanout = OutboxEvent::where('type', 'notification.requested')->get()->first(fn ($event) => (int) $event->payload['notification_id'] === (int) $notice->id);
+        $this->assertNotNull($fanout);
+        $this->assertSame([(int) $this->actor('theo')->id], $fanout->payload['user_ids']);
+    }
+
+    public function test_ended_and_future_memberships_do_not_observe_existing_snapshots(): void
+    {
+        $this->capture('8.00', '8.00');
+        app(MarkSnapshots::class)->recompute($this->group, $this->term);
+        $membership = TeachingGroupMembership::where('teaching_group_id', $this->group)->where('learner_id', $this->schoolA->ids['asha'])->sole();
+        $membership->update(['ends_on' => '2026-02-09']);
+        $this->notices()->group($this->group);
+        $this->assertSame(0, ProgressBandState::count());
+        $membership->update(['starts_on' => '2026-02-11', 'ends_on' => '2026-12-31']);
+        $this->notices()->group($this->group);
+        $this->assertSame(0, ProgressBandState::count());
+        $this->assertSame(0, ProgressBandAlert::count());
     }
 }

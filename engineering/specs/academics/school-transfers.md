@@ -46,6 +46,25 @@ source copy expires. Retained records prevent destructive migration rollback.
 A generic guardian review notice contains no learner name, destination or marks;
 fanout and transport recheck the named guardian and current request revision.
 
-Native parent consent and actual browser interaction qualification follow the
-HTTP/panel increment. No production or provider activation follows from these
+Native parent consent and actual browser interaction qualification are implemented. No production or provider activation follows from these
 implementation checks.
+
+
+## Parent review and explicit file export
+
+The Parent home card and guarded deep route operate on the current guardian
+account and school, including when no approved child is selected. The reader
+shows the named destination, dates, report/document selection, released source
+marks and attendance. Consent binds the immutable package fingerprint and current
+version. Withdrawal is explicitly confirmed before completion. Unknown outcomes
+retry the same serialized UUID/revision intent; a known conflict reloads current
+records and clears prior approval.
+
+Private bodies and drafts stay in memory, are erased on suspension, and reload
+under fresh authority after resume or context refresh. Old repository generations
+cannot reactivate under the same account. File exports carry the original
+account/school, recheck after download and open a device save dialog only after
+an explicit tap. A denied or late export cannot save a private file. Large source
+histories expand in bounded batches. No transfer body enters an offline cache.
+The staff external-school select has an explicit blank destination; it cannot
+silently route an external request to the first NavigateEd school.

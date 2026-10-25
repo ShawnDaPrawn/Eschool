@@ -477,3 +477,30 @@ regression. The focused staff app suite passes **20 tests**, and family entry/la
 checks pass **3 tests**. Both app analyzers have no errors or warnings; remaining
 informational lints belong to existing shared route/style patterns. No physical
 device, live-school, fluent clinical-language or production acceptance is claimed.
+
+
+
+## Parallel teaching-group progress alert isolation
+
+A real second maths group with another dated learner and teacher reproduced the
+reviewed transition-starvation bug: group A consumed group B's learner snapshot
+and attached its own group to the alert. The red regression failed before the
+fix. Snapshot observation is now narrowed to the requested group's current dated
+learner memberships before the shared band transition is evaluated. The green
+regression checks the correct alert group, rightful teacher eligibility, refused
+other teacher and the exact queued fanout recipient. No private payload is added.
+
+All **8 alert tests, 46 assertions** pass, including ended/future membership
+refusal. Changed-file Pint passes. Complete configured Larastan passed after the
+source change; the final extra regression changes test fixtures only.
+
+## Current risk observation ordering and active scheduling
+
+Both reviewed bugs first reproduced with real red regressions: canonical daily
+attendance changed present → absent → present while the displayed risk stayed
+absent, and the configured application's schedule omitted the hourly refresh.
+After the retained-safe index/append fix and active scheduler registration, the
+risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions**.
+Repeated identical refreshes stay idempotent; genuine reversions retain all three
+ordered observations and classroom readers show the latest corrected state.
+Changed-file Pint and complete configured Larastan pass.

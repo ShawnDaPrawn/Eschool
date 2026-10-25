@@ -86,3 +86,6 @@ Schedule::job(new RecoverMessages)->everyMinute()->name('communication-message-r
 Schedule::command('leadership:prune-activity')->dailyAt('02:50')->name('learner-activity-retention')->withoutOverlapping();
 
 Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-copy-retention')->withoutOverlapping();
+
+// Refresh current-day evidence even when no source event arrives.
+Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);

@@ -228,16 +228,25 @@ class ApiClient {
   }
 
   /// Reads an authenticated asset into memory, with explicit school scope.
-  Future<Uint8List> getBytes({required String url, int? schoolId}) async {
+  Future<Uint8List> getBytes({
+    required String url,
+    int? schoolId,
+    int? accountId,
+    Duration? requestTimeout,
+  }) async {
     try {
-      final response = await _createDio().get<List<int>>(
+      final dio = _createDio();
+      if (requestTimeout != null) dio.options.connectTimeout = requestTimeout;
+      final response = await dio.get<List<int>>(
         url,
         options: Options(
           responseType: ResponseType.bytes,
+          receiveTimeout: requestTimeout,
           followRedirects: false,
           headers: {
             ...headers(),
             if (schoolId != null) 'X-School-Id': '$schoolId',
+            if (accountId != null) 'X-Account-Id': '$accountId',
           },
         ),
       );

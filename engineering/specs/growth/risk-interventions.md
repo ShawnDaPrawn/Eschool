@@ -72,3 +72,11 @@ The owned OpenAPI fragment and canonical contract preserve all preceding paths
 and schemas; generated Dart models use calendar strings for day-only fields and
 nullable scores for unavailable sources. Staff panel/native consumers follow in
 the next increment; no learner/parent risk navigation is introduced.
+
+
+Current-state ordering deduplicates only against the immediately latest same-day
+observation. A real A → B → A correction appends another immutable row, so readers
+that select the latest ID show the restored facts. A forward migration retains
+old rows and changes the historical fingerprint uniqueness constraint to a lookup
+index; rollback refuses histories containing genuine repeated fingerprints.
+The hourly refresh is registered in the active routes/console.php schedule.
