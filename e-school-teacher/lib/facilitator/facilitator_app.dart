@@ -456,6 +456,32 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['cards'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.badge_outlined),
+                title: Text(l('School identity cards')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'cards',
+                  SchoolCardsScreen(
+                    selfOnly: true,
+                    repository: ApiCardRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['cards'] == true,
+                    ),
+                    people: [CardPersonChoice(user, profile.name, 'staff')],
+                    schoolName: profile.schools
+                        .firstWhere((s) => s.id == school)
+                        .name,
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['gallery'] == true)
             Card(
               child: ListTile(
@@ -762,6 +788,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'cards',
             'gallery',
             'consultations',
             'private_notices',
