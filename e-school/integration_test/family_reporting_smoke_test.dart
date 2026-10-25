@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:eschool_academics/src/wellbeing/private_report_image.dart';
+
+import 'support/photo_picker_fixture.dart';
 
 import 'support/fixtures.dart';
 import 'support/smoke.dart';
@@ -20,6 +24,9 @@ void main() {
     testWidgets(
       '${parentProfile ? 'parent' : 'learner'} reports with explicit identity and clears withdrawn private data',
       (tester) async {
+        final originalPicker = FilePickerPlatform.instance;
+        FilePickerPlatform.instance = SyntheticPhotoPicker();
+        addTearDown(() => FilePickerPlatform.instance = originalPicker);
         final fixture = ReportingFixture(), account = parentProfile ? 21 : 11;
         final api = await startSmokeApp(tester, {
           ...(parentProfile ? parentOfTwoRoutes() : learnerRoutes()),
@@ -140,12 +147,35 @@ void main() {
         expect(fixture.submissions.single['identify_consent'], true);
         expect(fixture.submissions.single.containsKey('learner_id'), false);
         expect(fixture.code, hasLength(64));
+        final choosePhoto = find.widgetWithText(
+          FilledButton,
+          'Choose report photo',
+        );
+        await seek(choosePhoto);
+        await tester.tap(choosePhoto);
+        await tester.pumpAndSettle();
+        final sendPhoto = find.widgetWithText(
+          FilledButton,
+          'Send selected photo',
+        );
+        await seek(sendPhoto);
+        await tester.tap(sendPhoto);
+        await tester.pumpAndSettle();
+        await seek(find.byType(PrivateReportImage));
+        expect(find.byType(PrivateReportImage), findsOneWidget);
+        expect(fixture.photos.length, 1);
+        final upload = api.requests.singleWhere(
+          (r) => r.path.endsWith('/wellbeing/own/photos'),
+        );
+        expect(upload.queryParameters, isEmpty);
+        expect(upload.uri.toString(), isNot(contains(fixture.code)));
         final stored = jsonEncode({
           ...Hive.box(authBoxKey).toMap(),
           ...Hive.box(settingsBoxKey).toMap(),
         });
         expect(stored, isNot(contains(fixture.code)));
         expect(stored, isNot(contains(body)));
+        expect(stored, isNot(contains(SyntheticPhotoFile.pixels)));
         await seek(field('Add a follow-up'));
         await tester.enterText(
           field('Add a follow-up'),
@@ -173,6 +203,7 @@ void main() {
         );
         await tester.pump();
         expect(find.text(body), findsNothing);
+        expect(find.byType(PrivateReportImage), findsNothing);
         tester.binding.handleAppLifecycleStateChanged(
           AppLifecycleState.resumed,
         );
@@ -183,6 +214,7 @@ void main() {
           ),
         );
         expect(find.text(body), findsNothing);
+        expect(find.byType(PrivateReportImage), findsNothing);
         expect(find.text(fixture.code), findsNothing);
         expect(tester.takeException(), isNull);
       },

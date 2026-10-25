@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../localization/academic_text.dart';
 import 'school_wall_time.dart';
 import 'wellbeing_repository.dart';
+import 'private_report_image.dart';
 
 /// Clinical bodies and unsent drafts exist only in this authorization generation.
 class WellbeingScreen extends StatefulWidget {
@@ -735,6 +736,13 @@ class _WellbeingScreenState extends State<WellbeingScreen>
             : row.reporterName ?? l('Identified report'),
       ),
       SelectableText(row.body),
+      if (row.photos?.isNotEmpty == true) _title('Report photos'),
+      for (final photo in row.photos ?? <IncidentPhoto>[])
+        PrivateReportImage(
+          key: ValueKey('staff-report-photo-${row.id}-${photo.id}'),
+          base64: photo.thumbnailBase64,
+          label: l('Photo attached to this report'),
+        ),
       for (final thread in row.threads)
         Card(
           child: Padding(
