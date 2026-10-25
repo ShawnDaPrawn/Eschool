@@ -1,3 +1,8 @@
+import 'package:eschool_teacher/facilitator/facilitator_app.dart';
+import 'package:hive/hive.dart';
+
+import 'facilitator_test_fixture.dart';
+
 import 'package:eschool_teacher/app/staffBuildIdentity.dart';
 import 'package:eschool_teacher/app/staffBuildUnavailable.dart';
 import 'package:eschool_teacher/app/app.dart';
@@ -22,6 +27,33 @@ void main() {
       ).canStartTeacher,
       isTrue,
     );
+  });
+
+  test('facilitator calls only its dedicated bootstrap', () async {
+    var starts = 0;
+    await startStaffBuild(
+      identity: StaffBuildIdentity.resolve(
+        nativeFlavor: 'facilitator',
+        dartFlavor: 'facilitator',
+      ),
+      startTeacher: () async => fail('teacher bootstrap ran'),
+      startFacilitator: () async {
+        starts++;
+      },
+      startUnavailable: (_) => fail('valid facilitator refused'),
+    );
+    expect(starts, 1);
+    for (final native in ['teacher', 'vendor', 'unknown']) {
+      await startStaffBuild(
+        identity: StaffBuildIdentity.resolve(
+          nativeFlavor: native,
+          dartFlavor: 'facilitator',
+        ),
+        startTeacher: () async => fail('mismatch startedteacher'),
+        startFacilitator: () async => fail('mismatch startedfacilitator'),
+        startUnavailable: (_) {},
+      );
+    }
   });
 
   test('native identity and build defines must agree', () {
@@ -116,9 +148,20 @@ void main() {
     testWidgets('real entrypoint refuses teacher initialization', (
       tester,
     ) async {
+      if (StaffBuildIdentity.current.canStartFacilitator) {
+        staffTestLabels(tester);
+      }
       await initializeApp();
       await tester.pumpAndSettle();
-      expect(find.byType(StaffBuildUnavailable), findsOneWidget);
+      expect(
+        find.byType(
+          StaffBuildIdentity.current.canStartFacilitator
+              ? FacilitatorApp
+              : StaffBuildUnavailable,
+        ),
+        findsOneWidget,
+      );
+      expect(Hive.isBoxOpen('authBox'), isFalse);
       expect(tester.takeException(), isNull);
     });
   }

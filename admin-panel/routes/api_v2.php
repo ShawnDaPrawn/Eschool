@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
+use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
@@ -62,6 +63,13 @@ use Illuminate\Support\Facades\Route;
 | New endpoints follow the domain recipe: a thin controller in
 | Api/V2/<Domain>, a FormRequest, a service and a JSON Resource.
 */
+
+Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
+    $c = SessionController::class;
+    Route::post('sign-in', [$c, 'signIn'])->middleware(['throttle:login', 'portal.sign-in'])->name('sign-in');
+    Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context'])->name('session');
+    Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
+});
 
 Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {
     $c = GroupController::class;

@@ -185,6 +185,7 @@ or production/staging qualification is inferred from unit/widget tests. The
 facilitator identity still deliberately stops before teacher startup until its
 separate scoped sign-in and restricted shell are implemented. Authored group
 Markdown is available; private binary materials remain separate follow-up work.
+
 ### Panel session/year review correction, 25 October 2026
 
 The regression first returned a redirect after an unauthorized historical

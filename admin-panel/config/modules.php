@@ -17,5 +17,6 @@ return [
     'intake' => ['name' => 'Online registration', 'default' => false, 'legacy' => true],
     'web_learner' => ['name' => 'Learner web portal', 'default' => true],
     'web_parent' => ['name' => 'Parent web portal', 'default' => true],
+    'web_facilitator' => ['name' => 'Facilitator web portal', 'default' => true],
     'web_teacher' => ['name' => 'Teacher web portal', 'default' => true],
 ];

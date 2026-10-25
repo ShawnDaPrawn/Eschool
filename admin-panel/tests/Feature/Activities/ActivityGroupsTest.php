@@ -517,6 +517,16 @@ class ActivityGroupsTest extends TestCase
 
     }
 
+    public function test_historical_header_refusal_never_flashes_private_activity_text(): void
+    {
+        $year = SessionYear::create(['name' => 'Historical group header year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $this->actingAs($this->superAdmin());
+        $this->withSession(['session_year' => $year->id])
+            ->post(route('activity-groups.create'), $this->data(['reason' => 'Synthetic private change reason', 'markdown' => 'Synthetic private material draft']))
+            ->assertStatus(423)->assertHeader('Cache-Control', 'no-store, private')
+            ->assertSee('Synthetic private change reason')->assertSessionMissing('_old_input');
+    }
+
     public function test_panel_attendance_binds_the_actual_session_group_and_its_historical_year(): void
     {
         $current = $this->group();

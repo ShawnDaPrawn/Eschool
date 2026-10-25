@@ -91,6 +91,12 @@ class SetSchoolContext
         $this->currentSchool->set($school);
         // Roles loaded before the team was known would be another school's.
         $user->unsetRelation('roles')->unsetRelation('permissions');
+        // A facilitator profile cannot bypass fresh readiness through another
+        // role's v1/v2 routes. Credential management/logout remain available.
+        if ($request->is('api/*', 'protected/profile-files/*') && ! $request->is('api/change-password', 'api/logout')) {
+            app(\App\Services\Facilitators\FacilitatorAccess::class)->enforceProfile($request);
+        }
+
 
         return $next($request);
     }

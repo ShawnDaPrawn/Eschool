@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Modules\ModuleGate;
 use Closure;
@@ -16,6 +17,9 @@ class EnsureModuleEnabled
     {
         if ($operation === 'portal' && ! PortalSession::isPortal($request)) {
             return $next($request);
+        }
+        if ($key === 'web_current' && PortalSession::isPortal($request) && $request->session()->get('portal_app') === AppTokens::FACILITATOR) {
+            $key = 'web_facilitator';
         }
         if ($key === 'web_current') {
             $role = collect(['Parent', 'Student', 'Teacher'])->first(fn ($role) => $request->user()?->hasRole($role));

@@ -50,6 +50,9 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'facilitator sign-in validation' => [null, 'POST', 'api/v2/facilitator/sign-in', [], 422],
+            'facilitator session requires auth' => [null, 'GET', 'api/v2/facilitator/session', [], 401],
+            'facilitator sign-out requires auth' => [null, 'POST', 'api/v2/facilitator/sign-out', [], 401],
             'getCoverConfiguration requires auth' => [null, 'GET', 'api/v2/pastoral/cover/configuration', [], 401],
             'getMyCover requires auth' => [null, 'GET', 'api/v2/pastoral/cover/mine', [], 401],
             'createCoverAbsence requires auth' => [null, 'POST', 'api/v2/pastoral/cover/absences', [], 401],

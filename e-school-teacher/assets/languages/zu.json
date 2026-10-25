@@ -1138,5 +1138,21 @@
   "Use YYYY-MM-DD.": "Sebenzisa YYYY-MM-DD.",
   "Venue": "Indawo",
   "Your activity access changed. Reopen the group.": "Ukufinyelela kwakho emisebenzini kushintshile. Vula iqembu futhi.",
-  "activity_group": "Iqembu lomsebenzi"
+  "activity_group": "Iqembu lomsebenzi",
+  "School code": "Ikhodi yesikole",
+  "Email or handle": "I-imeyili noma igama lomsebenzisi",
+  "Facilitator sign-in": "Ukungena komqondisi",
+  "Use the school code and account your school assigned.": "Sebenzisa ikhodi yesikole ne-akhawunti oyinikezwe isikole.",
+  "New password": "Iphasiwedi entsha",
+  "Confirm new password": "Qinisekisa iphasiwedi entsha",
+  "I have read and accept this document.": "Ngiwufundile futhi ngiyawamukela lo mbhalo.",
+  "Read and accept each required document.": "Funda futhi wamukele umbhalo ngamunye odingekayo.",
+  "Complete the required sign-in setup.": "Qedela ukusetha kokungena okudingekayo.",
+  "Complete sign-in": "Qedela ukungena",
+  "Your school activities": "Imisebenzi yesikole sakho",
+  "Refresh staff access": "Vuselela ukufinyelela kwabasebenzi",
+  "Connect to refresh your staff access.": "Xhuma ukuze uvuselele ukufinyelela kwakho njengomsebenzi.",
+  "Connect to the school and try again.": "Xhuma esikoleni bese uzama futhi.",
+  "Passwords do not match.": "Amaphasiwedi awafani.",
+  "Could not sign in. Check your details and try again.": "Ayikwazanga ukungena. Hlola imininingwane yakho bese uzama futhi."
 }

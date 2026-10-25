@@ -1138,5 +1138,21 @@
   "Use YYYY-MM-DD.": "Use YYYY-MM-DD.",
   "Venue": "Venue",
   "Your activity access changed. Reopen the group.": "Your activity access changed. Reopen the group.",
-  "activity_group": "Activity group"
+  "activity_group": "Activity group",
+  "School code": "School code",
+  "Email or handle": "Email or handle",
+  "Facilitator sign-in": "Facilitator sign-in",
+  "Use the school code and account your school assigned.": "Use the school code and account your school assigned.",
+  "New password": "New password",
+  "Confirm new password": "Confirm new password",
+  "I have read and accept this document.": "I have read and accept this document.",
+  "Read and accept each required document.": "Read and accept each required document.",
+  "Complete the required sign-in setup.": "Complete the required sign-in setup.",
+  "Complete sign-in": "Complete sign-in",
+  "Your school activities": "Your school activities",
+  "Refresh staff access": "Refresh staff access",
+  "Connect to refresh your staff access.": "Connect to refresh your staff access.",
+  "Connect to the school and try again.": "Connect to the school and try again.",
+  "Passwords do not match.": "Passwords do not match.",
+  "Could not sign in. Check your details and try again.": "Could not sign in. Check your details and try again."
 }

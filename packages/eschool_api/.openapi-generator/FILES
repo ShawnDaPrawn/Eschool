@@ -353,6 +353,15 @@ lib/src/model/enrolment_list_response_data.dart
 lib/src/model/enrolment_response.dart
 lib/src/model/error_code.dart
 lib/src/model/error_response.dart
+lib/src/model/facilitator_features.dart
+lib/src/model/facilitator_policy.dart
+lib/src/model/facilitator_profile.dart
+lib/src/model/facilitator_school.dart
+lib/src/model/facilitator_session_response.dart
+lib/src/model/facilitator_sign_in_data.dart
+lib/src/model/facilitator_sign_in_input.dart
+lib/src/model/facilitator_sign_in_response.dart
+lib/src/model/facilitator_sign_out_response.dart
 lib/src/model/guardian_approval.dart
 lib/src/model/guardian_approvals_response.dart
 lib/src/model/guardian_consent.dart

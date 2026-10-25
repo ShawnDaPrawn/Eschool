@@ -1138,5 +1138,21 @@
   "Use YYYY-MM-DD.": "Use YYYY-MM-DD.",
   "Venue": "Venue",
   "Your activity access changed. Reopen the group.": "Your activity access changed. Reopen the group.",
-  "activity_group": "Activity group"
+  "activity_group": "Activity group",
+  "School code": "رمز المدرسة",
+  "Email or handle": "البريد الإلكتروني أو اسم المستخدم",
+  "Facilitator sign-in": "تسجيل دخول الميسّر",
+  "Use the school code and account your school assigned.": "استخدم رمز المدرسة والحساب الذي خصصته لك مدرستك.",
+  "New password": "كلمة المرور الجديدة",
+  "Confirm new password": "تأكيد كلمة المرور الجديدة",
+  "I have read and accept this document.": "قرأت هذا المستند وأوافق عليه.",
+  "Read and accept each required document.": "اقرأ كل مستند مطلوب ووافق عليه.",
+  "Complete the required sign-in setup.": "أكمل إعداد تسجيل الدخول المطلوب.",
+  "Complete sign-in": "إكمال تسجيل الدخول",
+  "Your school activities": "أنشطة مدرستك",
+  "Refresh staff access": "تحديث صلاحية دخول الموظفين",
+  "Connect to refresh your staff access.": "اتصل لتحديث صلاحية دخولك كموظف.",
+  "Connect to the school and try again.": "اتصل بالمدرسة وحاول مجددًا.",
+  "Passwords do not match.": "كلمتا المرور غير متطابقتين.",
+  "Could not sign in. Check your details and try again.": "تعذر تسجيل الدخول. تحقق من بياناتك وحاول مجددًا."
 }

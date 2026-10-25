@@ -1138,5 +1138,21 @@
   "Use YYYY-MM-DD.": "Gebruik YYYY-MM-DD.",
   "Venue": "Plek",
   "Your activity access changed. Reopen the group.": "Jou aktiwiteitstoegang het verander. Maak die groep weer oop.",
-  "activity_group": "Aktiwiteitsgroep"
+  "activity_group": "Aktiwiteitsgroep",
+  "School code": "Skoolkode",
+  "Email or handle": "E-posadres of gebruikersnaam",
+  "Facilitator sign-in": "Fasiliteerder-aanmelding",
+  "Use the school code and account your school assigned.": "Gebruik die skoolkode en rekening wat jou skool toegeken het.",
+  "New password": "Nuwe wagwoord",
+  "Confirm new password": "Bevestig nuwe wagwoord",
+  "I have read and accept this document.": "Ek het hierdie dokument gelees en aanvaar dit.",
+  "Read and accept each required document.": "Lees en aanvaar elke vereiste dokument.",
+  "Complete the required sign-in setup.": "Voltooi die vereiste aanmeldopstelling.",
+  "Complete sign-in": "Voltooi aanmelding",
+  "Your school activities": "Jou skoolaktiwiteite",
+  "Refresh staff access": "Verfris personeeltoegang",
+  "Connect to refresh your staff access.": "Koppel om jou personeeltoegang te verfris.",
+  "Connect to the school and try again.": "Koppel aan die skool en probeer weer.",
+  "Passwords do not match.": "Wagwoorde stem nie ooreen nie.",
+  "Could not sign in. Check your details and try again.": "Kon nie aanmeld nie. Kontroleer jou besonderhede en probeer weer."
 }

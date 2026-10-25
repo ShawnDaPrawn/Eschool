@@ -174,6 +174,113 @@ tags:
 - name: Pastoral
   description: Scoped school cover and restricted learner support.
 paths:
+  /facilitator/sign-in:
+    post:
+      operationId: signInFacilitator
+      tags:
+      - Platform
+      summary: signInFacilitator
+      description: Fresh dated school membership and an explicit facilitator session profile are required.
+        This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements
+        before issuing a session; only current accepted policy versions and a completed password change
+        allow authentication. Responses are private and never cached.
+      responses:
+        '200':
+          description: Private facilitator session result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacilitatorSignInResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: Credentials verified; complete password/policy setup and resubmit. No authenticated
+            session has been issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacilitatorSignInResponse'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FacilitatorSignInInput'
+  /facilitator/session:
+    get:
+      operationId: getFacilitatorSession
+      tags:
+      - Platform
+      summary: getFacilitatorSession
+      description: Fresh dated school membership and an explicit facilitator session profile are required.
+        This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements
+        before issuing a session; only current accepted policy versions and a completed password change
+        allow authentication. Responses are private and never cached.
+      responses:
+        '200':
+          description: Private facilitator session result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacilitatorSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /facilitator/sign-out:
+    post:
+      operationId: signOutFacilitator
+      tags:
+      - Platform
+      summary: signOutFacilitator
+      description: Fresh dated school membership and an explicit facilitator session profile are required.
+        This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements
+        before issuing a session; only current accepted policy versions and a completed password change
+        allow authentication. Responses are private and never cached.
+      responses:
+        '200':
+          description: Private facilitator session result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacilitatorSignOutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
   /academics/teaching-groups:
     get:
       operationId: getTeachingGroups
@@ -9010,6 +9117,183 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
   schemas:
+    FacilitatorSchool:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - slug
+      properties:
+        id: &id003
+          type: integer
+          minimum: 1
+        name: &id001
+          type: string
+        slug: *id001
+    FacilitatorFeatures:
+      type: object
+      additionalProperties: false
+      required:
+      - groups
+      - messages
+      - counselling
+      properties:
+        groups: &id002
+          type: boolean
+        messages: *id002
+        counselling: *id002
+    FacilitatorProfile:
+      type: object
+      additionalProperties: false
+      required:
+      - user_id
+      - school_id
+      - name
+      - roles
+      - schools
+      - features
+      properties:
+        user_id: *id003
+        school_id: *id003
+        name: *id001
+        roles:
+          type: array
+          items: *id001
+        schools:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacilitatorSchool'
+        features:
+          $ref: '#/components/schemas/FacilitatorFeatures'
+    FacilitatorPolicy:
+      type: object
+      additionalProperties: false
+      required:
+      - document
+      - version
+      - title
+      - text
+      properties:
+        document:
+          type: string
+          enum:
+          - navigateed
+          - school
+        version:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        title: *id001
+        text: *id001
+    FacilitatorSignInInput:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - email
+      - password
+      properties:
+        school:
+          type: string
+          maxLength: 191
+        email:
+          type: string
+          maxLength: 191
+        password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password_confirmation:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        acceptances:
+          type: object
+          additionalProperties:
+            type: string
+            pattern: ^[a-f0-9]{64}$
+    FacilitatorSignInData:
+      type: object
+      additionalProperties: false
+      required:
+      - authenticated
+      - token
+      - profile
+      - password_change_required
+      - documents
+      properties:
+        authenticated: *id002
+        token:
+          anyOf:
+          - *id001
+          - type: 'null'
+        profile:
+          anyOf:
+          - $ref: '#/components/schemas/FacilitatorProfile'
+          - type: 'null'
+        password_change_required: *id002
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacilitatorPolicy'
+    FacilitatorSignInResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id002
+        message: *id001
+        data:
+          $ref: '#/components/schemas/FacilitatorSignInData'
+        code:
+          anyOf:
+          - *id001
+          - type: 'null'
+    FacilitatorSessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id002
+        message: *id001
+        data:
+          $ref: '#/components/schemas/FacilitatorProfile'
+        code:
+          anyOf:
+          - *id001
+          - type: 'null'
+    FacilitatorSignOutResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id002
+        message: *id001
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+          - type: 'null'
+        code:
+          anyOf:
+          - *id001
+          - type: 'null'
     CoverTeacher:
       type: object
       additionalProperties: false

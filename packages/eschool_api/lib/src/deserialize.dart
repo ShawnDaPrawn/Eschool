@@ -337,6 +337,15 @@ import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
 import 'package:eschool_api/src/model/enrolment_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/facilitator_features.dart';
+import 'package:eschool_api/src/model/facilitator_policy.dart';
+import 'package:eschool_api/src/model/facilitator_profile.dart';
+import 'package:eschool_api/src/model/facilitator_school.dart';
+import 'package:eschool_api/src/model/facilitator_session_response.dart';
+import 'package:eschool_api/src/model/facilitator_sign_in_data.dart';
+import 'package:eschool_api/src/model/facilitator_sign_in_input.dart';
+import 'package:eschool_api/src/model/facilitator_sign_in_response.dart';
+import 'package:eschool_api/src/model/facilitator_sign_out_response.dart';
 import 'package:eschool_api/src/model/guardian_approval.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
 import 'package:eschool_api/src/model/guardian_consent.dart';
@@ -1614,6 +1623,33 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ErrorCode':
     case 'ErrorResponse':
       return ErrorResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorFeatures':
+      return FacilitatorFeatures.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorPolicy':
+      return FacilitatorPolicy.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorProfile':
+      return FacilitatorProfile.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorSchool':
+      return FacilitatorSchool.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorSessionResponse':
+      return FacilitatorSessionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorSignInData':
+      return FacilitatorSignInData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorSignInInput':
+      return FacilitatorSignInInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorSignInResponse':
+      return FacilitatorSignInResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FacilitatorSignOutResponse':
+      return FacilitatorSignOutResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'GuardianApproval':
       return GuardianApproval.fromJson(value as Map<String, dynamic>)
