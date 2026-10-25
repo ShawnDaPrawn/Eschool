@@ -27,7 +27,7 @@ class ActivityWorkbenchController extends Controller
 {
     public function index(ActivityPanelRequest $r): Response
     {
-        return response()->view('activities.workbench', $this->model($r));
+        return response()->view('activities.workbench', $this->model($r))->header('Cache-Control', 'private, no-store');
     }
 
     private function model(ActivityPanelRequest $r, array $extra = []): array
@@ -84,7 +84,7 @@ class ActivityWorkbenchController extends Controller
         $bag->put('default', new MessageBag($errors));
 
         // Failed submissions stay in this response, never a shared session or cache.
-        return response()->view('activities.workbench', $this->model($r, ['restored' => $data, 'failedAction' => $r->action(), 'conflict' => $status === 409, 'errors' => $bag]), $status);
+        return response()->view('activities.workbench', $this->model($r, ['restored' => $data, 'failedAction' => $r->action(), 'conflict' => $status === 409, 'errors' => $bag]), $status)->header('Cache-Control', 'private, no-store');
     }
 
     public function write(ActivityPanelRequest $r): BaseResponse
@@ -111,6 +111,6 @@ class ActivityWorkbenchController extends Controller
             return $this->invalid($r, ['activity' => [$e->getMessage()]], $e->getStatusCode());
         }
 
-        return redirect()->route('activity-groups.index', ['group_id' => $group ?? $result['id']])->with('success', __('Activity saved'));
+        return redirect()->route('activity-groups.index', ['group_id' => $group ?? $result['id']])->with('success', __('Activity saved'))->header('Cache-Control', 'private, no-store');
     }
 }

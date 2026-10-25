@@ -49,6 +49,9 @@ export default defineConfig({
     },
     {
       name: 'flows',
+      // These workflows share one seeded school and mutate its catalogues,
+      // module settings and preview fingerprints. Keep their writes ordered.
+      workers: 1,
       testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|academic-reports|academic-transitions|academic-content|academic-sasams|academic-languages|communication-messages|activity-groups)\.spec\.ts/,
       use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },

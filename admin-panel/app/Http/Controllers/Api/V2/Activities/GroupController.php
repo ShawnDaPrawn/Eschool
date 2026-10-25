@@ -15,7 +15,7 @@ class GroupController extends Controller
 {
     private function response(ActivityRequest $r, array $data): JsonResponse
     {
-        return ResponseService::successResponse('data_fetch_successfully', (new ActivityResource($data))->resolve($r));
+        return ResponseService::successResponse('data_fetch_successfully', (new ActivityResource($data))->resolve($r))->header('Cache-Control', 'private, no-store');
     }
 
     public function index(ActivityRequest $r): JsonResponse

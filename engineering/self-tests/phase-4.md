@@ -152,3 +152,13 @@ depth 13 and permits the exact depth-12 boundary. The cancellation regression
 now exercises list and detail HTTP routes directly. Full activity suite: 22 tests /
 433 assertions; final reparent/cancellation focus: 2 tests / 37 assertions. Full
 Larastan passed. Existing panel and Flutter branches receive this shared fix.
+
+Private-write header follow-up: activity API responses explicitly set private,
+no-store on every method; Laravel's GET-oriented cache middleware alone does not
+cover POST/PUT. The complete 14-operation contract case asserts those headers
+on reads and writes: 1 test / 89 assertions passed.
+
+Panel private-response follow-up: successful form redirects and failed-validation
+responses explicitly forbid caching. API/panel header and form checks passed:
+5 tests / 134 assertions. The shared browser-flow configuration retains the
+serialized seeded-write project from #109 while adding activity coverage.
