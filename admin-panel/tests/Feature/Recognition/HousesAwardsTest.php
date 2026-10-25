@@ -37,6 +37,7 @@ use App\Services\Recognition\AwardNominations;
 use App\Services\Recognition\AwardPresentations;
 use App\Services\Recognition\HousePoints;
 use App\Services\Recognition\RecognitionCatalog;
+use App\Services\Recognition\RecognitionQueries;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -650,5 +651,66 @@ class HousesAwardsTest extends TestCase
         $d['session_year_id'] = (int) $old->id;
         $this->api($this->head)->postJson('/api/v2/recognition/awards/presentations', $d)->assertConflict();
         $this->assertSame(0, AwardPresentation::count());
+    }
+
+    private function recognitionGroup(User $staff, string $name, bool $memberActive = true): ActivityGroup
+    {
+        config(['modules.groups' => ['always_on' => true]]);
+        $group = ActivityGroup::create(['session_year_id' => $this->year, 'parent_id' => null, 'name' => $name, 'discipline' => 'Culture', 'season' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'gender' => 'any', 'active' => true, 'revision' => 1]);
+        ActivityStaff::create(['activity_group_id' => $group->id, 'user_id' => $staff->id, 'role' => 'facilitator', 'cascade' => false, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true, 'reason' => 'Synthetic scoped coach', 'revision' => 1]);
+        ActivityMembership::create(['activity_group_id' => $group->id, 'learner_id' => $this->learner, 'role' => 'member', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => $memberActive, 'reason' => 'Synthetic group learner', 'revision' => 1]);
+
+        return $group;
+    }
+
+    public function test_activity_only_staff_point_history_excludes_other_institutional_scopes(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        $this->recognitionGroup($staff, 'Scoped music');
+        $own = app(HousePoints::class)->issue($staff, $this->input());
+        $other = $this->input();
+        $other['reason'] = 'School-only point context';
+        app(HousePoints::class)->issue($this->head, $other);
+        $rows = app(HousePoints::class)->history($staff, $this->learner, $this->year)['items'];
+        $this->assertSame([(int) $own->id], array_column($rows, 'id'));
+    }
+
+    public function test_activity_only_staff_permanent_awards_are_limited_to_owned_group_categories(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        $group = $this->recognitionGroup($staff, 'Scoped music');
+        $c = app(RecognitionCatalog::class);
+        $category = $c->awardCategory($this->admin, $this->op(['name' => 'Scoped music awards', 'parent_id' => null, 'scope_kind' => 'group', 'activity_group_id' => $group->id, 'active' => true]));
+        $definition = $c->definition($this->admin, $this->op(['award_category_id' => $category->id, 'name' => 'Scoped music merit', 'criteria' => 'Music evidence', 'frequency' => 'annual', 'active' => true]));
+        app(AwardPresentations::class)->present($this->head, $this->presentation());
+        $d = $this->presentation();
+        $d['award_definition_id'] = (int) $definition->id;
+        app(AwardPresentations::class)->present($this->admin, $d);
+        $rows = app(AwardPresentations::class)->profile($staff, $this->learner)['items'];
+        $this->assertSame(['Scoped music merit'], array_column($rows, 'title'));
+    }
+
+    public function test_explicit_category_administrator_gets_named_learners_and_only_owned_awards(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        app(RecognitionCatalog::class)->administrator($this->admin, $this->op(['award_category_id' => $this->category->id, 'user_id' => $staff->id, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true]));
+        app(AwardPresentations::class)->present($this->head, $this->presentation());
+        $choices = app(RecognitionQueries::class)->learners($staff, 'awards');
+        $this->assertSame([$this->learner], array_column($choices['items'], 'id'));
+        $this->assertCount(1, app(AwardPresentations::class)->profile($staff, $this->learner)['items']);
+        $this->refuse(404, fn () => app(HousePoints::class)->history($staff, $this->learner, $this->year));
+    }
+
+    public function test_point_retry_keeps_valid_original_group_when_another_group_becomes_first(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        $first = $this->recognitionGroup($staff, 'First group', false);
+        $second = $this->recognitionGroup($staff, 'Second group');
+        $d = $this->input();
+        $p = app(HousePoints::class)->issue($staff, $d);
+        $this->assertSame((int) $second->id, (int) $p->scope_id);
+        ActivityMembership::where('activity_group_id', $first->id)->update(['active' => true]);
+        $this->assertSame($p->id, app(HousePoints::class)->issue($staff, $d)->id);
+        $this->assertCount(1,app(HousePoints::class)->history($staff,$this->learner,$this->year)['items']);
     }
 }

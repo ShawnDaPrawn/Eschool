@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Recognition;
 
 use App\Events\Recognition\HousePointsChanged;
+use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Recognition\House;
 use App\Models\Recognition\HouseMembership;
 use App\Models\Recognition\HousePoint;
@@ -12,6 +13,7 @@ use App\Models\Recognition\HousePointLimit;
 use App\Models\Recognition\PointCategory;
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -27,8 +29,23 @@ class HousePoints
             return;
         }
         $scope = $a->learner($actor, (int) $point->learner_id, 'house_points', $write, (int) $point->session_year_id);
-        abort_unless((int) $scope['placement']->homeroom->class->grade_level_id === (int) $point->grade_level_id
-            && $scope['scope_kind'] === $point->scope_kind && $scope['scope_id'] === ($point->scope_id === null ? null : (int) $point->scope_id), 404);
+        abort_unless((int) $scope['placement']->homeroom->class->grade_level_id === (int) $point->grade_level_id, 404);
+        if ($scope['scope_kind'] === 'grade' && (int) $scope['scope_id'] === (int) $point->grade_level_id) {
+            return;
+        }
+        if ($point->scope_kind === 'activity_group') {
+            abort_unless(in_array((int) $point->scope_id, $a->activityScopes($actor, (int) $point->learner_id, (int) $point->session_year_id), true), 404);
+
+            return;
+        }
+        if ($point->scope_kind === 'academic_group') {
+            $group = app(AcademicAuthority::class)->group($actor, (int) $point->scope_id, true);
+            abort_unless((int) $group->session_year_id === (int) $point->session_year_id && (int) $group->grade_level_id === (int) $point->grade_level_id, 404);
+            abort_unless(TeachingGroupMembership::where('teaching_group_id', $group->id)->where('learner_id', $point->learner_id)->whereDate('starts_on', '<=', $a->today())->whereDate('ends_on', '>=', $a->today())->exists(), 404);
+
+            return;
+        }
+        abort_unless($scope['scope_kind'] === $point->scope_kind && $scope['scope_id'] === ($point->scope_id === null ? null : (int) $point->scope_id), 404);
     }
 
     public function issue(User $actor, array $input): HousePoint
@@ -123,7 +140,14 @@ class HousePoints
             $a->retainedLearner($actor, $learner, 'house_points');
         }
         SessionYear::findOrFail($year);
-        $q = HousePoint::where('learner_id', $learner)->where('session_year_id', $year)->when($before > 0, fn ($q) => $q->where('id', '<', $before))->orderByDesc('id')->limit(51);
+        $groupScopes = null;
+        if (! $family && ! $a->manages($actor, 'house_points')) {
+            $scope = $a->learner($actor, $learner, 'house_points');
+            if ($scope['scope_kind'] === 'activity_group') {
+                $groupScopes = $a->activityScopes($actor, $learner, (int) $scope['placement']->session_year_id);
+            }
+        }
+        $q = HousePoint::where('learner_id', $learner)->where('session_year_id', $year)->when($groupScopes !== null, fn ($q) => $q->where('scope_kind', 'activity_group')->whereIn('scope_id', $groupScopes))->when($before > 0, fn ($q) => $q->where('id', '<', $before))->orderByDesc('id')->limit(51);
         $rows = $q->get();
         $more = $rows->count() > 50;
         $rows = $rows->take(50);

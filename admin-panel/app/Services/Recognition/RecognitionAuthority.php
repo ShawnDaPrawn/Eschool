@@ -22,6 +22,7 @@ use App\Services\Activities\CommunityAuthority;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class RecognitionAuthority
 {
@@ -116,19 +117,75 @@ class RecognitionAuthority
         if ($group !== null) {
             return ['learner' => $learner, 'placement' => $place, 'scope_kind' => 'academic_group', 'scope_id' => (int) $group->id];
         }
-        if (app(ModuleGate::class)->allows('groups')) {
-            foreach (ActivityMembership::where('learner_id', $id)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->orderBy('id')->limit(1000)->get() as $membership) {
-                $activity = ActivityGroup::where('active', true)->where('session_year_id', $place->session_year_id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->find($membership->activity_group_id);
-                if ($activity !== null && app(CommunityAuthority::class)->assigned($fresh, $activity)) {
-                    foreach (app(CommunityAuthority::class)->lineage($activity) as $ancestor) {
-                        abort_unless(ActivityGroup::where('active', true)->where('session_year_id', $activity->session_year_id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->whereKey($ancestor)->exists(), 404);
-                    }
-
-                    return ['learner' => $learner, 'placement' => $place, 'scope_kind' => 'activity_group', 'scope_id' => (int) $activity->id];
-                }
+        if ($module === 'awards') {
+            $categories = $this->awardReadCategories($fresh, $learner, $place, true, $write);
+            if ($categories !== []) {
+                return ['learner' => $learner, 'placement' => $place, 'scope_kind' => 'award_category', 'scope_id' => $categories[0]];
             }
         }
+        $activities = $this->activityScopes($fresh, $id, (int) $place->session_year_id);
+        if ($activities !== []) {
+            return ['learner' => $learner, 'placement' => $place, 'scope_kind' => 'activity_group', 'scope_id' => $activities[0]];
+        }
         abort(404);
+    }
+
+    /** Every currently assigned group, independent of a default picker order. */
+    public function activityScopes(User $actor, int $learner, int $year): array
+    {
+        if (! app(ModuleGate::class)->allows('groups')) {
+            return [];
+        }
+        $today = $this->today();
+        $ids = [];
+        $community = app(CommunityAuthority::class);
+        $members = ActivityMembership::where('learner_id', $learner)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('activity_group_id');
+        foreach (ActivityGroup::whereIn('id', $members)->where('session_year_id', $year)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->orderBy('id')->get() as $group) {
+            try {
+                if (! $community->assigned($actor, $group)) {
+                    continue;
+                }
+                foreach ($community->lineage($group) as $ancestor) {
+                    abort_unless(ActivityGroup::whereKey($ancestor)->where('session_year_id', $year)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->exists(), 404);
+                }
+                $ids[] = (int) $group->id;
+            } catch (HttpExceptionInterface|\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            }
+        }
+
+        return $ids;
+    }
+
+    public function awardReadCategories(User $actor, Students $learner, Enrolment $place, bool $administratorsOnly = false, bool $write = false): array
+    {
+        $ids = [];
+        $activities = $administratorsOnly ? [] : $this->activityScopes($actor, (int) $learner->id, (int) $place->session_year_id);
+        foreach (AwardCategory::where('active', true)->orderBy('id')->get() as $category) {
+            try {
+                if (! $this->categoryAdmin($actor, $category, $write) && ! ($category->scope_kind === 'group' && in_array((int) $category->activity_group_id, $activities, true))) {
+                    continue;
+                }
+                $this->eligible($category, $learner, $place);
+                $ids[] = (int) $category->id;
+            } catch (HttpExceptionInterface|\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            }
+        }
+
+        return $ids;
+    }
+
+    public function profileCategories(User $actor, int $learner): ?array
+    {
+        $this->staff($actor, 'awards');
+        if ($this->manages($actor, 'awards')) {
+            return null;
+        }
+        $scope = $this->learner($actor, $learner, 'awards');
+        if (in_array($scope['scope_kind'], ['grade', 'homeroom', 'academic_group'], true)) {
+            return null;
+        }
+
+        return $this->awardReadCategories($actor, $scope['learner'], $scope['placement']);
     }
 
     /** Current institutional authority may read retained school history. */
