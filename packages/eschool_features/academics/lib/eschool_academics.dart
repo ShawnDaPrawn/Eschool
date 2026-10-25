@@ -106,6 +106,7 @@ export 'src/gallery/gallery_repository.dart';
 export 'src/gallery/gallery_screen.dart';
 export 'src/gallery/gallery_session_boundary.dart';
 export 'src/recognition/recognition_live_changes.dart';
+export 'src/recognition/recognition_home_summary.dart';
 export 'src/practice/practice_approval_outbox.dart';
 export 'src/practice/practice_approval_store.dart';
 

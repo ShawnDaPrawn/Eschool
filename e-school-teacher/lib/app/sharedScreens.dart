@@ -1000,6 +1000,11 @@ Route<dynamic> staffRecognitionRoute() => AdaptivePageRoute(
             Api.client,
             schoolId: school,
             accountId: account,
+            changes: recognitionLiveChanges(
+              LiveUpdatesScope.eventsOf(context),
+              refreshes: LiveUpdatesScope.refreshesOf(context),
+              schoolId: school,
+            ),
             contextActive: () =>
                 active() &&
                 (schools.state.selectedId == null ||

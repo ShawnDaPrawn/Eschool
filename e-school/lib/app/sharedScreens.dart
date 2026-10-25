@@ -1321,6 +1321,11 @@ Route<dynamic> familyRecognitionRoute() => AdaptivePageRoute(
             Api.client,
             schoolId: school,
             accountId: account,
+            changes: recognitionLiveChanges(
+              LiveUpdatesScope.eventsOf(context),
+              refreshes: LiveUpdatesScope.refreshesOf(context),
+              schoolId: school,
+            ),
             contextActive: () =>
                 active() &&
                 (schools.state.selectedId == null ||
@@ -1346,22 +1351,80 @@ class FamilyRecognitionEntry extends StatelessWidget {
   Widget build(BuildContext context) =>
       BlocBuilder<MeContextCubit, MeContextState>(
         builder: (context, state) {
-          if (!['house_points', 'awards'].any(
-            (key) =>
-                state.context?.isModuleOn(key) == true &&
-                allowsSchoolModule(state.context, key),
-          )) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              !['house_points', 'awards'].any(
+                (key) =>
+                    me?.isModuleOn(key) == true && allowsSchoolModule(me, key),
+              ))
             return const SizedBox.shrink();
-          }
-          return Card(
-            child: ListTile(
-              leading: const Icon(Icons.emoji_events_outlined),
-              title: Text(
-                SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).pushNamed(Routes.recognition),
-            ),
+          return BlocBuilder<ChildSelectionCubit, ChildSelectionState>(
+            builder: (context, selection) {
+              final auth = context.read<AuthCubit>(),
+                  schools = context.read<SchoolSelectionCubit>(),
+                  session = context.read<MeContextCubit>(),
+                  children = context.read<ChildSelectionCubit>();
+              final parent = auth.isParent(),
+                  account = me?.user?.id,
+                  school = me?.currentSchoolId;
+              final learner = parent
+                  ? selection.selected?.id
+                  : auth.getStudentDetails().id;
+              final ready =
+                  me != null &&
+                  school != null &&
+                  school > 0 &&
+                  account != null &&
+                  account > 0 &&
+                  learner != null &&
+                  learner > 0 &&
+                  (!parent || selection.selected?.schoolId == school) &&
+                  me.isModuleOn('house_points') &&
+                  allowsSchoolModule(me, 'house_points');
+              return Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.emoji_events_outlined),
+                      title: Text(
+                        SharedUiUtils.getTranslatedLabel(
+                          context,
+                          'Houses and awards',
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed(Routes.recognition),
+                    ),
+                    if (ready)
+                      RecognitionHomeSummary(
+                        key: ValueKey(
+                          'home-recognition:$account:$school:$learner',
+                        ),
+                        repository: ApiRecognitionRepository(
+                          Api.client,
+                          schoolId: school,
+                          accountId: account,
+                          changes: recognitionLiveChanges(
+                            LiveUpdatesScope.eventsOf(context),
+                            refreshes: LiveUpdatesScope.refreshesOf(context),
+                            schoolId: school,
+                          ),
+                          contextActive: () =>
+                              session.state is MeContextLoaded &&
+                              identical(session.context, me) &&
+                              (schools.state.selectedId == null ||
+                                  schools.state.selectedId == school) &&
+                              (!parent ||
+                                  children.selected?.id == learner &&
+                                      children.selected?.schoolId == school),
+                        ),
+                        learnerId: learner,
+                      ),
+                  ],
+                ),
+              );
+            },
           );
         },
       );

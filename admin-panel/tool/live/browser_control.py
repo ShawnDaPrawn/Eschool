@@ -30,10 +30,18 @@ class Handler(BaseHTTPRequestHandler):
                        'online_count': int(query.get('count', ['3'])[0])}
         elif kind == 'group':
             payload = {'type': 'activity.group_changed', 'school_id': 1, 'group_id': 7, 'revision': revision}
+        elif kind == 'house':
+            account = int(query.get('account', ['11'])[0])
+            if account not in (11, 12, 21):
+                self.send_error(422)
+                return
+            payload = {'type': 'house_points.changed', 'school_id': 1, 'session_year_id': 7,
+                       'house_id': 3, 'revision': revision}
         else:
             self.send_error(422)
             return
-        body = json.dumps({'name': 'navigateed.invalidate', 'channels': [CHANNEL], 'data': json.dumps(payload)}).encode()
+        channel = f'private-ne.school.1.user.{account}.session.{LEASE}' if kind == 'house' else CHANNEL
+        body = json.dumps({'name': 'navigateed.invalidate', 'channels': [channel], 'data': json.dumps(payload)}).encode()
         path = '/apps/qualification-browser/events'
         params = {'auth_key': KEY, 'auth_timestamp': str(int(time.time())), 'auth_version': '1.0', 'body_md5': hashlib.md5(body).hexdigest()}
         signed = urlencode(sorted(params.items()))
