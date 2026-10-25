@@ -1,3 +1,4 @@
+import 'wellbeing_inbox_panel.dart';
 import 'dart:convert';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -47,6 +48,7 @@ class _WellbeingScreenState extends State<WellbeingScreen>
       _caseStatus = 'open',
       _reportStatus = 'open',
       _appointmentStatus = 'scheduled';
+  bool _inbox = false;
   bool _busy = true,
       _hidden = true,
       _blocked = false,
@@ -108,6 +110,7 @@ class _WellbeingScreenState extends State<WellbeingScreen>
   }
 
   void _erase() {
+    _inbox = false;
     _access = null;
     _cases = null;
     _reports = null;
@@ -795,6 +798,46 @@ class _WellbeingScreenState extends State<WellbeingScreen>
     ];
   }
 
+  Future<void> _returnFromInbox() async {
+    if (!_active || _busy) return;
+    await _run((epoch) async {
+      final access = await repo.access();
+      if (!access.professional)
+        throw ApiException('Forbidden', statusCode: 403);
+      if (_current(epoch)) _access = access;
+    });
+    if (!_active || _blocked || _hidden || _message != null) return;
+    if (_case != null) {
+      await _openCase(_case!.id, preserve: true);
+    } else if (_report != null) {
+      await _openReport(_report!.id, preserve: true);
+    } else {
+      await _run((epoch) async {
+        final access = await repo.access();
+        if (!access.professional)
+          throw ApiException('Forbidden', statusCode: 403);
+        final cases = access.canCasework ? await repo.cases(_casePage) : null;
+        final reports = access.canTriage
+            ? await repo.reports(_reportPage)
+            : null;
+        if (!_current(epoch)) return;
+        _access = access;
+        _cases = cases;
+        _reports = reports;
+      });
+    }
+    if (_active && !_blocked && !_hidden && _message == null)
+      setState(() => _inbox = false);
+  }
+
+  void _inboxDenied() {
+    if (!mounted) return;
+    setState(() {
+      _erase();
+      _blocked = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!repo.isActive || _hidden || _blocked)
@@ -811,8 +854,22 @@ class _WellbeingScreenState extends State<WellbeingScreen>
                 ),
         ),
       );
+    if (_inbox)
+      return ScreenScaffold(
+        title: l('Private updates'),
+        body: WellbeingInboxPanel(
+          repository: repo,
+          onReturn: _returnFromInbox,
+          onDenied: _inboxDenied,
+        ),
+      );
     return ScreenScaffold(
       title: l('Incidents and counselling'),
+      action: IconButton(
+        tooltip: l('Private updates'),
+        onPressed: _editable ? () => setState(() => _inbox = true) : null,
+        icon: const Icon(Icons.notifications_outlined),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

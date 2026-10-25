@@ -59,6 +59,35 @@ Future<void> choose<T>(WidgetTester tester, String label, String value) async {
 }
 
 void main() {
+  testWidgets('private inbox roundtrip preserves draft and rechecks case', (
+    tester,
+  ) async {
+    final repo = FakeWellbeing();
+    await show(tester, repo);
+    await enter(tester, 'Private case note', 'Unsent private note');
+    await tester.tap(find.byTooltip('Private updates'));
+    await tester.pumpAndSettle();
+    expect(find.text('Unsent private note'), findsNothing);
+    await tester.tap(find.text('Return to private area'));
+    await tester.pumpAndSettle();
+    await seek(tester, field('Private case note'));
+    expect(
+      tester.widget<TextField>(field('Private case note')).controller!.text,
+      'Unsent private note',
+    );
+  });
+  testWidgets('inbox return refuses withdrawn clinical source', (tester) async {
+    final repo = FakeWellbeing();
+    await show(tester, repo);
+    await tester.tap(find.byTooltip('Private updates'));
+    await tester.pumpAndSettle();
+    repo.deny = true;
+    await tester.tap(find.text('Return to private area'));
+    await tester.pumpAndSettle();
+    expect(find.text('Private clinical baseline'), findsNothing);
+    expect(find.text('Private updates'), findsNothing);
+  });
+
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets('assigned private case reads and fits $width', (tester) async {
       tester.view.physicalSize = Size(width, 1100);

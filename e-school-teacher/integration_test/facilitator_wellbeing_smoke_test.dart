@@ -28,7 +28,7 @@ void main() {
         (w) => w is TextField && w.decoration?.labelText == text,
       );
       Future<void> seek(Finder target) async {
-                FocusManager.instance.primaryFocus?.unfocus();
+        FocusManager.instance.primaryFocus?.unfocus();
         await tester.pumpAndSettle();
         final scroll = find.byType(Scrollable).first;
         await tester.drag(scroll, const Offset(0, 100000));
@@ -53,6 +53,17 @@ void main() {
       await seek(field('Private case note'));
       await tester.enterText(
         field('Private case note'),
+        'Private clinical browser update',
+      );
+      await tester.tap(find.byTooltip('Private updates'));
+      await tester.pumpAndSettle();
+      expect(find.text('Private clinical browser update'), findsNothing);
+      expect(find.text('Unread private updates: 1'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('wellbeing-notice-71')));
+      await tester.pumpAndSettle();
+      await seek(field('Private case note'));
+      expect(
+        tester.widget<TextField>(field('Private case note')).controller!.text,
         'Private clinical browser update',
       );
       final save = find.widgetWithText(FilledButton, 'Save private case entry');

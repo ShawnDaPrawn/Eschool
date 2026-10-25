@@ -1,7 +1,9 @@
+import 'wellbeing_notice_repository.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 
-abstract interface class WellbeingRepository {
+abstract interface class WellbeingRepository
+    implements WellbeingNoticeRepository {
   int get schoolId;
   int get accountId;
   bool get isActive;
@@ -89,6 +91,17 @@ class ApiWellbeingRepository implements WellbeingRepository {
     if (value is! Map) throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
     return Map<String, dynamic>.from(value);
   }
+
+  @override
+  Future<WellbeingNoticePage> notices(int page) async =>
+      WellbeingNoticePage.fromJson(
+        _map(await _send('notices', query: {'page': page, 'area': 'staff'})),
+      );
+  @override
+  Future<WellbeingNoticeReadReceipt> readNotice(int id) async =>
+      WellbeingNoticeReadReceipt.fromJson(
+        _map(await _send('notices/$id/read', payload: {})),
+      );
 
   @override
   Future<WellbeingAccess> access() async =>

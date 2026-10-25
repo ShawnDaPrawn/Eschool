@@ -37,6 +37,35 @@ ApiWellbeingRepository repository(
 );
 void main() {
   test(
+    'private inbox pins cookie identities and narrows its audience',
+    () async {
+      final api = FakeApi(
+        routes: {
+          'GET v2/wellbeing/notices': {
+            'error': false,
+            'data': {'items': [], 'page': 1, 'last_page': 1, 'unread_count': 0},
+          },
+          'POST v2/wellbeing/notices/71/read': {
+            'error': false,
+            'data': {'id': 71, 'read_at': '2026-02-10T09:00:00Z'},
+          },
+        },
+      );
+      final repo = repository(api, cookie: true);
+      await repo.notices(1);
+      await repo.readNotice(71);
+      expect(api.requests.first.queryParameters, {'page': 1, 'area': 'staff'});
+      expect(api.requests.last.method, 'POST');
+      expect(api.requests.last.data, isEmpty);
+      for (final request in api.requests) {
+        expect(request.headers['X-Account-Id'], '2');
+        expect(request.headers['X-School-Id'], '1');
+        expect(request.headers.containsKey('Authorization'), isFalse);
+      }
+    },
+  );
+
+  test(
     'cookie clinical reader pins both identities and suppresses private logs',
     () async {
       final logged = <String>[], original = debugPrint;

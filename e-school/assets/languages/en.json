@@ -1462,5 +1462,14 @@
   "Photos may identify people through their contents. Device and location metadata is removed, but visible details remain.": "Photos may identify people through their contents. Device and location metadata is removed, but visible details remain.",
   "Photo selected. Read the intended report before sending it.": "Photo selected. Read the intended report before sending it.",
   "Choose a JPEG or PNG photo up to 4 MB.": "Choose a JPEG or PNG photo up to 4 MB.",
-  "The photo was not sent. Check its type and size, then choose it again.": "The photo was not sent. Check its type and size, then choose it again."
+  "The photo was not sent. Check its type and size, then choose it again.": "The photo was not sent. Check its type and size, then choose it again.",
+  "Private updates": "Private updates",
+  "Updates contain no report or case details. Open your private area to review the current record.": "Updates contain no report or case details. Open your private area to review the current record.",
+  "Refresh private updates": "Refresh private updates",
+  "Return to private area": "Return to private area",
+  "Unread private updates": "Unread private updates",
+  "No private updates are available.": "No private updates are available.",
+  "Private school update": "Private school update",
+  "Open your private school area to review an available update.": "Open your private school area to review an available update.",
+  "Private updates could not be loaded. Try again.": "Private updates could not be loaded. Try again."
 }
