@@ -1,0 +1,8 @@
+.support-workbench { max-width: 100%; overflow-wrap: anywhere; }
+.support-fields { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; margin-block: 1rem; }
+.support-fields .page-field { flex: 1 1 18rem; min-width: 0; }
+.support-private-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.support-workbench .m3-card { margin-block: .75rem; }
+.support-workbench .page-section { margin-block: 2rem; }
+.support-workbench nav { display: flex; flex-wrap: wrap; gap: .5rem; }
+@media (max-width: 600px) { .support-fields { display: block; } .support-fields .page-field { margin-block: 1rem; } }

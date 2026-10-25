@@ -9,10 +9,10 @@ part of 'communication_withdraw_write.dart';
 CommunicationWithdrawWrite _$CommunicationWithdrawWriteFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate('CommunicationWithdrawWrite', json, ($checkedConvert) {
-  $checkKeys(json, requiredKeys: const ['revision', 'operation_id', 'reason']);
+  $checkKeys(json, requiredKeys: const ['operation_id', 'revision', 'reason']);
   final val = CommunicationWithdrawWrite(
-    revision: $checkedConvert('revision', (v) => (v as num).toInt()),
     operationId: $checkedConvert('operation_id', (v) => v as String),
+    revision: $checkedConvert('revision', (v) => (v as num).toInt()),
     reason: $checkedConvert('reason', (v) => v as String),
   );
   return val;
@@ -21,7 +21,7 @@ CommunicationWithdrawWrite _$CommunicationWithdrawWriteFromJson(
 Map<String, dynamic> _$CommunicationWithdrawWriteToJson(
   CommunicationWithdrawWrite instance,
 ) => <String, dynamic>{
-  'revision': instance.revision,
   'operation_id': instance.operationId,
+  'revision': instance.revision,
   'reason': instance.reason,
 };

@@ -41,6 +41,7 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
+use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
@@ -282,6 +283,13 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('/', [$controller, 'index'])->name('index');
             foreach (['open', 'sync', 'review', 'settings'] as $action) {
                 Route::post($action, [$controller, $action])->name($action);
+            }
+        });
+        Route::prefix('support-plans')->name('support-plans.')->middleware('module:support_plans')->group(function () {
+            $c = SupportPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            foreach (['assignments' => 'assign', 'plans' => 'create', 'plans/{plan}/save' => 'save', 'plans/{plan}/reviews' => 'review', 'plans/{plan}/close' => 'close', 'plans/{plan}/disclosures' => 'disclose', 'assignments/{assignment}/revoke' => 'revoke-assignment', 'disclosures/{disclosure}/revoke' => 'revoke-disclosure'] as $path => $action) {
+                Route::post($path, [$c, 'write'])->whereNumber(['plan', 'assignment', 'disclosure'])->name($action);
             }
         });
         Route::prefix('relief-cover')->name('relief-cover.')->middleware('module:relief_cover')->group(function () {

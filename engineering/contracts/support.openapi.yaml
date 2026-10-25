@@ -1,0 +1,1414 @@
+paths:
+  /pastoral/support/access:
+    get:
+      operationId: getSupportAccess
+      tags:
+      - Pastoral
+      summary: getSupportAccess
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema: &id001
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/configuration/{audience}:
+    get:
+      operationId: getSupportConfiguration
+      tags:
+      - Pastoral
+      summary: getSupportConfiguration
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: audience
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+          - principal
+          - professional
+      - name: page
+        in: query
+        schema: *id001
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/cases:
+    get:
+      operationId: listSupportCases
+      tags:
+      - Pastoral
+      summary: listSupportCases
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportCasesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/plans/{plan}:
+    get:
+      operationId: getSupportPlan
+      tags:
+      - Pastoral
+      summary: getSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportPlanResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateSupportPlan
+      tags:
+      - Pastoral
+      summary: updateSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportSaveInput'
+  /pastoral/support/plans/{plan}/reviews:
+    get:
+      operationId: listSupportReviews
+      tags:
+      - Pastoral
+      summary: listSupportReviews
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportReviewsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: reviewSupportPlan
+      tags:
+      - Pastoral
+      summary: reviewSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReviewInput'
+  /pastoral/support/plans/{plan}/versions:
+    get:
+      operationId: listSupportVersions
+      tags:
+      - Pastoral
+      summary: listSupportVersions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportVersionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/plans/{plan}/disclosures:
+    get:
+      operationId: listSupportDisclosures
+      tags:
+      - Pastoral
+      summary: listSupportDisclosures
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportDisclosuresResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: discloseSupportInstructions
+      tags:
+      - Pastoral
+      summary: discloseSupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportDiscloseInput'
+  /pastoral/support/assignments:
+    get:
+      operationId: listSupportAssignments
+      tags:
+      - Pastoral
+      summary: listSupportAssignments
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportAssignmentsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createSupportAssignment
+      tags:
+      - Pastoral
+      summary: createSupportAssignment
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportAssignInput'
+  /pastoral/support/teacher:
+    get:
+      operationId: listMySupportInstructions
+      tags:
+      - Pastoral
+      summary: listMySupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTeacherListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/teacher/{disclosure}:
+    get:
+      operationId: getMySupportInstructions
+      tags:
+      - Pastoral
+      summary: getMySupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: disclosure
+        in: path
+        required: true
+        schema: *id001
+      - name: page
+        in: query
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTeacherDisclosureResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pastoral/support/plans:
+    post:
+      operationId: createSupportPlan
+      tags:
+      - Pastoral
+      summary: createSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportSaveInput'
+  /pastoral/support/plans/{plan}/close:
+    post:
+      operationId: closeSupportPlan
+      tags:
+      - Pastoral
+      summary: closeSupportPlan
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: plan
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReasonInput'
+  /pastoral/support/assignments/{assignment}/revoke:
+    post:
+      operationId: revokeSupportAssignment
+      tags:
+      - Pastoral
+      summary: revokeSupportAssignment
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: assignment
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReasonInput'
+  /pastoral/support/disclosures/{disclosure}/revoke:
+    post:
+      operationId: revokeSupportInstructions
+      tags:
+      - Pastoral
+      summary: revokeSupportInstructions
+      description: Fresh school, module, role and explicit dated caseload checks precede validation and UUID
+        replay. Principals manage assignment metadata only. Teachers receive only named approved expiring accommodation
+        projections, without clinical plan bodies. Writes require an operation_id UUID and current revision;
+        history is retained. No private body is stored in HTTP idempotency receipts.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: disclosure
+        in: path
+        required: true
+        schema: *id001
+      responses:
+        '200':
+          description: Private scoped support data; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportWriteReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportReasonInput'
+components:
+  schemas:
+    SupportNamedChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id: *id001
+        name: &id002
+          type: string
+    SupportAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - audiences
+      - can_write
+      - today
+      properties:
+        audiences:
+          type: array
+          maxItems: 3
+          items:
+            type: string
+            pattern: ^(professional|principal|teacher)$
+        can_write: &id004
+          type: boolean
+        today: &id003
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - audience
+      - page
+      - last_page
+      - learners
+      - staff
+      - staff_last_page
+      properties:
+        audience:
+          type: string
+          enum:
+          - principal
+          - professional
+        page: *id001
+        last_page: *id001
+        learners:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportNamedChoice'
+        staff:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportNamedChoice'
+        staff_last_page: *id001
+    SupportReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - author_id
+      - author_name
+      - reviewed_on
+      - next_review_on
+      - kind
+      - outcome
+      properties:
+        id: *id001
+        author_id: *id001
+        author_name: *id002
+        reviewed_on: *id003
+        next_review_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        kind:
+          type: string
+          enum:
+          - review
+          - closure
+        outcome: *id002
+    SupportDisclosureSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - user_id
+      - teacher_name
+      - expires_on
+      - accommodations
+      properties:
+        id: *id001
+        revision: *id001
+        user_id: *id001
+        teacher_name: *id002
+        expires_on: *id003
+        accommodations: *id002
+    SupportDisclosureHistory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - user_id
+      - teacher_name
+      - expires_on
+      - accommodations
+      - active
+      properties:
+        id: *id001
+        revision: *id001
+        user_id: *id001
+        teacher_name: *id002
+        expires_on: *id003
+        accommodations: *id002
+        active: *id004
+    SupportTeacherDisclosure:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - revision
+      - expires_on
+      - accommodations
+      properties:
+        id: *id001
+        learner_id: *id001
+        learner_name: *id002
+        revision: *id001
+        expires_on: *id003
+        accommodations: *id002
+    SupportCaseSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - revision
+      - state
+      - review_due_on
+      properties:
+        id: *id001
+        learner_id: *id001
+        learner_name: *id002
+        revision: *id001
+        state: &id005
+          type: string
+          enum:
+          - active
+          - closed
+        review_due_on: &id006
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportPlan:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - revision
+      - state
+      - review_due_on
+      - started_on
+      - sias_stage
+      - needs
+      - accommodations
+      - reviews_has_more
+      - disclosures_has_more
+      - reviews
+      - disclosures
+      properties:
+        id: *id001
+        learner_id: *id001
+        learner_name: *id002
+        revision: *id001
+        state: *id005
+        review_due_on: *id006
+        started_on: *id003
+        sias_stage: *id002
+        needs: *id002
+        accommodations: *id002
+        reviews_has_more: *id004
+        disclosures_has_more: *id004
+        reviews:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportReview'
+        disclosures:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportDisclosureSummary'
+    SupportPlanContents:
+      type: object
+      additionalProperties: false
+      required:
+      - sias_stage
+      - needs
+      - accommodations
+      properties:
+        sias_stage: *id002
+        needs: *id002
+        accommodations: *id002
+    SupportPlanSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+      - started_on
+      - review_due_on
+      - state
+      - contents
+      - accommodation_revision
+      properties:
+        started_on: *id003
+        review_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        state:
+          type: string
+          enum:
+          - active
+          - closed
+        contents:
+          $ref: '#/components/schemas/SupportPlanContents'
+        accommodation_revision: *id001
+    SupportVersion:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - author_id
+      - recorded_at
+      - snapshot
+      properties:
+        revision: *id001
+        author_id: *id001
+        recorded_at:
+          type: string
+          format: date-time
+        snapshot:
+          $ref: '#/components/schemas/SupportPlanSnapshot'
+    SupportAssignment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - user_id
+      - professional_name
+      - starts_on
+      - ends_on
+      - active
+      - revision
+      properties:
+        id: *id001
+        learner_id: *id001
+        learner_name: *id002
+        user_id: *id001
+        professional_name: *id002
+        starts_on: *id003
+        ends_on: *id003
+        active: *id004
+        revision: *id001
+    SupportWriteReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - kind
+      properties:
+        id: *id001
+        revision: *id001
+        kind:
+          type: string
+          enum:
+          - assignment
+          - plan
+          - review
+          - disclosure
+    SupportCases:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page: *id001
+        last_page: *id001
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportCaseSummary'
+    SupportAssignments:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page: *id001
+        last_page: *id001
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportAssignment'
+    SupportTeacherList:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      properties:
+        page: *id001
+        last_page: *id001
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportTeacherDisclosure'
+    SupportReviews:
+      type: object
+      additionalProperties: false
+      required:
+      - plan_id
+      - page
+      - last_page
+      - items
+      properties:
+        plan_id: *id001
+        page: *id001
+        last_page: *id001
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportReview'
+    SupportDisclosures:
+      type: object
+      additionalProperties: false
+      required:
+      - plan_id
+      - page
+      - last_page
+      - items
+      properties:
+        plan_id: *id001
+        page: *id001
+        last_page: *id001
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportDisclosureHistory'
+    SupportVersions:
+      type: object
+      additionalProperties: false
+      required:
+      - plan_id
+      - page
+      - last_page
+      - items
+      properties:
+        plan_id: *id001
+        page: *id001
+        last_page: *id001
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/SupportVersion'
+    SupportAssignInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - reason
+      - learner_id
+      - user_id
+      - starts_on
+      - ends_on
+      properties:
+        operation_id: &id007
+          type: string
+          format: uuid
+        reason: &id008
+          type: string
+          minLength: 3
+          maxLength: 2000
+        learner_id: *id001
+        user_id: *id001
+        starts_on: *id003
+        ends_on: *id003
+    SupportSaveInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - started_on
+      - sias_stage
+      - needs
+      - accommodations
+      properties:
+        operation_id: *id007
+        learner_id: *id001
+        revision: *id001
+        started_on: *id003
+        sias_stage:
+          type: string
+          minLength: 1
+          maxLength: 100
+        needs:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        accommodations:
+          type: string
+          minLength: 1
+          maxLength: 20000
+        review_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SupportReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reviewed_on
+      - outcome
+      properties:
+        operation_id: *id007
+        revision: *id001
+        reviewed_on: *id003
+        next_review_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        outcome:
+          type: string
+          minLength: 1
+          maxLength: 10000
+    SupportReasonInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      properties:
+        operation_id: *id007
+        revision: *id001
+        reason: *id008
+    SupportDiscloseInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - reason
+      - user_id
+      - expires_on
+      - accommodations
+      - confirmation
+      properties:
+        operation_id: *id007
+        revision: *id001
+        reason: *id008
+        user_id: *id001
+        expires_on: *id003
+        accommodations:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        confirmation:
+          type: boolean
+          description: 'Must be true: explicit approval of these instructions for the named teacher.'
+    SupportAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportAccess'
+    SupportConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportConfiguration'
+    SupportCasesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportCases'
+    SupportPlanResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportPlan'
+    SupportReviewsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportReviews'
+    SupportVersionsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportVersions'
+    SupportDisclosuresResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportDisclosures'
+    SupportAssignmentsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportAssignments'
+    SupportTeacherListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportTeacherList'
+    SupportTeacherDisclosureResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportTeacherDisclosure'
+    SupportWriteReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error: *id004
+        message: *id002
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/SupportWriteReceipt'

@@ -422,6 +422,42 @@ import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/subject_standard.dart';
 import 'package:eschool_api/src/model/subject_standards_response.dart';
 import 'package:eschool_api/src/model/subject_standards_response_data.dart';
+import 'package:eschool_api/src/model/support_access.dart';
+import 'package:eschool_api/src/model/support_access_response.dart';
+import 'package:eschool_api/src/model/support_assign_input.dart';
+import 'package:eschool_api/src/model/support_assignment.dart';
+import 'package:eschool_api/src/model/support_assignments.dart';
+import 'package:eschool_api/src/model/support_assignments_response.dart';
+import 'package:eschool_api/src/model/support_case_summary.dart';
+import 'package:eschool_api/src/model/support_cases.dart';
+import 'package:eschool_api/src/model/support_cases_response.dart';
+import 'package:eschool_api/src/model/support_configuration.dart';
+import 'package:eschool_api/src/model/support_configuration_response.dart';
+import 'package:eschool_api/src/model/support_disclose_input.dart';
+import 'package:eschool_api/src/model/support_disclosure_history.dart';
+import 'package:eschool_api/src/model/support_disclosure_summary.dart';
+import 'package:eschool_api/src/model/support_disclosures.dart';
+import 'package:eschool_api/src/model/support_disclosures_response.dart';
+import 'package:eschool_api/src/model/support_named_choice.dart';
+import 'package:eschool_api/src/model/support_plan.dart';
+import 'package:eschool_api/src/model/support_plan_contents.dart';
+import 'package:eschool_api/src/model/support_plan_response.dart';
+import 'package:eschool_api/src/model/support_plan_snapshot.dart';
+import 'package:eschool_api/src/model/support_reason_input.dart';
+import 'package:eschool_api/src/model/support_review.dart';
+import 'package:eschool_api/src/model/support_review_input.dart';
+import 'package:eschool_api/src/model/support_reviews.dart';
+import 'package:eschool_api/src/model/support_reviews_response.dart';
+import 'package:eschool_api/src/model/support_save_input.dart';
+import 'package:eschool_api/src/model/support_teacher_disclosure.dart';
+import 'package:eschool_api/src/model/support_teacher_disclosure_response.dart';
+import 'package:eschool_api/src/model/support_teacher_list.dart';
+import 'package:eschool_api/src/model/support_teacher_list_response.dart';
+import 'package:eschool_api/src/model/support_version.dart';
+import 'package:eschool_api/src/model/support_versions.dart';
+import 'package:eschool_api/src/model/support_versions_response.dart';
+import 'package:eschool_api/src/model/support_write_receipt.dart';
+import 'package:eschool_api/src/model/support_write_receipt_response.dart';
 import 'package:eschool_api/src/model/teaching_group.dart';
 import 'package:eschool_api/src/model/teaching_group_response.dart';
 import 'package:eschool_api/src/model/teaching_group_write.dart';
@@ -1891,6 +1927,116 @@ ReturnType deserialize<ReturnType, BaseType>(
       return SubjectStandardsResponseData.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'SupportAccess':
+      return SupportAccess.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportAccessResponse':
+      return SupportAccessResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportAssignInput':
+      return SupportAssignInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportAssignment':
+      return SupportAssignment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportAssignments':
+      return SupportAssignments.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportAssignmentsResponse':
+      return SupportAssignmentsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportCaseSummary':
+      return SupportCaseSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportCases':
+      return SupportCases.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SupportCasesResponse':
+      return SupportCasesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportConfiguration':
+      return SupportConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportConfigurationResponse':
+      return SupportConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SupportDiscloseInput':
+      return SupportDiscloseInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportDisclosureHistory':
+      return SupportDisclosureHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportDisclosureSummary':
+      return SupportDisclosureSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportDisclosures':
+      return SupportDisclosures.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportDisclosuresResponse':
+      return SupportDisclosuresResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportNamedChoice':
+      return SupportNamedChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportPlan':
+      return SupportPlan.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SupportPlanContents':
+      return SupportPlanContents.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportPlanResponse':
+      return SupportPlanResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportPlanSnapshot':
+      return SupportPlanSnapshot.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportReasonInput':
+      return SupportReasonInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportReview':
+      return SupportReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportReviewInput':
+      return SupportReviewInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportReviews':
+      return SupportReviews.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportReviewsResponse':
+      return SupportReviewsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportSaveInput':
+      return SupportSaveInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportTeacherDisclosure':
+      return SupportTeacherDisclosure.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportTeacherDisclosureResponse':
+      return SupportTeacherDisclosureResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SupportTeacherList':
+      return SupportTeacherList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportTeacherListResponse':
+      return SupportTeacherListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportVersion':
+      return SupportVersion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportVersions':
+      return SupportVersions.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportVersionsResponse':
+      return SupportVersionsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportWriteReceipt':
+      return SupportWriteReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SupportWriteReceiptResponse':
+      return SupportWriteReceiptResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'TeachingGroup':
       return TeachingGroup.fromJson(value as Map<String, dynamic>)
