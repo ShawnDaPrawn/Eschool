@@ -4,8 +4,18 @@ plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    id("com.google.gms.google-services") apply false
+    id("com.google.firebase.crashlytics") apply false
+}
+
+// Keep the established no--flavor teacher build. Named tasks opt into the
+// three product variants; IDE task discovery can use -PstaffFlavors=true.
+val requestedStaffFlavor = Regex("(?i)(teacher|facilitator|vendor)(debug|profile|release)")
+    .find(gradle.startParameter.taskNames.joinToString(" "))?.groupValues?.get(1)?.lowercase()
+val namedStaffVariants = requestedStaffFlavor != null || providers.gradleProperty("staffFlavors").orNull == "true"
+if (requestedStaffFlavor == null || requestedStaffFlavor == "teacher") {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 val keystoreProperties = Properties()
@@ -18,6 +28,10 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
+    buildFeatures {
+        resValues = true
+    }
+
     namespace = "tech.tokensoft.navigateed.teacher"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "28.2.13676358"
@@ -36,12 +50,33 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "tech.tokensoft.navigateed.teacher"
+        resValue("string", "app_name", "NavigateEd Teacher")
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    if (namedStaffVariants) {
+        flavorDimensions += "staff"
+        productFlavors {
+            create("teacher") {
+                dimension = "staff"
+                resValue("string", "app_name", "NavigateEd Teacher")
+            }
+            create("facilitator") {
+                dimension = "staff"
+                applicationId = "tech.tokensoft.navigateed.facilitator"
+                resValue("string", "app_name", "NavigateEd Facilitator")
+            }
+            create("vendor") {
+                dimension = "staff"
+                applicationId = "tech.tokensoft.navigateed.vendor"
+                resValue("string", "app_name", "NavigateEd Vendor")
+            }
+        }
     }
 
     signingConfigs {

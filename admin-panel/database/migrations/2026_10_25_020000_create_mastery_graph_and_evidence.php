@@ -78,11 +78,9 @@ return new class extends Migration
             $t->id();
             $t->foreignId('school_id')->constrained('schools');
             $t->foreignId('subject_id')->constrained('subjects');
-            $t->foreignId('grade_level_id')->constrained('grade_levels');
-            $t->foreignId('session_year_id')->constrained('session_years');
             $t->timestamp('computed_at')->nullable();
             $t->timestamps();
-            $t->unique(['school_id', 'subject_id', 'grade_level_id', 'session_year_id'], 'mastery_scope_identity');
+            $t->unique(['school_id', 'subject_id'], 'mastery_scope_identity');
         });
     }
 

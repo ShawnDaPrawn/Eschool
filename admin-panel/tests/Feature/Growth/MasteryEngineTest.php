@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Growth;
 
+use App\Models\Academics\AssessmentTask;
 use App\Models\Academics\CurriculumPlan;
 use App\Models\Academics\CurriculumTopic;
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingAllocation;
+use App\Models\Academics\TeachingGroupMembership;
 use App\Models\ClassSchool;
 use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryTopic;
@@ -179,6 +181,20 @@ class MasteryEngineTest extends TestCase
         foreach ($this->masteryView('farid', staff: false)['topics'] as $topic) {
             $this->assertNull($topic['level']);
         }
+    }
+
+    public function test_former_group_member_keeps_released_question_only_topic_targets(): void
+    {
+        AssessmentTask::query()->findOrFail($this->task)->update(['topic_keys' => []]);
+        $this->capture();
+        $this->graph();
+        $this->release();
+        app(MasteryRecompute::class)->group($this->group);
+        TeachingGroupMembership::query()->where('learner_id', $this->schoolA->ids['asha'])->delete();
+        $family = $this->masteryView('farid', staff: false);
+        $this->assertContains($this->nodes[$this->keys[1]], $family['target_topic_ids']);
+        $this->assertContains($this->nodes[$this->keys[2]], $family['target_topic_ids']);
+        $this->assertSame(4, array_column($family['topics'], 'level', 'topic_key')[$this->keys[2]]);
     }
 
     public function test_family_visibility_revocation_during_read_suppresses_the_response(): void
