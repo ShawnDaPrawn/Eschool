@@ -9,6 +9,7 @@ use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Growth\LearnerNoteAssignment;
+use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\Students;
@@ -79,6 +80,7 @@ class LearnerNotesPolicy
     public function assign(User $actor, int $learnerId): User
     {
         $this->enabled(true);
+        abort_if(PlatformStaffIdentity::query()->where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $fresh = app(AcademicAuthority::class)->staff($actor);
         $today = app(AcademicAuthority::class)->today();
         abort_unless(AcademicLeadership::query()->where('user_id', $fresh->id)->where('kind', 'principal')->whereNull('grade_level_id')

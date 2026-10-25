@@ -181,6 +181,16 @@ class ProgressNotesTest extends TestCase
         $this->refused(fn () => app(LearnerNotes::class)->create($this->actor(), $this->schoolA->ids['ben'], null, $this->year, 'counselling', 'Other unassigned learner'));
     }
 
+    public function test_platform_principal_cannot_administer_counselling_caseload_metadata(): void
+    {
+        $this->clinical();
+        PlatformStaffIdentity::create(['user_id' => $this->superAdmin()->id]);
+        $this->refused(fn () => app(LearnerNotes::class)->assignments($this->superAdmin(), $this->schoolA->ids['asha']), [403]);
+        $this->refused(fn () => app(LearnerNotes::class)->assign($this->superAdmin(), $this->schoolA->ids['asha'], $this->actor()->id,
+            ['starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'expected_revision' => 1]), [403]);
+        $this->assertSame(1, LearnerNoteAssignment::count());
+    }
+
     public function test_clinical_access_denies_platform_identity_impersonation_and_stale_membership(): void
     {
         $note = $this->clinical();

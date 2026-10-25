@@ -208,3 +208,9 @@ clinical audit redaction, role/allocation/guardian/caseload revocation, wrong
 school/learner/subject/author and retained-data rollback. Pint and full configured
 Larastan passed. No model/provider calls were made. HTTP/client workflows and
 rule-aware queued alerts are subsequent work; step 2 is not yet complete.
+
+The restricted-note boundary also excludes platform identities from principal
+caseload metadata administration. A regression first proved the old metadata
+read was allowed, then passed with the explicit exclusion on both read and write.
+The domain suite now passes **12 tests, 84 assertions**; Pint and full Larastan
+pass. The isolated check uses only the same synthetic school fixtures.
