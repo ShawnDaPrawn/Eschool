@@ -39,3 +39,11 @@ has no macOS/Xcode/device. Named Android debug compilation runs in dedicated CI;
 no local Android build, signing, store release, production deployment or live
 provider qualification is claimed. Browser API responses are synthetic and
 exercise the real app/repositories rather than a live school deployment.
+
+Main integration review: current main's module/package/table unions are retained.
+The shared sensitive-record boundary now refuses a freshly pending password
+change even when a retained Teacher token or stale User object is supplied.
+A multi-school stale-actor regression failed before the guard; the complete
+shared clinical/facilitator cohort passes 22 tests / 201 assertions after the
+fix. Full Larastan and Pint pass. Refreshing the previously conflicted branch
+allows pull-request CI to run; CI completion is still separately required.
