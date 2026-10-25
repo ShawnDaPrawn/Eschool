@@ -27,3 +27,9 @@ record reviewer name/date, affected files, exact asset hashes and any accepted
 terminology notes here. Keep real school/user examples private. A later change
 to reviewed strings needs a scoped follow-up review; unrelated development
 continues. Production acceptance is still outstanding.
+
+Public incident reporting adds English safety/reporting guidance and matching
+fallback keys in Afrikaans/isiZulu catalogues. These new wellbeing strings are
+explicit English fallbacks until fluent and clinical-language review; they are
+not claimed as qualified translations. The stateless public HTML currently uses
+English and does not read a browser account's language/session.

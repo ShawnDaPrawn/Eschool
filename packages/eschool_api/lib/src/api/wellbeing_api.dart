@@ -30,6 +30,8 @@ import 'package:eschool_api/src/model/incident_submission_input.dart';
 import 'package:eschool_api/src/model/link_wellbeing_case_incident_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_appointments_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_case_assignments_response.dart';
+import 'package:eschool_api/src/model/list_wellbeing_case_incident_choices_response.dart';
+import 'package:eschool_api/src/model/list_wellbeing_case_professionals_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_cases_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_managed_cases_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_reports_response.dart';
@@ -1194,6 +1196,7 @@ class WellbeingApi {
   /// * [report]
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
   /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [before]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1207,6 +1210,7 @@ class WellbeingApi {
     required int report,
     int? xSchoolId,
     int? xAccountId,
+    int? before,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -1242,9 +1246,14 @@ class WellbeingApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (before != null) r'before': before,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -1694,6 +1703,232 @@ class WellbeingApi {
     }
 
     return Response<ListWellbeingCaseAssignmentsResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// listWellbeingCaseIncidentChoices
+  /// Case-owned choices only. Fresh case assignment is required; incident choices additionally require independent category-team authority. Selected choices are retained only while still eligible. No clinical bodies or whole-school staff directory.
+  ///
+  /// Parameters:
+  /// * [case_]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [selected]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ListWellbeingCaseIncidentChoicesResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ListWellbeingCaseIncidentChoicesResponse>>
+  listWellbeingCaseIncidentChoices({
+    required int case_,
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    int? selected,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/cases/{case}/incident-choices'.replaceAll(
+      '{'
+      r'case'
+      '}',
+      case_.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (page != null) r'page': page,
+      if (selected != null) r'selected': selected,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ListWellbeingCaseIncidentChoicesResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ListWellbeingCaseIncidentChoicesResponse,
+              ListWellbeingCaseIncidentChoicesResponse
+            >(
+              rawData,
+              'ListWellbeingCaseIncidentChoicesResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ListWellbeingCaseIncidentChoicesResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// listWellbeingCaseProfessionals
+  /// Case-owned choices only. Fresh case assignment is required; incident choices additionally require independent category-team authority. Selected choices are retained only while still eligible. No clinical bodies or whole-school staff directory.
+  ///
+  /// Parameters:
+  /// * [case_]
+  /// * [onDate]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [selected]
+  /// * [search]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ListWellbeingCaseProfessionalsResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ListWellbeingCaseProfessionalsResponse>>
+  listWellbeingCaseProfessionals({
+    required int case_,
+    required String onDate,
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    int? selected,
+    String? search,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wellbeing/cases/{case}/professionals'.replaceAll(
+      '{'
+      r'case'
+      '}',
+      case_.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (page != null) r'page': page,
+      if (selected != null) r'selected': selected,
+      r'on_date': onDate,
+      if (search != null) r'search': search,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ListWellbeingCaseProfessionalsResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ListWellbeingCaseProfessionalsResponse,
+              ListWellbeingCaseProfessionalsResponse
+            >(
+              rawData,
+              'ListWellbeingCaseProfessionalsResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ListWellbeingCaseProfessionalsResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

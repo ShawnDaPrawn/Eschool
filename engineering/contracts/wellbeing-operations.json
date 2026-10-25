@@ -215,5 +215,19 @@
     "path": "/wellbeing/cases/{case}/appointments/{appointment}",
     "operation": "saveWellbeingAppointment",
     "input": "WellbeingAppointmentInput"
+  },
+  {
+    "action": "case-professionals",
+    "method": "GET",
+    "path": "/wellbeing/cases/{case}/professionals",
+    "operation": "listWellbeingCaseProfessionals",
+    "input": null
+  },
+  {
+    "action": "case-report-choices",
+    "method": "GET",
+    "path": "/wellbeing/cases/{case}/incident-choices",
+    "operation": "listWellbeingCaseIncidentChoices",
+    "input": null
   }
 ]

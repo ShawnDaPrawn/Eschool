@@ -62,6 +62,8 @@ class OpenApiContractTest extends TestCase
             'listWellbeingReports route boundary' => [null, 'GET', 'api/v2/wellbeing/reports', [], 401],
             'getWellbeingReport route boundary' => [null, 'GET', 'api/v2/wellbeing/reports/1', [], 401],
             'listWellbeingCases route boundary' => [null, 'GET', 'api/v2/wellbeing/cases', [], 401],
+            'listWellbeingCaseProfessionals route boundary' => [null, 'GET', 'api/v2/wellbeing/cases/1/professionals', [], 401],
+            'listWellbeingCaseIncidentChoices route boundary' => [null, 'GET', 'api/v2/wellbeing/cases/1/incident-choices', [], 401],
             'getWellbeingCase route boundary' => [null, 'GET', 'api/v2/wellbeing/cases/1', [], 401],
             'listWellbeingAppointments route boundary' => [null, 'GET', 'api/v2/wellbeing/cases/1/appointments', [], 401],
             'createWellbeingCategory route boundary' => [null, 'POST', 'api/v2/wellbeing/categories', [], 401],

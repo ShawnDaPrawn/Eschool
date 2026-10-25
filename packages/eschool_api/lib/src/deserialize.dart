@@ -418,6 +418,8 @@ import 'package:eschool_api/src/model/learner_note_update.dart';
 import 'package:eschool_api/src/model/link_wellbeing_case_incident_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_appointments_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_case_assignments_response.dart';
+import 'package:eschool_api/src/model/list_wellbeing_case_incident_choices_response.dart';
+import 'package:eschool_api/src/model/list_wellbeing_case_professionals_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_cases_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_managed_cases_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_reports_response.dart';
@@ -606,6 +608,7 @@ import 'package:eschool_api/src/model/wellbeing_assignment_input.dart';
 import 'package:eschool_api/src/model/wellbeing_assignment_page.dart';
 import 'package:eschool_api/src/model/wellbeing_case.dart';
 import 'package:eschool_api/src/model/wellbeing_case_assignment_receipt.dart';
+import 'package:eschool_api/src/model/wellbeing_case_choice_page.dart';
 import 'package:eschool_api/src/model/wellbeing_case_entry.dart';
 import 'package:eschool_api/src/model/wellbeing_case_entry_input.dart';
 import 'package:eschool_api/src/model/wellbeing_case_entry_receipt.dart';
@@ -2099,6 +2102,16 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'ListWellbeingCaseIncidentChoicesResponse':
+      return ListWellbeingCaseIncidentChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ListWellbeingCaseProfessionalsResponse':
+      return ListWellbeingCaseProfessionalsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ListWellbeingCasesResponse':
       return ListWellbeingCasesResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2704,6 +2717,9 @@ ReturnType deserialize<ReturnType, BaseType>(
       return WellbeingCaseAssignmentReceipt.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'WellbeingCaseChoicePage':
+      return WellbeingCaseChoicePage.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WellbeingCaseEntry':
       return WellbeingCaseEntry.fromJson(value as Map<String, dynamic>)

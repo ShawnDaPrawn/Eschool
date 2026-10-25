@@ -125,6 +125,7 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String progressNotes = '/growth/progress';
   static const String reliefCover = '/pastoral/cover';
   static const String supportPlans = '/pastoral/support';
   static const String activityGroups = '/activities/groups';
@@ -145,6 +146,7 @@ class Routes {
   static Route<dynamic> onGenerateRouted(RouteSettings routeSettings) {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
+      progressNotes => 'academics',
       mastery => 'mastery',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -324,6 +326,8 @@ class Routes {
         return academicRegistersRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case progressNotes:
+        return progressNotesRoute();
       case mastery:
         return masteryRoute();
       case reliefCover:

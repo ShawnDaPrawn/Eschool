@@ -53,3 +53,36 @@ release are separate checks. None is inferred from these synthetic tests.
 Final SDK verification: all 74 tests pass. Analysis has zero errors/warnings and
 657 generated informational lints. The date regression now passes with exact
 YYYY-MM-DD input/output. Final owned/canonical definition comparison passes.
+
+Transport follow-up: all private-code inputs explicitly reject a `secret` query
+parameter, even when a valid body also exists. Write validation reads the body,
+never merged query input. The final seven actual HTTP tests pass 401 assertions
+and full Larastan/Pint pass after this additional body-only enforcement.
+
+
+## Restricted app preparation: scoped choices and retained thread pages
+
+Two additive staff reads provide dated/searchable case professionals and
+identified same-learner incident choices. The case assignment is checked before
+validation; incident choices additionally apply independent safeguarding-team
+scope. Valid selected professionals survive paging/search and disappear when
+role/date eligibility changes. Choices contain no report or case bodies.
+The staff report reader adds optional older-thread cursor fields; original
+fields and the first 100-row behavior remain compatible. The access response
+adds optional trusted-school IANA timezone, with no guessed client default.
+
+All existing paths/schemas compare equal to risk #139 except the explicitly
+extended wellbeing report reader and three additive optional model fields across WellbeingReport/WellbeingAccess.
+The complete route catalogue passed 333 cases; the first combined 341-test run
+had one stale 27-route count assertion after adding two routes, corrected to 29.
+The final actual wellbeing HTTP cohort passes 8 tests / 487 assertions, including
+both picker endpoints, foreign school, wrong account/role, revoked case,
+independent triage and 101 encrypted retained threads over two pages.
+Pinned generation produces 1,286 files; all 79 SDK tests and strict OpenAPI lint
+pass. SDK analysis has zero errors/warnings and 712 generated informational lints.
+This API increment does not claim the app screen is implemented.
+
+Final integrated wellbeing API/panel and complete canonical route catalogue:
+349 tests / 2,137 assertions passed. The merged panel routes/navigation and
+progress/leadership/public-reporting locale/flow unions are retained.
+Full configured Larastan reports zero errors after the integrated checks.

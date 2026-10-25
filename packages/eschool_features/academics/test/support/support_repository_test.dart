@@ -3,6 +3,7 @@ import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 
 ApiSupportRepository repository(
   FakeApi api, {
@@ -21,6 +22,31 @@ ApiSupportRepository repository(
   contextActive: active ?? () => true,
 );
 void main() {
+  test('support request URLs are not printed by private transport', () async {
+    final logged = <String>[];
+    final original = debugPrint;
+    debugPrint = (String? value, {int? wrapWidth}) {
+      if (value != null) logged.add(value);
+    };
+    addTearDown(() => debugPrint = original);
+    final api = FakeApi(
+      routes: {
+        'GET v2/pastoral/support/access': {
+          'error': false,
+          'data': {
+            'audiences': ['professional'],
+            'can_write': true,
+            'today': '2026-02-10',
+          },
+        },
+      },
+    );
+    expect((await repository(api).access()).audiences, ['professional']);
+    expect(
+      logged.where((line) => line.contains('/pastoral/support/')),
+      isEmpty,
+    );
+  });
   test(
     'cookie calls bind expected account and school without a bearer token',
     () async {

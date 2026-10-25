@@ -41,12 +41,14 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
+use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
+use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
@@ -77,6 +79,7 @@ use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\EnforceReadOnlyYears;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateMastery;
+use App\Http\Middleware\PrivateWellbeing;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -294,6 +297,16 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('/', [$controller, 'index'])->name('index');
             foreach (['open', 'sync', 'review', 'settings'] as $action) {
                 Route::post($action, [$controller, $action])->name($action);
+            }
+        });
+        Route::prefix('wellbeing')->name('wellbeing.')->middleware([PrivateWellbeing::class, 'module:wellbeing'])->group(function () {
+            $controller = WellbeingPanelController::class;
+            Route::get('/', [$controller, 'index'])->name('index');
+            foreach (['categories' => 'category-create', 'categories/{category}' => 'category-save', 'categories/{category}/team' => 'team-create', 'categories/{category}/team/{assignment}' => 'team-save',
+                'cases' => 'case-create', 'cases/{case}/assignments' => 'case-assignment-create', 'cases/{case}/assignments/{assignment}' => 'case-assignment-save',
+                'reports/{report}/replies' => 'report-respond', 'cases/{case}/entries' => 'case-entry', 'cases/{case}/incident-link' => 'case-link', 'cases/{case}/status' => 'case-status',
+                'cases/{case}/appointments' => 'appointment-create', 'cases/{case}/appointments/{appointment}' => 'appointment-save', 'cases/{case}/professional-choices' => 'case-choices'] as $path => $operation) {
+                Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'report', 'assignment', 'appointment'])->name($operation);
             }
         });
         Route::prefix('support-plans')->name('support-plans.')->middleware('module:support_plans')->group(function () {
@@ -765,4 +778,13 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+});
+
+Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {
+    Route::get('/', [ProgressPanelController::class, 'index'])->name('index');
+    Route::post('learners/{learner}/notes', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('create');
+    Route::post('notes/{note}', [ProgressPanelController::class, 'write'])->whereNumber('note')->name('update');
+    Route::post('learners/{learner}/assignments', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('assign');
+    Route::post('learners/{learner}/assignments/revoke', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('revoke-assignment');
+    Route::post('settings', [ProgressPanelController::class, 'write'])->name('configure');
 });

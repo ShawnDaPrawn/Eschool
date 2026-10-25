@@ -602,6 +602,12 @@ paths:
         schema:
           type: integer
           minimum: 1
+      - name: before
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
   /wellbeing/cases:
     get:
       operationId: listWellbeingCases
@@ -1371,6 +1377,120 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/WellbeingAppointmentInput'
+  /wellbeing/cases/{case}/professionals:
+    get:
+      operationId: listWellbeingCaseProfessionals
+      tags:
+      - Wellbeing
+      summary: listWellbeingCaseProfessionals
+      description: Case-owned choices only. Fresh case assignment is required; incident choices additionally
+        require independent category-team authority. Selected choices are retained only while still eligible.
+        No clinical bodies or whole-school staff directory.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingCaseProfessionalsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: selected
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: on_date
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+  /wellbeing/cases/{case}/incident-choices:
+    get:
+      operationId: listWellbeingCaseIncidentChoices
+      tags:
+      - Wellbeing
+      summary: listWellbeingCaseIncidentChoices
+      description: Case-owned choices only. Fresh case assignment is required; incident choices additionally
+        require independent category-team authority. Selected choices are retained only while still eligible.
+        No clinical bodies or whole-school staff directory.
+      responses:
+        '200':
+          description: Private scoped wellbeing result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListWellbeingCaseIncidentChoicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: case
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: selected
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
 components:
   schemas:
     WellbeingNamedChoice:
@@ -1452,6 +1572,10 @@ components:
           type: string
         emergency_guidance:
           type: string
+        timezone:
+          type: string
+          description: Trusted selected-school IANA timezone for appointment wall times; optional for
+            older servers.
     WellbeingConfiguration:
       type: object
       additionalProperties: false
@@ -1769,6 +1893,13 @@ components:
         learner_name:
           anyOf:
           - type: string
+          - type: 'null'
+        has_older:
+          type: boolean
+        next_before:
+          anyOf:
+          - type: integer
+            minimum: 1
           - type: 'null'
     WellbeingReportPage:
       type: object
@@ -3067,5 +3198,59 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/WellbeingAppointment'
+        code:
+          type: integer
+    WellbeingCaseChoicePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - page
+      - last_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WellbeingNamedChoice'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        selected_available:
+          type: boolean
+    ListWellbeingCaseProfessionalsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseChoicePage'
+        code:
+          type: integer
+    ListWellbeingCaseIncidentChoicesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WellbeingCaseChoicePage'
         code:
           type: integer

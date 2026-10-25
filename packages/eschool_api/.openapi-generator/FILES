@@ -435,6 +435,8 @@ lib/src/model/learner_note_update.dart
 lib/src/model/link_wellbeing_case_incident_response.dart
 lib/src/model/list_wellbeing_appointments_response.dart
 lib/src/model/list_wellbeing_case_assignments_response.dart
+lib/src/model/list_wellbeing_case_incident_choices_response.dart
+lib/src/model/list_wellbeing_case_professionals_response.dart
 lib/src/model/list_wellbeing_cases_response.dart
 lib/src/model/list_wellbeing_managed_cases_response.dart
 lib/src/model/list_wellbeing_reports_response.dart
@@ -623,6 +625,7 @@ lib/src/model/wellbeing_assignment_input.dart
 lib/src/model/wellbeing_assignment_page.dart
 lib/src/model/wellbeing_case.dart
 lib/src/model/wellbeing_case_assignment_receipt.dart
+lib/src/model/wellbeing_case_choice_page.dart
 lib/src/model/wellbeing_case_entry.dart
 lib/src/model/wellbeing_case_entry_input.dart
 lib/src/model/wellbeing_case_entry_receipt.dart

@@ -36,6 +36,7 @@ WellbeingAccess _$WellbeingAccessFromJson(Map<String, dynamic> json) =>
             'emergency_guidance',
             (v) => v as String,
           ),
+          timezone: $checkedConvert('timezone', (v) => v as String?),
         );
         return val;
       },
@@ -59,4 +60,5 @@ Map<String, dynamic> _$WellbeingAccessToJson(WellbeingAccess instance) =>
       'today': instance.today,
       'school_slug': instance.schoolSlug,
       'emergency_guidance': instance.emergencyGuidance,
+      'timezone': ?instance.timezone,
     };

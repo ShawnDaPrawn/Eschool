@@ -31,6 +31,8 @@ class WellbeingAccess {
     required this.schoolSlug,
 
     required this.emergencyGuidance,
+
+    this.timezone,
   });
 
   @JsonKey(name: r'can_configure', required: true, includeIfNull: false)
@@ -57,6 +59,10 @@ class WellbeingAccess {
   @JsonKey(name: r'emergency_guidance', required: true, includeIfNull: false)
   final String emergencyGuidance;
 
+  /// Trusted selected-school IANA timezone for appointment wall times; optional for older servers.
+  @JsonKey(name: r'timezone', required: false, includeIfNull: false)
+  final String? timezone;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -68,7 +74,8 @@ class WellbeingAccess {
           other.canWrite == canWrite &&
           other.today == today &&
           other.schoolSlug == schoolSlug &&
-          other.emergencyGuidance == emergencyGuidance;
+          other.emergencyGuidance == emergencyGuidance &&
+          other.timezone == timezone;
 
   @override
   int get hashCode =>
@@ -79,7 +86,8 @@ class WellbeingAccess {
       canWrite.hashCode +
       today.hashCode +
       schoolSlug.hashCode +
-      emergencyGuidance.hashCode;
+      emergencyGuidance.hashCode +
+      timezone.hashCode;
 
   factory WellbeingAccess.fromJson(Map<String, dynamic> json) =>
       _$WellbeingAccessFromJson(json);

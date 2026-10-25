@@ -403,6 +403,30 @@ class _StaffHome extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          if (profile.features['learner_notes'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.edit_note_outlined),
+                title: Text(l('Restricted counselling notes')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'learner_notes',
+                  ProgressNotesScreen(
+                    repository: ApiProgressRepository(
+                      repository.client,
+                      schoolId: school,
+                      readerId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['learner_notes'] == true,
+                    ),
+                    canRead: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['learner_notes'] == true,
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['support_plans'] == true)
             Card(
               child: ListTile(
@@ -470,6 +494,7 @@ class _StaffHome extends StatelessWidget {
             'groups',
             'messages',
             'support_plans',
+            'learner_notes',
           ].any((key) => profile.features[key] == true))
             Padding(
               padding: const EdgeInsets.all(24),

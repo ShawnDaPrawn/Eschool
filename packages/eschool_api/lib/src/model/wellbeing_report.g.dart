@@ -78,6 +78,11 @@ WellbeingReport _$WellbeingReportFromJson(Map<String, dynamic> json) =>
           categoryName: $checkedConvert('category_name', (v) => v as String),
           reporterName: $checkedConvert('reporter_name', (v) => v as String?),
           learnerName: $checkedConvert('learner_name', (v) => v as String?),
+          hasOlder: $checkedConvert('has_older', (v) => v as bool?),
+          nextBefore: $checkedConvert(
+            'next_before',
+            (v) => (v as num?)?.toInt(),
+          ),
         );
         return val;
       },
@@ -90,6 +95,8 @@ WellbeingReport _$WellbeingReportFromJson(Map<String, dynamic> json) =>
         'categoryName': 'category_name',
         'reporterName': 'reporter_name',
         'learnerName': 'learner_name',
+        'hasOlder': 'has_older',
+        'nextBefore': 'next_before',
       },
     );
 
@@ -110,6 +117,8 @@ Map<String, dynamic> _$WellbeingReportToJson(WellbeingReport instance) =>
       'category_name': instance.categoryName,
       'reporter_name': instance.reporterName,
       'learner_name': instance.learnerName,
+      'has_older': ?instance.hasOlder,
+      'next_before': ?instance.nextBefore,
     };
 
 const _$WellbeingReportUrgencyEnumEnumMap = {

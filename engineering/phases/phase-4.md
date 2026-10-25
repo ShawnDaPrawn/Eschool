@@ -62,6 +62,11 @@ Wellbeing domain services are implemented in the current feature branch: separat
 team/case assignments, anonymous secret follow-up, explicit identification, encrypted
 case history and appointments. Thirty-one typed HTTP operations and their
 generated SDK now implement actual scoped reporting, triage, casework and metadata
-configuration. Public HTML, private media, panel and app views remain in active
-follow-up work; the disabled module is not yet a completed user
+configuration. Public anonymous HTML reporting and code follow-up are implemented
+and browser-verified. Private media, identified app reporting, restricted panel
+and app views remain in active follow-up work; the disabled module is not yet a completed user
 workflow. Separate support-plan/learner-note permissions never grant these cases.
+
+Parallel ownership: the root stream owns houses/awards (step 5), then intake
+(step 7) after its transfers work if still outstanding. This community stream
+continues the remaining retained Phase 4 features.

@@ -46,6 +46,10 @@ class WellbeingReport {
     required this.reporterName,
 
     required this.learnerName,
+
+    this.hasOlder,
+
+    this.nextBefore,
   });
 
   // minimum: 1
@@ -108,6 +112,13 @@ class WellbeingReport {
   @JsonKey(name: r'learner_name', required: true, includeIfNull: true)
   final String? learnerName;
 
+  @JsonKey(name: r'has_older', required: false, includeIfNull: false)
+  final bool? hasOlder;
+
+  // minimum: 1
+  @JsonKey(name: r'next_before', required: false, includeIfNull: false)
+  final int? nextBefore;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -126,7 +137,9 @@ class WellbeingReport {
           other.threads == threads &&
           other.categoryName == categoryName &&
           other.reporterName == reporterName &&
-          other.learnerName == learnerName;
+          other.learnerName == learnerName &&
+          other.hasOlder == hasOlder &&
+          other.nextBefore == nextBefore;
 
   @override
   int get hashCode =>
@@ -144,7 +157,9 @@ class WellbeingReport {
       threads.hashCode +
       categoryName.hashCode +
       (reporterName == null ? 0 : reporterName.hashCode) +
-      (learnerName == null ? 0 : learnerName.hashCode);
+      (learnerName == null ? 0 : learnerName.hashCode) +
+      hasOlder.hashCode +
+      (nextBefore == null ? 0 : nextBefore.hashCode);
 
   factory WellbeingReport.fromJson(Map<String, dynamic> json) =>
       _$WellbeingReportFromJson(json);

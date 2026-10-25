@@ -65,6 +65,14 @@ class ProgressNotesApiTest extends TestCase
             'consent_version' => config('identity.consent_version'), 'consented_at' => now()]);
     }
 
+    public function test_private_mutations_refuse_query_inputs_before_merging_or_replay(): void
+    {
+        $this->actingAs($this->actor())->postJson($this->createUrl().'?body=URL_PRIVATE_NOTE_VALUE', $this->createInput())
+            ->assertStatus(422)->assertDontSee('URL_PRIVATE_NOTE_VALUE');
+        $this->assertSame(0, LearnerNote::count());
+        $this->assertSame(0, LearnerNoteOperation::count());
+    }
+
     public function test_note_creation_replay_read_update_history_and_metadata_listing_are_private(): void
     {
         $data = $this->createInput();

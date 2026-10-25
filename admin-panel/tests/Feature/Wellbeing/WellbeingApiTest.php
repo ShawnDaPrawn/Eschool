@@ -89,6 +89,8 @@ class WellbeingApiTest extends TestCase
         $one = $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up/replies', $reply)->assertOk()->json('data');
         $this->assertSame($one, $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up/replies', $reply)->assertOk()->json('data'));
         $this->assertSame(1, IncidentThread::count());
+        $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up?secret='.$this->secret, [])->assertUnprocessable();
+        $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up?secret='.str_repeat('0', 64), ['secret' => $this->secret])->assertUnprocessable();
         $this->postJson('/api/v2/wellbeing/public/'.$this->slug.'/follow-up', ['secret' => str_repeat('0', 64)])->assertNotFound();
         $this->postJson('/api/v2/wellbeing/public/baobab-high/follow-up', ['secret' => $this->secret])->assertNotFound();
     }
@@ -136,7 +138,7 @@ class WellbeingApiTest extends TestCase
             }
             $count++;
         }
-        $this->assertSame(27, $count);
+        $this->assertSame(29, $count);
     }
 
     public function test_assigned_professional_facilitator_profile_can_triage_and_write_case_without_teacher_record(): void
@@ -176,6 +178,37 @@ class WellbeingApiTest extends TestCase
         PlatformStaffIdentity::where('user_id', $this->professional->id)->delete();
         CaseAssignment::where('user_id', $this->professional->id)->update(['ends_on' => '2026-02-09']);
         $this->getJson('/api/v2/wellbeing/cases/'.$case['id'])->assertNotFound();
+    }
+
+    public function test_case_choice_endpoints_are_case_owned_dated_and_independently_triage_scoped(): void
+    {
+        $settings = app(WellbeingSettings::class);
+        $case = $settings->openCase($this->superAdmin(), $this->operation(['learner_id' => $this->schoolA->ids['asha']]));
+        $settings->assignCase($this->superAdmin(), $case['id'], null, $this->grant());
+        $this->submit();
+        $report = IncidentReport::firstOrFail();
+        $report->forceFill(['anonymous' => false, 'learner_id' => $this->schoolA->ids['asha'], 'reporter_user_id' => $this->schoolA->ids['farid_user']])->save();
+        $path = '/api/v2/wellbeing/cases/'.$case['id'];
+        $response = $this->api($this->professional)->getJson($path.'/professionals?on_date=2026-02-11&search=absent&selected='.$this->professional->id)->assertOk()->assertJsonPath('data.selected_available', true)->assertJsonPath('data.items.0.id', $this->professional->id);
+        $this->getJson($path.'/professionals?on_date=2027-02-11&selected='.$this->professional->id)->assertOk()->assertJsonPath('data.selected_available', false)->assertJsonCount(0, 'data.items');
+        $this->getJson($path.'/professionals')->assertUnprocessable();
+        $this->getJson($path.'/incident-choices')->assertOk()->assertJsonCount(0, 'data.items');
+        $settings->assignTeam($this->superAdmin(), $this->category['id'], null, $this->grant());
+        $response = $this->getJson($path.'/incident-choices')->assertOk()->assertJsonPath('data.items.0.id', $report->id);
+        $this->assertStringNotContainsString('Synthetic anonymous concern.', $response->getContent());
+        for ($i = 0; $i < 101; $i++) {
+            IncidentThread::create(['incident_report_id' => $report->id, 'staff_user_id' => $this->professional->id, 'author_type' => 'staff', 'internal' => true, 'body' => 'Private retained thread '.$i, 'operation_id' => (string) Str::uuid(), 'request_hash' => str_repeat('a', 64)]);
+        }
+        $first = $this->getJson('/api/v2/wellbeing/reports/'.$report->id)->assertOk()->assertJsonPath('data.has_older', true)->assertJsonCount(100, 'data.threads');
+        $this->getJson('/api/v2/wellbeing/reports/'.$report->id.'?before='.$first->json('data.next_before'))->assertOk()->assertJsonPath('data.has_older', false)->assertJsonCount(1, 'data.threads');
+        $access = $this->getJson('/api/v2/wellbeing/access')->assertOk();
+        $this->assertSame(School::findOrFail(1)->timezone, $access->json('data.timezone'));
+        $this->withHeader('X-School-Id', '2')->getJson($path.'/professionals?on_date=2026-02-11')->assertForbidden();
+        $this->withHeader('X-School-Id', '1')->withHeader('X-Account-Id', '999999')->getJson($path.'/incident-choices')->assertForbidden();
+        CaseAssignment::where('user_id', $this->professional->id)->update(['ends_on' => '2026-02-09']);
+        $this->withHeader('X-Account-Id', (string) $this->professional->id)->getJson($path.'/professionals?on_date=invalid')->assertNotFound();
+        $this->getJson($path.'/incident-choices')->assertNotFound();
+        $this->api($this->superAdmin())->getJson($path.'/professionals?on_date=2026-02-11')->assertForbidden();
     }
 
     public function test_identification_is_explicit_and_uses_bound_account_after_the_public_code_stops_working(): void

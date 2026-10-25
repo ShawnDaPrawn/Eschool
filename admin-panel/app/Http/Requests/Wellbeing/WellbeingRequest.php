@@ -21,11 +21,21 @@ class WellbeingRequest extends FormRequest
         return Str::after((string) $this->route()->getName(), 'api.v2.wellbeing.');
     }
 
+    protected function prepareForValidation(): void
+    {
+        abort_if($this->query->has('secret'), 422, 'Enter the private code in the form, never in a URL.');
+    }
+
+    public function validationData(): array
+    {
+        return $this->isMethod('GET') ? $this->query->all() : $this->getInputSource()->all();
+    }
+
     public function rules(): array
     {
         $action = $this->action();
         if ($this->isMethod('GET')) {
-            return ['page' => ['sometimes', 'integer', 'between:1,10000'], 'search' => ['sometimes', 'nullable', 'string', 'max:100'], 'before' => ['sometimes', 'integer', 'min:1'],
+            return ['selected' => ['sometimes', 'integer', 'min:1'], 'on_date' => [$action === 'case-professionals' ? 'required' : 'sometimes', 'date_format:Y-m-d'], 'page' => ['sometimes', 'integer', 'between:1,10000'], 'search' => ['sometimes', 'nullable', 'string', 'max:100'], 'before' => ['sometimes', 'integer', 'min:1'],
                 'from' => [$action === 'appointments' ? 'required' : 'sometimes', 'date_format:Y-m-d'], 'to' => [$action === 'appointments' ? 'required' : 'sometimes', 'date_format:Y-m-d', 'after_or_equal:from']];
         }
         $secret = ['secret' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/D']];

@@ -86,7 +86,7 @@ Route::prefix('wellbeing/public/{schoolSlug}')->where(['schoolSlug' => '[a-z0-9]
 
 Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbeing::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:wellbeing'])->group(function () {
     $controller = WellbeingController::class;
-    $reads = ['access' => 'access', 'configuration' => 'configuration', 'management/cases' => 'managed-cases', 'categories/{category}/team' => 'team-assignments', 'management/cases/{case}/assignments' => 'case-assignments', 'reports' => 'reports', 'reports/{report}' => 'report', 'cases' => 'cases', 'cases/{case}' => 'case', 'cases/{case}/appointments' => 'appointments'];
+    $reads = ['access' => 'access', 'configuration' => 'configuration', 'management/cases' => 'managed-cases', 'categories/{category}/team' => 'team-assignments', 'management/cases/{case}/assignments' => 'case-assignments', 'reports' => 'reports', 'reports/{report}' => 'report', 'cases' => 'cases', 'cases/{case}' => 'case', 'cases/{case}/appointments' => 'appointments', 'cases/{case}/professionals' => 'case-professionals', 'cases/{case}/incident-choices' => 'case-report-choices'];
     foreach ($reads as $path => $action) {
         Route::get($path, [$controller, 'read'])->whereNumber(['category', 'case', 'report'])->middleware(AuthorizeWellbeing::class.':'.$action)->name($action);
     }
