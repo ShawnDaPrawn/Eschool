@@ -115,3 +115,11 @@ These are protocol tests, not real-model safety, privacy, latency or cost eviden
 See the provider adapter spec and qualification record for the release boundary.
 
 Changed-file Pint and complete configured Larastan analysis pass after both mastery review fixes.
+
+The mastery engine now includes canonical main's relief-cover prerequisite with
+both modules, package entitlements and tenant registries preserved. The combined
+engine/cover/tenant-schema/migration cohort passes **37 tests, 795 assertions**.
+Pint and full Larastan pass. The static check exposed two legacy lowercase
+`softDeletes` imports that depended on a different worker loading the trait first;
+Shift and Stream now use canonical `SoftDeletes`, and both cold-autoload checks
+pass. This integration adds no API or SDK changes.
