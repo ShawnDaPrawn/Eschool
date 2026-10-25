@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:eschool_teacher/facilitator/facilitator_app.dart';
 import 'package:hive/hive.dart';
 
@@ -8,6 +10,7 @@ import 'package:eschool_teacher/app/staffBuildUnavailable.dart';
 import 'package:eschool_teacher/app/app.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   test('legacy teacher startup is preserved', () async {
@@ -150,8 +153,32 @@ void main() {
     ) async {
       if (StaffBuildIdentity.current.canStartFacilitator) {
         staffTestLabels(tester);
+        final directory = await tester.runAsync(
+          () => Directory.systemTemp.createTemp('staff-entry-storage-'),
+        );
+        const channel = MethodChannel('plugins.flutter.io/path_provider');
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          (call) async => switch (call.method) {
+            'getApplicationSupportDirectory' => '${directory!.path}/support',
+            'getApplicationDocumentsDirectory' =>
+              '${directory!.path}/documents',
+            _ => throw PlatformException(code: 'unexpected-path-request'),
+          },
+        );
+        addTearDown(() async {
+          await tester.runAsync(() async {
+            await Hive.close();
+            await directory!.delete(recursive: true);
+          });
+          tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            channel,
+            null,
+          );
+        });
       }
-      await initializeApp();
+      // Native filesystem/plugin futures must run outside widget fake time.
+      await tester.runAsync(() => initializeApp());
       await tester.pumpAndSettle();
       expect(
         find.byType(
@@ -162,6 +189,7 @@ void main() {
         findsOneWidget,
       );
       expect(Hive.isBoxOpen('authBox'), isFalse);
+      expect(Hive.isBoxOpen('settings'), isFalse);
       expect(tester.takeException(), isNull);
     });
   }
