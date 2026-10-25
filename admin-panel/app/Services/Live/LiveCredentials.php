@@ -52,8 +52,11 @@ class LiveCredentials
         }
         if (($credential['kind'] ?? null) === 'token') {
             $token = PersonalAccessToken::find($credential['id'] ?? 0);
+            $expiration = config('sanctum.expiration');
+            $withinLifetime = ! $expiration || (is_numeric($expiration) && (int) $expiration > 0
+                && $token?->created_at?->gt(now()->subMinutes((int) $expiration)));
 
-            return $token !== null && $token->can('*') && (int) $token->tokenable_id === (int) $actor->id
+            return $token !== null && $withinLifetime && $token->can('*') && (int) $token->tokenable_id === (int) $actor->id
                 && $token->tokenable_type === $actor->getMorphClass() && $token->name === ($credential['purpose'] ?? null)
                 && ($token->expires_at === null || $token->expires_at->isFuture())
                 && is_string($credential['fingerprint'] ?? null) && hash_equals($credential['fingerprint'], $this->seal((string) $token->token));

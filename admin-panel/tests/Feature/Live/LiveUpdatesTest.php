@@ -91,6 +91,33 @@ class LiveUpdatesTest extends TestCase
         $this->assertNull(app(LiveLeases::class)->actor($lease));
     }
 
+    public function test_configured_sanctum_lifetime_expires_an_existing_live_lease_before_its_ttl(): void
+    {
+        config(['sanctum.expiration' => 1]);
+        $token = $this->token();
+        PersonalAccessToken::findToken($token)->forceFill(['created_at' => now()->subSeconds(59), 'expires_at' => null])->save();
+        $session = $this->open($token);
+        $lease = app(LiveLeases::class)->find($session['lease_id']);
+        $this->assertNotNull(app(LiveLeases::class)->actor($lease));
+        $this->travel(2)->seconds();
+        $this->assertNotNull(app(LiveLeases::class)->find($session['lease_id']));
+        $this->api($token)->postJson('/api/v2/live/session')->assertUnauthorized();
+        $this->assertNull(app(LiveLeases::class)->actor($lease));
+    }
+
+    public function test_explicit_token_expiry_still_applies_when_global_expiration_is_disabled(): void
+    {
+        config(['sanctum.expiration' => null]);
+        $token = $this->token();
+        PersonalAccessToken::findToken($token)->forceFill(['created_at' => now()->subDays(31), 'expires_at' => now()->addSecond()])->save();
+        $session = $this->open($token);
+        $lease = app(LiveLeases::class)->find($session['lease_id']);
+        $this->assertNotNull(app(LiveLeases::class)->actor($lease));
+        $this->travel(2)->seconds();
+        $this->assertNotNull(app(LiveLeases::class)->find($session['lease_id']));
+        $this->assertNull(app(LiveLeases::class)->actor($lease));
+    }
+
     public function test_unauthenticated_and_invalid_requests_have_private_refusals_without_flash(): void
     {
         $this->postJson('/api/v2/live/session')->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
