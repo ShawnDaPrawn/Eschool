@@ -98,6 +98,31 @@ class WellbeingDomainTest extends TestCase
         }
     }
 
+    public function test_utc_clinical_instants_roundtrip_without_school_timezone_drift(): void
+    {
+        $case = $this->careCase();
+        $service = app(Casework::class);
+        config(['app.timezone' => 'Africa/Johannesburg']);
+        $previous = date_default_timezone_get();
+        date_default_timezone_set('Africa/Johannesburg');
+        try {
+            $entry = $service->entry($this->professional, $case['id'], ['operation_id' => (string) Str::uuid(), 'revision' => 1,
+                'kind' => 'note', 'body' => 'Synthetic timezone regression', 'happened_at' => '2026-02-10T08:00:00Z']);
+            $appointment = $service->appointment($this->professional, $case['id'], null, ['operation_id' => (string) Str::uuid(), 'revision' => 0,
+                'professional_user_id' => $this->professional->id, 'starts_at' => '2026-02-10T08:00:00Z', 'ends_at' => '2026-02-10T08:30:00Z',
+                'location' => 'Synthetic office', 'notes' => '', 'status' => 'scheduled']);
+            $this->assertSame('2026-02-10 08:00:00', DB::table('wellbeing_appointments')->value('starts_at'));
+            $this->assertSame('2026-02-10T08:00:00.000000Z', Appointment::findOrFail($appointment['id'])->starts_at->toISOString());
+            $this->assertSame('2026-02-10T08:30:00.000000Z', Appointment::findOrFail($appointment['id'])->ends_at->toISOString());
+            $this->assertSame('2026-02-10T08:00:00.000000Z', CaseEntry::findOrFail($entry['entry']['id'])->happened_at->toISOString());
+            $listed = $service->appointments($this->professional, $case['id'], '2026-02-10', '2026-02-10');
+            $this->assertSame('2026-02-10T08:00:00.000000Z', $listed[0]['starts_at']->toISOString());
+            $this->assertSame('2026-02-10T08:00:00.000000Z', json_decode(json_encode(Appointment::findOrFail($appointment['id'])), true)['starts_at']);
+        } finally {
+            date_default_timezone_set($previous);
+        }
+    }
+
     public function test_anonymous_submission_and_follow_up_keep_no_identity_or_plaintext_and_replay_exactly(): void
     {
         $service = app(IncidentReporting::class);
