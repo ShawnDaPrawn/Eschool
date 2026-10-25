@@ -17,6 +17,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\Role;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Models\Students;
 use App\Models\User;
 use App\Policies\Communication\MessagePolicy;
 use App\Services\Activities\ActivityGroups;
@@ -28,7 +29,9 @@ use App\Services\Communication\MessageDelivery;
 use App\Services\Communication\MessageFlow;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -512,5 +515,44 @@ class ActivityGroupsTest extends TestCase
         $this->putJson('/api/v2/activities/groups/'.$moving['id'], $this->data(['name' => 'Moving root', 'revision' => 1, 'parent_id' => $parent['parent_id']]))->assertOk();
         $this->assertCount(12, app(CommunityAuthority::class)->lineage(ActivityGroup::findOrFail($child['id'])));
 
+    }
+
+    public function test_large_attendance_receipt_survives_mysql_encryption_and_exact_replay(): void
+    {
+        // Exercise an already installed TEXT schema, then the forward upgrade.
+        Schema::table('activity_operations', fn ($t) => $t->text('receipt')->change());
+        $upgrade = require database_path('migrations/2026_10_25_040000_widen_activity_operation_receipts.php');
+        $upgrade->up();
+        $group = $this->group();
+        $service = app(ActivityGroups::class);
+        $session = $service->session($this->superAdmin(), $group['id'], null, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'on_date' => '2026-02-10', 'name' => 'Large register', 'venue' => 'Field', 'status' => 'scheduled']);
+        $prototype = Students::findOrFail($this->schoolA->ids['asha']);
+        $entries = [];
+        for ($i = 0; $i < 40; $i++) {
+            $user = User::create(['first_name' => 'Synthetic', 'last_name' => 'Register '.$i, 'email' => 'large-register-'.$i.'@example.test', 'password' => Hash::make('SyntheticRegister2026'), 'status' => 1]);
+            $learner = $prototype->replicate();
+            $learner->user_id = $user->id;
+            $learner->admission_no = 'LARGE-REGISTER-'.$i;
+            $learner->roll_number = 100 + $i;
+            $learner->save();
+            Enrolment::create(['learner_id' => $learner->id, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic large register']);
+            ActivityMembership::create(['activity_group_id' => $group['id'], 'learner_id' => $learner->id, 'role' => 'member', 'active' => true, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic large roster', 'revision' => 1]);
+            $entries[] = ['learner_id' => $learner->id, 'status' => 'present', 'revision' => 0];
+        }
+        $input = ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'entries' => $entries, 'reason' => str_repeat('R', 2000)];
+        $result = $service->attendance($this->superAdmin(), $session['id'], $input);
+        $this->assertCount(40, $result['items']);
+        $stored = DB::table('activity_operations')->where('operation_id', $input['operation_id'])->value('receipt');
+        $this->assertGreaterThan(65535, strlen($stored));
+        $this->assertSame($result, $service->attendance($this->superAdmin(), $session['id'], $input));
+        $this->assertSame(40, ActivityAttendance::where('activity_session_id', $session['id'])->count());
+        $this->assertSame(2, ActivitySession::findOrFail($session['id'])->revision);
+        $this->assertSame(1, ActivityOperation::where('operation_id', $input['operation_id'])->count());
+        try {
+            $upgrade->down();
+            $this->fail('Narrowing erased a retained encrypted register receipt.');
+        } catch (\RuntimeException $error) {
+            $this->assertStringContainsString('exceed TEXT capacity', $error->getMessage());
+        }
     }
 }

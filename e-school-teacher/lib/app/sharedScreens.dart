@@ -109,6 +109,17 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isFeatureOn('relief_cover') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'relief_cover',
+        ))
+      tile(
+        title: label('Relief cover'),
+        icon: Icons.event_available_outlined,
+        onTap: () => open(Routes.reliefCover),
+      ),
     if (context.watch<MeContextCubit>().context?.isFeatureOn(
               'communication_messages',
             ) ==
@@ -435,6 +446,51 @@ class SchoolMessagesEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> reliefCoverRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        me?.isFeatureOn('relief_cover') != true ||
+        !allowsSchoolModule(me, 'relief_cover')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Relief cover'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: CoverSessionBoundary(
+        pinned: me!,
+        child: CoverScreen(
+          writable: () => !session.context!.isModuleReadOnly('relief_cover'),
+          repository: ApiCoverRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                coverAccessStillCurrent(me, session.context) &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
 
 Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
   contentColumn: false,

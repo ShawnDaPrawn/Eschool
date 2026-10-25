@@ -124,6 +124,7 @@ class Routes {
   static const String academicMarks = '/academics/marks';
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
+  static const String reliefCover = '/pastoral/cover';
   static const String activityGroups = '/activities/groups';
   static const String schoolMessages = '/communication/messages';
   static const String academicTimetable = '/academics/timetable';
@@ -144,6 +145,7 @@ class Routes {
     final module = switch (routeSettings.name) {
       activityGroups => 'groups',
       schoolMessages => 'communication',
+      reliefCover => 'relief_cover',
       chatMessages ||
       chatUserProfile ||
       chatUserPage ||
@@ -318,6 +320,8 @@ class Routes {
         return academicRegistersRoute();
       case academicTimetable:
         return academicTimetableRoute();
+      case reliefCover:
+        return reliefCoverRoute();
       case activityGroups:
         return activityGroupsRoute();
       case schoolMessages:
