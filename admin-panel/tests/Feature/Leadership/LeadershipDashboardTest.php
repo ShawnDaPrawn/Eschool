@@ -56,12 +56,12 @@ class LeadershipDashboardTest extends TestCase
         SchoolMembership::query()->update(['starts_on' => '2026-01-01']);
         $this->year = $this->schoolA->ids['session_year'];
         $this->learner = $this->schoolA->ids['asha'];
-        $this->principal = $this->superAdmin();
+        $this->principal = User::findOrFail($this->schoolA->ids['tara_user']);
         SessionYear::whereKey($this->year)->update(['start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
         $this->grade = (int) GradeLevel::where('code', '5')->value('id');
         ClassSection::with('class')->findOrFail($this->schoolA->ids['section_a'])->class->forceFill(['grade_level_id' => $this->grade])->save();
         Enrolment::create(['learner_id' => $this->learner, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => null, 'legacy_dates' => false]);
-        app(TeachingGroups::class)->dated($this->principal, 'leadership', ['user_id' => $this->principal->id, 'session_year_id' => $this->year, 'kind' => 'principal', 'grade_level_id' => null, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic dashboard appointment']);
+        app(TeachingGroups::class)->dated($this->superAdmin(), 'leadership', ['user_id' => $this->principal->id, 'session_year_id' => $this->year, 'kind' => 'principal', 'grade_level_id' => null, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic dashboard appointment']);
     }
 
     private function read(): array
@@ -209,5 +209,11 @@ class LeadershipDashboardTest extends TestCase
         $this->artisan('leadership:prune-activity')->assertSuccessful();
         $this->assertSame(['2025-11-13'], LearnerActivityDay::all()->map(fn ($r) => $r->on_date->toDateString())->all());
         $this->assertSame(1, AttendanceEntry::count());
+    }
+
+    public function test_fresh_school_admin_can_read_trends_without_a_principal_appointment(): void
+    {
+        AcademicLeadership::query()->delete();
+        $this->actingAs($this->superAdmin())->get('/leadership-dashboard')->assertOk()->assertSee('Leadership dashboard');
     }
 }

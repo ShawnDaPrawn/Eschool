@@ -7,6 +7,7 @@ namespace App\Services\Leadership;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -24,9 +25,11 @@ class LeadershipAuthority
         $fresh = $a->staff($actor);
         abort_if($fresh->password_change_required, 403);
         SessionYear::findOrFail($year);
-        // A current principal may examine retained school years, but operators
-        // and ordinary administrators do not inherit leadership appointment.
-        abort_unless($a->currentLeadership($fresh, 'principal', 0), 403);
+        // School administrators and current principals may examine retained years.
+        // A platform identity never inherits this institutional authority.
+        $roles = app(ProfilePolicy::class)->roles($fresh);
+        $admin = array_intersect($roles, ['Admin', 'Super Admin']) !== [] && $a->manages($fresh);
+        abort_unless($admin || $a->currentLeadership($fresh, 'principal', 0), 403);
         $gate = app(ModuleGate::class);
         $gate->forget();
         abort_unless($gate->allows('leadership_dashboard'), 403);

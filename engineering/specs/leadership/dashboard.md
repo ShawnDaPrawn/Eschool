@@ -1,9 +1,9 @@
 # Principal grade trends
 
-The dashboard requires a fresh current principal appointment, an active school
-membership, completed password setup, and the leadership_dashboard module.
-School administrators without the appointment and platform operators, including
-impersonation, cannot open these aggregates. Current principals can inspect
+The dashboard requires a fresh current principal appointment or a school Admin/
+Super Admin with academic-management permission, an active school membership,
+completed password setup, and the leadership_dashboard module. Platform operators,
+including impersonation, cannot open these aggregates. Current principals can inspect
 retained school years; input periods are bounded to twelve weeks, the selected
 school year, and today. Access is checked again after aggregation.
 

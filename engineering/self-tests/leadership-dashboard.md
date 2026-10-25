@@ -6,7 +6,7 @@ enrolment, other-school observations, actual authenticated API observation,
 guardian approval and withdrawal, duplicate daily receipts, current principal
 and module withdrawal, pending-password denial, platform exclusion, bounded
 periods, distinct unavailable/zero metrics and ninety-day observation retention.
-Full configured Larastan and Pint pass.
+Full configured Larastan and Pint pass. The final nine-test/43-assertion cohort also verifies school-admin access without a principal appointment and keeps appointment withdrawal covered with a Teacher principal.
 
 Actual Playwright passed four tests in13.8seconds: principal dashboards at390,
 1024 and1280 pixels and ordinary Teacher403. Period filtering, unavailable-source
