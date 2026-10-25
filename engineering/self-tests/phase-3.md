@@ -504,3 +504,66 @@ risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions*
 Repeated identical refreshes stay idempotent; genuine reversions retain all three
 ordered observations and classroom readers show the latest corrected state.
 Changed-file Pint and complete configured Larastan pass.
+
+The inherited SetSchoolContext/PortalSession formatting is corrected and the
+complete **1,283-file Pint** check passes. The already reviewed Phase 4 Android
+smoke matrix is backported unchanged: family, classic Teacher and native
+facilitator each run their matching target/profile. No startup assertion is
+weakened; emulator execution remains CI verification.
+## Grade calendars and in-flight band selection
+
+Progress configuration now publishes optional allowed term IDs per teaching
+group. Panel and app selectors use that grade calendar instead of the first
+school-wide term. Older servers without this optional field keep notes available
+and omit the independent band selector. Each band request pins its own group,
+learner, term and generation: a late success or refusal from an earlier term
+cannot replace or erase the newly selected band's private state.
+
+The real HTTP/panel cohort passes **21 tests, 360 assertions**, complete configured
+Larastan and **1,250-file Pint**. Both race regressions first fail with the guard
+removed, then pass after restoration; active-selection refusal still erases the
+reader. Shared calendar/notes/session/private-transport qualification passes **29
+tests**, all **75 SDK tests** pass, and SDK analysis has informational lints only.
+The focused Teacher and family entry tests pass **3** and **2** tests respectively.
+All offered locale files retain their translations and receive explicit English
+fallbacks for missing new keys; this is not fluent translation acceptance.
+
+## Staff risk workbench and native follow-up
+
+The actual panel supports school rules, scoped class/signals, independently
+assigned risk caseloads, owner-only actions/history/review and metadata-only
+principal handoff. The classic Teacher route/home/settings and native staff
+follow-up card use the same tested private repository. Counselling, Notes,
+Support and group screens remain present. Family apps receive no risk route.
+
+The combined backend privacy/domain/HTTP/alert cohort passes **39 tests, 462
+assertions**, complete configured Larastan and full Pint. It proves principal
+metadata discovery never selects professional action/outcome columns, fresh
+school/role/account/owner refusals, body-only writes, historical draft guards and
+explicit revision conflict comparison without session flash. Actual panel
+Playwright passes **390 and 1280 pixels**, owned review and escaped script text,
+principal metadata handoff, axe serious/critical checks, duplicate IDs, overflow
+and console/network checks.
+
+Shared qualification passes **17 tests**, including 390/820/1280 layouts, exact
+unknown-outcome UUID retry, stale draft comparison, metadata-only handoff,
+unknown signals, account/bearer/school binding, background erasure and every
+same-account context refresh. App entry/refusal/card preservation tests pass
+**3 tests**; offered-locale/shared-key tests pass **6 tests**. Both actual Chrome
+profiles pass: classic Teacher and native Counsellor, including fresh grant
+withdrawal and private-state erasure. No physical-device or real-school clinical
+acceptance is claimed.
+
+The compatible optional school-calendar `RiskConfiguration.today` and grade-valid
+`ProgressGroup.term_ids` fields are preserved in the combined canonical contract
+and owned fragments. All **83 SDK tests** pass; **1,327 generated Dart files**
+reproduce byte-for-byte. Strict OpenAPI and CI action lint pass. SDK analysis has
+741 generated informational lints, no errors or warnings; shared/app analysis
+has no errors or warnings. Offered languages retain translations with explicit
+English fallback for new keys, pending human language qualification.
+
+Risk API integration now includes the retained observation-ordering migration and
+active hourly scheduler corrections. Its refreshed focused cohort passes **26
+tests, 371 assertions**, full **1,290-file Pint**, and configured Larastan with no
+errors. The inherited Android smoke jobs use their actual family, Teacher and
+facilitator profiles; emulator execution remains CI evidence.

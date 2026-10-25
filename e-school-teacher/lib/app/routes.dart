@@ -126,6 +126,7 @@ class Routes {
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
   static const String progressNotes = '/growth/progress';
+  static const String riskInterventions = '/growth/risk';
   static const String reliefCover = '/pastoral/cover';
   static const String supportPlans = '/pastoral/support';
   static const String wellbeing = '/wellbeing';
@@ -148,6 +149,7 @@ class Routes {
     final route = _buildRoute(routeSettings);
     final module = switch (routeSettings.name) {
       progressNotes => 'academics',
+      riskInterventions => 'early_warning',
       mastery => 'mastery',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -330,6 +332,8 @@ class Routes {
         return academicTimetableRoute();
       case progressNotes:
         return progressNotesRoute();
+      case riskInterventions:
+        return riskInterventionsRoute();
       case mastery:
         return masteryRoute();
       case reliefCover:

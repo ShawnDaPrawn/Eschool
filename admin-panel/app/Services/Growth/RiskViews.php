@@ -93,21 +93,31 @@ class RiskViews
         $authority = app(AcademicAuthority::class);
         $today = $authority->today();
         $groups = TeachingGroup::where('active', true)->where('session_year_id', (int) schoolSetting('session_year'));
-        if (! $authority->currentLeadership($fresh, 'principal', 0)) {
+        $principal = $authority->currentLeadership($fresh, 'principal', 0);
+        if (! $principal) {
             $groups->whereIn('id', TeachingAllocation::whereIn('teacher_id', $authority->teachers($fresh))
                 ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('teaching_group_id'));
         }
         $academic = TeachingGroupMembership::whereIn('teaching_group_id', $groups->select('id'))
             ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->pluck('learner_id')->all();
-        abort_unless($grades !== [] || $learners !== [] || $academic !== [], 403);
+        abort_unless($principal || $grades !== [] || $learners !== [] || $academic !== [], 403);
         $rows = Intervention::select(Interventions::META)->where('session_year_id', $year)
-            ->where(fn ($q) => $q->whereIn('grade_level_id', $grades)->orWhereIn('learner_id', $learners)
-                ->orWhere(fn ($own) => $own->where('owner_id', $fresh->id)->where('owner_authority', 'academic')->whereIn('learner_id', $academic)))
+            ->where(function ($q) use ($principal, $grades, $learners, $fresh, $academic) {
+                if ($principal) {
+                    $q->whereRaw('1 = 1');
+                } else {
+                    $q->whereIn('grade_level_id', $grades)->orWhereIn('learner_id', $learners)
+                        ->orWhere(fn ($own) => $own->where('owner_id', $fresh->id)->where('owner_authority', 'academic')->whereIn('learner_id', $academic));
+                }
+            })
             ->orderByRaw("CASE WHEN state = 'active' THEN 0 ELSE 1 END")->orderBy('review_on')->orderBy('id')->paginate(50, ['*'], 'page', max(1, $page));
+
+        $names = Students::whereIn('id', $rows->pluck('learner_id'))->with('user')->get()->mapWithKeys(fn ($learner) => [(int) $learner->id => trim(($learner->user?->first_name ?? '').' '.($learner->user?->last_name ?? ''))]);
+        $owners = User::whereIn('id', $rows->pluck('owner_id'))->get(['id', 'first_name', 'last_name'])->mapWithKeys(fn ($person) => [(int) $person->id => trim($person->first_name.' '.$person->last_name)]);
 
         return ['session_year_id' => $year, 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(),
             'interventions' => $rows->map(fn ($r) => ['id' => (int) $r->id, 'learner_id' => (int) $r->learner_id,
-                'owner_id' => (int) $r->owner_id, 'grade_level_id' => (int) $r->grade_level_id, 'review_on' => $r->review_on->toDateString(),
+                'owner_id' => (int) $r->owner_id, 'learner_name' => $names->get((int) $r->learner_id, __('Archived learner')), 'owner_name' => $owners->get((int) $r->owner_id, __('Former staff member')), 'grade_level_id' => (int) $r->grade_level_id, 'review_on' => $r->review_on->toDateString(),
                 'state' => $r->state, 'revision' => $r->revision, 'can_read_body' => $this->canReadBody($fresh, $r)])->all()];
     }
 

@@ -21,7 +21,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Licensed past papers and exam coach | Mastery, timetable, vision/media safety | Queued |
 | Staff-approved teaching drafts and task insights | Marks, content and gateway | Queued |
 | Language-approved weekly parent digest | Own-child records, notifications and approved templates | Queued; no unreviewed free generation |
-| Risk signals and staff-owned interventions | Marks, attendance, discipline and wellbeing counts | Queued; no learner-facing risk labels |
+| Risk signals and staff-owned interventions | Marks, attendance and confirmed discipline counts; wellbeing unavailable pending explicit disclosure | Immutable dated observations, private typed API/SDK, separate caseloads, owner review/handoff panel and classic/native staff apps implemented and tested in review; no learner-facing risk labels |
 | Discipline framework, sanctions, detentions, escalation and acknowledgement | Fresh staff/guardian policies and audit | Queued; principal hearing referral, never automatic expulsion |
 | My grade dashboard and actions | Existing dated AcademicLeadership appointments | Queued; award nominations integrate after Phase 4 awards |
 | Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Cover and restricted support domain/API/panel/staff apps implemented in review; principal attendance/activity dashboard implemented and browser-tested; risk/discipline adapters follow, later money data remains separate |

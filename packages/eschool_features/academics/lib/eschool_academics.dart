@@ -67,6 +67,9 @@ export 'src/support/support_repository.dart';
 export 'src/support/support_screen.dart';
 export 'src/support/support_session_boundary.dart';
 
+export 'src/risk/risk_repository.dart';
+export 'src/risk/risk_session_boundary.dart';
+export 'src/risk/risk_screen.dart';
 export 'src/transfers/transfer_repository.dart';
 export 'src/transfers/transfer_consent_screen.dart';
 export 'src/transfers/transfer_session_boundary.dart';

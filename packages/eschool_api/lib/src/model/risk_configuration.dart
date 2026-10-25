@@ -32,6 +32,8 @@ class RiskConfiguration {
     required this.settings,
 
     required this.years,
+
+    this.today,
   });
 
   // minimum: 1
@@ -56,6 +58,9 @@ class RiskConfiguration {
   @JsonKey(name: r'years', required: true, includeIfNull: false)
   final List<ProgressOption> years;
 
+  @JsonKey(name: r'today', required: false, includeIfNull: false)
+  final String? today;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -66,7 +71,8 @@ class RiskConfiguration {
           other.gradeIds == gradeIds &&
           other.groups == groups &&
           other.settings == settings &&
-          other.years == years;
+          other.years == years &&
+          other.today == today;
 
   @override
   int get hashCode =>
@@ -76,7 +82,8 @@ class RiskConfiguration {
       gradeIds.hashCode +
       groups.hashCode +
       settings.hashCode +
-      years.hashCode;
+      years.hashCode +
+      today.hashCode;
 
   factory RiskConfiguration.fromJson(Map<String, dynamic> json) =>
       _$RiskConfigurationFromJson(json);

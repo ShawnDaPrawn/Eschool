@@ -32,6 +32,11 @@ ProgressGroup _$ProgressGroupFromJson(Map<String, dynamic> json) =>
             'session_year_id',
             (v) => (v as num).toInt(),
           ),
+          termIds: $checkedConvert(
+            'term_ids',
+            (v) =>
+                (v as List<dynamic>?)?.map((e) => (e as num).toInt()).toList(),
+          ),
         );
         return val;
       },
@@ -40,6 +45,7 @@ ProgressGroup _$ProgressGroupFromJson(Map<String, dynamic> json) =>
         'subjectName': 'subject_name',
         'gradeName': 'grade_name',
         'sessionYearId': 'session_year_id',
+        'termIds': 'term_ids',
       },
     );
 
@@ -51,4 +57,5 @@ Map<String, dynamic> _$ProgressGroupToJson(ProgressGroup instance) =>
       'subject_name': instance.subjectName,
       'grade_name': instance.gradeName,
       'session_year_id': instance.sessionYearId,
+      'term_ids': ?instance.termIds,
     };

@@ -50,6 +50,7 @@ RiskConfiguration _$RiskConfigurationFromJson(Map<String, dynamic> json) =>
                 .map((e) => ProgressOption.fromJson(e as Map<String, dynamic>))
                 .toList(),
           ),
+          today: $checkedConvert('today', (v) => v as String?),
         );
         return val;
       },
@@ -70,4 +71,5 @@ Map<String, dynamic> _$RiskConfigurationToJson(RiskConfiguration instance) =>
       'groups': instance.groups.map((e) => e.toJson()).toList(),
       'settings': instance.settings.toJson(),
       'years': instance.years.map((e) => e.toJson()).toList(),
+      'today': ?instance.today,
     };

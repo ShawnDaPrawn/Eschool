@@ -23,6 +23,17 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 /** Bounded metadata pickers; no observation evidence or intervention body. */
 class RiskQueries
 {
+    public function available(User $actor): bool
+    {
+        try {
+            $this->configuration($actor);
+
+            return true;
+        } catch (HttpExceptionInterface|ModelNotFoundException) {
+            return false;
+        }
+    }
+
     public function configuration(User $actor): array
     {
         $a = app(RiskAuthority::class);
@@ -46,7 +57,7 @@ class RiskQueries
         $groups = app(ProgressQueries::class)->configuration($fresh)['groups'];
         abort_unless($principal || $professional || $head !== [] || $groups !== [], 403);
 
-        return ['session_year_id' => $year, 'can_manage' => $principal, 'can_read_signals' => $head !== [] || $professional,
+        return ['session_year_id' => $year, 'today' => app(AcademicAuthority::class)->today(), 'can_manage' => $principal, 'can_read_signals' => $head !== [] || $professional,
             'grade_ids' => $head, 'groups' => $groups, 'settings' => app(RiskSettingsService::class)->values(),
             'years' => SessionYear::withTrashed()->orderByDesc('start_date')->limit(100)->get()->map(fn ($y) => ['id' => (int) $y->id, 'name' => $y->name])->all()];
     }

@@ -195,7 +195,7 @@ class Interventions
             'payload' => ['kind' => 'record', 'action' => $row->action, 'outcome' => $row->outcome, 'review_on' => $row->review_on->toDateString(), 'state' => $row->state], 'created_at' => now()]);
     }
 
-    private function metadata(Intervention $row): array
+    public function metadata(Intervention $row): array
     {
         return ['id' => (int) $row->id, 'learner_id' => (int) $row->learner_id, 'session_year_id' => (int) $row->session_year_id,
             'grade_level_id' => (int) $row->grade_level_id, 'owner_authority' => $row->owner_authority, 'owner_id' => (int) $row->owner_id, 'started_on' => $row->started_on->toDateString(),

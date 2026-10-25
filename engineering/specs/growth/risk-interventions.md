@@ -27,7 +27,7 @@ due/status/owner only. Ownership never substitutes for current role/caseload.
 New cases use the current school year; owned active actions may continue across
 rollover while preserving that reporting year. ACL revocation also works for
 retained years. Mutations use optimistic revisions and private body-only
-requests in the forthcoming HTTP layer. No private input enters global plaintext
+requests in the private HTTP layer. No private input enters global plaintext
 replay or session flash. Principal metrics consume dated observation history,
 not today's enrolment joined backwards. Shared dashboard adapter counts distinct
 learners from its supplied dated cohort, returns null for unavailable sources,
@@ -43,8 +43,8 @@ the original authority kind and never retrieves the action or outcome. Metadata
 can remain visible to grade leadership after a professional grant ends, but body
 availability is independently rechecked against the original professional grant.
 
-This domain increment precedes its typed HTTP contracts and panel/app workflows;
-those consumers are not represented by placeholder navigation.
+The domain, typed HTTP contract and actual staff panel/app workflows are
+implemented in separate reviewable increments.
 
 ## Private v2 contract and client
 
@@ -70,10 +70,22 @@ columns. Retained active actions can be reviewed without rewriting their year.
 
 The owned OpenAPI fragment and canonical contract preserve all preceding paths
 and schemas; generated Dart models use calendar strings for day-only fields and
-nullable scores for unavailable sources. Staff panel/native consumers follow in
-the next increment; no learner/parent risk navigation is introduced.
+nullable scores for unavailable sources. Actual staff panel/native consumers
+share the private repository; no learner/parent risk navigation is introduced.
 
 
+
+## Staff workbench and applications
+
+The actual workbench separates review actions, class follow-up, scoped signals,
+metadata-only caseload administration and principal rule settings. Principal
+assignment metadata includes retained action IDs and names for eligible handoff,
+without loading action/outcome; only the exact original-kind owner can open the
+body. Private drafts remain in memory or the direct escaped response. Historical
+refusals authorize the same school/account/record before reflecting a draft,
+never session-flash it. Conflicts require explicit comparison with the fresh
+revision. Account/school changes invalidate in-flight app replies and clear
+private screens. Family shells receive no risk route or label.
 Current-state ordering deduplicates only against the immediately latest same-day
 observation. A real A → B → A correction appends another immutable row, so readers
 that select the latest ID show the restored facts. A forward migration retains

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Growth;
 
 use App\Models\Academics\AcademicLeadership;
+use App\Models\Academics\GradeLevel;
 use App\Models\Growth\LearnerNote;
 use App\Models\Growth\LearnerNoteAssignment;
 use App\Models\Growth\LearnerNoteOperation;
@@ -12,6 +13,9 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Teacher;
+use App\Models\Term;
+use App\Services\Academics\TeachingGroups;
 use App\Services\Growth\LearnerNoteOperations;
 use App\Services\Growth\LearnerNotes;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -217,5 +221,23 @@ class ProgressNotesApiTest extends TestCase
         $this->actingAs($this->actor('farid'))->getJson($this->prefix.'/learners/'.$this->schoolB->ids['asha'].'/periods')->assertNotFound();
         LearnerApproval::query()->update(['withdrawn_at' => now()]);
         $this->getJson($url.'/bands?session_year_id='.$this->year.'&term_id='.$this->term)->assertForbidden();
+    }
+
+    public function test_progress_configuration_supplies_grade_valid_terms_for_each_allocated_group(): void
+    {
+        Term::whereKey($this->term)->update(['start_date' => '2026-01-02', 'grade_from' => 7, 'grade_to' => 7]);
+        $other = Term::create(['session_year_id' => $this->year, 'name' => 'Other grade first term', 'start_date' => '2026-01-01', 'end_date' => '2026-03-31', 'grade_from' => 8, 'grade_to' => 8]);
+        $group = app(TeachingGroups::class)->save($this->superAdmin(), ['name' => 'Other grade allocation', 'subject_id' => $this->subject,
+            'grade_level_id' => GradeLevel::where('code', '8')->value('id'), 'session_year_id' => $this->year, 'class_section_id' => null, 'active' => true]);
+        app(TeachingGroups::class)->dated($this->superAdmin(), 'teachers', ['teacher_id' => Teacher::where('user_id', $this->actor()->id)->value('id'),
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic second grade allocation'], (int) $group->id);
+        $data = $this->actingAs($this->actor())->getJson($this->prefix.'/configuration')->assertOk()->json('data');
+        $this->assertSame((int) $other->id, $data['terms'][0]['id']);
+        $first = collect($data['groups'])->firstWhere('id', $this->group);
+        $second = collect($data['groups'])->firstWhere('id', (int) $group->id);
+        $this->assertContains($this->term, $first['term_ids']);
+        $this->assertNotContains((int) $other->id, $first['term_ids']);
+        $this->assertContains((int) $other->id, $second['term_ids']);
+        $this->assertNotContains($this->term, $second['term_ids']);
     }
 }

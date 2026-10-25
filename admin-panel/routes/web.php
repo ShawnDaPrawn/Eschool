@@ -42,6 +42,7 @@ use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
+use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
@@ -798,4 +799,14 @@ Route::middleware(['auth', 'school.context', 'staff', 'module:academics', Enforc
     Route::post('learners/{learner}/assignments', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('assign');
     Route::post('learners/{learner}/assignments/revoke', [ProgressPanelController::class, 'write'])->whereNumber('learner')->name('revoke-assignment');
     Route::post('settings', [ProgressPanelController::class, 'write'])->name('configure');
+});
+
+Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:early_warning', EnforceReadOnlyYears::class])->prefix('risk-interventions')->name('risk-interventions.')->group(function () {
+    Route::get('/', [RiskPanelController::class, 'index'])->name('index');
+    Route::post('learners/{learner}/interventions', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('create');
+    Route::post('interventions/{intervention}', [RiskPanelController::class, 'write'])->whereNumber('intervention')->name('update');
+    Route::post('interventions/{intervention}/owner', [RiskPanelController::class, 'write'])->whereNumber('intervention')->name('transfer');
+    Route::post('learners/{learner}/assignments', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('assign');
+    Route::post('learners/{learner}/assignments/revoke', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('revoke');
+    Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
 });

@@ -345,9 +345,14 @@ jobs:
           - app: e-school-teacher
             flow: teacher_notes_smoke_test.dart
           - app: e-school-teacher
+            flow: teacher_risk_smoke_test.dart
+          - app: e-school-teacher
             flow: teacher_wellbeing_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_notes_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: facilitator_risk_smoke_test.dart
             flavor: facilitator
     defaults:
       run:

@@ -11,6 +11,7 @@ use App\Models\Growth\LearnerNoteAssignment;
 use App\Models\Growth\ProgressBandSettings;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\SessionYear;
+use App\Models\Term;
 use App\Services\Growth\LearnerNotes;
 use App\Services\Panel\Navigation;
 use App\Services\Platform\Tenancy\SchoolRoles;
@@ -149,5 +150,13 @@ class ProgressNotesPanelTest extends TestCase
         $this->assertFalse(app(Navigation::class)->visible($item, $this->actor()));
         PlatformStaffIdentity::create(['user_id' => $this->superAdmin()->id]);
         $this->assertSame(0, LearnerNote::count());
+    }
+
+    public function test_panel_chooses_a_grade_valid_term_without_blocking_independent_notes(): void
+    {
+        Term::whereKey($this->term)->update(['start_date' => '2026-01-02', 'grade_from' => 7, 'grade_to' => 7]);
+        Term::create(['session_year_id' => $this->year, 'name' => 'Other grade first term', 'start_date' => '2026-01-01', 'end_date' => '2026-03-31', 'grade_from' => 8, 'grade_to' => 8]);
+        $this->capture('8.00', '8.00');
+        $this->actingAs($this->actor())->get($this->url())->assertOk()->assertSee('Current progress band')->assertSee('80.00%')->assertDontSee('Other grade first term');
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Policies\Growth\LearnerNotesPolicy;
 use App\Policies\People\ProfilePolicy;
+use App\Services\Growth\RiskQueries;
 use App\Services\ParentPolicyService;
 use App\Services\Pastoral\SensitiveRecordsAccess;
 use App\Services\Pastoral\SupportAuthority;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class FacilitatorAccess
 {
@@ -79,7 +81,7 @@ class FacilitatorAccess
             'roles' => array_values(array_intersect(app(ProfilePolicy::class)->roles($fresh), self::ROLES)),
             'schools' => $choices->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name, 'slug' => $row->slug])->all(),
             'features' => ['groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
-                'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh)]];
+                'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh), 'risk_interventions' => $this->riskAvailable($fresh)]];
     }
 
     private function notesAvailable(User $actor): bool
@@ -90,6 +92,17 @@ class FacilitatorAccess
 
             return true;
         } catch (HttpException|ModelNotFoundException $error) {
+            return false;
+        }
+    }
+
+    private function riskAvailable(User $actor): bool
+    {
+        try {
+            app(RiskQueries::class)->configuration($actor);
+
+            return true;
+        } catch (HttpExceptionInterface|ModelNotFoundException $error) {
             return false;
         }
     }

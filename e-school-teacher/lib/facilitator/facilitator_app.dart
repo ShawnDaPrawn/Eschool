@@ -403,6 +403,32 @@ class _StaffHome extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          if (profile.features['risk_interventions'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.assignment_ind_outlined),
+                title: Text(l('Staff follow-up')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'risk_interventions',
+                  RiskInterventionsScreen(
+                    repository: ApiRiskRepository(
+                      repository.client,
+                      schoolId: school,
+                      readerId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['risk_interventions'] ==
+                              true,
+                    ),
+                    canRead: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['risk_interventions'] ==
+                            true,
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['learner_notes'] == true)
             Card(
               child: ListTile(
@@ -516,6 +542,7 @@ class _StaffHome extends StatelessWidget {
             'messages',
             'support_plans',
             'learner_notes',
+            'risk_interventions',
             'counselling',
           ].any((key) => profile.features[key] == true))
             Padding(

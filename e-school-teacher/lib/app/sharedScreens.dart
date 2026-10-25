@@ -109,6 +109,17 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.isModuleOn('early_warning') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'early_warning',
+        ))
+      tile(
+        title: label('Staff follow-up'),
+        icon: Icons.assignment_ind_outlined,
+        onTap: () => open(Routes.riskInterventions),
+      ),
     if (allowsSchoolModule(
       context.watch<MeContextCubit>().context,
       'academics',
@@ -806,6 +817,63 @@ Route<dynamic> wellbeingRoute() => AdaptivePageRoute(
                 active() &&
                 (schools.state.selectedId == null ||
                     schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> riskInterventionsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId;
+    final account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        me.currentSchoolId != school ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        !allowsSchoolModule(me, 'early_warning')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Staff follow-up'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: RiskSessionBoundary(
+        pinned: me,
+        child: RiskInterventionsScreen(
+          canRead: () =>
+              riskAccessStillCurrent(me, session.context) &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+          repository: ApiRiskRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () =>
+                riskAccessStillCurrent(me, session.context) &&
+                session.context?.user?.id == account &&
+                session.context?.currentSchoolId == school &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                allowsSchoolModule(session.context, 'early_warning'),
           ),
         ),
       ),

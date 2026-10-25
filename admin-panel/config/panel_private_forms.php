@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Growth\ProgressPanelScope;
+use App\Services\Growth\RiskPanelScope;
 use App\Services\Pastoral\SupportPanelScope;
 use App\Services\Transfers\TransferPanelScope;
 use App\Services\Wellbeing\WellbeingPanelScope;
@@ -8,6 +9,8 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['risk-interventions', 'risk-interventions/*'], 'title' => 'Early warning and interventions', 'route' => 'risk-interventions.index', 'guard' => RiskPanelScope::class,
+        'fields' => ['action' => ['label' => 'Your intervention action draft', 'limit' => 20000], 'outcome' => ['label' => 'Your review outcome draft', 'limit' => 20000], 'reason' => ['label' => 'Your handoff reason draft', 'limit' => 1000]]],
     ['paths' => ['school-transfers', 'school-transfers/*'], 'title' => 'School transfers', 'route' => 'school-transfers.index', 'guard' => TransferPanelScope::class, 'fields' => ['external_school' => ['label' => 'Receiving school', 'limit' => 160]]],
     ['paths' => ['wellbeing', 'wellbeing/*'], 'title' => 'Incidents and counselling', 'route' => 'wellbeing.index', 'guard' => WellbeingPanelScope::class,
         'fields' => ['body' => ['label' => 'Private text', 'limit' => 20000], 'notes' => ['label' => 'Appointment notes', 'limit' => 20000], 'reason' => ['label' => 'Reason for this change', 'limit' => 2000],
