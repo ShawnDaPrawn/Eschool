@@ -13,10 +13,10 @@ automated isolation/authority tests and affected-profile self-test record.
 
 | Work | Depends on | State / specification |
 | --- | --- | --- |
-| AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | First staff-only foundation in progress; [spec](../specs/ai/gateway-foundation.md) |
-| Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Queued; counselling needs restricted shared policy |
+| AI gateway, prompts, moderation, metering, evaluation | Existing transcription and platform kernel | Staff gateway, protocol adapters and feature-scoped ownership/approval/caps/deadline service implemented; domain sources, media and operations UI continue; [spec](../specs/ai/feature-inference.md) |
+| Bands, alerts and tutor/staff/counselling learner notes | Running marks, fresh allocation/guardian policies | Domain and private v2/typed SDK implemented: encrypted notes/caseload/revisions and running/released bands; alerts and client workflows follow; [spec](../specs/growth/progress-notes.md) |
 | Tutor sessions, subject/source lock, scanned photo feedback and summaries | Reviewed gateway, notes, content | Queued; no learner inference enabled by the foundation |
-| Topic dependencies, evidence and mastery map | Question marks and published curriculum | Backend engine implemented; [spec](../specs/growth/mastery.md); v2/shared views follow |
+| Topic dependencies, evidence and mastery map | Question marks and published curriculum | Engine, v2 contract, panel and learner/parent/teacher views implemented in review; [spec](../specs/growth/mastery.md); verified practice/tutor evidence adapters follow |
 | Daily practice, FSRS reviews, offline daily sets and streaks | Mastery, published content, gateway | Queued |
 | Licensed past papers and exam coach | Mastery, timetable, vision/media safety | Queued |
 | Staff-approved teaching drafts and task insights | Marks, content and gateway | Queued |
@@ -27,20 +27,24 @@ automated isolation/authority tests and affected-profile self-test record.
 | Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Queued; later money data remains a separate integration |
 | Consented inter-school transfers and external signed packages | Existing dated changes and private exit packages | Queued; round-trip authorization and atomic enrolment tests |
 
-## First foundation boundary
+## Gateway implementation and release boundary
 
-Extend `AiGateway` while retaining its existing local transcription path. Build
-versioned prompts, typed inference contracts, conservative quota reservations,
-input/output moderation interfaces and a recorded-observation scoring command.
-The initial executable inference path is internal staff text/embedding only.
-Production configuration is disabled with no provider adapters or credentials.
-Vision refuses until a Files-backed scanned/redacted media policy exists.
-Students/parents remain refused even if mistakenly listed in feature settings.
+The existing local transcription path is retained. Versioned prompts, typed
+complete/embed contracts, input/output moderation, encrypted receipts, bounded
+HTTP adapters for three providers and recorded-observation scoring are built.
+The legacy entry point remains staff-only. Registered features must use
+`AiGateway::runFeature` and cannot bypass their policy through the staff API.
+Feature policies resolve immutable authorized sources; the gateway independently
+checks fresh actor/school/guardian/learner/subject scope, learner/actor/school
+budgets, receipt intent and a ten-second overall deadline. Qualification and
+bounded payload preflight make no network calls; known local refusals settle zero
+while unknown dispatched outcomes consume the full conservative reservation.
 
-Bounded provider/text-moderation adapters are the next implemented slice
-([spec](../specs/ai/provider-adapters.md)); all remain unqualified and disabled.
-Learner authorization/caps, source loaders, feature-specific moderation policies, safeguarding review/retention UI, live evaluation capture and
-cost administration are subsequent work, not completed by this first slice.
+The feature-policy registry is empty by default, external inference is disabled,
+and providers remain unqualified. Concrete feature source loaders, safe Files
+vision, safeguarding review/retention and cost administration UI, and live-model
+evaluation capture remain subsequent feature work. No fake adapter result
+qualifies real provider safety or billing. Independent implementation continues.
 
 ## Concurrent integration and evidence
 

@@ -6,6 +6,7 @@ namespace Tests\Unit\Ai;
 
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Inference\Capability;
+use App\Services\Ai\Inference\InferenceDeadline;
 use App\Services\Ai\Inference\ModerationContext;
 use App\Services\Ai\Inference\ProviderRequest;
 use App\Services\Ai\Providers\AnthropicProvider;
@@ -94,6 +95,39 @@ class ProviderAdaptersTest extends TestCase
             $this->assertSame(15, $value['timeout']);
             $this->assertSame(3, $value['connect_timeout']);
         }
+    }
+
+    public function test_preflight_is_network_free_and_every_http_timeout_uses_the_remaining_feature_allowance(): void
+    {
+        $old = $this->request();
+        $deadline = new InferenceDeadline((int) hrtime(true) + 1000000000);
+        $request = new ProviderRequest($old->capability, $old->operationId, $old->model, $old->anonymousActor, $old->systemPrompt, $old->input,
+            $old->maximumTokens, $old->maximumTotalTokens, $deadline);
+        $this->fake(function ($outbound, $options) {
+            $this->assertGreaterThan(0, $options['timeout']);
+            $this->assertLessThanOrEqual(1, $options['timeout']);
+            $this->assertLessThanOrEqual($options['timeout'], $options['connect_timeout']);
+            $this->assertSame($options['timeout'], $options['read_timeout']);
+
+            return Http::response($this->chat());
+        });
+        app(OpenAiProvider::class)->preflight($request);
+        Http::assertNothingSent();
+        $this->assertSame(32, app(OpenAiProvider::class)->infer($request)->tokens);
+        Http::assertSentCount(1);
+        $expired = new ProviderRequest($old->capability, (string) Str::uuid(), $old->model, $old->anonymousActor, $old->systemPrompt, $old->input,
+            $old->maximumTokens, $old->maximumTotalTokens, new InferenceDeadline((int) hrtime(true) - 1));
+        $this->refusal(fn () => app(OpenAiProvider::class)->preflight($expired), 'inference_deadline_exceeded');
+        Http::assertSentCount(1);
+    }
+
+    public function test_inconsistent_provider_total_usage_cannot_understate_metering(): void
+    {
+        $data = $this->chat();
+        $data['usage']['total_tokens'] = 9999;
+        $this->fake(fn () => Http::response($data));
+        $this->refusal(fn () => app(OpenAiProvider::class)->infer($this->request()), 'provider_usage_invalid');
+        Http::assertSentCount(1);
     }
 
     public function test_unqualified_or_disabled_providers_and_invalid_origins_never_send(): void

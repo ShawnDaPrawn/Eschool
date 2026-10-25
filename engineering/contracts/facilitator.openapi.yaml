@@ -134,6 +134,14 @@ components:
           type: boolean
         messages: *id002
         counselling: *id002
+        support_plans:
+          type: boolean
+          description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
+            record-specific authority is still required.
+        learner_notes:
+          type: boolean
+          description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
+            record-specific authority is still required.
     FacilitatorProfile:
       type: object
       additionalProperties: false

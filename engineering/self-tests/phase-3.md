@@ -145,3 +145,165 @@ activity-subtree checks. The integrated mastery/activity cohort passes **48 test
 An explicit private-response middleware now covers every HTTP method, including
 graph receipts, conflict errors, cached receipt replay and repair POST responses;
 Laravel's cache-header middleware only covers cacheable methods.
+
+## Feature-scoped inference, learner caps and bounded transport
+
+Implemented the separate server-registered feature-policy contract, immutable
+resolved school/actor/learner/subject scope, fresh guardian approval and own-family
+checks, staff/family audience separation, learner quotas alongside actor/school
+quotas and source/role checks before replay and around every external stage.
+Registered features cannot bypass their resolver using the old staff entry point.
+Existing staff receipt hashes and local transcription history remain compatible;
+the existing nullable learner usage reference is reused with additive budget
+indexes. Feature calls restore the caller's tenant after callback misbehavior.
+
+Provider and moderator preflight validate locally before any external moderation.
+Known-not-dispatched refusals settle zero, including qualification revoked after
+input moderation; unknown HTTP outcomes retain the full reservation. Validated
+provider results settle known tokens even when output is quarantined. Per-stage
+HTTP/socket timeouts clip to one monotonic overall deadline; response-size and
+usage-total consistency checks remain strict.
+
+Verification: affected feature/foundation/provider/content/tenant-migration cohort
+**65 passed, 869 assertions**. Focused feature/provider run **21 passed, 173
+assertions**, changed-file Pint and full configured Larastan pass. Tests include
+wrong role/owner/school/subject, unapproved and revoked learner access, exact-intent
+replay, source/role withdrawal, shared learner caps across guardian/student
+accounts, context replacement, zero HTTP with an unqualified inference provider,
+qualification change after moderation, unknown HTTP failures, late-result
+suppression, timeout option propagation, quarantine metering and retained content
+transcription behavior. The HTTP fake recorder omits failed requests, so unknown
+outcome tests explicitly count attempted callbacks as well as ledger settlement.
+
+These checks prove software authorization/accounting/protocol boundaries using
+synthetic fixtures. They do not certify real-provider safety, privacy, latency or
+cost. The production registry remains empty, all providers unqualified, and no
+paid inference was activated or called. Vision and real domain source policies
+remain tied to their upcoming feature workflows.
+
+## Progress-band and learner-note domain
+
+Implemented the step-2 domain with four tenant tables: configurable integer
+80/65 bands and minimum assessed share (25% implementation default), encrypted
+note bodies and immutable encrypted revisions, and separate dated note caseload
+assignments. Academic authority uses fresh current teaching scope or dated
+leadership. Counselling requires both the dedicated restricted-role boundary and
+an explicit note assignment; principal metadata administration grants no body
+access. Visibility/learner/subject/author remain fixed during body edits.
+Author access is withdrawn immediately when their scope ends. Body and history
+reads are audited without private text or clinical labels. Historical writes and
+destructive rollback with retained notes/caseload are refused.
+
+Staff bands use current running snapshots; family bands use the running value of
+an approved learner's frozen released snapshot, preserving official totals as a
+separate value. Unreleased corrections cannot change a family's band. Insufficient
+assessed coverage remains distinct from an assessed zero.
+
+Verification: a combined cohort passed **39 tests, 883 assertions** covering
+notes/bands, mastery, restricted-role access, actual migration rollback/backfill
+and schema/model tenancy registration. The final expanded focused suite passed
+**11 tests, 81 assertions**, including a maximum 20,000-character multibyte body
+whose ciphertext exceeds 64 KiB, immutable history, refusal before body SQL loads,
+clinical audit redaction, role/allocation/guardian/caseload revocation, wrong
+school/learner/subject/author and retained-data rollback. Pint and full configured
+Larastan passed. No model/provider calls were made. HTTP/client workflows and
+rule-aware queued alerts are subsequent work; step 2 is not yet complete.
+
+## Mastery app and panel views
+
+Implemented shared learner/parent/staff Material 3 screens, own-subject and
+allocated group/learner selectors, paginated rosters, three root topics, human
+grade/path labels and a separate evidence view. Phones expose bottom navigation;
+tablet/desktop layouts use a rail. Home, Settings, module guards and deep links
+are wired in both existing apps. Reader/account/school/child boundaries,
+backgrounding, refused refreshes and late responses suppress private state; no
+mastery cache is persisted. Hidden evidence is distinct from assessed zero.
+
+The panel provides scoped learner guidance, published-source refresh and a
+sourced acyclic prerequisite editor with empty/add/remove/clear behavior,
+school-wide family opt-in wording, optimistic conflict comparison and escaped
+validation draft recovery. Ordinary teachers have no graph editor. Private-cache
+headers cover all response methods. New en/af/zu labels are supplied; all other
+existing app languages retain explicit English fallback keys. Human language
+review remains external acceptance, not an automated fluency claim.
+
+Verification: **30 PHP tests passed, 308 assertions**, changed-file Pint and full
+configured Larastan pass. **21 shared Flutter unit/widget/localization tests
+passed**, including account/school/token/subject/audience refusal races, lifecycle
+clearing, unknown-versus-zero, hidden evidence, pagination and 390/820/1280px
+layouts. Full-app headless Chrome flows pass for **learner, parent and teacher**
+using synthetic HTTP fixtures. The actual panel Playwright workflow passes at
+**390, 820 and 1280px**, including saved edge/source values, teacher read-only
+authority, no serious/critical axe issues, no horizontal overflow and no console
+or request failures. TypeScript typecheck and JavaScript syntax check pass.
+Physical devices, live school datasets, calibrated learning judgments and human
+staging acceptance were not run. Tutor/practice evidence adapters remain tied
+to their upcoming verified review workflows.
+
+The mastery-specific session boundary also unmounts private evidence when the
+same account receives changed roles, guardian-child authority or module context;
+three regression tests pass. Both app language/shared-label suites pass (six tests
+each), and focused new Dart sources/tests analyze without issues. The new
+learner/parent and teacher Chrome flows are included in the CI matrix.
+
+Cookie-session account replacement is now rejected before mastery data loading:
+all mastery app reads send the optional expected-account header, and the owned
+contract fragment matches the shared canonical contract. A same-account context
+refresh recreates the mastery state and reloads server authorization even when
+roles/module flags remain identical, covering direct allocation or permission
+revocation. Cookie replacement and unchanged-profile permission refresh have
+specific regression tests. Combined mastery/API/panel/activity checks pass:
+**40 PHP tests, 758 assertions**; full Larastan and Pint pass. The shared suite
+now passes **23 tests** and focused changed Dart analysis has no issues. The
+shared expected-account, SDK and activity application additions are retained.
+These new regression checks do not claim physical-device or live-school testing.
+
+The restricted-note boundary also excludes platform identities from principal
+caseload metadata administration. A regression first proved the old metadata
+read was allowed, then passed with the explicit exclusion on both read and write.
+The domain suite now passes **12 tests, 84 assertions**; Pint and full Larastan
+pass. The isolated check uses only the same synthetic school fixtures.
+
+The mastery engine now includes canonical main's relief-cover prerequisite with
+both modules, package entitlements and tenant registries preserved. The combined
+engine/cover/tenant-schema/migration cohort passes **37 tests, 795 assertions**.
+Pint and full Larastan pass. The static check exposed two legacy lowercase
+`softDeletes` imports that depended on a different worker loading the trait first;
+Shift and Stream now use canonical `SoftDeletes`, and both cold-autoload checks
+pass. This integration adds no API or SDK changes.
+
+## Progress and learner-note v2 API
+
+Fifteen private operations now support staff configuration/current rosters,
+principal assignment recipients, own clinical caseload, running staff bands,
+approved own-family released periods/bands, note metadata/body/history, revisioned
+note writes and separate principal caseload administration. Stable operation UUIDs
+use encrypted LONGTEXT receipts and keyed intent hashes, with fresh authority
+before replay. Bodies do not enter global plaintext idempotency storage. Context
+replacement is refused and the original school restored. Expected-account headers
+protect cookie replacement. Visibility/owner changes are rejected explicitly.
+
+The combined domain/API/facilitator/tenancy/actual-migration cohort passed
+**39 tests, 1,671 assertions**, validating every new API response against the
+combined canonical contract. This includes complete maximum multibyte receipt
+replay, role/assignment/guardian revocation, platform exclusion, wrong
+school/learner/subject/author and no clinical-body SQL during feature discovery.
+Pint, full configured Larastan, strict OpenAPI lint and TypeScript pass.
+
+Pinned generation produced **1,041 Dart files**. All **67 SDK tests** pass;
+analysis has only **591 generated informational lints**, with no errors or
+warnings. Optional facilitator support_plans/learner_notes properties preserve
+older three-field JSON omission and serialize supplied false values. A clean
+second pinned regeneration reproduced every generated Dart byte. The canonical
+contract retains prior bytes and adds the owned paths/schemas and two optional
+capabilities; all owned definitions match the canonical contract.
+
+Panel/app note workflows and queued progress alerts continue in the next
+increment. No physical-device, live-school, clinical-language or real-model
+qualification is claimed, and no provider was activated or contacted.
+
+The complete canonical API catalogue/contract suite also passes **283 tests,
+1,379 assertions**, including an anonymous refusal scenario for each new route
+alongside the feature suite's real authorized workflows. The merged teacher app
+analyzes with no errors or warnings (27 existing informational lints). The latest
+reviewed support browser fixes and flow selector are retained.

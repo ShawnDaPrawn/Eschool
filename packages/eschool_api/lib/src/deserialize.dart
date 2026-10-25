@@ -360,6 +360,21 @@ import 'package:eschool_api/src/model/guardian_invitation_preview_response.dart'
 import 'package:eschool_api/src/model/handle_proposal.dart';
 import 'package:eschool_api/src/model/handle_state.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
+import 'package:eschool_api/src/model/learner_note_assignment.dart';
+import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
+import 'package:eschool_api/src/model/learner_note_assignment_write.dart';
+import 'package:eschool_api/src/model/learner_note_assignments.dart';
+import 'package:eschool_api/src/model/learner_note_assignments_response.dart';
+import 'package:eschool_api/src/model/learner_note_create.dart';
+import 'package:eschool_api/src/model/learner_note_detail.dart';
+import 'package:eschool_api/src/model/learner_note_detail_response.dart';
+import 'package:eschool_api/src/model/learner_note_history.dart';
+import 'package:eschool_api/src/model/learner_note_history_response.dart';
+import 'package:eschool_api/src/model/learner_note_list.dart';
+import 'package:eschool_api/src/model/learner_note_list_response.dart';
+import 'package:eschool_api/src/model/learner_note_metadata.dart';
+import 'package:eschool_api/src/model/learner_note_revision.dart';
+import 'package:eschool_api/src/model/learner_note_update.dart';
 import 'package:eschool_api/src/model/mastery_configuration.dart';
 import 'package:eschool_api/src/model/mastery_configuration_response.dart';
 import 'package:eschool_api/src/model/mastery_graph.dart';
@@ -404,6 +419,23 @@ import 'package:eschool_api/src/model/profile_form_response.dart';
 import 'package:eschool_api/src/model/profile_saved_response.dart';
 import 'package:eschool_api/src/model/profile_validation_rules.dart';
 import 'package:eschool_api/src/model/profile_value.dart';
+import 'package:eschool_api/src/model/progress_band_settings.dart';
+import 'package:eschool_api/src/model/progress_band_settings_response.dart';
+import 'package:eschool_api/src/model/progress_band_settings_write.dart';
+import 'package:eschool_api/src/model/progress_configuration.dart';
+import 'package:eschool_api/src/model/progress_configuration_response.dart';
+import 'package:eschool_api/src/model/progress_family_bands.dart';
+import 'package:eschool_api/src/model/progress_family_bands_response.dart';
+import 'package:eschool_api/src/model/progress_group.dart';
+import 'package:eschool_api/src/model/progress_learner_list.dart';
+import 'package:eschool_api/src/model/progress_learner_list_response.dart';
+import 'package:eschool_api/src/model/progress_learner_option.dart';
+import 'package:eschool_api/src/model/progress_option.dart';
+import 'package:eschool_api/src/model/progress_released_band.dart';
+import 'package:eschool_api/src/model/progress_roster.dart';
+import 'package:eschool_api/src/model/progress_roster_response.dart';
+import 'package:eschool_api/src/model/progress_staff_band.dart';
+import 'package:eschool_api/src/model/progress_staff_band_response.dart';
 import 'package:eschool_api/src/model/school_document.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_subject_from_standard_write.dart';
@@ -1738,6 +1770,55 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'HandleStateResponse':
       return HandleStateResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'LearnerNoteAssignment':
+      return LearnerNoteAssignment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteAssignmentResponse':
+      return LearnerNoteAssignmentResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'LearnerNoteAssignmentWrite':
+      return LearnerNoteAssignmentWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteAssignments':
+      return LearnerNoteAssignments.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteAssignmentsResponse':
+      return LearnerNoteAssignmentsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'LearnerNoteCreate':
+      return LearnerNoteCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteDetail':
+      return LearnerNoteDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteDetailResponse':
+      return LearnerNoteDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteHistory':
+      return LearnerNoteHistory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteHistoryResponse':
+      return LearnerNoteHistoryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteList':
+      return LearnerNoteList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteListResponse':
+      return LearnerNoteListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteMetadata':
+      return LearnerNoteMetadata.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteRevision':
+      return LearnerNoteRevision.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LearnerNoteUpdate':
+      return LearnerNoteUpdate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'MasteryConfiguration':
       return MasteryConfiguration.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -1870,6 +1951,61 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ProfileValue':
       return ProfileValue.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ProgressBandSettings':
+      return ProgressBandSettings.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressBandSettingsResponse':
+      return ProgressBandSettingsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ProgressBandSettingsWrite':
+      return ProgressBandSettingsWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressConfiguration':
+      return ProgressConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressConfigurationResponse':
+      return ProgressConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ProgressFamilyBands':
+      return ProgressFamilyBands.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressFamilyBandsResponse':
+      return ProgressFamilyBandsResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressGroup':
+      return ProgressGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressLearnerList':
+      return ProgressLearnerList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressLearnerListResponse':
+      return ProgressLearnerListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressLearnerOption':
+      return ProgressLearnerOption.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressOption':
+      return ProgressOption.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressReleasedBand':
+      return ProgressReleasedBand.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressRoster':
+      return ProgressRoster.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressRosterResponse':
+      return ProgressRosterResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressStaffBand':
+      return ProgressStaffBand.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ProgressStaffBandResponse':
+      return ProgressStaffBandResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'SchoolDocument':
       return SchoolDocument.fromJson(value as Map<String, dynamic>)
           as ReturnType;
