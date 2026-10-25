@@ -427,6 +427,27 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
+          if (profile.features['counselling'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.support_agent),
+                title: Text(l('Incidents and counselling')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'counselling',
+                  WellbeingScreen(
+                    repository: ApiWellbeingRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['counselling'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['support_plans'] == true)
             Card(
               child: ListTile(
@@ -495,6 +516,7 @@ class _StaffHome extends StatelessWidget {
             'messages',
             'support_plans',
             'learner_notes',
+            'counselling',
           ].any((key) => profile.features[key] == true))
             Padding(
               padding: const EdgeInsets.all(24),

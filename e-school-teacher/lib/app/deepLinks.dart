@@ -11,6 +11,7 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.reliefCover, Routes.reliefCover),
   DeepLinkRoute('/relief-cover', Routes.reliefCover),
   DeepLinkRoute(Routes.supportPlans, Routes.supportPlans),
+  DeepLinkRoute(Routes.wellbeing, Routes.wellbeing),
   DeepLinkRoute('/support-plans', Routes.supportPlans),
   DeepLinkRoute(
     Routes.schoolMessages,

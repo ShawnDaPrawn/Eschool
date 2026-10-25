@@ -36,7 +36,7 @@ are implemented in the current access feature; review/CI and external native
 qualification remain separately recorded. Native teacher identity initialization
 can occur before a mismatched Dart flavour is rejected.
 
-Step 2 backend/contract is in PR #111: dated school-owned groups, allocations,
+Step 2 backend/contract is merged through PR #111: dated school-owned groups, allocations,
 sessions, explicit attendance, sanitized authored materials and cascading message
 audiences with older-editor compatibility. The group management panel adds
 actual definition/allocation/register/material workflows with named scoped
@@ -62,10 +62,14 @@ Wellbeing domain services are implemented in the current feature branch: separat
 team/case assignments, anonymous secret follow-up, explicit identification, encrypted
 case history and appointments. Thirty-one typed HTTP operations and their
 generated SDK now implement actual scoped reporting, triage, casework and metadata
-configuration. Public anonymous HTML reporting and code follow-up are implemented
-and browser-verified. Private media, identified app reporting, restricted panel
-and app views remain in active follow-up work; the disabled module is not yet a completed user
-workflow. Separate support-plan/learner-note permissions never grant these cases.
+configuration. Public anonymous HTML reporting and code follow-up, plus the separately authorized
+restricted panel, are implemented and browser-verified. Two more typed reads
+provide case-owned dated professional and same-learner incident choices; report
+threads now expose retained-history pagination. The restricted app's real case/triage/calendar workflows are implemented and
+verified through shared tests plus both facilitator and dual-role Teacher
+Chromium entrypoints. Private media, identified
+family reporting and generic fresh-authority notices remain active follow-up;
+the disabled module is not yet a completed reporting workflow. Separate support-plan/learner-note permissions never grant these cases.
 
 Parallel ownership: the root stream owns houses/awards (step 5), then intake
 (step 7) after its transfers work if still outstanding. This community stream

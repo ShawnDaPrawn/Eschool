@@ -55,6 +55,19 @@ class _HomeContainerState extends State<HomeContainer> {
         iconPath: Assets.resultIcon,
         titleKey: 'Mastery map',
       ),
+    if (context.watch<MeContextCubit>().context?.roles.any(
+              (role) => ['Counsellor', 'Safeguarding'].contains(role),
+            ) ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'wellbeing',
+        ))
+      MenuContainerDetails(
+        route: Routes.wellbeing,
+        iconPath: Assets.announcementIcon,
+        titleKey: 'Incidents and counselling',
+      ),
     if (context.watch<MeContextCubit>().context?.isModuleOn('support_plans') ==
             true &&
         allowsSchoolModule(

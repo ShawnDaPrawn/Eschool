@@ -126,6 +126,19 @@ List<Widget> sharedScreenEntries(
         icon: Icons.account_tree_outlined,
         onTap: () => open(Routes.mastery),
       ),
+    if (context.watch<MeContextCubit>().context?.roles.any(
+              (role) => ['Counsellor', 'Safeguarding'].contains(role),
+            ) ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'wellbeing',
+        ))
+      tile(
+        title: label('Incidents and counselling'),
+        icon: Icons.support_agent,
+        onTap: () => open(Routes.wellbeing),
+      ),
     if (context.watch<MeContextCubit>().context?.isModuleOn('support_plans') ==
             true &&
         allowsSchoolModule(
@@ -746,6 +759,53 @@ Route<dynamic> progressNotesRoute() => AdaptivePageRoute(
                 (schools.state.selectedId == null ||
                     schools.state.selectedId == school) &&
                 allowsSchoolModule(session.context, 'academics'),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> wellbeingRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (school == null ||
+        account == null ||
+        me?.isModuleOn('wellbeing') != true ||
+        !allowsSchoolModule(me, 'wellbeing')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Incidents and counselling',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: WellbeingSessionBoundary(
+        pinned: me!,
+        builder: (_, active) => WellbeingScreen(
+          repository: ApiWellbeingRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
           ),
         ),
       ),

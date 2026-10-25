@@ -17,6 +17,7 @@ use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Wellbeing\WellbeingAccess;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -77,7 +78,7 @@ class FacilitatorAccess
         return ['user_id' => (int) $fresh->id, 'school_id' => (int) $school->id, 'name' => trim($fresh->first_name.' '.$fresh->last_name),
             'roles' => array_values(array_intersect(app(ProfilePolicy::class)->roles($fresh), self::ROLES)),
             'schools' => $choices->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name, 'slug' => $row->slug])->all(),
-            'features' => ['groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => false,
+            'features' => ['groups' => $groups && app(ModuleGate::class)->allows('groups'), 'messages' => app(ModuleGate::class)->allows('communication'), 'counselling' => app(WellbeingAccess::class)->professionalAvailable($fresh),
                 'support_plans' => app(SupportAuthority::class)->available($fresh), 'learner_notes' => $this->notesAvailable($fresh)]];
     }
 

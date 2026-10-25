@@ -335,10 +335,15 @@ jobs:
           - app: e-school-teacher
             flow: facilitator_support_smoke_test.dart
             flavor: facilitator
+          - app: e-school-teacher
+            flow: facilitator_wellbeing_smoke_test.dart
+            flavor: facilitator
           - app: e-school
             flow: family_progress_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_notes_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_wellbeing_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_notes_smoke_test.dart
             flavor: facilitator

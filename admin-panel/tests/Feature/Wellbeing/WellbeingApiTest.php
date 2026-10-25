@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Wellbeing\CaseAssignment;
 use App\Models\Wellbeing\IncidentReport;
 use App\Models\Wellbeing\IncidentThread;
+use App\Services\Facilitators\FacilitatorAccess;
 use App\Services\ParentPolicyService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Modules\ModuleGate;
@@ -209,6 +210,22 @@ class WellbeingApiTest extends TestCase
         $this->withHeader('X-Account-Id', (string) $this->professional->id)->getJson($path.'/professionals?on_date=invalid')->assertNotFound();
         $this->getJson($path.'/incident-choices')->assertNotFound();
         $this->api($this->superAdmin())->getJson($path.'/professionals?on_date=2026-02-11')->assertForbidden();
+    }
+
+    public function test_real_clinical_app_feature_checks_fresh_role_module_and_platform_exclusion(): void
+    {
+        $access = app(FacilitatorAccess::class);
+        $this->assertTrue($access->profile($this->professional)['features']['counselling']);
+        $teacher = User::findOrFail($this->schoolA->ids['tara_user']);
+        $teacher->forceFill(['password_change_required' => false])->save();
+        ParentPolicyService::acceptCurrent($teacher);
+        $this->assertFalse($access->profile($teacher)['features']['counselling']);
+        app(ModuleGate::class)->change('wellbeing', false, $this->superAdmin());
+        $this->assertFalse($access->profile($this->professional)['features']['counselling']);
+        app(ModuleGate::class)->change('wellbeing', true, $this->superAdmin());
+        $this->assertTrue($access->profile($this->professional)['features']['counselling']);
+        PlatformStaffIdentity::create(['user_id' => $this->professional->id, 'active' => true]);
+        $this->assertFalse($access->profile($this->professional)['features']['counselling']);
     }
 
     public function test_identification_is_explicit_and_uses_bound_account_after_the_public_code_stops_working(): void
