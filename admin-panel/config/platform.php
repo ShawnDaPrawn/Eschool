@@ -9,6 +9,7 @@ use App\Listeners\Academics\QueueContentConversion;
 use App\Listeners\Academics\QueueMarkRecompute;
 use App\Listeners\Academics\QueueReportGeneration;
 use App\Listeners\Consultations\NotifyConsultationOpened;
+use App\Listeners\Discipline\QueueDisciplineNotices;
 use App\Listeners\Growth\QueueMasteryRecompute;
 use App\Listeners\Growth\QueueProgressBands;
 use App\Listeners\Growth\QueueRiskEvaluate;
@@ -53,7 +54,8 @@ return [
             'academics.register_changed' => [QueueRiskEvaluate::class, NotifyRegisterAmended::class],
             'growth.risk_rules_configured' => [QueueRiskEvaluate::class],
             'discipline.framework_published' => [QueueRiskEvaluate::class],
-            'discipline.record_changed' => [QueueRiskEvaluate::class],
+            'discipline.record_changed' => [QueueRiskEvaluate::class, QueueDisciplineNotices::class],
+            'discipline.detention_changed' => [QueueDisciplineNotices::class],
             'growth.progress_bands_configured' => [QueueProgressBands::class],
             'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
