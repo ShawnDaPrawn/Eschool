@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Cards;
 
 use App\Models\Cards\Card;
+use App\Models\Cards\CardChipProfile;
 use App\Models\Cards\CardKey;
 use App\Models\Cards\CardPortrait;
+use App\Models\Cards\CardQrUse;
+use App\Models\Cards\CardScanLog;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
@@ -16,7 +19,9 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Cards\CardPortraits;
+use App\Services\Cards\CardReaders;
 use App\Services\Cards\Cards;
+use App\Services\Cards\CardScans;
 use App\Services\Cards\CardSigningKeys;
 use App\Services\Cards\Crypto\SignedCardQr;
 use App\Services\Platform\Files\UploadScanner;
@@ -70,6 +75,188 @@ class CardDomainTest extends TestCase
         app(CardPortraits::class)->upload($this->parent, (int) $this->child->id, 'learner', (string) Str::uuid(), UploadedFile::fake()->image('portrait.jpg', 120, 160));
 
         return app(Cards::class)->issue($this->admin, ['operation_id' => (string) Str::uuid(), 'person_id' => $this->child->id, 'type' => 'learner']);
+    }
+
+    private function reader(string $kind = 'gate'): array
+    {
+        return app(CardReaders::class)->register($this->admin, [
+            'operation_id' => (string) Str::uuid(), 'name' => 'Synthetic reader', 'kind' => $kind,
+            'public_key' => base64_encode(sodium_crypto_box_publickey(sodium_crypto_box_keypair())), 'days' => 1,
+        ]);
+    }
+
+    public function test_online_qr_consumption_is_global_and_exact_transport_retry_does_not_scan_twice(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $proof = app(Cards::class)->credential($this->parent, $card['id']);
+        $input = ['operation_id' => (string) Str::uuid(), 'credential' => $proof['credential']];
+        $scans = app(CardScans::class);
+        $result = $scans->qr($reader['credential'], $input);
+        $this->assertSame($result, $scans->qr($reader['credential'], $input));
+        $this->assertSame(1, CardScanLog::count());
+        $this->assertSame(1, CardQrUse::count());
+        $input['operation_id'] = (string) Str::uuid();
+        try {
+            $scans->qr($this->reader()['credential'], $input);
+            $this->fail('Different device reused a credential.');
+        } catch (HttpException $error) {
+            $this->assertSame(409, $error->getStatusCode());
+        }
+        $this->assertSame(1, CardScanLog::count());
+    }
+
+    public function test_frozen_cards_and_revoked_devices_refuse_even_an_existing_scan_receipt(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $input = ['operation_id' => (string) Str::uuid(), 'credential' => app(Cards::class)->credential($this->parent, $card['id'])['credential']];
+        $scans = app(CardScans::class);
+        $scans->qr($reader['credential'], $input);
+        app(Cards::class)->freeze($this->parent, $card['id'], ['operation_id' => (string) Str::uuid(), 'reason' => 'Lost card']);
+        try {
+            $scans->qr($reader['credential'], $input);
+            $this->fail('Frozen receipt replayed.');
+        } catch (HttpException $error) {
+            $this->assertSame(409, $error->getStatusCode());
+        }
+        app(CardReaders::class)->revoke($this->admin, $reader['id']);
+        try {
+            $scans->qr($reader['credential'], $input);
+            $this->fail('Revoked reader accepted.');
+        } catch (HttpException $error) {
+            $this->assertSame(403, $error->getStatusCode());
+        }
+    }
+
+    public function test_reader_credentials_are_school_bound_and_encoder_cannot_scan(): void
+    {
+        $reader = $this->reader('encoder');
+        $readers = app(CardReaders::class);
+        try {
+            $readers->authenticate($reader['credential'], 'gate');
+            $this->fail('Encoder became a gate.');
+        } catch (HttpException $error) {
+            $this->assertSame(403, $error->getStatusCode());
+        }
+        try {
+            $readers->authenticate('ordinary-account-token', 'gate');
+            $this->fail('Account token became a reader.');
+        } catch (HttpException $error) {
+            $this->assertSame(401, $error->getStatusCode());
+        }
+        app(CurrentSchool::class)->run(2, function () use ($readers, $reader) {
+            try {
+                $readers->authenticate($reader['credential'], 'encoder');
+                $this->fail('Reader crossed school.');
+            } catch (HttpException $error) {
+                $this->assertSame(401, $error->getStatusCode());
+            }
+        });
+        $this->travel(2)->days();
+        try {
+            $readers->authenticate($reader['credential'], 'encoder');
+            $this->fail('Expired reader accepted.');
+        } catch (HttpException $error) {
+            $this->assertSame(403, $error->getStatusCode());
+        }
+    }
+
+    public function test_sun_counter_is_atomic_and_tampered_proof_never_advances_it(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $encoder = $this->reader('encoder');
+        // Published NXP table 4 fixture, not a claim of encoded hardware.
+        $profile = CardChipProfile::create(['card_id' => $card['id'], 'encoder_device_id' => $encoder['id'],
+            'uid' => '04DE5F1EACC040', 'uid_hash' => hash('sha256', '04DE5F1EACC040'), 'metadata_key' => base64_encode(str_repeat("\0", 16)),
+            'file_read_key' => base64_encode(str_repeat("\0", 16)), 'encoding_package' => 'synthetic-encrypted-plan', 'encoded_at' => now()->utc()]);
+        $input = ['operation_id' => (string) Str::uuid(), 'card_id' => $card['id'], 'picc' => 'EF963FF7828658A599F3041510671E88', 'mac' => '94EED9EE65337086'];
+        $scans = app(CardScans::class);
+        $bad = [...$input, 'mac' => '0000000000000000'];
+        try {
+            $scans->sun($reader['credential'], $bad);
+            $this->fail('Forged SUN accepted.');
+        } catch (HttpException $e) {
+            $this->assertSame(403, $e->getStatusCode());
+        }
+        $this->assertSame(-1, $profile->fresh()->last_counter);
+        $scan = $scans->sun($reader['credential'], $input);
+        $this->assertSame($scan, $scans->sun($reader['credential'], $input));
+        $this->assertSame(61, $profile->fresh()->last_counter);
+        try {
+            $scans->sun($reader['credential'], [...$input, 'operation_id' => (string) Str::uuid()]);
+            $this->fail('SUN replay accepted.');
+        } catch (HttpException $e) {
+            $this->assertSame(409, $e->getStatusCode());
+        }
+        $this->assertSame(1, CardScanLog::count());
+    }
+
+    public function test_outer_rollback_does_not_consume_proof_and_expired_new_operation_is_refused(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $input = ['operation_id' => (string) Str::uuid(), 'credential' => app(Cards::class)->credential($this->parent, $card['id'])['credential']];
+        $scans = app(CardScans::class);
+        DB::beginTransaction();
+        $scans->qr($reader['credential'], $input);
+        DB::rollBack();
+        $this->assertSame(0, CardQrUse::count());
+        $scans->qr($reader['credential'], $input);
+        $this->assertSame(1, CardQrUse::count());
+        $this->travel(26)->seconds();
+        $this->assertSame('accepted', $scans->qr($reader['credential'], $input)['outcome']);
+        try {
+            $scans->qr($reader['credential'], [...$input, 'operation_id' => (string) Str::uuid()]);
+            $this->fail('Expired proof accepted.');
+        } catch (HttpException $e) {
+            $this->assertSame(403, $e->getStatusCode());
+        }
+    }
+
+    public function test_scanner_portrait_requires_own_recent_scan_and_fresh_active_source(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $input = ['operation_id' => (string) Str::uuid(), 'credential' => app(Cards::class)->credential($this->parent, $card['id'])['credential']];
+        $scan = app(CardScans::class)->qr($reader['credential'], $input);
+        $portraits = app(CardPortraits::class);
+        $this->assertSame('image/jpeg', $portraits->scanned($reader['credential'], $scan['scan_id'])['mime']);
+        try {
+            $portraits->scanned($this->reader()['credential'], $scan['scan_id']);
+            $this->fail('Other reader obtained face.');
+        } catch (ModelNotFoundException) {
+            $this->assertTrue(true);
+        }
+        SchoolMembership::where('user_id', $this->child->id)->where('role', 'Student')->update(['ends_on' => '2026-02-09']);
+        try {
+            $portraits->scanned($reader['credential'], $scan['scan_id']);
+            $this->fail('Ended source retained face.');
+        } catch (ModelNotFoundException) {
+            $this->assertTrue(true);
+        }
+    }
+
+    public function test_reader_delegation_stops_on_issuer_role_withdrawal_before_receipt_or_portrait(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $input = ['operation_id' => (string) Str::uuid(), 'credential' => app(Cards::class)->credential($this->parent, $card['id'])['credential']];
+        $scan = app(CardScans::class)->qr($reader['credential'], $input);
+        SchoolMembership::where('user_id', $this->admin->id)->update(['ends_on' => '2026-02-09']);
+        try {
+            app(CardScans::class)->qr($reader['credential'], $input);
+            $this->fail('Removed issuer retained scanner delegation.');
+        } catch (HttpException $e) {
+            $this->assertSame(403, $e->getStatusCode());
+        }
+        try {
+            app(CardPortraits::class)->scanned($reader['credential'], $scan['scan_id']);
+            $this->fail('Removed issuer retained portrait.');
+        } catch (HttpException $e) {
+            $this->assertSame(403, $e->getStatusCode());
+        }
     }
 
     public function test_issue_portrait_and_signed_qr_are_current_private_and_retry_safe(): void

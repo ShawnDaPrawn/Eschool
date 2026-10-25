@@ -1,6 +1,8 @@
 import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/screens/home/homeScreen.dart';
+import 'package:eschool_teacher/ui/screens/home/widgets/bottomNavigationItemContainer.dart';
+import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -67,12 +69,18 @@ void main() {
         find.widgetWithText(CustomRoundedButton, 'Sign in'),
       );
       await pumpUntilFound(tester, find.byType(HomeScreen));
+      // Desktop uses a rail; phones use animated bottom tabs. Exercise the
+      // visible destination without depending on an inactive label's opacity.
+      final rail = find.byType(NavigationRail);
       await tapWhenReady(
         tester,
-        find.ancestor(
-          of: find.text('Settings'),
-          matching: find.byType(InkWell),
-        ),
+        rail.evaluate().isNotEmpty
+            ? find.descendant(of: rail, matching: find.text('Settings'))
+            : find.byWidgetPredicate(
+                (widget) =>
+                    widget is BottomNavItemContainer &&
+                    widget.bottomNavItem.title == settingKey,
+              ),
       );
       await tapWhenReady(tester, find.text('Notifications'));
       await pumpUntilFound(tester, find.text('School consultation available'));

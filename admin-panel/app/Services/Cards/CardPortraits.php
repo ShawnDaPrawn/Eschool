@@ -6,6 +6,7 @@ namespace App\Services\Cards;
 
 use App\Models\Cards\Card;
 use App\Models\Cards\CardPortrait;
+use App\Models\Cards\CardScanLog;
 use App\Models\User;
 use App\Services\Platform\Files\SafeImages;
 use App\Services\Platform\Files\UploadScanner;
@@ -97,6 +98,19 @@ class CardPortraits
     {
         $this->authorize($actor, $person, $type);
         $portrait = CardPortrait::where('user_id', $person)->firstOrFail();
+
+        return ['bytes' => $this->bytes($portrait), 'mime' => 'image/jpeg', 'revision' => (int) $portrait->revision];
+    }
+
+    /** The scanner may display only its own freshly accepted scan's portrait. */
+    public function scanned(string $credential, string $scanId): array
+    {
+        $device = app(CardReaders::class)->authenticate($credential, 'gate');
+        $scan = CardScanLog::where('device_id', $device->id)->where('outcome', 'accepted')
+            ->where('scanned_at', '>', now()->utc()->subMinute())->findOrFail($scanId);
+        $card = Card::findOrFail($scan->card_id);
+        app(CardAccess::class)->active($card);
+        $portrait = CardPortrait::where('user_id', $card->user_id)->firstOrFail();
 
         return ['bytes' => $this->bytes($portrait), 'mime' => 'image/jpeg', 'revision' => (int) $portrait->revision];
     }
