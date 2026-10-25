@@ -362,6 +362,7 @@ import 'package:eschool_api/src/model/handle_state.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
+import 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_write.dart';
 import 'package:eschool_api/src/model/learner_note_assignments.dart';
 import 'package:eschool_api/src/model/learner_note_assignments_response.dart';
@@ -1777,6 +1778,9 @@ ReturnType deserialize<ReturnType, BaseType>(
       return LearnerNoteAssignmentResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'LearnerNoteAssignmentRevoke':
+      return LearnerNoteAssignmentRevoke.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'LearnerNoteAssignmentWrite':
       return LearnerNoteAssignmentWrite.fromJson(value as Map<String, dynamic>)

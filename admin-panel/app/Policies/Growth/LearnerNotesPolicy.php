@@ -70,7 +70,7 @@ class LearnerNotesPolicy
         $fresh = app(SensitiveRecordsAccess::class)->actor($actor);
         Students::query()->findOrFail($learnerId);
         $today = app(AcademicAuthority::class)->today();
-        abort_unless(LearnerNoteAssignment::query()->where('learner_id', $learnerId)->where('staff_user_id', $fresh->id)
+        abort_unless(LearnerNoteAssignment::query()->where('learner_id', $learnerId)->where('staff_user_id', $fresh->id)->whereNull('revoked_at')
             ->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->exists(), 404);
 
         return $fresh;

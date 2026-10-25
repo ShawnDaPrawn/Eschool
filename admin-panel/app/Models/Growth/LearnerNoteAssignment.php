@@ -17,6 +17,6 @@ class LearnerNoteAssignment extends Model
 
     protected function casts(): array
     {
-        return ['starts_on' => 'date', 'ends_on' => 'date', 'revision' => 'integer'];
+        return ['starts_on' => 'date', 'ends_on' => 'date', 'revision' => 'integer', 'revoked_at' => 'datetime'];
     }
 }

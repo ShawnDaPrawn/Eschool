@@ -42,7 +42,7 @@ class ProgressNotesRequest extends FormRequest
             }
         } elseif (in_array($op, ['note', 'history', 'update'], true)) {
             app(LearnerNotes::class)->authorize($this->user(), (int) $this->route('note'), $write);
-        } elseif (in_array($op, ['assignments', 'assign'], true)) {
+        } elseif (in_array($op, ['assignments', 'assign', 'revoke-assignment'], true)) {
             $policy->assign($this->user(), (int) $this->route('learner'));
         } elseif (in_array($op, ['notes', 'create'], true)) {
             app(AcademicAuthority::class)->staff($this->user());
@@ -75,6 +75,9 @@ class ProgressNotesRequest extends FormRequest
                 'archive' => ['sometimes', 'boolean'], 'operation_id' => ['required', 'uuid'],
                 'visibility' => ['prohibited'], 'learner_id' => ['prohibited'], 'subject_id' => ['prohibited'],
                 'session_year_id' => ['prohibited'], 'author_id' => ['prohibited']];
+        }
+        if ($op === 'revoke-assignment') {
+            return ['expected_revision' => ['required', 'integer', 'min:1'], 'operation_id' => ['required', 'uuid']];
         }
         if ($op === 'assign') {
             return ['starts_on' => ['required', 'date_format:Y-m-d'], 'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'],

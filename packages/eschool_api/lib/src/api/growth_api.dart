@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:eschool_api/src/model/academic_release_periods_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
+import 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_write.dart';
 import 'package:eschool_api/src/model/learner_note_assignments_response.dart';
 import 'package:eschool_api/src/model/learner_note_create.dart';
@@ -1926,6 +1927,128 @@ class GrowthApi {
     }
 
     return Response<MasteryRebuildResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// revokeLearnerNoteAssignment
+  /// End this note-only caseload grant immediately after fresh principal, school and expected-account checks. Original dates, private notes and audit history remain retained. Stable operation UUID retries replay the encrypted receipt after renewed authorization. No counselling body is loaded.
+  ///
+  /// Parameters:
+  /// * [learner]
+  /// * [staff]
+  /// * [learnerNoteAssignmentRevoke]
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [LearnerNoteAssignmentResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<LearnerNoteAssignmentResponse>> revokeLearnerNoteAssignment({
+    required int learner,
+    required int staff,
+    required LearnerNoteAssignmentRevoke learnerNoteAssignmentRevoke,
+    int? xAccountId,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/growth/progress/learners/{learner}/assignments/{staff}/revoke'
+            .replaceAll(
+              '{'
+              r'learner'
+              '}',
+              learner.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'staff'
+              '}',
+              staff.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(learnerNoteAssignmentRevoke);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    LearnerNoteAssignmentResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              LearnerNoteAssignmentResponse,
+              LearnerNoteAssignmentResponse
+            >(rawData, 'LearnerNoteAssignmentResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<LearnerNoteAssignmentResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

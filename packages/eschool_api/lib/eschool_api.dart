@@ -380,6 +380,7 @@ export 'package:eschool_api/src/model/handle_state.dart';
 export 'package:eschool_api/src/model/handle_state_response.dart';
 export 'package:eschool_api/src/model/learner_note_assignment.dart';
 export 'package:eschool_api/src/model/learner_note_assignment_response.dart';
+export 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
 export 'package:eschool_api/src/model/learner_note_assignment_write.dart';
 export 'package:eschool_api/src/model/learner_note_assignments.dart';
 export 'package:eschool_api/src/model/learner_note_assignments_response.dart';

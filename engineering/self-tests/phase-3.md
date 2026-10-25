@@ -307,3 +307,25 @@ The complete canonical API catalogue/contract suite also passes **283 tests,
 alongside the feature suite's real authorized workflows. The merged teacher app
 analyzes with no errors or warnings (27 existing informational lints). The latest
 reviewed support browser fixes and flow selector are retained.
+
+
+## Immediate restricted-note caseload revocation
+
+Principals can explicitly end a dated note-only grant immediately, including on
+its first day, without rewriting retained grant dates. Optimistic revisions and
+an encrypted operation receipt make exact retries safe; regranting is explicit.
+All clinical reads, history, writes and own-caseload discovery exclude revoked
+grants. Clinical subject-neutral listing covers the granted learner's subject
+notes without expanding academic general-note visibility.
+
+The domain/API/tenant-migration cohort passes **25 tests, 599 assertions**; full
+configured Larastan and changed-file Pint pass. It includes a real HTTP grant,
+clinical body read, immediate revocation, exact replay, body/history refusal and
+empty former caseload, plus wrong-role and foreign-school refusals. No private
+clinical text enters the metadata receipt. The additive nullable SDK property
+preserves omission from older assignment responses. This prerequisite adds no
+new panel or app surface and does not claim clinical user acceptance.
+
+The complete canonical route/contract catalogue passes **284 tests, 1,383
+assertions**. Strict OpenAPI lint and all **68 SDK tests** pass. SDK analysis
+contains 593 generated informational lints and no errors or warnings.

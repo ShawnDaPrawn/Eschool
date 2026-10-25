@@ -119,7 +119,7 @@ class ProgressQueries
         app(LearnerNotesPolicy::class)->enabled();
         $fresh = app(SensitiveRecordsAccess::class)->actor($actor);
         $today = app(AcademicAuthority::class)->today();
-        $ids = LearnerNoteAssignment::query()->where('staff_user_id', $fresh->id)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id');
+        $ids = LearnerNoteAssignment::query()->where('staff_user_id', $fresh->id)->whereNull('revoked_at')->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select('learner_id');
 
         return $this->learners(Students::query()->whereIn('id', $ids)->with('user')->orderBy('id')->paginate(100, ['*'], 'page', max(1, $page)));
     }

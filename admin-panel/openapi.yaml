@@ -10523,6 +10523,63 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LearnerNoteAssignmentWrite'
+  /growth/progress/learners/{learner}/assignments/{staff}/revoke:
+    post:
+      operationId: revokeLearnerNoteAssignment
+      tags:
+      - Growth
+      summary: revokeLearnerNoteAssignment
+      description: End this note-only caseload grant immediately after fresh principal, school and expected-account
+        checks. Original dates, private notes and audit history remain retained. Stable operation UUID
+        retries replay the encrypted receipt after renewed authorization. No counselling body is loaded.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: staff
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnerNoteAssignmentRevoke'
 components:
   securitySchemes:
     bearerAuth:
@@ -23353,6 +23410,9 @@ components:
         revision:
           type: integer
           minimum: 1
+        revoked:
+          type: boolean
+          description: Optional for older servers; true means access ended immediately, while original grant dates remain retained.
     LearnerNoteAssignments:
       type: object
       additionalProperties: false
@@ -23663,3 +23723,16 @@ components:
           minimum: 0
         data:
           $ref: '#/components/schemas/LearnerNoteAssignments'
+    LearnerNoteAssignmentRevoke:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1

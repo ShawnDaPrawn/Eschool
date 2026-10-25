@@ -62,7 +62,7 @@ class LearnerNotes
     {
         app(LearnerNotesPolicy::class)->scope($actor, $learnerId, $subjectId, $yearId, $visibility);
         $notes = LearnerNote::query()->where('learner_id', $learnerId)->where('session_year_id', $yearId)->where('visibility', $visibility)
-            ->where('subject_id', $subjectId)->whereNull('archived_at')->where('id', '>', max(0, $after))->orderBy('id')->limit(101)->get(self::META);
+            ->when($subjectId !== null || $visibility !== 'counselling', fn ($q) => $q->where('subject_id', $subjectId))->whereNull('archived_at')->where('id', '>', max(0, $after))->orderBy('id')->limit(101)->get(self::META);
         // List metadata only. Explicit detail reads apply policy before body load.
         $more = $notes->count() > 100;
         $rows = $notes->take(100)->map(fn ($n) => $this->data($n, false))->all();
@@ -126,9 +126,27 @@ class LearnerNotes
             abort_unless((int) ($row?->revision ?? 0) === (int) $data['expected_revision'], 409, 'This assignment changed. Reload before saving.');
             $row ??= new LearnerNoteAssignment(['learner_id' => $learnerId, 'staff_user_id' => $staffId]);
             $before = $row->exists ? $this->assignmentData($row) : [];
-            $row->fill(['assigned_by' => $actor->id, 'starts_on' => $data['starts_on'], 'ends_on' => $data['ends_on'], 'revision' => (int) ($row->revision ?? 0) + 1])->save();
+            $row->fill(['assigned_by' => $actor->id, 'starts_on' => $data['starts_on'], 'ends_on' => $data['ends_on'], 'revoked_at' => null, 'revision' => (int) ($row->revision ?? 0) + 1])->save();
 
             Audit::record('growth.note_assignment_changed', $row, array_diff_key($before, ['staff_name' => true]), array_diff_key($this->assignmentData($row), ['staff_name' => true]));
+
+            return $this->assignmentData($row);
+        });
+    }
+
+    public function revokeAssignment(User $actor, int $learnerId, int $staffId, int $expectedRevision): array
+    {
+        app(LearnerNotesPolicy::class)->assign($actor, $learnerId);
+
+        return DB::transaction(function () use ($actor, $learnerId, $staffId, $expectedRevision) {
+            School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
+            app(LearnerNotesPolicy::class)->assign($actor, $learnerId);
+            $row = LearnerNoteAssignment::query()->where('learner_id', $learnerId)->where('staff_user_id', $staffId)->lockForUpdate()->firstOrFail();
+            abort_unless($row->revision === $expectedRevision, 409, 'This assignment changed. Reload before ending access.');
+            abort_if($row->revoked_at !== null, 409, 'This note access has already ended.');
+            $before = $this->assignmentData($row);
+            $row->update(['revoked_at' => now(), 'revision' => $row->revision + 1]);
+            Audit::record('growth.note_assignment_revoked', $row, array_diff_key($before, ['staff_name' => true]), array_diff_key($this->assignmentData($row), ['staff_name' => true]));
 
             return $this->assignmentData($row);
         });
@@ -137,7 +155,7 @@ class LearnerNotes
     private function assignmentData(LearnerNoteAssignment $row): array
     {
         return ['id' => (int) $row->id, 'learner_id' => (int) $row->learner_id, 'staff_user_id' => (int) $row->staff_user_id, 'staff_name' => $this->authorName((int) $row->staff_user_id),
-            'starts_on' => $row->starts_on->toDateString(), 'ends_on' => $row->ends_on->toDateString(), 'revision' => $row->revision];
+            'starts_on' => $row->starts_on->toDateString(), 'ends_on' => $row->ends_on->toDateString(), 'revision' => $row->revision, 'revoked' => $row->revoked_at !== null];
     }
 
     private function metadata(User $actor, int $id): LearnerNote

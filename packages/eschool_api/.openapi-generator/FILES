@@ -378,6 +378,7 @@ lib/src/model/handle_state.dart
 lib/src/model/handle_state_response.dart
 lib/src/model/learner_note_assignment.dart
 lib/src/model/learner_note_assignment_response.dart
+lib/src/model/learner_note_assignment_revoke.dart
 lib/src/model/learner_note_assignment_write.dart
 lib/src/model/learner_note_assignments.dart
 lib/src/model/learner_note_assignments_response.dart
