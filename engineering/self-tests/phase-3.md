@@ -180,3 +180,31 @@ synthetic fixtures. They do not certify real-provider safety, privacy, latency o
 cost. The production registry remains empty, all providers unqualified, and no
 paid inference was activated or called. Vision and real domain source policies
 remain tied to their upcoming feature workflows.
+
+## Progress-band and learner-note domain
+
+Implemented the step-2 domain with four tenant tables: configurable integer
+80/65 bands and minimum assessed share (25% implementation default), encrypted
+note bodies and immutable encrypted revisions, and separate dated note caseload
+assignments. Academic authority uses fresh current teaching scope or dated
+leadership. Counselling requires both the dedicated restricted-role boundary and
+an explicit note assignment; principal metadata administration grants no body
+access. Visibility/learner/subject/author remain fixed during body edits.
+Author access is withdrawn immediately when their scope ends. Body and history
+reads are audited without private text or clinical labels. Historical writes and
+destructive rollback with retained notes/caseload are refused.
+
+Staff bands use current running snapshots; family bands use the running value of
+an approved learner's frozen released snapshot, preserving official totals as a
+separate value. Unreleased corrections cannot change a family's band. Insufficient
+assessed coverage remains distinct from an assessed zero.
+
+Verification: a combined cohort passed **39 tests, 883 assertions** covering
+notes/bands, mastery, restricted-role access, actual migration rollback/backfill
+and schema/model tenancy registration. The final expanded focused suite passed
+**11 tests, 81 assertions**, including a maximum 20,000-character multibyte body
+whose ciphertext exceeds 64 KiB, immutable history, refusal before body SQL loads,
+clinical audit redaction, role/allocation/guardian/caseload revocation, wrong
+school/learner/subject/author and retained-data rollback. Pint and full configured
+Larastan passed. No model/provider calls were made. HTTP/client workflows and
+rule-aware queued alerts are subsequent work; step 2 is not yet complete.
