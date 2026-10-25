@@ -643,3 +643,7 @@ and active scheduling. Its inherited PHP formatting is corrected. Missing Notes
 keys in offered non-English locales use explicit English fallback; both actual
 app locale cohorts pass5tests each while preserving existing translations. This
 is automated locale coverage, not fluent language acceptance.
+
+## Weekly parent digest
+
+The deterministic school-evidence backend, language approval panel and selected-child Parent reader/home action are implemented. See [detailed verification](weekly-parent-digests.md) for the MySQL, contract, SDK, private-notice, layout and actual browser evidence, plus external acceptance still outstanding. No paid inference or production delivery is activated.

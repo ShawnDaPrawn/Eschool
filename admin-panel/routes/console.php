@@ -101,3 +101,6 @@ Schedule::call(function () {
 })->everyMinute()->name('consultations-advance')->withoutOverlapping();
 
 Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-private-retention')->withoutOverlapping();
+
+Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests')->withoutOverlapping(55);
+Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();

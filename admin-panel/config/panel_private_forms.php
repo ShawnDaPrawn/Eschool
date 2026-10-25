@@ -14,6 +14,7 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['weekly-digest-templates', 'weekly-digest-templates/*'], 'title' => 'Weekly digest templates', 'route' => 'digest-panel.index', 'guard' => \App\Services\Learning\Digests\DigestPanelScope::class, 'fields' => ['title' => ['label' => 'Digest title draft', 'limit' => 120], 'body' => ['label' => 'Digest wording draft', 'limit' => 1200]]],
     ['paths' => ['school-gallery', 'school-gallery/*'], 'title' => 'Private photos', 'route' => 'gallery-panel.index', 'guard' => GalleryPanelScope::class, 'fields' => ['caption' => ['label' => 'Your private caption draft', 'limit' => 2000], 'handle' => ['label' => 'Approved learner handle', 'limit' => 21]]],
     ['paths' => ['school-consultations', 'school-consultations/*'], 'title' => 'Polls, surveys and elections', 'route' => 'consultations-panel.index', 'guard' => ConsultationPanelScope::class, 'fields' => []],
     ['paths' => ['admissions', 'admissions/*'], 'title' => 'Admissions', 'route' => 'admissions-panel.index', 'guard' => IntakePanelScope::class, 'fields' => ['reason' => ['label' => 'Review reason', 'limit' => 2000], 'reference' => ['label' => 'Office receipt reference', 'limit' => 191], 'name' => ['label' => 'Intake name', 'limit' => 160]]],

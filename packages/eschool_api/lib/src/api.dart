@@ -21,6 +21,7 @@ import 'package:eschool_api/src/api/practice_api.dart';
 import 'package:eschool_api/src/api/private_staff_notices_api.dart';
 import 'package:eschool_api/src/api/recognition_api.dart';
 import 'package:eschool_api/src/api/school_transfers_api.dart';
+import 'package:eschool_api/src/api/weekly_digests_api.dart';
 import 'package:eschool_api/src/api/wellbeing_api.dart';
 
 class EschoolApi {
@@ -228,6 +229,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   SchoolTransfersApi getSchoolTransfersApi() {
     return SchoolTransfersApi(dio);
+  }
+
+  /// Get WeeklyDigestsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  WeeklyDigestsApi getWeeklyDigestsApi() {
+    return WeeklyDigestsApi(dio);
   }
 
   /// Get WellbeingApi instance, base route and serializer can be overridden by a given but be careful,

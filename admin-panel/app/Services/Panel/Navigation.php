@@ -13,6 +13,7 @@ use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
+use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Modules\ModuleGate;
@@ -161,6 +162,9 @@ class Navigation
             return false;
         }
         if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['digest_manager'] ?? false) && ! app(DigestPanelScope::class)->available($user)) {
             return false;
         }
         if ($item['consultation_actor'] ?? false) {

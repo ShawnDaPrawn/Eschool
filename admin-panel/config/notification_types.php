@@ -48,4 +48,5 @@ return [
     'discipline.review_requested' => ['label' => 'Grade discipline review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'discipline.hearing_requested' => ['label' => 'Principal hearing review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'discipline.detention_updated' => ['label' => 'Supervised detention updates', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'digest.weekly' => ['label' => 'Weekly learning update', 'module' => 'digest', 'portals' => ['parent'], 'channels' => $on],
 ];

@@ -48,6 +48,7 @@ use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
+use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
@@ -284,6 +285,13 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::prefix('weekly-digest-templates')->name('digest-panel.')->middleware([PrivateDomainResponse::class, 'module:digest,read'])->group(function () {
+            $c = DigestPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('versions', [$c, 'write'])->defaults('operation', 'createTemplate')->name('create');
+            Route::post('versions/{template}/review', [$c, 'write'])->whereNumber('template')->defaults('operation', 'reviewTemplate')->name('review');
+        });
+
         Route::prefix('school-gallery')->name('gallery-panel.')->middleware([PrivateDomainResponse::class, 'module:gallery,read', AuthorizeGalleryPanel::class])->group(function () {
             $controller = GalleryPanelController::class;
             Route::get('/', [$controller, 'index'])->defaults('operation', 'index')->name('index');
