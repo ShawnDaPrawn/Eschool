@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -86,6 +87,45 @@ void main() {
         repository(api, active: () => active).read('a' * 64),
         throwsA(isA<ApiException>()),
       );
+    },
+  );
+  test(
+    'photo multipart is private and account-bound with stable retry fields and a generic filename',
+    () async {
+      final data = {
+        'id': '11111111-1111-4111-8111-111111111111',
+        'mime': 'image/jpeg',
+        'bytes': 3,
+        'width': 1,
+        'height': 1,
+        'thumbnail_base64': 'eA==',
+        'created_at': '2026-02-10T08:00:00Z',
+        'report_revision': 2,
+      };
+      final api = FakeApi(
+        routes: {
+          'POST v2/wellbeing/own/photos': {'error': false, 'data': data},
+        },
+      );
+      final repo = repository(api, cookie: true), code = 'a' * 64;
+      await repo.uploadPhoto(
+        code,
+        Uint8List.fromList([1, 2, 3]),
+        '11111111-1111-4111-8111-111111111111',
+      );
+      final sent = api.requests.single;
+      final form = sent.data as FormData;
+      expect(Map.fromEntries(form.fields), {
+        'secret': code,
+        'operation_id': '11111111-1111-4111-8111-111111111111',
+      });
+      expect(form.files.single.value.filename, 'report-photo.jpg');
+      expect(form.files.single.value.length, 3);
+      expect(sent.queryParameters, isEmpty);
+      expect(sent.uri.toString(), isNot(contains(code)));
+      expect(sent.headers['X-Account-Id'], '2');
+      expect(sent.headers['X-School-Id'], '1');
+      expect(sent.headers.containsKey('Authorization'), false);
     },
   );
 }

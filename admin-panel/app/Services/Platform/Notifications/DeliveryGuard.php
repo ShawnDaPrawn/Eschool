@@ -90,6 +90,9 @@ class DeliveryGuard
                     return false;
                 }
             }
+            if (! app(PrivateNoticeScopes::class)->permitsDelivery($user, $type, $context)) {
+                return false;
+            }
             if (str_starts_with($type, 'transfer.') && ! app(TransferNotices::class)->allows($user, $type, $context)) {
                 return false;
             }

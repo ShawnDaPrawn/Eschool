@@ -142,7 +142,8 @@ class AwardPresentations
         } else {
             $a->retainedLearner($actor, $learner, 'awards');
         }
-        $rows = AwardPresentation::where('learner_id', $learner)->where('state', 'active')->when($before > 0, fn ($q) => $q->where('id', '<', $before))->orderByDesc('id')->limit(51)->get();
+        $categories = $family ? null : $a->profileCategories($actor, $learner);
+        $rows = AwardPresentation::where('learner_id', $learner)->where('state', 'active')->when($categories !== null, fn ($q) => $q->whereIn('award_category_id', $categories))->when($before > 0, fn ($q) => $q->where('id', '<', $before))->orderByDesc('id')->limit(51)->get();
         $more = $rows->count() > 50;
         $rows = $rows->take(50);
 

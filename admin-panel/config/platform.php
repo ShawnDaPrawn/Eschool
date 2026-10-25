@@ -14,6 +14,7 @@ use App\Listeners\Growth\QueueRiskEvaluate;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
+use App\Listeners\Wellbeing\QueuePrivateNotice;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +57,7 @@ return [
             'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'wellbeing.notice_requested' => [QueuePrivateNotice::class],
             'notification.requested' => [QueueNotificationFanout::class],
             'handle.proposed' => [NotifyHandleGuardians::class],
             'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],

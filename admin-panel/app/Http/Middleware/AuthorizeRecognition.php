@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Services\Recognition\RecognitionAuthority;
+use App\Services\Recognition\RecognitionPanelScope;
 use Closure;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -22,6 +23,9 @@ class AuthorizeRecognition
             $module = (string) $r->route('module');
             $a = app(RecognitionAuthority::class);
             $a->actor($r->user(), $module, ! $r->isMethodSafe());
+            if ($r->routeIs('recognition.*')) {
+                app(RecognitionPanelScope::class)->authorize($r);
+            }
             if (! $r->isMethodSafe() || in_array($r->route()->getActionMethod(), ['configuration', 'learners', 'nominations', 'catalogue'], true)) {
                 $a->staff($r->user(), $module, ! $r->isMethodSafe());
             }

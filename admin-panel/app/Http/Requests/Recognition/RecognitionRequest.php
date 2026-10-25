@@ -13,6 +13,10 @@ class RecognitionRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         abort_if(! $this->isMethodSafe() && $this->query->count() > 0, 422, 'Submit recognition changes in the request body.');
+        if (! $this->isMethodSafe() && $this->route('kind') !== null) {
+            $operation = RecognitionQueries::CATALOGUES[$this->route('kind')] ?? abort(404);
+            $this->merge(RecognitionRules::normalise($this->all(), $operation));
+        }
     }
 
     public function authorize(): bool

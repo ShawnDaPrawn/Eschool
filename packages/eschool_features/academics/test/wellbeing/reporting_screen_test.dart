@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:async';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,6 +48,7 @@ Future<void> show(
   WidgetTester tester,
   FakeReporting repo, {
   Future<bool> Function(Uri)? opener,
+  Future<Uint8List?> Function()? selector,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -55,6 +58,7 @@ Future<void> show(
         learnerId: 3,
         learnerName: 'Synthetic Child',
         openAnonymous: opener,
+        selectPhoto: selector,
       ),
     ),
   );
@@ -212,4 +216,74 @@ void main() {
     expect(find.text('Private reporter concern'), findsNothing);
     expect(find.text(repo.code), findsNothing);
   });
+  testWidgets(
+    'photo unknown outcome retries identical bytes and operation without a second selection',
+    (tester) async {
+      final repo = FakeReporting()
+        ..anonymous = false
+        ..photoOfflineOnce = true;
+      final bytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNQcGj4DwADRAHgMqq/hAAAAABJRU5ErkJggg==',
+      );
+      await show(tester, repo, selector: () async => bytes);
+      await enter(tester, 'Private report code', repo.code);
+      await tap(tester, 'Read my report');
+      await tap(tester, 'Choose report photo');
+      await tap(tester, 'Send selected photo');
+      expect(repo.photoRequests.length, 1);
+      await tap(tester, 'Retry unchanged request');
+      expect(repo.photoRequests.length, 2);
+      expect(repo.photoRequests[0], repo.photoRequests[1]);
+      expect(repo.photos.length, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'external picker background erases previous code and requires explicit fresh report selection',
+    (tester) async {
+      final repo = FakeReporting()..anonymous = false;
+      final choice = Completer<Uint8List?>();
+      await show(tester, repo, selector: () => choice.future);
+      await enter(tester, 'Private report code', repo.code);
+      await tap(tester, 'Read my report');
+      await tap(tester, 'Choose report photo');
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.text('Private reporter concern'), findsNothing);
+      expect(find.text(repo.code), findsNothing);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      choice.complete(Uint8List.fromList([1, 2, 3]));
+      await tester.pumpAndSettle();
+      expect(repo.photoRequests, isEmpty);
+      expect(
+        find.widgetWithText(FilledButton, 'Send selected photo'),
+        findsNothing,
+      );
+      await enter(tester, 'Private report code', repo.code);
+      await tap(tester, 'Read my report');
+      await seek(
+        tester,
+        find.widgetWithText(FilledButton, 'Send selected photo'),
+      );
+      expect(repo.photoRequests, isEmpty);
+    },
+  );
+  testWidgets(
+    'revoked authority while picking drops selected bytes and private body',
+    (tester) async {
+      final repo = FakeReporting()..anonymous = false;
+      final choice = Completer<Uint8List?>();
+      await show(tester, repo, selector: () => choice.future);
+      await enter(tester, 'Private report code', repo.code);
+      await tap(tester, 'Read my report');
+      await tap(tester, 'Choose report photo');
+      repo.deny = true;
+      choice.complete(Uint8List.fromList([1, 2, 3]));
+      await tester.pumpAndSettle();
+      expect(find.text('Private reporter concern'), findsNothing);
+      expect(find.text(repo.code), findsNothing);
+      expect(repo.photoRequests, isEmpty);
+    },
+  );
 }

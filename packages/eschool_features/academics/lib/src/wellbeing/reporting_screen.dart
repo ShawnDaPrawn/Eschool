@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import '../localization/academic_text.dart';
 import 'reporting_repository.dart';
+import 'private_report_image.dart';
+import 'report_photo_picker.dart';
 
 class IncidentReportingScreen extends StatefulWidget {
   const IncidentReportingScreen({
@@ -15,6 +18,7 @@ class IncidentReportingScreen extends StatefulWidget {
     this.learnerId,
     this.learnerName,
     this.openAnonymous,
+    this.selectPhoto,
     super.key,
   });
   final ReportingRepository repository;
@@ -22,6 +26,7 @@ class IncidentReportingScreen extends StatefulWidget {
   final int? learnerId;
   final String? learnerName;
   final Future<bool> Function(Uri)? openAnonymous;
+  final Future<Uint8List?> Function()? selectPhoto;
   @override
   State<IncidentReportingScreen> createState() =>
       _IncidentReportingScreenState();
@@ -45,11 +50,18 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
       _identifyConsent = false,
       _identifyAboutLearner = false,
       _aboutLearner = false;
+  Uint8List? _selectedPhoto;
+  bool _picking = false, _foreground = true;
   int _epoch = 0;
   String? _message, _pending, _action;
   bool get _active => mounted && repo.isActive;
   bool get _editable =>
-      !_busy && !_hidden && !_denied && _pending == null && repo.isActive;
+      !_busy &&
+      !_picking &&
+      !_hidden &&
+      !_denied &&
+      _pending == null &&
+      repo.isActive;
   bool get _write => _editable && _access?.canWrite == true;
   String l(String key) => academicText(context, key);
   static String secret() {
@@ -70,6 +82,7 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
   @override
   void dispose() {
     _epoch++;
+    _clearPhoto();
     WidgetsBinding.instance.removeObserver(this);
     for (final c in [_body, _code, _reply]) {
       c.clear();
@@ -78,7 +91,13 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
     super.dispose();
   }
 
+  void _clearPhoto() {
+    _selectedPhoto?.fillRange(0, _selectedPhoto!.length, 0);
+    _selectedPhoto = null;
+  }
+
   void _erase() {
+    _clearPhoto();
     _view = null;
     _viewSecret = '';
     _newSecret = '';
@@ -95,6 +114,7 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
     if (state != AppLifecycleState.resumed) {
       _epoch++;
       if (mounted)
@@ -179,6 +199,7 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
     if (!_write) return;
     _pending = jsonEncode(input);
     _action = action;
+    if (action == 'photo') _clearPhoto();
     await _retry();
   }
 
@@ -200,6 +221,14 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
             break;
           case 'reply':
             await repo.reply(code, input);
+            view = await repo.read(code);
+            break;
+          case 'photo':
+            await repo.uploadPhoto(
+              code,
+              base64Decode(input['bytes']),
+              input['operation_id'],
+            );
             view = await repo.read(code);
             break;
           case 'identify':
@@ -229,7 +258,9 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
           _pending = null;
           _action = null;
           _message = l(
-            'Check the entered values. Your unsent draft remains here.',
+            action == 'photo'
+                ? 'The photo was not sent. Check its type and size, then choose it again.'
+                : 'Check the entered values. Your unsent draft remains here.',
           );
         } else if (error.statusCode == 409) {
           _pending = null;
@@ -248,6 +279,47 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
           'Your report action was received. Keep the private code to read school replies.',
         ),
       );
+  }
+
+  Future<void> _choosePhoto() async {
+    if (!_write) return;
+    final generation = _epoch;
+    setState(() => _picking = true);
+    try {
+      final bytes = await (widget.selectPhoto?.call() ?? selectReportPhoto());
+      if (!_active || !_foreground || bytes == null) return;
+      if (bytes.isEmpty || bytes.length > 4194304) {
+        throw ApiException(
+          'Choose a JPEG or PNG photo up to 4 MB.',
+          isApiMessage: true,
+        );
+      }
+      // An external picker may background the app: old bodies/codes are erased
+      // immediately. Reopen fresh authority and require the code again before
+      // an explicit send; never silently reattach to the former private report.
+      if (generation != _epoch) {
+        await _bootstrap();
+      } else {
+        await _run((epoch) async {
+          final access = await repo.access();
+          if (_current(epoch)) _access = access;
+        });
+      }
+      if (!_active || !_foreground || _denied || _hidden) return;
+      setState(() {
+        _clearPhoto();
+        _selectedPhoto = Uint8List.fromList(bytes);
+        _message = l(
+          'Photo selected. Read the intended report before sending it.',
+        );
+      });
+    } catch (_) {
+      if (_active && _foreground) {
+        setState(() => _message = l('Choose a JPEG or PNG photo up to 4 MB.'));
+      }
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
   }
 
   Future<void> _anonymous() async {
@@ -439,6 +511,35 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
             SelectableText(_view!.emergencyGuidance),
             SelectableText(_view!.body),
             Text('${l('Status')}: ${l(_view!.status.value)}'),
+            if (_view!.photos?.isNotEmpty == true) _heading('Report photos'),
+            for (final photo in _view!.photos ?? <IncidentPhoto>[])
+              PrivateReportImage(
+                key: ValueKey('report-photo-${photo.id}'),
+                base64: photo.thumbnailBase64,
+                label: l('Photo attached to this report'),
+              ),
+            if (!_view!.anonymous &&
+                _configuration?.photoConstraints != null &&
+                (_view!.photos?.length ?? 0) <
+                    _configuration!.photoConstraints!.maximumPhotos) ...[
+              Text(
+                l(
+                  'Photos may identify people through their contents. Device and location metadata is removed, but visible details remain.',
+                ),
+              ),
+              _button('Choose report photo', _write ? _choosePhoto : null),
+              if (_selectedPhoto != null)
+                _button(
+                  'Send selected photo',
+                  _write
+                      ? () => _save('photo', {
+                          'secret': _viewSecret,
+                          'bytes': base64Encode(_selectedPhoto!),
+                          'operation_id': const Uuid().v4(),
+                        })
+                      : null,
+                ),
+            ],
             _heading('Keep your private code'),
             SelectableText(_viewSecret),
             for (final thread in _view!.threads)

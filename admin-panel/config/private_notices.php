@@ -1,8 +1,9 @@
 <?php
 
-// Each private feature registers its own SQL source/owner predicate. A provider
-// must never retrieve notice/private body columns or use cached app context.
-// Existing unrelated types keep their current recipient rules.
+use App\Services\Wellbeing\WellbeingNotices;
+
+// Private providers scope inbox SQL and independently recheck delivery.
 return [
-    'scopes' => [],
+    'scopes' => ['wellbeing.' => WellbeingNotices::class],
+    'staff_types' => ['wellbeing.staff_update'],
 ];

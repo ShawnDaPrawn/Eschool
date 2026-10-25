@@ -17,6 +17,51 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 /** Registered private types are filtered in SQL before pagination/count/body load. */
 class PrivateNoticeScopes
 {
+    /** Existing domain guards remain authoritative for registrations without this extension. */
+    public function permitsDelivery(User $actor, string $type, array $payload): bool
+    {
+        $providers = config('private_notices.scopes', []);
+        if (! is_array($providers)) {
+            throw new RuntimeException('Private notice scope configuration must be a map.');
+        }
+        foreach ($providers as $prefix => $class) {
+            if (! is_string($prefix) || preg_match('/^[a-z]+(?:[._][a-z]+)*[._]?$/D', $prefix) !== 1 || ! is_string($class)) {
+                throw new RuntimeException('Private notice scope needs a literal dotted prefix and provider class.');
+            }
+            if (! str_starts_with($type, $prefix)) {
+                continue;
+            }
+            $school = app(CurrentSchool::class);
+            if (! $school->isSet() || $school->isAcrossSchools() || $school->isImpersonating() || ! School::active()->whereKey($school->id())->exists()) {
+                return false;
+            }
+            $schoolId = $school->id();
+            try {
+                $fresh = app(ProfilePolicy::class)->actor(User::findOrFail($actor->id));
+                if ($fresh->password_change_required || PlatformStaffIdentity::where('user_id', $fresh->id)->where('active', true)->exists()) {
+                    return false;
+                }
+                $allowed = $school->run($schoolId, function () use ($class, $fresh, $type, $payload, $schoolId) {
+                    $provider = app($class);
+                    if (! $provider instanceof PrivateNoticeScope) {
+                        throw new RuntimeException('Private notice providers must implement PrivateNoticeScope.');
+                    }
+                    $allowed = ! $provider instanceof PrivateNoticeDelivery || $provider->allows($fresh, $type, $payload);
+                    $current = app(CurrentSchool::class);
+
+                    return $allowed && $current->isSet() && $current->id() === $schoolId && ! $current->isAcrossSchools() && ! $current->isImpersonating();
+                });
+                if (! $allowed) {
+                    return false;
+                }
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function apply(Builder $notifications, int $actorId): Builder
     {
         $providers = config('private_notices.scopes', []);

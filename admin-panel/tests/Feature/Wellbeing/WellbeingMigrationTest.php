@@ -17,6 +17,8 @@ class WellbeingMigrationTest extends TestCase
         Artisan::call('migrate:fresh', ['--force' => true]);
         $migration = require database_path('migrations/2026_10_25_050000_create_wellbeing.php');
         $photos = require database_path('migrations/2026_10_25_170000_create_incident_photos.php');
+        $notices = require database_path('migrations/2026_10_25_180000_create_wellbeing_notice_intents.php');
+        $notices->down();
         $photos->down();
         $migration->down();
         $this->assertFalse(Schema::hasTable('incident_reports'));
@@ -25,6 +27,7 @@ class WellbeingMigrationTest extends TestCase
         $this->assertTrue(Schema::hasTable('mastery_records'));
         $migration->up();
         $photos->up();
+        $notices->up();
         $this->assertTrue(Schema::hasTable('incident_reports'));
         $this->assertTrue(Schema::hasTable('wellbeing_operations'));
         $this->assertFalse(config('modules.wellbeing.default'));

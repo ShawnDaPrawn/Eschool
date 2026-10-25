@@ -69,8 +69,10 @@ threads now expose retained-history pagination. The restricted app's real case/t
 verified through shared tests plus both facilitator and dual-role Teacher
 Chromium entrypoints. Identified learner/parent reporting is implemented and browser verified with
 explicit consent and private follow-up. Private photo storage and its public/panel/API adapters now have automated and
-browser evidence; app photo controls and generic
-fresh-authority notices remain active follow-up;
+browser evidence. Owner app photo upload and private reporter/staff thumbnails
+are implemented, with full shared/family tests and learner/Parent Chrome evidence.
+Generic private notice intents, outbox, fresh delivery and inbox SQL are now
+implemented and verified; the dedicated Facilitator private inbox surface remains active follow-up;
 the disabled module is not yet a completed reporting workflow. Separate support-plan/learner-note permissions never grant these cases.
 
 Parallel ownership: the root stream owns houses/awards (step 5), then intake

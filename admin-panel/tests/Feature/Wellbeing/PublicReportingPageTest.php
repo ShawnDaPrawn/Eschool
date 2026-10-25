@@ -45,7 +45,7 @@ class PublicReportingPageTest extends TestCase
     {
         $this->actingAs($this->superAdmin(), 'web');
         $form = $this->get($this->path)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer')
-            ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+            ->assertHeader('Content-Security-Policy', "default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src data:; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
         $secret = $form->viewData('secret');
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/D', $secret);
         $this->assertSame([], $form->headers->getCookies());

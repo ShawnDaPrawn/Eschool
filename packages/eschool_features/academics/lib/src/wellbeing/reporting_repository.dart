@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 
@@ -13,6 +15,11 @@ abstract interface class ReportingRepository {
     int? learner,
   });
   Future<void> reply(String secret, Map<String, dynamic> input);
+  Future<IncidentPhoto> uploadPhoto(
+    String secret,
+    Uint8List bytes,
+    String operation,
+  );
   Uri anonymousForm(String slug);
 }
 
@@ -42,10 +49,7 @@ class ApiReportingRepository implements ReportingRepository {
       );
   }
 
-  Future<Map<String, dynamic>> _send(
-    String path, {
-    Map<String, dynamic>? body,
-  }) async {
+  Future<Map<String, dynamic>> _send(String path, {Object? body}) async {
     _guard();
     final result = await client.send(
       method: body == null ? 'GET' : 'POST',
@@ -115,6 +119,30 @@ class ApiReportingRepository implements ReportingRepository {
     );
     if (receipt.operationId != input['operation_id'] || !receipt.posted)
       throw ApiException(ApiErrorCodes.defaultErrorMessageKey);
+  }
+
+  @override
+  Future<IncidentPhoto> uploadPhoto(
+    String secret,
+    Uint8List bytes,
+    String operation,
+  ) async {
+    if (bytes.isEmpty || bytes.length > 4194304) {
+      throw ApiException(
+        'Choose a JPEG or PNG photo up to 4 MB.',
+        isApiMessage: true,
+      );
+    }
+    return IncidentPhoto.fromJson(
+      await _send(
+        'own/photos',
+        body: FormData.fromMap({
+          'secret': secret,
+          'operation_id': operation,
+          'photo': MultipartFile.fromBytes(bytes, filename: 'report-photo.jpg'),
+        }),
+      ),
+    );
   }
 
   @override

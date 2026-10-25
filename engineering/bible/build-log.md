@@ -475,3 +475,15 @@ pass. The pinned generator produced1,410 Dart files; existing83 plus new4 SDK te
 and strict lint pass. Preserved parallel Risk/calendar additions. Panel/assembly,
 apps and live/notice integration remain separate increments; no phase or production
 completion is claimed by these checks.
+
+## 2026-10-25 — houses, awards and assembly panel
+
+Added the school panel workbench for dated house allocations, configurable point
+categories/caps, reasoned reversals, scoped reusable award definitions, nomination
+windows and category appointments, reviewed/approved assembly presentations and
+outside awards. Permanent profiles contain presentations only. Assembly excludes
+private nomination/review reasons; private draft failures never enter session flash.
+37 MySQL checks/321 assertions, full Pint, configured static analysis and TypeScript
+pass; actual Chromium award/reversal/assembly/certificate-correction workflows pass
+at390/820/1280 with accessibility, overflow, duplicate-ID and error checks. Native
+clients, guarded notices and live latency remain independent integration work.

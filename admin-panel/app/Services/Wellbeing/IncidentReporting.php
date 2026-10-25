@@ -196,7 +196,7 @@ class IncidentReporting
             $this->operations->revision($row, $data);
             $thread = IncidentThread::create(['incident_report_id' => $id, 'staff_user_id' => $actor->id, 'author_type' => 'staff', 'internal' => $data['internal'], 'body' => $data['body'], 'operation_id' => $data['operation_id'], 'request_hash' => $this->operations->digest(json_encode($data, JSON_THROW_ON_ERROR))]);
             $row->fill(['status' => $data['status'], 'revision' => $row->revision + 1])->save();
-            $this->operations->event($actor, 'wellbeing.staff_follow_up', $row);
+            $this->operations->event($actor, 'wellbeing.staff_follow_up', $row, ['reporter_visible' => ! $data['internal']]);
 
             return $row->only(['id', 'revision', 'status']) + ['thread_id' => $thread->id];
         });
