@@ -22,6 +22,7 @@ use App\Services\Activities\CommunityAuthority;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class RecognitionAuthority
@@ -149,7 +150,7 @@ class RecognitionAuthority
                     abort_unless(ActivityGroup::whereKey($ancestor)->where('session_year_id', $year)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->exists(), 404);
                 }
                 $ids[] = (int) $group->id;
-            } catch (HttpExceptionInterface|\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
             }
         }
 
@@ -160,14 +161,14 @@ class RecognitionAuthority
     {
         $ids = [];
         $activities = $administratorsOnly ? [] : $this->activityScopes($actor, (int) $learner->id, (int) $place->session_year_id);
-        foreach (AwardCategory::where('active', true)->orderBy('id')->get() as $category) {
+        foreach (AwardCategory::when($write, fn ($q) => $q->where('active', true))->orderBy('id')->get() as $category) {
             try {
                 if (! $this->categoryAdmin($actor, $category, $write) && ! ($category->scope_kind === 'group' && in_array((int) $category->activity_group_id, $activities, true))) {
                     continue;
                 }
-                $this->eligible($category, $learner, $place);
+                $this->eligible($category, $learner, $place, $write);
                 $ids[] = (int) $category->id;
-            } catch (HttpExceptionInterface|\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
             }
         }
 
@@ -260,9 +261,9 @@ class RecognitionAuthority
         return false;
     }
 
-    public function eligible(AwardCategory $category, Students $learner, Enrolment $place): void
+    public function eligible(AwardCategory $category, Students $learner, Enrolment $place, bool $requireActive = true): void
     {
-        $this->lineage($category);
+        $this->lineage($category, $requireActive);
         $grade = (int) $place->homeroom->class->grade_level_id;
         abort_if($category->scope_kind === 'grade' && (int) $category->grade_level_id !== $grade, 404);
         $today = $this->today();

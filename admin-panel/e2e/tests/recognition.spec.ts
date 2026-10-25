@@ -35,6 +35,11 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('link',{name:'Open assembly mode',exact:true}).click();
     await expect(page.getByText('Private nomination evidence never projected',{exact:true})).toHaveCount(0);await expect(page.getByText('Private reviewer evidence never projected',{exact:true})).toHaveCount(0);
     const present=page.getByRole('form',{name:/^Present approved nomination/}).first();await present.locator('[name="event"]').fill('Recognition browser assembly');await present.getByRole('button',{name:'Record approved presentation',exact:true}).click();
+    await expect(page).toHaveURL(/assembly=1/);
+    await expect(page.getByText('Private nomination evidence never projected',{exact:true})).toHaveCount(0);
+    await expect(page.getByText('Private reviewer evidence never projected',{exact:true})).toHaveCount(0);
+    await page.getByRole('link',{name:'Leave assembly mode',exact:true}).click();
+    await page.goto(`/recognition/awards?learner_id=${fixture.learner}`);
     await expect(page.getByRole('heading',{name:'Permanent awards',exact:true})).toBeVisible();
     const correction=page.getByRole('form',{name:/^Correct permanent award/}).first();await correction.locator('[name="reason"]').fill('Recognition browser certificate correction');await correction.getByRole('button',{name:'Retain a correction and remove from active profile',exact:true}).click();
     expect(await seriousViolations(page)).toEqual([]);expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
