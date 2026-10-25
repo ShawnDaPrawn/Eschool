@@ -1,0 +1,6 @@
+.cover-workbench { max-width: 100%; overflow-wrap: anywhere; }
+.cover-fields { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem; margin-block: 1rem; }
+.cover-fields .page-field { flex: 1 1 15rem; min-width: 0; }
+.cover-workbench .m3-card { margin-block: .75rem; overflow-wrap: anywhere; }
+.cover-workbench .page-section { margin-block: 2rem; }
+@media (max-width: 600px) { .cover-fields { display: block; } .cover-fields .page-field { margin-block: 1rem; } }

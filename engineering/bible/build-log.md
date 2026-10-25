@@ -440,3 +440,15 @@ API/domain tests passed22/171, full configured static analysis and strict schema
 lint passed, and two SDK date/nullability regressions passed. Panel/shared-app
 workbenches follow; support plans, leadership and transfers remain in progress.
 No external classroom/device/staging acceptance or production activation claimed.
+
+### 25 October 2026 - private relief-cover panel
+
+The school panel now handles named cover requests, available substitute
+assignment, explicit source review/cancellation and dated personal lessons.
+Private draft errors and early read-only-year refusals return escaped input
+without session flash; the shared private-form registry also covers group
+materials. Actual browser workflows passed at1024/1280 with accessibility,
+overflow, unique-ID and own-origin error checks. Panel access and mutation
+regressions, catalogue checks, Pint and configured static analysis pass.
+Shared app cover screens and expected-account binding follow separately; no
+external classroom/staging/device acceptance or whole-phase completion claimed.

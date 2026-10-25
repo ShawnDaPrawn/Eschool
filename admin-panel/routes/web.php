@@ -39,6 +39,7 @@ use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
+use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\SearchController;
@@ -271,6 +272,16 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             foreach (['open', 'sync', 'review', 'settings'] as $action) {
                 Route::post($action, [$controller, $action])->name($action);
             }
+        });
+        Route::prefix('relief-cover')->name('relief-cover.')->middleware('module:relief_cover')->group(function () {
+            $c = CoverPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('{absence}', [$c, 'index'])->whereNumber('absence')->name('show');
+            Route::post('requests', [$c, 'write'])->name('request');
+            foreach (['refresh', 'cancel'] as $operation) {
+                Route::post('{absence}/'.$operation, [$c, 'write'])->whereNumber('absence')->name($operation);
+            }
+            Route::post('occurrences/{occurrence}/assignment', [$c, 'write'])->whereNumber('occurrence')->name('assign');
         });
         Route::get('academic-timetable', [TimetableWorkbenchController::class, 'index'])->name('academic-timetable.index');
         foreach (['room' => 'room', 'bells' => 'bells', 'preview' => 'preview', 'commit' => 'commit', 'import-map' => 'mapImport', 'import-preview' => 'previewImport'] as $path => $action) {
