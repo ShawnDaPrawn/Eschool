@@ -185,6 +185,14 @@ or production/staging qualification is inferred from unit/widget tests. The
 facilitator identity still deliberately stops before teacher startup until its
 separate scoped sign-in and restricted shell are implemented. Authored group
 Markdown is available; private binary materials remain separate follow-up work.
+### Panel session/year review correction, 25 October 2026
+
+The regression first returned a redirect after an unauthorized historical
+attendance correction through a forged current-group URL. Session/group binding
+now returns 404; the matching historical-group URL returns 423. The existing
+attendance, session revision and operation-receipt count remain unchanged.
+Focused real-MySQL panel check: 1 test / 5 assertions passed.
+
 
 ### Large operation receipt review correction, 25 October 2026
 

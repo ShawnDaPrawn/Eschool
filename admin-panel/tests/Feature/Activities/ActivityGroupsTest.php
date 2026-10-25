@@ -517,6 +517,23 @@ class ActivityGroupsTest extends TestCase
 
     }
 
+    public function test_panel_attendance_binds_the_actual_session_group_and_its_historical_year(): void
+    {
+        $current = $this->group();
+        $year = SessionYear::create(['name' => 'Historical attendance year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31', 'default' => 0]);
+        $historical = $this->group(['session_year_id' => $year->id, 'starts_on' => '2025-01-01', 'ends_on' => '2025-12-31']);
+        $session = ActivitySession::create(['activity_group_id' => $historical['id'], 'on_date' => '2025-02-10', 'name' => 'Retained session', 'venue' => 'Field', 'status' => 'scheduled', 'revision' => 1]);
+        ActivityAttendance::create(['activity_session_id' => $session->id, 'learner_id' => $this->schoolA->ids['asha'], 'status' => 'present', 'recorded_by' => $this->superAdmin()->id, 'reason' => 'Original attendance', 'revision' => 1]);
+        $input = ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'reason' => 'Forged current group correction', 'entries' => [['learner_id' => $this->schoolA->ids['asha'], 'status' => 'absent', 'revision' => 1]]];
+        $receipts = ActivityOperation::count();
+        $this->actingAs($this->superAdmin());
+        $this->post(route('activity-groups.attendance-save', ['group' => $current['id'], 'session' => $session->id]), $input)->assertNotFound();
+        $this->post(route('activity-groups.attendance-save', ['group' => $historical['id'], 'session' => $session->id]), $input)->assertStatus(423);
+        $this->assertSame('present', ActivityAttendance::where('activity_session_id', $session->id)->firstOrFail()->status);
+        $this->assertSame(1, $session->fresh()->revision);
+        $this->assertSame($receipts, ActivityOperation::count());
+    }
+
     public function test_large_attendance_receipt_survives_mysql_encryption_and_exact_replay(): void
     {
         // Exercise an already installed TEXT schema, then the forward upgrade.

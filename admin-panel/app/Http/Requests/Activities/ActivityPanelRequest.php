@@ -6,6 +6,7 @@ namespace App\Http\Requests\Activities;
 
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Models\Activities\ActivityGroup;
+use App\Models\Activities\ActivitySession;
 use App\Services\Activities\CommunityAuthority;
 use App\Services\Panel\SessionYearContext;
 use Illuminate\Contracts\Validation\Validator;
@@ -16,9 +17,15 @@ class ActivityPanelRequest extends ActivityRequest
     public function authorize(): bool
     {
         app(CommunityAuthority::class)->manage($this->user());
+        // The route group is navigation context, never authority for an
+        // unrelated session. Bind before dispatch and derive its actual year.
+        $session = $this->action() === 'attendance-save'
+            ? ActivitySession::where('activity_group_id', (int) $this->route('group'))->findOrFail((int) $this->route('session'))
+            : null;
         $allowed = parent::authorize();
         if (! $this->isMethodSafe()) {
-            $year = $this->route('group') === null ? $this->input('session_year_id') : ActivityGroup::findOrFail((int) $this->route('group'))->session_year_id;
+            $groupId = $session?->activity_group_id ?? $this->route('group');
+            $year = $groupId === null ? $this->input('session_year_id') : ActivityGroup::findOrFail((int) $groupId)->session_year_id;
             $current = app(SessionYearContext::class)->currentId();
             abort_if($current !== null && is_scalar($year) && ctype_digit((string) $year) && (int) $year > 0 && (int) $year !== $current, 423, __('This school year is read-only. Select the current school year to make changes.'));
         }
