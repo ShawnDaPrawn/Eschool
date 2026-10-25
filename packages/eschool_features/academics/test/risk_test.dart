@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_academics/src/risk/risk_repository.dart';
 import 'package:eschool_academics/src/risk/risk_screen.dart';
@@ -27,6 +28,7 @@ Map<String, dynamic> riskMeta({
 class RiskFake implements RiskRepository {
   RiskFake({this.principal = false, this.empty = false});
   final bool principal, empty;
+  bool? writable = true;
   @override
   int schoolId = 1, readerId = 12;
   @override
@@ -48,6 +50,7 @@ class RiskFake implements RiskRepository {
     configurationCalls++;
     return RiskConfiguration.fromJson({
       'session_year_id': 7,
+      if (writable != null) 'writable': writable,
       'today': '2026-02-10',
       'can_manage': principal,
       'can_read_signals': true,
@@ -184,8 +187,9 @@ class RiskFake implements RiskRepository {
   ) async {
     creates++;
     intents.add(input.toJson());
-    if (unknownOnce && creates == 1)
+    if (unknownOnce && creates == 1) {
       throw ApiException('Network outcome unknown', statusCode: 0);
+    }
     return InterventionMetadata.fromJson(riskMeta());
   }
 
@@ -317,6 +321,29 @@ void main() {
       expect(repo.updates, 1);
       expect(find.text('Private owned intervention'), findsNothing);
     });
+  }
+  for (final writable in [false, null]) {
+    testWidgets(
+      'readonly or absent write capability retains owned reads ($writable)',
+      (tester) async {
+        final repo = RiskFake()..writable = writable;
+        await frameRisk(tester, repo);
+        await tapRisk(tester, 'Open your intervention');
+        expect(find.text('Private owned intervention'), findsWidgets);
+        expect(
+          find.text('Follow-up is read-only. Saved records remain available.'),
+          findsOneWidget,
+        );
+        expect(
+          tester.widget<TextField>(field('Action to take')).enabled,
+          isFalse,
+        );
+        final save = find.widgetWithText(FilledButton, 'Save review');
+        await tester.ensureVisible(save);
+        expect(tester.widget<FilledButton>(save).onPressed, isNull);
+        expect(repo.updates, 0);
+      },
+    );
   }
   testWidgets(
     'unknown create retries exact immutable UUID and school-calendar dates',

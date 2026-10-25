@@ -6,6 +6,7 @@ namespace App\Services\Panel;
 
 use App\Models\User;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Discipline\DisciplineQueries;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
@@ -133,6 +134,9 @@ class Navigation
             return false;
         }
         if (($item['cover_actor'] ?? false) && ! app(CoverAuthority::class)->available($user, (int) schoolSetting('session_year'))) {
+            return false;
+        }
+        if (($item['discipline_actor'] ?? false) && ! app(DisciplineQueries::class)->available($user)) {
             return false;
         }
         if (($item['risk_actor'] ?? false) && ! app(RiskQueries::class)->available($user)) {
