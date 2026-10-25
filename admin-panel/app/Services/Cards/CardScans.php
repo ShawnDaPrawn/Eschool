@@ -65,7 +65,7 @@ class CardScans
             $card = Card::findOrFail($data['card_id']);
             $profile = CardChipProfile::where('card_id', $card->id)->whereNotNull('encoded_at')->lockForUpdate()->firstOrFail();
             try {
-                $proof = app(SunVerifier::class)->verify($data['picc'], $data['mac'], base64_decode($profile->metadata_key), base64_decode($profile->file_read_key), $profile->uid);
+                $proof = app(SunVerifier::class)->verify($data['picc'], $data['mac'], hex2bin($profile->metadata_key), hex2bin($profile->file_read_key), $profile->uid);
             } catch (UnexpectedValueException) {
                 abort(403, 'The card proof could not be verified.');
             }

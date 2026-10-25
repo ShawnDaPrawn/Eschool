@@ -50,6 +50,23 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getSecureCardConfiguration requires authentication' => [null, 'GET', 'api/v2/cards/configuration', [], 401],
+            'getMySecureCards requires authentication' => [null, 'GET', 'api/v2/cards/mine', [], 401],
+            'getManagedSecureCards requires authentication' => [null, 'GET', 'api/v2/cards/managed', [], 401],
+            'getSecureCardPeople requires authentication' => [null, 'GET', 'api/v2/cards/people', [], 401],
+            'issueSecureCard requires authentication' => [null, 'POST', 'api/v2/cards', [], 401],
+            'uploadSecureCardPortrait requires authentication' => [null, 'POST', 'api/v2/cards/portraits', [], 401],
+            'registerSecureCardReader requires authentication' => [null, 'POST', 'api/v2/card-readers', [], 401],
+            'revokeSecureCardReader requires authentication' => [null, 'DELETE', 'api/v2/card-readers/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getSecureCard requires authentication' => [null, 'GET', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getSecureCardPortrait requires authentication' => [null, 'GET', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/portrait', [], 401],
+            'issueSecureCardCredential requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/credential', [], 401],
+            'freezeSecureCard requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/freeze', [], 401],
+            'replaceSecureCard requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/replace', [], 401],
+            'restoreSecureCard requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/restore', [], 401],
+            'scanSecureCardQr requires authentication' => [null, 'POST', 'api/v2/card-device/scan/qr', [], 401],
+            'scanSecureCardSun requires authentication' => [null, 'POST', 'api/v2/card-device/scan/sun', [], 401],
+            'getScannedSecureCardPortrait requires authentication' => [null, 'GET', 'api/v2/card-device/scans/8aef50e7-2429-4d2c-a523-668ae436c4d4/portrait', [], 401],
             'getMyGradeAccess requires auth' => [null, 'GET', 'api/v2/my-grade/access', [], 401],
             'getMyGradeDashboard requires auth' => [null, 'GET', 'api/v2/my-grade/grades/1', [], 401],
             'getWeeklyDigestAccess requires auth' => [null, 'GET', 'api/v2/digests/access', [], 401],

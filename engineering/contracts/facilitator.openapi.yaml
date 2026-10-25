@@ -5,10 +5,10 @@ paths:
       tags:
       - Platform
       summary: signInFacilitator
-      description: Fresh dated school membership and an explicit facilitator session profile are required.
-        This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements
-        before issuing a session; only current accepted policy versions and a completed password change
-        allow authentication. Responses are private and never cached.
+      description: Fresh dated school membership and an explicit facilitator session profile are required. This
+        identity grants no teacher or whole-school permissions. Sign-in returns setup requirements before issuing
+        a session; only current accepted policy versions and a completed password change allow authentication. Responses
+        are private and never cached.
       responses:
         '200':
           description: Private facilitator session result.
@@ -29,8 +29,8 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
         '409':
-          description: Credentials verified; complete password/policy setup and resubmit. No authenticated
-            session has been issued.
+          description: Credentials verified; complete password/policy setup and resubmit. No authenticated session
+            has been issued.
           content:
             application/json:
               schema:
@@ -48,10 +48,10 @@ paths:
       tags:
       - Platform
       summary: getFacilitatorSession
-      description: Fresh dated school membership and an explicit facilitator session profile are required.
-        This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements
-        before issuing a session; only current accepted policy versions and a completed password change
-        allow authentication. Responses are private and never cached.
+      description: Fresh dated school membership and an explicit facilitator session profile are required. This
+        identity grants no teacher or whole-school permissions. Sign-in returns setup requirements before issuing
+        a session; only current accepted policy versions and a completed password change allow authentication. Responses
+        are private and never cached.
       responses:
         '200':
           description: Private facilitator session result.
@@ -80,10 +80,10 @@ paths:
       tags:
       - Platform
       summary: signOutFacilitator
-      description: Fresh dated school membership and an explicit facilitator session profile are required.
-        This identity grants no teacher or whole-school permissions. Sign-in returns setup requirements
-        before issuing a session; only current accepted policy versions and a completed password change
-        allow authentication. Responses are private and never cached.
+      description: Fresh dated school membership and an explicit facilitator session profile are required. This
+        identity grants no teacher or whole-school permissions. Sign-in returns setup requirements before issuing
+        a session; only current accepted policy versions and a completed password change allow authentication. Responses
+        are private and never cached.
       responses:
         '200':
           description: Private facilitator session result.
@@ -116,12 +116,13 @@ components:
       - name
       - slug
       properties:
-        id: &id003
+        id:
           type: integer
           minimum: 1
-        name: &id001
+        name:
           type: string
-        slug: *id001
+        slug:
+          type: string
     FacilitatorFeatures:
       type: object
       additionalProperties: false
@@ -132,36 +133,45 @@ components:
       properties:
         live_updates:
           type: boolean
-          description: Optional fresh live-session capability, emitted only when the live transport is implemented and authorized.
+          description: Optional fresh live-session capability, emitted only when the live transport is implemented
+            and authorized.
         gallery:
           type: boolean
-          description: Optional current gallery group capability. Every group, file and tag requires fresh source authority.
+          description: Optional current gallery group capability. Every group, file and tag requires fresh source
+            authority.
         daily_practice:
           type: boolean
-          description: Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized again.
+          description: Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized
+            again.
         consultations:
           type: boolean
-          description: Optional current-school consultation capability; every ballot still requires fresh audience authority.
+          description: Optional current-school consultation capability; every ballot still requires fresh audience
+            authority.
         private_notices:
           type: boolean
-          description: Optional fresh dedicated staff inbox capability; absence means unavailable. Every notice still requires its source grant.
+          description: Optional fresh dedicated staff inbox capability; absence means unavailable. Every notice
+            still requires its source grant.
         house_points:
           type: boolean
-          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains
+            required.
         awards:
           type: boolean
-          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains required.
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains
+            required.
         discipline:
           type: boolean
-          description: Optional capability; absence preserves older facilitator session responses. Fresh record-specific authority remains required.
+          description: Optional capability; absence preserves older facilitator session responses. Fresh record-specific
+            authority remains required.
         risk_interventions:
           type: boolean
-          description: Fresh original-kind authority for private risk interventions; absence
-            means unavailable.
-        groups: &id002
+          description: Fresh original-kind authority for private risk interventions; absence means unavailable.
+        groups:
           type: boolean
-        messages: *id002
-        counselling: *id002
+        messages:
+          type: boolean
+        counselling:
+          type: boolean
         support_plans:
           type: boolean
           description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
@@ -173,6 +183,9 @@ components:
         my_grade:
           type: boolean
           description: A current dated grade-head working hub is available.
+        cards:
+          type: boolean
+          description: Fresh card module/account access; does not grant issuance or device management rights.
     FacilitatorProfile:
       type: object
       additionalProperties: false
@@ -184,12 +197,18 @@ components:
       - schools
       - features
       properties:
-        user_id: *id003
-        school_id: *id003
-        name: *id001
+        user_id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
         roles:
           type: array
-          items: *id001
+          items:
+            type: string
         schools:
           type: array
           items:
@@ -213,8 +232,10 @@ components:
         version:
           type: string
           pattern: ^[a-f0-9]{64}$
-        title: *id001
-        text: *id001
+        title:
+          type: string
+        text:
+          type: string
     FacilitatorSignInInput:
       type: object
       additionalProperties: false
@@ -256,16 +277,18 @@ components:
       - password_change_required
       - documents
       properties:
-        authenticated: *id002
+        authenticated:
+          type: boolean
         token:
           anyOf:
-          - *id001
+          - type: string
           - type: 'null'
         profile:
           anyOf:
           - $ref: '#/components/schemas/FacilitatorProfile'
           - type: 'null'
-        password_change_required: *id002
+        password_change_required:
+          type: boolean
         documents:
           type: array
           items:
@@ -279,13 +302,15 @@ components:
       - data
       - code
       properties:
-        error: *id002
-        message: *id001
+        error:
+          type: boolean
+        message:
+          type: string
         data:
           $ref: '#/components/schemas/FacilitatorSignInData'
         code:
           anyOf:
-          - *id001
+          - type: string
           - type: 'null'
     FacilitatorSessionResponse:
       type: object
@@ -296,13 +321,15 @@ components:
       - data
       - code
       properties:
-        error: *id002
-        message: *id001
+        error:
+          type: boolean
+        message:
+          type: string
         data:
           $ref: '#/components/schemas/FacilitatorProfile'
         code:
           anyOf:
-          - *id001
+          - type: string
           - type: 'null'
     FacilitatorSignOutResponse:
       type: object
@@ -313,8 +340,10 @@ components:
       - data
       - code
       properties:
-        error: *id002
-        message: *id001
+        error:
+          type: boolean
+        message:
+          type: string
         data:
           anyOf:
           - type: object
@@ -322,5 +351,5 @@ components:
           - type: 'null'
         code:
           anyOf:
-          - *id001
+          - type: string
           - type: 'null'

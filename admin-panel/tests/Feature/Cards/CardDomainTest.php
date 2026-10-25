@@ -34,11 +34,13 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class CardDomainTest extends TestCase
 {
     use UsesTwoSchools;
+    use ValidatesOpenApiResponses;
 
     private User $admin;
 
@@ -169,8 +171,8 @@ class CardDomainTest extends TestCase
         $encoder = $this->reader('encoder');
         // Published NXP table 4 fixture, not a claim of encoded hardware.
         $profile = CardChipProfile::create(['card_id' => $card['id'], 'encoder_device_id' => $encoder['id'],
-            'uid' => '04DE5F1EACC040', 'uid_hash' => hash('sha256', '04DE5F1EACC040'), 'metadata_key' => base64_encode(str_repeat("\0", 16)),
-            'file_read_key' => base64_encode(str_repeat("\0", 16)), 'encoding_package' => 'synthetic-encrypted-plan', 'encoded_at' => now()->utc()]);
+            'uid' => '04DE5F1EACC040', 'uid_hash' => hash('sha256', '04DE5F1EACC040'), 'metadata_key' => bin2hex(str_repeat("\0", 16)),
+            'file_read_key' => bin2hex(str_repeat("\0", 16)), 'encoding_package' => 'synthetic-encrypted-plan', 'encoded_at' => now()->utc()]);
         $input = ['operation_id' => (string) Str::uuid(), 'card_id' => $card['id'], 'picc' => 'EF963FF7828658A599F3041510671E88', 'mac' => '94EED9EE65337086'];
         $scans = app(CardScans::class);
         $bad = [...$input, 'mac' => '0000000000000000'];
@@ -257,6 +259,70 @@ class CardDomainTest extends TestCase
         } catch (HttpException $e) {
             $this->assertSame(403, $e->getStatusCode());
         }
+    }
+
+    private function api(User $user): self
+    {
+        $this->app['auth']->forgetGuards();
+
+        return $this->flushHeaders()->withToken($user->createToken('card-api-test')->plainTextToken)
+            ->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $user->id]);
+    }
+
+    public function test_http_reader_registration_is_explicit_and_revoke_refuses_device(): void
+    {
+        $data = ['operation_id' => (string) Str::uuid(), 'name' => 'Synthetic HTTP gate', 'kind' => 'gate',
+            'public_key' => base64_encode(sodium_crypto_box_publickey(sodium_crypto_box_keypair())), 'days' => 1];
+        $this->api($this->parent)->postJson('/api/v2/card-readers', $data)->assertForbidden();
+        $reader = $this->api($this->admin)->postJson('/api/v2/card-readers', $data)->assertOk()->json('data');
+        $this->api($this->admin)->deleteJson('/api/v2/card-readers/'.$reader['id'], [])->assertOk()->assertJsonPath('data.revoked', true);
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->withToken($reader['credential'])->postJson('/api/v2/card-device/scan/qr', [])->assertForbidden();
+    }
+
+    public function test_http_account_card_reading_and_signed_credential_have_private_headers(): void
+    {
+        $card = $this->issue();
+        $this->api($this->parent)->getJson('/api/v2/cards/mine')->assertOk()->assertJsonPath('data.items.0.id', $card['id'])
+            ->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->api($this->parent)->postJson('/api/v2/cards/'.$card['id'].'/credential')->assertOk()->assertJsonStructure(['data' => ['credential', 'expires_at', 'card']]);
+        $this->api($this->parent)->getJson('/api/v2/cards/managed')->assertForbidden();
+        $this->api($this->parent)->postJson('/api/v2/cards/'.$card['id'].'/freeze', ['operation_id' => (string) Str::uuid(), 'reason' => 'Synthetic lost card'])->assertOk()->assertJsonPath('data.status', 'frozen');
+    }
+
+    public function test_http_device_context_is_secret_bound_and_never_authenticates_user_routes(): void
+    {
+        $card = $this->issue();
+        $reader = $this->reader();
+        $proof = app(Cards::class)->credential($this->parent, $card['id']);
+        $this->app['auth']->forgetGuards();
+        $request = $this->flushHeaders()->withToken($reader['credential'])->withHeader('X-School-Id', '1');
+        $scan = $request->postJson('/api/v2/card-device/scan/qr', ['operation_id' => (string) Str::uuid(), 'credential' => $proof['credential']])
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data.scan_id');
+        $request->get('/api/v2/card-device/scans/'.$scan.'/portrait')->assertOk()->assertHeader('Content-Type', 'image/jpeg');
+        $this->app['auth']->forgetGuards();
+        $this->getJson('/api/v2/cards/mine')->assertUnauthorized();
+        $this->getJson('/api/student/subjects')->assertUnauthorized();
+        $this->withHeader('X-School-Id', '2')->postJson('/api/v2/card-device/scan/qr', [])->assertForbidden();
+        $this->api($this->admin)->postJson('/api/v2/card-device/scan/qr', [])->assertUnauthorized();
+    }
+
+    public function test_http_refusals_and_validation_never_cache_or_flash_private_fields(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->getJson('/api/v2/cards/mine')->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+        $this->api($this->admin)->withHeader('Accept', 'text/html')->post('/api/v2/cards', ['operation_id' => 'invalid', 'person_id' => 'private-invalid'])
+            ->assertStatus(422)->assertJsonPath('error', true)->assertHeader('Cache-Control', 'no-store, private')->assertSessionMissing('_old_input');
+        $this->api($this->admin)->postJson('/api/v2/cards?person_id=123', ['operation_id' => (string) Str::uuid(), 'person_id' => $this->child->id, 'type' => 'learner'])->assertStatus(422);
+        $this->assertSame(0, Card::count());
+    }
+
+    public function test_http_portrait_upload_and_issuance_are_connected_and_owned(): void
+    {
+        $this->api($this->parent)->post('/api/v2/cards/portraits', ['operation_id' => (string) Str::uuid(), 'person_id' => $this->child->id, 'type' => 'learner', 'photo' => UploadedFile::fake()->image('face.jpg', 100, 150)])
+            ->assertOk()->assertJsonStructure(['data' => ['portrait_id', 'revision']]);
+        $this->api($this->admin)->postJson('/api/v2/cards', ['operation_id' => (string) Str::uuid(), 'person_id' => $this->child->id, 'type' => 'learner'])->assertOk();
+        $this->api($this->parent)->getJson('/api/v2/cards/mine')->assertOk()->assertJsonCount(1, 'data.items');
     }
 
     public function test_issue_portrait_and_signed_qr_are_current_private_and_retry_safe(): void
@@ -351,6 +417,7 @@ class CardDomainTest extends TestCase
         $this->travel(11)->seconds();
         $new = app(Cards::class)->credential($this->parent, $card['id']);
         $this->assertNotSame($oldKey->id, $new['key_id']);
+        $this->assertSame('', $oldKey->fresh()->secret_key);
         $claims = app(SignedCardQr::class)->verify($last['credential'], base64_decode($oldKey->public_key), 1, $card['id'], $oldKey->id, now()->getTimestamp());
         $this->assertSame($oldKey->id, app(CardSigningKeys::class)->forVerification($oldKey->id, $claims['i'])->id);
         $this->travel(15)->seconds();
