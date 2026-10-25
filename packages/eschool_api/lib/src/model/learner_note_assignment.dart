@@ -29,6 +29,8 @@ class LearnerNoteAssignment {
     required this.endsOn,
 
     required this.revision,
+
+    this.revoked,
   });
 
   // minimum: 1
@@ -56,6 +58,10 @@ class LearnerNoteAssignment {
   @JsonKey(name: r'revision', required: true, includeIfNull: false)
   final int revision;
 
+  /// Optional for older servers; true means access ended immediately, while original grant dates remain retained.
+  @JsonKey(name: r'revoked', required: false, includeIfNull: false)
+  final bool? revoked;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -66,7 +72,8 @@ class LearnerNoteAssignment {
           other.staffName == staffName &&
           other.startsOn == startsOn &&
           other.endsOn == endsOn &&
-          other.revision == revision;
+          other.revision == revision &&
+          other.revoked == revoked;
 
   @override
   int get hashCode =>
@@ -76,7 +83,8 @@ class LearnerNoteAssignment {
       staffName.hashCode +
       startsOn.hashCode +
       endsOn.hashCode +
-      revision.hashCode;
+      revision.hashCode +
+      revoked.hashCode;
 
   factory LearnerNoteAssignment.fromJson(Map<String, dynamic> json) =>
       _$LearnerNoteAssignmentFromJson(json);

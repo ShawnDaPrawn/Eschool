@@ -32,6 +32,7 @@ LearnerNoteAssignment _$LearnerNoteAssignmentFromJson(
       startsOn: $checkedConvert('starts_on', (v) => v as String),
       endsOn: $checkedConvert('ends_on', (v) => v as String),
       revision: $checkedConvert('revision', (v) => (v as num).toInt()),
+      revoked: $checkedConvert('revoked', (v) => v as bool?),
     );
     return val;
   },
@@ -54,4 +55,5 @@ Map<String, dynamic> _$LearnerNoteAssignmentToJson(
   'starts_on': instance.startsOn,
   'ends_on': instance.endsOn,
   'revision': instance.revision,
+  'revoked': ?instance.revoked,
 };

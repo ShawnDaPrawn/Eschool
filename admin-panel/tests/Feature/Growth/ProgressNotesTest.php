@@ -15,8 +15,11 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Services\Academics\AcademicAuthority;
 use App\Services\Growth\LearnerNotes;
 use App\Services\Growth\ProgressBands;
+use App\Services\Growth\ProgressQueries;
+use App\Services\Pastoral\SensitiveRecordsAccess;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -189,6 +192,27 @@ class ProgressNotesTest extends TestCase
         $this->refused(fn () => app(LearnerNotes::class)->assign($this->superAdmin(), $this->schoolA->ids['asha'], $this->actor()->id,
             ['starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'expected_revision' => 1]), [403]);
         $this->assertSame(1, LearnerNoteAssignment::count());
+    }
+
+    public function test_same_day_note_access_can_end_immediately_without_changing_grant_dates_or_roles(): void
+    {
+        $note = $this->clinical();
+        $start = app(AcademicAuthority::class)->today();
+        app(LearnerNotes::class)->assign($this->superAdmin(), $this->schoolA->ids['asha'], $this->actor()->id,
+            ['starts_on' => $start, 'ends_on' => '2026-12-31', 'expected_revision' => 1]);
+        $ended = app(LearnerNotes::class)->revokeAssignment($this->superAdmin(), $this->schoolA->ids['asha'], $this->actor()->id, 2);
+        $this->assertTrue($ended['revoked']);
+        $this->assertSame($start, $ended['starts_on']);
+        $this->assertSame('2026-12-31', $ended['ends_on']);
+        $this->assertSame(3, $ended['revision']);
+        $this->refused(fn () => app(LearnerNotes::class)->read($this->actor(), $note['id']));
+        $this->refused(fn () => app(LearnerNotes::class)->history($this->actor(), $note['id']));
+        $this->assertSame(0, app(ProgressQueries::class)->caseload($this->actor())['total']);
+        $this->assertSame($this->actor()->id, app(SensitiveRecordsAccess::class)->actor($this->actor())->id);
+        $restored = app(LearnerNotes::class)->assign($this->superAdmin(), $this->schoolA->ids['asha'], $this->actor()->id,
+            ['starts_on' => $start, 'ends_on' => '2026-12-31', 'expected_revision' => 3]);
+        $this->assertFalse($restored['revoked']);
+        $this->assertSame($note['body'], app(LearnerNotes::class)->read($this->actor(), $note['id'])['body']);
     }
 
     public function test_clinical_access_denies_platform_identity_impersonation_and_stale_membership(): void

@@ -1,6 +1,5 @@
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_session/eschool_session.dart';
-import 'package:eschool_core/eschool_core.dart';
 import 'cover_screen_test.dart' show FakeCover;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

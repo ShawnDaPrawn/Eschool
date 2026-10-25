@@ -221,6 +221,8 @@ lib/src/model/activity_membership_write.dart
 lib/src/model/activity_roster_member.dart
 lib/src/model/activity_session.dart
 lib/src/model/activity_session_response.dart
+lib/src/model/activity_session_roster.dart
+lib/src/model/activity_session_roster_learner.dart
 lib/src/model/activity_session_write.dart
 lib/src/model/activity_staff_write.dart
 lib/src/model/approval_learner.dart
@@ -378,6 +380,7 @@ lib/src/model/handle_state.dart
 lib/src/model/handle_state_response.dart
 lib/src/model/learner_note_assignment.dart
 lib/src/model/learner_note_assignment_response.dart
+lib/src/model/learner_note_assignment_revoke.dart
 lib/src/model/learner_note_assignment_write.dart
 lib/src/model/learner_note_assignments.dart
 lib/src/model/learner_note_assignments_response.dart

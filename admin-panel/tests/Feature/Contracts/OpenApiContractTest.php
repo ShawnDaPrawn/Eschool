@@ -302,6 +302,7 @@ class OpenApiContractTest extends TestCase
             'context as a teacher' => ['tara', 'GET', 'api/v2/me/context', [], 200],
             'context as the super admin' => ['superadmin', 'GET', 'api/v2/me/context', [], 200],
             'context as school-created staff' => ['staff', 'GET', 'api/v2/me/context', [], 200],
+            'revokeLearnerNoteAssignment requires auth' => [null, 'POST', 'api/v2/growth/progress/learners/1/assignments/1/revoke', [], 401],
             'getProgressConfiguration requires auth' => [null, 'GET', 'api/v2/growth/progress/configuration', [], 401],
             'saveProgressBandSettings requires auth' => [null, 'PUT', 'api/v2/growth/progress/settings', [], 401],
             'getLearnerNoteCaseload requires auth' => [null, 'GET', 'api/v2/growth/progress/caseload', [], 401],

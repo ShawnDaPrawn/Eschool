@@ -206,6 +206,8 @@ import 'package:eschool_api/src/model/activity_membership_write.dart';
 import 'package:eschool_api/src/model/activity_roster_member.dart';
 import 'package:eschool_api/src/model/activity_session.dart';
 import 'package:eschool_api/src/model/activity_session_response.dart';
+import 'package:eschool_api/src/model/activity_session_roster.dart';
+import 'package:eschool_api/src/model/activity_session_roster_learner.dart';
 import 'package:eschool_api/src/model/activity_session_write.dart';
 import 'package:eschool_api/src/model/activity_staff_write.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
@@ -362,6 +364,7 @@ import 'package:eschool_api/src/model/handle_state.dart';
 import 'package:eschool_api/src/model/handle_state_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
+import 'package:eschool_api/src/model/learner_note_assignment_revoke.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_write.dart';
 import 'package:eschool_api/src/model/learner_note_assignments.dart';
 import 'package:eschool_api/src/model/learner_note_assignments_response.dart';
@@ -1270,6 +1273,14 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ActivitySessionResponse':
       return ActivitySessionResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'ActivitySessionRoster':
+      return ActivitySessionRoster.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivitySessionRosterLearner':
+      return ActivitySessionRosterLearner.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ActivitySessionWrite':
       return ActivitySessionWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -1777,6 +1788,9 @@ ReturnType deserialize<ReturnType, BaseType>(
       return LearnerNoteAssignmentResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'LearnerNoteAssignmentRevoke':
+      return LearnerNoteAssignmentRevoke.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'LearnerNoteAssignmentWrite':
       return LearnerNoteAssignmentWrite.fromJson(value as Map<String, dynamic>)

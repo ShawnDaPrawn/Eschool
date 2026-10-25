@@ -1506,6 +1506,8 @@ class PastoralApi {
   /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [page]
   /// * [search]
+  /// * [learnerId] - Revalidate one named learner choice independently of other result pages.
+  /// * [userId] - Revalidate one named staff choice independently of other result pages.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1521,6 +1523,8 @@ class PastoralApi {
     int? xAccountId,
     int? page,
     String? search,
+    int? learnerId,
+    int? userId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -1559,6 +1563,8 @@ class PastoralApi {
     final _queryParameters = <String, dynamic>{
       if (page != null) r'page': page,
       if (search != null) r'search': search,
+      if (learnerId != null) r'learner_id': learnerId,
+      if (userId != null) r'user_id': userId,
     };
 
     final _response = await _dio.request<Object>(

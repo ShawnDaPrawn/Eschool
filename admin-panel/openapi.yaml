@@ -7706,6 +7706,13 @@ paths:
         schema:
           type: integer
           minimum: 1
+      - name: session_id
+        in: query
+        required: false
+        description: Return the server-authorized dated session register, including retained captured corrections.
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Read an allocated staff roster and session attendance.
@@ -9011,6 +9018,18 @@ paths:
         schema:
           type: string
           maxLength: 100
+      - name: learner_id
+        in: query
+        description: Revalidate one named learner choice independently of other result pages.
+        schema:
+          type: integer
+          minimum: 1
+      - name: user_id
+        in: query
+        description: Revalidate one named staff choice independently of other result pages.
+        schema:
+          type: integer
+          minimum: 1
       responses:
         '200':
           description: Private scoped support data; never cached.
@@ -10523,6 +10542,63 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LearnerNoteAssignmentWrite'
+  /growth/progress/learners/{learner}/assignments/{staff}/revoke:
+    post:
+      operationId: revokeLearnerNoteAssignment
+      tags:
+      - Growth
+      summary: revokeLearnerNoteAssignment
+      description: End this note-only caseload grant immediately after fresh principal, school and expected-account
+        checks. Original dates, private notes and audit history remain retained. Stable operation UUID
+        retries replay the encrypted receipt after renewed authorization. No counselling body is loaded.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: staff
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Private scoped progress or learner note.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearnerNoteAssignmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical learner notes are read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnerNoteAssignmentRevoke'
 components:
   securitySchemes:
     bearerAuth:
@@ -21334,6 +21410,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ActivityAttendance'
+        session_roster:
+          $ref: '#/components/schemas/ActivitySessionRoster'
     ActivityAttendanceReceipt:
       type: object
       additionalProperties: false
@@ -23353,6 +23431,9 @@ components:
         revision:
           type: integer
           minimum: 1
+        revoked:
+          type: boolean
+          description: Optional for older servers; true means access ended immediately, while original grant dates remain retained.
     LearnerNoteAssignments:
       type: object
       additionalProperties: false
@@ -23663,3 +23744,59 @@ components:
           minimum: 0
         data:
           $ref: '#/components/schemas/LearnerNoteAssignments'
+    LearnerNoteAssignmentRevoke:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+    ActivitySessionRosterLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - learner_name
+      - status
+      - revision
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        status:
+          anyOf:
+          - type: string
+          - type: 'null'
+        revision:
+          type: integer
+          minimum: 0
+    ActivitySessionRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - session_id
+      - group_id
+      - session_revision
+      - learners
+      properties:
+        session_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        session_revision:
+          type: integer
+          minimum: 1
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivitySessionRosterLearner'

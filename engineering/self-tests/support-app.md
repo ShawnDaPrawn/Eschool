@@ -30,3 +30,13 @@ the guarded direct route, panel URL alias and actual Facilitator shell workflow.
 The panel picker follow-up passes six tests/79 assertions including more than
 50 eligible teachers, preserved case on search/paging and withdrawal of a draft
 before a historical-year refusal. Five API tests/177 assertions also pass.
+
+Review follow-up: appointment choices now remain selected across independent
+search/pages and are revalidated by exact eligible IDs. A successful review
+reconciles unchanged plan fields and its exact revision while retaining authored
+edits; later concurrent writers still require comparison. Both widget regressions
+failed against the previous screen and pass after the correction. Private writes
+refuse URL query input. The inherited shared clinical guard also refuses pending
+password setup. The affected PHP suite passes24 tests/320 assertions and full
+configured static analysis is clean. Selected-ID filters add only two optional
+query parameters and six generated client lines, with no response changes.

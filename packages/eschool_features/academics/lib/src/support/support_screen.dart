@@ -20,6 +20,7 @@ class _SupportScreenState extends State<SupportScreen>
   final _scroll = ScrollController();
   SupportAccess? _access;
   SupportConfiguration? _configuration;
+  SupportNamedChoice? _chosenLearner, _chosenPerson;
   SupportPlan? _record;
   SupportCases? _cases;
   SupportAssignments? _assignments;
@@ -157,6 +158,7 @@ class _SupportScreenState extends State<SupportScreen>
     _pendingPayload = _pendingAction = null;
     _pendingId = null;
     _learner = _person = null;
+    _chosenLearner = _chosenPerson = null;
     _audience = null;
     _hidden = true;
     _conflict = false;
@@ -175,7 +177,12 @@ class _SupportScreenState extends State<SupportScreen>
     if (_assignmentEnds.isEmpty) _assignmentEnds = today;
   }
 
-  Future<void> _load({int? planId, bool fillPlan = false}) async {
+  Future<void> _load({
+    int? planId,
+    bool fillPlan = false,
+    int? reviewedRevision,
+  }) async {
+    final previous = _record;
     final source = repo, epoch = ++_epoch;
     final chosenPlan = planId ?? _record?.id;
     setState(() {
@@ -192,7 +199,7 @@ class _SupportScreenState extends State<SupportScreen>
         throw ApiException('Not available for this account', statusCode: 403);
       }
       final mode = modes.contains(_audience) ? _audience! : modes.first;
-      SupportConfiguration? configuration;
+      SupportConfiguration? configuration, selections;
       SupportCases? cases;
       SupportAssignments? assignments;
       SupportTeacherList? instructions;
@@ -208,6 +215,13 @@ class _SupportScreenState extends State<SupportScreen>
           search: _search.text.trim(),
           page: _page,
         );
+        if (_learner != null || _person != null) {
+          selections = await source.configuration(
+            mode,
+            learnerId: _learner,
+            staffId: _person,
+          );
+        }
         if (mode == 'principal') {
           assignments = await source.assignments(page: _page);
         } else {
@@ -242,9 +256,14 @@ class _SupportScreenState extends State<SupportScreen>
         if (record == null &&
             _learner != null &&
             configuration != null &&
-            !configuration.learners.any((p) => p.id == _learner)) {
+            !(selections ?? configuration).learners.any(
+              (p) => p.id == _learner,
+            )) {
           _clearDraft();
           _learner = null;
+          _chosenLearner = null;
+          _pendingPayload = _pendingAction = null;
+          _pendingId = null;
         }
         _access = access;
         _audience = mode;
@@ -258,9 +277,45 @@ class _SupportScreenState extends State<SupportScreen>
         _disclosures = disclosures;
         _dates(access.today);
         if (configuration != null) {
-          if (!configuration.staff.any((p) => p.id == _person)) {
-            _person = configuration.staff.firstOrNull?.id;
-            _approved = false;
+          _chosenLearner = (selections ?? configuration).learners
+              .where((p) => p.id == _learner)
+              .firstOrNull;
+          if (_person != null) {
+            _chosenPerson = (selections ?? configuration).staff
+                .where((p) => p.id == _person)
+                .firstOrNull;
+            if (_chosenPerson == null) {
+              _person = null;
+              _approved = false;
+              _appointmentReason.clear();
+            }
+          } else {
+            _chosenPerson = configuration.staff.firstOrNull;
+            _person = _chosenPerson?.id;
+          }
+        }
+        if (record != null &&
+            previous != null &&
+            !fillPlan &&
+            _pendingPayload == null) {
+          // Refresh unchanged fields while retaining the author's actual edits.
+          if (_needs.text == previous.needs) _needs.text = record.needs;
+          if (_accommodations.text == previous.accommodations) {
+            _accommodations.text = record.accommodations;
+          }
+          if (_stage.text == previous.siasStage) _stage.text = record.siasStage;
+          if (_started == previous.startedOn) _started = record.startedOn;
+          if (_due == (previous.reviewDueOn ?? '')) {
+            _due = record.reviewDueOn ?? '';
+          }
+          // Only our exact review revision can advance the optimistic base.
+          // A later writer or changed plan body still requires comparison.
+          if (record.revision == reviewedRevision &&
+              record.needs == previous.needs &&
+              record.accommodations == previous.accommodations &&
+              record.siasStage == previous.siasStage &&
+              record.startedOn == previous.startedOn) {
+            _baseRevision = record.revision;
           }
         }
         if (record != null && (fillPlan || _baseRevision == null)) {
@@ -301,6 +356,7 @@ class _SupportScreenState extends State<SupportScreen>
       _clearDraft();
       _record = null;
       _learner = _person = null;
+      _chosenLearner = _chosenPerson = null;
       _audience = mode;
       _page = _historyPage = 1;
     });
@@ -313,6 +369,7 @@ class _SupportScreenState extends State<SupportScreen>
       _clearDraft();
       _record = null;
       _learner = null;
+      _chosenLearner = null;
       _historyPage = 1;
       _history = 'reviews';
     });
@@ -324,6 +381,9 @@ class _SupportScreenState extends State<SupportScreen>
     setState(() {
       if (id != _learner) _clearDraft();
       _learner = id;
+      _chosenLearner =
+          _configuration!.learners.where((p) => p.id == id).firstOrNull ??
+          (_chosenLearner?.id == id ? _chosenLearner : null);
     });
   }
 
@@ -394,7 +454,11 @@ class _SupportScreenState extends State<SupportScreen>
           }
         }
       });
-      await _load(planId: opened, fillPlan: !preservePlan);
+      await _load(
+        planId: opened,
+        fillPlan: !preservePlan,
+        reviewedRevision: action == 'review' ? receipt.revision : null,
+      );
       if (mounted &&
           !_hidden &&
           !_blocked &&
@@ -550,31 +614,40 @@ class _SupportScreenState extends State<SupportScreen>
   );
   Widget _learnerChoice() => DropdownButtonFormField<int>(
     key: ValueKey('learner-$_learner'),
-    initialValue: _configuration!.learners.any((p) => p.id == _learner)
-        ? _learner
-        : null,
+    initialValue: _chosenLearner?.id,
     isExpanded: true,
     decoration: InputDecoration(labelText: l('Learner')),
     items: [
-      for (final p in _configuration!.learners)
+      for (final p in [
+        if (_chosenLearner != null &&
+            !_configuration!.learners.any((p) => p.id == _chosenLearner!.id))
+          _chosenLearner!,
+        ..._configuration!.learners,
+      ])
         DropdownMenuItem(value: p.id, child: Text(p.name)),
     ],
     onChanged: _writable ? _chooseLearner : null,
   );
   Widget _personChoice(String label) => DropdownButtonFormField<int>(
     key: ValueKey('person-$_person'),
-    initialValue: _configuration!.staff.any((p) => p.id == _person)
-        ? _person
-        : null,
+    initialValue: _chosenPerson?.id,
     isExpanded: true,
     decoration: InputDecoration(labelText: l(label)),
     items: [
-      for (final p in _configuration!.staff)
+      for (final p in [
+        if (_chosenPerson != null &&
+            !_configuration!.staff.any((p) => p.id == _chosenPerson!.id))
+          _chosenPerson!,
+        ..._configuration!.staff,
+      ])
         DropdownMenuItem(value: p.id, child: Text(p.name)),
     ],
     onChanged: _writable
         ? (id) => setState(() {
             _person = id;
+            _chosenPerson =
+                _configuration!.staff.where((p) => p.id == id).firstOrNull ??
+                (_chosenPerson?.id == id ? _chosenPerson : null);
             _approved = false;
             _appointmentReason.clear();
           })
