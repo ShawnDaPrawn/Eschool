@@ -79,7 +79,6 @@ final class PortalSession
             $canonical->attributes->set(self::SIGNED_IN, true);
         }
 
-
         return '';
     }
 
