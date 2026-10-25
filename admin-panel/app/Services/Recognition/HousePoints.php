@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Recognition;
 
 use App\Events\Recognition\HousePointsChanged;
+use App\Events\Recognition\RecognitionChanged;
 use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Recognition\House;
 use App\Models\Recognition\HouseMembership;
@@ -117,6 +118,8 @@ class HousePoints
 
     private function changed(HousePoint $point): void
     {
+        app(RecognitionNotices::class)->changed($point);
+        Outbox::record(new RecognitionChanged(app(CurrentSchool::class)->id(), 'point', (int) $point->id, 1));
         Outbox::record(new HousePointsChanged(app(CurrentSchool::class)->id(), (int) $point->session_year_id, (int) $point->house_id, (int) $point->id));
         Audit::record('recognition.house_points_changed', $point, [], ['house_id' => (int) $point->house_id, 'session_year_id' => (int) $point->session_year_id, 'revision' => (int) $point->id]);
     }

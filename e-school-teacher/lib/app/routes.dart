@@ -126,6 +126,7 @@ class Routes {
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
   static const String progressNotes = '/growth/progress';
+  static const String recognition = '/community/recognition';
   static const String riskInterventions = '/growth/risk';
   static const String reliefCover = '/pastoral/cover';
   static const String supportPlans = '/pastoral/support';
@@ -332,6 +333,8 @@ class Routes {
         return academicTimetableRoute();
       case progressNotes:
         return progressNotesRoute();
+      case recognition:
+        return staffRecognitionRoute();
       case riskInterventions:
         return riskInterventionsRoute();
       case mastery:

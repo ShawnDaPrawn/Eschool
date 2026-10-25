@@ -80,7 +80,20 @@ class RecognitionPanelController extends Controller
             }
         }
         $subjects = Subject::orderBy('name')->get(['id', 'name'])->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name])->all();
-        $groups = ActivityGroup::where('session_year_id', $year)->orderBy('name')->get(['id', 'name'])->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name])->all();
+        $groupIds = [];
+        if (! $config['access']['manager']) {
+            foreach ($config['award_categories'] ?? [] as $category) {
+                if ($category['scope_kind'] === 'group') {
+                    $groupIds[] = (int) $category['activity_group_id'];
+                    foreach ($config['award_windows'] ?? [] as $window) {
+                        if ($window['award_category_id'] === $category['id'] && $window['session_year_id'] === $year && $window['activity_group_id'] !== null) {
+                            $groupIds[] = (int) $window['activity_group_id'];
+                        }
+                    }
+                }
+            }
+        }
+        $groups = ActivityGroup::where('session_year_id', $year)->when(! $config['access']['manager'], fn ($q) => $q->whereIn('id', array_unique($groupIds)))->orderBy('name')->get(['id', 'name'])->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name])->all();
         $staff = [];
         if ($config['access']['manager']) {
             $staff = User::where('status', 1)->whereIn('id', SchoolMembership::active()->where('school_id', $school)->whereNotIn('role', ['Parent', 'Student'])->select('user_id'))->orderBy('first_name')->limit(500)->get()->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->full_name])->all();

@@ -79,3 +79,7 @@ export 'src/wellbeing/wellbeing_session_boundary.dart';
 export 'src/wellbeing/reporting_repository.dart';
 export 'src/wellbeing/reporting_screen.dart';
 export 'src/wellbeing/reporting_session_boundary.dart';
+
+export 'src/recognition/recognition_repository.dart';
+export 'src/recognition/recognition_screen.dart';
+export 'src/recognition/recognition_session_boundary.dart';

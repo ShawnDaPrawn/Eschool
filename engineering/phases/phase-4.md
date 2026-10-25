@@ -72,7 +72,7 @@ explicit consent and private follow-up. Private photo storage and its public/pan
 browser evidence. Owner app photo upload and private reporter/staff thumbnails
 are implemented, with full shared/family tests and learner/Parent Chrome evidence.
 Generic private notice intents, outbox, fresh delivery and inbox SQL are now
-implemented and verified; the dedicated Facilitator private inbox surface remains active follow-up;
+implemented and verified. The dedicated Facilitator/family private inbox API and typed SDK are delivered in PR #166; the inline shared inbox now has focused tests and actual three-profile Chrome evidence. Review/CI remain separately tracked;
 the disabled module is not yet a completed reporting workflow. Separate support-plan/learner-note permissions never grant these cases.
 
 Parallel ownership: the root stream owns houses/awards (step 5), then intake

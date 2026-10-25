@@ -69,6 +69,25 @@ class ClinicalStaffFixture {
         },
         'GET v2/facilitator/session': (RequestOptions _) => result(profile()),
         'POST v2/facilitator/sign-out': result(null),
+        'GET v2/wellbeing/notices': (RequestOptions request) => result({
+          'items': [
+            {
+              'id': 71,
+              'title': 'Private school update',
+              'message': 'Generic private update',
+              'link': '/wellbeing',
+              'created_at': '2026-02-10T08:00:00Z',
+              'read_at': null,
+            },
+          ],
+          'page': 1,
+          'last_page': 1,
+          'unread_count': 1,
+        }),
+        'POST v2/wellbeing/notices/71/read': result({
+          'id': 71,
+          'read_at': '2026-02-10T09:00:00Z',
+        }),
         'GET v2/wellbeing/access': (RequestOptions _) => result({
           'can_configure': false,
           'professional': true,

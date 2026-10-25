@@ -25,6 +25,7 @@ use App\Models\Platform\ProfileFieldCategory;
 use App\Models\Platform\ProfileFile;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\SchoolModule;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\Transfers\TransferPackage;
@@ -38,6 +39,7 @@ use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Notifications\PrivateNoticeScopes;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Transfers\TransferAccept;
@@ -536,6 +538,17 @@ class SchoolTransferTest extends TestCase
         $this->post('/school-transfers/packages', $input)->assertForbidden()->assertDontSee('Private receiving school');
     }
 
+    public function test_disabled_transfer_panel_has_no_page_and_enabled_page_still_rechecks_authority(): void
+    {
+        $this->actingAs($this->sender)->get('/school-transfers')->assertOk();
+        config(['modules.school_transfers' => ['default' => false, 'dependencies' => []]]);
+        SchoolModule::updateOrCreate(['module' => 'school_transfers'], ['in_package' => true, 'enabled' => false]);
+        $this->get('/school-transfers')->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+        config(['modules.school_transfers' => ['always_on' => true]]);
+        SchoolMembership::where('user_id', $this->sender->id)->update(['status' => 'suspended']);
+        $this->get('/school-transfers')->assertForbidden();
+    }
+
     public function test_transfer_consent_notices_are_generic_exact_retries_and_revoke_before_inbox_or_transport(): void
     {
         Queue::fake();
@@ -549,6 +562,9 @@ class SchoolTransferTest extends TestCase
         $guard = app(TransferNotices::class);
         $payload = $notice->delivery_payload;
         $this->assertTrue($guard->allows($this->guardian, $notice->type, $payload));
+        $scopes = app(PrivateNoticeScopes::class);
+        $inbox = fn () => $scopes->apply(Notification::whereKey($notice->id), (int) $this->guardian->id);
+        $this->assertSame(1, $inbox()->count());
         $payload['transfer_package_id'] = (string) $payload['transfer_package_id'];
         $this->assertTrue($guard->allows($this->guardian, $notice->type, $payload));
         $payload['transfer_revision'] = true;
@@ -562,6 +578,7 @@ class SchoolTransferTest extends TestCase
         GuardianLink::where('learner_id', $this->learner)->where('guardian_user_id', $this->guardian->id)->update(['can_approve' => false]);
         $this->assertFalse($transport->allows($delivery, $notice->type, 'email', $this->guardian->email, $notice->delivery_payload));
         $this->assertFalse($guard->allows($this->guardian, $notice->type, $notice->delivery_payload));
+        $this->assertSame(0, $inbox()->count());
         $this->assertSame([], app(Notifier::class)->send($this->guardian, $notice->type, $notice->title, $notice->message, $notice->delivery_payload['link'], $notice, ['in_app']));
     }
 

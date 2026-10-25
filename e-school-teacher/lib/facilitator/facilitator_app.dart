@@ -403,6 +403,40 @@ class _StaffHome extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          if ([
+            'house_points',
+            'awards',
+          ].any((key) => profile.features[key] == true))
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.emoji_events_outlined),
+                title: Text(l('Houses and awards')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  final modules = [
+                    for (final key in ['house_points', 'awards'])
+                      if (profile.features[key] == true) key,
+                  ];
+                  open(
+                    modules.first,
+                    RecognitionScreen(
+                      repository: ApiRecognitionRepository(
+                        repository.client,
+                        schoolId: school,
+                        accountId: user,
+                        contextActive: () =>
+                            repository.matches(generation, school, user) &&
+                            modules.every(
+                              (key) =>
+                                  repository.profile?.features[key] == true,
+                            ),
+                      ),
+                      modules: modules,
+                    ),
+                  );
+                },
+              ),
+            ),
           if (profile.features['risk_interventions'] == true)
             Card(
               child: ListTile(
@@ -543,6 +577,8 @@ class _StaffHome extends StatelessWidget {
             'support_plans',
             'learner_notes',
             'risk_interventions',
+            'house_points',
+            'awards',
             'counselling',
           ].any((key) => profile.features[key] == true))
             Padding(

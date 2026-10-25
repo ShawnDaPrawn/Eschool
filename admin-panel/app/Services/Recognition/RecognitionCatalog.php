@@ -9,6 +9,8 @@ use App\Models\Activities\ActivityGroup;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardCategoryAdmin;
 use App\Models\Recognition\AwardDefinition;
+use App\Models\Recognition\AwardNomination;
+use App\Models\Recognition\AwardPresentation;
 use App\Models\Recognition\AwardWindow;
 use App\Models\Recognition\House;
 use App\Models\Recognition\HouseMembership;
@@ -245,11 +247,35 @@ class RecognitionCatalog
             $d[$key] = (int) $d[$key];
         }
 
-        return $this->save($actor, 'award-window.save', 'awards', $d, $policy, function () use ($d) {
+        if (isset($d['activity_group_id'])) {
+            $d['activity_group_id'] = (int) $d['activity_group_id'];
+        }
+
+        return $this->save($actor, 'award-window.save', 'awards', $d, $policy, function () use ($d, $category, $a, $actor) {
+            AwardCategory::whereKey($category->id)->lockForUpdate()->firstOrFail();
             $year = SessionYear::findOrFail($d['session_year_id']);
             abort_unless($d['opens_on'] >= substr((string) $year->start_date, 0, 10) && $d['closes_on'] <= substr((string) $year->end_date, 0, 10), 422, 'Award windows must fit their school year.');
             $row = AwardWindow::where('award_category_id', $d['award_category_id'])->where('session_year_id', $d['session_year_id'])->lockForUpdate()->first();
             abort_unless((int) ($row?->revision ?? 0) === $d['revision'], 409);
+            if (isset($d['activity_group_id'])) {
+                abort_unless($category->scope_kind === 'group', 422, 'Only group award categories have a yearly group.');
+                $group = ActivityGroup::where('session_year_id', $year->id)->where('active', true)->findOrFail($d['activity_group_id']);
+                abort_unless(substr((string) $group->starts_on, 0, 10) <= $d['opens_on'] && substr((string) $group->ends_on, 0, 10) >= $d['closes_on'], 422, 'The nomination window must fit the selected group dates.');
+                $previous = $a->categoryGroup($category, (int) $year->id);
+                if ($previous !== $d['activity_group_id']) {
+                    $a->manage($actor, 'awards');
+                    abort_if(AwardNomination::where('award_category_id', $category->id)->where('session_year_id', $year->id)->exists()
+                        || AwardPresentation::where('award_category_id', $category->id)->where('session_year_id', $year->id)->exists(), 409, 'Retain the group used by existing nominations and presentations.');
+                    foreach (AwardCategory::where('parent_id', $category->id)->where('scope_kind', 'group')->get() as $child) {
+                        $childGroup = $a->categoryGroup($child, (int) $year->id);
+                        abort_if($childGroup !== null && $childGroup !== $d['activity_group_id'], 422, 'Map the parent before its group subcategories.');
+                    }
+                }
+                if ($category->parent_id !== null) {
+                    $parent = AwardCategory::findOrFail($category->parent_id);
+                    abort_if($parent->scope_kind === 'group' && $a->categoryGroup($parent, (int) $year->id) !== $d['activity_group_id'], 422, 'A group subcategory must use its parent yearly group.');
+                }
+            }
             $row ??= new AwardWindow;
             $row->fill(array_diff_key($d, ['operation_id' => true, 'revision' => true]) + ['revision' => (int) ($row->revision ?? 0) + 1])->save();
             Audit::record('recognition.award_window_saved', $row, [], ['revision' => $row->revision]);

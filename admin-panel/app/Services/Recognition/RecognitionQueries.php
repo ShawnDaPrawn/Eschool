@@ -85,7 +85,7 @@ class RecognitionQueries
         $ids = array_column($categories, 'id');
 
         return $base + ['award_categories' => $categories, 'award_definitions' => AwardDefinition::whereIn('award_category_id', $ids)->orderBy('name')->get()->map(fn ($d) => ['id' => (int) $d->id, 'award_category_id' => (int) $d->award_category_id, 'name' => $d->name, 'criteria' => $d->criteria, 'frequency' => $d->frequency, 'active' => $d->active, 'revision' => $d->revision])->all(),
-            'award_windows' => AwardWindow::whereIn('award_category_id', $ids)->orderByDesc('session_year_id')->get()->map(fn ($w) => ['id' => (int) $w->id, 'award_category_id' => (int) $w->award_category_id, 'session_year_id' => (int) $w->session_year_id, 'opens_on' => $w->opens_on->toDateString(), 'closes_on' => $w->closes_on->toDateString(), 'status' => $w->status, 'revision' => $w->revision])->all()];
+            'award_windows' => AwardWindow::whereIn('award_category_id', $ids)->orderByDesc('session_year_id')->get()->map(fn ($w) => ['id' => (int) $w->id, 'award_category_id' => (int) $w->award_category_id, 'session_year_id' => (int) $w->session_year_id, 'opens_on' => $w->opens_on->toDateString(), 'closes_on' => $w->closes_on->toDateString(), 'status' => $w->status, 'revision' => $w->revision, 'activity_group_id' => $w->activity_group_id])->all()];
     }
 
     public function learners(User $actor, string $module, string $search = '', int $after = 0): array

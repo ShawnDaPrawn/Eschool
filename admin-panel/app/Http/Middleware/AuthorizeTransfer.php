@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Transfers\TransferAuthority;
 use App\Services\Transfers\TransferPanelScope;
 use App\Services\Transfers\TransferQueries;
@@ -26,6 +27,13 @@ class AuthorizeTransfer
             $method = $r->route()->getActionMethod();
             $write = ! $r->isMethodSafe();
             if ($r->routeIs('school-transfers.*')) {
+                // A disabled panel feature has no page; source authorization
+                // still runs before any enabled transfer data is loaded.
+                if ($r->isMethodSafe()) {
+                    $gate = app(ModuleGate::class);
+                    $gate->forget();
+                    abort_unless($gate->allows('school_transfers'), 404);
+                }
                 app(TransferPanelScope::class)->authorize($r);
             } elseif ($method === 'access') {
                 app(TransferQueries::class)->access($actor);

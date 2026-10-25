@@ -13,6 +13,7 @@ use App\Models\Activities\ActivityGroup;
 use App\Models\Activities\ActivityMembership;
 use App\Models\Activities\ActivityStaff;
 use App\Models\ClassSection;
+use App\Models\Notification;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\OutboxEvent;
@@ -32,15 +33,21 @@ use App\Models\Recognition\RecognitionOperation;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
+use App\Services\Facilitators\FacilitatorAccess;
+use App\Services\ParentPolicyService;
+use App\Services\Platform\Notifications\Notifier;
+use App\Services\Platform\Notifications\PrivateNoticeScopes;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Recognition\AwardNominations;
 use App\Services\Recognition\AwardPresentations;
 use App\Services\Recognition\HousePoints;
 use App\Services\Recognition\RecognitionCatalog;
+use App\Services\Recognition\RecognitionNotices;
 use App\Services\Recognition\RecognitionQueries;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -92,6 +99,139 @@ class HousesAwardsTest extends TestCase
         $this->category = $c->awardCategory($this->admin, $this->op(['name' => 'Grade five awards', 'parent_id' => null, 'scope_kind' => 'grade', 'grade_level_id' => $this->grade, 'subject_id' => null, 'activity_group_id' => null, 'active' => true]));
         $this->award = $c->definition($this->head, $this->op(['award_category_id' => $this->category->id, 'name' => 'Community service', 'criteria' => 'Sustained service throughout the year', 'frequency' => 'annual', 'active' => true]));
         $c->window($this->head, $this->op(['revision' => 0, 'award_category_id' => $this->category->id, 'session_year_id' => $this->year, 'opens_on' => '2026-02-01', 'closes_on' => '2026-02-28', 'status' => 'open']));
+    }
+
+    public function test_facilitator_recognition_features_follow_fresh_module_and_password_state(): void
+    {
+        ParentPolicyService::acceptCurrent($this->head);
+        $access = app(FacilitatorAccess::class);
+        $profile = $access->profile($this->head);
+        $this->assertTrue($profile['features']['house_points']);
+        $this->assertTrue($profile['features']['awards']);
+        config(['modules.house_points' => ['default' => false, 'dependencies' => []]]);
+        SchoolModule::updateOrCreate(['module' => 'house_points'], ['in_package' => true, 'enabled' => false, 'read_only' => false]);
+        $profile = $access->profile($this->head);
+        $this->assertFalse($profile['features']['house_points']);
+        $this->assertTrue($profile['features']['awards']);
+        $this->head->forceFill(['password_change_required' => true])->save();
+        $this->expectException(HttpException::class);
+        $access->profile($this->head);
+    }
+
+    public function test_group_definition_reuses_explicit_year_group_and_retains_previous_presentation(): void
+    {
+        config(['modules.groups' => ['always_on' => true]]);
+        $c = app(RecognitionCatalog::class);
+        $groups = [];
+        foreach ([2026, 2027] as $number) {
+            $year = $number === 2026 ? SessionYear::findOrFail($this->year) : SessionYear::create(['name' => '2027', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31', 'default' => 0]);
+            $group = ActivityGroup::create(['session_year_id' => $year->id, 'parent_id' => null, 'name' => 'Music '.$number, 'discipline' => 'Culture', 'season' => (string) $number, 'starts_on' => $number.'-01-01', 'ends_on' => $number.'-12-31', 'gender' => 'any', 'active' => true, 'revision' => 1]);
+            ActivityMembership::create(['activity_group_id' => $group->id, 'learner_id' => $this->learner, 'role' => 'member', 'starts_on' => $number.'-01-01', 'ends_on' => $number.'-12-31', 'active' => true, 'reason' => 'Annual music membership', 'revision' => 1]);
+            ActivityStaff::create(['activity_group_id' => $group->id, 'user_id' => $this->head->id, 'role' => 'admin', 'cascade' => true, 'starts_on' => $number.'-01-01', 'ends_on' => $number.'-12-31', 'active' => true, 'reason' => 'Annual music head', 'revision' => 1]);
+            $groups[$number] = [$year, $group];
+        }
+        $category = $c->awardCategory($this->admin, $this->op(['name' => 'Music awards', 'parent_id' => null, 'scope_kind' => 'group', 'grade_level_id' => null, 'subject_id' => null, 'activity_group_id' => $groups[2026][1]->id, 'active' => true]));
+        $definition = $c->definition($this->head, $this->op(['award_category_id' => $category->id, 'name' => 'Annual music honours', 'criteria' => 'Music achievement', 'frequency' => 'annual', 'active' => true]));
+        $first = $this->presentation();
+        $first['award_definition_id'] = (int) $definition->id;
+        $old = app(AwardPresentations::class)->present($this->head, $first);
+        $year = $groups[2027][0];
+        Settings::updateOrCreate(['type' => 'session_year'], ['message' => (string) $year->id]);
+        $this->travelTo(CarbonImmutable::parse('2027-02-10 10:00:00', 'Africa/Johannesburg'));
+        Enrolment::where('learner_id', $this->learner)->update(['ends_on' => '2026-12-31']);
+        Enrolment::create(['learner_id' => $this->learner, 'session_year_id' => $year->id, 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2027-01-01', 'ends_on' => null, 'legacy_dates' => false]);
+        $next = $this->presentation();
+        $next['award_definition_id'] = (int) $definition->id;
+        $next['session_year_id'] = (int) $year->id;
+        $next['presented_on'] = '2027-02-10';
+        $this->refuse(403, fn () => app(AwardPresentations::class)->present($this->head, $next));
+        $window = $this->op(['revision' => 0, 'award_category_id' => $category->id, 'session_year_id' => $year->id, 'activity_group_id' => $groups[2027][1]->id, 'opens_on' => '2027-02-01', 'closes_on' => '2027-02-28', 'status' => 'open']);
+        $saved = $c->window($this->admin, $window);
+        $this->assertSame((int) $saved->id, (int) $c->window($this->admin, $window)->id);
+        $new = app(AwardPresentations::class)->present($this->head, $next);
+        $this->assertSame((int) $old->award_definition_id, (int) $new->award_definition_id);
+        $this->assertSame((int) $old->session_year_id, (int) $old->fresh()->session_year_id);
+        $this->assertCount(2, app(AwardPresentations::class)->profile($this->head, $this->learner)['items']);
+        $other = $groups[2027][1]->replicate();
+        $other->name = 'Unrelated music group';
+        $other->save();
+        $change = $window;
+        $change['operation_id'] = (string) Str::uuid();
+        $change['revision'] = 1;
+        $change['activity_group_id'] = $other->id;
+        $this->refuse(409, fn () => $c->window($this->admin, $change));
+        ActivityStaff::where('activity_group_id', $groups[2027][1]->id)->update(['active' => false]);
+        $this->refuse(403, fn () => app(AwardPresentations::class)->present($this->head, $next));
+    }
+
+    public function test_year_group_mapping_refuses_wrong_year_non_group_and_broader_child_scope(): void
+    {
+        config(['modules.groups' => ['always_on' => true]]);
+        $group = ActivityGroup::create(['session_year_id' => $this->year, 'parent_id' => null, 'name' => 'Music', 'discipline' => 'Culture', 'season' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'gender' => 'any', 'active' => true, 'revision' => 1]);
+        $other = $group->replicate();
+        $other->name = 'Other';
+        $other->save();
+        $c = app(RecognitionCatalog::class);
+        $parent = $c->awardCategory($this->admin, $this->op(['name' => 'Parent music awards', 'parent_id' => null, 'scope_kind' => 'group', 'grade_level_id' => null, 'subject_id' => null, 'activity_group_id' => $group->id, 'active' => true]));
+        $child = $c->awardCategory($this->admin, $this->op(['name' => 'Child music awards', 'parent_id' => $parent->id, 'scope_kind' => 'group', 'grade_level_id' => null, 'subject_id' => null, 'activity_group_id' => $group->id, 'active' => true]));
+        $data = ['revision' => 0, 'award_category_id' => $child->id, 'session_year_id' => $this->year, 'activity_group_id' => $other->id, 'opens_on' => '2026-02-01', 'closes_on' => '2026-02-28', 'status' => 'open'];
+        $this->refuse(422, fn () => $c->window($this->admin, $this->op($data)));
+        $data['award_category_id'] = $this->category->id;
+        $data['revision'] = 1;
+        $this->refuse(422, fn () => $c->window($this->admin, $this->op($data)));
+        $data['award_category_id'] = $child->id;
+        $data['revision'] = 0;
+        $year = SessionYear::create(['name' => '2027', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31']);
+        $other->update(['session_year_id' => $year->id]);
+        $this->refuse(404, fn () => $c->window($this->admin, $this->op($data)));
+    }
+
+    public function test_recognition_notice_source_scope_hides_revoked_family_before_counting_and_transport(): void
+    {
+        Queue::fake();
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        GuardianLink::updateOrCreate(['learner_id' => $this->learner, 'guardian_user_id' => $parent->id], ['status' => 'active', 'can_approve' => true, 'relationship' => 'father']);
+        $input = $this->input();
+        app(HousePoints::class)->issue($this->head, $input);
+        app(HousePoints::class)->issue($this->head, $input);
+        $notice = Notification::where('type', 'recognition.points_changed')->sole();
+        $this->assertStringNotContainsString($input['reason'], $notice->message);
+        $this->assertSame(['link', 'recognition_source_id', 'recognition_revision'], array_keys($notice->delivery_payload));
+        $notices = app(RecognitionNotices::class);
+        $scopes = app(PrivateNoticeScopes::class);
+        $query = fn () => $scopes->apply(Notification::where('type', 'recognition.points_changed'), (int) $parent->id);
+        $this->assertTrue($notices->allows($parent, $notice->type, $notice->delivery_payload));
+        $this->assertSame(1, $query()->count());
+        $this->assertSame(1, OutboxEvent::where('type', 'recognition.changed')->count());
+        $this->assertSame(['kind', 'source_id', 'revision'], array_keys(OutboxEvent::where('type', 'recognition.changed')->sole()->payload));
+        $bad = $notice->delivery_payload;
+        $bad['recognition_source_id'] = true;
+        $this->assertFalse($notices->allows($parent, $notice->type, $bad));
+        GuardianLink::where('learner_id', $this->learner)->where('guardian_user_id', $parent->id)->update(['status' => 'ended']);
+        $this->assertSame(0, $query()->count());
+        $this->assertFalse($notices->allows($parent, $notice->type, $notice->delivery_payload));
+        $this->assertFalse($scopes->permitsDelivery($parent, $notice->type, $notice->delivery_payload));
+        $this->assertSame([], app(Notifier::class)->send($parent, $notice->type, $notice->title, $notice->message, $notices::LINK, $notice, ['in_app']));
+    }
+
+    public function test_voided_award_and_disabled_module_remove_private_notices_before_pagination(): void
+    {
+        Queue::fake();
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        GuardianLink::updateOrCreate(['learner_id' => $this->learner, 'guardian_user_id' => $parent->id], ['status' => 'active', 'can_approve' => true, 'relationship' => 'father']);
+        $award = app(AwardPresentations::class)->present($this->head, $this->presentation());
+        $notice = Notification::where('type', 'recognition.award_presented')->sole();
+        $scopes = app(PrivateNoticeScopes::class);
+        $query = fn () => $scopes->apply(Notification::where('type', 'recognition.award_presented'), (int) $parent->id);
+        $this->assertSame(1, $query()->count());
+        app(AwardPresentations::class)->void($this->head, (int) $award->id, $this->op(['revision' => 1, 'reason' => 'Retained correction']));
+        $this->assertSame(0, $query()->count());
+        $this->assertFalse(app(RecognitionNotices::class)->allows($parent, $notice->type, $notice->delivery_payload));
+        $this->assertSame(1, Notification::where('type', 'recognition.award_presented')->count());
+        app(HousePoints::class)->issue($this->head, $this->input());
+        config(['modules.house_points' => ['default' => false, 'dependencies' => []]]);
+        SchoolModule::updateOrCreate(['module' => 'house_points'], ['in_package' => true, 'enabled' => false]);
+        $this->assertSame(0, $scopes->apply(Notification::where('type', 'recognition.points_changed'), (int) $parent->id)->count());
     }
 
     private function op(array $data = []): array
@@ -673,6 +813,18 @@ class HousesAwardsTest extends TestCase
         app(HousePoints::class)->issue($this->head, $other);
         $rows = app(HousePoints::class)->history($staff, $this->learner, $this->year)['items'];
         $this->assertSame([(int) $own->id], array_column($rows, 'id'));
+    }
+
+    public function test_panel_category_choices_exclude_unowned_activity_group_names(): void
+    {
+        $staff = User::findOrFail($this->schoolA->ids['theo_user']);
+        $owned = $this->recognitionGroup($staff, 'Owned music group');
+        $this->recognitionGroup($this->head, 'Unowned private activity name');
+        $c = app(RecognitionCatalog::class);
+        $category = $c->awardCategory($this->admin, $this->op(['name' => 'Owned music awards', 'parent_id' => null, 'scope_kind' => 'group', 'activity_group_id' => $owned->id, 'active' => true]));
+        $c->administrator($this->admin, $this->op(['award_category_id' => $category->id, 'user_id' => $staff->id, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true]));
+        $this->actingAs($staff)->get('/recognition/awards')->assertOk()->assertSee('Owned music group')->assertDontSee('Unowned private activity name');
+        $this->actingAs($this->admin)->get('/recognition/awards')->assertOk()->assertSee('Unowned private activity name');
     }
 
     public function test_activity_only_staff_permanent_awards_are_limited_to_owned_group_categories(): void

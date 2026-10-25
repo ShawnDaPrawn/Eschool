@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Recognition;
 
+use App\Events\Recognition\RecognitionChanged;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardDefinition;
 use App\Models\Recognition\AwardNomination;
@@ -14,6 +15,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Events\Outbox;
 use Illuminate\Support\Facades\Validator;
 
 class AwardPresentations
@@ -152,6 +154,8 @@ class AwardPresentations
 
     private function audit(AwardPresentation $row): void
     {
+        app(RecognitionNotices::class)->changed($row);
+        Outbox::record(new RecognitionChanged((int) $row->school_id, 'award', (int) $row->id, (int) $row->revision));
         Audit::record('recognition.award_presentation_changed', $row, [], ['learner_id' => (int) $row->learner_id, 'session_year_id' => (int) $row->session_year_id, 'revision' => $row->revision, 'state' => $row->state]);
     }
 }

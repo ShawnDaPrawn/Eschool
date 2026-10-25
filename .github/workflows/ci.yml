@@ -341,6 +341,11 @@ jobs:
           - app: e-school
             flow: family_progress_smoke_test.dart
           - app: e-school
+            flow: family_recognition_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_recognition_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
             flow: family_reporting_smoke_test.dart
           - app: e-school
             flow: parent_transfers_smoke_test.dart

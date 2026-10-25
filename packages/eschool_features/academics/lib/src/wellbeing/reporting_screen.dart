@@ -1,3 +1,4 @@
+import 'wellbeing_inbox_panel.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
@@ -43,6 +44,7 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
       _reply = TextEditingController();
   String _newSecret = '', _viewSecret = '', _urgency = 'routine';
   int? _category;
+  bool _inbox = false;
   bool _busy = true,
       _hidden = true,
       _denied = false,
@@ -97,6 +99,7 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
   }
 
   void _erase() {
+    _inbox = false;
     _clearPhoto();
     _view = null;
     _viewSecret = '';
@@ -367,6 +370,26 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
     padding: const EdgeInsets.symmetric(vertical: 12),
     child: Text(l(text), style: Theme.of(context).textTheme.titleLarge),
   );
+  Future<void> _returnFromInbox() async {
+    if (!_active || _busy) return;
+    await _run((epoch) async {
+      final access = await repo.access();
+      final view = _viewSecret.isEmpty ? null : await repo.read(_viewSecret);
+      if (!_current(epoch)) return;
+      _access = access;
+      if (view != null) _view = view;
+      _inbox = false;
+    });
+  }
+
+  void _inboxDenied() {
+    if (!mounted) return;
+    setState(() {
+      _erase();
+      _denied = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!repo.isActive || _hidden || _denied)
@@ -384,8 +407,22 @@ class _IncidentReportingScreenState extends State<IncidentReportingScreen>
         ),
       );
     final configuration = _configuration!;
+    if (_inbox)
+      return ScreenScaffold(
+        title: l('Private updates'),
+        body: WellbeingInboxPanel(
+          repository: repo,
+          onReturn: _returnFromInbox,
+          onDenied: _inboxDenied,
+        ),
+      );
     return ScreenScaffold(
       title: l('Report a concern'),
+      action: IconButton(
+        tooltip: l('Private updates'),
+        onPressed: _editable ? () => setState(() => _inbox = true) : null,
+        icon: const Icon(Icons.notifications_outlined),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

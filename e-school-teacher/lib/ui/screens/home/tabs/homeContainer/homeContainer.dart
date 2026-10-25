@@ -462,6 +462,7 @@ class _HomeContainerState extends State<HomeContainer> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const AcademicNextPeriod(),
+                            const StaffRecognitionEntry(),
 
                             ///[Class Teacher]
                             if (state.primaryClass?.isNotEmpty ?? false) ...[

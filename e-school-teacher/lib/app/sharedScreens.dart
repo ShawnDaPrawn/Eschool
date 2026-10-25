@@ -880,3 +880,86 @@ Route<dynamic> riskInterventionsRoute() => AdaptivePageRoute(
     );
   },
 );
+
+Route<dynamic> staffRecognitionRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    final modules = [
+      for (final key in ['house_points', 'awards'])
+        if (me?.isModuleOn(key) == true && allowsSchoolModule(me, key)) key,
+    ];
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        modules.isEmpty ||
+        !me.roles.any((role) => !['Parent', 'Student'].contains(role)) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: RecognitionSessionBoundary(
+        pinned: me,
+        modules: modules,
+        builder: (active) => RecognitionScreen(
+          repository: ApiRecognitionRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+          modules: modules,
+        ),
+      ),
+    );
+  },
+);
+
+class StaffRecognitionEntry extends StatelessWidget {
+  const StaffRecognitionEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (!['house_points', 'awards'].any(
+            (key) =>
+                state.context?.isModuleOn(key) == true &&
+                allowsSchoolModule(state.context, key),
+          )) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.emoji_events_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Houses and awards'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.recognition),
+            ),
+          );
+        },
+      );
+}

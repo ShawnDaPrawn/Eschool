@@ -626,3 +626,10 @@ strict OpenAPI lint and duplicate-key checks pass. Staff/family panel and app
 workflows, notices and MyGrade integration remain follow-on increments. No live
 school, fluent language, physical-device or month-long operational acceptance is
 claimed by this contract increment.
+
+
+The reviewed alert-isolation branch also inherits retained observation ordering
+and active scheduling. Its inherited PHP formatting is corrected. Missing Notes
+keys in offered non-English locales use explicit English fallback; both actual
+app locale cohorts pass5tests each while preserving existing translations. This
+is automated locale coverage, not fluent language acceptance.
