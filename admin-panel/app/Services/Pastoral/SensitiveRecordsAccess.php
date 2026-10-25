@@ -23,6 +23,7 @@ class SensitiveRecordsAccess
         abort_if(PlatformStaffIdentity::query()->where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $policy = app(ProfilePolicy::class);
         $fresh = $policy->actor($actor);
+        abort_if($fresh->password_change_required, 403, 'Complete your password change before opening restricted records.');
         abort_unless(array_intersect($policy->roles($fresh), [SchoolRoles::COUNSELLOR, SchoolRoles::SAFEGUARDING]) !== [], 403);
         abort_unless($policy->permission($fresh, $permission), 403);
 
