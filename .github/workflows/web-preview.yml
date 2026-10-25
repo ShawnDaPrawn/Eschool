@@ -11,8 +11,8 @@ name: Web app preview
 #
 # A manual run deploys to the "preview" channel, whose address stays the same
 # from run to run, so a home-screen install keeps working after a new run. A
-# pull request that changes this workflow deploys to its own "pr-<number>"
-# channel for a week. After deploying, each job asks the server whether it
+# pull request that changes this workflow produces downloadable build artifacts.
+# Explicit manual deployment from main publishes the preview. Each deployed job asks whether it
 # answers a browser on the preview's address (CORS) and whether it runs API v2,
 # and writes the address, the answers and how to install into the job summary.
 # Building and Releasing Apps in the wiki explains the rest.
@@ -21,9 +21,14 @@ on:
   workflow_dispatch:
     inputs:
       api_base_url:
-        description: 'Server the preview talks to (https, no path). Empty: the PREVIEW_API_BASE_URL variable, else the production address in config/production.json'
+        description: 'Server the preview talks to (https, no path). Empty: PREVIEW_API_BASE_URL, else config/staging.json'
         required: false
         type: string
+      deploy_preview:
+        description: 'Publish Firebase preview channels (manual run from main only)'
+        required: true
+        type: boolean
+        default: false
       expires:
         description: 'How long the preview stays up'
         type: choice
@@ -43,8 +48,7 @@ concurrency:
 jobs:
   preview:
     name: Preview (${{ matrix.app }})
-    # Pull requests from forks get no secrets.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Every PR can build; Firebase steps below require an explicit main-branch dispatch.
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
@@ -81,16 +85,19 @@ jobs:
           INPUT_URL: ${{ inputs.api_base_url }}
           VARIABLE_URL: ${{ vars.PREVIEW_API_BASE_URL }}
         run: |
-          api="${INPUT_URL:-${VARIABLE_URL:-$(jq -r .API_BASE_URL "$PREVIEW_APP/config/production.json")}}"
+          api="${INPUT_URL:-${VARIABLE_URL:-$(jq -r .API_BASE_URL "$PREVIEW_APP/config/staging.json")}}"
           api="${api%/}"
           pattern='^https://[A-Za-z0-9.-]+(:[0-9]+)?$'
           if ! [[ "$api" =~ $pattern ]]; then
             echo "::error::The server address must be https://<host> with no path, got \"$api\"."
             exit 1
           fi
-          host="${api#https://}"
-          environment=production
-          case "$host" in staging-*) environment=staging ;; esac
+          environment=staging
+          production_api="$(jq -r .API_BASE_URL "$PREVIEW_APP/config/production.json")"
+          if [ "$api" = "${production_api%/}" ]; then
+            echo "::error::Use a staging or isolated test API for preview builds."
+            exit 1
+          fi
           { echo "api=$api"; echo "environment=$environment"; } >> "$GITHUB_OUTPUT"
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -105,7 +112,6 @@ jobs:
           API_BASE_URL: ${{ steps.server.outputs.api }}
           ENVIRONMENT: ${{ steps.server.outputs.environment }}
           FLAVOR: ${{ matrix.flavor }}
-          SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           flutter pub get --enforce-lockfile
           flutter build web --release \
@@ -113,7 +119,7 @@ jobs:
             --dart-define=ENV="$ENVIRONMENT" \
             --dart-define=FLAVOR="$FLAVOR" \
             --dart-define=WEB_AUTH_MODE=bearer
-          printf '%s\n' "$SOURCE_COMMIT" > build/web/source-commit.txt
+          git rev-parse HEAD > build/web/source-commit.txt
 
       # A home screen then shows the preview apart from the real portal and
       # the store apps, and search engines are asked not to list it.
@@ -134,6 +140,13 @@ jobs:
           grep -qF "content=\"$SHORT_NAME\"" index.html
           grep -qF 'content="noindex"' index.html
 
+      - name: Save browser build
+        uses: actions/upload-artifact@v7
+        with:
+          name: preview-${{ matrix.app }}
+          path: ${{ matrix.app }}/build/web
+          retention-days: 7
+
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
@@ -141,6 +154,7 @@ jobs:
       # The documentation workflow's credential: a service account of
       # navigateed-d8c06 that may deploy Firebase Hosting.
       - name: Sign in to Firebase
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main'
         env:
           CREDENTIAL: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 }}
         run: |
@@ -161,6 +175,7 @@ jobs:
       # step 3. Creating one changes nothing that is served: its live address
       # stays empty until a production deploy.
       - name: Make sure the portal site exists
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main'
         run: |
           if firebase hosting:sites:get "$PREVIEW_SITE" --project "$PREVIEW_PROJECT" > /dev/null 2>&1; then
             echo "Firebase Hosting site $PREVIEW_SITE exists."
@@ -172,6 +187,7 @@ jobs:
           fi
 
       - name: Deploy to the preview channel
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main'
         id: deploy
         run: |
           result="$RUNNER_TEMP/channel-deploy.json"
@@ -194,6 +210,7 @@ jobs:
       # the preview's origin), and whether the server knows API v2's context
       # route (401 when signed out; 404 on code from before Phase 0).
       - name: Check the server answers this preview
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main'
         id: check
         env:
           API: ${{ steps.server.outputs.api }}
@@ -205,7 +222,7 @@ jobs:
           preflight="$(curl -sS -o /dev/null -D "$headers" -w '%{http_code}' --max-time 30 -X OPTIONS "$API/api/settings" \
             -H "Origin: $origin" \
             -H 'Access-Control-Request-Method: POST' \
-            -H 'Access-Control-Request-Headers: authorization,content-type')" || preflight=000
+            -H 'Access-Control-Request-Headers: authorization,content-type,x-school-id,x-account-id')" || preflight=000
           allowed="$(tr -d '\r' < "$headers" | awk 'tolower($0) ~ /^access-control-allow-origin:/ { sub(/^[^:]*:[ \t]*/, ""); value = $0 } END { print value }')"
           context="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 -H 'Accept: application/json' "$API/api/v2/me/context")" || context=000
           if [ "$preflight" = 000 ]; then
@@ -233,6 +250,7 @@ jobs:
           { echo "origin=$origin"; echo "cors=$cors"; echo "v2=$v2"; } >> "$GITHUB_OUTPUT"
 
       - name: Write the summary
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main'
         env:
           NAME: ${{ matrix.name }}
           API: ${{ steps.server.outputs.api }}
@@ -272,5 +290,5 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove the credential
-        if: always()
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.deploy_preview && github.ref == 'refs/heads/main'
         run: rm -f "$RUNNER_TEMP/firebase-credential.json"

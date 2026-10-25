@@ -32,7 +32,7 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Developers
 
-- **Web app preview** (Actions > Web app preview): builds the learner and parent app and the teacher app for the browser and puts them on Firebase Hosting preview channels, so both can be opened and installed on a phone as web apps before a store or production release. The job summary gives each address and says whether the chosen server accepts it. The live portals are unchanged. **Deploy:** on a server running this code, add both preview addresses to `CORS_ALLOWED_ORIGINS` with the portal addresses before signing in there.
+- **Web app preview** (Actions > Web app preview): builds the learner and parent app and the teacher app for the browser and puts them on Firebase Hosting preview channels, so both can be opened and installed on a phone as web apps before a store or production release. The job summary gives each address and says whether the chosen server accepts it. PR runs save downloadable artifacts without Firebase credentials. Publishing requires an explicit `deploy_preview` dispatch from `main`, defaults to staging and refuses the configured production API. The live portals are unchanged. **Deploy:** on a server running this code, add both preview addresses to `CORS_ALLOWED_ORIGINS` with the portal addresses before signing in there.
 
 - Narrow Phase 1 closeout to supported clients after the product owner confirmed there are no legacy clients. Legacy profile storage retirement and compatibility writes are no longer release prerequisites; existing data remains subject to privacy controls.
 

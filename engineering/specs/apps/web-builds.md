@@ -94,3 +94,5 @@ None.
 6. Tap "add files" on an assignment and "Pay" on fees: the mobile-only notice shows.
 7. Open `<portal>/notices` while signed out: sign in, then the notice board opens. Reload `<portal>/home`: the app starts at the splash screen and goes home.
 8. In the browser's storage view, check no `jwtToken` value is stored.
+
+Preview review: pull requests produce artifacts without Firebase credentials. Publishing requires an explicit `deploy_preview` dispatch from `main`. The API defaults to staging and rejects the configured production endpoint.
