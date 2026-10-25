@@ -3504,5 +3504,20 @@
     "Practice instruction": "Practice instruction",
     "Released results instruction": "Released results instruction",
     "Attendance instruction": "Attendance instruction",
-    "School calendar instruction": "School calendar instruction"
+    "School calendar instruction": "School calendar instruction",
+    "Current flags": "Current flags",
+    "Escalated for safeguarding follow-up": "Escalated for safeguarding follow-up",
+    "Flagged embedding dimensions": "Flagged embedding dimensions",
+    "Flagged learning content": "Flagged learning content",
+    "Learning tool": "Learning tool",
+    "No current flags need review.": "No current flags need review.",
+    "Only a category was retained for this older flag.": "Only a category was retained for this older flag.",
+    "Private learning photograph": "Private learning photograph",
+    "Private review note": "Private review note",
+    "Prompt version": "Prompt version",
+    "Record review": "Record review",
+    "Record safeguarding review": "Record safeguarding review",
+    "Review flag": "Review flag",
+    "Reviewed": "Reviewed",
+    "Safeguarding review of withheld learning interactions. A review never sends the withheld response to a learner.": "Safeguarding review of withheld learning interactions. A review never sends the withheld response to a learner."
 }

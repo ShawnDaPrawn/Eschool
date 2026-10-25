@@ -45,6 +45,8 @@ class FacilitatorFeatures {
     this.supportPlans,
 
     this.learnerNotes,
+
+    this.cards,
   });
 
   /// A current dated grade-head working hub is available.
@@ -104,6 +106,10 @@ class FacilitatorFeatures {
   @JsonKey(name: r'learner_notes', required: false, includeIfNull: false)
   final bool? learnerNotes;
 
+  /// Fresh card module/account access; does not grant issuance or device management rights.
+  @JsonKey(name: r'cards', required: false, includeIfNull: false)
+  final bool? cards;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -122,7 +128,8 @@ class FacilitatorFeatures {
           other.messages == messages &&
           other.counselling == counselling &&
           other.supportPlans == supportPlans &&
-          other.learnerNotes == learnerNotes;
+          other.learnerNotes == learnerNotes &&
+          other.cards == cards;
 
   @override
   int get hashCode =>
@@ -140,7 +147,8 @@ class FacilitatorFeatures {
       messages.hashCode +
       counselling.hashCode +
       supportPlans.hashCode +
-      learnerNotes.hashCode;
+      learnerNotes.hashCode +
+      cards.hashCode;
 
   factory FacilitatorFeatures.fromJson(Map<String, dynamic> json) =>
       _$FacilitatorFeaturesFromJson(json);

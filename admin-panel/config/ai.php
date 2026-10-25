@@ -3,12 +3,14 @@
 use App\Services\Ai\Providers\OpenAiProvider;
 use App\Services\Learning\TutorFeaturePolicy;
 use App\Services\Learning\TutorModeration;
+use App\Services\Learning\TutorQuarantineMedia;
 use App\Services\Learning\TutorQuarantineParticipant;
 use App\Services\Learning\TutorVisionResolver;
 
 // Offline transcription is unchanged; inference has no active production feature/provider.
 return [
-    'quarantine' => ['retention_days' => 30, 'participants' => ['tutor' => TutorQuarantineParticipant::class]],
+    'quarantine' => ['retention_days' => 30, 'participants' => ['tutor' => TutorQuarantineParticipant::class],
+        'media_resolvers' => ['tutor' => TutorQuarantineMedia::class]],
     'providers' => [
         'openai' => ['qualified' => false, 'key' => env('AI_OPENAI_API_KEY'), 'moderation_model' => 'omni-moderation-2024-09-26'],
         'anthropic' => ['qualified' => false, 'key' => env('AI_ANTHROPIC_API_KEY')],

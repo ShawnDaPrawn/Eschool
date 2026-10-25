@@ -6,6 +6,7 @@ namespace Tests\Feature\Learning;
 
 use App\Models\Academics\AcademicLeadership;
 use App\Models\Academics\TeachingAllocation;
+use App\Models\Ai\AiFlag;
 use App\Models\Ai\AiQuarantineSnapshot;
 use App\Models\Ai\AiUsage;
 use App\Models\Growth\LearnerNote;
@@ -14,25 +15,32 @@ use App\Models\Learning\TutorPhoto;
 use App\Models\Learning\TutorSession;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
+use App\Models\Platform\PlatformStaffIdentity;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
+use App\Models\User;
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Inference\Capability;
 use App\Services\Ai\Inference\FeatureInferenceRequest;
+use App\Services\Ai\Quarantine\AiFlagReviews;
 use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Growth\LearnerNotes;
 use App\Services\Learning\TutorAccess;
 use App\Services\Learning\TutorFeaturePolicy;
 use App\Services\Learning\TutorPhotos;
+use App\Services\Learning\TutorQuarantineMedia;
 use App\Services\Learning\TutorQueries;
 use App\Services\Learning\TutorSessions;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -438,5 +446,72 @@ class TutorDomainTest extends TestCase
         SchoolModule::where('module', 'tutor')->update(['read_only' => true]);
         $this->refuses(fn () => $this->turn($session), 403);
         Http::assertNothingSent();
+    }
+
+    private function flaggedCrop(): array
+    {
+        $session = $this->openTutor();
+        $operation = (string) Str::uuid();
+        $reference = $this->photo($session, $operation);
+        $this->turn($session, $operation, text: 'I am being abused.', photos: [$reference['id']]);
+        $usage = AiUsage::firstOrFail();
+        unset($reference['operation_id']);
+        $reviewer = User::create(['first_name' => 'Synthetic', 'last_name' => 'Safeguard', 'email' => 'tutor-reviewer@example.test',
+            'password' => Hash::make('Synthetic2026'), 'status' => 1]);
+        SchoolMembership::create(['school_id' => 1, 'user_id' => $reviewer->id, 'role' => 'Safeguarding', 'status' => 'active', 'starts_on' => '2026-01-01']);
+        $reviewer->assignRole('Safeguarding');
+
+        return [$reviewer, $usage, $reference];
+    }
+
+    public function test_quarantine_crop_reader_is_exact_private_and_independent_of_withdrawn_learner_module(): void
+    {
+        [$reviewer, $usage, $reference] = $this->flaggedCrop();
+        SchoolModule::where('module', 'tutor')->update(['enabled' => false]);
+        LearnerApproval::where('learner_id', $this->schoolA->ids['asha'])->update(['withdrawn_at' => now()]);
+        $flag = AiFlag::firstOrFail();
+        $data = app(AiFlagReviews::class)->media($reviewer, $flag->id, $reference['id']);
+        $this->assertSame('image/png', $data['mime']);
+        $this->assertSame($reference['sha256'], hash('sha256', $data['bytes']));
+        $this->assertSame(60, getimagesizefromstring($data['bytes'])[1]);
+        $this->assertStringNotContainsString('PRIVATE-PERSON', $data['bytes']);
+        $this->assertSame('quarantined', $usage->fresh()->state);
+    }
+
+    public function test_quarantine_crop_reader_refuses_non_safeguarding_other_school_and_unbound_reference(): void
+    {
+        [$reviewer, $usage, $reference] = $this->flaggedCrop();
+        $reader = app(TutorQuarantineMedia::class);
+        $this->refuses(fn () => $reader->read($this->actor(), $usage, $reference), 403);
+        $this->refuses(fn () => $reader->read($this->actor('farid'), $usage, $reference), 403);
+        $this->refuses(fn () => $reader->read($reviewer, $usage, array_replace($reference, ['id' => (string) Str::uuid()])), 404);
+        $this->refuses(fn () => app(CurrentSchool::class)->run(2, fn () => $reader->read($reviewer, $usage, $reference)), 404);
+        PlatformStaffIdentity::create(['user_id' => $reviewer->id, 'active' => true]);
+        $this->refuses(fn () => $reader->read($reviewer, $usage, $reference), 403);
+    }
+
+    public function test_quarantine_crop_reader_hides_expired_or_purged_approved_pixels(): void
+    {
+        [$reviewer, $usage, $reference] = $this->flaggedCrop();
+        $reader = app(TutorQuarantineMedia::class);
+        $this->travel(31)->days();
+        $this->refuses(fn () => $reader->read($reviewer, $usage, $reference), 404);
+        app(AiQuarantine::class)->prune();
+        $this->refuses(fn () => $reader->read($reviewer, $usage->fresh(), $reference), 404);
+        $this->assertNotNull(TutorPhoto::firstOrFail()->purged_at);
+    }
+
+    public function test_quarantine_crop_reader_rechecks_reviewer_membership_after_private_file_read(): void
+    {
+        [$reviewer, $usage, $reference] = $this->flaggedCrop();
+        $disk = Storage::disk(TutorPhotos::DISK);
+        $adapter = \Mockery::mock(FilesystemAdapter::class);
+        $adapter->shouldReceive('get')->once()->andReturnUsing(function ($path) use ($disk, $reviewer) {
+            SchoolMembership::where('user_id', $reviewer->id)->update(['status' => 'inactive']);
+
+            return $disk->get($path);
+        });
+        Storage::shouldReceive('disk')->with(TutorPhotos::DISK)->andReturn($adapter);
+        $this->refuses(fn () => app(TutorQuarantineMedia::class)->read($reviewer, $usage, $reference), 403);
     }
 }

@@ -1,0 +1,87 @@
+[
+  {
+    "operation_id": "getSecureCardConfiguration",
+    "method": "GET",
+    "path": "/cards/configuration"
+  },
+  {
+    "operation_id": "getMySecureCards",
+    "method": "GET",
+    "path": "/cards/mine"
+  },
+  {
+    "operation_id": "getManagedSecureCards",
+    "method": "GET",
+    "path": "/cards/managed"
+  },
+  {
+    "operation_id": "getSecureCardPeople",
+    "method": "GET",
+    "path": "/cards/people"
+  },
+  {
+    "operation_id": "issueSecureCard",
+    "method": "POST",
+    "path": "/cards"
+  },
+  {
+    "operation_id": "uploadSecureCardPortrait",
+    "method": "POST",
+    "path": "/cards/portraits"
+  },
+  {
+    "operation_id": "registerSecureCardReader",
+    "method": "POST",
+    "path": "/card-readers"
+  },
+  {
+    "operation_id": "revokeSecureCardReader",
+    "method": "DELETE",
+    "path": "/card-readers/{device}"
+  },
+  {
+    "operation_id": "getSecureCard",
+    "method": "GET",
+    "path": "/cards/{card}"
+  },
+  {
+    "operation_id": "getSecureCardPortrait",
+    "method": "GET",
+    "path": "/cards/{card}/portrait"
+  },
+  {
+    "operation_id": "issueSecureCardCredential",
+    "method": "POST",
+    "path": "/cards/{card}/credential"
+  },
+  {
+    "operation_id": "freezeSecureCard",
+    "method": "POST",
+    "path": "/cards/{card}/freeze"
+  },
+  {
+    "operation_id": "replaceSecureCard",
+    "method": "POST",
+    "path": "/cards/{card}/replace"
+  },
+  {
+    "operation_id": "restoreSecureCard",
+    "method": "POST",
+    "path": "/cards/{card}/restore"
+  },
+  {
+    "operation_id": "scanSecureCardQr",
+    "method": "POST",
+    "path": "/card-device/scan/qr"
+  },
+  {
+    "operation_id": "scanSecureCardSun",
+    "method": "POST",
+    "path": "/card-device/scan/sun"
+  },
+  {
+    "operation_id": "getScannedSecureCardPortrait",
+    "method": "GET",
+    "path": "/card-device/scans/{scan}/portrait"
+  }
+]
