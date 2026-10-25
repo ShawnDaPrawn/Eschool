@@ -216,7 +216,12 @@ class DisciplineRecords
         }
         app(DisciplineAuthority::class)->family($actor, $learner);
 
-        return ['learner_id' => $learner, 'session_year_id' => $year, 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'records' => $result];
+        $publishedYears = DisciplineRecord::where('learner_id', $learner)->whereNotNull('published_at')->select('session_year_id');
+        $years = SessionYear::withTrashed()->where(fn ($q) => $q->whereKey((int) schoolSetting('session_year'))->orWhereIn('id', $publishedYears))->orderByDesc('start_date')->get(['id', 'name'])
+            ->map(fn ($row) => ['id' => (int) $row->id, 'name' => $row->name])->all();
+        app(DisciplineAuthority::class)->family($actor, $learner);
+
+        return ['learner_id' => $learner, 'session_year_id' => $year, 'years' => $years, 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'records' => $result];
     }
 
     public function acknowledge(User $actor, int $id, int $revision): array

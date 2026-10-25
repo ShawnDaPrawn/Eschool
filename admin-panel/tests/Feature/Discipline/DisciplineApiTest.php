@@ -13,6 +13,7 @@ use App\Models\Discipline\DisciplineRecord;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolModule;
+use App\Models\SessionYear;
 use App\Services\Discipline\DisciplineFrameworks;
 use App\Services\Discipline\DisciplineOperations;
 use App\Services\Platform\Modules\ModuleGate;
@@ -227,5 +228,24 @@ class DisciplineApiTest extends TestCase
         $this->actingAs($this->actor())->getJson($this->prefix.'/configuration')->assertOk()->assertJsonPath('data.writable', false);
         $this->postJson($this->createUrl(), $this->input())->assertForbidden();
         $this->assertSame(0, DisciplineRecord::count());
+    }
+
+    public function test_family_bootstrap_discovers_only_owned_published_years_and_current_year(): void
+    {
+        $this->configured();
+        $one = $this->actingAs($this->actor())->postJson($this->createUrl(), $this->input())->assertOk()->json('data.id');
+        $old = SessionYear::create(['name' => 'Owned published history', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31']);
+        $privateYear = SessionYear::create(['name' => 'Unpublished private history', 'start_date' => '2024-01-01', 'end_date' => '2024-12-31']);
+        $otherYear = SessionYear::create(['name' => 'Another learner history', 'start_date' => '2023-01-01', 'end_date' => '2023-12-31']);
+        $source = DisciplineRecord::findOrFail($one);
+        $source->replicate()->fill(['session_year_id' => $old->id])->save();
+        $source->replicate()->fill(['session_year_id' => $privateYear->id, 'published_at' => null])->save();
+        $source->replicate()->fill(['session_year_id' => $otherYear->id, 'learner_id' => $this->schoolA->ids['ben']])->save();
+        $url = $this->prefix.'/family/learners/'.$this->schoolA->ids['asha'];
+        $this->actingAs($this->actor('farid'))->getJson($url)->assertOk()->assertJsonPath('data.session_year_id', $this->year)
+            ->assertJsonCount(2, 'data.years')->assertJsonFragment(['name' => 'Owned published history'])->assertDontSee('Unpublished private history')->assertDontSee('Another learner history');
+        $this->getJson($url.'?session_year_id='.$old->id)->assertOk()->assertJsonCount(1, 'data.records');
+        GuardianLink::updateOrCreate(['learner_id' => $this->schoolA->ids['asha'], 'guardian_user_id' => $this->actor('farid')->id], ['status' => 'ended']);
+        $this->getJson($url)->assertNotFound()->assertDontSee('Owned published history');
     }
 }

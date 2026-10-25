@@ -115,7 +115,10 @@ class DisciplineRequest extends FormRequest
         if ($op === 'supervisors') {
             return ['session_year_id' => $id, 'grade_level_id' => $id, 'on_date' => ['required', 'date_format:Y-m-d'], 'page' => ['sometimes', 'integer', 'min:1']];
         }
-        if (in_array($op, ['framework', 'records', 'learners', 'detentions', 'family'], true)) {
+        if ($op === 'family') {
+            return ['session_year_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'min:1']];
+        }
+        if (in_array($op, ['framework', 'records', 'learners', 'detentions'], true)) {
             return ['session_year_id' => $id, 'page' => ['sometimes', 'integer', 'min:1'], 'search' => ['sometimes', 'nullable', 'string', 'max:100'], 'status' => ['sometimes', 'nullable', 'in:pending_review,confirmed,hearing,overturned']];
         }
 
