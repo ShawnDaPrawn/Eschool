@@ -459,3 +459,25 @@ other teacher and the exact queued fanout recipient. No private payload is added
 All **8 alert tests, 46 assertions** pass, including ended/future membership
 refusal. Changed-file Pint passes. Complete configured Larastan passed after the
 source change; the final extra regression changes test fixtures only.
+## Current risk observation ordering and active scheduling
+
+Both reviewed bugs first reproduced with real red regressions: canonical daily
+attendance changed present → absent → present while the displayed risk stayed
+absent, and the configured application's schedule omitted the hourly refresh.
+After the retained-safe index/append fix and active scheduler registration, the
+risk/dashboard/actual-tenant-migration cohort passes **28 tests, 351 assertions**.
+Repeated identical refreshes stay idempotent; genuine reversions retain all three
+ordered observations and classroom readers show the latest corrected state.
+Changed-file Pint and complete configured Larastan pass.
+
+The inherited SetSchoolContext/PortalSession formatting is corrected and the
+complete **1,283-file Pint** check passes. The already reviewed Phase 4 Android
+smoke matrix is backported unchanged: family, classic Teacher and native
+facilitator each run their matching target/profile. No startup assertion is
+weakened; emulator execution remains CI verification.
+
+The alert-isolation branch also inherits the reviewed retained observation-order
+and active-scheduler fixes. Its inherited PHP formatting is corrected. Missing
+Notes keys in offered non-English locale files now use explicit English fallback;
+both actual app locale cohorts pass **5 tests** each without discarding existing
+translations. Live fluent language acceptance is not claimed.

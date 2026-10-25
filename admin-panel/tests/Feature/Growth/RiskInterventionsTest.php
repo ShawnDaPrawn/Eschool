@@ -33,6 +33,7 @@ use App\Services\Leadership\LeadershipSignals;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -395,5 +396,39 @@ class RiskInterventionsTest extends TestCase
         $migration = require database_path('migrations/2026_10_25_100000_create_risk_interventions.php');
         $this->expectException(\LogicException::class);
         $migration->down();
+    }
+
+    public function test_same_day_attendance_reversion_becomes_latest_without_duplicate_identical_refreshes(): void
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $register = AttendanceRegister::create(['session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'],
+                'grade_level_id' => $this->grade, 'on_date' => now()->subDays($i)->toDateString(), 'scope_key' => 'homeroom:'.$this->schoolA->ids['section_a'], 'label' => 'Synthetic daily register']);
+            AttendanceEntry::create(['attendance_register_id' => $register->id, 'learner_id' => $this->schoolA->ids['asha'], 'state' => 'present', 'source' => 'manual', 'captured_by' => $this->actor()->id]);
+        }
+        $risk = app(RiskRecompute::class);
+        $observations = fn () => RiskObservation::where('learner_id', $this->schoolA->ids['asha'])->where('source', 'attendance')->orderBy('id')->get();
+        $risk->grade($this->year, $this->grade);
+        $this->assertSame(0, $observations()->last()->score);
+        $entry = AttendanceEntry::where('learner_id', $this->schoolA->ids['asha'])->firstOrFail();
+        $entry->update(['state' => 'absent']);
+        $risk->grade($this->year, $this->grade);
+        $this->assertGreaterThan(0, $observations()->last()->score);
+        $entry->update(['state' => 'present']);
+        $risk->grade($this->year, $this->grade);
+        $this->assertSame(0, $observations()->last()->score, 'The restored state must be the latest observation, not an old historical match.');
+        $this->assertCount(3, $observations());
+        $this->assertSame($observations()->first()->fingerprint, $observations()->last()->fingerprint);
+        $risk->grade($this->year, $this->grade);
+        $this->assertCount(3, $observations());
+        $this->assertSame(0, app(RiskViews::class)->classroom($this->actor(), $this->group)['learners'][0]['observed_score']);
+    }
+
+    public function test_hourly_risk_evaluation_is_registered_in_the_active_schedule(): void
+    {
+        $this->artisan('schedule:list')->assertSuccessful();
+        $event = collect(app(Schedule::class)->events())->first(fn ($event) => str_contains($event->command ?? '', 'risk:evaluate'));
+        $this->assertNotNull($event, 'Register the refresh in routes/console.php used by the configured application.');
+        $this->assertSame('0 * * * *', $event->expression);
+        $this->assertTrue($event->withoutOverlapping);
     }
 }
