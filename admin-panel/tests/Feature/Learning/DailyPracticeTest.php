@@ -6,6 +6,7 @@ namespace Tests\Feature\Learning;
 
 use App\Models\Academics\CurriculumPlan;
 use App\Models\Academics\TeachingAllocation;
+use App\Models\Academics\TeachingGroup;
 use App\Models\Growth\MasteryEvidence;
 use App\Models\Learning\PracticeDailySet;
 use App\Models\Learning\PracticeItem;
@@ -97,6 +98,41 @@ class DailyPracticeTest extends TestCase
         $this->assertSame(1, $saved['streak_days']);
         $this->travelTo(now()->addDays(8));
         $this->refuses(fn () => $this->review($set, ['operation_id' => (string) Str::uuid()]), 409);
+    }
+
+    public function test_streak_counts_distinct_calendar_days_across_many_subject_sets(): void
+    {
+        $this->approve();
+        $set = $this->issue();
+        $group = TeachingGroup::findOrFail($this->group);
+        $groups = [$this->group];
+        for ($i = 1; $i < 10; $i++) {
+            $copy = $group->replicate();
+            $copy->name = 'Synthetic parallel subject '.$i;
+            $copy->save();
+            $groups[] = (int) $copy->id;
+        }
+        $rows = [];
+        for ($day = 0; $day < 100; $day++) {
+            $date = now()->subDays($day)->toDateString();
+            foreach ($groups as $groupId) {
+                if ($day === 0 && $groupId === $this->group) {
+                    PracticeDailySet::whereKey($set['id'])->update(['completed_on' => $date, 'completed_at' => now()->utc()]);
+
+                    continue;
+                }
+                $rows[] = ['school_id' => 1, 'learner_id' => $this->schoolA->ids['asha'], 'teaching_group_id' => $groupId,
+                    'practice_on' => $date, 'offline_until' => now()->utc(), 'completed_at' => now()->utc(), 'completed_on' => $date];
+            }
+        }
+        foreach (array_chunk($rows, 250) as $batch) {
+            DB::table('practice_daily_sets')->insert($batch);
+        }
+        $this->assertSame(1000, PracticeDailySet::count());
+        $view = app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id']);
+        $this->assertSame(100, $view['streak_days']);
+        PracticeDailySet::whereDate('completed_on', now()->subDays(40)->toDateString())->update(['completed_on' => null, 'completed_at' => null]);
+        $this->assertSame(40, app(DailyPractice::class)->read($this->actor('asha'), $this->schoolA->ids['asha'], $set['id'])['streak_days']);
     }
 
     public function test_withdrawn_guardian_approval_and_source_hide_downloads_and_replays(): void
