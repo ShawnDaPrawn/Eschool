@@ -33,8 +33,10 @@ class LiveSession {
   final LiveSocketFactory _socketFactory;
   final _events = StreamController<LiveInvalidation>.broadcast();
   final _refreshes = StreamController<void>.broadcast();
+  final _deniedGroups = StreamController<int>.broadcast();
   Stream<LiveInvalidation> get events => _events.stream;
   Stream<void> get refreshes => _refreshes.stream;
+  Stream<int> get deniedGroups => _deniedGroups.stream;
   WebSocketChannel? _socket;
   StreamSubscription<dynamic>? _subscription;
   Timer? _heartbeat, _retry, _deadline;
@@ -206,6 +208,7 @@ class LiveSession {
       } else if (event == 'pusher_internal:subscription_succeeded') {
         if (envelope['channel'] == _channel) {
           _deadline?.cancel();
+          _retrySeconds = 3;
           _refreshes.add(
             null,
           ); // Re-fetch authorized readers after every reconnect.
@@ -232,16 +235,44 @@ class LiveSession {
             !groupEvent && channel != _channel) {
           return;
         }
-        final old = _revisions[invalidation.sourceKey] ?? 0;
-        if (invalidation.revision > old && _current(epoch)) {
-          if (_revisions.length >= 2048) _revisions.clear();
-          _revisions[invalidation.sourceKey] = invalidation.revision;
-          _events.add(invalidation);
-        }
+        _accept(epoch, invalidation);
       } else if (event == 'pusher:error') {
         _lost(epoch);
       }
     } catch (_) {
+      _lost(epoch);
+    }
+  }
+
+  void _accept(int epoch, LiveInvalidation event) {
+    final old = _revisions[event.sourceKey] ?? 0;
+    if (event.revision > old && _current(epoch)) {
+      if (_revisions.length >= 2048) _revisions.clear();
+      _revisions[event.sourceKey] = event.revision;
+      _events.add(event);
+    }
+  }
+
+  void _presence(int epoch, int group, Map<String, dynamic> data) {
+    final event = LiveInvalidation.fromJson(data, expectedSchoolId: schoolId);
+    if (event.type != 'group.presence' || event.groupId != group) {
+      throw const FormatException();
+    }
+    if (_groups.contains(group)) _accept(epoch, event);
+  }
+
+  void _groupFailure(int epoch, int group, Object error) {
+    if (!_current(epoch)) return;
+    if (error is ApiException && [401, 403, 404].contains(error.statusCode)) {
+      _groups.remove(group);
+      _deniedGroups.add(group);
+      _socket?.sink.add(
+        jsonEncode({
+          'event': 'pusher:unsubscribe',
+          'data': {'channel': _groupChannel(group)},
+        }),
+      );
+    } else {
       _lost(epoch);
     }
   }
@@ -257,9 +288,10 @@ class LiveSession {
     final epoch = _epoch;
     try {
       await _subscribe(epoch, _groupChannel(group));
-      await _send('groups/$group/presence', {'lease_id': _lease});
-    } catch (_) {
-      if (_current(epoch)) _groups.remove(group);
+      final data = await _send('groups/$group/presence', {'lease_id': _lease});
+      _presence(epoch, group, data);
+    } catch (error) {
+      _groupFailure(epoch, group, error);
     }
   }
 
@@ -297,9 +329,12 @@ class LiveSession {
       }
       for (final group in [..._groups]) {
         try {
-          await _send('groups/$group/presence', {'lease_id': _lease});
-        } catch (_) {
-          await leaveGroup(group);
+          final data = await _send('groups/$group/presence', {
+            'lease_id': _lease,
+          });
+          _presence(epoch, group, data);
+        } catch (error) {
+          _groupFailure(epoch, group, error);
         }
       }
     } catch (error) {
@@ -350,5 +385,6 @@ class LiveSession {
     pause();
     await _events.close();
     await _refreshes.close();
+    await _deniedGroups.close();
   }
 }

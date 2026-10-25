@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,10 @@ class _ConsultationsScreenState extends State<ConsultationsScreen>
   int? _selected;
   bool _visible = true, _busy = false, _denied = false, _uncertain = false;
   String? _message;
+  Stream<LiveInvalidation>? _liveEvents;
+  StreamSubscription<LiveInvalidation>? _liveSubscription;
+  StreamSubscription<void>? _liveRefreshes;
+  Timer? _liveTimer;
   String l(String text) => academicText(context, text);
   bool _current(int epoch) =>
       mounted &&
@@ -48,6 +53,45 @@ class _ConsultationsScreenState extends State<ConsultationsScreen>
     } else {
       _loadBallot(id);
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final events = LiveUpdatesScope.eventsOf(context);
+    if (identical(events, _liveEvents)) return;
+    _liveSubscription?.cancel();
+    _liveRefreshes?.cancel();
+    _liveEvents = events;
+    _liveSubscription = events.listen((event) {
+      if (event.type == 'consultations.counts_changed' &&
+          event.schoolId == widget.repository.schoolId &&
+          event.consultationId == _results?.id) {
+        _refreshFromLive(resultsOnly: true);
+      }
+    });
+    _liveRefreshes = LiveUpdatesScope.refreshesOf(
+      context,
+    ).listen((_) => _refreshFromLive());
+  }
+
+  void _refreshFromLive({bool resultsOnly = false}) {
+    if (!_current(_epoch)) return;
+    _liveTimer?.cancel();
+    _liveTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!_current(_epoch)) return;
+      if (_busy) {
+        _refreshFromLive(resultsOnly: resultsOnly);
+        return;
+      }
+      if (_results != null) {
+        unawaited(_showResults());
+      } else if (!resultsOnly && _selected != null) {
+        unawaited(_loadBallot(_selected!, preserveDraft: true));
+      } else if (!resultsOnly) {
+        unawaited(_loadListing(page: _listing?.page ?? 1));
+      }
+    });
   }
 
   void _dropDraft() {
@@ -78,6 +122,9 @@ class _ConsultationsScreenState extends State<ConsultationsScreen>
   @override
   void dispose() {
     _epoch++;
+    _liveTimer?.cancel();
+    _liveSubscription?.cancel();
+    _liveRefreshes?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     for (final controller in _text.values) {
       controller.clear();

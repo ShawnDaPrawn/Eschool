@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,14 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
   int _page = 1, _epoch = 0;
   bool _loading = true, _hidden = false, _dirty = false, _denied = false;
   String? _error, _mode;
+  LiveSession? _live;
+  Stream<LiveInvalidation>? _liveEvents;
+  StreamSubscription<LiveInvalidation>? _liveSubscription;
+  StreamSubscription<void>? _liveRefreshes;
+  StreamSubscription<int>? _liveDenials;
+  Timer? _liveTimer;
+  int? _joinedGroup, _onlineCount;
+  bool _liveChanged = false;
   Map<String, dynamic>? _record;
   String l(String s) => contentLabel(context, s);
   @override
@@ -29,6 +38,91 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final session = LiveUpdatesScope.sessionOf(context);
+    final events = LiveUpdatesScope.eventsOf(context);
+    if (identical(session, _live) && identical(events, _liveEvents)) return;
+    if (_joinedGroup != null) unawaited(_live?.leaveGroup(_joinedGroup!));
+    _liveSubscription?.cancel();
+    _liveRefreshes?.cancel();
+    _liveDenials?.cancel();
+    _live = session;
+    _liveEvents = events;
+    _joinedGroup = null;
+    _onlineCount = null;
+    _liveSubscription = events.listen((event) {
+      if (!mounted ||
+          _hidden ||
+          !widget.repository.isActive ||
+          event.schoolId != widget.repository.schoolId ||
+          event.groupId != _detail?.group.id) {
+        return;
+      }
+      if (event.type == 'group.presence') {
+        setState(() => _onlineCount = event.onlineCount);
+      } else if (event.type == 'activity.group_changed') {
+        _refreshFromLive();
+      }
+    });
+    _liveRefreshes = LiveUpdatesScope.refreshesOf(
+      context,
+    ).listen((_) => _refreshFromLive());
+    _liveDenials = session?.deniedGroups.listen((group) {
+      if (!mounted || group != _detail?.group.id) return;
+      _epoch++;
+      setState(() {
+        _denied = true;
+        _detail = null;
+        _list = null;
+        _mode = null;
+        _record = null;
+        _dirty = false;
+        _onlineCount = null;
+      });
+    });
+    _syncLiveGroup();
+  }
+
+  void _syncLiveGroup() {
+    final group = _detail?.group.id;
+    if (group == _joinedGroup) return;
+    if (_joinedGroup != null) unawaited(_live?.leaveGroup(_joinedGroup!));
+    _joinedGroup = group;
+    _onlineCount = null;
+    if (group != null) unawaited(_live?.joinGroup(group));
+  }
+
+  void _refreshFromLive() {
+    if (!mounted || _hidden || _denied || !widget.repository.isActive) return;
+    _liveTimer?.cancel();
+    _liveTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted || _hidden || _denied || !widget.repository.isActive) return;
+      if (_loading) {
+        _refreshFromLive();
+        return;
+      }
+      if (_dirty || _mode != null) {
+        setState(() => _liveChanged = true);
+        return;
+      }
+      _liveChanged = false;
+      unawaited(_load());
+    });
+  }
+
+  Future<void> _acceptLiveRefresh() async {
+    if (!await _leave() || !mounted) return;
+    setState(() {
+      _mode = null;
+      _record = null;
+      _dirty = false;
+      _liveChanged = false;
+    });
+    await _load();
   }
 
   @override
@@ -48,6 +142,11 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
   @override
   void dispose() {
     _epoch++;
+    _liveTimer?.cancel();
+    _liveSubscription?.cancel();
+    _liveRefreshes?.cancel();
+    _liveDenials?.cancel();
+    if (_joinedGroup != null) unawaited(_live?.leaveGroup(_joinedGroup!));
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -93,6 +192,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
           _dirty = false;
         }
       });
+      _syncLiveGroup();
     } catch (e) {
       if (!mounted || epoch != _epoch) return;
       final denied =
@@ -237,6 +337,11 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         Text(
           '${detail.group.discipline} · ${detail.group.season}\n${detail.group.startsOn} – ${detail.group.endsOn}',
         ),
+        if (_onlineCount != null)
+          Text(
+            '${l('Online now')}: $_onlineCount',
+            key: const ValueKey('activity-online-count'),
+          ),
         if (detail.canCapture)
           Wrap(
             spacing: 8,
@@ -397,6 +502,16 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
               offstage: _hidden || _denied || _loading,
               child: Column(
                 children: [
+                  if (_liveChanged)
+                    MaterialBanner(
+                      content: Text(l('Updates available')),
+                      actions: [
+                        TextButton(
+                          onPressed: _acceptLiveRefresh,
+                          child: Text(l('Refresh activity access')),
+                        ),
+                      ],
+                    ),
                   if (_error != null)
                     MaterialBanner(
                       content: Text(l(_error!)),

@@ -39,3 +39,8 @@ performance or production release is inferred from API and unit tests.
 - [Roles-and-Permissions](Roles-and-Permissions)
 - [Notifications](Notifications)
 - [API-Overview](API-Overview)
+
+When the school enables live updates, an open group shows the current online
+count. It counts people rather than devices and expires without a heartbeat;
+it is not an attendance register. Group changes refresh permitted detail.
+An unsaved capture keeps its draft and shows an update prompt for a safe refresh.

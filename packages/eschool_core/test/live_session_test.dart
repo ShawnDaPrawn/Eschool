@@ -15,7 +15,7 @@ void main() {
   late List<WebSocket> peers;
   late List<Map<String, dynamic>> subscriptions;
   late String token;
-  late bool authorized;
+  late bool authorized, denyGroup;
   Completer<void>? responseGate;
 
   Map<String, dynamic> metadata({int revision = 1, int school = 1}) => {
@@ -46,6 +46,7 @@ void main() {
   setUp(() async {
     token = 'original-token';
     authorized = true;
+    denyGroup = false;
     responseGate = null;
     requests = [];
     peers = [];
@@ -82,6 +83,20 @@ void main() {
         onRequest: (options, handler) async {
           requests.add(options);
           if (responseGate != null) await responseGate!.future;
+          if (denyGroup && options.path.endsWith('/presence')) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.badResponse,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: 404,
+                  data: {'error': true, 'message': 'Access changed'},
+                ),
+              ),
+            );
+            return;
+          }
           final data = options.path.endsWith('/session')
               ? {
                   'lease_id': lease,
@@ -92,6 +107,14 @@ void main() {
                   'scheme': 'ws',
                   'heartbeat_seconds': 20,
                   'expires_in': 45,
+                }
+              : options.path.endsWith('/presence')
+              ? {
+                  'type': 'group.presence',
+                  'school_id': 1,
+                  'group_id': 7,
+                  'revision': 1,
+                  'online_count': 2,
                 }
               : {'auth': 'local-live-key:synthetic-signature'};
           handler.resolve(
@@ -220,6 +243,30 @@ void main() {
       await opening;
       expect(peers, isEmpty);
       await live.dispose();
+    },
+  );
+
+  test(
+    'presence HTTP gives an immediate count and a fresh source refusal emits group withdrawal',
+    () async {
+      final live = session();
+      final received = <LiveInvalidation>[], denied = <int>[];
+      final sub = live.events.listen(received.add),
+          withdrawal = live.deniedGroups.listen(denied.add);
+      await live.resume();
+      await until(() => subscriptions.isNotEmpty);
+      await live.joinGroup(7);
+      await until(() => received.isNotEmpty);
+      expect(received.single.type, 'group.presence');
+      expect(received.single.onlineCount, 2);
+      denyGroup = true;
+      await live.joinGroup(7);
+      await until(() => denied.isNotEmpty);
+      expect(denied, [7]);
+      expect(received, hasLength(1));
+      await live.dispose();
+      await sub.cancel();
+      await withdrawal.cancel();
     },
   );
 

@@ -47,8 +47,7 @@ Evidence:
   analysis has zero errors/warnings (preexisting generated style infos remain).
   Strict contract lint, whole-app Larastan and Pint passed.
 
-Still pending: published CI, active full-app browser transport qualification,
-consumer wiring for Home recognition moments/counters, visible group presence,
-and consultation result refreshes. These consumers are subsequent increments;
-this source does not claim the live user workflows, all Phase 4, a deployed
-service, production latency, store/native-device acceptance or scaling complete.
+The subsequent visible-consumer evidence is recorded in live-consumers.md;
+Sanctum lifetime review evidence is in live-token-lifetime.md. Home recognition
+moments/counters, published CI and deployed/device/load acceptance remain
+separate. This source does not claim all Phase 4 or production scaling complete.

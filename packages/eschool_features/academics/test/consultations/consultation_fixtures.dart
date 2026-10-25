@@ -30,7 +30,7 @@ class FakeConsultationRepository implements ConsultationRepository {
       live = false;
   bool unknownOnce = false, commitUnknown = true;
   String title = 'Synthetic family consultation';
-  int accessCalls = 0, ballotCalls = 0;
+  int accessCalls = 0, ballotCalls = 0, resultsCalls = 0;
   Completer<ConsultationBallot>? pendingBallot;
   final posts = <List<ConsultationVoteAnswer>>[];
   @override
@@ -123,6 +123,7 @@ class FakeConsultationRepository implements ConsultationRepository {
   @override
   Future<ConsultationResults> results(int id) async {
     guard();
+    resultsCalls++;
     return ConsultationResults.fromJson({
       'id': 9,
       'closed': false,

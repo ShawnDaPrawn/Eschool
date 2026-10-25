@@ -92,6 +92,7 @@ and transfer tag-retention consent after intake.
 
 Step 10 transport now has a qualified local Reverb/worker/socket round trip,
 credential-specific leases, typed session/presence APIs and shared lifecycle
-transport. Publication CI and active full-app live consumers remain pending;
-Home moments, visible presence and live result refreshes are tracked separately
-in self-tests/live-updates.md. No deployed latency or phase completion is claimed.
+transport. Visible group presence and protected live result refreshes are implemented, with
+actual dedicated staff browser transport evidence in self-tests/live-consumers.md.
+Home recognition moments/counters, published CI and deployed acceptance remain
+separate. No deployed latency or phase completion is claimed.

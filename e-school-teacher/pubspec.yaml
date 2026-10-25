@@ -71,6 +71,7 @@ dependency_overrides:
   intl: any
 
 dev_dependencies:
+  crypto: ^3.0.7
   flutter_test:
     sdk: flutter
   flutter_driver:
