@@ -30,3 +30,26 @@ password/membership/platform/suspended-school/impersonation refusal, context
 replacement/restoration and later-context query pinning. The actual Parent inbox
 returns source-filtered rows and pagination total. Test source providers qualify
 the extension mechanism only; they are not real feature authority adapters.
+
+## Delivery extension
+
+A registered provider may also implement
+`PrivateNoticeDelivery::allows(User $actor, string $type, array $payload): bool`.
+`PrivateNoticeScopes::permitsDelivery` checks it before Notifier fanout and again
+immediately before queued mail/push transport. It reloads the actor and checks
+active school/membership, password change and platform exclusions. Replaced
+context refuses delivery and restores the caller's school. Existing explicit
+transfer/progress/cover guards remain present; SQL-only registrations retain
+those existing delivery rules. New private feature providers implement both
+interfaces and whitelist their actual type, source revision and fresh grants.
+
+Private staff notification types can be listed in `private_notices.staff_types`
+to use the staff application origin for mail. `wellbeing.staff_update` is
+reserved there; family replies keep the family origin. Existing staff mail types
+are preserved. No caller-provided origin is accepted.
+
+The combined extension/framework/notifier cohort passes **28 tests, 128
+assertions**, Pint and complete Larastan, including source withdrawal between
+fanout and transport, stale actor/password/platform changes, replaced context,
+ordinary-type compatibility and actual queued staff mail URL. These are shared
+mechanism tests; concrete feature source-policy qualification remains separate.

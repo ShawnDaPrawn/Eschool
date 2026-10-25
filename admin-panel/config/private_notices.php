@@ -5,4 +5,5 @@
 // Existing unrelated types keep their current recipient rules.
 return [
     'scopes' => [],
+    'staff_types' => ['wellbeing.staff_update'],
 ];
