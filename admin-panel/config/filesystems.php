@@ -29,6 +29,7 @@ return [
     */
 
     'disks' => [
+        'gallery_private' => ['driver' => 'local', 'root' => storage_path('app/private/gallery'), 'visibility' => 'private', 'throw' => true],
         'admissions_private' => [
             'driver' => 'local',
             'root' => storage_path('app/private/admissions'),

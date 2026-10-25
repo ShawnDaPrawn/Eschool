@@ -507,3 +507,18 @@ found by the browser run was fixed using separate named allowances. Live mail,
 scanner deployment, physical devices, fluent review and independent staging
 acceptance remain separately unqualified. No payment provider or production
 activation, nor whole Phase 4 completion, is claimed.
+
+## 2026-10-25 — private gallery domain and consented transfer hooks
+
+Added dedicated scanned, sanitized encrypted photo variants, owned tags with
+revisioned consent, guardian-first school settings, all-year private family queries
+and current-group proposals by approved handles. Staff never acquire a personal
+family gallery. Completed transfers remove tags by default; explicit immutable
+fingerprinted guardian choice copies only selected pixels into the receiving
+family without source-group access or learner activation. Daily cleanup erases
+retired variants and bounded old rollback orphans even with the module disabled.
+
+44 MySQL tests/1,201 assertions, selected Pint and whole-app Larastan pass, including
+all23 existing transfer cases. API/SDK/panel/native implementation and browser
+qualification remain active follow-on work. No complete gallery, external scanner,
+physical device, staging or phase completion claim is made by this domain increment.

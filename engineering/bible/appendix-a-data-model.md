@@ -252,3 +252,15 @@ contain references/revisions only. `admission_operations` stores actor-scoped UU
 intent hashes and encrypted reference receipts. All eight tables are school owned;
 populated rollback refuses erasure. Application retention never removes the
 resulting learner, guardian link, invitation or canonical educational records.
+
+## Private gallery
+
+`gallery_settings` records the guardian-first school consent rule and revision.
+`gallery_photos` holds school/year/source metadata, an encrypted caption and opaque
+private ciphertext references. `photo_tags` holds learner-owned consent state,
+revision and the explicit transfer-retention marker. `gallery_transfer_choices`
+freezes a guardian's encrypted fingerprinted selection against the immutable
+academic consent. `gallery_operations` stores encrypted idempotent references;
+`gallery_events` holds minimal audit references without image or caption bodies.
+All six are school owned. Withdrawn image bytes are erased without deleting the
+minimal consent history; rollback refuses populated tables.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Transfers;
 
+use App\Events\Transfers\TransferCompleted;
 use App\Models\Students;
 use App\Models\Transfers\TransferPackage;
 use App\Models\Transfers\TransferReceipt;
@@ -75,6 +76,9 @@ class TransferAccept
                     'artifact_path' => $stage->path, 'artifact_sha256' => $fresh->artifact_sha256, 'artifact_bytes' => $fresh->artifact_bytes, 'cipher_sha256' => $cipher]);
                 $stage->update(['adopted' => true]);
                 app(CurrentSchool::class)->run((int) $fresh->school_id, fn () => $fresh->update(['state' => 'accepted', 'accepted_at' => now(), 'revision' => $fresh->revision + 1]));
+                if (! ($fresh->contents['export_only'] ?? false)) {
+                    event(new TransferCompleted((int) $fresh->school_id, (int) $fresh->id, $destination, (int) $receipt->id, (int) $d['session_year_id']));
+                }
                 abort_unless(app(CurrentSchool::class)->id() === $destination, 403);
                 $a->staff($actor, true);
                 $keys->remember($actor, $d['operation_id'], $hash, 'receipt', (int) $receipt->id);

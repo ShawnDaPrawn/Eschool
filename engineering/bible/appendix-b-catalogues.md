@@ -180,3 +180,13 @@ provider is required. `admissions:maintain` recovers offers every minute; its da
 `--retention` variant erases due private copies even when the module or school is
 disabled. New UI keys have English fallbacks in all panel catalogues; fluent
 Afrikaans/isiZulu review remains separately unqualified.
+
+## Private gallery
+
+`gallery` defaults off and depends on people. Groups are optional sources rather
+than permission to browse personal family galleries. The default rule requires
+verified guardian tag approval; self-consent requires explicit school configuration.
+`gallery:prune-copies` runs daily at03:30, including disabled schools/modules, to
+erase retired image variants and old unknown rollback copies inside each school's
+private gallery directory. Academic completion invokes a synchronous references-only
+transfer event; separate immutable guardian choice controls retaining/copying tags.
