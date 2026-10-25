@@ -21,6 +21,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Services\Academics\TeachingGroups;
 use App\Services\Academics\TimetableConfiguration;
+use App\Services\Pastoral\CoverAvailability;
 use App\Services\Pastoral\CoverQueries;
 use App\Services\Pastoral\CoverSources;
 use App\Services\Pastoral\ReliefCover;
@@ -280,5 +281,50 @@ class ReliefCoverTest extends TestCase
         DB::table('bell_schedules')->where('id', BellPeriod::findOrFail($this->lesson->bell_period_id)->bell_schedule_id)->update(['session_year_id' => $year->id]);
         $this->assertFalse(app(CoverSources::class)->valid($cover));
         $this->refused(fn () => app(ReliefCover::class)->assign($this->superAdmin(), $cover->id, $this->substitute, 1, (string) Str::uuid()), 409);
+    }
+
+    public function test_other_term_legacy_rows_do_not_block_this_date_window(): void
+    {
+        $term = Term::create(['session_year_id' => $this->year, 'name' => 'Other term', 'start_date' => '2026-06-01', 'end_date' => '2026-06-30', 'grade_from' => 0, 'grade_to' => 12]);
+        $subjectTeacher = SchoolTable::query('subject_teachers')->where('teacher_id', $this->teacher)->where('session_year_id', $this->year)->value('id');
+        SchoolTable::query('timetables')->insert(['session_year_id' => $this->year, 'term_id' => $term->id, 'class_section_id' => $this->schoolA->ids['section_a'],
+            'subject_teacher_id' => $subjectTeacher, 'day' => 2, 'day_name' => 'tuesday', 'start_time' => '10:00', 'end_time' => '10:45',
+            'created_at' => now(), 'updated_at' => now()]);
+        $this->assertSame('requested', $this->request()->state);
+        $this->refused(fn () => app(ReliefCover::class)->request($this->person(), array_replace($this->input(), ['starts_on' => '2026-06-02', 'ends_on' => '2026-06-02']), (string) Str::uuid()), 409);
+    }
+
+    public function test_temporarily_stale_assignment_keeps_its_original_time_reserved(): void
+    {
+        $this->request();
+        $first = CoverAssignment::orderBy('id')->firstOrFail();
+        app(ReliefCover::class)->assign($this->superAdmin(), $first->id, $this->substitute, 1, (string) Str::uuid());
+        $room = $this->lesson->room;
+        $room->update(['name' => 'Temporarily changed']);
+        $this->assertFalse(app(CoverSources::class)->valid($first->fresh()));
+        // Use the next occurrence as a distinct candidate for the same date;
+        // no new permanent teaching allocation is needed for this invariant.
+        $other = CoverAssignment::orderBy('id')->skip(1)->firstOrFail();
+        $other->on_date = $first->on_date;
+        $this->assertFalse(app(CoverAvailability::class)->assignable($this->substitute, $other, $this->lesson));
+    }
+
+    public function test_context_change_rolls_back_and_restores_original_school(): void
+    {
+        $actor = $this->superAdmin();
+        $membership = SchoolMembership::where('user_id', $actor->id)->firstOrFail()->replicate();
+        $membership->school_id = 2;
+        $membership->save();
+        CoverOperation::created(function () {
+            app(CurrentSchool::class)->set(2);
+        });
+        try {
+            $this->refused(fn () => app(ReliefCover::class)->request($actor, $this->input(), (string) Str::uuid()), 403);
+        } finally {
+            CoverOperation::flushEventListeners();
+        }
+        $this->assertSame(1, app(CurrentSchool::class)->id());
+        $this->assertSame(0, DB::table('cover_absences')->count());
+        $this->assertSame(0, DB::table('cover_operations')->count());
     }
 }

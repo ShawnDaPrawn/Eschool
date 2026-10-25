@@ -7,6 +7,8 @@ namespace App\Services\Pastoral;
 use App\Models\Academics\TimetableLesson;
 use App\Models\Pastoral\CoverAbsence;
 use App\Models\Pastoral\CoverAssignment;
+use App\Models\SessionYear;
+use App\Models\Term;
 use App\Services\Academics\TimetableEngine;
 use App\Services\Academics\TimetableProjection;
 use App\Services\Platform\Tenancy\SchoolTable;
@@ -47,10 +49,18 @@ class CoverAvailability
         $engine = app(TimetableEngine::class);
         $candidate = $this->candidate($teacher, $lesson, $date);
         foreach (CoverAssignment::where('substitute_teacher_id', $teacher)->whereDate('on_date', $date)->where('state', 'assigned')->where('id', '!=', $cover->id)->get() as $other) {
-            if (! app(CoverSources::class)->valid($other)) {
+            // Keep the original reservation until an explicit refresh/cancel. A
+            // temporary source change must not let a restored assignment clash.
+            $snapshot = $other->source_snapshot;
+            $period = $lesson->period;
+            if ($period !== null && ($snapshot['starts_at'] ?? '') < substr($period->ends_at, 0, 5)
+                && substr($period->starts_at, 0, 5) < ($snapshot['ends_at'] ?? '')) {
+                return false;
+            }
+            $otherLesson = TimetableLesson::find($other->timetable_lesson_id);
+            if ($otherLesson === null) {
                 continue;
             }
-            $otherLesson = TimetableLesson::findOrFail($other->timetable_lesson_id);
             if ($engine->clashes($candidate, $this->candidate($teacher, $otherLesson, $date), 0) !== []) {
                 return false;
             }
@@ -62,13 +72,22 @@ class CoverAvailability
     /** Never silently omit an unmapped legacy lesson belonging to the absent teacher. */
     public function hasUnmapped(int $teacher, int $year, string $from, string $to): bool
     {
-        $weekdays = [];
-        for ($date = CarbonImmutable::parse($from); $date->toDateString() <= $to; $date = $date->addDay()) {
-            $weekdays[] = $date->isoWeekday();
-        }
+        $yearRow = SessionYear::withTrashed()->findOrFail($year);
         $subjects = SchoolTable::query('subject_teachers')->where('teacher_id', $teacher)->pluck('id')->all();
+        $rows = SchoolTable::query('timetables')->whereNull('timetable_lesson_id')->whereNull('deleted_at')
+            ->where('session_year_id', $year)->whereIn('subject_teacher_id', $subjects)->get();
+        $terms = Term::withTrashed()->whereIn('id', $rows->pluck('term_id')->filter())->get()->keyBy('id');
+        foreach ($rows as $row) {
+            $term = $row->term_id === null ? null : $terms->get($row->term_id);
+            for ($date = CarbonImmutable::parse($from); $date->toDateString() <= $to; $date = $date->addDay()) {
+                $day = $date->toDateString();
+                if ((int) $row->day === $date->isoWeekday() && $day >= $yearRow->start_date && $day <= $yearRow->end_date
+                    && ($row->term_id === null || ($term !== null && $day >= $term->start_date->toDateString() && $day <= $term->end_date->toDateString()))) {
+                    return true;
+                }
+            }
+        }
 
-        return SchoolTable::query('timetables')->whereNull('timetable_lesson_id')->whereNull('deleted_at')
-            ->where('session_year_id', $year)->whereIn('subject_teacher_id', $subjects)->whereIn('day', array_unique($weekdays))->exists();
+        return false;
     }
 }

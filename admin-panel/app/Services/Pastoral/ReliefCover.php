@@ -40,24 +40,35 @@ class ReliefCover
     {
         abort_unless(Str::isUuid($uuid) && (string) config('app.key') !== '', 422, 'Choose a fresh request identifier.');
 
-        return DB::transaction(function () use ($actor, $uuid, $action, $input, $effect) {
-            School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
-            $actor = app(CoverAuthority::class)->actor($actor, true);
-            $this->authorize($actor, $action, $input);
-            $hash = hash_hmac('sha256', json_encode([$actor->id, $action, $input], JSON_THROW_ON_ERROR), (string) config('app.key'));
-            $prior = CoverOperation::where('operation_id', $uuid)->first();
-            if ($prior !== null) {
-                abort_unless((int) $prior->user_id === (int) $actor->id && hash_equals($prior->request_hash, $hash), 409, 'This request identifier belongs to different cover changes.');
+        $context = app(CurrentSchool::class);
+        $before = $context->snapshot();
+        $schoolId = $context->id();
+        try {
+            return DB::transaction(function () use ($actor, $uuid, $action, $input, $effect, $context, $schoolId) {
+                abort_unless($context->id() === $schoolId, 403);
+                School::whereKey($schoolId)->lockForUpdate()->firstOrFail();
+                $actor = app(CoverAuthority::class)->actor($actor, true);
+                $this->authorize($actor, $action, $input);
+                $hash = hash_hmac('sha256', json_encode([$actor->id, $action, $input], JSON_THROW_ON_ERROR), (string) config('app.key'));
+                $prior = CoverOperation::where('operation_id', $uuid)->first();
+                if ($prior !== null) {
+                    abort_unless((int) $prior->user_id === (int) $actor->id && hash_equals($prior->request_hash, $hash), 409, 'This request identifier belongs to different cover changes.');
 
-                return $prior->result_kind === 'absence' ? CoverAbsence::findOrFail($prior->result_id) : CoverAssignment::findOrFail($prior->result_id);
-            }
-            $result = $effect();
-            $this->authorize(app(CoverAuthority::class)->actor($actor, true), $action, $input);
-            CoverOperation::create(['user_id' => $actor->id, 'operation_id' => $uuid, 'request_hash' => $hash,
-                'result_kind' => $result instanceof CoverAbsence ? 'absence' : 'assignment', 'result_id' => $result->id]);
+                    return $prior->result_kind === 'absence' ? CoverAbsence::findOrFail($prior->result_id) : CoverAssignment::findOrFail($prior->result_id);
+                }
+                $result = $effect();
+                abort_unless($context->id() === $schoolId && ! $context->isAcrossSchools() && ! $context->isImpersonating(), 403);
+                $this->authorize(app(CoverAuthority::class)->actor($actor, true), $action, $input);
+                CoverOperation::create(['user_id' => $actor->id, 'operation_id' => $uuid, 'request_hash' => $hash,
+                    'result_kind' => $result instanceof CoverAbsence ? 'absence' : 'assignment', 'result_id' => $result->id]);
 
-            return $result;
-        }, 3);
+                abort_unless($context->id() === $schoolId && ! $context->isAcrossSchools() && ! $context->isImpersonating(), 403);
+
+                return $result;
+            }, 3);
+        } finally {
+            $context->restore($before);
+        }
     }
 
     public function request(User $actor, array $input, string $uuid): CoverAbsence
