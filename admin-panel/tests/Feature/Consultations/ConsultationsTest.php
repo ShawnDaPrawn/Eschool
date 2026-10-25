@@ -148,7 +148,7 @@ class ConsultationsTest extends TestCase
         $this->assertSame([1, 0], array_column($results['questions'][0]['counts'], 'count'));
         $this->assertArrayNotHasKey('user_id', $results);
         $this->assertArrayNotHasKey('texts', $results['questions'][0]);
-        $this->refused(409, fn () => app(Consultations::class)->vote($this->superAdmin(), $row->id, $this->answers($row)));
+        $this->refused(409, fn () => app(Consultations::class)->vote($this->learner, $row->id, $this->answers($row)));
     }
 
     public function test_published_configuration_questions_and_ballots_are_immutable_and_config_replay_stable(): void
