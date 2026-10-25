@@ -63,13 +63,15 @@ jobs:
             site: navigateed-teach
             name: NavigateEd Teacher (preview)
             short_name: NE T preview
+    # Prefixed: actions read generic names from the environment
+    # (subosito/flutter-action takes its Flutter channel from CHANNEL).
     env:
-      PROJECT: navigateed-d8c06
-      APP: ${{ matrix.app }}
-      TARGET: ${{ matrix.target }}
-      SITE: ${{ matrix.site }}
-      CHANNEL: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'preview' }}
-      EXPIRES: ${{ github.event_name == 'pull_request' && '7d' || inputs.expires }}
+      PREVIEW_PROJECT: navigateed-d8c06
+      PREVIEW_APP: ${{ matrix.app }}
+      PREVIEW_TARGET: ${{ matrix.target }}
+      PREVIEW_SITE: ${{ matrix.site }}
+      PREVIEW_CHANNEL: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'preview' }}
+      PREVIEW_EXPIRES: ${{ github.event_name == 'pull_request' && '7d' || inputs.expires }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -79,7 +81,7 @@ jobs:
           INPUT_URL: ${{ inputs.api_base_url }}
           VARIABLE_URL: ${{ vars.PREVIEW_API_BASE_URL }}
         run: |
-          api="${INPUT_URL:-${VARIABLE_URL:-$(jq -r .API_BASE_URL "$APP/config/production.json")}}"
+          api="${INPUT_URL:-${VARIABLE_URL:-$(jq -r .API_BASE_URL "$PREVIEW_APP/config/production.json")}}"
           api="${api%/}"
           pattern='^https://[A-Za-z0-9.-]+(:[0-9]+)?$'
           if ! [[ "$api" =~ $pattern ]]; then
@@ -148,8 +150,8 @@ jobs:
           fi
           file="$RUNNER_TEMP/firebase-credential.json"
           (umask 077 && printf '%s' "$CREDENTIAL" > "$file")
-          if ! jq -e '.type == "service_account" and .project_id == env.PROJECT' "$file" > /dev/null 2>&1; then
-            echo "::error::FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 must be the whole service account JSON file of $PROJECT."
+          if ! jq -e '.type == "service_account" and .project_id == env.PREVIEW_PROJECT' "$file" > /dev/null 2>&1; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06 must be the whole service account JSON file of $PREVIEW_PROJECT."
             exit 1
           fi
           echo "GOOGLE_APPLICATION_CREDENTIALS=$file" >> "$GITHUB_ENV"
@@ -160,12 +162,12 @@ jobs:
       # stays empty until a production deploy.
       - name: Make sure the portal site exists
         run: |
-          if firebase hosting:sites:get "$SITE" --project "$PROJECT" > /dev/null 2>&1; then
-            echo "Firebase Hosting site $SITE exists."
-          elif firebase hosting:sites:create "$SITE" --project "$PROJECT" --non-interactive; then
-            echo "::notice::Created the Firebase Hosting site $SITE in $PROJECT (environments.md, step 3). Its live address stays empty until a production deploy."
+          if firebase hosting:sites:get "$PREVIEW_SITE" --project "$PREVIEW_PROJECT" > /dev/null 2>&1; then
+            echo "Firebase Hosting site $PREVIEW_SITE exists."
+          elif firebase hosting:sites:create "$PREVIEW_SITE" --project "$PREVIEW_PROJECT" --non-interactive; then
+            echo "::notice::Created the Firebase Hosting site $PREVIEW_SITE in $PREVIEW_PROJECT (environments.md, step 3). Its live address stays empty until a production deploy."
           else
-            echo "::error::Firebase Hosting site $SITE is not in $PROJECT and could not be created (its id may be taken, or the service account may not create sites). Create it once in the Firebase console (Hosting > Add another site) or with: firebase hosting:sites:create $SITE --project $PROJECT"
+            echo "::error::Firebase Hosting site $PREVIEW_SITE is not in $PREVIEW_PROJECT and could not be created (its id may be taken, or the service account may not create sites). Create it once in the Firebase console (Hosting > Add another site) or with: firebase hosting:sites:create $PREVIEW_SITE --project $PREVIEW_PROJECT"
             exit 1
           fi
 
@@ -173,8 +175,8 @@ jobs:
         id: deploy
         run: |
           result="$RUNNER_TEMP/channel-deploy.json"
-          if ! firebase hosting:channel:deploy "$CHANNEL" --only "$TARGET" --expires "$EXPIRES" \
-            --project "$PROJECT" --non-interactive --json > "$result"; then
+          if ! firebase hosting:channel:deploy "$PREVIEW_CHANNEL" --only "$PREVIEW_TARGET" --expires "$PREVIEW_EXPIRES" \
+            --project "$PREVIEW_PROJECT" --non-interactive --json > "$result"; then
             echo "::error::The channel deploy failed:"
             cat "$result"
             exit 1
@@ -220,13 +222,13 @@ jobs:
             *) v2="unexpected ($context)" ;;
           esac
           if [ "$cors" = unreachable ]; then
-            echo "::warning::$SITE: $API did not answer. The preview cannot sign in until the server is reachable."
+            echo "::warning::$PREVIEW_SITE: $API did not answer. The preview cannot sign in until the server is reachable."
           elif [ "$cors" = no ]; then
-            echo "::warning::$SITE: $API does not allow browsers on $origin (CORS). Sign-in in the preview will fail until it does."
+            echo "::warning::$PREVIEW_SITE: $API does not allow browsers on $origin (CORS). Sign-in in the preview will fail until it does."
           fi
           case "$v2" in
             yes | unreachable) ;;
-            *) echo "::warning::$SITE: $API answered $context for /api/v2/me/context. It does not run this repository's current code." ;;
+            *) echo "::warning::$PREVIEW_SITE: $API answered $context for /api/v2/me/context. It does not run this repository's current code." ;;
           esac
           { echo "origin=$origin"; echo "cors=$cors"; echo "v2=$v2"; } >> "$GITHUB_OUTPUT"
 
@@ -241,14 +243,14 @@ jobs:
           CORS: ${{ steps.check.outputs.cors }}
           V2: ${{ steps.check.outputs.v2 }}
         run: |
-          expiry="for $EXPIRES"
+          expiry="for $PREVIEW_EXPIRES"
           [ -z "$EXPIRES_AT" ] || expiry="until $EXPIRES_AT"
           prefix=
           case "$ENVIRONMENT" in staging) prefix=staging- ;; esac
           {
             printf '## %s\n\n' "$NAME"
             printf '**Open:** %s  \n' "$URL"
-            printf 'Channel `%s` on site `%s`, %s. Server: %s\n\n' "$CHANNEL" "$SITE" "$expiry" "$API"
+            printf 'Channel `%s` on site `%s`, %s. Server: %s\n\n' "$PREVIEW_CHANNEL" "$PREVIEW_SITE" "$expiry" "$API"
             printf '| Check | Answer |\n| --- | --- |\n'
             printf '| The server lets a browser on this address call it (CORS) | %s |\n' "$CORS"
             printf '| The server runs API v2 (current code) | %s |\n\n' "$V2"
