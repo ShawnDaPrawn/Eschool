@@ -51,6 +51,7 @@ export 'src/cover/cover_screen.dart';
 
 export 'src/activities/activity_repository.dart';
 export 'src/activities/activity_groups_screen.dart';
+export 'src/activities/activity_session_boundary.dart';
 
 export 'src/growth/mastery_repository.dart';
 export 'src/growth/mastery_cubit.dart';

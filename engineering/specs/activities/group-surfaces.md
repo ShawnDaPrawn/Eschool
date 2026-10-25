@@ -66,3 +66,12 @@ family apps without granting facilitator identities teacher access.
 Panel attendance binds the session to the URL's group before dispatch. The
 read-only-year decision uses that actual session group's year. A current-group
 URL cannot bypass a retained session's historical-year refusal.
+
+Account-authority refreshes recreate private group readers even when fresh
+context IDs and roles are unchanged. The boundary observes every state event,
+uses a generation key and binds repositories to that generation. A late old
+request cannot become valid merely because equivalent context returns. Role,
+guardian/approval, module and read-only changes also remove the private reader.
+Feature-only transport failures can retain a draft while authority stays current;
+authority reloads intentionally discard the old reader rather than retain a
+private draft across a new authorization decision.

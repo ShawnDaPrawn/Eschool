@@ -754,9 +754,10 @@ Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
         ),
       );
     }
+    final pinned = me!;
     bool active() =>
-        session.context?.user?.id == account &&
-        session.context?.currentSchoolId == school &&
+        session.state is MeContextLoaded &&
+        activityAccessStillCurrent(pinned, session.context) &&
         (schools.state.selectedId == null ||
             schools.state.selectedId == school) &&
         allowsSchoolModule(session.context, 'groups') &&
@@ -764,12 +765,15 @@ Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
     Widget result = ContentContextBoundary(
       schoolId: school,
       readerId: account,
-      child: ActivityGroupsScreen(
-        repository: ApiActivityRepository(
-          Api.client,
-          schoolId: school,
-          accountId: account,
-          contextActive: active,
+      child: ActivitySessionBoundary(
+        pinned: pinned,
+        builder: (context, generationActive) => ActivityGroupsScreen(
+          repository: ApiActivityRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
         ),
       ),
     );
