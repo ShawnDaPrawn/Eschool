@@ -1,0 +1,88 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { expect, test } from '@playwright/test';
+import { accounts, signIn } from '../support/accounts';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+
+test.describe.configure({ mode: 'serial' });
+test.use({ storageState: { cookies: [], origins: [] } });
+for (const width of [390, 820, 1280]) {
+  test(`frozen anonymous consultation and private results at ${width}px`, async ({ page, baseURL, browser }) => {
+    execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/consultations-fixture.php'));"], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' });
+    const errors = collectErrors(page, baseURL!);
+    await page.setViewportSize({ width, height: 1000 });
+    await signIn(page, accounts.admin);
+    await page.goto('/school-consultations/new');
+    const title = `Consultation ${width}-${Date.now()} <script>window.pollExecuted=1</script>`;
+    const editor = page.getByRole('form', { name: 'Consultation configuration', exact: true });
+    await editor.getByRole('textbox', { name: 'Title', exact: true }).fill(title);
+    const audience = page.getByRole('form', { name: 'Find consultation audience', exact: true });
+    await audience.getByRole('combobox', { name: 'Audience', exact: true }).selectOption('grade');
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/api/v2/consultations/audiences')).then(response => expect(response.status()).toBe(200)),
+      audience.getByRole('button', { name: 'Find audience', exact: true }).click(),
+    ]);
+    await expect(editor.getByRole('combobox', { name: 'Selected audience', exact: true })).toBeVisible();
+    await editor.getByRole('combobox', { name: 'Selected audience', exact: true }).selectOption({ index: 1 });
+    await audience.getByRole('combobox', { name: 'Audience', exact: true }).selectOption('school');
+    await audience.getByRole('button', { name: 'Find audience', exact: true }).click();
+    await expect(editor.getByRole('textbox', { name: 'Title', exact: true })).toHaveValue(title);
+    await editor.getByRole('combobox', { name: 'Consultation type', exact: true }).selectOption('survey');
+    await editor.getByRole('textbox', { name: 'Instructions', exact: true }).fill('Synthetic browser consultation instructions.');
+    await editor.getByRole('checkbox', { name: 'Include eligible staff', exact: true }).check();
+    let question = editor.locator('[data-question]').first();
+    await question.getByRole('textbox', { name: 'Question wording', exact: true }).fill('Synthetic preferred fixture time');
+    await question.getByRole('textbox', { name: 'Choice or candidate name', exact: true }).nth(0).fill('Morning');
+    await question.getByRole('textbox', { name: 'Choice or candidate name', exact: true }).nth(1).fill('Afternoon');
+    await editor.getByRole('button', { name: 'Add question', exact: true }).click();
+    question = editor.locator('[data-question]').last();
+    await question.getByRole('combobox', { name: 'Question type', exact: true }).selectOption('text');
+    await question.getByRole('textbox', { name: 'Question wording', exact: true }).fill('Synthetic private suggestion');
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await editor.getByRole('button', { name: 'Save consultation draft', exact: true }).click();
+    await expect(page).toHaveURL(/\/school-consultations\/\d+\/edit$/);
+    const id = page.url().match(/school-consultations\/(\d+)\/edit/)![1];
+    await page.getByRole('button', { name: 'Publish frozen consultation', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Publish frozen consultation', exact: true })).toHaveCount(0);
+    expect(await page.evaluate(() => (window as unknown as Record<string, unknown>).pollExecuted)).toBeUndefined();
+    const privateBefore = await page.request.get(`/school-consultations/${id}/results?managed=1`);
+    expect(privateBefore.status()).toBe(403);
+    const teacherContext = await browser.newContext({ baseURL });
+    const teacherPage = await teacherContext.newPage();
+    const teacherErrors = collectErrors(teacherPage, baseURL!);
+    await teacherPage.setViewportSize({ width, height: 1000 });
+    await signIn(teacherPage, accounts.teacher);
+    await teacherPage.goto(`/school-consultations/${id}`);
+    const vote = teacherPage.getByRole('form', { name: 'Cast your response', exact: true });
+    await vote.getByRole('radio', { name: 'Morning', exact: true }).check();
+    const privateAnswer = `Private anonymous browser suggestion ${width}-${Date.now()}`;
+    await vote.getByRole('textbox', { name: 'Your answer', exact: true }).fill(privateAnswer);
+    await vote.getByRole('button', { name: 'Record my response', exact: true }).click();
+    await expect(teacherPage.getByText('Your response is recorded. You can participate only once.', { exact: true }).first()).toBeVisible();
+    await expect(teacherPage.getByRole('form', { name: 'Cast your response', exact: true })).toHaveCount(0);
+    expect((await teacherPage.request.get(`/school-consultations/${id}/results`)).status()).toBe(403);
+    await page.goto(`/school-consultations/${id}/edit`);
+    const close = page.getByRole('form', { name: 'Close consultation', exact: true });
+    await close.getByRole('textbox', { name: 'Reason for this change', exact: true }).fill('Synthetic browser close');
+    await close.getByRole('button', { name: 'Close consultation', exact: true }).click();
+    await page.getByRole('link', { name: 'Results and closed responses', exact: true }).click();
+    await expect(page.getByText(privateAnswer, { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Anonymous response 1', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    const ids = await page.locator('[id]').evaluateAll(nodes => nodes.map(node => node.id));
+    expect(ids.filter((id, index) => ids.indexOf(id) !== index)).toEqual([]);
+    await page.goto(`/school-consultations/${id}/history`);
+    await page.getByRole('link', { name: /Saved · Revision 1/ }).click();
+    await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+    await teacherPage.goto(`/school-consultations/${id}/results`);
+    await expect(teacherPage.getByText(privateAnswer, { exact: true })).toHaveCount(0);
+    await expect(teacherPage.getByText(/Responses recorded\s*:\s*1/)).toBeVisible();
+    const denied = await teacherPage.request.get(`/school-consultations/${id}/edit`);
+    expect(denied.status()).toBe(403);
+    expect(await denied.text()).not.toContain(privateAnswer);
+    expect([...errors, ...teacherErrors]).toEqual([]);
+    await teacherContext.close();
+  });
+}

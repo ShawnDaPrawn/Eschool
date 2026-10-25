@@ -41,6 +41,7 @@ use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
+use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
@@ -81,11 +82,13 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeConsultationPanel;
 use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\EnforceReadOnlyYears;
 use App\Http\Middleware\PrivateAcademicContent;
+use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Services\Recognition\RecognitionQueries;
@@ -278,6 +281,19 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        Route::prefix('school-consultations')->name('consultations-panel.')->middleware([PrivateDomainResponse::class, 'module:consultations,read', AuthorizeConsultationPanel::class])->group(function () {
+            $c = ConsultationPanelController::class;
+            Route::get('/', [$c, 'index'])->defaults('operation', 'index')->name('index');
+            Route::get('new', [$c, 'form'])->defaults('operation', 'new')->name('new');
+            Route::post('new', [$c, 'write'])->defaults('operation', 'create')->name('create');
+            Route::get('{consultation}/edit', [$c, 'form'])->whereNumber('consultation')->defaults('operation', 'edit')->name('edit');
+            Route::get('{consultation}/results', [$c, 'results'])->whereNumber('consultation')->defaults('operation', 'results')->name('results');
+            Route::get('{consultation}/history', [$c, 'history'])->whereNumber('consultation')->defaults('operation', 'history')->name('history');
+            Route::get('{consultation}', [$c, 'ballot'])->whereNumber('consultation')->defaults('operation', 'ballot')->name('ballot');
+            foreach (['save', 'publish', 'close', 'cancel', 'vote'] as $operation) {
+                Route::post('{consultation}/'.$operation, [$c, 'write'])->whereNumber('consultation')->defaults('operation', $operation)->name($operation);
+            }
         });
         Route::prefix('school-transfers')->name('school-transfers.')->middleware(AuthorizeTransfer::class)->group(function () {
             $c = TransferPanelController::class;

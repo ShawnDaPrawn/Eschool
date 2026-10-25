@@ -83,6 +83,6 @@ Step4 consultation domain now implements scoped frozen configuration, audited
 revisioned changes, physically separate anonymous ballots/participation, unique
 one-person voting, validated options, scheduled opening/closure and private/public
 results with bounded individual-response paging. Seventeen domain/migration cases
-pass; the additive API/typed client is being verified while panel/shared readers and notices remain active implementation, not a
+pass; the additive API/typed client is published in PR #183. The actual staff panel now has HTTP/privacy and three-width browser evidence; shared app readers and notices remain active implementation, not a
 completed polling workflow. The root stream additionally owns personal gallery
 and transfer tag-retention consent after intake.

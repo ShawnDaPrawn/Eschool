@@ -7,6 +7,7 @@ namespace App\Services\Panel;
 use App\Models\User;
 use App\Services\Admissions\IntakeAuthority;
 use App\Services\Communication\CommunicationRules;
+use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
@@ -157,6 +158,13 @@ class Navigation
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
             return false;
+        }
+        if ($item['consultation_actor'] ?? false) {
+            try {
+                app(ConsultationAccess::class)->actor($user);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
         }
         if ($item['intake_actor'] ?? false) {
             try {
