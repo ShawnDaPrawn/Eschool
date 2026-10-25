@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
+use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Middleware\AuthorizeClassGrade;
+use App\Http\Middleware\AuthorizeCover;
 use App\Http\Middleware\AuthorizeCurriculum;
 use App\Http\Middleware\AuthorizeMarks;
 use App\Http\Middleware\AuthorizeMastery;
@@ -328,4 +330,20 @@ Route::prefix('growth/mastery')->middleware(['auth:sanctum', 'school.context', '
     Route::get('subjects/{subject}/graph', [$controller, 'graph'])->whereNumber('subject')->middleware($policy.':graph')->name('graph');
     Route::put('subjects/{subject}/graph', [$controller, 'saveGraph'])->whereNumber('subject')->middleware([$policy.':manage', 'idempotent'])->name('save-graph');
     Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->middleware([$policy.':rebuild', 'idempotent'])->name('rebuild');
+});
+
+Route::prefix('pastoral/cover')->middleware(['auth:sanctum', 'school.context', 'staff', 'module:relief_cover', 'cache.headers:private;no_store'])->name('api.v2.cover.')->group(function () {
+    $c = CoverController::class;
+    $a = AuthorizeCover::class;
+    foreach (['configuration', 'mine'] as $operation) {
+        Route::get($operation, [$c, $operation])->middleware($a.':'.$operation)->name($operation);
+    }
+    Route::post('absences', [$c, 'request'])->middleware($a.':request')->name('request');
+    Route::get('absences/{absence}', [$c, 'absence'])->whereNumber('absence')->middleware($a.':absence')->name('absence');
+    foreach (['refresh', 'cancel'] as $operation) {
+        Route::post('absences/{absence}/'.$operation, [$c, $operation])->whereNumber('absence')->middleware($a.':'.$operation)->name($operation);
+    }
+    Route::get('occurrences/{occurrence}', [$c, 'occurrence'])->whereNumber('occurrence')->middleware($a.':occurrence')->name('occurrence');
+    Route::get('occurrences/{occurrence}/candidates', [$c, 'candidates'])->whereNumber('occurrence')->middleware($a.':candidates')->name('candidates');
+    Route::put('occurrences/{occurrence}/assignment', [$c, 'assign'])->whereNumber('occurrence')->middleware($a.':assign')->name('assign');
 });

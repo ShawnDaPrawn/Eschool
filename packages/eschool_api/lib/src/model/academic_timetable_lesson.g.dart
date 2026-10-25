@@ -42,6 +42,15 @@ AcademicTimetableLesson _$AcademicTimetableLessonFromJson(
       ],
     );
     final val = AcademicTimetableLesson(
+      coverId: $checkedConvert('cover_id', (v) => (v as num?)?.toInt()),
+      originalTeacherId: $checkedConvert(
+        'original_teacher_id',
+        (v) => (v as num?)?.toInt(),
+      ),
+      originalTeacherName: $checkedConvert(
+        'original_teacher_name',
+        (v) => v as String?,
+      ),
       id: $checkedConvert('id', (v) => (v as num).toInt()),
       revision: $checkedConvert('revision', (v) => (v as num).toInt()),
       sessionYearId: $checkedConvert(
@@ -90,6 +99,9 @@ AcademicTimetableLesson _$AcademicTimetableLessonFromJson(
     return val;
   },
   fieldKeyMap: const {
+    'coverId': 'cover_id',
+    'originalTeacherId': 'original_teacher_id',
+    'originalTeacherName': 'original_teacher_name',
     'sessionYearId': 'session_year_id',
     'termId': 'term_id',
     'teachingGroupId': 'teaching_group_id',
@@ -113,6 +125,9 @@ AcademicTimetableLesson _$AcademicTimetableLessonFromJson(
 Map<String, dynamic> _$AcademicTimetableLessonToJson(
   AcademicTimetableLesson instance,
 ) => <String, dynamic>{
+  'cover_id': ?instance.coverId,
+  'original_teacher_id': ?instance.originalTeacherId,
+  'original_teacher_name': ?instance.originalTeacherName,
   'id': instance.id,
   'revision': instance.revision,
   'session_year_id': instance.sessionYearId,

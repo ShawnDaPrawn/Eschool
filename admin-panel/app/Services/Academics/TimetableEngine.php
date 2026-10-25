@@ -12,12 +12,14 @@ use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Academics\TeachingGroupMembership;
 use App\Models\Academics\TimetableLesson;
+use App\Models\Pastoral\CoverAssignment;
 use App\Models\People\Enrolment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\User;
+use App\Services\Pastoral\CoverTimetable;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\AcademicTimetableChanged;
 use App\Services\Platform\Events\Outbox;
@@ -98,7 +100,7 @@ class TimetableEngine
             foreach (array_slice($normal, 0, $index) as $other) {
                 $conflicts = array_merge($conflicts, $this->clashes($row, $other, $index));
             }
-            $conflicts = array_merge($conflicts, $projection->legacyClashes($row, $index, $this, $legacyRows));
+            $conflicts = array_merge($conflicts, $projection->legacyClashes($row, $index, $this, $legacyRows), app(CoverTimetable::class)->clashes($row, $index, $this));
         }
         // Relevant existing rows/revisions and memberships are included in the
         // fingerprint so a preview cannot authorize a changed timetable later.
@@ -110,7 +112,8 @@ class TimetableEngine
             'enrolments' => Enrolment::orderBy('id')->get()->toArray(),
             'allocations' => TeachingAllocation::orderBy('id')->get()->toArray(),
             'homerooms' => HomeroomAllocation::orderBy('id')->get()->toArray(),
-            'legacy' => $legacyRows];
+            'legacy' => $legacyRows,
+            'cover' => app(CoverTimetable::class)->enabled() ? CoverAssignment::where('state', 'assigned')->orderBy('id')->get(['id', 'timetable_lesson_id', 'substitute_teacher_id', 'on_date', 'revision', 'source_hash'])->toArray() : []];
 
         return ['rows' => $normal, 'conflicts' => $conflicts, 'can_save' => $conflicts === [],
             'fingerprint' => hash('sha256', json_encode($evidence, JSON_THROW_ON_ERROR))];

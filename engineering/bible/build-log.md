@@ -430,3 +430,13 @@ feature dependencies are recorded in `engineering/phases/phase-3-4-coordination.
 the lead reviews and integrates feature PRs. Existing transcription and teacher
 builds remain supported. External provider activation, production/store release
 and unrun acceptance evidence are not inferred from this kickoff.
+
+### 25 October 2026 - relief cover API and dated integration
+
+The backend cover increment now has scoped v2 APIs, a combined generated client,
+dated effective-teacher timetable projection, reserved cover clash checks and
+generic notices with recipient/source/revision checks at transport. Focused
+API/domain tests passed22/171, full configured static analysis and strict schema
+lint passed, and two SDK date/nullability regressions passed. Panel/shared-app
+workbenches follow; support plans, leadership and transfers remain in progress.
+No external classroom/device/staging acceptance or production activation claimed.
