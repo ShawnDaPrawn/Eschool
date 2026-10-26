@@ -23,3 +23,5 @@ notices remain in progress. No provider acceptance,
 fluent translation, staging, camera/device or production evidence is claimed.
 
 Final domain increment: 8 tests / 46 assertions passed after the reasoned office-handoff and retained-principal role regressions. Selected Assistance services/models/retention command PHPStan reports no errors; Pint passes. Earlier combined domain/tenant inventory/full rollback/Context cohort passed 19 tests / 1,377 assertions before the last two domain additions. No API, client, generated AI answer or translation is claimed by this domain increment; these follow next.
+
+After inheriting #278 and the Profile/consent/privacy corrections, the complete Assistance domain + SchoolOwnedTables + full tenant rollback/reapply cohort passed 12 tests / 1,284 assertions.
