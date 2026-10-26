@@ -16,6 +16,11 @@ Parent/Student rows after conversion; legitimate explicit dual-role allocation;
 dated ancestor-admin cascade; peer-policy withdrawal; private SQL counts/text;
 closed conversations; readonly moderation; encrypted at-rest body/title/reason;
 rollback; and expiry hiding/redaction independently of module availability.
+The subsequent affected conversation/file cohort passes34 tests /282 assertions,
+including the existing global learner-activation rule for a dual-role staff source
+reader after approval withdrawal. The real material-file API readonly removal
+regression first returned403; read-mode module routing now permits its authorized
+removal while the domain still refuses new uploads before scanning/storage.
 Whole-app PHPStan reports no errors; changed PHP passes Pint. The schema adds four
 school-owned tables with foreign keys and refuses destructive retained rollback.
 

@@ -154,7 +154,7 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
 });
 
 Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])
-    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups'])
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups,read'])
     ->name('api.v2.activity-files.')->group(function () {
         $c = ActivityFileController::class;
         Route::get('/', [$c, 'listing'])->name('listing');

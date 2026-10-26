@@ -34,6 +34,7 @@ class GroupChatAccess
         abort_if(PlatformStaffIdentity::where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $fresh = app(ProfilePolicy::class)->actor($actor);
         abort_if($fresh->password_change_required, 403);
+        app(ApprovalService::class)->assertAccess($fresh);
         $modules = app(ModuleGate::class);
         $modules->forget();
         foreach (['groups', 'chat'] as $module) {

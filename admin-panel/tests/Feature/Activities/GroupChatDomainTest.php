@@ -296,4 +296,17 @@ class GroupChatDomainTest extends TestCase
         $this->denied(fn () => $this->send($this->teacher, $thread, 'staff', 'Synthetic original immutable text', $input));
         $this->assertSame(2, GroupChatMessage::count());
     }
+
+    public function test_global_learner_activation_is_preserved_for_a_dual_role_staff_source_reader(): void
+    {
+        config(['identity.approval_enforced' => true]);
+        $thread = $this->start();
+        $student = User::findOrFail($this->schoolA->ids['asha_user']);
+        $student->assignRole('Teacher');
+        ActivityStaff::create(['activity_group_id' => $this->group->id, 'user_id' => $student->id, 'role' => 'facilitator', 'cascade' => false, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true, 'reason' => 'Synthetic explicit dual-role allocation', 'revision' => 1]);
+        $this->assertCount(1, $this->read($student, $thread, 'staff')['items']);
+        app(ApprovalService::class)->decide($this->parent, Students::findOrFail($this->learner), 'withdraw', config('identity.consent_version'));
+        $this->denied(fn () => $this->read($student, $thread, 'staff'));
+        $this->denied(fn () => app(GroupChatMessages::class)->source($student, (int) $this->group->id, $thread['thread_id'], $thread['message_id'], 'staff'));
+    }
 }

@@ -38,3 +38,10 @@ explicit synthetic local scanner fixture, which is not malware detection.
 This is not deployed scanner, private storage, iOS/device or OS picker hardware
 qualification. Dedicated group conversations and consent notices remain retained
 implementation follow-ons.
+
+
+Readonly HTTP follow-up: a real API regression reproduced403 on authorized document
+removal because the route's automatic module mode treated every POST as a new
+write. The route now uses read-mode availability; the domain retains the fresh
+writable guard for uploads. The full affected file+chat cohort passes34/282,
+including removal200/private headers and upload403 with no additional scan.
