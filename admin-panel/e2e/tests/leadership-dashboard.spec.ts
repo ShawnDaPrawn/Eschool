@@ -7,7 +7,7 @@ import { collectErrors, horizontalOverflow, seriousViolations } from '../support
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
 test.beforeAll(() => {
-  const fixture = String.raw`app(\App\Services\Platform\Tenancy\CurrentSchool::class)->run(1,function(){
+  const fixture = String.raw`abort_unless(in_array(config('database.connections.mysql.database'), ['eschool_e2e','eschool_pastoral_test'], true),403);app(\App\Services\Platform\Tenancy\CurrentSchool::class)->run(1,function(){
  $admin=\App\Models\User::where('email','admin.a@demo.navigateed.test')->firstOrFail();
  app(\App\Services\Platform\Modules\ModuleGate::class)->change('leadership_dashboard',true,$admin);
  $year=\App\Models\SessionYear::findOrFail((int)schoolSetting('session_year'));
@@ -16,6 +16,11 @@ test.beforeAll(() => {
  $room=\App\Models\ClassSection::with('class')->findOrFail($learner->class_section_id);
  $grade=\App\Models\Academics\GradeLevel::where('code','5')->firstOrFail();$room->class->forceFill(['grade_level_id'=>$grade->id])->save();
  \App\Models\People\Enrolment::firstOrCreate(['learner_id'=>$learner->id,'session_year_id'=>$year->id],['class_section_id'=>$room->id,'starts_on'=>$year->start_date,'ends_on'=>null,'legacy_dates'=>false]);
+ app(\App\Services\Platform\Modules\ModuleGate::class)->change('fees',true,$admin);
+ \App\Models\PaymentTransaction::where('session_year_id',$year->id)->delete();\App\Models\FeesPaid::where('session_year_id',$year->id)->delete();
+ $date=app(\App\Services\Academics\AcademicAuthority::class)->today();
+ \App\Models\PaymentTransaction::forceCreate(['student_id'=>$learner->id,'class_id'=>$room->class_id,'parent_id'=>$learner->father_id ?: $learner->guardian_id,'session_year_id'=>$year->id,'mode'=>0,'type_of_fee'=>0,'payment_status'=>1,'date'=>$date,'total_amount_cents'=>12345]);
+ \App\Models\FeesPaid::forceCreate(['student_id'=>$learner->id,'class_id'=>$room->class_id,'session_year_id'=>$year->id,'date'=>$date,'is_fully_paid'=>0,'total_amount_cents'=>12345]);
  foreach([0=>'present',1=>'first_half'] as $days=>$state){$date=now()->subDays($days)->toDateString();$register=\App\Models\Academics\AttendanceRegister::firstOrCreate(['session_year_id'=>$year->id,'on_date'=>$date,'scope_key'=>'homeroom:'.$room->id],['class_section_id'=>$room->id,'grade_level_id'=>$grade->id,'label'=>'Synthetic dashboard register','revision'=>1]);\App\Models\Academics\AttendanceEntry::updateOrCreate(['attendance_register_id'=>$register->id,'learner_id'=>$learner->id],['state'=>$state,'source'=>'manual','revision'=>1,'captured_by'=>$admin->id]);}
  });`;
   execFileSync('php', ['artisan', 'tinker', '--execute', fixture], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' });
@@ -33,6 +38,8 @@ for (const width of [390, 1024, 1280]) {
     await expect(page.getByRole('heading', { name: 'Grade 5', exact: true }).first()).toBeVisible();
     await expect(page.getByText('Unavailable', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Recorded attendance', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('123.45', { exact: true })).toBeVisible();
+    await expect(page.getByText('Fee collection shows current recorded paid receipts after corrections, by receipt date. Unreconciled receipts are unavailable.', { exact: true })).toBeVisible();
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     const ids = await page.locator('[id]').evaluateAll(nodes => nodes.map(n => n.id));
