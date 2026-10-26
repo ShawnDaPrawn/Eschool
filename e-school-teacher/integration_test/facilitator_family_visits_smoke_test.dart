@@ -44,14 +44,20 @@ void main() {
       await tester.enterText(field('Password'), 'SyntheticStaff2026');
       await tapWhenReady(tester, find.text('Sign in'));
       await tapWhenReady(tester, find.text('Meetings and early collection'));
-      await pumpUntilFound(tester, find.text('Synthetic private meeting room'));
+      await pumpUntilFound(
+        tester,
+        find.text('Synthetic meeting host · Synthetic private meeting room'),
+      );
       expect(find.text('Synthetic current learner'), findsOneWidget);
       expect(find.byKey(const ValueKey('visit-collector')), findsNothing);
       expect(find.text('Book this meeting'), findsNothing);
       forms.allowed = false;
       await tester.runAsync(repo.refresh);
       await tester.pumpAndSettle();
-      expect(find.text('Synthetic private meeting room'), findsNothing);
+      expect(
+        find.text('Synthetic meeting host · Synthetic private meeting room'),
+        findsNothing,
+      );
       expect(find.byType(FamilyVisitsScreen), findsNothing);
       expect(Hive.isBoxOpen('authBox'), isFalse);
       final requests = fixture.api.requests.where(
@@ -66,6 +72,7 @@ void main() {
         ),
         isTrue,
       );
+      expect(forms.writes, isEmpty);
       expect(tester.takeException(), isNull);
     },
   );
