@@ -54141,6 +54141,9 @@ components:
       - school_id
       - reader_id
       properties:
+        writable:
+          type: boolean
+          description: Optional fresh write capability; false or absence preserves private reads and disables mutations.
         can_parent:
           type: boolean
         can_office:

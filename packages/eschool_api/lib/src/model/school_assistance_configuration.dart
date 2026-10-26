@@ -16,6 +16,8 @@ part 'school_assistance_configuration.g.dart';
 class SchoolAssistanceConfiguration {
   /// Returns a new [SchoolAssistanceConfiguration] instance.
   SchoolAssistanceConfiguration({
+    this.writable,
+
     required this.canParent,
 
     required this.canOffice,
@@ -30,6 +32,10 @@ class SchoolAssistanceConfiguration {
 
     required this.readerId,
   });
+
+  /// Optional fresh write capability; false or absence preserves private reads and disables mutations.
+  @JsonKey(name: r'writable', required: false, includeIfNull: false)
+  final bool? writable;
 
   @JsonKey(name: r'can_parent', required: true, includeIfNull: false)
   final bool canParent;
@@ -58,6 +64,7 @@ class SchoolAssistanceConfiguration {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SchoolAssistanceConfiguration &&
+          other.writable == writable &&
           other.canParent == canParent &&
           other.canOffice == canOffice &&
           other.languages == languages &&
@@ -68,6 +75,7 @@ class SchoolAssistanceConfiguration {
 
   @override
   int get hashCode =>
+      writable.hashCode +
       canParent.hashCode +
       canOffice.hashCode +
       languages.hashCode +
