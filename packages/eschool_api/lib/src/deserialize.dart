@@ -753,6 +753,23 @@ import 'package:eschool_api/src/model/pathway_score_result.dart';
 import 'package:eschool_api/src/model/pathway_selection_result.dart';
 import 'package:eschool_api/src/model/pathway_subject_rule.dart';
 import 'package:eschool_api/src/model/pathway_term_choice.dart';
+import 'package:eschool_api/src/model/peer_choice.dart';
+import 'package:eschool_api/src/model/peer_configuration.dart';
+import 'package:eschool_api/src/model/peer_configuration_response.dart';
+import 'package:eschool_api/src/model/peer_match.dart';
+import 'package:eschool_api/src/model/peer_match_page.dart';
+import 'package:eschool_api/src/model/peer_match_page_response.dart';
+import 'package:eschool_api/src/model/peer_point_category.dart';
+import 'package:eschool_api/src/model/peer_roster.dart';
+import 'package:eschool_api/src/model/peer_roster_response.dart';
+import 'package:eschool_api/src/model/peer_session.dart';
+import 'package:eschool_api/src/model/peer_session_complete.dart';
+import 'package:eschool_api/src/model/peer_session_correction.dart';
+import 'package:eschool_api/src/model/peer_session_create.dart';
+import 'package:eschool_api/src/model/peer_session_page.dart';
+import 'package:eschool_api/src/model/peer_session_page_response.dart';
+import 'package:eschool_api/src/model/peer_session_result.dart';
+import 'package:eschool_api/src/model/peer_session_result_response.dart';
 import 'package:eschool_api/src/model/practice_access.dart';
 import 'package:eschool_api/src/model/practice_approval.dart';
 import 'package:eschool_api/src/model/practice_approve_input.dart';
@@ -3794,6 +3811,53 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'PathwayTermChoice':
       return PathwayTermChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerChoice':
+      return PeerChoice.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PeerConfiguration':
+      return PeerConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerConfigurationResponse':
+      return PeerConfigurationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerMatch':
+      return PeerMatch.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PeerMatchPage':
+      return PeerMatchPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerMatchPageResponse':
+      return PeerMatchPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerPointCategory':
+      return PeerPointCategory.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerRoster':
+      return PeerRoster.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PeerRosterResponse':
+      return PeerRosterResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSession':
+      return PeerSession.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PeerSessionComplete':
+      return PeerSessionComplete.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSessionCorrection':
+      return PeerSessionCorrection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSessionCreate':
+      return PeerSessionCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSessionPage':
+      return PeerSessionPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSessionPageResponse':
+      return PeerSessionPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSessionResult':
+      return PeerSessionResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PeerSessionResultResponse':
+      return PeerSessionResultResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'PracticeAccess':
       return PracticeAccess.fromJson(value as Map<String, dynamic>)

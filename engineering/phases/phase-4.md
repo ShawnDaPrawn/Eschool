@@ -18,7 +18,7 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 9 | Consent-controlled tags and private galleries / Backend + App | Files, guardian links and transfer events | community/private-gallery.md |
 | 10 | Authorized school/group live channels / Backend + App | Groups, consultations, houses; provider choice within budget | community/live-updates.md |
 | 11a | School assistant and two-way translation / AI + App | Phase 3 moderated/metered AiGateway | Before implementation |
-| 11b | Supervised topic-matched peer tutoring / Backend + App | Phase 3 mastery; house points | Before implementation |
+| 11b | Supervised topic-matched peer tutoring / Backend + App | Phase 3 mastery; house points | Scoped matching, supervised sessions, append-only verified service and atomic optional point corrections implemented; typed API/SDK qualified locally. Staff panel and app workflows in progress; CI/main pending |
 | 11c | Subject-choice and pathway planner / Backend + App | Sourced admission requirements and marks | Reviewed school sources, immutable rules, manager maintenance and private Student/Parent planner implemented and browser-verified; CI/main pending |
 
 Each feature gets a scoped spec, tests and small PR; table order permits independent
