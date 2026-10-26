@@ -200,15 +200,16 @@ Future<void> assistanceFind(WidgetTester tester, Finder target) async {
     );
   }
   await pumpUntilFound(tester, target);
-  await tester.ensureVisible(target.first);
-  await tester.pumpAndSettle();
+  await Scrollable.ensureVisible(tester.element(target.first), alignment: 0.5);
+  await tester.pump(const Duration(milliseconds: 500));
 }
 
 Future<void> assistanceTap(WidgetTester tester, String text) async {
   final finder = find.text(text);
   await assistanceFind(tester, finder);
-  await tapWhenReady(tester, finder.first);
-  await tester.pumpAndSettle();
+  expect(finder.first.hitTestable(), findsOneWidget);
+  await tester.tap(finder.first.hitTestable());
+  await tester.pump(const Duration(milliseconds: 500));
 }
 
 Future<void> assistanceType(
