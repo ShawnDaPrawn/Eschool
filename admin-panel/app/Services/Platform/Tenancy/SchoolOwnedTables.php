@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'activity_chat_policies', 'activity_chat_threads', 'activity_chat_messages', 'activity_chat_reads',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
         'past_papers', 'past_paper_versions', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
