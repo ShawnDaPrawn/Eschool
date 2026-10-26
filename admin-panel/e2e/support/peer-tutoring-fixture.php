@@ -23,7 +23,16 @@ $database = (string) config('database.connections.'.config('database.default').'
 if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
     throw new RuntimeException('Peer tutoring browser fixtures require an isolated test database.');
 }
+// The Mastery journey edits its own prerequisite graph before this serial
+// workflow runs in CI. Reuse the complete sourced fixture builder, but own a
+// separate subject/group/topic graph instead of resetting that earlier graph
+// or weakening PeerMatches' fresh match selection.
+$masteryBrowserFixture = [
+    'subject' => 'Peer tutoring browser rehearsal', 'code' => 'PEER-BROWSER', 'group' => 'Peer tutoring browser group',
+    'topics' => ['Peer tutoring browser foundation', 'Peer tutoring browser fractions', 'Peer tutoring browser decimals'],
+];
 require base_path('e2e/support/mastery-fixture.php');
+unset($masteryBrowserFixture);
 
 return app(CurrentSchool::class)->run(1, function (): array {
     $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
@@ -31,7 +40,7 @@ return app(CurrentSchool::class)->run(1, function (): array {
     $parent = User::where('email', 'parent.a@demo.navigateed.test')->firstOrFail();
     app(ModuleGate::class)->change('peer_tutoring', true, $admin);
     $parent->forceFill(['email_verified_at' => now()])->save();
-    $group = TeachingGroup::where('name', 'Mastery browser group')->firstOrFail();
+    $group = TeachingGroup::where('name', 'Peer tutoring browser group')->firstOrFail();
     $year = SessionYear::findOrFail($group->session_year_id);
     $tutee = Students::findOrFail(TeachingGroupMembership::where('teaching_group_id', $group->id)->value('learner_id'));
     $tutor = Students::where('id', '!=', $tutee->id)->where('class_section_id', $tutee->class_section_id)->firstOrFail();
@@ -50,7 +59,7 @@ return app(CurrentSchool::class)->run(1, function (): array {
         MasteryRecord::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $tutor->id, 'topic_id' => $topic->id, 'audience' => 'staff'],
             ['level' => 4, 'score_bp' => 10000, 'confidence_bp' => 6000, 'evidence_count' => 2, 'computed_at' => now()]);
     }
-    $topic = $topics->firstWhere('name', 'Mastery browser fractions');
+    $topic = $topics->firstWhere('name', 'Peer tutoring browser fractions');
     $clock = CarbonImmutable::instance(now())->setTimezone(app(CurrentSchool::class)->school()->timezone)->startOfMinute();
     try {
         CarbonImmutable::setTestNow($clock->subHours(3));
