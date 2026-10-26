@@ -13,6 +13,7 @@ use App\Listeners\Discipline\QueueDisciplineNotices;
 use App\Listeners\Growth\QueueMasteryRecompute;
 use App\Listeners\Growth\QueueProgressBands;
 use App\Listeners\Growth\QueueRiskEvaluate;
+use App\Listeners\Learning\QueueTaskInsights;
 use App\Listeners\Live\QueueLiveInvalidation;
 use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
@@ -63,8 +64,8 @@ return [
             'discipline.detention_changed' => [QueueDisciplineNotices::class],
             'growth.progress_bands_configured' => [QueueProgressBands::class],
             'academics.marks_released' => [NotifyMarksReleased::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
-            'academics.marks_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
-            'academics.assignment_changed' => [QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'academics.marks_changed' => [QueueTaskInsights::class, QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
+            'academics.assignment_changed' => [QueueTaskInsights::class, QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'wellbeing.notice_requested' => [QueuePrivateNotice::class],
             'consultations.opened' => [NotifyConsultationOpened::class],
             'notification.requested' => [QueueNotificationFanout::class],

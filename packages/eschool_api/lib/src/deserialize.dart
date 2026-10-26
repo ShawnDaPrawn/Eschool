@@ -843,11 +843,45 @@ import 'package:eschool_api/src/model/support_versions.dart';
 import 'package:eschool_api/src/model/support_versions_response.dart';
 import 'package:eschool_api/src/model/support_write_receipt.dart';
 import 'package:eschool_api/src/model/support_write_receipt_response.dart';
+import 'package:eschool_api/src/model/task_insight_detail.dart';
+import 'package:eschool_api/src/model/task_insight_detail_response.dart';
+import 'package:eschool_api/src/model/task_insight_question.dart';
+import 'package:eschool_api/src/model/task_insight_summary.dart';
+import 'package:eschool_api/src/model/teaching_draft_choices.dart';
+import 'package:eschool_api/src/model/teaching_draft_choices_response.dart';
+import 'package:eschool_api/src/model/teaching_draft_configuration.dart';
+import 'package:eschool_api/src/model/teaching_draft_configuration_response.dart';
+import 'package:eschool_api/src/model/teaching_draft_definition.dart';
+import 'package:eschool_api/src/model/teaching_draft_detail.dart';
+import 'package:eschool_api/src/model/teaching_draft_detail_response.dart';
+import 'package:eschool_api/src/model/teaching_draft_generation.dart';
+import 'package:eschool_api/src/model/teaching_draft_intent.dart';
+import 'package:eschool_api/src/model/teaching_draft_mutation.dart';
+import 'package:eschool_api/src/model/teaching_draft_mutation_response.dart';
+import 'package:eschool_api/src/model/teaching_draft_page.dart';
+import 'package:eschool_api/src/model/teaching_draft_page_response.dart';
+import 'package:eschool_api/src/model/teaching_draft_review.dart';
+import 'package:eschool_api/src/model/teaching_draft_section.dart';
+import 'package:eschool_api/src/model/teaching_draft_summary.dart';
+import 'package:eschool_api/src/model/teaching_evidence_choice.dart';
 import 'package:eschool_api/src/model/teaching_group.dart';
+import 'package:eschool_api/src/model/teaching_group_choice.dart';
 import 'package:eschool_api/src/model/teaching_group_response.dart';
 import 'package:eschool_api/src/model/teaching_group_write.dart';
 import 'package:eschool_api/src/model/teaching_groups_response.dart';
 import 'package:eschool_api/src/model/teaching_groups_response_data.dart';
+import 'package:eschool_api/src/model/teaching_learner_choice.dart';
+import 'package:eschool_api/src/model/teaching_learner_page.dart';
+import 'package:eschool_api/src/model/teaching_learner_page_response.dart';
+import 'package:eschool_api/src/model/teaching_operation_write.dart';
+import 'package:eschool_api/src/model/teaching_photo_receipt.dart';
+import 'package:eschool_api/src/model/teaching_photo_receipt_response.dart';
+import 'package:eschool_api/src/model/teaching_photo_revocation.dart';
+import 'package:eschool_api/src/model/teaching_photo_revocation_response.dart';
+import 'package:eschool_api/src/model/teaching_practice_question.dart';
+import 'package:eschool_api/src/model/teaching_question_label.dart';
+import 'package:eschool_api/src/model/teaching_script_proposal.dart';
+import 'package:eschool_api/src/model/teaching_task_choice.dart';
 import 'package:eschool_api/src/model/term.dart';
 import 'package:eschool_api/src/model/term_dates.dart';
 import 'package:eschool_api/src/model/term_template.dart';
@@ -3879,8 +3913,80 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'SupportWriteReceiptResponse':
       return SupportWriteReceiptResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'TaskInsightDetail':
+      return TaskInsightDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TaskInsightDetailResponse':
+      return TaskInsightDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TaskInsightQuestion':
+      return TaskInsightQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TaskInsightSummary':
+      return TaskInsightSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftChoices':
+      return TeachingDraftChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftChoicesResponse':
+      return TeachingDraftChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TeachingDraftConfiguration':
+      return TeachingDraftConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftConfigurationResponse':
+      return TeachingDraftConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TeachingDraftDefinition':
+      return TeachingDraftDefinition.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftDetail':
+      return TeachingDraftDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftDetailResponse':
+      return TeachingDraftDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftGeneration':
+      return TeachingDraftGeneration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftIntent':
+      return TeachingDraftIntent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftMutation':
+      return TeachingDraftMutation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftMutationResponse':
+      return TeachingDraftMutationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TeachingDraftPage':
+      return TeachingDraftPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftPageResponse':
+      return TeachingDraftPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftReview':
+      return TeachingDraftReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftSection':
+      return TeachingDraftSection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingDraftSummary':
+      return TeachingDraftSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingEvidenceChoice':
+      return TeachingEvidenceChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'TeachingGroup':
       return TeachingGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingGroupChoice':
+      return TeachingGroupChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'TeachingGroupResponse':
       return TeachingGroupResponse.fromJson(value as Map<String, dynamic>)
@@ -3893,6 +3999,46 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'TeachingGroupsResponseData':
       return TeachingGroupsResponseData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingLearnerChoice':
+      return TeachingLearnerChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingLearnerPage':
+      return TeachingLearnerPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingLearnerPageResponse':
+      return TeachingLearnerPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingOperationWrite':
+      return TeachingOperationWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingPhotoReceipt':
+      return TeachingPhotoReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingPhotoReceiptResponse':
+      return TeachingPhotoReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TeachingPhotoRevocation':
+      return TeachingPhotoRevocation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingPhotoRevocationResponse':
+      return TeachingPhotoRevocationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TeachingPracticeQuestion':
+      return TeachingPracticeQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingQuestionLabel':
+      return TeachingQuestionLabel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingScriptProposal':
+      return TeachingScriptProposal.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TeachingTaskChoice':
+      return TeachingTaskChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'Term':
       return Term.fromJson(value as Map<String, dynamic>) as ReturnType;

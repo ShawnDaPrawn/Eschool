@@ -106,3 +106,6 @@ Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests'
 Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();
 
 Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-retention')->withoutOverlapping();
+
+// Temporary teaching proposals/crops expire independently of module availability.
+Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOverlapping();

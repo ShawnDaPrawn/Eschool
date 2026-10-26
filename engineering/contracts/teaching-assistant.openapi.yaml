@@ -1,0 +1,1824 @@
+tags:
+- name: TeachingAssistant
+  description: Private reviewed teaching drafts and deterministic task insights.
+paths:
+  /teaching-assistant/configuration:
+    get:
+      operationId: getTeachingDraftConfiguration
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraftConfiguration
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/groups/{group}:
+    get:
+      operationId: getTeachingDraftChoices
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraftChoices
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftChoicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/groups/{group}/learners:
+    get:
+      operationId: getTeachingDraftLearners
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraftLearners
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingLearnerPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/drafts:
+    get:
+      operationId: getTeachingDrafts
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDrafts
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/groups/{group}/drafts:
+    post:
+      operationId: generateTeachingDraft
+      tags:
+      - TeachingAssistant
+      summary: generateTeachingDraft
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeachingDraftGeneration'
+  /teaching-assistant/drafts/{draft}:
+    get:
+      operationId: getTeachingDraft
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraft
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: draft
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/operations/{operation}:
+    get:
+      operationId: getTeachingDraftReceipt
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraftReceipt
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/drafts/{draft}/review:
+    post:
+      operationId: reviewTeachingDraft
+      tags:
+      - TeachingAssistant
+      summary: reviewTeachingDraft
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: draft
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeachingDraftReview'
+  /teaching-assistant/drafts/{draft}/pdf:
+    get:
+      operationId: getTeachingDraftPdf
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraftPdf
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: draft
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: include_answers
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: Private freshly authorized bytes.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/groups/{group}/photos:
+    post:
+      operationId: uploadTeachingDraftPhoto
+      tags:
+      - TeachingAssistant
+      summary: uploadTeachingDraftPhoto
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingPhotoReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TeachingPhotoUpload'
+  /teaching-assistant/photos/{photo}:
+    get:
+      operationId: getTeachingDraftPhoto
+      tags:
+      - TeachingAssistant
+      summary: getTeachingDraftPhoto
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: photo
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Private freshly authorized bytes.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /teaching-assistant/photos/{photo}/revoke:
+    post:
+      operationId: revokeTeachingDraftPhoto
+      tags:
+      - TeachingAssistant
+      summary: revokeTeachingDraftPhoto
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: photo
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingPhotoRevocationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeachingOperationWrite'
+  /test-insights/configuration:
+    get:
+      operationId: getTaskInsightConfiguration
+      tags:
+      - TeachingAssistant
+      summary: getTaskInsightConfiguration
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /test-insights/groups/{group}:
+    get:
+      operationId: getTaskInsightChoices
+      tags:
+      - TeachingAssistant
+      summary: getTaskInsightChoices
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingDraftChoicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /test-insights/groups/{group}/tasks/{task}:
+    get:
+      operationId: getTaskInsights
+      tags:
+      - TeachingAssistant
+      summary: getTaskInsights
+      description: Current school, account, dated teaching allocation and source authority are required. Drafts
+        remain teacher owned. Approval, practice publication and confirmation of official marks are separate explicit
+        actions. Unknown compute is recovered with its original operation UUID. No automatic retry or automatic
+        official marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: task
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskInsightDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: AI or photo safety checks unavailable; retain the original operation UUID for receipt lookup.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    TeachingGroupChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - subject_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        subject_name:
+          type: string
+    TeachingDraftConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - today
+      - writable
+      - groups
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        today:
+          type: string
+          format: date
+        writable:
+          type: boolean
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingGroupChoice'
+    TeachingEvidenceChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    TeachingTaskChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - term_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        term_id:
+          type: integer
+          minimum: 1
+    TeachingDraftChoices:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - group_id
+      - sources
+      - topics
+      - tasks
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingEvidenceChoice'
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingEvidenceChoice'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingTaskChoice'
+    TeachingLearnerChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - approved
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        approved:
+          type: boolean
+    TeachingLearnerPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - group_id
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingLearnerChoice'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    TeachingDraftSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - operation_id
+      - kind
+      - state
+      - revision
+      - group_id
+      - content_version_id
+      - learner_id
+      - task_id
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - lesson
+          - worksheet
+          - practice
+          - report_comment
+          - script_marks
+          - reteach
+          - follow_up_quiz
+        state:
+          type: string
+          enum:
+          - pending
+          - ready
+          - approved
+          - discarded
+          - published
+          - applied
+          - failed
+          - quarantined
+        revision:
+          type: integer
+          minimum: 0
+        group_id:
+          type: integer
+          minimum: 1
+        content_version_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        task_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    TeachingDraftPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - group_id
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingDraftSummary'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    TeachingDraftIntent:
+      type:
+      - object
+      - 'null'
+      additionalProperties: false
+      required:
+      - kind
+      - language
+      - brief
+      - learner_id
+      - task_id
+      - photo_ids
+      - topic_ids
+      properties:
+        kind:
+          type: string
+          enum:
+          - lesson
+          - worksheet
+          - practice
+          - report_comment
+          - script_marks
+          - reteach
+          - follow_up_quiz
+        language:
+          type: string
+          enum:
+          - en
+          - af
+          - zu
+          - ar
+        brief:
+          type: string
+          minLength: 3
+          maxLength: 1500
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        task_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        photo_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 3
+          uniqueItems: true
+        topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 5
+          uniqueItems: true
+    TeachingDraftGeneration:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - content_version_id
+      - kind
+      - language
+      - brief
+      - learner_id
+      - task_id
+      - photo_ids
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        content_version_id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - lesson
+          - worksheet
+          - practice
+          - report_comment
+          - script_marks
+          - reteach
+          - follow_up_quiz
+        language:
+          type: string
+          enum:
+          - en
+          - af
+          - zu
+          - ar
+        brief:
+          type: string
+          minLength: 3
+          maxLength: 1500
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        task_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        photo_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 3
+          uniqueItems: true
+        topic_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 5
+          uniqueItems: true
+    TeachingDraftSection:
+      type: object
+      additionalProperties: false
+      required:
+      - level
+      - body
+      properties:
+        level:
+          type: string
+          enum:
+          - support
+          - core
+          - extension
+        body:
+          type: string
+          maxLength: 6000
+    TeachingPracticeQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - topic_id
+      - estimated_seconds
+      - definition
+      properties:
+        topic_id:
+          type: integer
+          minimum: 1
+        estimated_seconds:
+          type: integer
+          minimum: 60
+          maximum: 300
+        definition:
+          $ref: '#/components/schemas/PracticeQuestion'
+    TeachingScriptProposal:
+      type: object
+      additionalProperties: false
+      required:
+      - question_id
+      - mark
+      - confidence_bp
+      - reason
+      properties:
+        question_id:
+          type: integer
+          minimum: 1
+        mark:
+          type:
+          - string
+          - 'null'
+          maxLength: 12
+        confidence_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        reason:
+          type: string
+          maxLength: 1000
+    TeachingDraftDefinition:
+      type:
+      - object
+      - 'null'
+      additionalProperties: false
+      required: []
+      properties:
+        title:
+          type: string
+          maxLength: 240
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingDraftSection'
+          minItems: 3
+          maxItems: 3
+        text:
+          type: string
+          maxLength: 1600
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingPracticeQuestion'
+          minItems: 1
+          maxItems: 5
+        question_marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingScriptProposal'
+          maxItems: 100
+    TeachingQuestionLabel:
+      type: object
+      additionalProperties: false
+      required:
+      - question_id
+      - number
+      - max_mark
+      properties:
+        question_id:
+          type: integer
+          minimum: 1
+        number:
+          type: string
+        max_mark:
+          type: string
+    TeachingDraftDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - operation_id
+      - kind
+      - state
+      - revision
+      - group_id
+      - content_version_id
+      - learner_id
+      - task_id
+      - request
+      - definition
+      - question_labels
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - lesson
+          - worksheet
+          - practice
+          - report_comment
+          - script_marks
+          - reteach
+          - follow_up_quiz
+        state:
+          type: string
+          enum:
+          - pending
+          - ready
+          - approved
+          - discarded
+          - published
+          - applied
+          - failed
+          - quarantined
+        revision:
+          type: integer
+          minimum: 0
+        group_id:
+          type: integer
+          minimum: 1
+        content_version_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        task_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        request:
+          $ref: '#/components/schemas/TeachingDraftIntent'
+        definition:
+          $ref: '#/components/schemas/TeachingDraftDefinition'
+        question_labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeachingQuestionLabel'
+    TeachingDraftReview:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - action
+      - definition
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 0
+        action:
+          type: string
+          enum:
+          - edit
+          - approve
+          - discard
+          - publish_practice
+          - confirm_marks
+        definition:
+          $ref: '#/components/schemas/TeachingDraftDefinition'
+        confirmed:
+          type: boolean
+    TeachingDraftMutation:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - operation_id
+      - kind
+      - state
+      - revision
+      - group_id
+      - content_version_id
+      - learner_id
+      - task_id
+      - write_operation_id
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - lesson
+          - worksheet
+          - practice
+          - report_comment
+          - script_marks
+          - reteach
+          - follow_up_quiz
+        state:
+          type: string
+          enum:
+          - pending
+          - ready
+          - approved
+          - discarded
+          - published
+          - applied
+          - failed
+          - quarantined
+        revision:
+          type: integer
+          minimum: 0
+        group_id:
+          type: integer
+          minimum: 1
+        content_version_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        task_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        write_operation_id:
+          type: string
+          format: uuid
+    TeachingPhotoReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - sha256
+      - mime
+      - operation_id
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: string
+          format: uuid
+        sha256:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+        mime:
+          type: string
+          enum:
+          - image/png
+        operation_id:
+          type: string
+          format: uuid
+    TeachingPhotoRevocation:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - revoked
+      - write_operation_id
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: string
+          format: uuid
+        revoked:
+          type: boolean
+        write_operation_id:
+          type: string
+          format: uuid
+    TeachingOperationWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    TeachingPhotoUpload:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - photo
+      - approved
+      - crop_x
+      - crop_y
+      - crop_width
+      - crop_height
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        photo:
+          type: string
+          format: binary
+        approved:
+          type: boolean
+          enum:
+          - true
+        crop_x:
+          type: integer
+          minimum: 0
+          maximum: 8192
+        crop_y:
+          type: integer
+          minimum: 0
+          maximum: 8192
+        crop_width:
+          type: integer
+          minimum: 1
+          maximum: 8192
+        crop_height:
+          type: integer
+          minimum: 1
+          maximum: 8192
+    TaskInsightQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - question_id
+      - number
+      - topic_keys
+      - max_mark
+      - evidence_count
+      - unknown_count
+      - missed_count
+      - average_mark
+      properties:
+        question_id:
+          type: integer
+          minimum: 1
+        number:
+          type: string
+        topic_keys:
+          type: array
+          items:
+            type: string
+        max_mark:
+          type: string
+        evidence_count:
+          type: integer
+          minimum: 0
+        unknown_count:
+          type: integer
+          minimum: 0
+        missed_count:
+          type: integer
+          minimum: 0
+        average_mark:
+          type:
+          - string
+          - 'null'
+    TaskInsightSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - group_id
+      - task_id
+      - canonical_task_id
+      - learner_count
+      - has_question_evidence
+      - questions
+      properties:
+        group_id:
+          type: integer
+          minimum: 1
+        task_id:
+          type: integer
+          minimum: 1
+        canonical_task_id:
+          type: integer
+          minimum: 1
+        learner_count:
+          type: integer
+          minimum: 0
+        has_question_evidence:
+          type: boolean
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskInsightQuestion'
+    TaskInsightDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - fingerprint
+      - computed_at
+      - summary
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+        computed_at:
+          type: string
+          format: date-time
+        summary:
+          $ref: '#/components/schemas/TaskInsightSummary'
+    TeachingDraftConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingDraftConfiguration'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingDraftChoicesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingDraftChoices'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingLearnerPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingLearnerPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingDraftPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingDraftPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingDraftDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingDraftDetail'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingDraftMutationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingDraftMutation'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingPhotoReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingPhotoReceipt'
+        code:
+          type: integer
+          enum:
+          - 200
+    TeachingPhotoRevocationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TeachingPhotoRevocation'
+        code:
+          type: integer
+          enum:
+          - 200
+    TaskInsightDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TaskInsightDetail'
+        code:
+          type: integer
+          enum:
+          - 200
+    FacilitatorFeatures:
+      type: object
+      additionalProperties: false
+      required:
+      - groups
+      - messages
+      - counselling
+      properties:
+        teaching_assistant:
+          type: boolean
+          description: Optional fresh allocated-Teacher draft capability; absence means unavailable.
+        test_insights:
+          type: boolean
+          description: Optional fresh allocated-Teacher task-insight capability; no generation authority is granted.
+        my_grade:
+          type: boolean
+          description: A current dated grade-head working hub is available.
+        live_updates:
+          type: boolean
+          description: Optional fresh live-session capability, emitted only when the live transport is implemented
+            and authorized.
+        gallery:
+          type: boolean
+          description: Optional current gallery group capability. Every group, file and tag requires fresh source
+            authority.
+        daily_practice:
+          type: boolean
+          description: Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized
+            again.
+        consultations:
+          type: boolean
+          description: Optional current-school consultation capability; every ballot still requires fresh audience
+            authority.
+        private_notices:
+          type: boolean
+          description: Optional fresh dedicated staff inbox capability; absence means unavailable. Every notice
+            still requires its source grant.
+        house_points:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains
+            required.
+        awards:
+          type: boolean
+          description: Optional fresh capability; absence preserves older responses. Record-specific authority remains
+            required.
+        discipline:
+          type: boolean
+          description: Optional capability; absence preserves older facilitator session responses. Fresh record-specific
+            authority remains required.
+        risk_interventions:
+          type: boolean
+          description: Fresh original-kind authority for private risk interventions; absence means unavailable.
+        groups:
+          type: boolean
+        messages:
+          type: boolean
+        counselling:
+          type: boolean
+        support_plans:
+          type: boolean
+          description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
+            record-specific authority is still required.
+        learner_notes:
+          type: boolean
+          description: Optional capability; absence preserves compatibility with older facilitator sessions. Fresh
+            record-specific authority is still required.
+        cards:
+          type: boolean
+          description: Fresh card module/account access; does not grant issuance or device management rights.
+        family_forms:
+          type: boolean
+          description: Fresh staff family-form capability; does not grant guardian or clinical access.

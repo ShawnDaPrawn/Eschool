@@ -3,6 +3,8 @@
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
 return [
+    'teaching_assistant' => ['name' => 'Teaching assistant', 'default' => false, 'dependencies' => ['academics']],
+    'test_insights' => ['name' => 'Test insights', 'default' => false, 'dependencies' => ['mastery']],
     'exam_coach' => ['name' => 'Exam coach', 'default' => false, 'dependencies' => ['academics']],
     'family_forms' => ['name' => 'Health forms and family consents', 'default' => false, 'dependencies' => ['people']],
     'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics']],
