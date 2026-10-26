@@ -62,8 +62,14 @@ class TutorContext
     public function capture(User $actor, TutorSession $session): array
     {
         app(TutorAccess::class)->session($actor, $session->id);
-        $manifest = ['versions' => [], 'notes' => [], 'mastery_marks' => null];
+        $manifest = ['versions' => [], 'notes' => [], 'mastery_marks' => null, 'topic' => null];
         $context = ['curriculum' => [], 'learning_guidance' => [], 'mastery_priorities' => []];
+        if ($session->topic_id !== null) {
+            $group = app(TutorAccess::class)->group($actor, (int) $session->teaching_group_id);
+            $topic = app(TutorTopics::class)->topic($group, (int) $session->topic_id);
+            $manifest['topic'] = ['id' => (int) $topic->id, 'source_id' => (int) $topic->curriculum_topic_id, 'sha256' => hash('sha256', $topic->topic_key.'|'.$topic->name)];
+            $context['selected_topic'] = $this->minimize($actor, $topic->name);
+        }
         foreach ($session->source_version_ids as $id) {
             $version = $this->version($actor, $session, $id);
             $manifest['versions'][] = ['id' => $id, 'sha256' => hash('sha256', $version->markdown)];
@@ -106,6 +112,13 @@ class TutorContext
     public function reauthorize(User $actor, TutorSession $session, array $manifest): void
     {
         app(TutorAccess::class)->session($actor, $session->id);
+        if (($manifest['topic'] ?? null) !== null) {
+            $ref = $manifest['topic'];
+            $group = app(TutorAccess::class)->group($actor, (int) $session->teaching_group_id);
+            $topic = app(TutorTopics::class)->topic($group, (int) $ref['id']);
+            abort_unless((int) $session->topic_id === (int) $topic->id && (int) $topic->curriculum_topic_id === $ref['source_id']
+                && hash_equals($ref['sha256'], hash('sha256', $topic->topic_key.'|'.$topic->name)), 409, 'Tutor topic context changed.');
+        }
         foreach ($manifest['versions'] as $ref) {
             $version = $this->version($actor, $session, $ref['id']);
             if (! hash_equals($ref['sha256'], hash('sha256', $version->markdown))) {

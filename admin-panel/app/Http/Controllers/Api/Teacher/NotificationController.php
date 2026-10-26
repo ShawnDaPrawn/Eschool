@@ -27,8 +27,17 @@ class NotificationController extends Controller
             $session_year_id = $session_year['session_year'];
             // Send To All Users(1) and Teachers(5)
             $notification = NotificationVisibility::forUser(
-                Notification::where('session_year_id', $session_year_id), (int) $user, 5
+                Notification::where('session_year_id', $session_year_id)->where(fn ($q) => $q->whereNull('type')->orWhere('type', '<>', 'group_chat.family_update')), (int) $user, 5
             )->latest()->paginate();
+
+            $notification->through(function (Notification $row) use ($user): Notification {
+                if (in_array($row->type, ['school_assistance.office_update', 'group_chat.staff_update'], true)) {
+                    $row->setAttribute('reader_id', (int) $user);
+                    $row->makeVisible('school_id');
+                }
+
+                return $row;
+            });
 
             return ResponseService::successResponse('Data Fetched Successfully', $notification ?? '');
         } catch (\Exception $e) {

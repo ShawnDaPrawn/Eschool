@@ -17,7 +17,7 @@ class CardClassroomSession extends Model
 
     protected $guarded = ['id', 'school_id'];
 
-    protected $hidden = ['secret_hash'];
+    protected $hidden = ['secret_hash', 'approval_revision'];
 
     protected function casts(): array
     {

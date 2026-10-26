@@ -13,15 +13,18 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileFiles;
+use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\Concerns\ValidatesOpenApiResponses;
+use Tests\Support\SyntheticCleanScanner;
 use Tests\TestCase;
 
 class ProfileFilesTest extends TestCase
@@ -36,6 +39,7 @@ class ProfileFilesTest extends TestCase
     {
         parent::setUp();
         $this->setUpTwoSchools();
+        $this->app->instance(UploadScanner::class, new SyntheticCleanScanner);
         Storage::fake(ProfileFiles::DISK);
         app(GuardianService::class)->syncLegacy(Students::findOrFail($this->schoolA->ids['asha']));
         User::findOrFail($this->schoolA->ids['farid_user'])->forceFill(['email_verified_at' => now()])->save();
@@ -57,6 +61,84 @@ class ProfileFilesTest extends TestCase
         $form = $this->getJson('/api/v2/people/'.$this->person().'/profile?profile_type=learner')->assertOk();
 
         return collect($form->json('data.categories'))->pluck('fields')->flatten(1)->firstWhere('key', 'support_document')['value']['file'];
+    }
+
+    public function test_generic_health_field_upload_cannot_bypass_the_mandatory_document_scanner(): void
+    {
+        $this->app->instance(UploadScanner::class, new class implements UploadScanner
+        {
+            public function scan(string $bytes): array
+            {
+                return ['clean' => false, 'engine' => 'synthetic-refused'];
+            }
+        });
+        $this->actingAs($this->superAdmin())->post('/api/v2/people/'.$this->person().'/profile/fields/support_document/file',
+            ['profile_type' => 'learner', 'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', self::PDF)])->assertUnprocessable();
+        $this->assertSame(0, ProfileFile::count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
+    }
+
+    public function test_generic_health_upload_refuses_an_unavailable_scanner_without_writing_a_reference(): void
+    {
+        $this->app->instance(UploadScanner::class, new class implements UploadScanner
+        {
+            public function scan(string $bytes): array
+            {
+                throw new RuntimeException('Synthetic scanner outage');
+            }
+        });
+        $this->actingAs($this->superAdmin())->post('/api/v2/people/'.$this->person().'/profile/fields/support_document/file',
+            ['profile_type' => 'learner', 'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', self::PDF)])->assertStatus(503);
+        $this->assertSame(0, ProfileFile::count());
+        $this->assertSame(0, ProfileFieldValue::where('definition_id', $this->definition->id)->count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
+    }
+
+    public function test_generic_health_images_use_the_same_scanned_sanitized_pixels_as_family_uploads(): void
+    {
+        $scanner = new SyntheticCleanScanner;
+        $this->app->instance(UploadScanner::class, $scanner);
+        $source = UploadedFile::fake()->image('synthetic.png', 40, 30)->getContent().'SYNTHETIC PRIVATE GPS METADATA';
+        $file = UploadedFile::fake()->createWithContent('synthetic.png', $source);
+        $this->actingAs($this->superAdmin())->post('/api/v2/people/'.$this->person().'/profile/fields/support_document/file',
+            ['profile_type' => 'learner', 'document' => $file])->assertOk();
+        $stored = ProfileFile::sole();
+        $this->assertSame('image/jpeg', $stored->mime);
+        $this->assertSame('synthetic.jpg', $stored->name);
+        $bytes = Crypt::decryptString(Storage::disk(ProfileFiles::DISK)->get($stored->path));
+        $this->assertSame(IMAGETYPE_JPEG, getimagesizefromstring($bytes)[2]);
+        $this->assertStringNotContainsString('PRIVATE GPS', $bytes);
+        $this->assertSame(2, $scanner->scans);
+    }
+
+    public function test_an_unauthorized_profile_cannot_send_health_bytes_to_the_scanner(): void
+    {
+        $scanner = new SyntheticCleanScanner;
+        $this->app->instance(UploadScanner::class, $scanner);
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']))->post('/api/v2/people/'.$this->person().'/profile/fields/support_document/file',
+            ['profile_type' => 'learner', 'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', self::PDF)])->assertNotFound();
+        $this->assertSame(0, $scanner->scans);
+        $this->assertSame(0, ProfileFile::count());
+    }
+
+    public function test_health_purpose_change_during_scanning_is_refused_before_storage(): void
+    {
+        $transport = ProfileFieldCategory::create(['profile_type' => 'learner', 'key' => 'scan_scope_change', 'label' => 'Synthetic moved category', 'sort_order' => 20]);
+        $this->app->instance(UploadScanner::class, new class($this->definition, (int) $transport->id) implements UploadScanner
+        {
+            public function __construct(private ProfileFieldDefinition $field, private int $category) {}
+
+            public function scan(string $bytes): array
+            {
+                $this->field->update(['category_id' => $this->category]);
+
+                return ['clean' => true, 'engine' => 'synthetic-purpose-change'];
+            }
+        });
+        $this->actingAs($this->superAdmin())->post('/api/v2/people/'.$this->person().'/profile/fields/support_document/file',
+            ['profile_type' => 'learner', 'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', self::PDF)])->assertConflict();
+        $this->assertSame(0, ProfileFile::count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
     }
 
     public function test_files_and_names_are_encrypted_and_only_authenticated_assets_serve_bytes(): void

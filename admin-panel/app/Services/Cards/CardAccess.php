@@ -26,6 +26,8 @@ class CardAccess
 
     public const READERS = 'cards-readers-manage';
 
+    public const ENCODE = 'cards-encode';
+
     public function actor(User $actor, bool $write = false, bool $revocation = false): User
     {
         $scope = app(CurrentSchool::class);
@@ -46,6 +48,16 @@ class CardAccess
     {
         $fresh = $this->actor($actor, $write);
         abort_unless(app(ProfilePolicy::class)->permission($fresh, $readers ? self::READERS : self::MANAGE), 403);
+
+        return $fresh;
+    }
+
+    public function encode(User $actor, bool $write = true): User
+    {
+        $fresh = $this->actor($actor, $write);
+        $policy = app(ProfilePolicy::class);
+        abort_unless($policy->permission($fresh, self::ENCODE) && $policy->permission($fresh, self::MANAGE) && $policy->permission($fresh, self::READERS), 403);
+        abort_unless(array_diff($policy->roles($fresh), ['Parent', 'Student', 'Facilitator']) !== [], 403);
 
         return $fresh;
     }

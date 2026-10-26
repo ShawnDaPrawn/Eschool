@@ -14,15 +14,20 @@ import 'package:eschool_api/src/api/consultations_api.dart';
 import 'package:eschool_api/src/api/discipline_api.dart';
 import 'package:eschool_api/src/api/exam_coach_api.dart';
 import 'package:eschool_api/src/api/family_forms_api.dart';
+import 'package:eschool_api/src/api/family_visits_api.dart';
+import 'package:eschool_api/src/api/foundation_classroom_api.dart';
 import 'package:eschool_api/src/api/gallery_api.dart';
 import 'package:eschool_api/src/api/growth_api.dart';
 import 'package:eschool_api/src/api/live_updates_api.dart';
 import 'package:eschool_api/src/api/my_grade_api.dart';
 import 'package:eschool_api/src/api/pastoral_api.dart';
+import 'package:eschool_api/src/api/pathways_api.dart';
+import 'package:eschool_api/src/api/peer_tutoring_api.dart';
 import 'package:eschool_api/src/api/platform_api.dart';
 import 'package:eschool_api/src/api/practice_api.dart';
 import 'package:eschool_api/src/api/private_staff_notices_api.dart';
 import 'package:eschool_api/src/api/recognition_api.dart';
+import 'package:eschool_api/src/api/school_assistance_api.dart';
 import 'package:eschool_api/src/api/school_transfers_api.dart';
 import 'package:eschool_api/src/api/secure_cards_api.dart';
 import 'package:eschool_api/src/api/teaching_assistant_api.dart';
@@ -195,6 +200,18 @@ class EschoolApi {
     return FamilyFormsApi(dio);
   }
 
+  /// Get FamilyVisitsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  FamilyVisitsApi getFamilyVisitsApi() {
+    return FamilyVisitsApi(dio);
+  }
+
+  /// Get FoundationClassroomApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  FoundationClassroomApi getFoundationClassroomApi() {
+    return FoundationClassroomApi(dio);
+  }
+
   /// Get GalleryApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   GalleryApi getGalleryApi() {
@@ -225,6 +242,18 @@ class EschoolApi {
     return PastoralApi(dio);
   }
 
+  /// Get PathwaysApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  PathwaysApi getPathwaysApi() {
+    return PathwaysApi(dio);
+  }
+
+  /// Get PeerTutoringApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  PeerTutoringApi getPeerTutoringApi() {
+    return PeerTutoringApi(dio);
+  }
+
   /// Get PlatformApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   PlatformApi getPlatformApi() {
@@ -247,6 +276,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   RecognitionApi getRecognitionApi() {
     return RecognitionApi(dio);
+  }
+
+  /// Get SchoolAssistanceApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SchoolAssistanceApi getSchoolAssistanceApi() {
+    return SchoolAssistanceApi(dio);
   }
 
   /// Get SchoolTransfersApi instance, base route and serializer can be overridden by a given but be careful,

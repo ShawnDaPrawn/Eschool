@@ -15,8 +15,10 @@ use App\Services\Ai\Providers\AnthropicProvider;
 use App\Services\Ai\Providers\DeepSeekProvider;
 use App\Services\Ai\Providers\OpenAiModerator;
 use App\Services\Ai\Providers\OpenAiProvider;
+use App\Services\Ai\Providers\ProviderTransport;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Tests\Support\SyntheticWorkingPaper;
 use Tests\TestCase;
 
 class VisionMediaTest extends TestCase
@@ -118,5 +120,23 @@ class VisionMediaTest extends TestCase
         Http::assertSent(fn ($sent) => str_ends_with($sent->url(), '/chat/completions') && $sent['store'] === false && $sent['max_completion_tokens'] === 100);
         $this->refused(fn () => app(DeepSeekProvider::class)->preflight($request), 'capability_unavailable');
         Http::assertSentCount(3);
+    }
+
+    public function test_three_large_derivatives_fit_only_the_explicit_bounded_vision_transport_path(): void
+    {
+        config(['ai.inference.enabled' => true, 'ai.providers.openai.qualified' => true, 'ai.providers.openai.key' => 'synthetic',
+            'ai.providers.anthropic.qualified' => true, 'ai.providers.anthropic.key' => 'synthetic']);
+        $image = app(VisionPhotoCropper::class)->crop('crop-one', SyntheticWorkingPaper::bytes(), ['x' => 100, 'y' => 150, 'width' => 1000, 'height' => 1200], true);
+        $images = array_map(fn ($id) => new VisionImage($id, $image->sha256, $image->bytes), ['crop-one', 'crop-two', 'crop-three']);
+        $payload = (new ResolvedVisionInput('Only approved working', $images))->payload();
+        $this->assertSame(strlen('Only approved working') + 3 * 8192, ResolvedVisionInput::units($payload));
+        $request = new ProviderRequest(Capability::Vision, (string) Str::uuid(), 'test-model', str_repeat('a', 64), 'Bounded school subject', $payload, 100, 32000);
+        app(OpenAiProvider::class)->preflight($request);
+        app(AnthropicProvider::class)->preflight($request);
+        app(OpenAiModerator::class)->preflight(Capability::Vision, $payload, new ModerationContext($request->operationId, $request->anonymousActor));
+        $this->refused(fn () => app(ProviderTransport::class)->preflight('openai', '/chat/completions', ['text' => str_repeat('a', 262145)], (string) Str::uuid()), 'provider_request_limit');
+        $this->refused(fn () => app(ProviderTransport::class)->preflight('openai', '/chat/completions', ['text' => str_repeat('a', 5242881)], (string) Str::uuid(), vision: true), 'provider_request_limit');
+        $this->refused(fn () => new VisionImage('too-large', hash('sha256', str_repeat('a', 1048577)), str_repeat('a', 1048577)), 'vision_media_invalid');
+        Http::assertNothingSent();
     }
 }

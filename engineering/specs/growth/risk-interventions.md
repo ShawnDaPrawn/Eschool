@@ -7,9 +7,7 @@ immutable school/year/grade/as_of history; missing or unavailable sources stay
 unknown. Prior dates are not fabricated by replaying today's data. Academic
 threshold, assessed share, attendance sample and absence thresholds are school
 settings with explicit revisions. Behaviour counts integrate only authoritative
-discipline records. Wellbeing remains unavailable until an explicit downstream
-consent/disclosure projection exists; confidential/anonymous incidents and
-counselling relationships are never inferred or joined into this feature.
+discipline records. Shared wellbeing observations remain unavailable; confidential or anonymous incidents are never inferred or joined. A separate on-read private context can show only a fresh Counsellor’s own explicitly authorised active cases when the same reader also has the current RiskCaseload grant. This count is not stored, scored or included in leadership/classroom aggregates. See [own-case context](counsellor-case-context.md).
 
 Dated grade heads use existing AcademicLeadership. Restricted professionals need
 both SensitiveRecordsAccess and a separate explicit dated risk caseload. Note,

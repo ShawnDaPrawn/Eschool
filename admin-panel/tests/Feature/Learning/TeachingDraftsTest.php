@@ -13,6 +13,7 @@ use App\Models\Learning\TeachingDraft;
 use App\Models\Learning\TeachingDraftVersion;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\SchoolModule;
+use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Learning\TeachingDraftPhotos;
 use App\Services\Learning\TeachingDraftRetention;
@@ -483,5 +484,27 @@ class TeachingDraftsTest extends TestCase
         foreach ([$fresh, $unknown, $other] as $path) {
             $disk->assertExists($path);
         }
+    }
+
+    public function test_actual_http_budget_refusals_have_a_visible_allowance_message(): void
+    {
+        $this->signIn();
+        foreach (['actor_daily_cap', 'learner_daily_cap', 'school_daily_cap'] as $reason) {
+            $this->mock(TeachingDrafts::class, function ($mock) use ($reason) {
+                $mock->shouldReceive('generate')->once()->andThrow(new AiUnavailable($reason));
+            });
+            $path = '/api/v2/teaching-assistant/groups/'.$this->group.'/drafts';
+            $response = $this->postJson($path, $this->input())->assertStatus(429)
+                ->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data', null);
+            $this->assertStringContainsString('allowance', $response->json('message'));
+            OpenApiSpec::assertResponseMatches('POST', $path, $response->baseResponse);
+        }
+        $this->mock(TeachingDrafts::class, function ($mock) {
+            $mock->shouldReceive('generate')->once()->andThrow(new AiUnavailable('inference_disabled'));
+        });
+        $path = '/api/v2/teaching-assistant/groups/'.$this->group.'/drafts';
+        $response = $this->postJson($path, $this->input())->assertStatus(503)->assertJsonPath('data', null);
+        OpenApiSpec::assertResponseMatches('POST', $path, $response->baseResponse);
+        $this->assertSame(0, $this->completions);
     }
 }

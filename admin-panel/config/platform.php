@@ -19,6 +19,7 @@ use App\Listeners\Platform\NotifyHandleGuardians;
 use App\Listeners\Platform\QueueNotificationFanout;
 use App\Listeners\Platform\RefreshAppContext;
 use App\Listeners\Wellbeing\QueuePrivateNotice;
+use App\Services\Activities\Chat\GroupChatNotices;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +69,7 @@ return [
             'academics.assignment_changed' => [QueueTaskInsights::class, QueueMarkRecompute::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],
             'wellbeing.notice_requested' => [QueuePrivateNotice::class],
             'consultations.opened' => [NotifyConsultationOpened::class],
+            'group_chat.message_posted' => [GroupChatNotices::class],
             'notification.requested' => [QueueNotificationFanout::class],
             'handle.proposed' => [NotifyHandleGuardians::class],
             'context.changed' => [RefreshAppContext::class, QueueMasteryRecompute::class, QueueProgressBands::class, QueueRiskEvaluate::class],

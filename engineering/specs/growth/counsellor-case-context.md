@@ -1,0 +1,7 @@
+# Own authorised active cases
+
+The private early-warning list can show an ephemeral count of open counselling cases for the current learner. The reader must currently hold the Counsellor role, an explicit dated professional RiskCaseload grant for that learner/current year, and the existing WellbeingAccess authority for each explicitly assigned case. Grade-head appointment, teacher allocation, school administration, a category team, or Safeguarding alone does not substitute for these grants.
+
+The count reads case metadata only. It does not read entries or incident reports, infer anonymous reporters, or expose another professional's cases. No authorised case is unavailable (`null`), rather than a measured zero. An explicit current grant to closed cases can produce zero. More than 100 assigned cases for the learner is also unavailable, to bound the read. Case grants and both policy systems are checked again after retrieval. Withdrawn roles, assignments, module access, mandatory password changes, platform identity and school replacement fail closed.
+
+The existing RiskSignal DTO carries source `wellbeing`, a null score, the ephemeral signal_count and reason `own_authorised_active_cases`. Both private clients label it “Own authorised active cases” and explain that it does not affect the risk score. Shared observations, tier/history, classroom views and principal aggregates remain unchanged; no clinical count is stored in those records. This is context for the reader's own casework, not a diagnosis or a school-wide wellbeing indicator.

@@ -12,14 +12,14 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 3 | Anonymous incidents, token follow-up, restricted counselling cases and appointments / Backend + App | Shared safeguarding policy with Phase 3; no impersonation access | community/wellbeing.md |
 | 4 | Polls, surveys and non-statutory elections / Backend + App | Audiences, scheduler, separate participation and responses | community/consultations.md |
 | 5 | House caps/reversals, reusable awards and assembly mode / Backend + App | Groups and audited permissions | community/houses-and-awards.md |
-| 6 | Signed/rotating cards, freeze, scan log and printer exports / Backend + App | Identity; physical chip/printer qualification | community/cards.md |
+| 6 | Signed/rotating cards, freeze, scan log, printer exports and restricted Foundation classroom entry / Backend + App | Identity; physical chip/printer qualification | community/cards.md; community/foundation-classroom.md |
 | 7 | Public resumable intake, waiting list, offers and atomic enrolment / Backend + App | Profiles, guardians, approvals, Files | community/intake-admissions.md |
-| 8 | Health/consent, parent meetings and gate passes / Backend + App | Restricted fields, cards and guardians | Before implementation |
+| 8 | Health/consent, parent meetings and gate passes / Backend + App | Restricted fields, cards and guardians | Health/consent and meeting/gate backend, private typed API, responsive panel and online reader implemented/tested in review; Parent/staff meeting clients implemented and browser-verified; CI/main integration pending |
 | 9 | Consent-controlled tags and private galleries / Backend + App | Files, guardian links and transfer events | community/private-gallery.md |
 | 10 | Authorized school/group live channels / Backend + App | Groups, consultations, houses; provider choice within budget | community/live-updates.md |
-| 11a | School assistant and two-way translation / AI + App | Phase 3 moderated/metered AiGateway | Before implementation |
-| 11b | Supervised topic-matched peer tutoring / Backend + App | Phase 3 mastery; house points | Before implementation |
-| 11c | Subject-choice and pathway planner / Backend + App | Sourced admission requirements and marks | Before implementation |
+| 11a | School assistant and two-way translation / AI + App | Phase 3 moderated/metered AiGateway | Source-bound school answers, explicit Parent-office handoff and both-direction assigned-message translation have typed API, panel and three app profiles implemented/qualified in review; live provider/deployment acceptance remains separate |
+| 11b | Supervised topic-matched peer tutoring / Backend + App | Phase 3 mastery; house points | Scoped matching, supervised sessions, append-only verified service and atomic optional point corrections implemented; typed API/SDK qualified locally. Staff panel and all four app profiles are implemented and browser-qualified; CI/main pending |
+| 11c | Subject-choice and pathway planner / Backend + App | Sourced admission requirements and marks | Reviewed school sources, immutable rules, manager maintenance and private Student/Parent planner implemented and browser-verified; CI/main pending |
 
 Each feature gets a scoped spec, tests and small PR; table order permits independent
 work, not an acceptance freeze. Phase 3 owns AiGateway/mastery. Phase 4 owns group
@@ -44,7 +44,7 @@ pickers. Shared teacher/family views are delivered in PR #116. Dedicated facilit
 sign-in, atomic password/policy onboarding, fresh scoped sessions and the
 restricted shared group/message shell are implemented and under final review.
 The counsellor profile has no TeacherModel dependency; its restricted case/support
-menus will appear only alongside their actual authorized modules. Private binary group material uploads remain a follow-up to authored
+menus will appear only alongside their actual authorized modules. Private binary group material documents now have scanned/encrypted storage, typed API/SDK, staff panel and native reader/upload/removal flows alongside authored
 Markdown. The delivery checkpoint below supersedes this early-slice status. This is not a
 completed phase or a store-release qualification.
 
@@ -102,27 +102,44 @@ separate. No deployed latency or phase completion is claimed.
 ## Retained-scope delivery checkpoint: 25 October 2026
 
 This tracks implemented software across published increments, not a claim that
-all increments are merged. Integration PR #203 tracks review/CI and main ancestry.
+all increments are merged. Integration PR #285 tracks subsequent review/CI and main ancestry, including the nested #258 work; the earlier #203 integration is already on main.
 The cancelled pilot campaign is excluded; device/store/deployed-service evidence
 remains explicitly unverified and does not stop independent development.
 
 | Retained requirement | Software delivery | Remaining implementation/evidence |
 | --- | --- | --- |
 | Scoped facilitator shell and native identities | Implemented Android identities, school-scoped sign-in/onboarding, fresh role/session menus | iOS native build, physical-device and store distribution evidence |
-| Groups and scoped communications | Tree, dated allocations, sessions/registers, authored materials, audience cascades, messages and live presence | Private binary materials and dedicated group-chat threads/replies |
+| Groups and scoped communications | Tree, dated allocations, sessions/registers, encrypted/scanned binary materials, cascades, live presence and persona-bound group conversations; panel/four app profiles, guarded notices and account-bound consent/chat actions are implemented and qualified in review | Deployment, physical-device and real delivery acceptance |
 | Incident/counsellor workflow | Encrypted scoped casework, appointments, public/identified reports, sanitized private media, follow-up and guarded notices/inboxes | Deployment/device/external acceptance |
 | Consultations | Domain, panel, four app profiles, anonymous separation and scheduled generic notices | Deployment and real delivery acceptance; statutory elections remain Phase 6 |
 | Houses and awards | Caps/reversals, annual catalogue reuse, assembly, permanent awards, actual live Home counter/celebration | Deployed latency and device acceptance |
-| Cards | Private identity/portrait domain, rotation/freeze/replacement, published-vector crypto, delegated online scan execution, typed API, four app profiles, staff workbench, CR80 PDFs and online scanner | Offline scanning, physical encoding runtime and restricted Foundation classroom entry; hardware acceptance |
+| Cards | Private identity/portrait domain, rotation/freeze/replacement, published-vector crypto, delegated online scan execution, typed API, four app profiles, staff workbench, CR80 PDFs and online scanner; bounded offline HTTP/SDK, actual three-width reader and atomic encrypted queue; restricted Teacher-delegated Foundation practice; explicit encrypted NTAG preparation, isolated encoder API, local PCSC/EV2 software, workbench and SUN confirmation with native/vector/emulator/actual-browser qualification | Hosted CI/main integration and physical chip/driver/key-protection/gate-timing acceptance |
 | Intake/admissions | Public resume, encrypted/scanned applications, waiting-list offers, atomic enrolment and balanced homeroom/house choices | Staging/deployment and external acceptance |
-| Health/consent, meetings and gate passes | Existing encrypted Health category reused behind fresh restricted access; immutable activity/trip consent/attestation domain, eleven private API/typed-client operations (including purpose-scoped Health files) and responsive staff publishing/permission workbench qualified | Native family/staff readers and Health editor; meeting booking and early-collection passes |
+| Health/consent, meetings and gate passes | Existing encrypted Health category reused behind fresh restricted access; immutable activity/trip consent/attestation domain, eleven private API/typed-client operations (including purpose-scoped Health files) and responsive staff publishing/permission workbench qualified | Native Parent Health/consent and staff effective-permission readers are implemented and browser-qualified; current-guardian consent notices/actions are browser-qualified; meetings/gate backend and all three app profiles are published separately by the root stream; deployed/device acceptance remains |
 | Personal photo gallery | Private group/family surfaces, approval/tag withdrawal, explicit transfer retention | Deployment/device acceptance |
 | Live updates | Real local Reverb/worker delivery, private credential-specific channels, scoped group presence, poll refresh and Home recognition consumers | Deployed/load/native-Reverb journey evidence; vendor queues wait for Phase 5 |
-| School assistant and translation | Pending | Authorized sourced parent assistant, human handoff, two-way message translation |
-| Peer tutoring | Pending | Topic matching, supervision, service hours and house-point integration |
-| Pathways | Pending | Curated sourced requirements, Grade 9 guide and projected admission score |
+| School assistant and translation | Source-bound school answers, explicit Parent-office handoff, typed API/panel and Parent/classic Teacher/dedicated Facilitator apps; both-direction assigned-office message translation preserves originals (#291) | Hosted CI/main and provider/source/deployment acceptance; ordinary group-chat translation is a separate purpose scope and is not claimed |
+| Peer tutoring | Scoped current-topic matching, supervised sessions, append-only integer service and atomic optional house points; typed API/SDK, responsive panel and all four actual app profiles qualified in review (#289/#290), including exact uncertain-write recovery | Hosted CI/main and deployment/device acceptance |
+| Pathways | Reviewed immutable school sources, Grade 9 guides, source-specific integer score rules, manager panel and private Student/Parent planner are implemented and qualified (#282). | Actual panel at 390/820/1280 and complete Student/Parent Chrome journeys pass; published CI/main, school source review, fluent wording, staging/device and deployment acceptance remain separate. |
 
-A rough software estimate is 60–65% across these thirteen comparable areas with
-partial credit, not a PR count. The last confirmed main before the next integration
-merge contains less of the recent software. Hardware/store/provider/deployment
-acceptance is not included in that percentage or described as passed.
+The earlier integration of 54 source PRs is now on main. Subsequent verified
+increments remain in review until their exact integration head passes CI.
+Hardware, store, provider and deployment acceptance remain separate from
+implemented software and are not described as passed.
+
+Parents’ evening slots and early collection: [implementation and verification](../self-tests/family-visits.md). This increment supplies the domain, typed API, staff panel and online gate workflow; Parent/staff Flutter clients are implemented and qualified in the separate client increment below.
+
+Parent/staff meeting and collection clients are implemented in a separate review increment; [client evidence](../self-tests/family-visits-clients.md) records the passing Parent, Teacher and dedicated Facilitator browsers, shared tests and both app entry suites. This is source implementation status, not a claim that the increment has merged or all phase acceptance has passed.
+
+
+Restricted Foundation classroom entry is implemented in a separate review
+increment. Fresh manager/Teacher/group/device/guardian/card authority binds the
+short capability; printed locators do not create gate scans or ordinary account
+sessions. Fourteen focused native checks plus the deleted-year boundary pass, and
+all seven browser cases pass, including real manager→Teacher→tablet practice at
+390/820/1280 pixels, exact interrupted-save recovery, read-only inventory and card
+withdrawal. See [executed evidence](../self-tests/foundation-classroom.md).
+Canonical/SDK publication is recorded in the qualified combined offline-card
+increment #296, retained by integration #285;
+physical tablet/camera and school-policy acceptance are separate from this
+software qualification.

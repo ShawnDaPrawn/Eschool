@@ -27,7 +27,7 @@ class GrantAiCostAccess extends Command
 
             return self::FAILURE;
         }
-        $grant = PlatformAiCostGrant::updateOrCreate(['user_id' => (int) $id], ['active' => ! $this->option('revoke'), 'expires_at' => now()->addHours((int) $hours)]);
+        $grant = PlatformAiCostGrant::updateOrCreate(['user_id' => (int) $id], ['active' => ! $this->option('revoke'), 'expires_at' => now()->utc()->addHours((int) $hours)]);
         Audit::record('ai.platform_cost_access_changed', $grant, [], ['active' => $grant->active, 'expires_at' => $grant->expires_at->toIso8601String()]);
         $this->info('Cost-only access updated. No school or learner-content permissions were granted.');
 

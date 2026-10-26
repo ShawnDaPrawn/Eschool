@@ -15,8 +15,11 @@ for (const width of [390, 820, 1280]) {
     const errors = collectErrors(page, baseURL!);
     await page.goto('/growth-mastery');
     const chooser = page.getByRole('form', { name: 'Choose graph subject', exact: true });
-    await chooser.getByRole('combobox', { name: 'Subject', exact: true }).selectOption({ label: 'Mastery browser rehearsal' });
-    await chooser.getByRole('button', { name: 'Open subject graph', exact: true }).click();
+    const [subjectId] = await chooser.getByRole('combobox', { name: 'Subject', exact: true }).selectOption({ label: 'Mastery browser rehearsal' });
+    await Promise.all([
+      page.waitForURL(url => url.searchParams.get('subject_id') === subjectId),
+      chooser.getByRole('button', { name: 'Open subject graph', exact: true }).click(),
+    ]);
     let editor = page.getByRole('form', { name: 'Edit sourced prerequisites', exact: true });
     for (const button of await editor.getByRole('button', { name: 'Remove prerequisite', exact: true }).all()) await button.click();
     await editor.getByRole('button', { name: 'Add prerequisite', exact: true }).click();

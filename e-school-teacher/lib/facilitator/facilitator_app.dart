@@ -1,5 +1,7 @@
+import 'package:eschool_teacher/utils/teachingCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart' show AvailableOnly;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -456,6 +458,133 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['family_forms'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.family_restroom_outlined),
+                title: Text(l('Activity consent')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'family_forms',
+                  FamilyFormsScreen(
+                    staffOnly: true,
+                    repository: ApiFamilyFormRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['family_forms'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          AvailableOnly(
+            featureKey: 'peer-tutoring:$generation:$school:$user',
+            probe: () async {
+              try {
+                await ApiPeerRepository(
+                  repository.client,
+                  schoolId: school,
+                  accountId: user,
+                  persona: 'staff',
+                  contextActive: () =>
+                      repository.matches(generation, school, user),
+                ).configuration();
+                return repository.matches(generation, school, user);
+              } catch (_) {
+                return false;
+              }
+            },
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.people_outline),
+                title: Text(l('Peer tutoring')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AnimatedBuilder(
+                      animation: repository,
+                      builder: (_, __) {
+                        if (!repository.matches(generation, school, user))
+                          return ScreenScaffold(
+                            title: l('Peer tutoring'),
+                            body: Center(
+                              child: Text(
+                                l(
+                                  'Your peer tutoring access changed. Reopen this screen.',
+                                ),
+                              ),
+                            ),
+                          );
+                        return PeerTutoringScreen(
+                          repository: ApiPeerRepository(
+                            repository.client,
+                            schoolId: school,
+                            accountId: user,
+                            persona: 'staff',
+                            contextActive: () =>
+                                repository.matches(generation, school, user),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          AvailableOnly(
+            featureKey: 'staff-family-visits:$generation:$school:$user',
+            probe: () => familyVisitsDeployed(
+              ApiFamilyVisitRepository(
+                repository.client,
+                schoolId: school,
+                accountId: user,
+                contextActive: () =>
+                    repository.matches(generation, school, user),
+              ),
+              staffOnly: true,
+            ),
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.event_available_outlined),
+                title: Text(l('Meetings and early collection')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AnimatedBuilder(
+                      animation: repository,
+                      builder: (_, __) {
+                        if (!repository.matches(generation, school, user))
+                          return ScreenScaffold(
+                            title: l('Meetings and early collection'),
+                            body: Center(
+                              child: Text(
+                                l(
+                                  'Your meeting access changed. Reopen this screen.',
+                                ),
+                              ),
+                            ),
+                          );
+                        return FamilyVisitsScreen(
+                          staffOnly: true,
+                          repository: ApiFamilyVisitRepository(
+                            repository.client,
+                            schoolId: school,
+                            accountId: user,
+                            contextActive: () =>
+                                repository.matches(generation, school, user),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           if (profile.features['cards'] == true)
             Card(
               child: ListTile(
@@ -544,13 +673,123 @@ class _StaffHome extends StatelessWidget {
                     ),
                     canOpen: (feature) =>
                         repository.matches(generation, school, user) &&
-                        ((feature == 'wellbeing' &&
+                        ((feature == 'group_chat' &&
+                                repository.profile?.features['groups'] ==
+                                    true) ||
+                            (feature == 'progress' &&
+                                repository.profile?.roles.contains('Teacher') ==
+                                    true &&
+                                repository
+                                        .profile
+                                        ?.features['private_notices'] ==
+                                    true) ||
+                            (feature == 'discipline' &&
+                                repository.profile?.features['discipline'] ==
+                                    true) ||
+                            (feature == 'wellbeing' &&
                                 repository.profile?.features['counselling'] ==
+                                    true) ||
+                            (feature == 'school_assistance' &&
+                                repository
+                                        .profile
+                                        ?.features['school_assistance'] ==
                                     true) ||
                             (feature == 'consultations' &&
                                 repository.profile?.features['consultations'] ==
                                     true)),
                     openFeature: (feature) async {
+                      if (feature == 'group_chat' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['groups'] == true) {
+                        await open(
+                          'groups',
+                          ActivityGroupsScreen(
+                            repository: ApiActivityRepository(
+                              repository.client,
+                              schoolId: school,
+                              accountId: user,
+                              chatPersona: 'staff',
+                              contextActive: () =>
+                                  repository.matches(
+                                    generation,
+                                    school,
+                                    user,
+                                  ) &&
+                                  repository.profile?.features['groups'] ==
+                                      true,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      if (feature == 'progress' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.roles.contains('Teacher') ==
+                              true &&
+                          repository.profile?.features['private_notices'] ==
+                              true) {
+                        bool activeProgress() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.roles.contains('Teacher') ==
+                                true &&
+                            repository.profile?.features['private_notices'] ==
+                                true;
+                        await open(
+                          'private_notices',
+                          ProgressNotesScreen(
+                            repository: ApiProgressRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: activeProgress,
+                            ),
+                            canRead: activeProgress,
+                          ),
+                        );
+                        return;
+                      }
+                      if (feature == 'discipline' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['discipline'] == true) {
+                        bool activeDiscipline() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.features['discipline'] == true;
+                        await open(
+                          'discipline',
+                          SchoolDisciplineScreen(
+                            repository: ApiDisciplineRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: activeDiscipline,
+                            ),
+                            canRead: activeDiscipline,
+                          ),
+                        );
+                        return;
+                      }
+                      if (feature == 'school_assistance' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['school_assistance'] ==
+                              true) {
+                        bool current() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.features['school_assistance'] ==
+                                true;
+                        await open(
+                          'school_assistance',
+                          SchoolAssistanceScreen(
+                            office: true,
+                            repository: ApiAssistanceRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: current,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       if (feature == 'consultations' &&
                           repository.matches(generation, school, user) &&
                           repository.profile?.features['consultations'] ==
@@ -627,6 +866,105 @@ class _StaffHome extends StatelessWidget {
                         repository.profile?.features['daily_practice'] == true,
                   ),
                 ),
+              ),
+            ),
+          if (profile.features['exam_coach'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.menu_book_outlined),
+                title: Text(l('Exam Coach')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  bool current() =>
+                      repository.matches(generation, school, user) &&
+                      repository.profile?.features['exam_coach'] == true;
+                  open(
+                    'exam_coach',
+                    ExamScreen(
+                      repository: ApiExamRepository(
+                        repository.client,
+                        schoolId: school,
+                        readerId: user,
+                        contextActive: current,
+                      ),
+                      staff: true,
+                      canRead: current,
+                      canWrite: current,
+                      selectCameraPhoto: selectTeachingCameraPhoto,
+                      exportPdf: (bytes, name) async {
+                        if (!current()) return;
+                        await DeviceFiles.saveDocument(
+                          bytes,
+                          'private-exports/$user/$school/$name',
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          for (final entry in <(String, String, bool)>[
+            ('teaching_assistant', 'Teaching assistant', false),
+            ('test_insights', 'Test insights', true),
+          ])
+            if (profile.features[entry.$1] == true)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.auto_awesome_outlined),
+                  title: Text(l(entry.$2)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    bool current() =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features[entry.$1] == true;
+                    open(
+                      entry.$1,
+                      TeachingScreen(
+                        repository: ApiTeachingRepository(
+                          repository.client,
+                          schoolId: school,
+                          readerId: user,
+                          contextActive: current,
+                        ),
+                        insightsOnly: entry.$3,
+                        canRead: current,
+                        canWrite: current,
+                        selectCameraPhoto: selectTeachingCameraPhoto,
+                        exportPdf: (bytes, name) async {
+                          if (!current()) return;
+                          await DeviceFiles.saveDocument(
+                            bytes,
+                            'private-exports/$user/$school/$name',
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+          if (profile.features['school_assistance'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.support_agent_outlined),
+                title: Text(l('School support office')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  bool current() =>
+                      repository.matches(generation, school, user) &&
+                      repository.profile?.features['school_assistance'] == true;
+                  open(
+                    'school_assistance',
+                    SchoolAssistanceScreen(
+                      office: true,
+                      repository: ApiAssistanceRepository(
+                        repository.client,
+                        schoolId: school,
+                        readerId: user,
+                        contextActive: current,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           if (profile.features['my_grade'] == true)
@@ -778,6 +1116,7 @@ class _StaffHome extends StatelessWidget {
                       repository.client,
                       schoolId: school,
                       accountId: user,
+                      chatPersona: 'staff',
                       contextActive: () =>
                           repository.matches(generation, school, user) &&
                           repository.profile?.features['groups'] == true,
@@ -808,6 +1147,9 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'school_assistance',
+            'exam_coach',
+            'family_forms',
             'cards',
             'gallery',
             'consultations',

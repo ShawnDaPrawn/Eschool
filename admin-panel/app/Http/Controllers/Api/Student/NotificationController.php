@@ -32,8 +32,17 @@ class NotificationController extends Controller
 
             // Send To All Users(1) and Students(3)
             $notification = NotificationVisibility::forUser(
-                Notification::where('session_year_id', $session_year_id), (int) $user, 3
+                Notification::where('session_year_id', $session_year_id)->where(fn ($q) => $q->whereNull('type')->orWhere('type', '<>', 'group_chat.staff_update'))->where(fn ($q) => $q->whereNull('type')->orWhere('type', '<>', 'group_chat.family_update')->orWhere(fn ($q) => $q->where('type', 'group_chat.family_update')->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(delivery_payload), delivery_payload, '{}'), '$.group_chat_persona')) = ?", ['student']))), (int) $user, 3
             )->latest()->paginate();
+
+            $notification->through(function (Notification $row) use ($user): Notification {
+                if ($row->type === 'group_chat.family_update') {
+                    $row->setAttribute('reader_id', (int) $user);
+                    $row->makeVisible('school_id');
+                }
+
+                return $row;
+            });
 
             return ResponseService::successResponse('Data Fetched Successfully', $notification ?? '');
         } catch (Throwable $e) {

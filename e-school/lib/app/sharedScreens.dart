@@ -815,6 +815,9 @@ Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
             Api.client,
             schoolId: school,
             accountId: account,
+            chatPersona: context.read<AuthCubit>().isParent()
+                ? 'parent'
+                : 'student',
             contextActive: () => generationActive() && active(),
           ),
         ),
@@ -1859,6 +1862,220 @@ class FamilyWeeklyDigestEntry extends StatelessWidget {
       );
 }
 
+Route<dynamic> familyFormsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('family_forms') != true ||
+        !allowsSchoolModule(me, 'family_forms') ||
+        !(context.read<AuthCubit>().isParent() &&
+            me!.roles.contains('Parent'))) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Family consent and health',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        familyFormAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: FamilyFormSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => FamilyFormsScreen(
+          staffOnly: false,
+          repository: ApiFamilyFormRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyFormsEntry extends StatelessWidget {
+  const FamilyFormsEntry({super.key});
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<MeContextCubit, MeContextState>(
+    builder: (context, state) {
+      final me = state.context;
+      if (state is! MeContextLoaded ||
+          me?.currentSchoolId == null ||
+          me?.user?.id == null ||
+          me?.isModuleOn('family_forms') != true ||
+          !allowsSchoolModule(me, 'family_forms') ||
+          !(context.read<AuthCubit>().isParent() &&
+              me!.roles.contains('Parent'))) {
+        return const SizedBox.shrink();
+      }
+      return AvailableOnly(
+        featureKey:
+            'family-forms:${me.currentSchoolId}:${me.user!.id}:${me.roles.join(',')}:${me.children.hashCode}',
+        probe: () => familyFormsDeployed(
+          ApiFamilyFormRepository(
+            Api.client,
+            schoolId: me.currentSchoolId!,
+            accountId: me.user!.id,
+            contextActive: () =>
+                context.read<MeContextCubit>().state is MeContextLoaded &&
+                familyFormAccessStillCurrent(
+                  me,
+                  context.read<MeContextCubit>().context,
+                ),
+          ),
+          staffOnly: false,
+        ),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.family_restroom_outlined),
+            title: Text(
+              SharedUiUtils.getTranslatedLabel(
+                context,
+                'Family consent and health',
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed(Routes.familyForms),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Route<dynamic> familyVisitsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('family_visits') != true ||
+        !allowsSchoolModule(me, 'family_visits') ||
+        !(context.read<AuthCubit>().isParent() &&
+            me!.roles.contains('Parent'))) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Meetings and early collection',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        familyVisitAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: FamilyVisitSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => FamilyVisitsScreen(
+          staffOnly: false,
+          repository: ApiFamilyVisitRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyVisitsEntry extends StatelessWidget {
+  const FamilyVisitsEntry({super.key});
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<MeContextCubit, MeContextState>(
+    builder: (context, state) {
+      final me = state.context;
+      if (state is! MeContextLoaded ||
+          me?.currentSchoolId == null ||
+          me?.user?.id == null ||
+          me?.isModuleOn('family_visits') != true ||
+          !allowsSchoolModule(me, 'family_visits') ||
+          !(context.read<AuthCubit>().isParent() &&
+              me!.roles.contains('Parent'))) {
+        return const SizedBox.shrink();
+      }
+      return AvailableOnly(
+        featureKey:
+            'family-visits:${me.currentSchoolId}:${me.user!.id}:${me.roles.join(',')}:${me.children.hashCode}',
+        probe: () => familyVisitsDeployed(
+          ApiFamilyVisitRepository(
+            Api.client,
+            schoolId: me.currentSchoolId!,
+            accountId: me.user!.id,
+            contextActive: () =>
+                context.read<MeContextCubit>().state is MeContextLoaded &&
+                familyVisitAccessStillCurrent(
+                  me,
+                  context.read<MeContextCubit>().context,
+                ),
+          ),
+          staffOnly: false,
+        ),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.event_available_outlined),
+            title: Text(
+              SharedUiUtils.getTranslatedLabel(
+                context,
+                'Meetings and early collection',
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed(Routes.familyVisits),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 Route<dynamic> schoolCardsRoute() => AdaptivePageRoute(
   contentColumn: false,
   builder: (context) {
@@ -2090,6 +2307,359 @@ class FamilyTutorEntry extends StatelessWidget {
               onTap: () =>
                   Navigator.of(context)
                       .pushNamed(parent ? Routes.tutorSummary : Routes.tutor),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> examCoachRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        account == null ||
+        !me.roles.contains('Student') ||
+        !me.isModuleOn('exam_coach') ||
+        !allowsSchoolModule(me, 'exam_coach') ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Exam Coach'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: ExamSessionBoundary(
+        pinned: me,
+        staff: false,
+        builder: (_, active) {
+          bool current() =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school);
+          return ExamScreen(
+            repository: ApiExamRepository(
+              Api.client,
+              schoolId: school,
+              readerId: account,
+              contextActive: current,
+            ),
+            staff: false,
+            canRead: current,
+            canWrite: () =>
+                current() &&
+                allowsSchoolModule(session.context, 'exam_coach', write: true),
+            selectCameraPhoto: selectTutorCameraPhoto,
+            exportPdf: (bytes, name) async {
+              if (!current()) return;
+              await DeviceFiles.saveDocument(
+                bytes,
+                'private-exports/$account/$school/$name',
+              );
+            },
+          );
+        },
+      ),
+    );
+  },
+);
+
+class ExamCoachEntry extends StatelessWidget {
+  const ExamCoachEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me?.roles.contains('Student') != true ||
+              me?.isModuleOn('exam_coach') != true ||
+              !allowsSchoolModule(me, 'exam_coach'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Exam Coach'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.examCoach),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> pathwayRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('pathway') != true ||
+        !allowsSchoolModule(me, 'pathway') ||
+        !(me!.roles.contains('Parent') || me.roles.contains('Student'))) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Subject choice and pathways',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        pathwayAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PathwaySessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => PathwayScreen(
+          repository: ApiPathwayRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class PathwayEntry extends StatelessWidget {
+  const PathwayEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me == null ||
+              !(me.roles.contains('Parent') || me.roles.contains('Student')) ||
+              !me.isModuleOn('pathway') ||
+              !allowsSchoolModule(me, 'pathway')) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.route_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Subject choice and pathways',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.pathway),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> peerTutoringRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('peer_tutoring') != true ||
+        !allowsSchoolModule(me, 'peer_tutoring') ||
+        me?.isModuleOn('mastery') != true ||
+        !allowsSchoolModule(me, 'mastery') ||
+        !(context.read<AuthCubit>().isParent()
+            ? me!.roles.contains('Parent')
+            : me!.roles.contains('Student'))) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Peer tutoring'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        peerAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PeerSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => PeerTutoringScreen(
+          repository: ApiPeerRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            persona: context.read<AuthCubit>().isParent()
+                ? 'parent'
+                : 'student',
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class PeerTutoringEntry extends StatelessWidget {
+  const PeerTutoringEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me == null ||
+              !(context.read<AuthCubit>().isParent()
+                  ? me.roles.contains('Parent')
+                  : me.roles.contains('Student')) ||
+              !me.isModuleOn('peer_tutoring') ||
+              (!allowsSchoolModule(me, 'peer_tutoring') ||
+                  !me.isModuleOn('mastery') ||
+                  !allowsSchoolModule(me, 'mastery'))) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Peer tutoring'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.peerTutoring),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> schoolAssistanceRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final children = context.read<ChildSelectionCubit>();
+    final me = session.context, child = children.selected;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    final learner = child?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        learner == null ||
+        child?.schoolId != school ||
+        !context.read<AuthCubit>().isParent() ||
+        me?.roles.contains('Parent') != true ||
+        me?.isModuleOn('ask_school') != true ||
+        !allowsSchoolModule(me, 'ask_school')) {
+      return const ScreenScaffold(
+        title: 'Ask the school',
+        body: Center(child: Text('Not available for this account')),
+      );
+    }
+    final pinned = me!;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        assistanceAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school) &&
+        children.state.selectedId == learner;
+    return BlocListener<ChildSelectionCubit, ChildSelectionState>(
+      listenWhen: (before, after) => before.selectedId != after.selectedId,
+      listener: (context, state) {
+        if (state.selectedId != learner)
+          Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: ContentContextBoundary(
+        schoolId: school,
+        readerId: account,
+        child: AssistanceSessionBoundary(
+          pinned: pinned,
+          builder: (_, generationActive) => SchoolAssistanceScreen(
+            learnerId: learner,
+            learnerName: child!.child.name,
+            repository: ApiAssistanceRepository(
+              Api.client,
+              schoolId: school,
+              readerId: account,
+              contextActive: () => active() && generationActive(),
+            ),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class SchoolAssistanceEntry extends StatelessWidget {
+  const SchoolAssistanceEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          final child = context.watch<ChildSelectionCubit>().selected;
+          if (state is! MeContextLoaded ||
+              me?.user?.id == null ||
+              me?.currentSchoolId == null ||
+              child?.schoolId != me?.currentSchoolId ||
+              !context.read<AuthCubit>().isParent() ||
+              me?.roles.contains('Parent') != true ||
+              me?.isModuleOn('ask_school') != true ||
+              !allowsSchoolModule(me, 'ask_school'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.support_agent_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Ask the school'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.schoolAssistance),
             ),
           );
         },

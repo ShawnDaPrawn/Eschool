@@ -71,3 +71,7 @@ school-owned table inventory and complete rollback/backfill rehearsal. Capabilit
 checks include real `/me/context` responses before and after the generation
 module is disabled; independent insights remain available. Final PHPStan and
 strict OpenAPI lint passed after those capability changes.
+
+The separate app follow-on is now software/browser qualified in
+[teaching-assistant-apps.md](teaching-assistant-apps.md); hardware and live-provider
+acceptance remain separately pending.

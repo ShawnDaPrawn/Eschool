@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:eschool/ui/screens/parentHomeScreen.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/eschool_people.dart';
+import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -131,6 +132,65 @@ class _ProfileFilesApi implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+Map<String, Object?> _readerContext({int school = 2, String role = 'Parent'}) =>
+    {
+      'user': {
+        'id': 21,
+        'first_name': 'Synthetic',
+        'last_name': 'Guardian',
+        'name': 'Synthetic Guardian',
+        'email': parentEmail,
+        'image': null,
+        'roles': [role],
+      },
+      'current_school': {
+        'id': school,
+        'name': school == 1 ? 'First School' : 'Second School',
+        'short_name': null,
+        'crest_url': null,
+        'tagline': null,
+        'timezone': 'Africa/Johannesburg',
+        'branding': {'theme_color': null, 'secondary_color': null},
+        'session_year': null,
+      },
+      'schools': [
+        for (final id in [1, 2])
+          {
+            'school': {
+              'id': id,
+              'name': id == 1 ? 'First School' : 'Second School',
+              'short_name': null,
+              'crest_url': null,
+            },
+            'roles': [role],
+          },
+      ],
+      'children': [
+        {
+          'id': 11,
+          'user_id': 11,
+          'first_name': 'Thandi',
+          'last_name': 'Mokoena',
+          'name': 'Thandi Mokoena',
+          'image': null,
+          'approved': true,
+          'school': {
+            'id': 2,
+            'name': 'Second School',
+            'short_name': null,
+            'crest_url': null,
+          },
+        },
+      ],
+    };
+
+class _ReaderContext implements MeContextRepository {
+  String role = 'Parent';
+  @override
+  Future<MeContext?> fetchContext() async =>
+      MeContext.fromJson(_readerContext(role: role));
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
@@ -138,37 +198,72 @@ void main() {
     (tester) async {
       await prepareSmokeApp();
       final api = _ProfileFilesApi();
+      final contextSource = _ReaderContext();
+      final session = MeContextCubit(
+        repository: contextSource,
+        cache: InMemoryMeContextCache(),
+      );
+      addTearDown(session.close);
+      await session.load();
       final client = ApiClient(
         authToken: () => 'smoke-token',
         onUnauthorized: () {},
         createDio: () => Dio()..httpClientAdapter = api,
       );
       await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light(),
-          locale: const Locale('en'),
-          supportedLocales: const [Locale('en')],
-          localizationsDelegates: const [
-            AppLocalizationDelegate([
-              AppLanguage(languageCode: 'en', languageName: 'English'),
-            ]),
-          ],
-          builder: (context, navigator) => AppShell(
-            errorMessageKeyFromCode: (_) => 'defaultErrorMessage',
-            openStudyMaterial: (_, _) {},
-            studyMaterialButton: (_, _) => const SizedBox(),
-            bottomNavigationHeightPercentage: 0.08,
-            child: navigator!,
-          ),
-          home: ProfileScreen.withRepository(
-            ApiProfileRepository(client),
-            subjects: const [
-              ProfileSubject(personId: 11, schoolId: 2, profileType: 'learner'),
+        BlocProvider<MeContextCubit>.value(
+          value: session,
+          child: MaterialApp(
+            theme: AppTheme.light(),
+            locale: const Locale('en'),
+            supportedLocales: const [Locale('en')],
+            localizationsDelegates: const [
+              AppLocalizationDelegate([
+                AppLanguage(languageCode: 'en', languageName: 'English'),
+              ]),
             ],
-            pickFile: () async =>
-                ProfileUpload('letter.${api.extension}', api.bytes),
+            builder: (context, navigator) => AppShell(
+              errorMessageKeyFromCode: (_) => 'defaultErrorMessage',
+              openStudyMaterial: (_, _) {},
+              studyMaterialButton: (_, _) => const SizedBox(),
+              bottomNavigationHeightPercentage: 0.08,
+              child: navigator!,
+            ),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => Center(
+                  child: FilledButton(
+                    key: const ValueKey('open-fresh-profile'),
+                    child: const Text('Open fresh profile'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ProfileScreen.withRepository(
+                          ApiProfileRepository(client),
+                          subjects: const [
+                            ProfileSubject(
+                              personId: 11,
+                              schoolId: 2,
+                              profileType: 'learner',
+                            ),
+                          ],
+                          onSaved: () => session.load(),
+                          pickFile: () async => ProfileUpload(
+                            'letter.${api.extension}',
+                            api.bytes,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
+      );
+      await tapWhenReady(
+        tester,
+        find.byKey(const ValueKey('open-fresh-profile')),
       );
       await pumpUntilFound(tester, find.byType(ProfileScreen));
       final editor = tester
@@ -205,32 +300,16 @@ void main() {
         (upload.data as FormData).files.single.value.filename,
         'letter.png',
       );
+      final cachedImages = PaintingBinding.instance.imageCache.currentSize;
       await tapWhenReady(tester, find.text('View file'));
       final image = find.byWidgetPredicate(
-        (widget) => widget is Image && widget.image is MemoryImage,
+        (widget) => widget is RawImage && widget.image != null,
       );
       await pumpUntilFound(tester, image);
-      final stream = tester
-          .widget<Image>(image)
-          .image
-          .resolve(ImageConfiguration.empty);
-      ImageInfo? decoded;
-      Object? imageError;
-      final listener = ImageStreamListener(
-        (info, _) => decoded = info,
-        onError: (error, _) => imageError = error,
-      );
-      stream.addListener(listener);
-      final end = DateTime.now().add(const Duration(seconds: 10));
-      while (decoded == null &&
-          imageError == null &&
-          DateTime.now().isBefore(end)) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      stream.removeListener(listener);
-      expect(imageError, isNull);
-      expect(decoded?.image.width, 1);
-      decoded?.dispose();
+      final decoded = tester.widget<RawImage>(image).image!;
+      expect(decoded.width, 1);
+      expect(decoded.height, 1);
+      expect(PaintingBinding.instance.imageCache.currentSize, cachedImages);
       final read = api.requests.singleWhere(
         (request) => request.uri.path.contains('/protected/profile-files/'),
       );
@@ -239,6 +318,7 @@ void main() {
       expect(read.headers['Authorization'], 'Bearer smoke-token');
       await tapWhenReady(tester, find.byType(BackButton));
       await pumpUntilFound(tester, find.text('Unsaved bus'));
+      expect(decoded.debugDisposed, isTrue);
       await tapWhenReady(tester, find.text('Save profile'));
       await pumpUntilFound(tester, find.text('Profile saved'));
       final write = api.requests.singleWhere(
@@ -247,6 +327,18 @@ void main() {
       expect((write.data as Map)['values'], {
         'route': {'text': 'Unsaved bus'},
       });
+      await pumpUntilFound(
+        tester,
+        find.byKey(const ValueKey('open-fresh-profile')),
+      );
+      expect(find.byType(ProfileScreen), findsNothing);
+      await tapWhenReady(
+        tester,
+        find.byKey(const ValueKey('open-fresh-profile')),
+      );
+      await pumpUntilFound(tester, find.text('Unsaved bus'));
+      expect(session.context?.user?.id, 21);
+      expect(session.context?.currentSchoolId, 2);
       api.pdf = true;
       await tapWhenReady(tester, find.text('Upload or replace file'));
       await pumpUntilFound(tester, find.text('letter.pdf'));
@@ -261,6 +353,14 @@ void main() {
       );
       expect(pdfRead.uri.path, endsWith('.pdf'));
       expect(pdfRead.headers['X-School-Id'], '2');
+      contextSource.role = 'Facilitator';
+      await session.load();
+      await pumpUntilFound(
+        tester,
+        find.byKey(const ValueKey('open-fresh-profile')),
+      );
+      expect(find.byType(PdfDocumentView), findsNothing);
+      expect(find.byType(ProfileScreen), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
@@ -268,38 +368,13 @@ void main() {
     'guardian edits a child profile using its own school and a partial write',
     (tester) async {
       var route = 'Old route';
-      final childSchool = {
-        'id': 2,
-        'name': 'Second School',
-        'short_name': null,
-        'crest_url': null,
-      };
       final api = await startSmokeApp(tester, {
         ...parentOfTwoRoutes(),
-        'GET v2/me/context': ok({
-          'schools': [
-            {
-              'school': {
-                'id': 1,
-                'name': 'First School',
-                'short_name': null,
-                'crest_url': null,
-              },
-              'roles': ['Parent'],
-            },
-          ],
-          'children': [
-            {
-              'id': 11,
-              'user_id': 11,
-              'first_name': 'Thandi',
-              'last_name': 'Mokoena',
-              'name': 'Thandi Mokoena',
-              'image': null,
-              'school': childSchool,
-            },
-          ],
-        }),
+        'GET v2/me/context': (RequestOptions request) => ok(
+          _readerContext(
+            school: int.tryParse('${request.headers['X-School-Id']}') ?? 1,
+          ),
+        ),
         'GET v2/me/profile': ok(profile()),
         'GET v2/people/11/profile': (RequestOptions _) =>
             ok(profile(learner: true, route: route)),
@@ -360,6 +435,8 @@ void main() {
         },
       });
       expect(route, 'Blue bus');
+      await pumpUntilFound(tester, find.byType(ParentHomeScreen));
+      expect(find.byKey(const ValueKey('profile-field-route')), findsNothing);
     },
   );
 }

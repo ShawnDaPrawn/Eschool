@@ -130,7 +130,7 @@ class HomeController extends Controller
     public function index()
     // : View
     {
-        $session_year = (int) (session('session_year') ? session('session_year') : getSettings('session_year')['session_year']);
+        $session_year = (int) (session('session_year') ?: (getSettings('session_year')['session_year'] ?? 0));
 
         $user = Auth::user();
 
@@ -387,7 +387,7 @@ class HomeController extends Controller
 
     public function dashboardData(Request $request): JsonResponse
     {
-        $session_year = (int) ($request->session_year_id ? $request->session_year_id : getSettings('session_year')['session_year']);
+        $session_year = (int) ($request->session_year_id ? $request->session_year_id : (getSettings('session_year')['session_year'] ?? 0));
         $user = Auth::user();
 
         // Initialize base data structure
@@ -463,7 +463,7 @@ class HomeController extends Controller
     {
         ResponseService::noPermissionThenSendJson('fees-paid');
 
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
 
         return response()->json($feesCollectionService->summary($session_year_id));
     }
@@ -475,7 +475,7 @@ class HomeController extends Controller
     {
         ResponseService::noPermissionThenSendJson('attendance-report');
 
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $class_id = (int) $request->class_id;
 
         $class = ClassSchool::find($class_id);
@@ -529,7 +529,7 @@ class HomeController extends Controller
     {
         ResponseService::noPermissionThenSendJson('view-exam-result');
 
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $class_section_id = (int) $request->class_section_id;
 
         $classSection = ClassSection::with('class.medium', 'section')->find($class_section_id);
@@ -583,7 +583,7 @@ class HomeController extends Controller
     {
         ResponseService::noPermissionThenSendJson('leave-list');
 
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $filter = $request->filter ?: 'today';
         $today = Carbon::now();
 
@@ -623,7 +623,7 @@ class HomeController extends Controller
      */
     public function eventsWidget(Request $request): JsonResponse
     {
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $month = $request->month ?: Carbon::now()->format('Y-m');
 
         [$year, $monthNumber] = array_map('intval', array_pad(explode('-', $month), 2, Carbon::now()->month));
@@ -822,7 +822,7 @@ class HomeController extends Controller
      */
     public function teacherLeavesWidget(Request $request): JsonResponse
     {
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $teacher = Auth::user()->teacher;
         $filter = $request->filter ?: 'today';
         $today = Carbon::now();
@@ -877,7 +877,7 @@ class HomeController extends Controller
      */
     public function teacherExamsWidget(Request $request): JsonResponse
     {
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $teacher = Auth::user()->teacher;
         $month = $request->month ?: Carbon::now()->format('Y-m');
 
@@ -927,7 +927,7 @@ class HomeController extends Controller
      */
     public function teacherAssignmentsWidget(Request $request): JsonResponse
     {
-        $session_year_id = (int) ($request->session_year_id ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
         $class_section_id = $request->class_section_id ? (int) $request->class_section_id : null;
 
         $assignments = Assignment::assignmentTeachers()
@@ -1049,7 +1049,7 @@ class HomeController extends Controller
 
     public function getSubjectByClassSection(Request $request): JsonResponse
     {
-        $session_year_id = (int) ($request->input('session_year_id') ?: getSettings('session_year')['session_year']);
+        $session_year_id = (int) ($request->input('session_year_id') ?: (getSettings('session_year')['session_year'] ?? 0));
         $classSectionId = (int) $request->input('class_section_id');
         $classSection = ClassSection::select('class_id')->where('id', $classSectionId)->first();
 

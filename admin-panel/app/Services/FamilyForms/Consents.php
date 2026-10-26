@@ -165,9 +165,25 @@ class Consents
                 ConsentRecipient::create(['request_id' => $request->id, 'learner_id' => $learner]);
             }
             Audit::record('consent.created', $request, [], ['fingerprint' => $request->fingerprint, 'recipient_count' => count($ids)], app(CurrentSchool::class)->id());
+            app(ConsentNotices::class)->requested($request->id);
 
             return ['id' => $request->id, 'fingerprint' => $request->fingerprint, 'revision' => 1];
         });
+    }
+
+    /** Fresh actionable metadata only; notice counts never decrypt consent wording. */
+    public function noticeSource(User $actor, string $recipientId): array
+    {
+        app(FamilyFormAccess::class)->parentActor($actor, true);
+        $recipient = ConsentRecipient::select(['id', 'school_id', 'request_id', 'learner_id', 'revision'])->findOrFail($recipientId);
+        $fresh = app(FamilyFormAccess::class)->guardian($actor, (int) $recipient->learner_id, true, attest: true);
+        $request = ConsentRequest::select(['id', 'school_id', 'session_year_id', 'activity_group_id', 'status', 'revision', 'respond_by', 'event_starts_at', 'event_ends_at'])->findOrFail($recipient->request_id);
+        abort_unless($recipient->revision === 0 && $request->status === 'open' && $request->respond_by->isFuture()
+            && (int) $request->session_year_id === (int) schoolSetting('session_year'), 404);
+        $this->audience($request, (int) $recipient->learner_id);
+        app(FamilyFormAccess::class)->guardian($fresh, (int) $recipient->learner_id, true, attest: true);
+
+        return ['recipient_id' => $recipient->id, 'request_id' => $request->id, 'request_revision' => $request->revision];
     }
 
     public function read(User $actor, string $id, int $learner): array

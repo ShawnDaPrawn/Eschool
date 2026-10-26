@@ -104,7 +104,16 @@ void main() {
       await tap(tester, find.text('Complete sign-in'));
       expect(repo.signedIn, isTrue);
       expect(find.text('Your school activities'), findsOneWidget);
-      final body = api.requests.last.data as Map;
+      final body =
+          api.requests
+                  .where(
+                    (request) =>
+                        request.method == 'POST' &&
+                        request.path.endsWith('/sign-in'),
+                  )
+                  .last
+                  .data
+              as Map;
       expect(body['acceptances'], {'navigateed': 'a' * 64});
       expect(body['new_password'], 'NewPrivateStaff2026');
       expect(tester.takeException(), isNull);

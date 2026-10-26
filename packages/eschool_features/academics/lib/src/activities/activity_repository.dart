@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'activity_file_repository.dart';
+import 'group_chat_repository.dart';
 
 abstract interface class ActivityRepository {
   int get schoolId;
@@ -27,18 +29,51 @@ abstract interface class ActivityRepository {
 }
 
 /// A private, in-memory school/account session. No persisted group cache.
-class ApiActivityRepository implements ActivityRepository {
+class ApiActivityRepository
+    implements ActivityRepository, ActivityFileProvider, GroupChatProvider {
   ApiActivityRepository(
     this.client, {
     required this.schoolId,
     required this.accountId,
     required this.contextActive,
+    this.chatPersona,
   }) : _token = client.authToken();
+  final String? chatPersona;
   final ApiClient client;
   @override
   final int schoolId, accountId;
   final bool Function() contextActive;
   final String _token;
+  @override
+  ActivityFileRepository files(int group, int material) =>
+      ApiActivityFileRepository(
+        client,
+        schoolId: schoolId,
+        accountId: accountId,
+        groupId: group,
+        materialId: material,
+        contextActive: () => isActive,
+      );
+  @override
+  GroupChatRepository chat(int group) {
+    final persona = chatPersona;
+    if (!const ['staff', 'parent', 'student'].contains(persona)) {
+      throw ApiException(
+        'Conversation purpose is unavailable.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+    return ApiGroupChatRepository(
+      client,
+      schoolId: schoolId,
+      accountId: accountId,
+      groupId: group,
+      persona: persona!,
+      contextActive: () => isActive,
+    );
+  }
+
   @override
   bool get isActive =>
       schoolId > 0 &&
@@ -100,7 +135,12 @@ class ApiActivityRepository implements ActivityRepository {
 
   @override
   Future<ActivityGroupDetail> detail(int group) async {
-    final result = ActivityGroupDetail.fromJson(await _send('groups/$group'));
+    final result = ActivityGroupDetail.fromJson(
+      await _send(
+        'groups/$group',
+        query: chatPersona == null ? null : {'chat_persona': chatPersona},
+      ),
+    );
     _group(result.group, group);
     if (result.sessions.any((x) => x.activityGroupId != group) ||
         result.materials.any((x) => x.activityGroupId != group)) {

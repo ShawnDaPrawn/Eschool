@@ -522,3 +522,16 @@ retired variants and bounded old rollback orphans even with the module disabled.
 all23 existing transfer cases. API/SDK/panel/native implementation and browser
 qualification remain active follow-on work. No complete gallery, external scanner,
 physical device, staging or phase completion claim is made by this domain increment.
+
+## 2026-10-26 — reconciled leadership fee trends
+
+Completed the principal dashboard's retained fee-receipt trend using the existing
+integer-cent paid transactions and running fee balances. Dated grade attribution
+requires one matching enrolment; unknown or inconsistent sources remain unavailable,
+while real zero and retained read-only history remain distinct. The optional office
+receipt now retains its form date. No new payment flow or financial posting is added.
+
+30 native/payment tests and four actual panel browser cases pass; detailed evidence
+is in self-tests/leadership-fee-trends.md. This closing software increment remains
+in review until its integration head passes CI and reaches main. New financial
+products, bank/refund-ledger semantics and deployment acceptance remain separate.

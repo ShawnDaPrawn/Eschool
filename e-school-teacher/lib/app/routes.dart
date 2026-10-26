@@ -125,9 +125,12 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String examCoach = '/learning/exam-coach';
   static const String dailyPractice = '/learning/practice';
   static const String progressNotes = '/growth/progress';
   static const String myGrade = '/growth/my-grade';
+  static const String teachingAssistant = '/learning/teaching-assistant';
+  static const String testInsights = '/learning/test-insights';
   static const String schoolDiscipline = '/discipline';
   static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
@@ -135,6 +138,10 @@ class Routes {
   static const String reliefCover = '/pastoral/cover';
   static const String supportPlans = '/pastoral/support';
   static const String wellbeing = '/wellbeing';
+  static const String familyForms = '/family-forms';
+  static const String familyVisits = '/family-visits';
+  static const String peerTutoring = '/peer-tutoring';
+  static const String schoolAssistance = '/ask-school';
   static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
@@ -157,11 +164,18 @@ class Routes {
     final module = switch (routeSettings.name) {
       progressNotes => 'academics',
       myGrade => 'my_grade',
+      teachingAssistant => 'teaching_assistant',
+      testInsights => 'test_insights',
       schoolDiscipline => 'discipline',
       riskInterventions => 'early_warning',
       mastery => 'mastery',
       consultations => 'consultations',
+      familyForms => 'family_forms',
+      familyVisits => 'family_visits',
+      peerTutoring => 'peer_tutoring',
+      schoolAssistance => 'ask_school',
       schoolCards => 'cards',
+      examCoach => 'exam_coach',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -346,6 +360,10 @@ class Routes {
         return progressNotesRoute();
       case myGrade:
         return myGradeRoute();
+      case teachingAssistant:
+        return teachingWorkspaceRoute();
+      case testInsights:
+        return teachingWorkspaceRoute(insights: true);
       case schoolDiscipline:
         return schoolDisciplineRoute();
       case privateGallery:
@@ -354,6 +372,8 @@ class Routes {
         return staffRecognitionRoute();
       case riskInterventions:
         return riskInterventionsRoute();
+      case examCoach:
+        return examCoachRoute();
       case dailyPractice:
         return dailyPracticeRoute();
       case mastery:
@@ -364,6 +384,14 @@ class Routes {
         return supportPlansRoute();
       case wellbeing:
         return wellbeingRoute();
+      case peerTutoring:
+        return peerTutoringRoute();
+      case schoolAssistance:
+        return schoolAssistanceRoute();
+      case familyVisits:
+        return familyVisitsRoute();
+      case familyForms:
+        return familyFormsRoute();
       case schoolCards:
         return schoolCardsRoute();
       case consultations:

@@ -38,6 +38,12 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+    # flutter_html 3.0.0 still imports html's removed private matches() API.
+    # Remove this exception when that consumer has a compatible release.
+    ignore:
+      - dependency-name: html
+        versions: [">=0.15.7"]
+
   # Documentation site, and the panel's Playwright project.
   - package-ecosystem: npm
     directories:
@@ -63,6 +69,10 @@ updates:
       time: "06:00"
       timezone: Africa/Johannesburg
     open-pull-requests-limit: 2
+    # The panel and CI qualify PHP 8.3; retain patch/security updates there.
+    ignore:
+      - dependency-name: php
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Actions in .github/workflows, including the commit-pinned ones.
   - package-ecosystem: github-actions

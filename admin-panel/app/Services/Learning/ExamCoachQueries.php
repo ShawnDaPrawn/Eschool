@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Learning;
 
 use App\Models\Academics\TeachingGroup;
+use App\Models\Learning\ExamAnswer;
+use App\Models\Learning\ExamCoachOperation;
 use App\Models\Learning\ExamStudyPlan;
 use App\Models\Learning\PastPaper;
 use App\Models\Learning\PastPaperVersion;
@@ -52,7 +54,17 @@ class ExamCoachQueries
         app(ExamCoachAccess::class)->actor($fresh);
 
         return ['reader_id' => (int) $fresh->id, 'learner_id' => $learner, 'staff_groups' => $staff, 'learner_groups' => $family,
-            'writable' => app(ModuleGate::class)->writable('exam_coach')];
+            'writable' => app(ModuleGate::class)->writable('exam_coach'), 'photo_feedback_enabled' => $this->photoFeedbackEnabled()];
+    }
+
+    private function photoFeedbackEnabled(): bool
+    {
+        $feature = config('ai.inference.features.exam_coach');
+
+        return config('ai.inference.enabled') === true && is_array($feature) && ($feature['enabled'] ?? false) === true
+            && is_string($feature['model'] ?? null) && trim($feature['model']) !== ''
+            && is_int($feature['cents_per_million_tokens'] ?? null) && $feature['cents_per_million_tokens'] >= 0
+            && config('ai.providers.'.($feature['provider'] ?? '').'.qualified') === true;
     }
 
     private function group(TeachingGroup $group): array
@@ -127,5 +139,65 @@ class ExamCoachQueries
         app(ExamCoachAccess::class)->learner($actor);
 
         return ['plans' => $items, 'page' => $page, 'has_more' => $rows->count() > 25];
+    }
+
+    public function answers(User $actor, ?int $groupId, int $page): array
+    {
+        abort_unless($page >= 1 && $page <= 1000, 422);
+        $staff = $groupId !== null;
+        $query = ExamAnswer::query();
+        if ($staff) {
+            app(ExamCoachAccess::class)->staff($actor, $groupId);
+            $query->where('teaching_group_id', $groupId)->where('share_with_teacher', true);
+        } else {
+            $learner = app(ExamCoachAccess::class)->learner($actor);
+            $query->where('user_id', $actor->id)->where('learner_id', $learner->id);
+        }
+        $rows = $query->orderByDesc('created_at')->orderBy('id')->offset(($page - 1) * 25)->limit(26)->get(['id']);
+        $items = [];
+        foreach ($rows->take(25) as $meta) {
+            try {
+                $data = app(ExamFeedback::class)->read($actor, $meta->id, $staff);
+                if (! in_array($data['state'], ['purged', 'quarantined'], true)) {
+                    $item = array_intersect_key($data, array_flip(['id', 'operation_id', 'state', 'group_id', 'paper_version_id', 'question_number', 'revision', 'expires_at', 'failure_code']));
+                    if ($staff) {
+                        $row = app(ExamAnswerAccess::class)->answer($actor, $meta->id, true);
+                        $owner = User::findOrFail($row->user_id);
+                        $item['learner_id'] = (int) $row->learner_id;
+                        $item['learner_name'] = trim($owner->first_name.' '.$owner->last_name);
+                    }
+                    $items[] = $item;
+                }
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                continue;
+            }
+        }
+        $staff ? app(ExamCoachAccess::class)->staff($actor, $groupId) : app(ExamCoachAccess::class)->learner($actor);
+
+        return ['answers' => $items, 'page' => $page, 'has_more' => $rows->count() > 25];
+    }
+
+    /** Opaque own receipt recovery survives erased local draft prose. */
+    public function operation(User $actor, int $groupId, string $operation): array
+    {
+        $group = app(ExamCoachAccess::class)->staff($actor, $groupId);
+        $receipt = ExamCoachOperation::where('actor_id', $actor->id)->where('operation_id', $operation)->firstOrFail()->result;
+        if (isset($receipt['answer_id'])) {
+            $answer = app(ExamAnswerAccess::class)->answer($actor, $receipt['answer_id'], true);
+            abort_unless((int) $answer->teaching_group_id === $groupId, 404);
+
+            return ['kind' => 'answer_review', 'operation_id' => $operation, 'paper' => null, 'review' => $receipt];
+        }
+        abort_unless(array_key_exists('version_id', $receipt) && is_int($receipt['id'] ?? null), 404);
+        $paper = PastPaper::where('subject_id', $group->subject_id)->where('grade_level_id', $group->grade_level_id)->findOrFail($receipt['id']);
+        abort_unless((int) $paper->created_by === (int) $actor->id || app(ContentPolicy::class)->leads($actor, (int) $group->grade_level_id), 403);
+        $versionId = $receipt['version_id'];
+        if ($versionId !== null) {
+            $version = PastPaperVersion::select('id', 'past_paper_id', 'group_ids')->where('past_paper_id', $paper->id)->findOrFail($versionId);
+            abort_unless(in_array($groupId, $version->group_ids, true), 404);
+        }
+        app(ExamCoachAccess::class)->staff($actor, $groupId);
+
+        return ['kind' => 'paper', 'operation_id' => $operation, 'paper' => $receipt, 'review' => null];
     }
 }

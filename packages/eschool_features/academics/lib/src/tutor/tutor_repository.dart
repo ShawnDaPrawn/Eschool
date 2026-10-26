@@ -1,3 +1,4 @@
+import '../media/private_image_dimensions.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -78,6 +79,20 @@ abstract interface class TutorRepository {
   Future<void> revoke(String session, String photo, String operation);
 }
 
+/// Optional deterministic extension; existing chat repositories stay compatible.
+abstract interface class TutorCheckpointRepository {
+  Future<TutorCheckpointDetail> issueCheckpoint(
+    String session,
+    String operation,
+  );
+  Future<TutorCheckpointDetail> checkpoint(String session, String checkpoint);
+  Future<TutorCheckpointDetail> answerCheckpoint(
+    String session,
+    String checkpoint,
+    TutorCheckpointAnswerWrite input,
+  );
+}
+
 class _TutorClient {
   _TutorClient(this.client, this.schoolId, this.readerId, this.contextActive)
     : token = client.authToken();
@@ -130,7 +145,7 @@ class _TutorClient {
   }
 }
 
-class ApiTutorRepository implements TutorRepository {
+class ApiTutorRepository implements TutorRepository, TutorCheckpointRepository {
   ApiTutorRepository(
     ApiClient client, {
     required int schoolId,
@@ -147,6 +162,88 @@ class ApiTutorRepository implements TutorRepository {
   bool get isActive => _client.isActive;
   void _uuid(String id) {
     if (!tutorUuid(id)) throw ArgumentError('Invalid tutor reference.');
+  }
+
+  TutorCheckpointDetail _checkpoint(Map<String, dynamic> body, String session) {
+    final value = TutorCheckpointDetail.fromJson(body);
+    _client.scope(
+      value.sessionId == session &&
+          (_learner == null || value.learnerId == _learner) &&
+          tutorUuid(value.id) &&
+          tutorUuid(value.operationId),
+    );
+    if (value.state.value == 'ready') {
+      _client.scope(
+        value.correct == null &&
+            value.explanation == null &&
+            value.answeredAt == null &&
+            value.verifiedBy == null,
+      );
+    } else {
+      _client.scope(
+        value.state.value == 'answered' &&
+            value.correct != null &&
+            value.verifiedBy == 'approved_answer_definition',
+      );
+    }
+    return value;
+  }
+
+  @override
+  Future<TutorCheckpointDetail> issueCheckpoint(
+    String session,
+    String operation,
+  ) async {
+    _uuid(session);
+    _uuid(operation);
+    final value = _checkpoint(
+      await _client.send(
+        'sessions/$session/checkpoints',
+        body: {'operation_id': operation},
+      ),
+      session,
+    );
+    _client.scope(value.operationId == operation);
+    return value;
+  }
+
+  @override
+  Future<TutorCheckpointDetail> checkpoint(
+    String session,
+    String checkpoint,
+  ) async {
+    _uuid(session);
+    _uuid(checkpoint);
+    final value = _checkpoint(
+      await _client.send('sessions/$session/checkpoints/$checkpoint'),
+      session,
+    );
+    _client.scope(value.id == checkpoint);
+    return value;
+  }
+
+  @override
+  Future<TutorCheckpointDetail> answerCheckpoint(
+    String session,
+    String checkpoint,
+    TutorCheckpointAnswerWrite input,
+  ) async {
+    _uuid(session);
+    _uuid(checkpoint);
+    _uuid(input.operationId);
+    final value = _checkpoint(
+      await _client.send(
+        'sessions/$session/checkpoints/$checkpoint/answer',
+        body: input.toJson(),
+      ),
+      session,
+    );
+    _client.scope(
+      value.id == checkpoint &&
+          value.answerOperationId == input.operationId &&
+          value.state.value == 'answered',
+    );
+    return value;
   }
 
   @override
@@ -313,7 +410,7 @@ class ApiTutorRepository implements TutorRepository {
     );
     _client.guard();
     _client.scope(
-      bytes.length <= 32768 &&
+      bytes.length <= privateWorkingMaximumBytes &&
           sha256.convert(bytes).toString() == reference.sha256,
     );
     return bytes;

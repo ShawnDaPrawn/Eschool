@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:eschool_api/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
+import 'dart:typed_data';
 import 'package:eschool_api/src/model/activity_attendance_receipt_response.dart';
 import 'package:eschool_api/src/model/activity_attendance_write.dart';
 import 'package:eschool_api/src/model/activity_group_detail_response.dart';
@@ -17,6 +18,9 @@ import 'package:eschool_api/src/model/activity_group_response.dart';
 import 'package:eschool_api/src/model/activity_group_roster_response.dart';
 import 'package:eschool_api/src/model/activity_group_staff_response.dart';
 import 'package:eschool_api/src/model/activity_group_write.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_change_response.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_page_response.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_remove.dart';
 import 'package:eschool_api/src/model/activity_material_response.dart';
 import 'package:eschool_api/src/model/activity_material_write.dart';
 import 'package:eschool_api/src/model/activity_membership_response.dart';
@@ -25,6 +29,19 @@ import 'package:eschool_api/src/model/activity_session_response.dart';
 import 'package:eschool_api/src/model/activity_session_write.dart';
 import 'package:eschool_api/src/model/activity_staff_write.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/group_chat_conversation_response.dart';
+import 'package:eschool_api/src/model/group_chat_message_create.dart';
+import 'package:eschool_api/src/model/group_chat_message_removal.dart';
+import 'package:eschool_api/src/model/group_chat_mutation_response.dart';
+import 'package:eschool_api/src/model/group_chat_persona.dart';
+import 'package:eschool_api/src/model/group_chat_policy_change.dart';
+import 'package:eschool_api/src/model/group_chat_policy_response.dart';
+import 'package:eschool_api/src/model/group_chat_read_ack_response.dart';
+import 'package:eschool_api/src/model/group_chat_read_change.dart';
+import 'package:eschool_api/src/model/group_chat_receipt_response.dart';
+import 'package:eschool_api/src/model/group_chat_thread_create.dart';
+import 'package:eschool_api/src/model/group_chat_thread_page_response.dart';
+import 'package:eschool_api/src/model/group_chat_thread_state_change.dart';
 
 class ActivitiesApi {
   final Dio _dio;
@@ -702,6 +719,541 @@ class ActivitiesApi {
     );
   }
 
+  /// Open a supervised announcement or private question
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [groupChatThreadCreate]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatMutationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatMutationResponse>> createGroupChatThread({
+    required int group,
+    required GroupChatThreadCreate groupChatThreadCreate,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/threads'.replaceAll(
+      '{'
+      r'group'
+      '}',
+      group.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(groupChatThreadCreate);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatMutationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatMutationResponse, GroupChatMutationResponse>(
+              rawData,
+              'GroupChatMutationResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatMutationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read authorized private attachment bytes
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [file]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [Uint8List] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<Uint8List>> getActivityMaterialFile({
+    required int group,
+    required int material,
+    required String file,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/groups/{group}/materials/{material}/files/{file}/content'
+            .replaceAll(
+              '{'
+              r'group'
+              '}',
+              group.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'material'
+              '}',
+              material.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'file'
+              '}',
+              file.toString(),
+            );
+    final _options = Options(
+      method: r'GET',
+      responseType: ResponseType.bytes,
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    Uint8List? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null ? null : rawData as Uint8List;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<Uint8List>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Recover an owned metadata-only conversation outcome
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [operation]
+  /// * [persona]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatReceiptResponse>> getGroupChatOperation({
+    required int group,
+    required String operation,
+    required GroupChatPersona persona,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/operations/{operation}'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'operation'
+          '}',
+          operation.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{r'persona': persona};
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatReceiptResponse, GroupChatReceiptResponse>(
+              rawData,
+              'GroupChatReceiptResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read the school role-pair conversation policy
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatPolicyResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatPolicyResponse>> getGroupChatPolicy({
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/chat-policy';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatPolicyResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatPolicyResponse, GroupChatPolicyResponse>(
+              rawData,
+              'GroupChatPolicyResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatPolicyResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read fresh authorized conversation messages
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [thread]
+  /// * [persona]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [beforeMessageId]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatConversationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatConversationResponse>> getGroupChatThread({
+    required int group,
+    required String thread,
+    required GroupChatPersona persona,
+    int? xSchoolId,
+    int? xAccountId,
+    int? beforeMessageId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/threads/{thread}'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'thread'
+          '}',
+          thread.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'persona': persona,
+      if (beforeMessageId != null) r'before_message_id': beforeMessageId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatConversationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              GroupChatConversationResponse,
+              GroupChatConversationResponse
+            >(rawData, 'GroupChatConversationResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatConversationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// List currently authorized activity groups
   /// School-scoped private activity data. Fresh membership, role and group authority precede validation and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only their own groups. Learners and guardians never receive peer rosters.
   ///
@@ -801,6 +1353,342 @@ class ActivitiesApi {
     );
   }
 
+  /// List authorized attachments and current write capabilities
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ActivityMaterialAttachmentPageResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ActivityMaterialAttachmentPageResponse>>
+  listActivityMaterialFiles({
+    required int group,
+    required int material,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/materials/{material}/files'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'material'
+          '}',
+          material.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ActivityMaterialAttachmentPageResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ActivityMaterialAttachmentPageResponse,
+              ActivityMaterialAttachmentPageResponse
+            >(
+              rawData,
+              'ActivityMaterialAttachmentPageResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ActivityMaterialAttachmentPageResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// List authorized group conversation summaries
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [persona]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [before]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatThreadPageResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatThreadPageResponse>> listGroupChatThreads({
+    required int group,
+    required GroupChatPersona persona,
+    int? xSchoolId,
+    int? xAccountId,
+    String? before,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/threads'.replaceAll(
+      '{'
+      r'group'
+      '}',
+      group.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'persona': persona,
+      if (before != null) r'before': before,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatThreadPageResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              GroupChatThreadPageResponse,
+              GroupChatThreadPageResponse
+            >(rawData, 'GroupChatThreadPageResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatThreadPageResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Advance the persona-specific visible message read cursor
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [thread]
+  /// * [groupChatReadChange]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatReadAckResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatReadAckResponse>> markGroupChatThreadRead({
+    required int group,
+    required String thread,
+    required GroupChatReadChange groupChatReadChange,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/threads/{thread}/read'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'thread'
+          '}',
+          thread.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(groupChatReadChange);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatReadAckResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatReadAckResponse, GroupChatReadAckResponse>(
+              rawData,
+              'GroupChatReadAckResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatReadAckResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Read an authorized activity group and materials
   /// School-scoped private activity data. Fresh membership, role and group authority precede validation and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only their own groups. Learners and guardians never receive peer rosters.
   ///
@@ -808,6 +1696,7 @@ class ActivitiesApi {
   /// * [group]
   /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [chatPersona] - Explicit current app persona. Only opted-in replies include chat_available; this parameter never grants group or conversation access.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -821,6 +1710,7 @@ class ActivitiesApi {
     required int group,
     int? xAccountId,
     int? xSchoolId,
+    GroupChatPersona? chatPersona,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -856,9 +1746,14 @@ class ActivitiesApi {
       validateStatus: validateStatus,
     );
 
+    final _queryParameters = <String, dynamic>{
+      if (chatPersona != null) r'chat_persona': chatPersona,
+    };
+
     final _response = await _dio.request<Object>(
       _path,
       options: _options,
+      queryParameters: _queryParameters,
       cancelToken: cancelToken,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
@@ -987,6 +1882,272 @@ class ActivitiesApi {
     }
 
     return Response<ActivityGroupRosterResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Withdraw an attachment with an exact revisioned operation
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [file]
+  /// * [activityMaterialAttachmentRemove]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ActivityMaterialAttachmentChangeResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ActivityMaterialAttachmentChangeResponse>>
+  removeActivityMaterialFile({
+    required int group,
+    required int material,
+    required String file,
+    required ActivityMaterialAttachmentRemove activityMaterialAttachmentRemove,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/groups/{group}/materials/{material}/files/{file}/remove'
+            .replaceAll(
+              '{'
+              r'group'
+              '}',
+              group.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'material'
+              '}',
+              material.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'file'
+              '}',
+              file.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(activityMaterialAttachmentRemove);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ActivityMaterialAttachmentChangeResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ActivityMaterialAttachmentChangeResponse,
+              ActivityMaterialAttachmentChangeResponse
+            >(
+              rawData,
+              'ActivityMaterialAttachmentChangeResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ActivityMaterialAttachmentChangeResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Remove authorized message text with a private reason
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [thread]
+  /// * [message]
+  /// * [groupChatMessageRemoval]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatMutationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatMutationResponse>> removeGroupChatMessage({
+    required int group,
+    required String thread,
+    required int message,
+    required GroupChatMessageRemoval groupChatMessageRemoval,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/groups/{group}/chat/threads/{thread}/messages/{message}/remove'
+            .replaceAll(
+              '{'
+              r'group'
+              '}',
+              group.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'thread'
+              '}',
+              thread.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'message'
+              '}',
+              message.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(groupChatMessageRemoval);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatMutationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatMutationResponse, GroupChatMutationResponse>(
+              rawData,
+              'GroupChatMutationResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatMutationResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1588,6 +2749,490 @@ class ActivitiesApi {
     }
 
     return Response<ActivityGroupStaffResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Send an immutable group message with exact UUID replay
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [thread]
+  /// * [groupChatMessageCreate]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatMutationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatMutationResponse>> sendGroupChatMessage({
+    required int group,
+    required String thread,
+    required GroupChatMessageCreate groupChatMessageCreate,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/threads/{thread}/messages'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'thread'
+          '}',
+          thread.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(groupChatMessageCreate);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatMutationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatMutationResponse, GroupChatMutationResponse>(
+              rawData,
+              'GroupChatMutationResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatMutationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Update school role-pair policy without granting conversation access
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [groupChatPolicyChange]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatPolicyResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatPolicyResponse>> setGroupChatPolicy({
+    required GroupChatPolicyChange groupChatPolicyChange,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/chat-policy';
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(groupChatPolicyChange);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatPolicyResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatPolicyResponse, GroupChatPolicyResponse>(
+              rawData,
+              'GroupChatPolicyResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatPolicyResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Close or reopen an authorized conversation
+  /// Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and source read. Allocated staff supervise their own groups; families need current approved learner membership and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded draft with a new UUID.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [thread]
+  /// * [groupChatThreadStateChange]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [GroupChatMutationResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<GroupChatMutationResponse>> setGroupChatThreadState({
+    required int group,
+    required String thread,
+    required GroupChatThreadStateChange groupChatThreadStateChange,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/chat/threads/{thread}/state'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'thread'
+          '}',
+          thread.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(groupChatThreadStateChange);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    GroupChatMutationResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<GroupChatMutationResponse, GroupChatMutationResponse>(
+              rawData,
+              'GroupChatMutationResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<GroupChatMutationResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Attach a scanned private PDF or sanitized photo
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [operationId]
+  /// * [materialRevision]
+  /// * [document]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ActivityMaterialAttachmentChangeResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ActivityMaterialAttachmentChangeResponse>>
+  uploadActivityMaterialFile({
+    required int group,
+    required int material,
+    required String operationId,
+    required int materialRevision,
+    required MultipartFile document,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/materials/{material}/files'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'material'
+          '}',
+          material.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'multipart/form-data',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = FormData.fromMap(<String, dynamic>{
+        r'operation_id': operationId,
+        r'material_revision': materialRevision,
+        r'document': document,
+      });
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ActivityMaterialAttachmentChangeResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ActivityMaterialAttachmentChangeResponse,
+              ActivityMaterialAttachmentChangeResponse
+            >(
+              rawData,
+              'ActivityMaterialAttachmentChangeResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ActivityMaterialAttachmentChangeResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

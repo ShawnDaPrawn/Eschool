@@ -37,6 +37,7 @@ class ActivityGroups
         $reason = ['reason' => ['required', 'string', 'min:3', 'max:2000']];
 
         return match ($action) {
+            'show' => ['page' => ['sometimes', 'integer', 'between:1,10000'], 'session_year_id' => ['sometimes', 'integer', 'min:1'], 'chat_persona' => ['sometimes', 'in:staff,parent,student']],
             'create','save' => $base + $dates + ['session_year_id' => ['required', 'integer', 'min:1'], 'parent_id' => ['nullable', 'integer', 'min:1'], 'name' => ['required', 'string', 'max:191'], 'discipline' => ['required', 'string', 'max:100'], 'season' => ['required', 'string', 'max:100'],
                 'gender' => ['required', Rule::in(['any', 'male', 'female'])], 'minimum_grade' => ['nullable', 'integer', 'between:0,12'], 'maximum_grade' => ['nullable', 'integer', 'between:0,12'],
                 'minimum_age' => ['nullable', 'integer', 'between:0,25'], 'maximum_age' => ['nullable', 'integer', 'between:0,25'], 'active' => ['required', 'boolean']],

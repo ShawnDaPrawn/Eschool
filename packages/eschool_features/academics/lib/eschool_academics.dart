@@ -50,6 +50,8 @@ export 'src/cover/cover_repository.dart';
 export 'src/cover/cover_screen.dart';
 
 export 'src/activities/activity_repository.dart';
+export 'src/activities/activity_file_repository.dart';
+export 'src/activities/activity_files_screen.dart';
 export 'src/activities/activity_groups_screen.dart';
 
 export 'src/growth/mastery_repository.dart';
@@ -128,3 +130,35 @@ export 'src/tutor/tutor_session_boundary.dart';
 export 'src/tutor/tutor_working_crop.dart';
 export 'src/my_grade/my_grade_client_screen.dart';
 export 'src/my_grade/my_grade_private_action.dart';
+export 'src/teaching/teaching_repository.dart';
+export 'src/teaching/teaching_screen.dart';
+export 'src/teaching/teaching_session_boundary.dart';
+
+export 'src/family_forms/family_form_repository.dart';
+export 'src/family_forms/family_form_session_boundary.dart';
+export 'src/family_forms/family_forms_screen.dart';
+export 'src/family_forms/family_health_screen.dart';
+export 'src/family_forms/health_profile_adapter.dart';
+
+export 'src/exam_coach/exam_repository.dart';
+export 'src/exam_coach/exam_screen.dart';
+export 'src/exam_coach/exam_session_boundary.dart';
+
+export 'src/private/private_pending_intent.dart';
+
+export 'src/activities/group_chat_repository.dart';
+export 'src/activities/group_chat_screen.dart';
+export 'src/family_visits/family_visit_repository.dart';
+export 'src/family_visits/family_visit_session_boundary.dart';
+export 'src/family_visits/family_visits_screen.dart';
+
+export 'src/pathways/pathway_repository.dart';
+export 'src/pathways/pathway_screen.dart';
+export 'src/pathways/pathway_session_boundary.dart';
+
+export 'src/peer_tutoring/peer_repository.dart';
+export 'src/peer_tutoring/peer_screen.dart';
+export 'src/peer_tutoring/peer_session_boundary.dart';
+export 'src/assistance/assistance_repository.dart';
+export 'src/assistance/assistance_screen.dart';
+export 'src/assistance/assistance_session_boundary.dart';

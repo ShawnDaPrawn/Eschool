@@ -11,6 +11,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- **Platform admin area (`/saas`), first version.** Platform staff can see every school with its package and counts of learners, parents and teachers, set up a school with its first administrator (a one-time password, shown once), change its package and modules, and suspend, archive or restore it with a reason. It reads no person's record and is closed to school administrators. Opening it needs both a platform staff identity and an expiring grant set from the operator console. Support access into a school, imports and usage/health views are not part of this version. **Deploy:** run the migration, then `php artisan platform:staff-identity <user_id>` and `php artisan platform:admin-access <user_id> --hours=8` for each operator.
+
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
 
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
@@ -39,6 +41,8 @@ Earlier history is kept where it was written and is not repeated here:
 - Integrate dependency PRs #48, #49, #50, #53, #55, #56, #57, #59 and #60, including their compatibility migrations. Pin Flutter CI and deployment builds to 3.47.7 / Dart 3.13.5 for Google Fonts 9; preserve the Material type scale and refresh all affected lockfiles. File Picker 13 supports both apps' attachments and single-file uploads. TeX 5 starts its renderer, keeps question and answer views independent, and loads its bundled browser bridge; release phones allow its device-local asset server. Image 4 supports all legacy image helpers as well as tenant uploads. Add regression checks for image encoding, school role revocation, checkout setup/cancellation, typography and rendered exam maths.
 
 ### Security
+
+- Private group conversation drafts keep their conversation type, audience and private reply target after validation errors. Destinations are checked again before retaining text; unavailable targets discard the draft rather than selecting a broader audience. Reply drafts are not copied into the new-conversation form.
 
 - Pin the shared web, worker and scheduler image and PHP CI jobs to PHP 8.3.36 for CVE-2026-109618 and CVE-2026-109619 (PHP2Shell). CI now verifies the built runtime and Apache configuration. **Deploy:** rebuild and replace all three roles; existing containers remain vulnerable until updated. See `engineering/runbooks/deploy.md`.
 

@@ -49,4 +49,8 @@ return [
     'discipline.hearing_requested' => ['label' => 'Principal hearing review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'discipline.detention_updated' => ['label' => 'Supervised detention updates', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'digest.weekly' => ['label' => 'Weekly learning update', 'module' => 'digest', 'portals' => ['parent'], 'channels' => $on],
+    'school_assistance.parent_update' => ['label' => 'School support replies', 'module' => 'ask_school', 'portals' => ['parent'], 'channels' => $on],
+    'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on],
 ];

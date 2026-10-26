@@ -13,13 +13,20 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
+use App\Http\Controllers\Api\V2\Activities\GroupChatController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
+use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
+use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
+use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
+use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
+use App\Http\Controllers\Api\V2\FamilyVisits\VisitController;
 use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
@@ -33,6 +40,8 @@ use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
+use App\Http\Controllers\Api\V2\Pathways\PathwayController;
+use App\Http\Controllers\Api\V2\PeerTutoring\PeerController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -67,6 +76,9 @@ use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\CardDeviceContext;
+use App\Http\Middleware\CardEncoderContext;
+use App\Http\Middleware\FoundationCredentialContext;
+use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -150,6 +162,33 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
 });
+
+Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups,read'])
+    ->name('api.v2.activity-files.')->group(function () {
+        $c = ActivityFileController::class;
+        Route::get('/', [$c, 'listing'])->name('listing');
+        Route::post('/', [$c, 'upload'])->name('upload');
+        Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
+        Route::post('{file}/remove', [$c, 'remove'])->whereUuid('file')->name('remove');
+    });
+
+Route::prefix('activities')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups,read', 'module:chat,read'])
+    ->name('api.v2.group-chat.')->group(function () {
+        $c = GroupChatController::class;
+        Route::get('chat-policy', [$c, 'policy'])->name('policy');
+        Route::put('chat-policy', [$c, 'policySave'])->name('policy-save');
+        Route::prefix('groups/{group}/chat')->where(['group' => '[1-9][0-9]{0,17}'])->group(function () use ($c) {
+            Route::get('operations/{operation}', [$c, 'receipt'])->whereUuid('operation')->name('receipt');
+            Route::get('threads', [$c, 'index'])->name('index');
+            Route::post('threads', [$c, 'create'])->name('create');
+            Route::get('threads/{thread}', [$c, 'show'])->whereUuid('thread')->name('show');
+            Route::post('threads/{thread}/messages', [$c, 'send'])->whereUuid('thread')->name('send');
+            Route::post('threads/{thread}/state', [$c, 'state'])->whereUuid('thread')->name('state');
+            Route::post('threads/{thread}/messages/{message}/remove', [$c, 'remove'])->whereUuid('thread')->where('message', '[1-9][0-9]{0,17}')->name('remove');
+            Route::post('threads/{thread}/read', [$c, 'markRead'])->whereUuid('thread')->name('mark-read');
+        });
+    });
 
 Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {
     $c = GroupController::class;
@@ -610,6 +649,8 @@ Route::prefix('cards')->name('api.v2.cards.')->middleware([PrivateDomainResponse
 // Dedicated credentials cannot authorize any normal user endpoint.
 Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
     $controller = CardController::class;
+    Route::get('offline/snapshot', [CardOfflineController::class, 'snapshot'])->name('offline.snapshot');
+    Route::post('offline/reconcile', [CardOfflineController::class, 'reconcile'])->name('offline.reconcile');
     Route::post('scan/qr', [$controller, 'scan'])->name('qr');
     Route::post('scan/sun', [$controller, 'scan'])->name('sun');
     Route::get('scans/{scan}/portrait', [$controller, 'portrait'])->whereUuid('scan')->name('portrait');
@@ -639,6 +680,9 @@ Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::get('sessions', [$c, 'index'])->name('index');
     Route::post('sessions', [$c, 'create'])->middleware('throttle:20,1')->name('create');
     Route::get('sessions/{session}', [$c, 'show'])->whereUuid('session')->name('show');
+    Route::post('sessions/{session}/checkpoints', [$c, 'issueCheckpoint'])->whereUuid('session')->middleware('throttle:20,1')->name('checkpoints.issue');
+    Route::get('sessions/{session}/checkpoints/{checkpoint}', [$c, 'checkpoint'])->whereUuid(['session', 'checkpoint'])->name('checkpoints.show');
+    Route::post('sessions/{session}/checkpoints/{checkpoint}/answer', [$c, 'answerCheckpoint'])->whereUuid(['session', 'checkpoint'])->middleware('throttle:20,1')->name('checkpoints.answer');
     Route::post('sessions/{session}/close', [$c, 'close'])->whereUuid('session')->name('close');
     Route::post('sessions/{session}/messages', [$c, 'send'])->whereUuid('session')->middleware('throttle:20,1')->name('send');
     Route::get('sessions/{session}/turns/{operation}', [$c, 'turn'])->whereUuid('session')->whereUuid('operation')->name('turn');
@@ -669,6 +713,11 @@ Route::prefix('exam-coach')->middleware([PrivateDomainResponse::class, 'auth:san
     $c = ExamCoachController::class;
     Route::get('configuration', [$c, 'configuration'])->name('configuration');
     Route::prefix('staff/groups/{group}')->whereNumber('group')->name('staff.')->group(function () use ($c) {
+        Route::get('operations/{operation}', [$c, 'operation'])->whereUuid('operation')->name('operation');
+        Route::get('answers', [$c, 'staffAnswers'])->name('answers');
+        Route::get('answers/{answer}', [$c, 'staffAnswer'])->whereUuid('answer')->name('answer');
+        Route::get('answers/{answer}/photo', [$c, 'staffAnswerPhoto'])->whereUuid('answer')->name('answer-photo');
+        Route::post('answers/{answer}/review', [$c, 'reviewAnswer'])->whereUuid('answer')->name('answer-review');
         Route::get('choices', [$c, 'choices'])->name('choices');
         Route::get('papers', [$c, 'staffPapers'])->name('papers');
         Route::post('papers', [$c, 'draft'])->name('draft');
@@ -680,12 +729,19 @@ Route::prefix('exam-coach')->middleware([PrivateDomainResponse::class, 'auth:san
         Route::get('versions/{version}/memo', [$c, 'staffMemo'])->whereUuid('version')->name('memo');
     });
     Route::prefix('groups/{group}')->whereNumber('group')->group(function () use ($c) {
+        Route::post('versions/{version}/answers', [$c, 'uploadAnswer'])->whereUuid('version')->middleware('throttle:20,1')->name('answer-upload');
         Route::get('papers', [$c, 'learnerPapers'])->name('papers');
         Route::get('versions/{version}', [$c, 'learnerVersion'])->whereUuid('version')->name('version');
         Route::get('versions/{version}/paper', [$c, 'learnerPaper'])->whereUuid('version')->name('paper');
         Route::get('exams', [$c, 'dates'])->name('exams');
         Route::post('plans', [$c, 'createPlan'])->name('create-plan');
     });
+    Route::get('answer-operations/{operation}', [$c, 'answerOperation'])->whereUuid('operation')->name('answer-operation');
+    Route::get('answers', [$c, 'answers'])->name('answers');
+    Route::get('answers/{answer}', [$c, 'answer'])->whereUuid('answer')->name('answer');
+    Route::get('answers/{answer}/photo', [$c, 'answerPhoto'])->whereUuid('answer')->name('answer-photo');
+    Route::post('answers/{answer}/feedback', [$c, 'sendAnswer'])->whereUuid('answer')->middleware('throttle:20,1')->name('answer-feedback');
+    Route::post('answers/{answer}/revoke', [$c, 'revokeAnswer'])->whereUuid('answer')->name('answer-revoke');
     Route::get('plans', [$c, 'plans'])->name('plans');
     Route::get('plans/{plan}', [$c, 'plan'])->whereUuid('plan')->name('plan');
 });
@@ -711,4 +767,111 @@ Route::prefix('test-insights')->name('api.v2.test-insights.')->middleware([Priva
     Route::get('configuration', [$c, 'insightConfiguration'])->name('configuration');
     Route::get('groups/{group}', [$c, 'insightChoices'])->whereNumber('group')->name('choices');
     Route::get('groups/{group}/tasks/{task}', [$c, 'insights'])->whereNumber('group')->whereNumber('task')->name('show');
+});
+
+// Family visits have a separate module; cancellation remains possible after shutdown.
+Route::prefix('family-visits')->name('api.v2.family-visits.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = VisitController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('meetings', [$controller, 'read'])->name('meetings.list');
+    Route::post('meetings', [$controller, 'write'])->name('meetings.create');
+    Route::post('meetings/{slot}/book', [$controller, 'write'])->whereUuid('slot')->name('meetings.book');
+    Route::post('meetings/{slot}/unbook', [$controller, 'write'])->whereUuid('slot')->name('meetings.unbook');
+    Route::post('meetings/{slot}/cancel', [$controller, 'write'])->whereUuid('slot')->name('meetings.cancel');
+    Route::get('passes', [$controller, 'read'])->name('passes.list');
+    Route::post('passes', [$controller, 'write'])->name('passes.request');
+    Route::post('passes/{pass}/approve', [$controller, 'write'])->whereUuid('pass')->name('passes.approve');
+    Route::post('passes/{pass}/cancel', [$controller, 'write'])->whereUuid('pass')->name('passes.cancel');
+    Route::put('rules', [$controller, 'write'])->name('rules.save');
+});
+
+// A user bearer token cannot exercise delegated gate-reader collection authority.
+Route::prefix('card-device')->name('api.v2.family-visits.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    $controller = VisitController::class;
+    Route::get('scans/{scan}/gate-passes', [$controller, 'read'])->whereUuid('scan')->name('lookup');
+    Route::post('gate-passes/{pass}/collect', [$controller, 'write'])->whereUuid('pass')->name('collect');
+});
+
+Route::prefix('school-assistance')->name('api.v2.school-assistance.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:ask_school'])->group(function () {
+    $controller = AssistanceController::class;
+    $get = function (string $path, string $action) use ($controller): void {
+        Route::get($path, [$controller, 'read'])->whereNumber('learner')->whereUuid(['document', 'thread', 'turn'])->defaults('assistance_action', $action)->name($action);
+    };
+    $post = function (string $path, string $action) use ($controller): void {
+        Route::post($path, [$controller, 'write'])->whereNumber('learner')->whereUuid(['document', 'thread', 'turn'])->defaults('assistance_action', $action)->name($action);
+    };
+    $get('configuration', 'configuration');
+    $get('family/learners/{learner}/documents', 'documents');
+    $get('family/learners/{learner}/documents/{document}', 'document');
+    $get('family/learners/{learner}/threads', 'threads');
+    $post('family/learners/{learner}/threads', 'thread.open');
+    $post('family/learners/{learner}/answers', 'answer.prepare');
+    $post('family/learners/{learner}/translations', 'translation.prepare');
+    $get('threads/{thread}', 'thread.read');
+    $post('threads/{thread}/reply', 'thread.reply');
+    $post('threads/{thread}/close', 'thread.close');
+    $get('turns/{turn}', 'turn.read');
+    $post('turns/{turn}/run', 'turn.run');
+    $get('office/queue', 'office.queue');
+    $get('office/staff', 'office.staff');
+    $get('office/documents', 'office.documents');
+    $get('office/documents/{document}', 'office.document');
+    $post('office/documents', 'office.publish');
+    $post('office/documents/{document}/withdraw', 'office.withdraw');
+    $post('office/threads/{thread}/claim', 'office.claim');
+    $post('office/threads/{thread}/reassign', 'office.reassign');
+    $post('office/learners/{learner}/translations', 'office.translation');
+});
+
+// Source maintenance is a write; private hypothetical projections persist nothing.
+Route::prefix('pathways')->name('api.v2.pathways.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:pathway,read', 'throttle:60,1'])->group(function () {
+    $controller = PathwayController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('references', [$controller, 'index'])->name('references.index');
+    Route::get('references/{reference}', [$controller, 'show'])->whereUuid('reference')->name('references.show');
+    Route::post('references', [$controller, 'store'])->middleware('module:pathway,write')->name('references.store');
+    Route::put('references/{reference}', [$controller, 'update'])->whereUuid('reference')->middleware('module:pathway,write')->name('references.update');
+    Route::post('references/{reference}/projection', [$controller, 'project'])->whereUuid('reference')->name('projection');
+});
+
+// Supervised staff writes and purpose-bound read-only family arrangements.
+Route::prefix('peer-tutoring')->name('api.v2.peer.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:peer_tutoring,read', 'throttle:60,1'])->group(function () {
+    $controller = PeerController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('groups/{group}/learners', [$controller, 'learners'])->whereNumber('group')->name('learners');
+    Route::get('groups/{group}/learners/{learner}/matches', [$controller, 'matches'])->whereNumber(['group', 'learner'])->name('matches');
+    Route::get('sessions', [$controller, 'index'])->name('sessions.index');
+    Route::get('sessions/{session}', [$controller, 'show'])->whereUuid('session')->name('sessions.show');
+    Route::post('sessions', [$controller, 'store'])->middleware('module:peer_tutoring,write')->name('sessions.store');
+    Route::post('sessions/{session}/complete', [$controller, 'complete'])->whereUuid('session')->middleware('module:peer_tutoring,write')->name('sessions.complete');
+    Route::post('sessions/{session}/cancel', [$controller, 'cancel'])->whereUuid('session')->name('sessions.cancel');
+    Route::post('sessions/{session}/reverse', [$controller, 'reverse'])->whereUuid('session')->middleware('module:peer_tutoring,write')->name('sessions.reverse');
+});
+
+// Classroom credentials are purpose-bound and never authenticate a User.
+Route::prefix('foundation-classroom')->name('api.v2.foundation.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', FoundationStaffContext::class])->group(function () {
+    $c = FoundationController::class;
+    Route::get('configuration', [$c, 'configuration'])->defaults('foundation_action', 'configuration')->name('configuration');
+    Route::post('groups/{group}/eligibility', [$c, 'staffWrite'])->whereNumber('group')->defaults('foundation_action', 'eligibility')->name('eligibility');
+    Route::post('devices', [$c, 'staffWrite'])->defaults('foundation_action', 'register')->name('register');
+    Route::delete('devices/{device}', [$c, 'staffWrite'])->whereUuid('device')->defaults('foundation_action', 'device-revoke')->name('device-revoke');
+    Route::post('authorizations', [$c, 'staffWrite'])->defaults('foundation_action', 'grant')->name('grant');
+    Route::delete('authorizations/{lease}', [$c, 'staffWrite'])->whereUuid('lease')->defaults('foundation_action', 'revoke')->name('revoke');
+});
+Route::prefix('foundation-device')->name('api.v2.foundation.device.')->middleware([PrivateDomainResponse::class, FoundationCredentialContext::class.':device', 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    Route::post('select', [FoundationController::class, 'device'])->defaults('foundation_action', 'select')->name('select');
+});
+Route::prefix('foundation-learner')->name('api.v2.foundation.learner.')->middleware([PrivateDomainResponse::class, FoundationCredentialContext::class.':learner', 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    $c = FoundationController::class;
+    Route::get('context', [$c, 'learner'])->defaults('foundation_action', 'context')->name('context');
+    Route::post('practice', [$c, 'learner'])->defaults('foundation_action', 'issue')->name('issue');
+    Route::get('practice/{set}', [$c, 'learner'])->whereNumber('set')->defaults('foundation_action', 'read')->name('read');
+    Route::post('practice/{set}/entries/{entry}/review', [$c, 'learner'])->whereNumber(['set', 'entry'])->defaults('foundation_action', 'review')->name('review');
+    Route::post('leave', [$c, 'learner'])->defaults('foundation_action', 'leave')->name('leave');
+});
+
+// Registered encoders have no gate, classroom or ordinary account authority.
+Route::prefix('card-encoder')->name('api.v2.cards.encoder.')->middleware([PrivateDomainResponse::class, CardEncoderContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    Route::get('plans/{plan}', [CardEncodingController::class, 'download'])->whereUuid('plan')->name('download');
+    Route::post('plans/{plan}/confirm', [CardEncodingController::class, 'confirm'])->whereUuid('plan')->name('confirm');
 });

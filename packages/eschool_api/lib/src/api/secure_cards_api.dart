@@ -27,11 +27,120 @@ import 'package:eschool_api/src/model/secure_card_restore.dart';
 import 'package:eschool_api/src/model/secure_card_revocation_response.dart';
 import 'package:eschool_api/src/model/secure_card_scan_receipt_response.dart';
 import 'package:eschool_api/src/model/secure_card_sun_scan.dart';
+import 'package:eschool_api/src/model/secure_encoding_confirmation.dart';
+import 'package:eschool_api/src/model/secure_encoding_envelope_response.dart';
+import 'package:eschool_api/src/model/secure_encoding_receipt_response.dart';
+import 'package:eschool_api/src/model/secure_offline_receipt_response.dart';
+import 'package:eschool_api/src/model/secure_offline_reconciliation.dart';
+import 'package:eschool_api/src/model/secure_offline_snapshot_response.dart';
 
 class SecureCardsApi {
   final Dio _dio;
 
   const SecureCardsApi(this._dio);
+
+  /// Confirm the exact chip plan using a fresh SUN proof.
+  /// Registered encoder credentials only, with fresh explicit encoding, card and reader management authority. Current school, original preparation authority, person/approval and revision are checked before keys, writes and replay. No collection, classroom or user session is created. Private writes reject query input and unknown fields.
+  ///
+  /// Parameters:
+  /// * [plan]
+  /// * [secureEncodingConfirmation]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [SecureEncodingReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<SecureEncodingReceiptResponse>> confirmSecureEncodingPlan({
+    required String plan,
+    required SecureEncodingConfirmation secureEncodingConfirmation,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/card-encoder/plans/{plan}/confirm'.replaceAll(
+      '{'
+      r'plan'
+      '}',
+      plan.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'CardEncoderCredential'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(secureEncodingConfirmation);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    SecureEncodingReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              SecureEncodingReceiptResponse,
+              SecureEncodingReceiptResponse
+            >(rawData, 'SecureEncodingReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<SecureEncodingReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
 
   /// freezeSecureCard
   /// Current school/person/card authority is checked on every read and operation replay. Device credentials are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are separate.
@@ -792,6 +901,181 @@ class SecureCardsApi {
     );
   }
 
+  /// Download an encrypted chip plan.
+  /// Registered encoder credentials only, with fresh explicit encoding, card and reader management authority. Current school, original preparation authority, person/approval and revision are checked before keys, writes and replay. No collection, classroom or user session is created. Private writes reject query input and unknown fields.
+  ///
+  /// Parameters:
+  /// * [plan]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [SecureEncodingEnvelopeResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<SecureEncodingEnvelopeResponse>> getSecureEncodingPlan({
+    required String plan,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/card-encoder/plans/{plan}'.replaceAll(
+      '{'
+      r'plan'
+      '}',
+      plan.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'CardEncoderCredential'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    SecureEncodingEnvelopeResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              SecureEncodingEnvelopeResponse,
+              SecureEncodingEnvelopeResponse
+            >(rawData, 'SecureEncodingEnvelopeResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<SecureEncodingEnvelopeResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Prepare one encrypted, short-lived identity roster page for this reader.
+  /// Fresh gate delegation, issuer, school and card source checks precede encrypted private portraits. This is identity-only and grants no collection or sign-in authority.
+  ///
+  /// Parameters:
+  /// * [requestId] - Fresh random challenge echoed inside the signed roster; never reuse it for a cache reload.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [afterCardId]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [SecureOfflineSnapshotResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<SecureOfflineSnapshotResponse>> getSecureOfflineSnapshot({
+    required String requestId,
+    int? xSchoolId,
+    String? afterCardId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/card-device/offline/snapshot';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'CardDeviceCredential'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      r'request_id': requestId,
+      if (afterCardId != null) r'after_card_id': afterCardId,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    SecureOfflineSnapshotResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              SecureOfflineSnapshotResponse,
+              SecureOfflineSnapshotResponse
+            >(rawData, 'SecureOfflineSnapshotResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<SecureOfflineSnapshotResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// issueSecureCard
   /// Current school/person/card authority is checked on every read and operation replay. Device credentials are isolated from user authentication. Online scanning only; offline, encoding and classroom workflows are separate.
   ///
@@ -999,6 +1283,102 @@ class SecureCardsApi {
     }
 
     return Response<SecureCardCredentialResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Reconcile one signed offline identity scan without granting access.
+  /// Exact operation replay is metadata-only and rechecks the reader. Current identity, revision, signature epochs and global nonce use are checked before recording history. An offline log cannot authorize collection, sign-in or private portrait delivery.
+  ///
+  /// Parameters:
+  /// * [secureOfflineReconciliation]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [SecureOfflineReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<SecureOfflineReceiptResponse>> reconcileSecureOfflineScan({
+    required SecureOfflineReconciliation secureOfflineReconciliation,
+    int? xSchoolId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/card-device/offline/reconcile';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'CardDeviceCredential'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(secureOfflineReconciliation);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    SecureOfflineReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              SecureOfflineReceiptResponse,
+              SecureOfflineReceiptResponse
+            >(rawData, 'SecureOfflineReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<SecureOfflineReceiptResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:eschool_teacher/ui/widgets/groupChatNoticeAction.dart';
+import 'package:eschool_teacher/ui/widgets/schoolAssistanceNoticeAction.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_teacher/app/routes.dart';
 import 'package:eschool_teacher/cubits/notificationCubit.dart';
@@ -186,6 +188,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         textAlign: TextAlign.start,
                       ),
+                      if (notification.type ==
+                          'school_assistance.office_update')
+                        SchoolAssistanceNoticeAction(
+                          noticeId: notification.id,
+                          schoolId: notification.schoolId,
+                          readerId: notification.readerId,
+                        ),
+                      if (notification.type == 'group_chat.staff_update')
+                        GroupChatNoticeAction(
+                          noticeId: notification.id,
+                          schoolId: notification.schoolId,
+                          readerId: notification.readerId,
+                        ),
                       if (notification.type == 'consultations.opened' ||
                           notification.type == 'consultations.staff_opened')
                         Align(

@@ -52,9 +52,23 @@ class RiskViews
             ->orderByDesc('id')->get()->unique(fn ($r) => $r->learner_id.':'.$r->source);
 
         return ['session_year_id' => $year, 'page' => $people->currentPage(), 'last_page' => $people->lastPage(),
-            'learners' => $people->map(fn ($learner) => ['learner_id' => (int) $learner->id, 'name' => trim($learner->user->first_name.' '.$learner->user->last_name),
-                'signals' => $rows->where('learner_id', $learner->id)->map(fn ($r) => ['source' => $r->source, 'score' => $r->score,
-                    'signal_count' => $r->signal_count, 'reason_code' => $r->reason_code, 'grade_level_id' => (int) $r->grade_level_id, 'as_of' => $r->as_of->toDateString()])->values()->all()])->all()];
+            'learners' => $people->map(function ($learner) use ($rows, $actor, $year): array {
+                $signals = $rows->where('learner_id', $learner->id)->map(function ($row) use ($actor, $year, $learner): array {
+                    $signal = ['source' => $row->source, 'score' => $row->score, 'signal_count' => $row->signal_count,
+                        'reason_code' => $row->reason_code, 'grade_level_id' => (int) $row->grade_level_id, 'as_of' => $row->as_of->toDateString()];
+                    if ($row->source === 'wellbeing') {
+                        $count = app(CounsellorCaseContext::class)->count($actor, (int) $learner->id, $year, (int) $row->grade_level_id);
+                        if ($count !== null) {
+                            $signal = array_replace($signal, ['score' => null, 'signal_count' => $count,
+                                'reason_code' => 'own_authorised_active_cases', 'as_of' => app(AcademicAuthority::class)->today()]);
+                        }
+                    }
+
+                    return $signal;
+                })->values()->all();
+
+                return ['learner_id' => (int) $learner->id, 'name' => trim($learner->user->first_name.' '.$learner->user->last_name), 'signals' => $signals];
+            })->all()];
     }
 
     /** Allocated teachers receive academic/attendance facts, never professional source counts. */

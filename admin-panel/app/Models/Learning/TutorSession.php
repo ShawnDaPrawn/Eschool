@@ -23,6 +23,6 @@ class TutorSession extends Model
 
     protected function casts(): array
     {
-        return ['source_version_ids' => 'encrypted:array'];
+        return ['source_version_ids' => 'encrypted:array', 'topic_id' => 'integer'];
     }
 }

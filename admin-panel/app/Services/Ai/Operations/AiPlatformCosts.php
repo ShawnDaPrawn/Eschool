@@ -20,7 +20,7 @@ class AiPlatformCosts
         $fresh = User::where('status', 1)->findOrFail($actor->id);
         abort_if($fresh->password_change_required, 403);
         abort_unless(PlatformStaffIdentity::where('user_id', $fresh->id)->where('active', true)->exists()
-            && PlatformAiCostGrant::where('user_id', $fresh->id)->where('active', true)->where('expires_at', '>', now())->exists(), 403);
+            && PlatformAiCostGrant::where('user_id', $fresh->id)->where('active', true)->where('expires_at', '>', now()->utc())->exists(), 403);
 
         return $fresh;
     }

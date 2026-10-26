@@ -18,3 +18,16 @@ export 'src/testing/practice_fixtures.dart';
 export 'src/testing/gallery_fixtures.dart';
 
 export 'src/testing/card_fixtures.dart';
+
+export 'src/testing/family_form_fixtures.dart';
+
+export 'src/testing/family_visit_fixtures.dart';
+
+export 'src/testing/activity_file_fixtures.dart';
+export 'src/testing/exam_coach_fixture.dart';
+
+export 'src/testing/pathway_fixture.dart';
+export 'src/testing/group_chat_fixtures.dart';
+
+export 'src/testing/peer_fixture.dart';
+export 'src/testing/assistance_fixtures.dart';

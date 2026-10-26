@@ -29,6 +29,7 @@ return [
     */
 
     'disks' => [
+        'activity_private' => ['driver' => 'local', 'root' => storage_path('app/private/activity-materials'), 'visibility' => 'private', 'directory_visibility' => 'private', 'throw' => true],
         'cards_private' => ['driver' => 'local', 'root' => storage_path('app/private/cards'), 'visibility' => 'private', 'throw' => true],
         'gallery_private' => ['driver' => 'local', 'root' => storage_path('app/private/gallery'), 'visibility' => 'private', 'throw' => true],
         'admissions_private' => [

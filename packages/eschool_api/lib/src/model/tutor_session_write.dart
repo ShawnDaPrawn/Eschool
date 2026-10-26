@@ -21,6 +21,8 @@ class TutorSessionWrite {
     required this.groupId,
 
     required this.sourceVersionIds,
+
+    this.topicId,
   });
 
   @JsonKey(name: r'operation_id', required: true, includeIfNull: false)
@@ -33,17 +35,25 @@ class TutorSessionWrite {
   @JsonKey(name: r'source_version_ids', required: true, includeIfNull: false)
   final Set<int> sourceVersionIds;
 
+  // minimum: 1
+  @JsonKey(name: r'topic_id', required: false, includeIfNull: false)
+  final int? topicId;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is TutorSessionWrite &&
           other.operationId == operationId &&
           other.groupId == groupId &&
-          other.sourceVersionIds == sourceVersionIds;
+          other.sourceVersionIds == sourceVersionIds &&
+          other.topicId == topicId;
 
   @override
   int get hashCode =>
-      operationId.hashCode + groupId.hashCode + sourceVersionIds.hashCode;
+      operationId.hashCode +
+      groupId.hashCode +
+      sourceVersionIds.hashCode +
+      (topicId == null ? 0 : topicId.hashCode);
 
   factory TutorSessionWrite.fromJson(Map<String, dynamic> json) =>
       _$TutorSessionWriteFromJson(json);

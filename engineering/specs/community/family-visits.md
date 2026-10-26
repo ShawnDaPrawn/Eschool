@@ -1,0 +1,9 @@
+# Parents’ evenings and early collection
+
+Phase 4 adds school-managed meeting slots, verified guardian bookings and staff-approved early-collection passes. `family_visits` is separately switchable and defaults off; Health access is not a dependency. Meeting hosts see only their own appointments. School administrators need the explicit `family-visits-manage` permission; neither a client flavour nor platform impersonation grants it.
+
+All writes serialize on the school, compare source revisions, validate fresh guardian/current approved enrolment, and keep encrypted exact-operation receipts and immutable audit events. Host, learner and guardian appointments cannot overlap. School wall-clock input resolves through the existing DST-safe converter; persisted/API instants use UTC. Cancellation never deletes audit history. Pending guardian requests never constitute collection permission.
+
+Gate readers use the existing delegated gate credential and a recent online accepted learner card scan from that same device. A lookup returns only currently approved passes in their collection window, with collector name for a human identity check. Collection requires explicit collector confirmation, exact pass revision and a recent matching scan; a pass is consumed once. Every lookup/collection rechecks reader delegation, card state, current enrolment, approval and guardian link. Offline identification cannot approve collection. Parent revocation remains available when the optional module is disabled. Staff approval cannot survive a guardian withdrawal.
+
+Automated verification covers duplicate booking, overlap, cancellation and stale retries, guardian/staff ownership, tenant isolation, invalid/DST times, encrypted storage, reader/scan mismatch, expiry/revocation and double collection. Panel, Parent/staff entry and gate workbench evidence will be recorded separately from device, hardware and school acceptance.

@@ -182,50 +182,44 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               .image,
                         ),
                         SizedBox(width: boxConstraints.maxWidth * 0.04),
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: boxConstraints.maxWidth * 0.5,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context
-                                        .read<AuthCubit>()
-                                        .getParentDetails()
-                                        .getFullName(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onInverseSurface,
-                                    ),
-                                  ),
-                                  Text(
-                                    context
-                                        .read<AuthCubit>()
-                                        .getParentDetails()
-                                        .email,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w400,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onInverseSurface,
-                                    ),
-                                  ),
-                                ],
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context
+                                    .read<AuthCubit>()
+                                    .getParentDetails()
+                                    .getFullName(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onInverseSurface,
+                                ),
                               ),
-                            ),
-                          ],
+                              Text(
+                                context
+                                    .read<AuthCubit>()
+                                    .getParentDetails()
+                                    .email,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onInverseSurface,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        const Spacer(),
                         //only for a parent at more than one school
                         const SchoolSwitcherButton(
                           onSwitched: returnHomeAfterSchoolSwitch,
@@ -735,6 +729,11 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                     const FamilyTutorEntry(),
                                     const FamilyProgressEntry(),
                                     const FamilyRecognitionEntry(),
+                                    const FamilyFormsEntry(),
+                                    const FamilyVisitsEntry(),
+                                    const PathwayEntry(),
+                                    const PeerTutoringEntry(),
+                                    const SchoolAssistanceEntry(),
                                     const SchoolCardsEntry(),
                                     const FamilyPrivateGalleryEntry(),
                                     const FamilyWeeklyDigestEntry(),

@@ -38,15 +38,21 @@ use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
+use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Activities\GroupChatPanelController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
 use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
+use App\Http\Controllers\Panel\Assistance\AssistancePanelController;
+use App\Http\Controllers\Panel\Cards\CardEncodingPanelController;
 use App\Http\Controllers\Panel\Cards\CardPanelController;
+use App\Http\Controllers\Panel\Classroom\FoundationPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
+use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
@@ -55,6 +61,8 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
+use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
+use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
@@ -68,6 +76,7 @@ use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
+use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
@@ -88,14 +97,17 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeCardEncodingPanel;
 use App\Http\Middleware\AuthorizeCardsPanel;
 use App\Http\Middleware\AuthorizeConsultationPanel;
 use App\Http\Middleware\AuthorizeFamilyFormsPanel;
 use App\Http\Middleware\AuthorizeGalleryPanel;
+use App\Http\Middleware\AuthorizeGroupChatPanel;
 use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\EnforceReadOnlyYears;
+use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -159,6 +171,25 @@ Route::middleware('school.context:public')->group(function () {
         Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
         Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
     });
+});
+
+// An operator's own password has a separate purpose: pending accounts may
+// settle it, but cannot enter /saas or any school through this route.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:password'])->group(function () {
+    Route::view('saas/password', 'saas.password')->name('saas.password');
+    Route::post('saas/password', [HomeController::class, 'changePassword'])->middleware('throttle:password')->name('saas.password.store');
+});
+
+// The platform admin area: active platform staff identities only, in no school
+// (no school.context). It lists schools and their counts, never their people.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
+    Route::get('/', [SaasController::class, 'index'])->name('index');
+    Route::get('/schools/create', [SaasController::class, 'create'])->name('schools.create');
+    Route::post('/schools', [SaasController::class, 'store'])->middleware('throttle:20,1')->name('schools.store');
+    Route::get('/schools/{school}', [SaasController::class, 'show'])->whereNumber('school')->name('schools.show');
+    Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->whereNumber('school')->name('schools.package');
+    Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->whereNumber('school')->name('schools.status');
+    Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->whereNumber('school')->name('schools.modules');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
@@ -261,6 +292,18 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('subjects/{subject}/refresh', [$controller, 'refresh'])->whereNumber('subject')->name('refresh');
             Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->name('rebuild');
         });
+        // This purpose resolves the material's actual year in ActivityFiles:
+        // uploads require its current writable year; removal stays available.
+        Route::prefix('activity-material-files/groups/{group}/materials/{material}')->name('activity-files.')
+            ->whereNumber(['group', 'material'])
+            ->withoutMiddleware([EnforceReadOnlyYears::class])
+            ->middleware([PrivateDomainResponse::class, 'module:groups,read'])->group(function () {
+                $c = ActivityFilePanelController::class;
+                Route::get('/', [$c, 'index'])->name('listing');
+                Route::post('/', [$c, 'write'])->name('upload');
+                Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
+                Route::post('{file}/remove', [$c, 'write'])->whereUuid('file')->name('remove');
+            });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
             Route::get('/', [$c, 'index'])->name('index');
@@ -926,6 +969,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
 });
 
 Route::view('card-reader', 'cards.scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.index');
+Route::view('card-reader/offline', 'cards.offline-scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.offline');
 
 // Every staff form resolves its actual group/year before private fields.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeFamilyFormsPanel::class])->prefix('family-forms')->name('family-forms-panel.')->group(function () {
@@ -937,3 +981,66 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
     Route::get('consents/{consent}/managed', [$controller, 'show'])->whereUuid('consent')->defaults('operation', 'managed')->name('managed');
     Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->defaults('operation', 'cancel')->name('cancel');
 });
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('family-visits')->name('family-visits-panel.')->group(function () {
+    $controller = VisitPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('{operation}', [$controller, 'write'])->whereIn('operation', ['meeting-create', 'meeting-cancel', 'pass-approve', 'pass-cancel', 'rules'])->name('write');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:pathway,read'])->prefix('pathways')->name('pathways-panel.')->group(function () {
+    $controller = PathwayPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('new/{kind}', [$controller, 'form'])->whereIn('kind', ['programme', 'subject_choice_guide'])->name('new');
+    Route::get('references/{reference}/edit', [$controller, 'form'])->whereUuid('reference')->name('edit');
+    Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
+    Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
+    $controller = AssistancePanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('threads/{thread}', [$controller, 'index'])->whereUuid('thread')->name('thread');
+    Route::post('threads/{thread}/{operation}', [$controller, 'write'])->whereUuid('thread')->whereIn('operation', ['claim', 'reply', 'close', 'reassign', 'translate'])->name('thread-write');
+    Route::post('documents', [$controller, 'write'])->defaults('operation', 'publish')->name('publish');
+    Route::post('documents/{document}/withdraw', [$controller, 'write'])->whereUuid('document')->defaults('operation', 'withdraw')->name('withdraw');
+    Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {
+    $controller = PeerPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('sessions', [$controller, 'write'])->defaults('action', 'create')->name('create');
+    Route::post('sessions/{session}/{action}', [$controller, 'write'])->whereUuid('session')->whereIn('action', ['complete', 'cancel', 'reverse'])->name('change');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeGroupChatPanel::class])
+    ->prefix('group-conversations')->name('group-chat-panel.')->group(function () {
+        $controller = GroupChatPanelController::class;
+        Route::get('/', [$controller, 'index'])->name('index');
+        Route::get('groups/{group}', [$controller, 'index'])->whereNumber('group')->name('group');
+        Route::get('groups/{group}/threads/{thread}', [$controller, 'index'])->whereNumber('group')->whereUuid('thread')->name('show');
+        Route::get('groups/{group}/lease/{thread?}', [$controller, 'lease'])->whereNumber('group')->whereUuid('thread')->name('lease');
+        Route::post('groups/{group}/create', [$controller, 'write'])->whereNumber('group')->defaults('operation', 'create')->name('create');
+        Route::post('groups/{group}/threads/{thread}/{operation}', [$controller, 'write'])->whereNumber('group')->whereUuid('thread')->whereIn('operation', ['send', 'state'])->name('write');
+        Route::post('groups/{group}/threads/{thread}/messages/{message}/remove', [$controller, 'write'])->whereNumber('group')->whereUuid('thread')->whereNumber('message')->defaults('operation', 'remove')->name('remove');
+    });
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', FoundationStaffContext::class])->prefix('foundation-classrooms')->name('foundation-panel.')->group(function () {
+    $c = FoundationPanelController::class;
+    Route::get('/', [$c, 'index'])->defaults('foundation_action', 'configuration')->name('index');
+    Route::post('groups/{group}/eligibility', [$c, 'write'])->whereNumber('group')->defaults('foundation_action', 'eligibility')->name('eligibility');
+    Route::post('devices', [$c, 'write'])->defaults('foundation_action', 'register')->name('register');
+    Route::post('devices/{device}/revoke', [$c, 'write'])->whereUuid('device')->defaults('foundation_action', 'device-revoke')->name('device-revoke');
+    Route::post('authorizations', [$c, 'write'])->defaults('foundation_action', 'grant')->name('grant');
+    Route::post('authorizations/{lease}/revoke', [$c, 'write'])->whereUuid('lease')->defaults('foundation_action', 'revoke')->name('revoke');
+});
+Route::view('foundation-classroom', 'classroom.device')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('foundation-classroom.device');
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardEncodingPanel::class])->prefix('school-cards/cards/{card}/encoding')->whereUuid('card')->name('cards-encoding.')->group(function () {
+    Route::get('/', [CardEncodingPanelController::class, 'index'])->name('index');
+    Route::post('/', [CardEncodingPanelController::class, 'prepare'])->name('prepare');
+});
+
+Route::get('school-cards/encoder-runtime', [CardEncodingPanelController::class, 'runtime'])->middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardEncodingPanel::class])->name('cards-encoding.runtime');
+Route::view('card-tap', 'cards.tap')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('cards.tap');

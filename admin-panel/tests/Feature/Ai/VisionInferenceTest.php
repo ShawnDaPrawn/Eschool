@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Support\SyntheticWorkingPaper;
 use Tests\TestCase;
 
 class VisionInferenceTest extends TestCase
@@ -106,6 +107,34 @@ class VisionInferenceTest extends TestCase
         $this->assertStringNotContainsString(base64_encode(VisionProbeResolver::$image->bytes), json_encode(DB::table('ai_usage')->first()));
         $this->assertSame(['approved-photo:opaque-photo-1'], $usage->inference_sources);
         $this->assertSame(0, AiQuarantineSnapshot::count());
+    }
+
+    public function test_camera_like_paper_crop_reaches_moderation_and_inference_with_existing_image_token_allowance(): void
+    {
+        $original = SyntheticWorkingPaper::bytes();
+        $this->assertLessThanOrEqual(4194304, strlen($original));
+        $image = app(VisionPhotoCropper::class)->crop('opaque-photo-1', $original, ['x' => 100, 'y' => 150, 'width' => 1000, 'height' => 1200], true);
+        $this->assertGreaterThan(524288, strlen($image->bytes));
+        $this->assertLessThanOrEqual(1048576, strlen($image->bytes));
+        $this->assertSame([640, 768], array_slice(getimagesizefromstring($image->bytes), 0, 2));
+        VisionProbeResolver::$image = $image;
+        $this->assertSame('A bounded working hint.', $this->inferProbe()->output);
+        Http::assertSentCount(3);
+        $this->assertSame(140, AiUsage::firstOrFail()->used_units);
+        $manifest = VisionProbeResolver::input();
+        $this->assertSame(strlen($manifest->text) + 8192, ResolvedVisionInput::units($manifest->payload()));
+        Http::assertSent(fn ($sent) => str_ends_with($sent->url(), '/chat/completions') && strlen($sent->body()) > 262144 && strlen($sent->body()) <= 5242880);
+        $pixels = imagecreatefromstring($image->bytes);
+        $ink = 0;
+        for ($y = 0; $y < imagesy($pixels); $y++) {
+            for ($x = 0; $x < imagesx($pixels); $x++) {
+                if ((imagecolorat($pixels, $x, $y) & 255) < 100) {
+                    $ink++;
+                }
+            }
+        }
+        imagedestroy($pixels);
+        $this->assertGreaterThan(100, $ink, 'Normalization retains the selected working strokes.');
     }
 
     public function test_missing_media_registry_and_generic_staff_vision_fail_before_reservation(): void

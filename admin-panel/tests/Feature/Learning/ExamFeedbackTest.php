@@ -34,11 +34,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Concerns\UsesPracticeScenario;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class ExamFeedbackTest extends TestCase
 {
-    use UsesPracticeScenario;
+    use UsesPracticeScenario, ValidatesOpenApiResponses;
 
     private array $paper;
 
@@ -267,7 +268,7 @@ class ExamFeedbackTest extends TestCase
     public function test_revocation_deletes_own_private_crop_and_expired_working_never_reads(): void
     {
         $row = $this->upload();
-        app(ExamWorkingPhotos::class)->revoke($this->actor('asha'), $row['id']);
+        app(ExamWorkingPhotos::class)->revoke($this->actor('asha'), $row['id'], (string) Str::uuid());
         $this->assertSame([], Storage::disk(ExamWorkingPhotos::DISK)->allFiles());
         $this->refuses(fn () => app(ExamAnswerAccess::class)->image($this->actor('asha'), $row['id']), 404);
         $this->assertSame('purged', app(ExamFeedback::class)->read($this->actor('asha'), $row['id'])['state']);
@@ -286,7 +287,7 @@ class ExamFeedbackTest extends TestCase
         LearnerApproval::updateOrCreate(['learner_id' => $this->schoolA->ids['ben'], 'guardian_user_id' => $this->actor('farid')->id],
             ['consent_version' => config('identity.consent_version'), 'consented_at' => now(), 'withdrawn_at' => null]);
         $this->refuses(fn () => app(ExamFeedback::class)->read($reader, $row['id']), 404);
-        $this->refuses(fn () => app(ExamWorkingPhotos::class)->revoke($reader, $row['id']), 404);
+        $this->refuses(fn () => app(ExamWorkingPhotos::class)->revoke($reader, $row['id'], (string) Str::uuid()), 404);
         $this->assertNull(ExamAnswer::findOrFail($row['id'])->revoked_at);
     }
 
@@ -320,5 +321,154 @@ class ExamFeedbackTest extends TestCase
         $this->assertSame('Expired private working review', ExamAnswerReview::findOrFail($review['id'])->reason);
         $this->assertNull($answer->refresh()->response);
         $this->assertSame(1, AiUsage::count());
+    }
+
+    private function signIn(string $name = 'asha'): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $this->withToken($this->schoolA->tokens[$name])->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->actor($name)->id]);
+    }
+
+    private function uploadHttp(string $operation): array
+    {
+        return $this->post('/api/v2/exam-coach/groups/'.$this->group.'/versions/'.$this->paper['version_id'].'/answers',
+            ['operation_id' => $operation, 'question_number' => '1', 'photo' => $this->file(), 'approved' => true, 'share_with_teacher' => true,
+                'crop_x' => 0, 'crop_y' => 30, 'crop_width' => 40, 'crop_height' => 20], ['Accept' => 'application/json'])
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+    }
+
+    public function test_real_http_upload_status_vision_and_teacher_review_are_private_and_recoverable(): void
+    {
+        $this->signIn();
+        $base = '/api/v2/exam-coach';
+        $operation = (string) Str::uuid();
+        $receipt = $this->uploadHttp($operation);
+        $this->assertSame($receipt, $this->uploadHttp($operation));
+        $path = $base.'/answers/'.$receipt['id'];
+        $this->getJson($base.'/answer-operations/'.$operation)->assertOk()->assertJsonPath('data.id', $receipt['id']);
+        $this->getJson($base.'/answers')->assertOk()->assertJsonPath('data.answers.0.id', $receipt['id'])->assertJsonMissingPath('data.answers.0.working');
+        $this->get($path.'/photo', ['Accept' => 'application/json'])->assertOk()->assertHeader('Content-Type', 'image/png')->assertHeader('Referrer-Policy', 'no-referrer');
+        $request = ['operation_id' => $operation, 'working' => ''];
+        $feedback = $this->postJson($path.'/feedback', $request)->assertOk()->assertJsonPath('data.state', 'completed')->assertJsonPath('data.response.confidence_basis_points', 7300)->json('data');
+        $this->postJson($path.'/feedback', $request)->assertOk()->assertJsonPath('data', $feedback);
+        $this->getJson($path)->assertOk()->assertJsonPath('data.response.mark_units', 500)->assertDontSee('Private memo:');
+        Http::assertSentCount(3);
+        $this->signIn('tara');
+        $staff = $base.'/staff/groups/'.$this->group;
+        $this->getJson($staff.'/answers')->assertOk()->assertJsonPath('data.answers.0.id', $receipt['id'])->assertJsonMissingPath('data.answers.0.working');
+        $this->getJson($staff.'/answers/'.$receipt['id'])->assertOk()->assertJsonPath('data.response.confidence_basis_points', 7300);
+        $this->get($staff.'/answers/'.$receipt['id'].'/photo', ['Accept' => 'application/json'])->assertOk()->assertHeader('Content-Type', 'image/png');
+        $input = ['operation_id' => (string) Str::uuid(), 'expected_revision' => $feedback['revision'], 'mark_units' => 600, 'reason' => 'PRIVATE-HTTP-TEACHER-REVIEW-CANARY'];
+        $review = $this->postJson($staff.'/answers/'.$receipt['id'].'/review', $input)->assertOk()->json('data');
+        $this->postJson($staff.'/answers/'.$receipt['id'].'/review', $input)->assertOk()->assertJsonPath('data', $review);
+        $this->getJson($staff.'/operations/'.$input['operation_id'])->assertOk()->assertJsonPath('data.kind', 'answer_review')->assertJsonPath('data.review.id', $review['id'])->assertDontSee('PRIVATE-HTTP-TEACHER-REVIEW-CANARY');
+        $this->signIn();
+        $this->getJson($path)->assertOk()->assertJsonPath('data.review.mark_units', 600)->assertJsonPath('data.provisional', false);
+        $revoke = ['operation_id' => (string) Str::uuid()];
+        $this->postJson($path.'/revoke', $revoke)->assertOk()->assertJsonPath('data.state', 'purged');
+        $this->postJson($path.'/revoke', $revoke)->assertOk()->assertJsonPath('data.state', 'purged');
+        $this->get($path.'/photo', ['Accept' => 'application/json'])->assertNotFound();
+    }
+
+    public function test_http_output_quarantine_refuses_teacher_and_student_photos_without_restoring_private_input(): void
+    {
+        $this->signIn();
+        $this->invalidOutput = true;
+        $operation = (string) Str::uuid();
+        $receipt = $this->uploadHttp($operation);
+        $path = '/api/v2/exam-coach/answers/'.$receipt['id'];
+        $this->postJson($path.'/feedback', ['operation_id' => $operation, 'working' => 'PRIVATE-HTTP-WORKING-CANARY'])->assertOk()->assertJsonPath('data.state', 'quarantined')->assertJsonPath('data.response', null)->assertDontSee('PRIVATE-HTTP-WORKING-CANARY');
+        $this->getJson($path)->assertOk()->assertJsonMissingPath('data.working')->assertJsonPath('data.state', 'quarantined');
+        $this->get($path.'/photo', ['Accept' => 'application/json'])->assertNotFound();
+        $this->signIn('tara');
+        $staff = '/api/v2/exam-coach/staff/groups/'.$this->group;
+        $this->getJson($staff.'/answers')->assertOk()->assertJsonCount(0, 'data.answers');
+        $this->getJson($staff.'/answers/'.$receipt['id'])->assertNotFound()->assertDontSee('PRIVATE-HTTP-WORKING-CANARY');
+        $this->get($staff.'/answers/'.$receipt['id'].'/photo', ['Accept' => 'application/json'])->assertNotFound();
+    }
+
+    public function test_http_feedback_private_query_wrong_intent_parent_and_changed_account_are_refused(): void
+    {
+        $this->signIn();
+        $receipt = $this->uploadHttp((string) Str::uuid());
+        $path = '/api/v2/exam-coach/answers/'.$receipt['id'];
+        $this->postJson($path.'/feedback', ['operation_id' => (string) Str::uuid(), 'working' => 'Synthetic'])->assertConflict();
+        $this->postJson($path.'/feedback?working=PRIVATE-QUERY-CANARY', ['operation_id' => $receipt['operation_id'], 'working' => 'Synthetic'])->assertUnprocessable()->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->postJson($path.'/feedback', ['operation_id' => $receipt['operation_id'], 'working' => 'Synthetic', 'memo' => 'Injected'])->assertUnprocessable();
+        $this->withHeader('X-Account-Id', (string) $this->actor('farid')->id)->getJson($path)->assertForbidden()->assertJsonMissingPath('data.working');
+        $this->signIn('farid');
+        $this->getJson($path)->assertNotFound();
+        $this->postJson($path.'/feedback', ['operation_id' => $receipt['operation_id'], 'working' => 'Synthetic'])->assertNotFound();
+        Http::assertNothingSent();
+        $this->assertSame([], session()->getOldInput());
+    }
+
+    public function test_each_feedback_route_reaches_authentication_and_private_refusal_headers(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders();
+        $u = '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        $base = '/api/v2/exam-coach';
+        $staff = $base.'/staff/groups/1';
+        foreach ([['GET', $staff.'/operations/'.$u], ['GET', $staff.'/answers'], ['GET', $staff.'/answers/'.$u], ['GET', $staff.'/answers/'.$u.'/photo'], ['POST', $staff.'/answers/'.$u.'/review'],
+            ['POST', $base.'/groups/1/versions/'.$u.'/answers'], ['GET', $base.'/answer-operations/'.$u], ['GET', $base.'/answers'], ['GET', $base.'/answers/'.$u],
+            ['GET', $base.'/answers/'.$u.'/photo'], ['POST', $base.'/answers/'.$u.'/feedback'], ['POST', $base.'/answers/'.$u.'/revoke']] as [$method, $path]) {
+            $this->json($method, $path)->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer')->assertHeader('X-Content-Type-Options', 'nosniff');
+        }
+    }
+
+    public function test_disabled_photo_feedback_is_explicit_while_licensed_papers_remain_available(): void
+    {
+        $this->signIn();
+        $this->getJson('/api/v2/exam-coach/configuration')->assertOk()->assertJsonPath('data.photo_feedback_enabled', true);
+        config(['ai.inference.features.exam_coach.enabled' => false]);
+        $this->getJson('/api/v2/exam-coach/configuration')->assertOk()->assertJsonPath('data.photo_feedback_enabled', false);
+        $this->getJson('/api/v2/exam-coach/groups/'.$this->group.'/papers')->assertOk()->assertJsonPath('data.papers.0.version_id', $this->paper['version_id']);
+        Http::assertNothingSent();
+    }
+
+    public function test_recent_files_do_not_starve_an_older_orphan_beyond_the_first_scan_batch(): void
+    {
+        $row = $this->upload();
+        $disk = Storage::disk(ExamWorkingPhotos::DISK);
+        $prefix = app(CurrentSchool::class)->storagePath('exam-working');
+        $active = ExamAnswer::findOrFail($row['id']);
+        touch($disk->path($active->path), now('UTC')->subDays(2)->timestamp);
+        for ($i = 0; $i < 200; $i++) {
+            $id = '00000000-0000-4000-8000-'.str_pad((string) $i, 12, '0', STR_PAD_LEFT);
+            $path = $prefix.'/'.$id.'.enc';
+            $disk->put($path, 'RECENT-UNRESOLVED-WRITE-CANARY');
+            touch($disk->path($path), now('UTC')->timestamp);
+        }
+        $orphan = $prefix.'/ffffffff-ffff-4fff-8fff-ffffffffffff.enc';
+        $disk->put($orphan, 'EXPIRED-ORPHAN-CANARY');
+        touch($disk->path($orphan), now('UTC')->subDays(2)->timestamp);
+        app(ExamWorkingPhotos::class)->prune();
+        $disk->assertMissing($orphan);
+        $disk->assertExists($active->path);
+        $this->assertNull($active->refresh()->purged_at);
+        $this->assertCount(201, $disk->allFiles());
+    }
+
+    public function test_purged_audit_rows_do_not_retain_pixels_and_orphan_deletion_is_bounded(): void
+    {
+        $receipt = $this->upload();
+        $row = ExamAnswer::findOrFail($receipt['id']);
+        $disk = Storage::disk(ExamWorkingPhotos::DISK);
+        $prefix = app(CurrentSchool::class)->storagePath('exam-working');
+        $oldPath = $row->path;
+        $row->update(['purged_at' => now('UTC'), 'path' => null]);
+        touch($disk->path($oldPath), now('UTC')->subDays(2)->timestamp);
+        for ($i = 0; $i < 200; $i++) {
+            $path = $prefix.'/00000000-0000-4000-8000-'.str_pad((string) $i, 12, '0', STR_PAD_LEFT).'.enc';
+            $disk->put($path, 'EXPIRED-ORPHAN');
+            touch($disk->path($path), now('UTC')->subDays(2)->timestamp);
+        }
+        app(ExamWorkingPhotos::class)->prune();
+        $this->assertCount(1, $disk->allFiles());
+        app(ExamWorkingPhotos::class)->prune();
+        $this->assertSame([], $disk->allFiles());
+        $this->assertNotNull($row->refresh()->purged_at);
     }
 }

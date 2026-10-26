@@ -153,6 +153,7 @@ class Routes {
   static const String weeklyDigest = '/learning/weekly-digest';
   static const String tutor = '/learning/tutor';
   static const String tutorSummary = '/learning/tutor-summary';
+  static const String examCoach = '/learning/exam-coach';
   static const String dailyPractice = '/learning/practice';
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
@@ -160,6 +161,11 @@ class Routes {
   static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
   static const String schoolTransfers = '/academics/transfers';
+  static const String familyForms = '/family-forms';
+  static const String familyVisits = '/family-visits';
+  static const String peerTutoring = '/peer-tutoring';
+  static const String pathway = '/pathways';
+  static const String schoolAssistance = '/ask-school';
   static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
@@ -186,8 +192,14 @@ class Routes {
       reportConcern => 'wellbeing',
       mastery => 'mastery',
       consultations => 'consultations',
+      familyForms => 'family_forms',
+      familyVisits => 'family_visits',
+      peerTutoring => 'peer_tutoring',
+      pathway => 'pathway',
+      schoolAssistance => 'ask_school',
       schoolCards => 'cards',
       tutor || tutorSummary => 'tutor',
+      examCoach => 'exam_coach',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -408,10 +420,22 @@ class Routes {
         return tutorRoute(summary: false);
       case tutorSummary:
         return tutorRoute(summary: true);
+      case examCoach:
+        return examCoachRoute();
       case dailyPractice:
         return dailyPracticeRoute();
       case mastery:
         return masteryRoute();
+      case pathway:
+        return pathwayRoute();
+      case peerTutoring:
+        return peerTutoringRoute();
+      case schoolAssistance:
+        return schoolAssistanceRoute();
+      case familyVisits:
+        return familyVisitsRoute();
+      case familyForms:
+        return familyFormsRoute();
       case schoolCards:
         return schoolCardsRoute();
       case consultations:

@@ -21,13 +21,20 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'foundation_classroom_groups', 'foundation_classroom_leases',
+        'peer_tutoring_sessions', 'service_hours', 'peer_tutoring_operations',
+        'activity_chat_policies', 'activity_chat_threads', 'activity_chat_messages', 'activity_chat_reads',
+        'school_assistance_notice_intents',
+        'school_knowledge_documents', 'school_support_threads', 'school_support_messages', 'school_assistance_operations', 'school_assistance_turns',
+        'admission_requirements', 'admission_requirement_versions', 'pathway_operations',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
-        'tutor_sessions', 'tutor_messages', 'tutor_photos',
+        'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
         'past_papers', 'past_paper_versions', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
         'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',
         'ai_quarantine_snapshots',
         'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations',
+        'family_visit_rules', 'meeting_slots', 'gate_passes', 'family_visit_operations', 'family_visit_events',
         'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
         'cards', 'card_keys', 'card_portraits', 'card_reader_devices', 'card_chip_profiles', 'card_qr_uses', 'card_scan_logs', 'card_classroom_sessions', 'card_events', 'card_operations',
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
@@ -45,7 +52,7 @@ final class SchoolOwnedTables
         'support_assignments', 'support_plans', 'support_plan_versions', 'support_reviews', 'support_disclosures', 'support_operations',
         'cover_absences', 'cover_assignments', 'cover_operations',
         'mastery_settings', 'mastery_topics', 'topic_links', 'mastery_evidence', 'mastery_records', 'mastery_scopes',
-        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_operations',
+        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_material_files', 'activity_operations',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
@@ -101,6 +108,7 @@ final class SchoolOwnedTables
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
+        'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',

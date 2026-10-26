@@ -102,6 +102,8 @@ Schedule::call(function () {
 
 Schedule::command('gallery:prune-copies')->dailyAt('03:30')->name('gallery-private-retention')->withoutOverlapping();
 
+Schedule::command('activities:prune-material-files')->dailyAt('03:40')->name('activity-private-file-retention')->withoutOverlapping();
+
 Schedule::command('digest:weekly')->hourly()->name('school-local-monday-digests')->withoutOverlapping(55);
 Schedule::command('digest:weekly --retention')->dailyAt('03:40')->name('weekly-digest-copy-retention')->withoutOverlapping();
 
@@ -110,3 +112,10 @@ Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-
 Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-working-retention')->withoutOverlapping();
 // Temporary teaching proposals/crops expire independently of module availability.
 Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOverlapping();
+
+Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
+// Recovery also reaches a guardian verified after the original publication.
+Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-notice-recovery')->withoutOverlapping();
+
+// Privacy cleanup remains enabled when a school or module is paused.
+Schedule::command('chat:prune-groups')->hourly()->name('group-chat-retention')->withoutOverlapping();

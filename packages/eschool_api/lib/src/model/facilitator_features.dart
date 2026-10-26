@@ -16,6 +16,8 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.schoolAssistance,
+
     this.teachingAssistant,
 
     this.testInsights,
@@ -56,6 +58,10 @@ class FacilitatorFeatures {
 
     this.examCoach,
   });
+
+  /// Optional current school-office support capability; exact thread assignment is checked before every private body read.
+  @JsonKey(name: r'school_assistance', required: false, includeIfNull: false)
+  final bool? schoolAssistance;
 
   /// Optional fresh allocated-Teacher draft capability; absence means unavailable.
   @JsonKey(name: r'teaching_assistant', required: false, includeIfNull: false)
@@ -138,6 +144,7 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.schoolAssistance == schoolAssistance &&
           other.teachingAssistant == teachingAssistant &&
           other.testInsights == testInsights &&
           other.myGrade == myGrade &&
@@ -161,6 +168,7 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      schoolAssistance.hashCode +
       teachingAssistant.hashCode +
       testInsights.hashCode +
       myGrade.hashCode +

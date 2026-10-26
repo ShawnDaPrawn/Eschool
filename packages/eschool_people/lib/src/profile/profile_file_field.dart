@@ -1,12 +1,20 @@
 import 'dart:typed_data';
+
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/profile/profile_cubit.dart';
 import 'package:eschool_people/src/profile/profile_repository.dart';
+import 'package:eschool_people/src/profile/private_document_view.dart';
+import 'package:eschool_people/src/profile/profile_context_boundary.dart';
 import 'package:eschool_people/src/common/people_widgets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 typedef ProfileFilePicker = Future<ProfileUpload?> Function();
+
+/// An enclosing private route owns selection, errors and fresh authorization.
+/// It may immediately dispose this editor; no medical form is retained awaiting it.
+typedef ProfileFileSelector =
+    void Function(ProfileSubject subject, String field);
 
 Future<ProfileUpload?> pickProfileFile() async {
   final file = await FilePicker.pickFile(
@@ -33,12 +41,14 @@ class ProfileFileField extends StatelessWidget {
     required this.state,
     required this.cubit,
     this.pickFile = pickProfileFile,
+    this.selectFile,
     super.key,
   });
   final ProfileFormField field;
   final ProfileState state;
   final ProfileCubit cubit;
   final ProfileFilePicker pickFile;
+  final ProfileFileSelector? selectFile;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +74,7 @@ class ProfileFileField extends StatelessWidget {
                     state.busy || cubit.repository is! ProfileFileRepository
                     ? null
                     : () {
+                        final lease = ProfileReadScope.maybeOf(context);
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) => _ProfileFileView(
@@ -71,6 +82,7 @@ class ProfileFileField extends StatelessWidget {
                                   cubit.repository as ProfileFileRepository,
                               subject: state.subject,
                               file: file,
+                              lease: lease,
                             ),
                           ),
                         );
@@ -80,14 +92,19 @@ class ProfileFileField extends StatelessWidget {
               OutlinedButton.icon(
                 icon: const Icon(Icons.upload_file),
                 label: Text(label(profileFileUploadKey)),
-                onPressed: state.busy
+                onPressed:
+                    state.busy || (selectFile != null && state.draft.isNotEmpty)
                     ? null
                     : () async {
+                        if (selectFile != null) {
+                          selectFile!(state.subject, field.key);
+                          return;
+                        }
                         try {
                           final picked = await pickFile();
-                          if (picked == null ||
-                              !context.mounted ||
-                              cubit.isClosed) {
+                          if (picked == null) return;
+                          if (!context.mounted || cubit.isClosed) {
+                            picked.bytes.fillRange(0, picked.bytes.length, 0);
                             return;
                           }
                           if (picked.bytes.length > 5 * 1024 * 1024) {
@@ -126,6 +143,8 @@ class ProfileFileField extends StatelessWidget {
                       ? cubit.change(field, ProfileValue(clear: true))
                       : cubit.reset(field),
           ),
+        if (field.editable && selectFile != null && state.draft.isNotEmpty)
+          Text(label('Save your changes before adding a document.')),
         if (field.editable)
           Text(
             label(profileFileLimitKey),
@@ -136,115 +155,30 @@ class ProfileFileField extends StatelessWidget {
   }
 }
 
-/// Authenticated bytes live only for this route. No public URL or disk cache.
-class _ProfileFileView extends StatefulWidget {
+class _ProfileFileView extends StatelessWidget {
   const _ProfileFileView({
     required this.repository,
     required this.subject,
     required this.file,
+    this.lease,
   });
+  final ProfileReadLease? lease;
   final ProfileFileRepository repository;
   final ProfileSubject subject;
   final ProfileAttachment file;
   @override
-  State<_ProfileFileView> createState() => _ProfileFileViewState();
-}
-
-class _ProfileFileViewState extends State<_ProfileFileView> {
-  Uint8List? bytes;
-  MemoryImage? image;
-  ApiException? error;
-  bool pdfReady = false;
-  @override
-  void initState() {
-    super.initState();
-    load();
-  }
-
-  Future<void> load() async {
-    try {
-      final result = await widget.repository.readFile(
-        widget.subject,
-        widget.file,
-      );
-      if (!mounted) return;
-      setState(() {
-        bytes = result;
-        if (widget.file.mime != 'application/pdf') image = MemoryImage(result);
-      });
-    } catch (failure) {
-      if (mounted) {
-        setState(() {
-          error = failure is ApiException
-              ? failure
-              : ApiException(ApiErrorCodes.defaultErrorMessageKey);
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    image?.evict();
-    bytes = null;
-    image = null;
-    super.dispose();
-  }
-
-  void retry() {
-    image?.evict();
-    setState(() {
-      error = null;
-      bytes = null;
-      image = null;
-      pdfReady = false;
-    });
-    load();
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.file.name)),
-    body: error != null
-        ? LoadFailure(error: error!, onRetry: retry)
-        : bytes == null
-        ? const Center(child: CircularProgressIndicator())
-        : widget.file.mime == 'application/pdf'
-        ? Stack(
-            children: [
-              PdfDocumentView(
-                bytes: bytes,
-                onLoaded: () {
-                  if (mounted) {
-                    setState(() {
-                      pdfReady = true;
-                    });
-                  }
-                },
-                onError: () {
-                  if (mounted) {
-                    setState(() {
-                      error = ApiException(
-                        ApiErrorCodes.defaultErrorMessageKey,
-                      );
-                    });
-                  }
-                },
-              ),
-              if (!pdfReady) const Center(child: CircularProgressIndicator()),
-              if (pdfReady) const SizedBox(key: ValueKey('profile-file-ready')),
-            ],
-          )
-        : InteractiveViewer(
-            child: Center(
-              child: Image(
-                image: image!,
-                errorBuilder: (_, _, _) => LoadFailure(
-                  error: ApiException(ApiErrorCodes.defaultErrorMessageKey),
-                  onRetry: retry,
-                ),
-              ),
-            ),
-          ),
+  Widget build(BuildContext context) => PrivateDocumentView(
+    identity: (
+      repository,
+      subject.schoolId,
+      subject.personId,
+      subject.profileType,
+      file.id,
+    ),
+    name: file.name,
+    mime: file.mime,
+    loadBytes: () => repository.readFile(subject, file),
+    isActive: () => lease?.isActive ?? true,
+    authorizationChanges: lease,
   );
 }
