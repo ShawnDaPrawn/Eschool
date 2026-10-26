@@ -153,6 +153,7 @@ class Routes {
   static const String weeklyDigest = '/learning/weekly-digest';
   static const String tutor = '/learning/tutor';
   static const String tutorSummary = '/learning/tutor-summary';
+  static const String examCoach = '/learning/exam-coach';
   static const String dailyPractice = '/learning/practice';
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
@@ -192,6 +193,7 @@ class Routes {
       familyVisits => 'family_visits',
       schoolCards => 'cards',
       tutor || tutorSummary => 'tutor',
+      examCoach => 'exam_coach',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -412,6 +414,8 @@ class Routes {
         return tutorRoute(summary: false);
       case tutorSummary:
         return tutorRoute(summary: true);
+      case examCoach:
+        return examCoachRoute();
       case dailyPractice:
         return dailyPracticeRoute();
       case mastery:

@@ -13,7 +13,9 @@ use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\SchoolModule;
 use App\Models\Teacher;
 use App\Services\Academics\TeachingGroups;
+use App\Services\Learning\ExamCoachAccess;
 use App\Services\Learning\PastPaperLibrary;
+use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Str;
 use Tests\Concerns\UsesPracticeScenario;
 use Tests\Concerns\ValidatesOpenApiResponses;
@@ -210,5 +212,21 @@ class ExamCoachApiTest extends TestCase
         foreach ($paths as [$method, $path]) {
             $this->json($method, $path)->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer')->assertHeader('X-Content-Type-Options', 'nosniff');
         }
+    }
+
+    public function test_staff_card_availability_rechecks_school_module_and_fresh_teacher_role(): void
+    {
+        $access = app(ExamCoachAccess::class);
+        $teacher = $this->actor();
+        $this->assertTrue($access->availableStaff($teacher));
+        $this->assertFalse($access->availableStaff($this->actor('farid')));
+        $this->assertFalse($access->availableStaff($this->actor('asha')));
+        $teacher->syncRoles(['Facilitator']);
+        $this->assertFalse($access->availableStaff($teacher));
+        $teacher->syncRoles(['Teacher']);
+        $this->assertTrue($access->availableStaff($teacher));
+        SchoolModule::where('module', 'exam_coach')->update(['enabled' => false]);
+        app(ModuleGate::class)->forget();
+        $this->assertFalse($access->availableStaff($teacher));
     }
 }

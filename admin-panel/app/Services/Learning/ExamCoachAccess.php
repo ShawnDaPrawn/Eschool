@@ -18,9 +18,25 @@ use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ExamCoachAccess
 {
+    public function availableStaff(User $actor): bool
+    {
+        if (! app(ModuleGate::class)->allows('exam_coach')) {
+            return false;
+        }
+        try {
+            $fresh = $this->actor($actor);
+
+            return in_array('Teacher', app(ProfilePolicy::class)->roles($fresh), true);
+        } catch (HttpExceptionInterface|ModelNotFoundException) {
+            return false;
+        }
+    }
+
     public function actor(User $actor, bool $write = false): User
     {
         $school = app(CurrentSchool::class);
