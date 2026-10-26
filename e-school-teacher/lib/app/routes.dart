@@ -125,6 +125,7 @@ class Routes {
   static const String academicReports = '/academics/reports';
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
+  static const String examCoach = '/learning/exam-coach';
   static const String dailyPractice = '/learning/practice';
   static const String progressNotes = '/growth/progress';
   static const String myGrade = '/growth/my-grade';
@@ -168,6 +169,7 @@ class Routes {
       consultations => 'consultations',
       familyForms => 'family_forms',
       schoolCards => 'cards',
+      examCoach => 'exam_coach',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -364,6 +366,8 @@ class Routes {
         return staffRecognitionRoute();
       case riskInterventions:
         return riskInterventionsRoute();
+      case examCoach:
+        return examCoachRoute();
       case dailyPractice:
         return dailyPracticeRoute();
       case mastery:

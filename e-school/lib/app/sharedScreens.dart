@@ -2202,3 +2202,94 @@ class FamilyTutorEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> examCoachRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        account == null ||
+        !me.roles.contains('Student') ||
+        !me.isModuleOn('exam_coach') ||
+        !allowsSchoolModule(me, 'exam_coach') ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Exam Coach'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: ExamSessionBoundary(
+        pinned: me,
+        staff: false,
+        builder: (_, active) {
+          bool current() =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school);
+          return ExamScreen(
+            repository: ApiExamRepository(
+              Api.client,
+              schoolId: school,
+              readerId: account,
+              contextActive: current,
+            ),
+            staff: false,
+            canRead: current,
+            canWrite: () =>
+                current() &&
+                allowsSchoolModule(session.context, 'exam_coach', write: true),
+            selectCameraPhoto: selectTutorCameraPhoto,
+            exportPdf: (bytes, name) async {
+              if (!current()) return;
+              await DeviceFiles.saveDocument(
+                bytes,
+                'private-exports/$account/$school/$name',
+              );
+            },
+          );
+        },
+      ),
+    );
+  },
+);
+
+class ExamCoachEntry extends StatelessWidget {
+  const ExamCoachEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me?.roles.contains('Student') != true ||
+              me?.isModuleOn('exam_coach') != true ||
+              !allowsSchoolModule(me, 'exam_coach'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Exam Coach'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.examCoach),
+            ),
+          );
+        },
+      );
+}

@@ -38,6 +38,19 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    if (context.watch<MeContextCubit>().context?.roles.contains('Teacher') ==
+            true &&
+        context.watch<MeContextCubit>().context?.isModuleOn('exam_coach') ==
+            true &&
+        allowsSchoolModule(
+          context.watch<MeContextCubit>().context,
+          'exam_coach',
+        ))
+      MenuContainerDetails(
+        route: Routes.examCoach,
+        iconPath: Assets.resultIcon,
+        titleKey: 'Exam Coach',
+      ),
     for (final entry in <(String, String, String)>[
       ('teaching_assistant', Routes.teachingAssistant, 'Teaching assistant'),
       ('test_insights', Routes.testInsights, 'Test insights'),

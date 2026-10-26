@@ -20,3 +20,5 @@ export 'src/testing/gallery_fixtures.dart';
 export 'src/testing/card_fixtures.dart';
 
 export 'src/testing/family_form_fixtures.dart';
+
+export 'src/testing/exam_coach_fixture.dart';
