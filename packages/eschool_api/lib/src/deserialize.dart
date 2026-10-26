@@ -583,6 +583,27 @@ import 'package:eschool_api/src/model/get_wellbeing_access_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_configuration_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_report_response.dart';
+import 'package:eschool_api/src/model/group_chat_conversation.dart';
+import 'package:eschool_api/src/model/group_chat_conversation_response.dart';
+import 'package:eschool_api/src/model/group_chat_message.dart';
+import 'package:eschool_api/src/model/group_chat_message_create.dart';
+import 'package:eschool_api/src/model/group_chat_message_removal.dart';
+import 'package:eschool_api/src/model/group_chat_mutation.dart';
+import 'package:eschool_api/src/model/group_chat_mutation_response.dart';
+import 'package:eschool_api/src/model/group_chat_policy.dart';
+import 'package:eschool_api/src/model/group_chat_policy_change.dart';
+import 'package:eschool_api/src/model/group_chat_policy_response.dart';
+import 'package:eschool_api/src/model/group_chat_read_ack.dart';
+import 'package:eschool_api/src/model/group_chat_read_ack_response.dart';
+import 'package:eschool_api/src/model/group_chat_read_change.dart';
+import 'package:eschool_api/src/model/group_chat_receipt.dart';
+import 'package:eschool_api/src/model/group_chat_receipt_response.dart';
+import 'package:eschool_api/src/model/group_chat_thread.dart';
+import 'package:eschool_api/src/model/group_chat_thread_create.dart';
+import 'package:eschool_api/src/model/group_chat_thread_page.dart';
+import 'package:eschool_api/src/model/group_chat_thread_page_response.dart';
+import 'package:eschool_api/src/model/group_chat_thread_state_change.dart';
+import 'package:eschool_api/src/model/group_chat_thread_summary.dart';
 import 'package:eschool_api/src/model/guardian_approval.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
 import 'package:eschool_api/src/model/guardian_consent.dart';
@@ -3207,6 +3228,76 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'GetWellbeingReportResponse':
       return GetWellbeingReportResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'GroupChatAudience':
+    case 'GroupChatConversation':
+      return GroupChatConversation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatConversationResponse':
+      return GroupChatConversationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GroupChatMessage':
+      return GroupChatMessage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMessageCreate':
+      return GroupChatMessageCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMessageRemoval':
+      return GroupChatMessageRemoval.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMutation':
+      return GroupChatMutation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMutationResponse':
+      return GroupChatMutationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatOperationType':
+    case 'GroupChatPersona':
+    case 'GroupChatPolicy':
+      return GroupChatPolicy.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatPolicyChange':
+      return GroupChatPolicyChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatPolicyResponse':
+      return GroupChatPolicyResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReadAck':
+      return GroupChatReadAck.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReadAckResponse':
+      return GroupChatReadAckResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReadChange':
+      return GroupChatReadChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReceipt':
+      return GroupChatReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReceiptResponse':
+      return GroupChatReceiptResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThread':
+      return GroupChatThread.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadCreate':
+      return GroupChatThreadCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadKind':
+    case 'GroupChatThreadPage':
+      return GroupChatThreadPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadPageResponse':
+      return GroupChatThreadPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadStateChange':
+      return GroupChatThreadStateChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadSummary':
+      return GroupChatThreadSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatVisibility':
     case 'GuardianApproval':
       return GuardianApproval.fromJson(value as Map<String, dynamic>)
           as ReturnType;

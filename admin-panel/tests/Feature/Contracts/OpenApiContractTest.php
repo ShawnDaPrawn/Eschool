@@ -50,6 +50,17 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getGroupChatPolicy requires authentication' => [null, 'GET', 'api/v2/activities/chat-policy', [], 401],
+            'setGroupChatPolicy requires authentication' => [null, 'PUT', 'api/v2/activities/chat-policy', [], 401],
+            'getGroupChatOperation requires authentication' => [null, 'GET', 'api/v2/activities/groups/1/chat/operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'listGroupChatThreads requires authentication' => [null, 'GET', 'api/v2/activities/groups/1/chat/threads', [], 401],
+            'createGroupChatThread requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/chat/threads', [], 401],
+            'getGroupChatThread requires authentication' => [null, 'GET', 'api/v2/activities/groups/1/chat/threads/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'sendGroupChatMessage requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/chat/threads/8aef50e7-2429-4d2c-a523-668ae436c4d4/messages', [], 401],
+            'setGroupChatThreadState requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/chat/threads/8aef50e7-2429-4d2c-a523-668ae436c4d4/state', [], 401],
+            'removeGroupChatMessage requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/chat/threads/8aef50e7-2429-4d2c-a523-668ae436c4d4/messages/1/remove', [], 401],
+            'markGroupChatThreadRead requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/chat/threads/8aef50e7-2429-4d2c-a523-668ae436c4d4/read', [], 401],
+
             'getSchoolAssistanceConfiguration requires authentication' => [null, 'GET', 'api/v2/school-assistance/configuration', [], 401],
             'listSchoolAssistanceDocuments requires authentication' => [null, 'GET', 'api/v2/school-assistance/family/learners/1/documents', [], 401],
             'getSchoolAssistanceDocument requires authentication' => [null, 'GET', 'api/v2/school-assistance/family/learners/1/documents/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],

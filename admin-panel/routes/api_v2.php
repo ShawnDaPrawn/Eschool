@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
+use App\Http\Controllers\Api\V2\Activities\GroupChatController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
@@ -156,13 +157,30 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
 });
 
 Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])
-    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups'])
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups,read'])
     ->name('api.v2.activity-files.')->group(function () {
         $c = ActivityFileController::class;
         Route::get('/', [$c, 'listing'])->name('listing');
         Route::post('/', [$c, 'upload'])->name('upload');
         Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
         Route::post('{file}/remove', [$c, 'remove'])->whereUuid('file')->name('remove');
+    });
+
+Route::prefix('activities')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups,read', 'module:chat,read'])
+    ->name('api.v2.group-chat.')->group(function () {
+        $c = GroupChatController::class;
+        Route::get('chat-policy', [$c, 'policy'])->name('policy');
+        Route::put('chat-policy', [$c, 'policySave'])->name('policy-save');
+        Route::prefix('groups/{group}/chat')->where(['group' => '[1-9][0-9]{0,17}'])->group(function () use ($c) {
+            Route::get('operations/{operation}', [$c, 'receipt'])->whereUuid('operation')->name('receipt');
+            Route::get('threads', [$c, 'index'])->name('index');
+            Route::post('threads', [$c, 'create'])->name('create');
+            Route::get('threads/{thread}', [$c, 'show'])->whereUuid('thread')->name('show');
+            Route::post('threads/{thread}/messages', [$c, 'send'])->whereUuid('thread')->name('send');
+            Route::post('threads/{thread}/state', [$c, 'state'])->whereUuid('thread')->name('state');
+            Route::post('threads/{thread}/messages/{message}/remove', [$c, 'remove'])->whereUuid('thread')->where('message', '[1-9][0-9]{0,17}')->name('remove');
+            Route::post('threads/{thread}/read', [$c, 'markRead'])->whereUuid('thread')->name('mark-read');
+        });
     });
 
 Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {

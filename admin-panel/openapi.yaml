@@ -5067,10 +5067,10 @@ paths:
       tags:
       - Academics
       summary: getTimetableConfiguration
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5110,10 +5110,10 @@ paths:
       - Academics
       summary: getTimetableWeek
       description: Omit starts_on for the current school-local week and omit session_year_id for its school calendar.
-      x-scope-notes: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      x-scope-notes: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5164,10 +5164,10 @@ paths:
       tags:
       - Academics
       summary: getNextAcademicPeriod
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5206,10 +5206,10 @@ paths:
       tags:
       - Academics
       summary: createAcademicRoom
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5249,10 +5249,10 @@ paths:
       tags:
       - Academics
       summary: updateAcademicRoom
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5298,10 +5298,10 @@ paths:
       tags:
       - Academics
       summary: createAcademicBells
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5341,10 +5341,10 @@ paths:
       tags:
       - Academics
       summary: updateAcademicBells
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5390,10 +5390,10 @@ paths:
       tags:
       - Academics
       summary: previewAcademicTimetable
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5433,10 +5433,10 @@ paths:
       tags:
       - Academics
       summary: commitAcademicTimetable
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5476,10 +5476,10 @@ paths:
       tags:
       - Academics
       summary: importAcademicTimetable
-      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
-        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
-        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
-        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
+      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
+        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
+        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
+        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -7638,6 +7638,13 @@ paths:
         schema:
           type: integer
           minimum: 1
+      - name: chat_persona
+        in: query
+        required: false
+        description: Explicit current app persona. Only opted-in replies include chat_available; this parameter
+          never grants group or conversation access.
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
       responses:
         '200':
           description: Read an authorized activity group and materials.
@@ -24608,6 +24615,581 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SchoolAssistanceTranslationRequest'
+  /activities/chat-policy:
+    get:
+      operationId: getGroupChatPolicy
+      tags:
+      - Activities
+      summary: Read the school role-pair conversation policy
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Read the school role-pair conversation policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatPolicyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      operationId: setGroupChatPolicy
+      tags:
+      - Activities
+      summary: Update school role-pair policy without granting conversation access
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Update school role-pair policy without granting conversation access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatPolicyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatPolicyChange'
+  /activities/groups/{group}/chat/operations/{operation}:
+    get:
+      operationId: getGroupChatOperation
+      tags:
+      - Activities
+      summary: Recover an owned metadata-only conversation outcome
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: persona
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
+      responses:
+        '200':
+          description: Recover an owned metadata-only conversation outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /activities/groups/{group}/chat/threads:
+    get:
+      operationId: listGroupChatThreads
+      tags:
+      - Activities
+      summary: List authorized group conversation summaries
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: persona
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
+      - name: before
+        in: query
+        required: false
+        schema:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      responses:
+        '200':
+          description: List authorized group conversation summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatThreadPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createGroupChatThread
+      tags:
+      - Activities
+      summary: Open a supervised announcement or private question
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Open a supervised announcement or private question
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatThreadCreate'
+  /activities/groups/{group}/chat/threads/{thread}:
+    get:
+      operationId: getGroupChatThread
+      tags:
+      - Activities
+      summary: Read fresh authorized conversation messages
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: persona
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
+      - name: before_message_id
+        in: query
+        required: false
+        schema:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+      responses:
+        '200':
+          description: Read fresh authorized conversation messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatConversationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /activities/groups/{group}/chat/threads/{thread}/messages:
+    post:
+      operationId: sendGroupChatMessage
+      tags:
+      - Activities
+      summary: Send an immutable group message with exact UUID replay
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Send an immutable group message with exact UUID replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatMessageCreate'
+  /activities/groups/{group}/chat/threads/{thread}/state:
+    post:
+      operationId: setGroupChatThreadState
+      tags:
+      - Activities
+      summary: Close or reopen an authorized conversation
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Close or reopen an authorized conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatThreadStateChange'
+  /activities/groups/{group}/chat/threads/{thread}/messages/{message}/remove:
+    post:
+      operationId: removeGroupChatMessage
+      tags:
+      - Activities
+      summary: Remove authorized message text with a private reason
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Remove authorized message text with a private reason
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatMessageRemoval'
+  /activities/groups/{group}/chat/threads/{thread}/read:
+    post:
+      operationId: markGroupChatThreadRead
+      tags:
+      - Activities
+      summary: Advance the persona-specific visible message read cursor
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Advance the persona-specific visible message read cursor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatReadAckResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatReadChange'
 components:
   securitySchemes:
     bearerAuth:
@@ -24833,7 +25415,7 @@ components:
           type: boolean
         learner_ids:
           type: array
-          description: Only the caller’s own eligible children in this group; never a roster.
+          description: "Only the caller\u2019s own eligible children in this group; never a roster."
           items:
             type: integer
             minimum: 1
@@ -28674,7 +29256,8 @@ components:
       properties:
         school_assistance:
           type: boolean
-          description: Optional current school-office support capability; exact thread assignment is checked before every private body read.
+          description: Optional current school-office support capability; exact thread assignment is checked before
+            every private body read.
         teaching_assistant:
           type: boolean
           description: Optional fresh allocated-Teacher draft capability; absence means unavailable.
@@ -39345,6 +39928,10 @@ components:
           type: boolean
         can_capture:
           type: boolean
+        chat_available:
+          type: boolean
+          description: Only present when chat_persona was supplied; fresh current persona/group/module/policy access,
+            independent of group management permission.
     ActivityGroupRoster:
       type: object
       additionalProperties: false
@@ -52874,22 +53461,25 @@ components:
         reader_id:
           type: integer
           minimum: 1
-        writable: &id001
+        writable:
           type: boolean
-        can_manage: *id001
+        can_manage:
+          type: boolean
         children:
           type: array
           maxItems: 200
-          items: &id002
+          items:
             $ref: '#/components/schemas/PathwayChoice'
         subjects:
           type: array
           maxItems: 500
-          items: *id002
+          items:
+            $ref: '#/components/schemas/PathwayChoice'
         years:
           type: array
           maxItems: 100
-          items: *id002
+          items:
+            $ref: '#/components/schemas/PathwayChoice'
         terms:
           type: array
           maxItems: 100
@@ -52912,7 +53502,8 @@ components:
           - 'null'
           minimum: 0
           maximum: 10000
-        counts_for_score: *id001
+        counts_for_score:
+          type: boolean
     PathwayScoreBand:
       type: object
       additionalProperties: false
@@ -53138,7 +53729,7 @@ components:
         reader_id:
           type: integer
           minimum: 1
-        reference: &id003
+        reference:
           $ref: '#/components/schemas/PathwayReference'
     PathwayReferencePage:
       type: object
@@ -53158,7 +53749,8 @@ components:
         items:
           type: array
           maxItems: 25
-          items: *id003
+          items:
+            $ref: '#/components/schemas/PathwayReference'
         next_page:
           type:
           - integer
@@ -53254,7 +53846,8 @@ components:
           - 'null'
           minimum: 0
           maximum: 10000
-        counts_for_score: *id001
+        counts_for_score:
+          type: boolean
     PathwayScoreResult:
       type: object
       additionalProperties: false
@@ -53332,7 +53925,8 @@ components:
           type: integer
           minimum: 0
           maximum: 30
-        valid: *id001
+        valid:
+          type: boolean
     PathwaySelectionResult:
       type: object
       additionalProperties: false
@@ -53342,7 +53936,8 @@ components:
       - missing_compulsory_subject_ids
       - groups
       properties:
-        valid: *id001
+        valid:
+          type: boolean
         selected_subject_ids:
           type: array
           maxItems: 50
@@ -53387,7 +53982,8 @@ components:
         grade_name:
           type: string
           maxLength: 191
-        provisional: *id001
+        provisional:
+          type: boolean
         coverage_bp:
           type: integer
           minimum: 0
@@ -53462,7 +54058,8 @@ components:
       - data
       - code
       properties:
-        error: *id001
+        error:
+          type: boolean
         message:
           type: string
           maxLength: 1000
@@ -53481,7 +54078,8 @@ components:
       - data
       - code
       properties:
-        error: *id001
+        error:
+          type: boolean
         message:
           type: string
           maxLength: 1000
@@ -53500,7 +54098,8 @@ components:
       - data
       - code
       properties:
-        error: *id001
+        error:
+          type: boolean
         message:
           type: string
           maxLength: 1000
@@ -53519,7 +54118,8 @@ components:
       - data
       - code
       properties:
-        error: *id001
+        error:
+          type: boolean
         message:
           type: string
           maxLength: 1000
@@ -54502,3 +55102,574 @@ components:
           $ref: '#/components/schemas/ErrorCode'
         details:
           type: string
+    GroupChatPersona:
+      type: string
+      enum:
+      - staff
+      - parent
+      - student
+    GroupChatAudience:
+      type: string
+      enum:
+      - learners
+      - guardians
+      - staff
+    GroupChatVisibility:
+      type: string
+      enum:
+      - thread
+      - staff
+    GroupChatThreadKind:
+      type: string
+      enum:
+      - announcement
+      - question
+    GroupChatOperationType:
+      type: string
+      enum:
+      - thread_created
+      - thread_state
+      - message_sent
+      - message_removed
+    GroupChatPolicy:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - staff_learners
+      - staff_guardians
+      - staff_staff
+      - learner_shared_replies
+      - guardian_shared_replies
+      properties:
+        revision:
+          type: integer
+          minimum: 0
+        staff_learners:
+          type: boolean
+        staff_guardians:
+          type: boolean
+        staff_staff:
+          type: boolean
+        learner_shared_replies:
+          type: boolean
+        guardian_shared_replies:
+          type: boolean
+    GroupChatThread:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - title
+      - audience
+      - private
+      - closed
+      - revision
+      - last_message_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        audience:
+          $ref: '#/components/schemas/GroupChatAudience'
+        private:
+          type: boolean
+        closed:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        last_message_at:
+          type: string
+          format: date-time
+    GroupChatThreadSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - title
+      - audience
+      - private
+      - closed
+      - revision
+      - last_message_at
+      - unread
+      properties:
+        id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        audience:
+          $ref: '#/components/schemas/GroupChatAudience'
+        private:
+          type: boolean
+        closed:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        last_message_at:
+          type: string
+          format: date-time
+        unread:
+          type: integer
+          minimum: 0
+    GroupChatThreadPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_before
+      - policy
+      - persona
+      - writable
+      - max_characters
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupChatThreadSummary'
+          maxItems: 25
+        next_before:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        policy:
+          $ref: '#/components/schemas/GroupChatPolicy'
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        writable:
+          type: boolean
+        max_characters:
+          type: integer
+          minimum: 1
+          maximum: 10000
+    GroupChatMessage:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - sender_id
+      - sender_name
+      - sender_persona
+      - body
+      - language
+      - revision
+      - reply_to
+      - private
+      - removed
+      - can_remove
+      - sent_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        sender_id:
+          type: integer
+          minimum: 1
+        sender_name:
+          type: string
+        sender_persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        body:
+          type:
+          - string
+          - 'null'
+          maxLength: 10000
+        language:
+          type: string
+          maxLength: 20
+        revision:
+          type: integer
+          minimum: 1
+        reply_to:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        private:
+          type: boolean
+        removed:
+          type: boolean
+        can_remove:
+          type: boolean
+        sent_at:
+          type: string
+          format: date-time
+    GroupChatConversation:
+      type: object
+      additionalProperties: false
+      required:
+      - thread
+      - items
+      - next_before
+      - can_close
+      - can_post
+      - can_reopen
+      - max_characters
+      - policy
+      properties:
+        thread:
+          $ref: '#/components/schemas/GroupChatThread'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupChatMessage'
+          maxItems: 50
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        can_close:
+          type: boolean
+        can_post:
+          type: boolean
+        can_reopen:
+          type: boolean
+        max_characters:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        policy:
+          $ref: '#/components/schemas/GroupChatPolicy'
+    GroupChatMutation:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_type
+      - persona
+      - thread_id
+      - activity_group_id
+      - revision
+      properties:
+        operation_type:
+          $ref: '#/components/schemas/GroupChatOperationType'
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        thread_id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        message_id:
+          type: integer
+          minimum: 1
+        closed:
+          type: boolean
+        removed:
+          type: boolean
+    GroupChatReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - recorded
+      - operation_id
+      - receipt
+      properties:
+        recorded:
+          type: boolean
+        operation_id:
+          type: string
+          format: uuid
+        receipt:
+          $ref: '#/components/schemas/GroupChatMutation'
+    GroupChatReadAck:
+      type: object
+      additionalProperties: false
+      required:
+      - thread_id
+      - last_message_id
+      properties:
+        thread_id:
+          type: string
+          format: uuid
+        last_message_id:
+          type: integer
+          minimum: 0
+    GroupChatPolicyChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - staff_learners
+      - staff_guardians
+      - staff_staff
+      - learner_shared_replies
+      - guardian_shared_replies
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        staff_learners:
+          type: boolean
+        staff_guardians:
+          type: boolean
+        staff_staff:
+          type: boolean
+        learner_shared_replies:
+          type: boolean
+        guardian_shared_replies:
+          type: boolean
+    GroupChatThreadCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - body
+      - language
+      - kind
+      - title
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        body:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: The current school max_characters response further limits this field.
+        language:
+          type: string
+          maxLength: 20
+          pattern: ^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8}){0,2}$
+        kind:
+          $ref: '#/components/schemas/GroupChatThreadKind'
+        audience:
+          $ref: '#/components/schemas/GroupChatAudience'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 191
+    GroupChatMessageCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - body
+      - language
+      - visibility
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        body:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: The current school max_characters response further limits this field.
+        language:
+          type: string
+          maxLength: 20
+          pattern: ^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8}){0,2}$
+        visibility:
+          $ref: '#/components/schemas/GroupChatVisibility'
+        reply_to:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    GroupChatThreadStateChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - revision
+      - closed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        revision:
+          type: integer
+          minimum: 1
+        closed:
+          type: boolean
+    GroupChatMessageRemoval:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    GroupChatReadChange:
+      type: object
+      additionalProperties: false
+      required:
+      - persona
+      - last_message_id
+      properties:
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        last_message_id:
+          type: integer
+          minimum: 1
+    GroupChatPolicyResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatPolicy'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatThreadPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatThreadPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatConversationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatConversation'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatMutationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatMutation'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatReceipt'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatReadAckResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatReadAck'
+        code:
+          type: integer
+          enum:
+          - 200

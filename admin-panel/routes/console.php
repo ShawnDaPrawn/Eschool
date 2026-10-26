@@ -116,3 +116,6 @@ Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOv
 Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
 // Recovery also reaches a guardian verified after the original publication.
 Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-notice-recovery')->withoutOverlapping();
+
+// Privacy cleanup remains enabled when a school or module is paused.
+Schedule::command('chat:prune-groups')->hourly()->name('group-chat-retention')->withoutOverlapping();

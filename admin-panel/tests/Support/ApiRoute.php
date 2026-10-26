@@ -123,6 +123,10 @@ final readonly class ApiRoute
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
 
+        if (str_starts_with($this->uri, 'api/v2/activities/groups/') && str_contains($this->uri, '/chat/') && in_array($name, ['thread', 'operation'], true)) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if ($name === 'file' && str_starts_with($this->uri, 'api/v2/activities/groups/')) {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }

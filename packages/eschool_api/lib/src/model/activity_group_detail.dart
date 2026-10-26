@@ -28,6 +28,8 @@ class ActivityGroupDetail {
     required this.canManage,
 
     required this.canCapture,
+
+    this.chatAvailable,
   });
 
   @JsonKey(name: r'group', required: true, includeIfNull: false)
@@ -45,6 +47,10 @@ class ActivityGroupDetail {
   @JsonKey(name: r'can_capture', required: true, includeIfNull: false)
   final bool canCapture;
 
+  /// Only present when chat_persona was supplied; fresh current persona/group/module/policy access, independent of group management permission.
+  @JsonKey(name: r'chat_available', required: false, includeIfNull: false)
+  final bool? chatAvailable;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -53,7 +59,8 @@ class ActivityGroupDetail {
           other.materials == materials &&
           other.sessions == sessions &&
           other.canManage == canManage &&
-          other.canCapture == canCapture;
+          other.canCapture == canCapture &&
+          other.chatAvailable == chatAvailable;
 
   @override
   int get hashCode =>
@@ -61,7 +68,8 @@ class ActivityGroupDetail {
       materials.hashCode +
       sessions.hashCode +
       canManage.hashCode +
-      canCapture.hashCode;
+      canCapture.hashCode +
+      chatAvailable.hashCode;
 
   factory ActivityGroupDetail.fromJson(Map<String, dynamic> json) =>
       _$ActivityGroupDetailFromJson(json);
