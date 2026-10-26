@@ -115,6 +115,10 @@ final readonly class ApiRoute
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
 
+        if ($name === 'file' && str_starts_with($this->uri, 'api/v2/activities/groups/')) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         return match ($name) {
             'file' => str_starts_with($this->uri, 'api/v2/family-forms/learners/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4.pdf' : '1',
             'consent' => str_starts_with($this->uri, 'api/v2/family-forms/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',

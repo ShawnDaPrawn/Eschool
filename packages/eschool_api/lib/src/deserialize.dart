@@ -197,6 +197,12 @@ import 'package:eschool_api/src/model/activity_group_staff.dart';
 import 'package:eschool_api/src/model/activity_group_staff_response.dart';
 import 'package:eschool_api/src/model/activity_group_write.dart';
 import 'package:eschool_api/src/model/activity_material.dart';
+import 'package:eschool_api/src/model/activity_material_attachment.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_change.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_change_response.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_page.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_page_response.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_remove.dart';
 import 'package:eschool_api/src/model/activity_material_response.dart';
 import 'package:eschool_api/src/model/activity_material_view.dart';
 import 'package:eschool_api/src/model/activity_material_write.dart';
@@ -1813,6 +1819,34 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ActivityMaterial':
       return ActivityMaterial.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMaterialAttachment':
+      return ActivityMaterialAttachment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ActivityMaterialAttachmentChange':
+      return ActivityMaterialAttachmentChange.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ActivityMaterialAttachmentChangeResponse':
+      return ActivityMaterialAttachmentChangeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ActivityMaterialAttachmentPage':
+      return ActivityMaterialAttachmentPage.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ActivityMaterialAttachmentPageResponse':
+      return ActivityMaterialAttachmentPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ActivityMaterialAttachmentRemove':
+      return ActivityMaterialAttachmentRemove.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'ActivityMaterialResponse':
       return ActivityMaterialResponse.fromJson(value as Map<String, dynamic>)

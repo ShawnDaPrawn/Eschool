@@ -12,6 +12,7 @@ use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Files\SafeImages;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class ActivityFiles
@@ -27,7 +29,7 @@ class ActivityFiles
 
     public function __construct(private CommunityAuthority $access, private UploadScanner $scanner, private SafeImages $images) {}
 
-    private function material(User $actor, int $group, int $id, bool $edit = false, bool $write = false): ActivityMaterial
+    public function authorize(User $actor, int $group, int $id, bool $edit = false, bool $write = false): ActivityMaterial
     {
         $fresh = $this->access->actor($actor);
         abort_if($fresh->password_change_required, 403, 'Complete your password change before opening private documents.');
@@ -47,6 +49,23 @@ class ActivityFiles
         }
 
         return $material;
+    }
+
+    private function canEdit(User $actor, int $group, int $material, bool $write): bool
+    {
+        try {
+            $this->authorize($actor, $group, $material, true, $write);
+
+            return true;
+        } catch (ModelNotFoundException) {
+            return false;
+        } catch (HttpExceptionInterface $error) {
+            if (! in_array($error->getStatusCode(), [403, 404, 423], true)) {
+                throw $error;
+            }
+
+            return false;
+        }
     }
 
     private function scan(string $bytes): string
@@ -70,17 +89,18 @@ class ActivityFiles
 
     public function listing(User $actor, int $group, int $material): array
     {
-        $row = $this->material($actor, $group, $material);
+        $row = $this->authorize($actor, $group, $material);
         $items = ActivityMaterialFile::where('activity_group_id', $group)->where('material_id', $material)->whereNull('removed_at')->orderBy('created_at')->orderBy('id')->limit(11)->get();
         abort_if($items->count() > 10, 409, 'This material needs a smaller attachment set.');
-        $this->material($actor, $group, $material);
+        $this->authorize($actor, $group, $material);
 
-        return ['items' => $items->map(fn ($file) => $this->metadata($file))->all(), 'material_revision' => (int) $row->revision];
+        return ['items' => $items->map(fn ($file) => $this->metadata($file))->all(), 'material_revision' => (int) $row->revision,
+            'can_upload' => $this->canEdit($actor, $group, $material, true), 'can_remove' => $this->canEdit($actor, $group, $material, false)];
     }
 
     public function upload(User $actor, int $group, int $material, array $input, UploadedFile $document): array
     {
-        $this->material($actor, $group, $material, true, true);
+        $this->authorize($actor, $group, $material, true, true);
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'material_revision' => ['required', 'integer', 'min:1']])->validate();
         Validator::make(['document' => $document], ['document' => ['required', 'file', 'mimes:pdf,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:5120']])->validate();
         $source = $document->getContent();
@@ -92,9 +112,9 @@ class ActivityFiles
         $path = null;
         try {
             return app(ActivityOperations::class)->once($actor, 'material.file.upload:'.$material, $data,
-                fn () => $this->material($actor, $group, $material, true, true),
+                fn () => $this->authorize($actor, $group, $material, true, true),
                 function () use ($actor, $group, $material, $data, $bytes, $mime, $engine, &$path): array {
-                    $row = $this->material($actor, $group, $material, true, true);
+                    $row = $this->authorize($actor, $group, $material, true, true);
                     abort_unless((int) $row->revision === (int) $data['material_revision'], 409, 'Refresh the material before attaching a document.');
                     abort_if(ActivityMaterialFile::where('material_id', $material)->whereNull('removed_at')->count() >= 10, 422, 'A material can have at most ten attachments.');
                     $uuid = (string) Str::uuid();
@@ -107,7 +127,7 @@ class ActivityFiles
                         'name' => FileNames::sanitize($name), 'mime' => $mime, 'bytes' => strlen($bytes), 'sha256' => hash('sha256', $bytes), 'path' => $path,
                         'scanner' => $engine, 'scanned_at' => now()->utc(), 'revision' => 1]);
                     $row->increment('revision');
-                    $this->material($actor, $group, $material, true, true);
+                    $this->authorize($actor, $group, $material, true, true);
                     Audit::record('activity.file_uploaded', $row, [], ['file_id' => $uuid, 'revision' => $row->revision]);
 
                     return $this->metadata($file) + ['material_revision' => (int) $row->revision];
@@ -122,13 +142,13 @@ class ActivityFiles
 
     public function read(User $actor, int $group, int $material, string $id): array
     {
-        $this->material($actor, $group, $material);
+        $this->authorize($actor, $group, $material);
         $file = ActivityMaterialFile::where('activity_group_id', $group)->where('material_id', $material)->whereNull('removed_at')->findOrFail($id);
         $expected = app(CurrentSchool::class)->storagePath('activity-materials/'.$group).'/'.$file->id.'.enc';
         abort_unless(hash_equals($expected, $file->path), 404);
         $bytes = Crypt::decryptString(Storage::disk(self::DISK)->get($expected));
         abort_unless(strlen($bytes) === $file->bytes && hash_equals($file->sha256, hash('sha256', $bytes)), 503, 'This private document is unavailable.');
-        $this->material($actor, $group, $material);
+        $this->authorize($actor, $group, $material);
         abort_unless(ActivityMaterialFile::where('activity_group_id', $group)->where('material_id', $material)->whereNull('removed_at')->whereKey($id)->where('revision', $file->revision)->exists(), 404);
 
         return ['bytes' => $bytes, 'mime' => $file->mime, 'name' => $file->name, 'id' => $file->id];
@@ -136,13 +156,13 @@ class ActivityFiles
 
     public function remove(User $actor, int $group, int $material, string $id, array $input): array
     {
-        $this->material($actor, $group, $material, true);
+        $this->authorize($actor, $group, $material, true);
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:1'], 'material_revision' => ['required', 'integer', 'min:1']])->validate()
             + ['activity_group_id' => $group, 'material_id' => $material, 'file_id' => $id];
 
         return app(ActivityOperations::class)->once($actor, 'material.file.remove:'.$id, $data,
-            fn () => $this->material($actor, $group, $material, true), function () use ($actor, $group, $material, $id, $data): array {
-                $row = $this->material($actor, $group, $material, true);
+            fn () => $this->authorize($actor, $group, $material, true), function () use ($actor, $group, $material, $id, $data): array {
+                $row = $this->authorize($actor, $group, $material, true);
                 $file = ActivityMaterialFile::where('activity_group_id', $group)->where('material_id', $material)->whereNull('removed_at')->findOrFail($id);
                 abort_unless($file->revision === (int) $data['revision'] && (int) $row->revision === (int) $data['material_revision'], 409, 'Refresh the material before removing this document.');
                 $file->forceFill(['removed_at' => now()->utc(), 'revision' => $file->revision + 1])->save();

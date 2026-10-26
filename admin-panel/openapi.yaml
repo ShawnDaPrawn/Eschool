@@ -22738,6 +22738,278 @@ paths:
               $ref: '#/components/schemas/FamilyGateCollection'
       security:
       - CardDeviceCredential: []
+  /activities/groups/{group}/materials/{material}/files:
+    get:
+      operationId: listActivityMaterialFiles
+      tags:
+      - Activities
+      summary: List authorized attachments and current write capabilities
+      description: Private school/account-bound material files. Current group membership, active learner enrolment/approval,
+        publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs
+        never grant authority.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: material
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: List authorized attachments and current write capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMaterialAttachmentPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: New attachments require an active current-year group; authorized removals remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Private storage or document safety checks are unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: uploadActivityMaterialFile
+      tags:
+      - Activities
+      summary: Attach a scanned private PDF or sanitized photo
+      description: Private school/account-bound material files. Current group membership, active learner enrolment/approval,
+        publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs
+        never grant authority.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: material
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Attach a scanned private PDF or sanitized photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMaterialAttachmentChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: New attachments require an active current-year group; authorized removals remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Private storage or document safety checks are unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - operation_id
+              - material_revision
+              - document
+              properties:
+                operation_id:
+                  type: string
+                  format: uuid
+                material_revision:
+                  type: integer
+                  minimum: 1
+                document:
+                  type: string
+                  format: binary
+  /activities/groups/{group}/materials/{material}/files/{file}/content:
+    get:
+      operationId: getActivityMaterialFile
+      tags:
+      - Activities
+      summary: Read authorized private attachment bytes
+      description: Private school/account-bound material files. Current group membership, active learner enrolment/approval,
+        publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs
+        never grant authority.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: material
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: file
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Read authorized private attachment bytes
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: New attachments require an active current-year group; authorized removals remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Private storage or document safety checks are unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /activities/groups/{group}/materials/{material}/files/{file}/remove:
+    post:
+      operationId: removeActivityMaterialFile
+      tags:
+      - Activities
+      summary: Withdraw an attachment with an exact revisioned operation
+      description: Private school/account-bound material files. Current group membership, active learner enrolment/approval,
+        publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs
+        never grant authority.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: material
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: file
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Withdraw an attachment with an exact revisioned operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityMaterialAttachmentChangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: New attachments require an active current-year group; authorized removals remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Private storage or document safety checks are unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivityMaterialAttachmentRemove'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -50593,6 +50865,167 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/FamilyGateCollected'
+        code:
+          type: integer
+          enum:
+          - 200
+
+    ActivityMaterialAttachment:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - material_id
+      - name
+      - mime
+      - bytes
+      - revision
+      - removed
+      properties:
+        id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        material_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        mime:
+          type: string
+          enum:
+          - application/pdf
+          - image/jpeg
+        bytes:
+          type: integer
+          minimum: 1
+          maximum: 5242880
+        revision:
+          type: integer
+          minimum: 1
+        removed:
+          type: boolean
+    ActivityMaterialAttachmentChange:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - material_id
+      - name
+      - mime
+      - bytes
+      - revision
+      - removed
+      - material_revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        material_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        mime:
+          type: string
+          enum:
+          - application/pdf
+          - image/jpeg
+        bytes:
+          type: integer
+          minimum: 1
+          maximum: 5242880
+        revision:
+          type: integer
+          minimum: 1
+        removed:
+          type: boolean
+        material_revision:
+          type: integer
+          minimum: 1
+    ActivityMaterialAttachmentPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - material_revision
+      - can_upload
+      - can_remove
+      properties:
+        items:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/ActivityMaterialAttachment'
+        material_revision:
+          type: integer
+          minimum: 1
+        can_upload:
+          type: boolean
+        can_remove:
+          type: boolean
+    ActivityMaterialAttachmentRemove:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - material_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        material_revision:
+          type: integer
+          minimum: 1
+    ActivityMaterialAttachmentPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ActivityMaterialAttachmentPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    ActivityMaterialAttachmentChangeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ActivityMaterialAttachmentChange'
         code:
           type: integer
           enum:

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
@@ -151,6 +152,16 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
 });
+
+Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups'])
+    ->name('api.v2.activity-files.')->group(function () {
+        $c = ActivityFileController::class;
+        Route::get('/', [$c, 'listing'])->name('listing');
+        Route::post('/', [$c, 'upload'])->name('upload');
+        Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
+        Route::post('{file}/remove', [$c, 'remove'])->whereUuid('file')->name('remove');
+    });
 
 Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {
     $c = GroupController::class;
