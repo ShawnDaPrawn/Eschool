@@ -28,13 +28,34 @@ and its FSRS/one-effect ledger, never official marks or a broader profile sessio
   platform exclusions and approved practice item/version sources. Eligibility,
   card and approval versions prevent retained capabilities reviving silently.
 
-The responsive staff and restricted tablet web surfaces are implemented. A
-synthetic-client browser suite and a real-backend staff→tablet→practice suite
-(including interrupted committed replies, readonly inventory and actual card
-withdrawal) are prepared but have not run at this checkpoint. The twelve-operation
-owned OpenAPI fragment is prepared; canonical merge and deterministic SDK
-qualification are pending the combined offline-card contract pass.
+The responsive staff and restricted tablet web surfaces are implemented and
+browser-qualified. Both suites passed together: **7 / 7 in 2.2 minutes**, with
+process exit 0, on source checkpoint `6575b0800`:
 
-Published CI/main, actual browser execution, physical tablets/cameras, school
-eligibility/policy review and external acceptance remain separate evidence. No
+- Three real-backend journeys at 390/820/1280 pixels: explicit manager eligibility,
+  actual WebCrypto public setup and tablet registration, an allocated Teacher's
+  short authorization, actual approved numeric practice while card inventory is
+  read-only, interruption after a committed review followed by byte-for-byte
+  exact retry and one saved effect, then actual card freeze and 403-driven private
+  erasure. No gate log or ordinary access token is created. Serious/critical axe,
+  overflow and unexpected console/HTTP checks pass.
+- Three actual public-client journeys at those widths with synthetic transport:
+  approved choices and integer rating, malformed-success receipt recovery with
+  the same body/UUID, saved-review reconciliation, safely rendered explanation,
+  cookie/referrer omission, no browser storage and background erasure.
+- One JavaScript-disabled fallback case: controls remain disabled, secret controls
+  have no submitted names, forms explicitly POST, and the unauthenticated fallback
+  fails privately without echoing an accidental body field. Dynamic answer forms
+  also explicitly POST if their script stops after rendering.
+
+The isolated database was seeded under the shared database lease, with queued
+outbound work and log-only mail. Generated portraits and curriculum are synthetic;
+no real child's media, scanner/hardware quality or provider output is qualified.
+Private run log: `foundation-browser-first.log`; test suites are
+`foundation-classroom.spec.ts` and `foundation-classroom-backend.spec.ts`.
+The twelve-operation API contract/SDK qualification and publication remain with
+the separate combined offline-card increment.
+
+Published CI/main, physical tablets/cameras, school eligibility/policy review
+and external acceptance remain separate evidence. No
 provider, hardware, production school or normal learner session is activated.
