@@ -20,6 +20,25 @@ void main() {
         final api = await startSmokeApp(tester, {
           ...(parent ? parentOfTwoRoutes() : learnerRoutes()),
           ...forms.routes,
+          'GET ${parent ? 'parent' : 'student'}/get-notification': ok({
+            'data': [
+              {
+                'id': 73,
+                'school_id': 1,
+                'reader_id': account,
+                'title': 'Activity permission requested',
+                'type': 'consent.requested',
+                'message':
+                    'Open Family consent and health to review a request.',
+                'date': '2026-10-26T10:00:00Z',
+                'send_to': parent ? 4 : 3,
+                'image': null,
+              },
+            ],
+            'current_page': 1,
+            'last_page': 1,
+            'total': 1,
+          }),
           'GET v2/me/context': ok({
             ...academicContextFixture(role: parent ? 'Parent' : 'Student'),
             'user': {
@@ -91,7 +110,16 @@ void main() {
           );
           return;
         }
-        await tapWhenReady(tester, find.text('Family consent and health'));
+        await tapWhenReady(tester, find.byIcon(Icons.settings));
+        await tapWhenReady(tester, find.text('Notifications'));
+        await pumpUntilFound(
+          tester,
+          find.text('Activity permission requested'),
+        );
+        await tapWhenReady(
+          tester,
+          find.byKey(const ValueKey('consent-notice-73')),
+        );
         await tapWhenReady(tester, find.text('Synthetic trip'));
         await pumpUntilFound(tester, find.text(privateWording));
         await tester.tap(find.byType(DropdownButtonFormField<String>));

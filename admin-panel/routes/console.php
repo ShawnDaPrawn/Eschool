@@ -112,3 +112,6 @@ Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-
 Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-working-retention')->withoutOverlapping();
 // Temporary teaching proposals/crops expire independently of module availability.
 Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOverlapping();
+
+// Recovery also reaches a guardian verified after the original publication.
+Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-notice-recovery')->withoutOverlapping();

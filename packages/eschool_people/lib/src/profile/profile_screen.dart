@@ -1,6 +1,7 @@
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/common/people_widgets.dart';
 import 'package:eschool_people/src/profile/profile_cubit.dart';
+import 'package:eschool_people/src/profile/profile_context_boundary.dart';
 import 'package:eschool_people/src/profile/profile_file_field.dart';
 import 'package:eschool_people/src/profile/profile_repository.dart';
 import 'package:flutter/material.dart';
@@ -31,15 +32,17 @@ class ProfileScreen extends StatelessWidget {
     VoidCallback? onExit,
     ProfileFilePicker pickFile = pickProfileFile,
     ProfileFileSelector? selectFile,
-  }) => BlocProvider(
-    create: (_) => ProfileCubit(repository)..load(subjects.first),
-    child: ProfileScreen(
-      subjects: subjects,
-      onSaved: onSaved,
-      titleKey: titleKey,
-      onExit: onExit,
-      pickFile: pickFile,
-      selectFile: selectFile,
+  }) => ProfileContextBoundary(
+    builder: (_) => BlocProvider(
+      create: (_) => ProfileCubit(repository)..load(subjects.first),
+      child: ProfileScreen(
+        subjects: subjects,
+        onSaved: onSaved,
+        titleKey: titleKey,
+        onExit: onExit,
+        pickFile: pickFile,
+        selectFile: selectFile,
+      ),
     ),
   );
 
@@ -105,7 +108,7 @@ class ProfileScreen extends StatelessWidget {
       body: BlocConsumer<ProfileCubit, ProfileState>(
         listener: (context, state) {
           if (state.saved) {
-            onSaved?.call();
+            if (state.fieldsSaved) onSaved?.call();
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(label(profileSavedKey))));
