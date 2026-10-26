@@ -82,6 +82,7 @@ class PaymentController extends Controller
             $payment_transaction_store->cheque_no = (isset($request->cheque_no) && ! empty($request->cheque_no) && $request->mode == 1) ? $request->cheque_no : null;
             $payment_transaction_store->type_of_fee = 2;
             $payment_transaction_store->payment_status = 1;
+            $payment_transaction_store->date = $date;
             // Amounts are recorded in cents (the float columns follow).
             $paid = Money::ofCents((int) LegacyAmount::toCents($request->total_amount));
             $payment_transaction_store->total_amount_cents = $paid;

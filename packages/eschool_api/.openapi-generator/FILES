@@ -1048,6 +1048,12 @@ lib/src/model/secure_card_revocation_response.dart
 lib/src/model/secure_card_scan_receipt.dart
 lib/src/model/secure_card_scan_receipt_response.dart
 lib/src/model/secure_card_sun_scan.dart
+lib/src/model/secure_encoding_confirmation.dart
+lib/src/model/secure_encoding_context.dart
+lib/src/model/secure_encoding_envelope.dart
+lib/src/model/secure_encoding_envelope_response.dart
+lib/src/model/secure_encoding_receipt.dart
+lib/src/model/secure_encoding_receipt_response.dart
 lib/src/model/secure_offline_context.dart
 lib/src/model/secure_offline_envelope.dart
 lib/src/model/secure_offline_receipt.dart

@@ -26044,6 +26044,104 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /card-encoder/plans/{plan}:
+    get:
+      operationId: getSecureEncodingPlan
+      tags:
+      - SecureCards
+      summary: Download an encrypted chip plan.
+      description: Registered encoder credentials only, with fresh explicit encoding, card and reader management authority.
+        Current school, original preparation authority, person/approval and revision are checked before keys, writes and replay.
+        No collection, classroom or user session is created. Private writes reject query input and unknown fields.
+      security:
+      - CardEncoderCredential: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Private device-bound personalization result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureEncodingEnvelopeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Secure personalization is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /card-encoder/plans/{plan}/confirm:
+    post:
+      operationId: confirmSecureEncodingPlan
+      tags:
+      - SecureCards
+      summary: Confirm the exact chip plan using a fresh SUN proof.
+      description: Registered encoder credentials only, with fresh explicit encoding, card and reader management authority.
+        Current school, original preparation authority, person/approval and revision are checked before keys, writes and replay.
+        No collection, classroom or user session is created. Private writes reject query input and unknown fields.
+      security:
+      - CardEncoderCredential: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - name: plan
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Private device-bound personalization result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecureEncodingReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Secure personalization is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecureEncodingConfirmation'
 components:
   securitySchemes:
     bearerAuth:
@@ -26076,6 +26174,10 @@ components:
       scheme: bearer
       description: 'Single Authorization: Bearer NEF1.school.session.secret~NED1.school.device.secret. Both credentials are
         validated together; no general user or gate authority.'
+    CardEncoderCredential:
+      type: http
+      scheme: bearer
+      description: Registered encoder NED1 credential only. Never an account, gate or classroom token.
   parameters:
     ExpectedAccount:
       name: X-Account-Id
@@ -57849,5 +57951,174 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/FoundationLeft'
+        code:
+          type: integer
+    SecureEncodingContext:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - device_id
+      - plan_id
+      - card_id
+      - revision
+      - issued_at
+      - expires_at
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        device_id:
+          type: string
+          format: uuid
+        plan_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        issued_at:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: integer
+          minimum: 1
+    SecureEncodingEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+      - suite
+      - context
+      - ephemeral_public_key
+      - salt
+      - nonce
+      - tag
+      - ciphertext
+      properties:
+        suite:
+          type: string
+          pattern: ^NEX1-X25519-HKDF-SHA256-A256GCM$
+        context:
+          $ref: '#/components/schemas/SecureEncodingContext'
+        ephemeral_public_key:
+          type: string
+          minLength: 44
+          maxLength: 44
+          pattern: ^[A-Za-z0-9+/]+={0,2}$
+        salt:
+          type: string
+          minLength: 44
+          maxLength: 44
+          pattern: ^[A-Za-z0-9+/]+={0,2}$
+        nonce:
+          type: string
+          minLength: 16
+          maxLength: 16
+          pattern: ^[A-Za-z0-9+/]+={0,2}$
+        tag:
+          type: string
+          minLength: 24
+          maxLength: 24
+          pattern: ^[A-Za-z0-9+/]+={0,2}$
+        ciphertext:
+          type: string
+          minLength: 1
+          maxLength: 8192
+          pattern: ^[A-Za-z0-9+/]+={0,2}$
+    SecureEncodingConfirmation:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - picc
+      - mac
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        picc:
+          type: string
+          pattern: ^[a-fA-F0-9]{32}$
+          minLength: 32
+          maxLength: 32
+        mac:
+          type: string
+          pattern: ^[a-fA-F0-9]{16}$
+          minLength: 16
+          maxLength: 16
+    SecureEncodingReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - encoded
+      - plan_id
+      - card_id
+      - revision
+      - verified_counter
+      - encoded_at
+      - collection_authorized
+      - sign_in_authorized
+      properties:
+        encoded:
+          type: boolean
+          example: true
+        plan_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        verified_counter:
+          type: integer
+          minimum: 0
+          maximum: 16777215
+        encoded_at:
+          type: string
+          format: date-time
+        collection_authorized:
+          type: boolean
+          example: false
+        sign_in_authorized:
+          type: boolean
+          example: false
+    SecureEncodingEnvelopeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureEncodingEnvelope'
+        code:
+          type: integer
+    SecureEncodingReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SecureEncodingReceipt'
         code:
           type: integer

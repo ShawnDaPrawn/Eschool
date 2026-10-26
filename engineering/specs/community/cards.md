@@ -120,3 +120,11 @@ bound, while recorded scan time uses a receipt-based lower bound, capped below
 by the signed credential issue time. A cache expires within sixty seconds even
 across slow downloads. Actual device/physical gate timing is recorded separately
 from local browser evidence.
+
+
+The final personalization software is specified in [card-encoding.md](card-encoding.md).
+It uses the existing private card profile, an explicit encoding permission, a
+device-encrypted immutable job and a local PCSC/EV2 utility. A fresh server SUN
+check precedes encoded status; preparation alone creates no gate or account
+authority. Official vectors, independent destructive/recovery emulation and real
+workbench/API journeys are qualified separately from physical chip/driver tests.

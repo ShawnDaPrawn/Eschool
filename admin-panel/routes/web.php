@@ -45,6 +45,7 @@ use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
 use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
 use App\Http\Controllers\Panel\Assistance\AssistancePanelController;
+use App\Http\Controllers\Panel\Cards\CardEncodingPanelController;
 use App\Http\Controllers\Panel\Cards\CardPanelController;
 use App\Http\Controllers\Panel\Classroom\FoundationPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
@@ -95,6 +96,7 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeCardEncodingPanel;
 use App\Http\Middleware\AuthorizeCardsPanel;
 use App\Http\Middleware\AuthorizeConsultationPanel;
 use App\Http\Middleware\AuthorizeFamilyFormsPanel;
@@ -1014,3 +1016,11 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Found
     Route::post('authorizations/{lease}/revoke', [$c, 'write'])->whereUuid('lease')->defaults('foundation_action', 'revoke')->name('revoke');
 });
 Route::view('foundation-classroom', 'classroom.device')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('foundation-classroom.device');
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardEncodingPanel::class])->prefix('school-cards/cards/{card}/encoding')->whereUuid('card')->name('cards-encoding.')->group(function () {
+    Route::get('/', [CardEncodingPanelController::class, 'index'])->name('index');
+    Route::post('/', [CardEncodingPanelController::class, 'prepare'])->name('prepare');
+});
+
+Route::get('school-cards/encoder-runtime', [CardEncodingPanelController::class, 'runtime'])->middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardEncodingPanel::class])->name('cards-encoding.runtime');
+Route::view('card-tap', 'cards.tap')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('cards.tap');

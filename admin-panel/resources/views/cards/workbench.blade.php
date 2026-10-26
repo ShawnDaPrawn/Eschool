@@ -14,7 +14,7 @@
 <section class="page-section" aria-labelledby="reader-new"><h2 id="reader-new">{{ __('Register a reader') }}</h2><p>{{ __('Register only a school-controlled gate or encoder. A reader never receives a staff or learner account session.') }}</p>
 <form method="POST" action="{{ route('card-readers-panel.register') }}">@include('cards.hidden')
 <x-page.field id="reader-name" name="name" :label="__('Reader name')" maxlength="100" required :restore-old-input="false" />
-<x-page.field id="reader-kind" name="kind" type="select" :label="__('Reader purpose')" :options="['gate'=>__('Gate'),'encoder'=>__('Card encoder')]" required :restore-old-input="false" />
+<x-page.field id="reader-kind" name="kind" type="select" :label="__('Reader purpose')" :options="$readerKinds" required :restore-old-input="false" />
 <x-page.field id="reader-key" name="public_key" :label="__('Device public encryption key')" maxlength="64" required :restore-old-input="false" :help="__('Use the public key generated on the controlled reader. Never enter a private key.')" />
 <x-page.field id="reader-days" name="days" type="number" :label="__('Valid for days')" min="1" max="30" value="1" required :restore-old-input="false" />
 <button class="m3-button m3-button--filled" type="submit" @disabled(!$canWrite)>{{ __('Register reader') }}</button></form></section>
@@ -34,6 +34,7 @@
 @endif
 <section class="page-section" aria-labelledby="issued-cards"><h2 id="issued-cards">{{ __('Issued cards') }}</h2>
 @foreach($listing['items'] as $card)<article class="m3-card m3-card--outlined"><div class="m3-card__content"><h3>{{ $names[$card['person_id']] ?? __('Former school member') }}</h3><p>{{ __(ucfirst($card['type'])) }} · {{ __(ucfirst($card['status'])) }} · {{ substr($card['id'],-8) }}</p>
+@if($card['status']==='active' && $canEncode)<p><a href="{{ route('cards-encoding.index',['card'=>$card['id'],'expected_account_id'=>$account,'expected_school_id'=>$school]) }}">{{ __('Personalize secure chip') }}</a></p>@endif
 @if($card['status']==='active')<img src="{{ route('cards-panel.portrait',['card'=>$card['id'],'expected_account_id'=>$account,'expected_school_id'=>$school]) }}" width="120" height="150" alt="{{ __('Private card portrait') }}" loading="lazy">
 <form method="POST" action="{{ route('cards-panel.print') }}">@include('cards.hidden')<input type="hidden" name="card_ids[]" value="{{ $card['id'] }}"><x-page.field :id="'card-layout-'.$card['id']" name="layout" type="select" :label="__('Printer layout')" :options="['landscape'=>__('CR80 landscape'),'portrait'=>__('CR80 portrait')]" :restore-old-input="false" /><button class="m3-button m3-button--outlined" type="submit">{{ __('Download printer PDF') }}</button></form>@endif
 @if(in_array($card['status'],['active','frozen']))

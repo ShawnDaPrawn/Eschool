@@ -204,3 +204,15 @@ Initial and forward migrations now use LONGTEXT. The regression passes after
 simulating an existing TEXT installation and applying the upgrade: complete
 ciphertext, exact decrypted retry, 40 rows, one receipt, one session revision
 advance, and refusal to narrow oversized retained history (1 test / 7 assertions).
+
+
+### Card software completion checkpoint, 26 October 2026
+
+The bounded offline reader and restricted Foundation entry have their own
+[offline evidence](card-offline-reader.md) and [classroom evidence](foundation-classroom.md).
+The final [NTAG encoding delivery](card-encoding.md) adds explicit private
+preparation, isolated encoder transport, a concrete local PCSC/EV2 utility,
+immutable recovery and SUN-confirmed status. Its native, SDK, vector/emulator
+and real three-width workbench evidence is recorded there. No physical chip,
+driver or deployment result is inferred. Earlier sections retain their original
+checkpoint state; they do not describe the later scoped app as unfinished.

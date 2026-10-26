@@ -35,6 +35,8 @@ class LeadershipDashboard
         $gradeIds = $enrolments->map(fn ($e) => $e->homeroom?->class?->grade_level_id)->filter()->unique()->all();
         $grades = GradeLevel::whereIn('id', $gradeIds)->orderBy('sort_order')->get();
         $events = $this->attendance($yearId, $start, $end, $enrolments);
+        $feeCollections = app(LeadershipFeeCollections::class);
+        $fees = $feeCollections->read($actor, $yearId, $start, $end);
         $observedSince = LearnerActivityDay::where('session_year_id', $yearId)->min('on_date');
         $activity = LearnerActivityDay::where('session_year_id', $yearId)->whereBetween('on_date', [$start, $end])->get();
         $periods = [];
@@ -58,7 +60,7 @@ class LeadershipDashboard
                 $active = $useKnown ? $activity->filter(fn ($r) => (int) $r->grade_level_id === $grade->id && $r->on_date->toDateString() >= $from && $r->on_date->toDateString() <= $to)->pluck('learner_id')->unique()->count() : null;
                 $rows[] = ['grade_id' => (int) $grade->id, 'grade_name' => $grade->name, 'enrolled_learners' => count($rosters[$grade->id]),
                     'attendance' => ['status' => $days > 0 ? 'available' : 'unavailable', 'recorded_days' => $days, 'present_half_days' => $present, 'percentage_bp' => $days > 0 ? intdiv($present * 10000 + $days, $days * 2) : null],
-                    'academic_risk' => $this->metric($risk), 'discipline' => $this->metric($discipline), 'fee_collection_cents' => $this->metric(null),
+                    'academic_risk' => $this->metric($risk), 'discipline' => $this->metric($discipline), 'fee_collection_cents' => $this->metric($feeCollections->amount($fees, (int) $grade->id, $from, $to)),
                     'active_learners' => ['status' => ! $useKnown ? 'unavailable' : ($from < $observedSince ? 'partial' : 'available'), 'value' => $active]];
             }
             $periods[] = ['starts_on' => $from, 'ends_on' => $to, 'grades' => $rows];

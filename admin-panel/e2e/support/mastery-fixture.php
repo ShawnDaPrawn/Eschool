@@ -25,9 +25,16 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+// Callers may use a separate synthetic namespace when their workflow must not
+// share the graph that the Mastery browser deliberately edits. The default
+// subject/group/topics remain unchanged for that existing browser journey.
+$names = $masteryBrowserFixture ?? [
+    'subject' => 'Mastery browser rehearsal', 'code' => 'MASTERY-DEMO', 'group' => 'Mastery browser group',
+    'topics' => ['Mastery browser foundation', 'Mastery browser fractions', 'Mastery browser decimals'],
+];
 // Dedicated synthetic subject: no real learner data, official progression or provider calls.
-Model::unguarded(function () {
-    app(CurrentSchool::class)->run(1, function () {
+Model::unguarded(function () use ($names) {
+    app(CurrentSchool::class)->run(1, function () use ($names) {
         SchoolModule::updateOrCreate(['module' => 'mastery'], ['in_package' => true, 'enabled' => true]);
         app(ModuleGate::class)->forget();
         $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
@@ -37,8 +44,8 @@ Model::unguarded(function () {
         $grade = GradeLevel::where('code', '5')->firstOrFail();
         $room = ClassSection::whereHas('class', fn ($q) => $q->where('name', 'Grade 5'))->with('class')->firstOrFail();
         $room->class->forceFill(['grade_level_id' => $grade->id])->save();
-        $subject = Subject::firstOrCreate(['name' => 'Mastery browser rehearsal'], ['type' => 'Theory', 'code' => 'MASTERY-DEMO', 'medium_id' => $room->class->medium_id]);
-        $group = TeachingGroup::where('name', 'Mastery browser group')->where('session_year_id', $year->id)->first();
+        $subject = Subject::firstOrCreate(['name' => $names['subject']], ['type' => 'Theory', 'code' => $names['code'], 'medium_id' => $room->class->medium_id]);
+        $group = TeachingGroup::where('name', $names['group'])->where('session_year_id', $year->id)->first();
         if ($group !== null) {
             return;
         }
@@ -46,7 +53,7 @@ Model::unguarded(function () {
             ?? Term::where('session_year_id', $year->id)->forGrade((int) $grade->sort_order)->firstOrFail();
         $keys = [(string) Str::uuid(), (string) Str::uuid(), (string) Str::uuid()];
         $topics = [];
-        foreach (['Mastery browser foundation', 'Mastery browser fractions', 'Mastery browser decimals'] as $i => $name) {
+        foreach ($names['topics'] as $i => $name) {
             $topics[] = ['key' => $keys[$i], 'name' => $name, 'term_id' => $term->id, 'sort_order' => $i];
         }
         $plan = app(CurriculumPlans::class)->save($admin, ['subject_id' => $subject->id, 'grade_level_id' => $grade->id, 'session_year_id' => $year->id,
@@ -55,7 +62,7 @@ Model::unguarded(function () {
                 'annual_component' => 'sba', 'annual_weight_bp' => 10000, 'weight_bp' => 10000, 'max_mark' => '20.00', 'due_on' => $term->end_date->toDateString(), 'topic_keys' => array_slice($keys, 1),
                 'questions' => [['number' => '1', 'max_mark' => '10.00', 'topic_keys' => [$keys[1]]], ['number' => '2', 'max_mark' => '10.00', 'topic_keys' => [$keys[2]]]]]]]]]);
         $plan = app(CurriculumPlans::class)->publish($admin, $plan->id, $plan->assessments->sole()->id, 1);
-        $group = app(TeachingGroups::class)->save($admin, ['name' => 'Mastery browser group', 'subject_id' => $subject->id, 'grade_level_id' => $grade->id,
+        $group = app(TeachingGroups::class)->save($admin, ['name' => $names['group'], 'subject_id' => $subject->id, 'grade_level_id' => $grade->id,
             'session_year_id' => $year->id, 'class_section_id' => $room->id, 'active' => true]);
         $dated = ['starts_on' => $year->start_date, 'ends_on' => $year->end_date, 'reason' => 'Synthetic mastery browser rehearsal'];
         if (! TeachingAllocation::where('teaching_group_id', $group->id)->where('teacher_id', $teacher->id)->exists()) {

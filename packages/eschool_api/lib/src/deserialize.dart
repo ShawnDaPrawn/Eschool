@@ -1006,6 +1006,12 @@ import 'package:eschool_api/src/model/secure_card_revocation_response.dart';
 import 'package:eschool_api/src/model/secure_card_scan_receipt.dart';
 import 'package:eschool_api/src/model/secure_card_scan_receipt_response.dart';
 import 'package:eschool_api/src/model/secure_card_sun_scan.dart';
+import 'package:eschool_api/src/model/secure_encoding_confirmation.dart';
+import 'package:eschool_api/src/model/secure_encoding_context.dart';
+import 'package:eschool_api/src/model/secure_encoding_envelope.dart';
+import 'package:eschool_api/src/model/secure_encoding_envelope_response.dart';
+import 'package:eschool_api/src/model/secure_encoding_receipt.dart';
+import 'package:eschool_api/src/model/secure_encoding_receipt_response.dart';
 import 'package:eschool_api/src/model/secure_offline_context.dart';
 import 'package:eschool_api/src/model/secure_offline_envelope.dart';
 import 'package:eschool_api/src/model/secure_offline_receipt.dart';
@@ -4743,6 +4749,28 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'SecureCardSunScan':
       return SecureCardSunScan.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureEncodingConfirmation':
+      return SecureEncodingConfirmation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureEncodingContext':
+      return SecureEncodingContext.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureEncodingEnvelope':
+      return SecureEncodingEnvelope.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureEncodingEnvelopeResponse':
+      return SecureEncodingEnvelopeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureEncodingReceipt':
+      return SecureEncodingReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureEncodingReceiptResponse':
+      return SecureEncodingReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'SecureOfflineContext':
       return SecureOfflineContext.fromJson(value as Map<String, dynamic>)

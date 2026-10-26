@@ -121,6 +121,16 @@ jobs:
           node-version: '24'
       - name: Qualify PHP and WebCrypto offline card interoperability
         run: node --test tool/cards/offline-crypto.test.mjs
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the pinned local encoder crypto dependency
+        run: python -m pip install --disable-pip-version-check -r tool/cards/encoder/requirements.txt
+      - name: Qualify NTAG vectors, independent emulator and exact CLI recovery
+        env:
+          CARD_INTEROP_PHP: php
+          PYTHONPATH: tool/cards/encoder
+        run: python -m unittest discover -s tool/cards/encoder/tests -t tool/cards/encoder -v
       - name: Routes load
         run: php artisan route:list > /dev/null
       # The whole panel is formatted with Pint's laravel preset (pint.json); unformatted code fails.
@@ -300,7 +310,7 @@ jobs:
   # The two explicit live browser fixtures require loopback Reverb/control and
   # stay in Chrome below; native Reverb end-to-end qualification is pending.
   apps-smoke-android:
-    name: Flutter smoke flows on Android (${{ matrix.app }} ${{ matrix.flavor }})
+    name: Flutter smoke flows on Android (${{ matrix.app }} ${{ matrix.flavor }})${{ matrix.part && format(' part {0} of 2', matrix.part) || '' }}
     # Pin the emulator host while ubuntu-latest migrates to Ubuntu 26.
     # Android SDK and KVM availability must not change under a release.
     runs-on: ubuntu-24.04
@@ -311,7 +321,12 @@ jobs:
         include:
           - app: e-school
             flavor: family
-            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'family_live_recognition_smoke_test.dart' | sort)
+            part: 1
+            command: flutter test $(cat "$RUNNER_TEMP/family-android-1.targets")
+          - app: e-school
+            flavor: family
+            part: 2
+            command: flutter test $(cat "$RUNNER_TEMP/family-android-2.targets")
           - app: e-school-teacher
             flavor: teacher
             command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' | sort)
@@ -320,6 +335,23 @@ jobs:
             command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator $(find integration_test -maxdepth 1 -name 'facilitator*_test.dart' ! -name 'facilitator_live_smoke_test.dart' | sort)
     steps:
       - uses: actions/checkout@v7
+      - name: Verify complete disjoint family smoke inventory
+        if: matrix.flavor == 'family'
+        working-directory: e-school
+        shell: bash
+        run: |
+          export LC_ALL=C
+          # Preserve the exact original target discovery and its sole live-only
+          # exclusion. Alternate sorted targets over two bounded emulator jobs.
+          find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'family_live_recognition_smoke_test.dart' | sort > "$RUNNER_TEMP/family-android-all.targets"
+          awk 'NR % 2 == 1' "$RUNNER_TEMP/family-android-all.targets" > "$RUNNER_TEMP/family-android-1.targets"
+          awk 'NR % 2 == 0' "$RUNNER_TEMP/family-android-all.targets" > "$RUNNER_TEMP/family-android-2.targets"
+          test -s "$RUNNER_TEMP/family-android-1.targets"
+          test -s "$RUNNER_TEMP/family-android-2.targets"
+          cat "$RUNNER_TEMP/family-android-1.targets" "$RUNNER_TEMP/family-android-2.targets" | sort > "$RUNNER_TEMP/family-android-union.targets"
+          diff -u "$RUNNER_TEMP/family-android-all.targets" "$RUNNER_TEMP/family-android-union.targets"
+          test -z "$(comm -12 "$RUNNER_TEMP/family-android-1.targets" "$RUNNER_TEMP/family-android-2.targets")"
+          wc -l "$RUNNER_TEMP/family-android-all.targets" "$RUNNER_TEMP/family-android-1.targets" "$RUNNER_TEMP/family-android-2.targets"
       # Hardware acceleration for the emulator on GitHub's Linux runners.
       - name: Enable KVM
         run: |
@@ -347,6 +379,19 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           working-directory: ${{ matrix.app }}
           script: ${{ matrix.command }}
+
+  apps-smoke-android-family:
+    # Keep the exact existing required Family check name. Matrix cancellation,
+    # failure or skipping must never turn a partially tested family into green.
+    name: Flutter smoke flows on Android (e-school family)
+    runs-on: ubuntu-latest
+    needs: apps-smoke-android
+    if: always()
+    steps:
+      - name: Require every Android smoke part to pass
+        env:
+          ANDROID_SMOKE_RESULT: ${{ needs.apps-smoke-android.result }}
+        run: test "$ANDROID_SMOKE_RESULT" = success
 
   apps-smoke-chrome:
     name: Flutter smoke flow in Chrome (${{ matrix.flow }})

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Tenancy;
 
 use App\Http\Middleware\CardDeviceContext;
+use App\Http\Middleware\CardEncoderContext;
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
 use App\Http\Middleware\FoundationCredentialContext;
@@ -121,6 +122,17 @@ class ApiRouteTenancyTest extends TestCase
     {
         $route = $this->route($method, $uri);
         $label = $route->label();
+
+        if (in_array(CardEncoderContext::class, $route->middleware, true)) {
+            $this->assertContains($label, ['GET api/v2/card-encoder/plans/{plan}', 'POST api/v2/card-encoder/plans/{plan}/confirm'], 'Encoder credentials must not escape the two isolated personalization operations');
+            $this->assertContains(PrivateDomainResponse::class, $route->middleware);
+            $this->assertFalse($route->requiresAuthentication());
+            $this->json($method, $route->path())->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+            $this->asA('tara')->json($method, $route->path())->assertUnauthorized();
+            $this->asB('tara')->json($method, $route->path())->assertUnauthorized();
+
+            return;
+        }
 
         $foundation = array_intersect([FoundationCredentialContext::class.':device', FoundationCredentialContext::class.':learner'], $route->middleware);
         if ($foundation !== []) {

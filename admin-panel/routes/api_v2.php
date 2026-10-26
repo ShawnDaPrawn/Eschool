@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V2\Activities\GroupChatController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
+use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
 use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
@@ -75,6 +76,7 @@ use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\CardDeviceContext;
+use App\Http\Middleware\CardEncoderContext;
 use App\Http\Middleware\FoundationCredentialContext;
 use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PrivateAcademicContent;
@@ -866,4 +868,10 @@ Route::prefix('foundation-learner')->name('api.v2.foundation.learner.')->middlew
     Route::get('practice/{set}', [$c, 'learner'])->whereNumber('set')->defaults('foundation_action', 'read')->name('read');
     Route::post('practice/{set}/entries/{entry}/review', [$c, 'learner'])->whereNumber(['set', 'entry'])->defaults('foundation_action', 'review')->name('review');
     Route::post('leave', [$c, 'learner'])->defaults('foundation_action', 'leave')->name('leave');
+});
+
+// Registered encoders have no gate, classroom or ordinary account authority.
+Route::prefix('card-encoder')->name('api.v2.cards.encoder.')->middleware([PrivateDomainResponse::class, CardEncoderContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    Route::get('plans/{plan}', [CardEncodingController::class, 'download'])->whereUuid('plan')->name('download');
+    Route::post('plans/{plan}/confirm', [CardEncodingController::class, 'confirm'])->whereUuid('plan')->name('confirm');
 });
