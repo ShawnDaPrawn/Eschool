@@ -47,6 +47,7 @@ use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
+use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
@@ -936,4 +937,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
     Route::post('consents', [$controller, 'write'])->defaults('operation', 'create')->name('create');
     Route::get('consents/{consent}/managed', [$controller, 'show'])->whereUuid('consent')->defaults('operation', 'managed')->name('managed');
     Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->defaults('operation', 'cancel')->name('cancel');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('family-visits')->name('family-visits-panel.')->group(function () {
+    $controller = VisitPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('{operation}', [$controller, 'write'])->whereIn('operation', ['meeting-create', 'meeting-cancel', 'pass-approve', 'pass-cancel', 'rules'])->name('write');
 });

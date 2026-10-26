@@ -203,6 +203,8 @@ tags:
   description: Private reviewed teaching drafts and deterministic task insights.
 - name: ExamCoach
   description: School-reviewed licensed papers and private exam study plans.
+- name: FamilyVisits
+  description: Private parent meeting bookings and staff-approved online early collection.
 paths:
   /facilitator/sign-in:
     post:
@@ -21558,6 +21560,1184 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/ServerError'
+  /exam-coach/staff/groups/{group}/operations/{operation}:
+    get:
+      operationId: getExamCoachOperation
+      tags:
+      - ExamCoach
+      summary: getExamCoachOperation
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachOperationReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers:
+    get:
+      operationId: listExamCoachStaffAnswers
+      tags:
+      - ExamCoach
+      summary: listExamCoachStaffAnswers
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers/{answer}:
+    get:
+      operationId: getExamCoachStaffAnswer
+      tags:
+      - ExamCoach
+      summary: getExamCoachStaffAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers/{answer}/photo:
+    get:
+      operationId: getExamCoachStaffAnswerPhoto
+      tags:
+      - ExamCoach
+      summary: getExamCoachStaffAnswerPhoto
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh authorized approved cropped working pixels only.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers/{answer}/review:
+    post:
+      operationId: reviewExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: reviewExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerReviewReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCoachAnswerReviewWrite'
+  /exam-coach/groups/{group}/versions/{version}/answers:
+    post:
+      operationId: uploadExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: uploadExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerUploadReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExamCoachAnswerUploadWrite'
+  /exam-coach/answer-operations/{operation}:
+    get:
+      operationId: getExamCoachAnswerOperation
+      tags:
+      - ExamCoach
+      summary: getExamCoachAnswerOperation
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers:
+    get:
+      operationId: listExamCoachAnswers
+      tags:
+      - ExamCoach
+      summary: listExamCoachAnswers
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers/{answer}:
+    get:
+      operationId: getExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: getExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers/{answer}/photo:
+    get:
+      operationId: getExamCoachAnswerPhoto
+      tags:
+      - ExamCoach
+      summary: getExamCoachAnswerPhoto
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh authorized approved cropped working pixels only.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers/{answer}/feedback:
+    post:
+      operationId: requestExamCoachFeedback
+      tags:
+      - ExamCoach
+      summary: requestExamCoachFeedback
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCoachAnswerFeedbackWrite'
+  /exam-coach/answers/{answer}/revoke:
+    post:
+      operationId: revokeExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: revokeExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerRevocationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCoachOperationWrite'
+  /family-visits/configuration:
+    get:
+      operationId: getFamilyVisitConfiguration
+      tags:
+      - FamilyVisits
+      summary: getFamilyVisitConfiguration
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyVisitConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /family-visits/meetings:
+    get:
+      operationId: getFamilyMeetings
+      tags:
+      - FamilyVisits
+      summary: getFamilyMeetings
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMeetingPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createFamilyMeeting
+      tags:
+      - FamilyVisits
+      summary: createFamilyMeeting
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMeetingSlotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMeetingCreate'
+  /family-visits/meetings/{slot}/book:
+    post:
+      operationId: bookFamilyMeeting
+      tags:
+      - FamilyVisits
+      summary: bookFamilyMeeting
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: slot
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMeetingSlotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMeetingBooking'
+  /family-visits/meetings/{slot}/unbook:
+    post:
+      operationId: cancelFamilyMeetingBooking
+      tags:
+      - FamilyVisits
+      summary: cancelFamilyMeetingBooking
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: slot
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyVisitCancelledResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMeetingBooking'
+  /family-visits/meetings/{slot}/cancel:
+    post:
+      operationId: cancelFamilyMeeting
+      tags:
+      - FamilyVisits
+      summary: cancelFamilyMeeting
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: slot
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyVisitCancelledResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyVisitRevision'
+  /family-visits/passes:
+    get:
+      operationId: getFamilyGatePasses
+      tags:
+      - FamilyVisits
+      summary: getFamilyGatePasses
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyGatePassPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: requestFamilyGatePass
+      tags:
+      - FamilyVisits
+      summary: requestFamilyGatePass
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyGatePassResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyGateRequest'
+  /family-visits/passes/{pass}/approve:
+    post:
+      operationId: approveFamilyGatePass
+      tags:
+      - FamilyVisits
+      summary: approveFamilyGatePass
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: pass
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyGatePassResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyVisitRevision'
+  /family-visits/passes/{pass}/cancel:
+    post:
+      operationId: cancelFamilyGatePass
+      tags:
+      - FamilyVisits
+      summary: cancelFamilyGatePass
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: pass
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyVisitCancelledResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyVisitRevision'
+  /family-visits/rules:
+    put:
+      operationId: saveFamilyVisitRules
+      tags:
+      - FamilyVisits
+      summary: saveFamilyVisitRules
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyVisitRulesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyVisitRulesWrite'
+  /card-device/scans/{scan}/gate-passes:
+    get:
+      operationId: getScannedFamilyGatePasses
+      tags:
+      - FamilyVisits
+      summary: getScannedFamilyGatePasses
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - name: scan
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyGateLookupResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      security:
+      - CardDeviceCredential: []
+  /card-device/gate-passes/{pass}/collect:
+    post:
+      operationId: collectFamilyGatePass
+      tags:
+      - FamilyVisits
+      summary: collectFamilyGatePass
+      description: Private fresh school/account/guardian or named staff authority. Wall-clock writes use the school
+        timezone and reject ambiguous DST instants. Exact operation UUID/body retries return their original receipt
+        only after fresh authorisation. Gate collection requires a current delegated reader, matching recent online
+        learner-card scan, staff approval and explicit collector check. No offline collection approval.
+      parameters:
+      - name: pass
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private visit result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyGateCollectedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyGateCollection'
+      security:
+      - CardDeviceCredential: []
 components:
   securitySchemes:
     bearerAuth:
@@ -47648,6 +48828,10 @@ components:
           maxItems: 200
         writable:
           type: boolean
+        photo_feedback_enabled:
+          type: boolean
+          description: Optional current activation/readiness for automated photo feedback; every request still checks
+            fresh source authority and budgets.
     ExamCoachStaffChoices:
       type: object
       additionalProperties: false
@@ -48323,3 +49507,1093 @@ components:
         code:
           type: integer
           minimum: 0
+    ExamCoachAnswerUploadReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - prepared
+    ExamCoachAnswerFeedback:
+      type: object
+      additionalProperties: false
+      required:
+      - question_token
+      - mark_units
+      - confidence_basis_points
+      - feedback
+      properties:
+        question_token:
+          type: string
+          maxLength: 64
+          pattern: ^[a-f0-9]{64}$
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        confidence_basis_points:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        feedback:
+          type: string
+          maxLength: 1600
+          minLength: 1
+    ExamCoachAnswerReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - mark_units
+      - reason
+      - answer_revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+        answer_revision:
+          type: integer
+          minimum: 1
+    ExamCoachAnswerReviewReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - answer_id
+      - revision
+      - mark_units
+      properties:
+        id:
+          type: string
+          format: uuid
+        answer_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+    ExamCoachAnswerReviewWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - mark_units
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+    ExamCoachAnswerFeedbackWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - working
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        working:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+    ExamCoachOperationWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    ExamCoachAnswerRevocation:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - purged
+    ExamCoachOperationReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - operation_id
+      - paper
+      - review
+      properties:
+        kind:
+          type: string
+          enum:
+          - paper
+          - answer_review
+        operation_id:
+          type: string
+          format: uuid
+        paper:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachPaperReceipt'
+          - type: 'null'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachAnswerReviewReceipt'
+          - type: 'null'
+    ExamCoachAnswerSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      - failure_code
+      - group_id
+      - paper_version_id
+      - question_number
+      - revision
+      - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - prepared
+          - pending
+          - completed
+          - failed
+          - quarantined
+          - purged
+        failure_code:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+        group_id:
+          type: integer
+          minimum: 1
+        paper_version_id:
+          type: string
+          format: uuid
+        question_number:
+          type: string
+          maxLength: 16
+        revision:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+          maxLength: 191
+    ExamCoachAnswerList:
+      type: object
+      additionalProperties: false
+      required:
+      - answers
+      - page
+      - has_more
+      properties:
+        answers:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/ExamCoachAnswerSummary'
+        page:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        has_more:
+          type: boolean
+    ExamCoachAnswerDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      - failure_code
+      - response
+      - review
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - prepared
+          - pending
+          - completed
+          - failed
+          - quarantined
+          - purged
+        failure_code:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+        group_id:
+          type: integer
+          minimum: 1
+        paper_version_id:
+          type: string
+          format: uuid
+        question_number:
+          type: string
+          maxLength: 16
+        revision:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        working:
+          type: string
+          maxLength: 2000
+        response:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachAnswerFeedback'
+          - type: 'null'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachAnswerReview'
+          - type: 'null'
+        provisional:
+          type: boolean
+    ExamCoachAnswerUploadWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - question_number
+      - photo
+      - approved
+      - share_with_teacher
+      - crop_x
+      - crop_y
+      - crop_width
+      - crop_height
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        question_number:
+          type: string
+          maxLength: 16
+          pattern: ^[A-Za-z0-9().-]{1,16}$
+        photo:
+          type: string
+          format: binary
+        approved:
+          type: boolean
+          description: Must be true after explicit approved crop selection.
+        share_with_teacher:
+          type: boolean
+          description: Must be true after confirming sharing with the allocated teacher.
+        crop_x:
+          type: integer
+          minimum: 0
+          maximum: 8192
+        crop_y:
+          type: integer
+          minimum: 0
+          maximum: 8192
+        crop_width:
+          type: integer
+          minimum: 1
+          maximum: 8192
+        crop_height:
+          type: integer
+          minimum: 1
+          maximum: 8192
+    ExamCoachOperationReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachOperationReceipt'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerList'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerDetail'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerReviewReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerReviewReceipt'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerUploadReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerUploadReceipt'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerRevocationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerRevocation'
+        code:
+          type: integer
+          minimum: 0
+
+    FamilyVisitChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    FamilyVisitRules:
+      type: object
+      additionalProperties: false
+      required:
+      - max_window_minutes
+      - max_future_days
+      - scan_max_age_seconds
+      - revision
+      - staff_approval_required
+      - collector_check_required
+      properties:
+        max_window_minutes:
+          type: integer
+          minimum: 15
+          maximum: 240
+        max_future_days:
+          type: integer
+          minimum: 1
+          maximum: 30
+        scan_max_age_seconds:
+          type: integer
+          minimum: 15
+          maximum: 120
+        revision:
+          type: integer
+          minimum: 0
+        staff_approval_required:
+          type: boolean
+        collector_check_required:
+          type: boolean
+        id:
+          type: string
+          format: uuid
+    FamilyVisitConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - timezone
+      - writable
+      - can_manage
+      - can_host
+      - children
+      - hosts
+      - gate_rules
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        timezone:
+          type: string
+        writable:
+          type: boolean
+        can_manage:
+          type: boolean
+        can_host:
+          type: boolean
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyVisitChoice'
+        hosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyVisitChoice'
+        gate_rules:
+          $ref: '#/components/schemas/FamilyVisitRules'
+    FamilyMeetingSlot:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - host_id
+      - host_name
+      - title
+      - venue
+      - starts_at
+      - ends_at
+      - booking_closes_at
+      - status
+      - revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        host_id:
+          type: integer
+          minimum: 1
+        host_name:
+          type: string
+        title:
+          type: string
+        venue:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        booking_closes_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          pattern: ^(open|booked|cancelled)$
+        revision:
+          type: integer
+          minimum: 1
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        learner_name:
+          type:
+          - string
+          - 'null'
+        guardian_user_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    FamilyMeetingPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyMeetingSlot'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    FamilyVisitCancelled:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - status
+      - revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          pattern: ^(open|cancelled)$
+        revision:
+          type: integer
+          minimum: 1
+    FamilyGatePass:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - requested_by
+      - approved_by
+      - collector
+      - reason
+      - starts_at
+      - ends_at
+      - status
+      - revision
+      - collected_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        requested_by:
+          type: integer
+          minimum: 1
+        approved_by:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        collector:
+          type: string
+        reason:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          pattern: ^(pending|approved|cancelled|collected)$
+        revision:
+          type: integer
+          minimum: 1
+        collected_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        learner_name:
+          type: string
+    FamilyGatePassPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyGatePass'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    FamilyGateClearance:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - collector
+      - starts_at
+      - ends_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        collector:
+          type: string
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+    FamilyGateLookup:
+      type: object
+      additionalProperties: false
+      required:
+      - scan_id
+      - learner_id
+      - learner_name
+      - passes
+      - collector_check_required
+      - available
+      properties:
+        available:
+          type: boolean
+        scan_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        passes:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyGateClearance'
+        collector_check_required:
+          type: boolean
+    FamilyGateCollected:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - status
+      - revision
+      - collected_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          pattern: ^collected$
+        revision:
+          type: integer
+          minimum: 1
+        collected_at:
+          type: string
+          format: date-time
+    FamilyMeetingCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - host_id
+      - title
+      - venue
+      - starts_at
+      - ends_at
+      - booking_closes_at
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        host_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 191
+        venue:
+          type: string
+          minLength: 1
+          maxLength: 500
+        starts_at:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+        booking_closes_at:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+    FamilyMeetingBooking:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - learner_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+    FamilyVisitRevision:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+    FamilyGateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - learner_id
+      - collector
+      - reason
+      - starts_at
+      - ends_at
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        collector:
+          type: string
+          minLength: 1
+          maxLength: 191
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        starts_at:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+        ends_at:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+    FamilyGateCollection:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - scan_id
+      - collector_confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        scan_id:
+          type: string
+          format: uuid
+        collector_confirmed:
+          type: boolean
+    FamilyVisitRulesWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - max_window_minutes
+      - max_future_days
+      - scan_max_age_seconds
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        max_window_minutes:
+          type: integer
+          minimum: 15
+          maximum: 240
+        max_future_days:
+          type: integer
+          minimum: 1
+          maximum: 30
+        scan_max_age_seconds:
+          type: integer
+          minimum: 15
+          maximum: 120
+    FamilyVisitConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyVisitConfiguration'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyMeetingPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyMeetingPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyMeetingSlotResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyMeetingSlot'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyVisitCancelledResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyVisitCancelled'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyGatePassPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyGatePassPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyGatePassResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyGatePass'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyVisitRulesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyVisitRules'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyGateLookupResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyGateLookup'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyGateCollectedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyGateCollected'
+        code:
+          type: integer
+          enum:
+          - 200

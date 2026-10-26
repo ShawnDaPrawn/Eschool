@@ -1,0 +1,67 @@
+[
+  {
+    "operation_id": "getFamilyVisitConfiguration",
+    "method": "GET",
+    "path": "/family-visits/configuration"
+  },
+  {
+    "operation_id": "getFamilyMeetings",
+    "method": "GET",
+    "path": "/family-visits/meetings"
+  },
+  {
+    "operation_id": "createFamilyMeeting",
+    "method": "POST",
+    "path": "/family-visits/meetings"
+  },
+  {
+    "operation_id": "bookFamilyMeeting",
+    "method": "POST",
+    "path": "/family-visits/meetings/{slot}/book"
+  },
+  {
+    "operation_id": "cancelFamilyMeetingBooking",
+    "method": "POST",
+    "path": "/family-visits/meetings/{slot}/unbook"
+  },
+  {
+    "operation_id": "cancelFamilyMeeting",
+    "method": "POST",
+    "path": "/family-visits/meetings/{slot}/cancel"
+  },
+  {
+    "operation_id": "getFamilyGatePasses",
+    "method": "GET",
+    "path": "/family-visits/passes"
+  },
+  {
+    "operation_id": "requestFamilyGatePass",
+    "method": "POST",
+    "path": "/family-visits/passes"
+  },
+  {
+    "operation_id": "approveFamilyGatePass",
+    "method": "POST",
+    "path": "/family-visits/passes/{pass}/approve"
+  },
+  {
+    "operation_id": "cancelFamilyGatePass",
+    "method": "POST",
+    "path": "/family-visits/passes/{pass}/cancel"
+  },
+  {
+    "operation_id": "saveFamilyVisitRules",
+    "method": "PUT",
+    "path": "/family-visits/rules"
+  },
+  {
+    "operation_id": "getScannedFamilyGatePasses",
+    "method": "GET",
+    "path": "/card-device/scans/{scan}/gate-passes"
+  },
+  {
+    "operation_id": "collectFamilyGatePass",
+    "method": "POST",
+    "path": "/card-device/gate-passes/{pass}/collect"
+  }
+]

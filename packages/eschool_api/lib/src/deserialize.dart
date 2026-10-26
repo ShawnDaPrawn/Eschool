@@ -433,6 +433,21 @@ import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
 import 'package:eschool_api/src/model/enrolment_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_detail.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_detail_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_feedback.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_feedback_write.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_list.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_list_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review_receipt_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review_write.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_revocation.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_revocation_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_summary.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_upload_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_upload_receipt_response.dart';
 import 'package:eschool_api/src/model/exam_coach_configuration.dart';
 import 'package:eschool_api/src/model/exam_coach_configuration_response.dart';
 import 'package:eschool_api/src/model/exam_coach_exam_choice.dart';
@@ -440,6 +455,9 @@ import 'package:eschool_api/src/model/exam_coach_exam_dates.dart';
 import 'package:eschool_api/src/model/exam_coach_exam_dates_response.dart';
 import 'package:eschool_api/src/model/exam_coach_group_choice.dart';
 import 'package:eschool_api/src/model/exam_coach_licence.dart';
+import 'package:eschool_api/src/model/exam_coach_operation_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_operation_receipt_response.dart';
+import 'package:eschool_api/src/model/exam_coach_operation_write.dart';
 import 'package:eschool_api/src/model/exam_coach_paper_list.dart';
 import 'package:eschool_api/src/model/exam_coach_paper_list_response.dart';
 import 'package:eschool_api/src/model/exam_coach_paper_receipt.dart';
@@ -495,8 +513,34 @@ import 'package:eschool_api/src/model/family_form_choice.dart';
 import 'package:eschool_api/src/model/family_form_configuration.dart';
 import 'package:eschool_api/src/model/family_form_configuration_response.dart';
 import 'package:eschool_api/src/model/family_form_group_choice.dart';
+import 'package:eschool_api/src/model/family_gate_clearance.dart';
+import 'package:eschool_api/src/model/family_gate_collected.dart';
+import 'package:eschool_api/src/model/family_gate_collected_response.dart';
+import 'package:eschool_api/src/model/family_gate_collection.dart';
+import 'package:eschool_api/src/model/family_gate_lookup.dart';
+import 'package:eschool_api/src/model/family_gate_lookup_response.dart';
+import 'package:eschool_api/src/model/family_gate_pass.dart';
+import 'package:eschool_api/src/model/family_gate_pass_page.dart';
+import 'package:eschool_api/src/model/family_gate_pass_page_response.dart';
+import 'package:eschool_api/src/model/family_gate_pass_response.dart';
+import 'package:eschool_api/src/model/family_gate_request.dart';
 import 'package:eschool_api/src/model/family_health_value.dart';
 import 'package:eschool_api/src/model/family_health_write.dart';
+import 'package:eschool_api/src/model/family_meeting_booking.dart';
+import 'package:eschool_api/src/model/family_meeting_create.dart';
+import 'package:eschool_api/src/model/family_meeting_page.dart';
+import 'package:eschool_api/src/model/family_meeting_page_response.dart';
+import 'package:eschool_api/src/model/family_meeting_slot.dart';
+import 'package:eschool_api/src/model/family_meeting_slot_response.dart';
+import 'package:eschool_api/src/model/family_visit_cancelled.dart';
+import 'package:eschool_api/src/model/family_visit_cancelled_response.dart';
+import 'package:eschool_api/src/model/family_visit_choice.dart';
+import 'package:eschool_api/src/model/family_visit_configuration.dart';
+import 'package:eschool_api/src/model/family_visit_configuration_response.dart';
+import 'package:eschool_api/src/model/family_visit_revision.dart';
+import 'package:eschool_api/src/model/family_visit_rules.dart';
+import 'package:eschool_api/src/model/family_visit_rules_response.dart';
+import 'package:eschool_api/src/model/family_visit_rules_write.dart';
 import 'package:eschool_api/src/model/gallery_child.dart';
 import 'package:eschool_api/src/model/gallery_configuration.dart';
 import 'package:eschool_api/src/model/gallery_configuration_response.dart';
@@ -2567,6 +2611,65 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ErrorResponse':
       return ErrorResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'ExamCoachAnswerDetail':
+      return ExamCoachAnswerDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerDetailResponse':
+      return ExamCoachAnswerDetailResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerFeedback':
+      return ExamCoachAnswerFeedback.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerFeedbackWrite':
+      return ExamCoachAnswerFeedbackWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerList':
+      return ExamCoachAnswerList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerListResponse':
+      return ExamCoachAnswerListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerReview':
+      return ExamCoachAnswerReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerReviewReceipt':
+      return ExamCoachAnswerReviewReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerReviewReceiptResponse':
+      return ExamCoachAnswerReviewReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerReviewWrite':
+      return ExamCoachAnswerReviewWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerRevocation':
+      return ExamCoachAnswerRevocation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerRevocationResponse':
+      return ExamCoachAnswerRevocationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerSummary':
+      return ExamCoachAnswerSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerUploadReceipt':
+      return ExamCoachAnswerUploadReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerUploadReceiptResponse':
+      return ExamCoachAnswerUploadReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ExamCoachConfiguration':
       return ExamCoachConfiguration.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2589,6 +2692,17 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ExamCoachLicence':
       return ExamCoachLicence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachOperationReceipt':
+      return ExamCoachOperationReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachOperationReceiptResponse':
+      return ExamCoachOperationReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachOperationWrite':
+      return ExamCoachOperationWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ExamCoachPaperList':
       return ExamCoachPaperList.fromJson(value as Map<String, dynamic>)
@@ -2773,11 +2887,93 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'FamilyFormGroupChoice':
       return FamilyFormGroupChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'FamilyGateClearance':
+      return FamilyGateClearance.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGateCollected':
+      return FamilyGateCollected.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGateCollectedResponse':
+      return FamilyGateCollectedResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGateCollection':
+      return FamilyGateCollection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGateLookup':
+      return FamilyGateLookup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGateLookupResponse':
+      return FamilyGateLookupResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGatePass':
+      return FamilyGatePass.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGatePassPage':
+      return FamilyGatePassPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGatePassPageResponse':
+      return FamilyGatePassPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGatePassResponse':
+      return FamilyGatePassResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyGateRequest':
+      return FamilyGateRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'FamilyHealthValue':
       return FamilyHealthValue.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'FamilyHealthWrite':
       return FamilyHealthWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyMeetingBooking':
+      return FamilyMeetingBooking.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyMeetingCreate':
+      return FamilyMeetingCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyMeetingPage':
+      return FamilyMeetingPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyMeetingPageResponse':
+      return FamilyMeetingPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyMeetingSlot':
+      return FamilyMeetingSlot.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyMeetingSlotResponse':
+      return FamilyMeetingSlotResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitCancelled':
+      return FamilyVisitCancelled.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitCancelledResponse':
+      return FamilyVisitCancelledResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyVisitChoice':
+      return FamilyVisitChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitConfiguration':
+      return FamilyVisitConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitConfigurationResponse':
+      return FamilyVisitConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyVisitRevision':
+      return FamilyVisitRevision.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitRules':
+      return FamilyVisitRules.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitRulesResponse':
+      return FamilyVisitRulesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyVisitRulesWrite':
+      return FamilyVisitRulesWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'GalleryChild':
       return GalleryChild.fromJson(value as Map<String, dynamic>) as ReturnType;
