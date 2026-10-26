@@ -27,6 +27,7 @@ class NotificationTypes
     public static function link(string $type): string
     {
         return match ($type) {
+            'consent.requested' => '/family-forms',
             'approval.requested' => '/approvals',
             'approval.handle_requested' => '/handles',
             'comms.message' => '/chat',
