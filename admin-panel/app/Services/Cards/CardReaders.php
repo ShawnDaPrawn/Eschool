@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Cards;
+
+use App\Models\Cards\CardReaderDevice;
+use App\Models\User;
+use App\Policies\People\ProfilePolicy;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+
+/** Device credentials have no user-token or general application authority. */
+class CardReaders
+{
+    public function register(User $actor, array $input): array
+    {
+        $data = Validator::make($input, [
+            'operation_id' => ['required', 'uuid'], 'name' => ['required', 'string', 'max:100'],
+            'kind' => ['required', 'in:gate,encoder'], 'public_key' => ['required', 'string', 'max:64'],
+            'days' => ['required', 'integer', 'between:1,30'],
+        ])->validate();
+        $public = base64_decode($data['public_key'], true);
+        abort_unless($public !== false && strlen($public) === SODIUM_CRYPTO_BOX_PUBLICKEYBYTES, 422);
+
+        return app(CardOperations::class)->once('user', (string) $actor->id, 'reader.register', $data,
+            fn () => app(CardAccess::class)->manage($actor, true), function () use ($actor, $data) {
+                $secret = bin2hex(random_bytes(32));
+                $device = CardReaderDevice::create(['issued_by' => $actor->id, 'name' => $data['name'], 'kind' => $data['kind'],
+                    'public_key' => $data['public_key'], 'secret_hash' => hash('sha256', $secret), 'expires_at' => now()->utc()->addDays((int) $data['days'])]);
+
+                return ['id' => $device->id, 'credential' => 'NED1.'.app(CurrentSchool::class)->id().'.'.$device->id.'.'.$secret,
+                    'kind' => $device->kind, 'expires_at' => $device->expires_at->toIso8601String()];
+            });
+    }
+
+    /** Only inside an explicitly selected school; no untrusted context switching. */
+    public function authenticate(string $credential, string $kind, bool $write = false): CardReaderDevice
+    {
+        abort_unless(strlen($credential) < 160 && preg_match('/^NED1\.([1-9][0-9]*)\.([a-f0-9-]{36})\.([a-f0-9]{64})$/D', $credential, $parts) === 1, 401);
+        $scope = app(CurrentSchool::class);
+        abort_unless($scope->isSet() && ! $scope->isAcrossSchools() && ! $scope->isImpersonating() && (int) $parts[1] === $scope->id(), 401);
+        $device = CardReaderDevice::find($parts[2]);
+        abort_unless($device !== null && hash_equals($device->secret_hash, hash('sha256', $parts[3])), 401);
+        abort_unless($device->kind === $kind && $device->status === 'active' && $device->revoked_at === null && $device->expires_at->isFuture(), 403);
+        // Registration is a delegated, revocable authority, not a permanent grant.
+        app(CardAccess::class)->manage(User::findOrFail($device->issued_by), true, $write);
+
+        return $device;
+    }
+
+    public function revoke(User $actor, string $id): void
+    {
+        $fresh = app(CardAccess::class)->actor($actor, revocation: true);
+        abort_unless(app(ProfilePolicy::class)->permission($fresh, CardAccess::READERS), 403);
+        CardReaderDevice::findOrFail($id);
+        CardReaderDevice::whereKey($id)->update(['status' => 'revoked', 'revoked_at' => now()->utc(), 'revision' => DB::raw('revision + 1')]);
+    }
+}

@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>{{ __('School AI costs') }}</title><link rel="stylesheet" href="{{ asset('assets/css/m3-tokens.css') }}"><link rel="stylesheet" href="{{ asset('assets/css/m3-base.css') }}"><link rel="stylesheet" href="{{ asset('assets/css/m3-components.css') }}"></head>
+<body><main class="content-wrapper m3 page-content" data-ai-private-review>
+    <h1>{{ __('School AI costs') }}</h1><p>{{ __('Actual and reserved costs are separate. Unspecified historical currency is never combined with a known currency.') }}</p>
+    <form method="GET" action="{{ route('ai-platform.costs') }}"><label>{{ __('From date') }} <input type="date" name="from" value="{{ $report['from'] }}" required></label><label>{{ __('To date') }} <input type="date" name="to" value="{{ $report['to'] }}" required></label><button type="submit">{{ __('Show costs') }}</button></form>
+    @forelse($report['rows'] as $row)
+    <article><h2>{{ $row['school_name'] }}</h2><dl><dt>{{ __('Billing currency') }}</dt><dd>{{ $row['billing_currency'] ?? __('Unspecified historical currency') }}</dd><dt>{{ __('Recorded cost in cents') }}</dt><dd>{{ $row['cost_cents'] }}</dd><dt>{{ __('Reserved cost in cents') }}</dt><dd>{{ $row['reserved_cost_cents'] }}</dd><dt>{{ __('Used tokens') }}</dt><dd>{{ $row['used_tokens'] }}</dd><dt>{{ __('Reserved tokens') }}</dt><dd>{{ $row['reserved_tokens'] }}</dd></dl></article>
+    @empty<p>{{ __('No metered usage in this date range.') }}</p>@endforelse
+    @if($report['page'] > 1)<a href="{{ route('ai-platform.costs', ['from' => $report['from'], 'to' => $report['to'], 'page' => $report['page'] - 1]) }}">{{ __('Previous page') }}</a>@endif
+    @if($report['has_more'])<a href="{{ route('ai-platform.costs', ['from' => $report['from'], 'to' => $report['to'], 'page' => $report['page'] + 1]) }}">{{ __('Next page') }}</a>@endif
+</main><script src="{{ asset('assets/js/ai-flag-review.js') }}" defer></script></body></html>

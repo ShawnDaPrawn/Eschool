@@ -84,9 +84,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
               offset: const Offset(0, -12),
               child: NotificationSettingsButton(
                 repository: ApiNotificationSettingsRepository(Api.client),
-                onPressed: () => Navigator.of(
-                  context,
-                ).pushNamed(Routes.notificationSettings),
+                onPressed: () =>
+                    Navigator.of(context)
+                        .pushNamed(Routes.notificationSettings),
               ),
             ),
           ),
@@ -171,9 +171,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       const SizedBox(height: 2),
                       ReadMoreText(
                         notification.message,
-                        colorClickableText: Theme.of(
-                          context,
-                        ).colorScheme.primary,
+                        colorClickableText: Theme.of(context)
+                            .colorScheme
+                            .primary,
                         trimMode: TrimMode.Line,
                         trimCollapsedText: UiUtils.getTranslatedLabel(
                           context,
@@ -188,6 +188,43 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         textAlign: TextAlign.start,
                       ),
+                      if (notification.type == 'digest.weekly')
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton.icon(
+                            key: ValueKey('digest-notice-${notification.id}'),
+                            icon: const Icon(Icons.summarize_outlined),
+                            label: Text(
+                              UiUtils.getTranslatedLabel(
+                                context,
+                                'Weekly learning updates',
+                              ),
+                            ),
+                            onPressed: () =>
+                                Navigator.of(context)
+                                    .pushNamed(Routes.weeklyDigest),
+                          ),
+                        ),
+                      if (notification.type == 'consultations.opened' ||
+                          notification.type == 'consultations.staff_opened')
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton.icon(
+                            key: ValueKey(
+                              'consultation-notice-${notification.id}',
+                            ),
+                            icon: const Icon(Icons.how_to_vote_outlined),
+                            label: Text(
+                              UiUtils.getTranslatedLabel(
+                                context,
+                                'Polls, surveys and elections',
+                              ),
+                            ),
+                            onPressed: () =>
+                                Navigator.of(context)
+                                    .pushNamed(Routes.consultations),
+                          ),
+                        ),
                       const SizedBox(height: 5),
                       Row(
                         children: [

@@ -28,6 +28,33 @@ final approval = find.widgetWithText(
   'I reviewed these records, the named receiving school and dates, and consent to this exact package.',
 );
 void main() {
+  testWidgets(
+    'optional gallery retention is off by default and exact retry preserves its own fingerprint',
+    (tester) async {
+      final repo = FakeTransfer()
+        ..photoChoice = true
+        ..failWrite = true;
+      await show(tester, repo);
+      final keep = find.widgetWithText(
+        CheckboxListTile,
+        'Keep approved photo tags for this learner',
+      );
+      expect(tester.widget<CheckboxListTile>(keep).value, isFalse);
+      await tap(tester, keep);
+      await tap(tester, approval);
+      await tap(tester, consent);
+      expect(repo.writes.single, contains('"keep_photo_tags":true'));
+      expect(
+        repo.writes.single,
+        contains('synthetic-photo-consent-fingerprint'),
+      );
+      await tap(
+        tester,
+        find.widgetWithText(FilledButton, 'Retry the same transfer action'),
+      );
+      expect(repo.writes.first, repo.writes.last);
+    },
+  );
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets(
       'guardian reviews exact destination and unknown history at $width',
@@ -208,6 +235,7 @@ void main() {
         'Download signed transfer archive',
       );
       await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pump();
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);

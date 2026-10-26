@@ -21,12 +21,21 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
+        'tutor_sessions', 'tutor_messages', 'tutor_photos',
+        'past_papers', 'past_paper_versions', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
+        'ai_school_limits', 'ai_settings_operations',
+        'ai_flag_reviews',
+        'ai_quarantine_snapshots',
+        'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations',
+        'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
+        'cards', 'card_keys', 'card_portraits', 'card_reader_devices', 'card_chip_profiles', 'card_qr_uses', 'card_scan_logs', 'card_classroom_sessions', 'card_events', 'card_operations',
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
         'practice_items', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',
         'intakes', 'intake_grades', 'applications', 'application_documents', 'application_links', 'application_events', 'offers', 'admission_operations',
         'consultations', 'consultation_questions', 'consultation_options', 'consultation_candidates', 'consultation_participation', 'consultation_responses', 'consultation_configuration_events', 'consultation_operations',
         'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',
-        'discipline_acknowledgements', 'detention_sessions', 'detention_entries', 'detention_versions',
+        'discipline_acknowledgements', 'discipline_notice_intents', 'detention_sessions', 'detention_entries', 'detention_versions',
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations',
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
@@ -91,6 +100,7 @@ final class SchoolOwnedTables
 
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
+        'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',

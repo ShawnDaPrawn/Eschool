@@ -31,8 +31,13 @@ jobs:
           python-version: '3.12'
       - name: Install pinned conversion and test dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
+          # The runner mirror stalled on individual media packages. Keep Ubuntu
+          # signature checks and use its official HTTPS archive for this job.
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            sudo sed -i -E 's#https?://azure.archive.ubuntu.com/ubuntu/?#https://archive.ubuntu.com/ubuntu/#g' /etc/apt/apt-mirrors.txt
+          fi
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y --no-install-recommends ffmpeg
           python -m pip install --require-hashes -r requirements-dev.txt
       - name: Audit the resolved production Python dependencies
         run: |
@@ -78,8 +83,8 @@ jobs:
       - name: Verify Apache configuration
         run: docker run --rm --entrypoint apache2ctl navigateed-php-check configtest
 
-  admin-panel:
-    name: Admin panel (PHP tests)
+  admin-panel-quality:
+    name: Admin panel quality and runtime
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -143,11 +148,71 @@ jobs:
             sleep 2
           done
           CONTENT_CLAMAV_INTEGRATION=true php artisan test tests/Unit/ClamAvIntegrationTest.php
-      - run: php artisan test
+      - name: Qualify actual private Reverb socket and immediate committed relay
+        env:
+          LIVE_REVERB_INTEGRATION: 'true'
+        run: php vendor/bin/phpunit tests/Feature/Live/ReverbIntegrationTest.php
       # The container's Apache answers the portals' requests for uploaded files
       # with CORS headers (docker/storage-cors.conf); the runner has apache2.
       - name: Storage CORS in Apache
         run: bash docker/tests/storage-cors.sh
+
+  admin-panel-tests:
+    name: Admin panel PHP shard ${{ matrix.shard }} of 4
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    defaults:
+      run:
+        working-directory: admin-panel
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: eschool_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: eschool_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3.36'
+          extensions: mbstring, intl, gd, zip, sodium, pdo_mysql, bcmath, exif, fileinfo
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate --force
+      - name: Verify complete, disjoint PHPUnit partition
+        run: python3 -m unittest discover -s tool/ci -p 'test_*.py'
+      - name: Run every test assigned to this isolated runner
+        run: |
+          python3 tool/ci/phpunit_shard.py --shard ${{ matrix.shard }} --count 4 --output phpunit.ci-shard.xml
+          php vendor/bin/phpunit --configuration phpunit.ci-shard.xml
+
+  admin-panel:
+    name: Admin panel (PHP tests)
+    if: always()
+    needs: [admin-panel-quality, admin-panel-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all PHP tests and quality/runtime checks
+        env:
+          QUALITY_RESULT: ${{ needs.admin-panel-quality.result }}
+          TEST_RESULT: ${{ needs.admin-panel-tests.result }}
+        run: |
+          test "$QUALITY_RESULT" = success
+          test "$TEST_RESULT" = success
 
   openapi:
     name: OpenAPI contract (lint)
@@ -227,6 +292,8 @@ jobs:
 
   # The integration_test/ smoke flows (sign in, reach Home, open a screen)
   # against the fake API in integration_test/support/fixtures.dart: no server.
+  # The two explicit live browser fixtures require loopback Reverb/control and
+  # stay in Chrome below; native Reverb end-to-end qualification is pending.
   apps-smoke-android:
     name: Flutter smoke flows on Android (${{ matrix.app }} ${{ matrix.flavor }})
     # Pin the emulator host while ubuntu-latest migrates to Ubuntu 26.
@@ -239,13 +306,13 @@ jobs:
         include:
           - app: e-school
             flavor: family
-            command: flutter test integration_test
+            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'family_live_recognition_smoke_test.dart' | sort)
           - app: e-school-teacher
             flavor: teacher
             command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' | sort)
           - app: e-school-teacher
             flavor: facilitator
-            command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator integration_test/facilitator*_test.dart
+            command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator $(find integration_test -maxdepth 1 -name 'facilitator*_test.dart' ! -name 'facilitator_live_smoke_test.dart' | sort)
     steps:
       - uses: actions/checkout@v7
       # Hardware acceleration for the emulator on GitHub's Linux runners.
@@ -342,6 +409,8 @@ jobs:
             flow: family_progress_smoke_test.dart
           - app: e-school
             flow: family_recognition_smoke_test.dart
+          - app: e-school
+            flow: family_live_recognition_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_recognition_smoke_test.dart
             flavor: facilitator
@@ -360,6 +429,46 @@ jobs:
             flavor: facilitator
           - app: e-school-teacher
             flow: facilitator_private_inbox_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: teacher_practice_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_practice_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
+            flow: family_practice_smoke_test.dart
+          - app: e-school
+            flow: family_tutor_smoke_test.dart
+          - app: e-school
+            flow: family_consultations_smoke_test.dart
+          - app: e-school
+            flow: parent_digest_smoke_test.dart
+          - app: e-school
+            flow: family_gallery_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_gallery_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_gallery_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
+            flow: family_cards_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_my_grade_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_my_grade_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: teacher_cards_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_cards_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: teacher_consultations_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_consultations_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: facilitator_live_smoke_test.dart
             flavor: facilitator
           - app: e-school-teacher
             flow: teacher_risk_smoke_test.dart
@@ -382,6 +491,25 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
+      - name: Set up PHP for the real live browser transport fixture
+        if: contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3.36'
+          extensions: mbstring, intl, sodium, pdo_mysql
+          coverage: none
+      - name: Install the pinned Reverb runtime
+        if: contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
+        working-directory: admin-panel
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress
+      - name: Start loopback Reverb and the synthetic signed browser publisher
+        if: contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
+        working-directory: admin-panel
+        run: |
+          APP_ENV=testing APP_KEY=base64:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8= REVERB_APP_ID=qualification-browser REVERB_APP_KEY=qualification-browser-key REVERB_APP_SECRET=qualification-browser-secret-32-characters php artisan reverb:start --host=127.0.0.1 --port=8088 > "$RUNNER_TEMP/live-browser-reverb.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/live-browser-reverb.pid"
+          python3 tool/live/browser_control.py > "$RUNNER_TEMP/live-browser-control.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/live-browser-control.pid"
       # The runner image ships Chrome with a matching chromedriver.
       - name: Start chromedriver
         run: |
@@ -394,6 +522,13 @@ jobs:
           ${{ matrix.flavor && format('--flavor {0} --dart-define=FLAVOR={0}', matrix.flavor) || '' }}
           -d web-server --browser-name=chrome --headless
           --no-web-resources-cdn
+      - name: Stop the isolated live browser fixture
+        if: always() && contains(fromJSON('["facilitator_live_smoke_test.dart","family_live_recognition_smoke_test.dart"]'), matrix.flow)
+        run: |
+          for service in reverb control; do
+            pid_file="$RUNNER_TEMP/live-browser-$service.pid"
+            if [ -f "$pid_file" ]; then kill "$(cat "$pid_file")" 2>/dev/null || true; fi
+          done
 
   docs:
     name: Documentation build
@@ -475,6 +610,8 @@ jobs:
       DB_PASSWORD: root
       APP_URL: http://127.0.0.1:8000
       E2E_BASE_URL: http://127.0.0.1:8000
+      CONTENT_CLAMAV_HOST: 127.0.0.1
+      CONTENT_CLAMAV_PORT: 3317
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
@@ -494,7 +631,15 @@ jobs:
       # throttling the page sweep; four workers serve the parallel browsers.
       - name: Start the panel
         run: |
-          PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php artisan serve --no-reload --host=127.0.0.1 --port=8000 > storage/logs/serve.log 2>&1 &
+          # Isolated protocol fixture; this does not qualify malware detection.
+          nohup python3 e2e/support/synthetic-photo-scanner.py > storage/logs/photo-scanner-fixture.log 2>&1 &
+          # Serve the real application through Laravel's own router directly.
+          # Keep the long browser run independent of Artisan's log-parsing process.
+          (
+            cd public
+            PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array nohup php -S 127.0.0.1:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > ../storage/logs/serve.log 2>&1 &
+            echo "$!" > ../storage/logs/panel.pid
+          )
           for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/login && exit 0; sleep 1; done
           cat storage/logs/serve.log
           exit 1
@@ -510,7 +655,10 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Playwright checks
         working-directory: admin-panel/e2e
-        run: npm run typecheck && npx playwright test
+        run: |
+          npm run typecheck
+          trap 'panel_result=$?; if ! kill -0 "$(cat ../storage/logs/panel.pid)" 2>/dev/null; then echo "Panel server exited during the browser run"; tail -n 40 ../storage/logs/serve.log; panel_result=1; fi; exit "$panel_result"' EXIT
+          npx playwright test
       - name: Upload the report
         if: failure()
         uses: actions/upload-artifact@v7

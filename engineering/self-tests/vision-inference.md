@@ -1,0 +1,9 @@
+# Private vision gateway software qualification
+
+The combined AI foundation, feature inference, quarantine, provider protocols and new vision cohort pass **56 tests / 372 assertions** using native PHP 8.3 and real synthetic MySQL fixtures. Full configured PHPStan reports no errors; changed-file Pint and diff whitespace checks pass. No paid or live provider calls occurred.
+
+Vision cases cover exact immutable manifests, fresh owner/role/school refusal before pixel retrieval, resolver tenant changes, resolver withdrawal during moderation, current source revocation, conservative image caps, unqualified-provider zero-dispatch accounting, moderated provider/replay behavior and encrypted quarantine containing only bounded opaque photo references. Real OpenAI/Anthropic HTTP protocol fixtures and multimodal moderation check shapes, anonymous metadata and token usage; DeepSeek rejects vision.
+
+Image tests require explicit crop approval, reject malformed bounds, duplicate/excess images, changed hashes, remote data, metadata chunks and malformed PNG data. A visible red name canary outside the approved working rectangle is absent from all resulting pixels while blue mathematical working remains. This establishes the selected crop boundary, not automatic removal of identifiers inside a crop. The Tutor feature still must persist and recheck the approved derivative/operation before loading Files bytes.
+
+This increment has no public upload/chat route or client activation. Feature/media registries remain empty and external inference/providers remain disabled/unqualified by default. Concrete Tutor storage, upload approval, participant retention and app flows follow separately. Real-model refusal/subject-lock/leakage/safety evaluation, processing-location/privacy qualification and physical camera/device acceptance are not claimed by HTTP fixtures.

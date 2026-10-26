@@ -16,6 +16,16 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.teachingAssistant,
+
+    this.testInsights,
+
+    this.myGrade,
+
+    this.liveUpdates,
+
+    this.gallery,
+
     this.dailyPractice,
 
     this.consultations,
@@ -39,7 +49,33 @@ class FacilitatorFeatures {
     this.supportPlans,
 
     this.learnerNotes,
+
+    this.cards,
+
+    this.familyForms,
+
+    this.examCoach,
   });
+
+  /// Optional fresh allocated-Teacher draft capability; absence means unavailable.
+  @JsonKey(name: r'teaching_assistant', required: false, includeIfNull: false)
+  final bool? teachingAssistant;
+
+  /// Optional fresh allocated-Teacher task-insight capability; no generation authority is granted.
+  @JsonKey(name: r'test_insights', required: false, includeIfNull: false)
+  final bool? testInsights;
+
+  /// A current dated grade-head working hub is available.
+  @JsonKey(name: r'my_grade', required: false, includeIfNull: false)
+  final bool? myGrade;
+
+  /// Optional fresh live-session capability, emitted only when the live transport is implemented and authorized.
+  @JsonKey(name: r'live_updates', required: false, includeIfNull: false)
+  final bool? liveUpdates;
+
+  /// Optional current gallery group capability. Every group, file and tag requires fresh source authority.
+  @JsonKey(name: r'gallery', required: false, includeIfNull: false)
+  final bool? gallery;
 
   /// Optional fresh allocated-Teacher practice authoring capability. Every group/source is authorized again.
   @JsonKey(name: r'daily_practice', required: false, includeIfNull: false)
@@ -86,10 +122,27 @@ class FacilitatorFeatures {
   @JsonKey(name: r'learner_notes', required: false, includeIfNull: false)
   final bool? learnerNotes;
 
+  /// Fresh card module/account access; does not grant issuance or device management rights.
+  @JsonKey(name: r'cards', required: false, includeIfNull: false)
+  final bool? cards;
+
+  /// Fresh staff family-form capability; does not grant guardian or clinical access.
+  @JsonKey(name: r'family_forms', required: false, includeIfNull: false)
+  final bool? familyForms;
+
+  /// Optional current exam-coach entry capability.
+  @JsonKey(name: r'exam_coach', required: false, includeIfNull: false)
+  final bool? examCoach;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.teachingAssistant == teachingAssistant &&
+          other.testInsights == testInsights &&
+          other.myGrade == myGrade &&
+          other.liveUpdates == liveUpdates &&
+          other.gallery == gallery &&
           other.dailyPractice == dailyPractice &&
           other.consultations == consultations &&
           other.privateNotices == privateNotices &&
@@ -101,10 +154,18 @@ class FacilitatorFeatures {
           other.messages == messages &&
           other.counselling == counselling &&
           other.supportPlans == supportPlans &&
-          other.learnerNotes == learnerNotes;
+          other.learnerNotes == learnerNotes &&
+          other.cards == cards &&
+          other.familyForms == familyForms &&
+          other.examCoach == examCoach;
 
   @override
   int get hashCode =>
+      teachingAssistant.hashCode +
+      testInsights.hashCode +
+      myGrade.hashCode +
+      liveUpdates.hashCode +
+      gallery.hashCode +
       dailyPractice.hashCode +
       consultations.hashCode +
       privateNotices.hashCode +
@@ -116,7 +177,10 @@ class FacilitatorFeatures {
       messages.hashCode +
       counselling.hashCode +
       supportPlans.hashCode +
-      learnerNotes.hashCode;
+      learnerNotes.hashCode +
+      cards.hashCode +
+      familyForms.hashCode +
+      examCoach.hashCode;
 
   factory FacilitatorFeatures.fromJson(Map<String, dynamic> json) =>
       _$FacilitatorFeaturesFromJson(json);

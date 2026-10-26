@@ -27,6 +27,8 @@ Both apps now build for the web: the learner and parent app as the portal at `ap
 
 Each app's `web/manifest.json` and `web/index.html` carry its name (NavigateEd, NavigateEd Teacher), the brand primary as theme colour, white as background colour, and icons made from its launcher icon.
 
+Previews: `.github/workflows/web-preview.yml` deploys the same builds, named as previews and in bearer mode, to the `preview` channel of each portal site (a pull request that changes the workflow gets `pr-<number>`), so the product owner can open and install both apps on a phone before a store or production release. The live channels are untouched. After deploying it checks the chosen server's CORS answer for the preview's origin and that `/api/v2/me/context` exists, and reports both in the job summary. A server running this code accepts a preview only once `CORS_ALLOWED_ORIGINS` lists its address with the portals ([wiki](../../../wiki/Building-and-Releasing-Apps.md#preview-on-a-phone)).
+
 ## User stories
 
 - **Learner:** I open `app.navigateed.co.za` on a laptop, sign in with my student number, and see my timetable, assignments and fees as in the app.
@@ -92,3 +94,5 @@ None.
 6. Tap "add files" on an assignment and "Pay" on fees: the mobile-only notice shows.
 7. Open `<portal>/notices` while signed out: sign in, then the notice board opens. Reload `<portal>/home`: the app starts at the splash screen and goes home.
 8. In the browser's storage view, check no `jwtToken` value is stored.
+
+Preview review: pull requests produce artifacts without Firebase credentials. Publishing requires an explicit `deploy_preview` dispatch from `main`. The API defaults to staging and rejects the configured production endpoint.

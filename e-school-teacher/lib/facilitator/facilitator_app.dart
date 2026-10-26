@@ -91,51 +91,65 @@ class _FacilitatorAppState extends State<FacilitatorApp>
         ),
         builder: (context, child) {
           final waiting = repo.signedIn && !repo.ready;
-          return Stack(
-            children: [
-              Offstage(offstage: _hidden || waiting, child: child!),
-              if (waiting && !_hidden)
-                Scaffold(
-                  body: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (repo.busy) const CircularProgressIndicator(),
-                          if (repo.error != null) ...[
-                            Text(
-                              SharedUiUtils.getTranslatedLabel(
-                                context,
-                                repo.error!,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            FilledButton(
-                              onPressed: repo.refresh,
-                              child: Text(
+          final profile = repo.profile;
+          final generation = repo.epoch;
+          final school = profile?.schoolId ?? 0, account = profile?.userId ?? 0;
+          return LiveUpdatesHost(
+            client: repo.client,
+            schoolId: school,
+            accountId: account,
+            enabled: repo.ready && profile?.features['live_updates'] == true,
+            authorizationKey: generation,
+            contextActive: () =>
+                repo.matches(generation, school, account) &&
+                repo.profile?.features['live_updates'] == true,
+            origin: 'https://teach.navigateed.co.za',
+            child: Stack(
+              children: [
+                Offstage(offstage: _hidden || waiting, child: child!),
+                if (waiting && !_hidden)
+                  Scaffold(
+                    body: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (repo.busy) const CircularProgressIndicator(),
+                            if (repo.error != null) ...[
+                              Text(
                                 SharedUiUtils.getTranslatedLabel(
                                   context,
-                                  'Retry',
+                                  repo.error!,
                                 ),
                               ),
-                            ),
-                            TextButton(
-                              onPressed: repo.signOut,
-                              child: Text(
-                                SharedUiUtils.getTranslatedLabel(
-                                  context,
-                                  'Sign out',
+                              const SizedBox(height: 12),
+                              FilledButton(
+                                onPressed: repo.refresh,
+                                child: Text(
+                                  SharedUiUtils.getTranslatedLabel(
+                                    context,
+                                    'Retry',
+                                  ),
                                 ),
                               ),
-                            ),
+                              TextButton(
+                                onPressed: repo.signOut,
+                                child: Text(
+                                  SharedUiUtils.getTranslatedLabel(
+                                    context,
+                                    'Sign out',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           );
         },
       );
@@ -424,6 +438,11 @@ class _StaffHome extends StatelessWidget {
                         repository.client,
                         schoolId: school,
                         accountId: user,
+                        changes: recognitionLiveChanges(
+                          LiveUpdatesScope.eventsOf(context),
+                          refreshes: LiveUpdatesScope.refreshesOf(context),
+                          schoolId: school,
+                        ),
                         contextActive: () =>
                             repository.matches(generation, school, user) &&
                             modules.every(
@@ -435,6 +454,74 @@ class _StaffHome extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+            ),
+          if (profile.features['cards'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.badge_outlined),
+                title: Text(l('School identity cards')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'cards',
+                  SchoolCardsScreen(
+                    selfOnly: true,
+                    repository: ApiCardRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['cards'] == true,
+                    ),
+                    people: [CardPersonChoice(user, profile.name, 'staff')],
+                    schoolName: profile.schools
+                        .firstWhere((s) => s.id == school)
+                        .name,
+                  ),
+                ),
+              ),
+            ),
+          if (profile.features['gallery'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(l('Private photos')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'gallery',
+                  PrivateGalleryScreen(
+                    repository: ApiPrivateGalleryRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['gallery'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (profile.features['consultations'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.how_to_vote_outlined),
+                title: Text(l('Polls, surveys and elections')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'consultations',
+                  ConsultationsScreen(
+                    repository: ApiConsultationRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['consultations'] == true,
+                    ),
+                  ),
+                ),
               ),
             ),
           if (profile.features['private_notices'] == true)
@@ -456,10 +543,40 @@ class _StaffHome extends StatelessWidget {
                               true,
                     ),
                     canOpen: (feature) =>
-                        feature == 'wellbeing' &&
                         repository.matches(generation, school, user) &&
-                        repository.profile?.features['counselling'] == true,
+                        ((feature == 'wellbeing' &&
+                                repository.profile?.features['counselling'] ==
+                                    true) ||
+                            (feature == 'consultations' &&
+                                repository.profile?.features['consultations'] ==
+                                    true)),
                     openFeature: (feature) async {
+                      if (feature == 'consultations' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['consultations'] ==
+                              true) {
+                        await open(
+                          'consultations',
+                          ConsultationsScreen(
+                            repository: ApiConsultationRepository(
+                              repository.client,
+                              schoolId: school,
+                              accountId: user,
+                              contextActive: () =>
+                                  repository.matches(
+                                    generation,
+                                    school,
+                                    user,
+                                  ) &&
+                                  repository
+                                          .profile
+                                          ?.features['consultations'] ==
+                                      true,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       if (feature != 'wellbeing' ||
                           !repository.matches(generation, school, user) ||
                           repository.profile?.features['counselling'] != true) {
@@ -480,6 +597,54 @@ class _StaffHome extends StatelessWidget {
                         ),
                       );
                     },
+                  ),
+                ),
+              ),
+            ),
+          if (profile.features['daily_practice'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.psychology_alt_outlined),
+                title: Text(l('Practice question bank')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'daily_practice',
+                  PracticeBankScreen(
+                    repository: ApiPracticeRepository(
+                      repository.client,
+                      schoolId: school,
+                      readerId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['daily_practice'] ==
+                              true,
+                    ),
+                    canRead: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['daily_practice'] == true,
+                    canWrite: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['daily_practice'] == true,
+                  ),
+                ),
+              ),
+            ),
+          if (profile.features['my_grade'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.groups_outlined),
+                title: Text(l('My grade')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'my_grade',
+                  MyGradeClientScreen(
+                    client: repository.client,
+                    schoolId: school,
+                    readerId: user,
+                    owner: repository,
+                    contextActive: () =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features['my_grade'] == true,
                   ),
                 ),
               ),
@@ -643,8 +808,12 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'cards',
+            'gallery',
+            'consultations',
             'private_notices',
             'discipline',
+            'daily_practice',
             'groups',
             'messages',
             'support_plans',

@@ -1,0 +1,406 @@
+tags:
+- name: MyGrade
+  description: Current grade-head follow-up without clinical-purpose access.
+paths:
+  /my-grade/access:
+    get:
+      operationId: getMyGradeAccess
+      tags:
+      - MyGrade
+      summary: getMyGradeAccess
+      description: A current-year dated grade-head appointment is required before roster or queue reads. No admin,
+        platform, family or clinical-purpose bypass exists. Optional source modules remain independent; unrecorded
+        attendance is not absence. This read does not grant permission for a delegated register, discipline, message
+        or nomination write.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly scoped private current-grade result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyGradeAccessResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /my-grade/grades/{grade}:
+    get:
+      operationId: getMyGradeDashboard
+      tags:
+      - MyGrade
+      summary: getMyGradeDashboard
+      description: A current-year dated grade-head appointment is required before roster or queue reads. No admin,
+        platform, family or clinical-purpose bypass exists. Optional source modules remain independent; unrecorded
+        attendance is not absence. This read does not grant permission for a delegated register, discipline, message
+        or nomination write.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: grade
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: on_date
+        in: query
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      - name: discipline_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly scoped private current-grade result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyGradeDashboardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  schemas:
+    MyGradeChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    MyGradeAccess:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - session_year_id
+      - today
+      - writable
+      - grades
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        today:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        writable:
+          type: boolean
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyGradeChoice'
+    MyGradeSignal:
+      type: object
+      additionalProperties: false
+      required:
+      - source
+      - score
+      - reason_code
+      - as_of
+      properties:
+        source:
+          type: string
+          enum:
+          - academic
+          - attendance
+        score:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+        reason_code:
+          type: string
+          maxLength: 48
+        as_of:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    MyGradeLearner:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - class_section_id
+      - register_id
+      - attendance_state
+      - signals
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        class_section_id:
+          type: integer
+          minimum: 1
+        register_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        attendance_state:
+          type: string
+          enum:
+          - present
+          - absent
+          - late
+          - excused
+          - first_half
+          - second_half
+          - holiday
+          - unrecorded
+        signals:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyGradeSignal'
+    MyGradePendingRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - revision
+      - occurred_on
+      - status
+      - learner_name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        status:
+          type: string
+          enum:
+          - pending_review
+        learner_name:
+          type: string
+    MyGradeDisciplineQueue:
+      type: object
+      additionalProperties: false
+      required:
+      - available
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        available:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyGradePendingRecord'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+    MyGradeAwardChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - category_id
+      - name
+      - opens_on
+      - closes_on
+      - status
+      - definitions
+      properties:
+        category_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        opens_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        closes_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        status:
+          type: string
+          enum:
+          - open
+        definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyGradeChoice'
+    MyGradeAwards:
+      type: object
+      additionalProperties: false
+      required:
+      - available
+      - items
+      properties:
+        available:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyGradeAwardChoice'
+    MyGradeActions:
+      type: object
+      additionalProperties: false
+      required:
+      - registers
+      - messages
+      - interventions
+      properties:
+        registers:
+          type: boolean
+        messages:
+          type: boolean
+        interventions:
+          type: boolean
+    MyGradeDashboard:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - session_year_id
+      - grade_level_id
+      - on_date
+      - writable
+      - page
+      - last_page
+      - total
+      - risk_available
+      - learners
+      - discipline
+      - awards
+      - actions
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        grade_level_id:
+          type: integer
+          minimum: 1
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        writable:
+          type: boolean
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        risk_available:
+          type: boolean
+        learners:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyGradeLearner'
+        discipline:
+          $ref: '#/components/schemas/MyGradeDisciplineQueue'
+        awards:
+          $ref: '#/components/schemas/MyGradeAwards'
+        actions:
+          $ref: '#/components/schemas/MyGradeActions'
+    MyGradeAccessResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/MyGradeAccess'
+        code:
+          type: integer
+    MyGradeDashboardResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/MyGradeDashboard'
+        code:
+          type: integer

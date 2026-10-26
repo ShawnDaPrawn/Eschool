@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/utils/api.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 
 import 'dart:async';
@@ -113,7 +114,13 @@ class _SessionWatcherState extends State<SessionWatcher> {
             context.read<AuthCubit>().state is Authenticated,
         takeChangeNotice: () =>
             const NotificationPreferences().takeContextChanged(),
-        child: ContentCacheSessionGuard(child: widget.child),
+        child: PracticeCacheSessionGuard(
+          child: MeContextLiveBoundary(
+            client: Api.client,
+            origin: 'https://teach.navigateed.co.za',
+            child: ContentCacheSessionGuard(child: widget.child),
+          ),
+        ),
       ),
     );
   }

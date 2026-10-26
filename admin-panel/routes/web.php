@@ -40,13 +40,19 @@ use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
+use App\Http\Controllers\Panel\Ai\AiControlPanelController;
+use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
+use App\Http\Controllers\Panel\Cards\CardPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
+use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
+use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
+use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
@@ -82,7 +88,10 @@ use App\Http\Controllers\WebController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
+use App\Http\Middleware\AuthorizeCardsPanel;
 use App\Http\Middleware\AuthorizeConsultationPanel;
+use App\Http\Middleware\AuthorizeFamilyFormsPanel;
+use App\Http\Middleware\AuthorizeGalleryPanel;
 use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
@@ -151,6 +160,8 @@ Route::middleware('school.context:public')->group(function () {
         Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
     });
 });
+
+Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
 
 // EnforceReadOnlyYears: a year other than the current one is read-only in the panel.
 Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnlyYears::class]], function () {
@@ -282,6 +293,35 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::get('ai-settings', [AiControlPanelController::class, 'index'])->middleware(PrivateDomainResponse::class)->name('ai-controls.index');
+        Route::post('ai-settings', [AiControlPanelController::class, 'save'])->middleware(PrivateDomainResponse::class)->name('ai-controls.save');
+
+        Route::prefix('ai-flags')->name('ai-review.')->middleware([PrivateDomainResponse::class])->group(function () {
+            $c = AiReviewPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('{flag}', [$c, 'show'])->whereNumber('flag')->name('show');
+            Route::get('{flag}/media/{reference}', [$c, 'media'])->whereNumber('flag')->where('reference', '[A-Za-z0-9_-]{1,100}')->name('media');
+            Route::post('{flag}/review', [$c, 'review'])->whereNumber('flag')->name('review');
+        });
+
+        Route::prefix('weekly-digest-templates')->name('digest-panel.')->middleware([PrivateDomainResponse::class, 'module:digest,read'])->group(function () {
+            $c = DigestPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('versions', [$c, 'write'])->defaults('operation', 'createTemplate')->name('create');
+            Route::post('versions/{template}/review', [$c, 'write'])->whereNumber('template')->defaults('operation', 'reviewTemplate')->name('review');
+        });
+
+        Route::prefix('school-gallery')->name('gallery-panel.')->middleware([PrivateDomainResponse::class, 'module:gallery,read', AuthorizeGalleryPanel::class])->group(function () {
+            $controller = GalleryPanelController::class;
+            Route::get('/', [$controller, 'index'])->defaults('operation', 'index')->name('index');
+            Route::get('photos/{photo}', [$controller, 'image'])->whereNumber('photo')->defaults('operation', 'image')->name('image');
+            foreach (['upload', 'settings'] as $operation) {
+                Route::post($operation, [$controller, 'write'])->defaults('operation', $operation)->name($operation);
+            }
+            Route::post('photos/{photo}/tags', [$controller, 'write'])->whereNumber('photo')->defaults('operation', 'propose')->name('propose');
+            Route::post('photos/{photo}/withdraw', [$controller, 'write'])->whereNumber('photo')->defaults('operation', 'withdraw')->name('withdraw');
+        });
+
         Route::prefix('school-consultations')->name('consultations-panel.')->middleware([PrivateDomainResponse::class, 'module:consultations,read', AuthorizeConsultationPanel::class])->group(function () {
             $c = ConsultationPanelController::class;
             Route::get('/', [$c, 'index'])->defaults('operation', 'index')->name('index');
@@ -866,4 +906,34 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::post('detentions/{detention}/entries', [$c, 'write'])->whereNumber('detention')->name('enroll');
     Route::post('detentions/{detention}/entries/{entry}/attendance', [$c, 'write'])->whereNumber('detention')->whereNumber('entry')->name('attendance');
     Route::post('detentions/{detention}/cancel', [$c, 'write'])->whereNumber('detention')->name('cancel');
+});
+
+// Cards are permanent identities, not edits to the panel's selected academic year.
+// Each operation resolves the current subject, membership and approval afresh.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardsPanel::class])->prefix('school-cards')->name('cards-panel.')->group(function () {
+    $c = CardPanelController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['issue', 'portrait'])->name('create');
+    Route::post('cards/{card}/{operation}', [$c, 'write'])->whereUuid('card')->whereIn('operation', ['freeze', 'replace', 'restore'])->name('change');
+    Route::get('cards/{card}/portrait', [$c, 'portrait'])->whereUuid('card')->defaults('operation', 'portrait')->name('portrait');
+    Route::post('print', [$c, 'print'])->defaults('operation', 'print')->name('print');
+});
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeCardsPanel::class])->prefix('school-card-readers')->name('card-readers-panel.')->group(function () {
+    $c = CardPanelController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::post('/', [$c, 'write'])->defaults('operation', 'register')->name('register');
+    Route::post('{device}/revoke', [$c, 'write'])->whereUuid('device')->defaults('operation', 'revoke')->name('write');
+});
+
+Route::view('card-reader', 'cards.scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.index');
+
+// Every staff form resolves its actual group/year before private fields.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeFamilyFormsPanel::class])->prefix('family-forms')->name('family-forms-panel.')->group(function () {
+    $controller = FamilyPanelController::class;
+    Route::get('/', [$controller, 'index'])->defaults('operation', 'index')->name('index');
+    Route::get('new', [$controller, 'form'])->defaults('operation', 'new')->name('new');
+    Route::post('prepare', [$controller, 'write'])->defaults('operation', 'prepare')->name('prepare');
+    Route::post('consents', [$controller, 'write'])->defaults('operation', 'create')->name('create');
+    Route::get('consents/{consent}/managed', [$controller, 'show'])->whereUuid('consent')->defaults('operation', 'managed')->name('managed');
+    Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->defaults('operation', 'cancel')->name('cancel');
 });

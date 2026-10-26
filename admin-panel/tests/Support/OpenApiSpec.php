@@ -69,6 +69,11 @@ final class OpenApiSpec
         }
         $relative = substr($path, strlen($prefix));
 
+        // OpenAPI gives a concrete path priority over a parameter template,
+        // regardless of declaration order (for example /digests/templates).
+        if (array_key_exists($relative, self::operations())) {
+            return $relative;
+        }
         foreach (array_keys(self::operations()) as $template) {
             $pattern = '#^'.preg_replace('#\\\\\{[^/]+\\\\\}#', '[^/]+', preg_quote($template, '#')).'$#';
             if ($template === $relative || preg_match($pattern, $relative) === 1) {

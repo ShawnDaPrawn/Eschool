@@ -202,6 +202,21 @@ firebase deploy --only hosting
 firebase deploy --only hosting:docs   # the documentation site alone
 ```
 
+### Preview on a phone
+
+Both web builds are installable web apps (PWAs): each `web/manifest.json` has the name, `display: standalone`, the theme colour and 192 and 512 px icons (plain and maskable), and `web/index.html` has the iOS home-screen tags. Chrome installs a site from its menu without a service worker (since Chrome 108 on Android), and Safari's *Add to Home Screen* needs none.
+
+To try both apps on a phone before a store or production release, run **Actions > Web app preview > Run workflow** from `main`, select **deploy_preview**, and use a staging or isolated test API ([web-preview.yml](https://github.com/ShawnDaPrawn/Eschool/blob/main/.github/workflows/web-preview.yml)). It builds each app as the deploy workflow does, names it as a preview ("NavigateEd (preview)", "NavigateEd Teacher (preview)"; "NE preview" and "NE T preview" on a home screen) with a `noindex` tag, and deploys it to the `preview` channel of the portal's Firebase Hosting site. The live portals are not changed. The channel's address stays the same between runs, so an installed preview shows the next run's build when it is reloaded. Each job's summary gives the address, how to install it, and two answers from the server:
+
+| Check | What it means |
+|---|---|
+| CORS | Whether the server lets a browser on the preview's address call it. A server running this repository allows only `APP_URL` and the portal addresses until `CORS_ALLOWED_ORIGINS` in the environment's env file (then `infra/gcp/provision.sh`) also lists both preview addresses. |
+| API v2 | Whether `/api/v2/me/context` exists (401 when signed out). A 404 means the server runs code from before Phase 0, so screens that use API v2 fail. |
+
+The server is the run's `api_base_url` input, else the repository variable `PREVIEW_API_BASE_URL`, else the staging address in `config/staging.json`. The configured production API is refused. Previews always use bearer tokens (`WEB_AUTH_MODE=bearer`): a `*.web.app` address never shares the panel's cookies. A pull request that changes the workflow only builds seven-day downloadable artifacts and never receives Firebase credentials. A manual run without **deploy_preview** also only builds artifacts. Publishing requires an explicit dispatch from `main`. The workflow uses the repository secret `FIREBASE_SERVICE_ACCOUNT_NAVIGATEED_D8C06` (the documentation workflow's) and creates the `navigateed-app` and `navigateed-teach` sites if they do not exist yet.
+
+A preview is the browser build, so it has no push notifications, and attaching files and paying fees ask for the phone app ([web-builds spec](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/apps/web-builds.md)). Those need a phone build: the signed APK from **Build release artifacts** on Android, or TestFlight on an iPhone.
+
 ## Versioning
 
 | Place | Student app | Teacher app | Notes |
@@ -209,16 +224,15 @@ firebase deploy --only hosting:docs   # the documentation site alone
 | `pubspec.yaml` `version` | `3.5.0+39` | `3.5.0+32` | `name+build`. Android `versionName`/`versionCode` come from here through `flutter.versionName` / `flutter.versionCode`. |
 | `lib/main.dart` comment | `///v-3.5.0` | `///v-3.5.0` | informational |
 | `ios/Runner/Info.plist` | `CFBundleShortVersionString = $(FLUTTER_BUILD_NAME)`, `CFBundleVersion = $(FLUTTER_BUILD_NUMBER)` | same | |
-| `ios/Runner.xcodeproj/project.pbxproj` (Runner target) | `FLUTTER_BUILD_NAME = 3.5.0`, `FLUTTER_BUILD_NUMBER = 3`, `MARKETING_VERSION = 3.5.0`, `CURRENT_PROJECT_VERSION = 3` | same | |
+| `ios/Runner.xcodeproj/project.pbxproj` (Runner target, every build configuration) | `MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"`, `CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"`; no `FLUTTER_BUILD_*` of its own | same | |
 
-Flutter writes `FLUTTER_BUILD_NAME` and `FLUTTER_BUILD_NUMBER` from `pubspec.yaml` (or `--build-name` / `--build-number`) into `ios/Flutter/Generated.xcconfig`, which `Release.xcconfig` includes. Xcode gives build settings defined on the target precedence over the target's base `.xcconfig`, so the hard-coded `FLUTTER_BUILD_NUMBER = 3` in both projects wins and iOS builds report build number 3 regardless of `pubspec.yaml`. Delete those two target-level settings (or keep them in sync) before uploading a new iOS build, and make sure the admin panel's `ios_app_version` / `teacher_ios_app_version` matches what the installed app actually reports, otherwise the force-update dialog can appear on every launch ([Mobile-Apps-Overview](Mobile-Apps-Overview#maintenance-mode-and-force-update)).
+Flutter writes `FLUTTER_BUILD_NAME` and `FLUTTER_BUILD_NUMBER` from `pubspec.yaml` (or `--build-name` / `--build-number`) into `ios/Flutter/Generated.xcconfig`, which `Debug.xcconfig` and `Release.xcconfig` include, so iOS reports the same version and build number as Android. Xcode gives build settings defined on the target precedence over the target's base `.xcconfig`: do not set `FLUTTER_BUILD_NAME` or `FLUTTER_BUILD_NUMBER` on the target (Xcode's General tab writes literal values into `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` if you edit Version or Build there). Until October 2026 both projects hard-coded build number 3, so every iOS build reported 3 whatever `pubspec.yaml` said. Make sure the admin panel's `ios_app_version` / `teacher_ios_app_version` matches what the installed app reports, otherwise the force-update dialog can appear on every launch ([Mobile-Apps-Overview](Mobile-Apps-Overview#maintenance-mode-and-force-update)).
 
 Release checklist:
 
 1. Bump `version` in `pubspec.yaml` (build number must increase for both stores).
-2. Fix or remove the iOS target-level `FLUTTER_BUILD_*` values as above.
-3. Build and upload. The web builds of the same commit go out with the deploy workflow.
-4. After the store release is live, update App Settings in the admin panel: `app_version` / `ios_app_version` (or the `teacher_*` keys) to the exact released value, then optionally set `force_app_update` to `1`.
+2. Build and upload. The web builds of the same commit go out with the deploy workflow.
+3. After the store release is live, update App Settings in the admin panel: `app_version` / `ios_app_version` (or the `teacher_*` keys) to the exact released value, then optionally set `force_app_update` to `1`.
 
 Version history of the apps is on [Release-History](Release-History).
 

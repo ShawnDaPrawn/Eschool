@@ -12,13 +12,22 @@ import 'package:eschool_api/src/api/activities_api.dart';
 import 'package:eschool_api/src/api/communication_api.dart';
 import 'package:eschool_api/src/api/consultations_api.dart';
 import 'package:eschool_api/src/api/discipline_api.dart';
+import 'package:eschool_api/src/api/exam_coach_api.dart';
+import 'package:eschool_api/src/api/family_forms_api.dart';
+import 'package:eschool_api/src/api/gallery_api.dart';
 import 'package:eschool_api/src/api/growth_api.dart';
+import 'package:eschool_api/src/api/live_updates_api.dart';
+import 'package:eschool_api/src/api/my_grade_api.dart';
 import 'package:eschool_api/src/api/pastoral_api.dart';
 import 'package:eschool_api/src/api/platform_api.dart';
 import 'package:eschool_api/src/api/practice_api.dart';
 import 'package:eschool_api/src/api/private_staff_notices_api.dart';
 import 'package:eschool_api/src/api/recognition_api.dart';
 import 'package:eschool_api/src/api/school_transfers_api.dart';
+import 'package:eschool_api/src/api/secure_cards_api.dart';
+import 'package:eschool_api/src/api/teaching_assistant_api.dart';
+import 'package:eschool_api/src/api/tutor_api.dart';
+import 'package:eschool_api/src/api/weekly_digests_api.dart';
 import 'package:eschool_api/src/api/wellbeing_api.dart';
 
 class EschoolApi {
@@ -174,10 +183,40 @@ class EschoolApi {
     return DisciplineApi(dio);
   }
 
+  /// Get ExamCoachApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ExamCoachApi getExamCoachApi() {
+    return ExamCoachApi(dio);
+  }
+
+  /// Get FamilyFormsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  FamilyFormsApi getFamilyFormsApi() {
+    return FamilyFormsApi(dio);
+  }
+
+  /// Get GalleryApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  GalleryApi getGalleryApi() {
+    return GalleryApi(dio);
+  }
+
   /// Get GrowthApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   GrowthApi getGrowthApi() {
     return GrowthApi(dio);
+  }
+
+  /// Get LiveUpdatesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  LiveUpdatesApi getLiveUpdatesApi() {
+    return LiveUpdatesApi(dio);
+  }
+
+  /// Get MyGradeApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  MyGradeApi getMyGradeApi() {
+    return MyGradeApi(dio);
   }
 
   /// Get PastoralApi instance, base route and serializer can be overridden by a given but be careful,
@@ -214,6 +253,30 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   SchoolTransfersApi getSchoolTransfersApi() {
     return SchoolTransfersApi(dio);
+  }
+
+  /// Get SecureCardsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SecureCardsApi getSecureCardsApi() {
+    return SecureCardsApi(dio);
+  }
+
+  /// Get TeachingAssistantApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  TeachingAssistantApi getTeachingAssistantApi() {
+    return TeachingAssistantApi(dio);
+  }
+
+  /// Get TutorApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  TutorApi getTutorApi() {
+    return TutorApi(dio);
+  }
+
+  /// Get WeeklyDigestsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  WeeklyDigestsApi getWeeklyDigestsApi() {
+    return WeeklyDigestsApi(dio);
   }
 
   /// Get WellbeingApi instance, base route and serializer can be overridden by a given but be careful,

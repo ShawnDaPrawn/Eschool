@@ -45,8 +45,7 @@ Future<void> initializeApp({FacilitatorRepository? facilitatorRepository}) =>
         runApp(const MyApp());
       },
       startFacilitator: () async {
-        WidgetsFlutterBinding.ensureInitialized();
-        AppConfig.assertValid();
+        await prepareFacilitatorApp();
         runApp(
           FacilitatorApp(
             repository: facilitatorRepository ?? FacilitatorRepository(),
@@ -58,6 +57,14 @@ Future<void> initializeApp({FacilitatorRepository? facilitatorRepository}) =>
         runApp(StaffBuildUnavailable(identity: identity));
       },
     );
+
+/// Initialize private feature storage without opening or migrating legacy
+/// teacher authentication/settings boxes, Firebase, or notifications.
+Future<void> prepareFacilitatorApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  AppConfig.assertValid();
+  await initAppStorage(const []);
+}
 
 /// Everything the app needs before its first frame. The integration smoke
 /// flows pass [useFirebase] false: they run against a fake API, with no

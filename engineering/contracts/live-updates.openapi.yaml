@@ -1,0 +1,368 @@
+tags:
+- name: LiveUpdates
+  description: Ephemeral private school/group invalidations and count-only presence.
+paths:
+  /live/session:
+    post:
+      operationId: openLiveSession
+      tags:
+      - LiveUpdates
+      summary: openLiveSession
+      description: Credential-specific private channels with fresh school/account/module and source authority. No
+        caller may publish socket events or use presence as record access. Renew the session every heartbeat and
+        discard it on authorization refresh or backgrounding. Channel auth is returned inside the normal API data
+        envelope.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveSessionRequest'
+      responses:
+        '200':
+          description: Freshly authorized ephemeral live session metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Live transport is unavailable; protected HTTP readers remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /live/authorize:
+    post:
+      operationId: authorizeLiveChannel
+      tags:
+      - LiveUpdates
+      summary: authorizeLiveChannel
+      description: Credential-specific private channels with fresh school/account/module and source authority. No
+        caller may publish socket events or use presence as record access. Renew the session every heartbeat and
+        discard it on authorization refresh or backgrounding. Channel auth is returned inside the normal API data
+        envelope.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveAuthorizeRequest'
+      responses:
+        '200':
+          description: Freshly authorized ephemeral live session metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveAuthorizationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Live transport is unavailable; protected HTTP readers remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /live/groups/{group}/presence:
+    post:
+      operationId: joinLiveGroupPresence
+      tags:
+      - LiveUpdates
+      summary: joinLiveGroupPresence
+      description: Credential-specific private channels with fresh school/account/module and source authority. No
+        caller may publish socket events or use presence as record access. Renew the session every heartbeat and
+        discard it on authorization refresh or backgrounding. Channel auth is returned inside the normal API data
+        envelope.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LivePresenceRequest'
+      responses:
+        '200':
+          description: Freshly authorized ephemeral live session metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivePresenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Live transport is unavailable; protected HTTP readers remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      operationId: leaveLiveGroupPresence
+      tags:
+      - LiveUpdates
+      summary: leaveLiveGroupPresence
+      description: Credential-specific private channels with fresh school/account/module and source authority. No
+        caller may publish socket events or use presence as record access. Renew the session every heartbeat and
+        discard it on authorization refresh or backgrounding. Channel auth is returned inside the normal API data
+        envelope.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LivePresenceRequest'
+      responses:
+        '200':
+          description: Freshly authorized ephemeral live session metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivePresenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Live transport is unavailable; protected HTTP readers remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    LiveSessionRequest:
+      type: object
+      additionalProperties: false
+      required: []
+      properties: {}
+    LiveAuthorizeRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - socket_id
+      - channel_name
+      properties:
+        socket_id:
+          type: string
+          pattern: ^[0-9]{1,20}[.][0-9]{1,20}$
+          maxLength: 41
+        channel_name:
+          type: string
+          maxLength: 200
+    LivePresenceRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - lease_id
+      properties:
+        lease_id:
+          type: string
+          format: uuid
+    LiveSessionConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - lease_id
+      - channel
+      - key
+      - host
+      - port
+      - scheme
+      - heartbeat_seconds
+      - expires_in
+      properties:
+        lease_id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+          maxLength: 200
+        key:
+          type: string
+          maxLength: 128
+        host:
+          type: string
+          maxLength: 253
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+        scheme:
+          type: string
+          enum:
+          - ws
+          - wss
+        heartbeat_seconds:
+          type: integer
+          minimum: 10
+          maximum: 30
+        expires_in:
+          type: integer
+          minimum: 0
+          maximum: 60
+    LiveAuthorization:
+      type: object
+      additionalProperties: false
+      required:
+      - auth
+      properties:
+        auth:
+          type: string
+          maxLength: 256
+    LivePresence:
+      type: object
+      additionalProperties: false
+      required:
+      - type
+      - school_id
+      - group_id
+      - revision
+      - online_count
+      properties:
+        type:
+          type: string
+          pattern: ^group[.]presence$
+        school_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        online_count:
+          type: integer
+          minimum: 0
+    LiveSessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          examples:
+          - false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LiveSessionConfiguration'
+        code:
+          type: integer
+          examples:
+          - 200
+    LiveAuthorizationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          examples:
+          - false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LiveAuthorization'
+        code:
+          type: integer
+          examples:
+          - 200
+    LivePresenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          examples:
+          - false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/LivePresence'
+        code:
+          type: integer
+          examples:
+          - 200

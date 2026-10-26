@@ -1,10 +1,13 @@
 <?php
 
 use App\Services\Admissions\IntakePanelScope;
+use App\Services\Ai\Quarantine\AiReviewPanelScope;
 use App\Services\Consultations\ConsultationPanelScope;
 use App\Services\Discipline\DisciplinePanelScope;
+use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressPanelScope;
 use App\Services\Growth\RiskPanelScope;
+use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Pastoral\SupportPanelScope;
 use App\Services\Recognition\RecognitionPanelScope;
 use App\Services\Transfers\TransferPanelScope;
@@ -13,6 +16,9 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['ai-flags', 'ai-flags/*'], 'title' => 'Flagged learning content', 'route' => 'ai-review.index', 'guard' => AiReviewPanelScope::class, 'fields' => ['reason' => ['label' => 'Your private review note', 'limit' => 2000]]],
+    ['paths' => ['weekly-digest-templates', 'weekly-digest-templates/*'], 'title' => 'Weekly digest templates', 'route' => 'digest-panel.index', 'guard' => DigestPanelScope::class, 'fields' => ['title' => ['label' => 'Digest title draft', 'limit' => 120], 'body' => ['label' => 'Digest wording draft', 'limit' => 1200]]],
+    ['paths' => ['school-gallery', 'school-gallery/*'], 'title' => 'Private photos', 'route' => 'gallery-panel.index', 'guard' => GalleryPanelScope::class, 'fields' => ['caption' => ['label' => 'Your private caption draft', 'limit' => 2000], 'handle' => ['label' => 'Approved learner handle', 'limit' => 21]]],
     ['paths' => ['school-consultations', 'school-consultations/*'], 'title' => 'Polls, surveys and elections', 'route' => 'consultations-panel.index', 'guard' => ConsultationPanelScope::class, 'fields' => []],
     ['paths' => ['admissions', 'admissions/*'], 'title' => 'Admissions', 'route' => 'admissions-panel.index', 'guard' => IntakePanelScope::class, 'fields' => ['reason' => ['label' => 'Review reason', 'limit' => 2000], 'reference' => ['label' => 'Office receipt reference', 'limit' => 191], 'name' => ['label' => 'Intake name', 'limit' => 160]]],
     ['paths' => ['school-discipline', 'school-discipline/*'], 'title' => 'School discipline', 'route' => 'discipline-panel.index', 'guard' => DisciplinePanelScope::class,

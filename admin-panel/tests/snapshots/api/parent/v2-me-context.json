@@ -67,7 +67,10 @@
                 "communication_messages": "bool",
                 "mastery": "bool",
                 "module_switches": "bool",
-                "relief_cover": "bool"
+                "my_grade": "bool",
+                "relief_cover": "bool",
+                "teaching_assistant": "bool",
+                "test_insights": "bool"
             },
             "modules": [
                 {

@@ -24,6 +24,7 @@ use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Wellbeing\Casework;
 use App\Services\Wellbeing\IncidentReporting;
 use App\Services\Wellbeing\WellbeingSettings;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -47,7 +48,9 @@ class WellbeingDomainTest extends TestCase
     {
         parent::setUp();
         $this->setUpTwoSchools();
-        $this->travelTo(now()->setDate(2026, 2, 10));
+        // Fixed time as well as date: 08:00Z clinical entries must stay in the past
+        // when CI starts before 08:00 UTC or crosses a school midnight.
+        $this->travelTo(CarbonImmutable::parse('2026-02-10T12:00:00Z'));
         SchoolMembership::query()->update(['starts_on' => '2026-01-01']);
         app(ModuleGate::class)->change('wellbeing', true, $this->superAdmin());
         Enrolment::create(['learner_id' => $this->schoolA->ids['asha'], 'session_year_id' => $this->schoolA->ids['session_year'], 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic wellbeing enrolment']);

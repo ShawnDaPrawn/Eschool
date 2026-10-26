@@ -55,3 +55,10 @@ Aggregate results never include text answers. Only authorized managers can page
 individual closed-survey answers; anonymous entries have explicit null identity
 and no returned response UUID or timestamp. Clients get independent read/write
 capability metadata for read-only modules and historical records.
+
+Staff inclusion is explicit. It adds current school staff to a school audience
+including one aimed at guardians, current coaches to owned activity-group
+cohorts, or staff explicitly selected by a saved list. Grade, homeroom and
+academic-group ballots retain their learner/guardian electorate: the editor
+hides staff inclusion there and the server refuses an unsupported true flag.
+A parent-audience staff opt-in never adds the parallel learner electorate.

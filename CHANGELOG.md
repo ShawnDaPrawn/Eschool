@@ -32,6 +32,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Developers
 
+- **Web app preview** (Actions > Web app preview): builds the learner and parent app and the teacher app for the browser and puts them on Firebase Hosting preview channels, so both can be opened and installed on a phone as web apps before a store or production release. The job summary gives each address and says whether the chosen server accepts it. PR runs save downloadable artifacts without Firebase credentials. Publishing requires an explicit `deploy_preview` dispatch from `main`, defaults to staging and refuses the configured production API. The live portals are unchanged. **Deploy:** on a server running this code, add both preview addresses to `CORS_ALLOWED_ORIGINS` with the portal addresses before signing in there.
+
 - Narrow Phase 1 closeout to supported clients after the product owner confirmed there are no legacy clients. Legacy profile storage retirement and compatibility writes are no longer release prerequisites; existing data remains subject to privacy controls.
 
 - Integrate dependency PRs #48, #49, #50, #53, #55, #56, #57, #59 and #60, including their compatibility migrations. Pin Flutter CI and deployment builds to 3.47.7 / Dart 3.13.5 for Google Fonts 9; preserve the Material type scale and refresh all affected lockfiles. File Picker 13 supports both apps' attachments and single-file uploads. TeX 5 starts its renderer, keeps question and answer views independent, and loads its bundled browser bridge; release phones allow its device-local asset server. Image 4 supports all legacy image helpers as well as tenant uploads. Add regression checks for image encoding, school role revocation, checkout setup/cancellation, typography and rendered exam maths.
@@ -56,6 +58,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 
 ### Apps
 
+- iOS builds of both apps (and the teacher app's facilitator and vendor builds) take their version and build number from `pubspec.yaml`, as Android does. Every iOS build used to report build number 3, so App Store Connect would refuse the second upload, and force update compared against the wrong build.
 - Both apps read the server address and environment from build settings (`--dart-define` `API_BASE_URL`, `ENV`, `FLAVOR`, or `config/staging.json` and `config/production.json`) instead of `lib/utils/constants.dart`.
 - Shared code, sign-in and notifications moved into the packages `eschool_core`, `eschool_session` and `eschool_notifications`; nothing changes on phones.
 - Tablet and desktop layouts: a navigation rail and a centred content column. Routes take typed arguments.

@@ -41,4 +41,12 @@ return [
     'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'recognition.points_changed' => ['label' => 'House point updates', 'module' => 'house_points', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'recognition.award_presented' => ['label' => 'Award presentations', 'module' => 'awards', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'consultations.opened' => ['label' => 'School consultations', 'module' => 'consultations', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'consultations.staff_opened' => ['label' => 'Staff school consultations', 'module' => 'consultations', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'discipline.family_update' => ['label' => 'School discipline updates', 'module' => 'discipline', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'discipline.staff_update' => ['label' => 'Staff discipline updates', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'discipline.review_requested' => ['label' => 'Grade discipline review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'discipline.hearing_requested' => ['label' => 'Principal hearing review', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'discipline.detention_updated' => ['label' => 'Supervised detention updates', 'module' => 'discipline', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'digest.weekly' => ['label' => 'Weekly learning update', 'module' => 'digest', 'portals' => ['parent'], 'channels' => $on],
 ];

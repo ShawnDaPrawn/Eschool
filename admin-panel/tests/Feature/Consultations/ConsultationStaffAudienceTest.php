@@ -88,6 +88,19 @@ class ConsultationStaffAudienceTest extends TestCase
         $this->assertSame(1, Participation::count());
     }
 
+    public function test_parent_audience_staff_optin_adds_staff_without_adding_unrelated_learner_votes(): void
+    {
+        $id = $this->consultation(true, true);
+        $teacher = User::findOrFail($this->schoolA->ids['tara_user']);
+        $parent = User::findOrFail($this->schoolA->ids['farid_user']);
+        ParentPolicyService::acceptCurrent($parent);
+        $this->api($teacher)->postJson("/api/v2/consultations/$id/vote", $this->answer($id))->assertOk();
+        $this->api($parent)->postJson("/api/v2/consultations/$id/vote", $this->answer($id))->assertOk();
+        $learner = User::findOrFail($this->schoolA->ids['asha_user']);
+        $this->api($learner)->postJson("/api/v2/consultations/$id/vote", $this->answer($id))->assertNotFound();
+        $this->assertSame(2, Participation::count());
+    }
+
     public function test_a_dual_role_teacher_retains_own_student_electorate_without_staff_optin(): void
     {
         $learner = User::findOrFail($this->schoolA->ids['asha_user']);

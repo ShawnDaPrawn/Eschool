@@ -319,6 +319,11 @@ return [
             'icon' => 'activities',
             'groups' => [
                 'groups' => ['label' => 'nav_activity_groups', 'items' => [
+                    ['key' => 'weekly-digest-templates', 'label' => 'Weekly digest templates', 'route' => 'digest-panel.index', 'permissions' => [], 'digest_manager' => true, 'module' => 'digest', 'active' => ['digest-panel.*'], 'keywords' => ['weekly', 'parent', 'digest', 'language', 'approval']],
+                    ['key' => 'secure-cards', 'label' => 'School identity cards', 'route' => 'cards-panel.index', 'permissions' => [], 'card_actor' => true, 'module' => 'cards', 'active' => ['cards-panel.*'], 'keywords' => ['identity', 'card', 'portrait', 'freeze', 'print']],
+                    ['key' => 'card-readers', 'label' => 'Card readers', 'route' => 'card-readers-panel.index', 'permissions' => [], 'card_actor' => true, 'card_readers' => true, 'module' => 'cards', 'active' => ['card-readers-panel.*'], 'keywords' => ['reader', 'encoder', 'pair', 'revoke']],
+                    ['key' => 'gallery', 'label' => 'Private photos', 'route' => 'gallery-panel.index', 'permissions' => [], 'gallery_actor' => true, 'module' => 'gallery', 'active' => ['gallery-panel.*'], 'keywords' => ['photos', 'gallery', 'tags', 'consent']],
+                    ['key' => 'family-forms', 'label' => 'Family consent forms', 'route' => 'family-forms-panel.index', 'permissions' => [], 'family_form_actor' => true, 'module' => 'family_forms', 'active' => ['family-forms-panel.*'], 'keywords' => ['consent', 'trip', 'permission', 'guardian']],
                     ['key' => 'consultations', 'label' => 'Polls, surveys and elections', 'route' => 'consultations-panel.index', 'permissions' => [], 'consultation_actor' => true, 'module' => 'consultations', 'active' => ['consultations-panel.*'], 'keywords' => ['vote', 'poll', 'survey', 'election']],
                     ['key' => 'house-points', 'label' => 'Houses and points', 'route' => 'recognition.index', 'params' => ['module' => 'house_points'], 'permissions' => [], 'recognition_module' => 'house_points', 'module' => 'house_points', 'active' => ['recognition.*'], 'keywords' => ['houses', 'points', 'recognition']],
                     ['key' => 'awards', 'label' => 'Awards and assembly', 'route' => 'recognition.index', 'params' => ['module' => 'awards'], 'permissions' => [], 'recognition_module' => 'awards', 'module' => 'awards', 'active' => ['recognition.*'], 'keywords' => ['awards', 'assembly', 'permanent profile']],
@@ -345,6 +350,8 @@ return [
                 'absence' => [
                     'label' => 'nav_group_absence',
                     'items' => [
+                        ['key' => 'ai-settings', 'label' => 'AI settings and caps', 'route' => 'ai-controls.index', 'permissions' => [], 'ai_manager' => true, 'module' => null, 'active' => ['ai-controls.*'], 'keywords' => ['AI', 'caps', 'limits', 'availability']],
+                        ['key' => 'ai-flags', 'label' => 'Flagged learning content', 'route' => 'ai-review.index', 'permissions' => [], 'ai_reviewer' => true, 'module' => null, 'active' => ['ai-review.*'], 'keywords' => ['safeguarding', 'flagged learning', 'review']],
                         ['key' => 'wellbeing', 'label' => 'Incidents and counselling', 'route' => 'wellbeing.index', 'permissions' => [], 'wellbeing_actor' => true, 'module' => 'wellbeing', 'active' => ['wellbeing.*'], 'keywords' => ['incident reports', 'safeguarding', 'restricted cases']],
                         ['key' => 'support-plans', 'label' => 'Support plans', 'route' => 'support-plans.index', 'permissions' => [], 'support_actor' => true, 'module' => 'support_plans', 'active' => ['support-plans.*'], 'keywords' => ['SIAS', 'accommodations', 'support reviews']],
                         ['key' => 'relief-cover', 'label' => 'Relief cover', 'route' => 'relief-cover.index', 'permissions' => [], 'cover_actor' => true, 'module' => 'relief_cover', 'active' => ['relief-cover.*'], 'keywords' => ['substitute', 'teacher absence', 'cover lessons']],

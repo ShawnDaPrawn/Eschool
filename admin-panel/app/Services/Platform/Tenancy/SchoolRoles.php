@@ -38,10 +38,13 @@ class SchoolRoles
         self::STUDENT => [],
         self::FACILITATOR => [],
         self::COUNSELLOR => ['pastoral-sensitive-access'],
-        self::SAFEGUARDING => ['pastoral-sensitive-access'],
+        self::SAFEGUARDING => ['pastoral-sensitive-access', 'ai-flags-review'],
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
+        'family-forms-manage', 'family-health-read', 'family-health-manage',
+        'ai-settings-manage',
+        'cards-manage', 'cards-readers-manage',
         'marks-view-all', 'marks-release',
         'academic-structure-manage', 'communication-manage', 'consultations-manage', 'activity-groups-manage', 'wellbeing-configure',
         'curriculum-read', 'curriculum-manage', 'curriculum-publish',

@@ -174,6 +174,9 @@ return [
 
     'key' => env('APP_KEY'),
 
+    // Keep historical decryption/attestation keys during an explicit key rotation.
+    'previous_keys' => array_values(array_filter(explode(',', (string) env('APP_PREVIOUS_KEYS', '')))),
+
     'cipher' => 'AES-256-CBC',
 
     /*

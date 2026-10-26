@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Platform\Events;
 
 use App\Models\Platform\OutboxEvent;
+use App\Services\Live\LiveDispatch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -31,13 +32,16 @@ class Outbox
             throw new LogicException('Outbox::record() must be called inside the database transaction that makes the change ('.$event->type().').');
         }
 
-        return OutboxEvent::create([
+        $row = OutboxEvent::create([
             'school_id' => $event->schoolId(),
             'type' => $event->type(),
             'payload' => $event->payload(),
             'occurred_at' => $event->occurredAt,
             'attempts' => 0,
         ]);
+        LiveDispatch::afterCommit($row);
+
+        return $row;
     }
 
     /**

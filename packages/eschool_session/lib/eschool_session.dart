@@ -33,3 +33,4 @@ export 'src/selection/school_switcher.dart';
 export 'src/selection/selection_store.dart';
 export 'src/storage/app_storage.dart';
 export 'src/update/force_update.dart';
+export 'src/context/me_context_live_boundary.dart';

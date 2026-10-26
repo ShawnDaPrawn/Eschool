@@ -14,14 +14,23 @@ use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
+use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
+use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
+use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
+use App\Http\Controllers\Api\V2\Growth\MyGradeController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
+use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
+use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
+use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
+use App\Http\Controllers\Api\V2\Learning\TutorController;
+use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
@@ -57,6 +66,7 @@ use App\Http\Middleware\AuthorizeTermCalendar;
 use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
+use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -542,6 +552,11 @@ Route::prefix('staff/private-notices')->middleware([PrivateMastery::class, 'auth
     Route::post('{notice}/read', [PrivateStaffNoticeController::class, 'read'])->whereNumber('notice')->name('read');
 });
 
+Route::prefix('my-grade')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:my_grade'])->name('api.v2.my-grade.')->group(function () {
+    Route::get('access', [MyGradeController::class, 'access'])->name('access');
+    Route::get('grades/{grade}', [MyGradeController::class, 'dashboard'])->whereNumber('grade')->name('dashboard');
+});
+
 Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:sanctum', 'school.context', 'role.any', 'module:daily_practice'])->name('api.v2.practice.')->group(function () {
     $c = PracticeController::class;
     Route::get('access', [$c, 'access'])->name('access');
@@ -552,4 +567,148 @@ Route::prefix('learning/practice')->middleware([PrivateMastery::class, 'auth:san
     Route::post('learners/{learner}/groups/{group}/daily-sets', [$c, 'issue'])->whereNumber('learner')->whereNumber('group')->name('issue');
     Route::get('learners/{learner}/daily-sets/{set}', [$c, 'read'])->whereNumber('learner')->whereNumber('set')->name('read');
     Route::post('learners/{learner}/daily-sets/{set}/entries/{entry}/review', [$c, 'review'])->whereNumber('learner')->whereNumber('set')->whereNumber('entry')->name('review');
+});
+
+// Private family history and explicitly assigned current activity sources.
+Route::prefix('gallery')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:gallery'])->name('api.v2.gallery.')->group(function () {
+    $controller = GalleryController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('learners/{learner}/photos', [$controller, 'family'])->whereNumber('learner')->name('family');
+    Route::get('groups/{group}/photos', [$controller, 'group'])->whereNumber('group')->name('group');
+    Route::get('photos/{photo}/content', [$controller, 'content'])->whereNumber('photo')->name('content');
+    Route::post('photos', [$controller, 'upload'])->name('upload');
+    Route::post('photos/{photo}/withdraw', [$controller, 'withdraw'])->whereNumber('photo')->name('withdraw');
+    Route::post('photos/{photo}/tags', [$controller, 'propose'])->whereNumber('photo')->name('propose');
+    Route::post('tags/{tag}/decision', [$controller, 'decide'])->whereNumber('tag')->name('decide');
+    Route::post('tags/{tag}/remove', [$controller, 'remove'])->whereNumber('tag')->name('remove');
+    Route::post('settings', [$controller, 'settings'])->name('settings');
+});
+
+Route::prefix('live')->name('api.v2.live.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:live_updates,read'])->group(function () {
+    $controller = LiveController::class;
+    Route::post('session', [$controller, 'session'])->name('session');
+    Route::post('authorize', [$controller, 'authorizeChannel'])->name('authorize');
+    Route::post('groups/{group}/presence', [$controller, 'presence'])->whereNumber('group')->name('presence');
+    Route::delete('groups/{group}/presence', [$controller, 'presence'])->whereNumber('group')->name('leave');
+});
+
+Route::prefix('cards')->name('api.v2.cards.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = CardController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('mine', [$controller, 'read'])->name('mine');
+    Route::get('managed', [$controller, 'read'])->name('managed');
+    Route::get('people', [$controller, 'read'])->name('people');
+    Route::post('/', [$controller, 'write'])->name('issue');
+    Route::post('portraits', [$controller, 'upload'])->name('portrait.upload');
+    Route::get('{card}', [$controller, 'read'])->whereUuid('card')->name('read');
+    Route::get('{card}/portrait', [$controller, 'portrait'])->whereUuid('card')->name('portrait');
+    foreach (['credential', 'freeze', 'replace', 'restore'] as $action) {
+        Route::post('{card}/'.$action, [$controller, 'write'])->whereUuid('card')->name($action);
+    }
+});
+
+// Dedicated credentials cannot authorize any normal user endpoint.
+Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    $controller = CardController::class;
+    Route::post('scan/qr', [$controller, 'scan'])->name('qr');
+    Route::post('scan/sun', [$controller, 'scan'])->name('sun');
+    Route::get('scans/{scan}/portrait', [$controller, 'portrait'])->whereUuid('scan')->name('portrait');
+});
+
+// Private per-child weekly summaries; every read refreshes actual guardian rights.
+Route::prefix('digests')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:digest'])->name('api.v2.digests.')->group(function () {
+    $c = DigestController::class;
+    Route::get('access', [$c, 'access'])->name('access');
+    Route::get('templates', [$c, 'templates'])->name('templates');
+    Route::post('templates', [$c, 'createTemplate'])->name('create-template');
+    Route::post('templates/{template}/review', [$c, 'reviewTemplate'])->whereNumber('template')->name('review-template');
+    Route::post('preferences', [$c, 'preferences'])->name('preferences');
+    Route::get('learners/{learner}/weeks', [$c, 'list'])->whereNumber('learner')->name('list');
+    Route::get('{digest}', [$c, 'show'])->whereNumber('digest')->name('show');
+});
+
+Route::prefix('card-readers')->name('api.v2.cards.readers.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    Route::post('/', [CardController::class, 'write'])->name('register');
+    Route::delete('{device}', [CardController::class, 'write'])->whereUuid('device')->name('revoke');
+});
+
+// Private learner tutoring; parent authority applies only to template summaries.
+Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:tutor'])->name('api.v2.tutor.')->group(function () {
+    $c = TutorController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::get('sessions', [$c, 'index'])->name('index');
+    Route::post('sessions', [$c, 'create'])->middleware('throttle:20,1')->name('create');
+    Route::get('sessions/{session}', [$c, 'show'])->whereUuid('session')->name('show');
+    Route::post('sessions/{session}/close', [$c, 'close'])->whereUuid('session')->name('close');
+    Route::post('sessions/{session}/messages', [$c, 'send'])->whereUuid('session')->middleware('throttle:20,1')->name('send');
+    Route::get('sessions/{session}/turns/{operation}', [$c, 'turn'])->whereUuid('session')->whereUuid('operation')->name('turn');
+    Route::post('sessions/{session}/photos', [$c, 'upload'])->whereUuid('session')->middleware('throttle:20,1')->name('upload');
+    Route::get('sessions/{session}/photos/{photo}', [$c, 'preview'])->whereUuid('session')->whereUuid('photo')->name('preview');
+    Route::post('sessions/{session}/photos/{photo}/revoke', [$c, 'revoke'])->whereUuid('session')->whereUuid('photo')->name('revoke');
+    Route::get('parent/learners/{learner}/subjects/{subject}/summary', [$c, 'summary'])->whereNumber('learner')->whereNumber('subject')->name('summary');
+});
+
+// Private health categories and exact, authenticated activity/trip consent.
+Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = FamilyFormController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('consents', [$controller, 'read'])->name('listing');
+    Route::post('consents', [$controller, 'write'])->name('create');
+    Route::get('consents/{consent}', [$controller, 'read'])->whereUuid('consent')->name('read');
+    Route::get('consents/{consent}/managed', [$controller, 'read'])->whereUuid('consent')->name('managed');
+    Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->name('cancel');
+    Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
+    Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
+    Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
+    Route::post('learners/{learner}/health/fields/{field}/file', [$controller, 'upload'])->whereNumber('learner')->where('field', '[a-z][a-z0-9_]{0,63}')->name('health.upload');
+    Route::get('learners/{learner}/health/files/{file}', [$controller, 'file'])->whereNumber('learner')->where('file', '[0-9a-f-]{36}\\.(pdf|png|jpg)')->name('health.file');
+});
+
+// Licensed school-reviewed papers, staff-only memos and own learner study plans.
+Route::prefix('exam-coach')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:exam_coach'])->name('api.v2.exam-coach.')->group(function () {
+    $c = ExamCoachController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::prefix('staff/groups/{group}')->whereNumber('group')->name('staff.')->group(function () use ($c) {
+        Route::get('choices', [$c, 'choices'])->name('choices');
+        Route::get('papers', [$c, 'staffPapers'])->name('papers');
+        Route::post('papers', [$c, 'draft'])->name('draft');
+        Route::post('papers/{paper}/versions', [$c, 'draft'])->whereNumber('paper')->name('revise');
+        Route::post('papers/{paper}/versions/{version}/publish', [$c, 'publish'])->whereNumber('paper')->whereUuid('version')->name('publish');
+        Route::post('papers/{paper}/withdraw', [$c, 'withdraw'])->whereNumber('paper')->name('withdraw');
+        Route::get('versions/{version}', [$c, 'staffVersion'])->whereUuid('version')->name('version');
+        Route::get('versions/{version}/paper', [$c, 'staffPaper'])->whereUuid('version')->name('paper');
+        Route::get('versions/{version}/memo', [$c, 'staffMemo'])->whereUuid('version')->name('memo');
+    });
+    Route::prefix('groups/{group}')->whereNumber('group')->group(function () use ($c) {
+        Route::get('papers', [$c, 'learnerPapers'])->name('papers');
+        Route::get('versions/{version}', [$c, 'learnerVersion'])->whereUuid('version')->name('version');
+        Route::get('versions/{version}/paper', [$c, 'learnerPaper'])->whereUuid('version')->name('paper');
+        Route::get('exams', [$c, 'dates'])->name('exams');
+        Route::post('plans', [$c, 'createPlan'])->name('create-plan');
+    });
+    Route::get('plans', [$c, 'plans'])->name('plans');
+    Route::get('plans/{plan}', [$c, 'plan'])->whereUuid('plan')->name('plan');
+});
+
+// Teaching proposals remain private to the current allocated teacher.
+Route::prefix('teaching-assistant')->name('api.v2.teaching-assistant.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:teaching_assistant'])->group(function () {
+    $c = TeachingDraftController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::get('groups/{group}', [$c, 'choices'])->whereNumber('group')->name('choices');
+    Route::get('groups/{group}/learners', [$c, 'learners'])->whereNumber('group')->name('learners');
+    Route::get('drafts', [$c, 'index'])->name('index');
+    Route::post('groups/{group}/drafts', [$c, 'generate'])->whereNumber('group')->middleware('throttle:20,1')->name('generate');
+    Route::get('drafts/{draft}', [$c, 'show'])->whereUuid('draft')->name('show');
+    Route::get('operations/{operation}', [$c, 'receipt'])->whereUuid('operation')->name('receipt');
+    Route::post('drafts/{draft}/review', [$c, 'review'])->whereUuid('draft')->name('review');
+    Route::get('drafts/{draft}/pdf', [$c, 'pdf'])->whereUuid('draft')->name('pdf');
+    Route::post('groups/{group}/photos', [$c, 'upload'])->whereNumber('group')->middleware('throttle:20,1')->name('upload');
+    Route::get('photos/{photo}', [$c, 'preview'])->whereUuid('photo')->name('preview');
+    Route::post('photos/{photo}/revoke', [$c, 'revoke'])->whereUuid('photo')->name('revoke');
+});
+Route::prefix('test-insights')->name('api.v2.test-insights.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:test_insights'])->group(function () {
+    $c = TeachingDraftController::class;
+    Route::get('configuration', [$c, 'insightConfiguration'])->name('configuration');
+    Route::get('groups/{group}', [$c, 'insightChoices'])->whereNumber('group')->name('choices');
+    Route::get('groups/{group}/tasks/{task}', [$c, 'insights'])->whereNumber('group')->whereNumber('task')->name('show');
 });

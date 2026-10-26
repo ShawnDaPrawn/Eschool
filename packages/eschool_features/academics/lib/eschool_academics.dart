@@ -90,3 +90,41 @@ export 'src/recognition/recognition_session_boundary.dart';
 
 export 'src/private_notices/private_staff_notice_repository.dart';
 export 'src/private_notices/private_staff_inbox_screen.dart';
+
+export 'src/consultations/consultation_repository.dart';
+export 'src/consultations/consultation_session_boundary.dart';
+export 'src/consultations/consultations_screen.dart';
+export 'src/consultations/consultation_link.dart';
+export 'src/practice/practice_repository.dart';
+export 'src/practice/practice_answers.dart';
+export 'src/practice/practice_cache.dart';
+export 'src/practice/practice_store.dart';
+export 'src/practice/practice_screen.dart';
+export 'src/practice/practice_bank_screen.dart';
+export 'src/practice/practice_session_boundary.dart';
+export 'src/gallery/gallery_repository.dart';
+export 'src/gallery/gallery_screen.dart';
+export 'src/gallery/gallery_session_boundary.dart';
+export 'src/recognition/recognition_live_changes.dart';
+export 'src/recognition/recognition_home_summary.dart';
+export 'src/practice/practice_approval_outbox.dart';
+export 'src/practice/practice_approval_store.dart';
+
+export 'src/digests/weekly_digest_repository.dart';
+export 'src/digests/weekly_digest_screen.dart';
+export 'src/digests/weekly_digest_session_boundary.dart';
+
+export 'src/my_grade/my_grade_repository.dart';
+export 'src/my_grade/my_grade_session_boundary.dart';
+export 'src/my_grade/my_grade_screen.dart';
+export 'src/cards/card_repository.dart';
+export 'src/cards/cards_screen.dart';
+export 'src/cards/card_session_boundary.dart';
+
+export 'src/tutor/tutor_repository.dart';
+export 'src/tutor/tutor_screen.dart';
+export 'src/tutor/tutor_summary_screen.dart';
+export 'src/tutor/tutor_session_boundary.dart';
+export 'src/tutor/tutor_working_crop.dart';
+export 'src/my_grade/my_grade_client_screen.dart';
+export 'src/my_grade/my_grade_private_action.dart';

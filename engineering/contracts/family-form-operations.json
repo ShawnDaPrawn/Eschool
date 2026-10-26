@@ -1,0 +1,57 @@
+[
+  {
+    "operation_id": "getFamilyFormConfiguration",
+    "method": "GET",
+    "path": "/family-forms/configuration"
+  },
+  {
+    "operation_id": "getFamilyConsents",
+    "method": "GET",
+    "path": "/family-forms/consents"
+  },
+  {
+    "operation_id": "createFamilyConsent",
+    "method": "POST",
+    "path": "/family-forms/consents"
+  },
+  {
+    "operation_id": "getFamilyConsent",
+    "method": "GET",
+    "path": "/family-forms/consents/{consent}"
+  },
+  {
+    "operation_id": "getManagedFamilyConsent",
+    "method": "GET",
+    "path": "/family-forms/consents/{consent}/managed"
+  },
+  {
+    "operation_id": "cancelFamilyConsent",
+    "method": "POST",
+    "path": "/family-forms/consents/{consent}/cancel"
+  },
+  {
+    "operation_id": "signFamilyConsent",
+    "method": "POST",
+    "path": "/family-forms/consents/{consent}/learners/{learner}/response"
+  },
+  {
+    "operation_id": "getFamilyHealthForm",
+    "method": "GET",
+    "path": "/family-forms/learners/{learner}/health"
+  },
+  {
+    "operation_id": "saveFamilyHealthForm",
+    "method": "PUT",
+    "path": "/family-forms/learners/{learner}/health"
+  },
+  {
+    "operation_id": "uploadFamilyHealthFile",
+    "method": "POST",
+    "path": "/family-forms/learners/{learner}/health/fields/{field}/file"
+  },
+  {
+    "operation_id": "getFamilyHealthFile",
+    "method": "GET",
+    "path": "/family-forms/learners/{learner}/health/files/{file}"
+  }
+]

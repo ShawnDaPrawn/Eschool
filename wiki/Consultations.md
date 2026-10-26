@@ -25,5 +25,13 @@ never copied into session old-input flash. Backgrounding a private panel view
 erases it and reloads it on return. Named audience search preserves the current
 authoring draft.
 
-Shared family/facilitator app readers and scheduled opening notices are being
-implemented separately; the panel does not enable those unfinished surfaces.
+Eligible learners, parents and staff can open Consultations from their app.
+Opening notices provide an action to the protected ballot list; dedicated staff
+profiles can use their private inbox. After an uncertain submission, the reader
+checks participation before offering another attempt. Returning from the
+background reloads current access and clears the previous private draft.
+
+When live updates are available, an open public aggregate results view refreshes
+its counts through the protected reader. Private results remain hidden until the
+server permits them. Reconnecting checks access again and preserves an unsent
+ballot draft while it can still be edited.

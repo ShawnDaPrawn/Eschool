@@ -378,6 +378,37 @@ class HousesAwardsTest extends TestCase
         $this->refuse(409, fn () => $catalog->configure($this->admin, 'house_points', $this->op(array_diff_key($op, ['operation_id' => true]))));
     }
 
+    public function test_grade_nomination_catalogue_contains_only_categories_with_a_current_eligible_learner(): void
+    {
+        config(['modules.groups' => ['always_on' => true]]);
+        $c = app(RecognitionCatalog::class);
+        $group = ActivityGroup::create(['session_year_id' => $this->year, 'parent_id' => null, 'name' => 'Music', 'discipline' => 'Culture',
+            'season' => '2026', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'gender' => 'any', 'active' => true, 'revision' => 1]);
+        $music = $c->awardCategory($this->admin, $this->op(['name' => 'Music awards', 'parent_id' => null, 'scope_kind' => 'group',
+            'grade_level_id' => null, 'subject_id' => null, 'activity_group_id' => $group->id, 'active' => true]));
+        $maths = $c->awardCategory($this->admin, $this->op(['name' => 'Maths awards', 'parent_id' => null, 'scope_kind' => 'grade',
+            'grade_level_id' => $this->grade, 'subject_id' => $this->schoolA->ids['maths'], 'activity_group_id' => null, 'active' => true]));
+        foreach ([$music, $maths] as $category) {
+            $c->definition($this->admin, $this->op(['award_category_id' => $category->id, 'name' => 'Achievement', 'criteria' => 'Approved criteria', 'frequency' => 'annual', 'active' => true]));
+            $c->window($this->admin, $this->op(['revision' => 0, 'award_category_id' => $category->id, 'session_year_id' => $this->year,
+                ...($category->scope_kind === 'group' ? ['activity_group_id' => (int) $group->id] : []),
+                'opens_on' => '2026-02-01', 'closes_on' => '2026-02-28', 'status' => 'open']));
+        }
+        $catalogue = fn () => array_column(app(AwardNominations::class)->catalogue($this->head, $this->year, $this->grade)['items'], 'category_id');
+        $this->assertSame([(int) $this->category->id], $catalogue());
+        $member = ActivityMembership::create(['activity_group_id' => $group->id, 'learner_id' => $this->learner, 'role' => 'member',
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true, 'reason' => 'Synthetic music', 'revision' => 1]);
+        $class = TeachingGroup::create(['name' => 'Maths', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade,
+            'session_year_id' => $this->year, 'class_section_id' => null, 'active' => true]);
+        $subject = TeachingGroupMembership::create(['teaching_group_id' => $class->id, 'learner_id' => $this->learner,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic maths', 'mark_rule' => 'catch_up']);
+        $this->assertContains((int) $music->id, $catalogue());
+        $this->assertContains((int) $maths->id, $catalogue());
+        $member->update(['ends_on' => '2026-02-09']);
+        $subject->update(['ends_on' => '2026-02-09']);
+        $this->assertSame([(int) $this->category->id], $catalogue());
+    }
+
     public function test_nomination_contract_enforces_named_grade_head_placement_window_and_version(): void
     {
         $n = app(AwardNominations::class);

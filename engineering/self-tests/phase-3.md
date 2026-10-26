@@ -1,5 +1,15 @@
 # Phase 3 verification record
 
+## Practice client review corrections
+
+Expired copies without pending answers are removed before enforcing the twenty-copy quota. Expired copies with pending answers retain the encrypted immutable operation while discarding the question body. An open saved reader has a foreground expiry timer and checks the lease again before answering or navigating.
+
+Teacher approvals now persist the exact operation UUID and payload in a separate encrypted bounded outbox before HTTP dispatch. Backgrounding clears the rendered editor; recovery reauthorizes the original group, topic and source before recovering the exact operation. Unknown outcomes never expire silently or get evicted to make room. Explicit sign-out and account/school replacement erase the old key with scope-specific protection against late cleanup affecting a replacement account.
+
+The focused practice cohort passes **40 tests**, the complete shared suite passes **465 tests**, and the affected Facilitator session repository passes **9 tests**. The focused package and family smoke analyses have no issues; selected Teacher analysis has no errors or warnings and one pre-existing initializing-formal informational lint. New coverage includes physical removal of expired quota entries, foreground lease expiry, unknown operations retained after ten days, real encrypted Hive close/reopen, revoked-group refusal before storage access, and exact replay after backgrounding.
+
+Actual Chrome qualification passes the dedicated Teacher approval flow and both Student/Parent flows. The staff case commits an approval but loses its response, backgrounds the app, returns through fresh-profile home, reopens the bank and recovers/retries the exact encrypted UUID and payload with exactly one approval. It keeps legacy auth storage closed and erases the private view after feature withdrawal. The learner case saves an encrypted copy, queues an answer locally, keeps its screen open past the lease, verifies question erasure, then synchronizes the retained exact answer after fresh access. Parent receives no learner practice request. An initial staff harness timeout was traced to its expecting the old route after the dedicated app intentionally replaced that route on profile refresh; the final target follows the actual reopen flow without weakening its one-operation assertion. These checks use synthetic protocols and do not claim physical-device keychain, backup or live-school acceptance.
+
 ## AI gateway staff foundation
 
 Implemented typed completion/embedding contracts and a vision entry point that
@@ -633,3 +643,7 @@ and active scheduling. Its inherited PHP formatting is corrected. Missing Notes
 keys in offered non-English locales use explicit English fallback; both actual
 app locale cohorts pass5tests each while preserving existing translations. This
 is automated locale coverage, not fluent language acceptance.
+
+## Weekly parent digest
+
+The deterministic school-evidence backend, language approval panel and selected-child Parent reader/home action are implemented. See [detailed verification](weekly-parent-digests.md) for the MySQL, contract, SDK, private-notice, layout and actual browser evidence, plus external acceptance still outstanding. No paid inference or production delivery is activated.

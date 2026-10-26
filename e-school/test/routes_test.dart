@@ -253,7 +253,9 @@ void main() {
     test('every link opens a route the app has', () {
       for (final route in deepLinkRoutes) {
         final target = parser.parse(
-          Uri.parse('https://app.navigateed.co.za${route.path}'),
+          Uri.parse(
+            'https://app.navigateed.co.za${route.path.replaceAll(RegExp(r':[A-Za-z][A-Za-z0-9_]*'), '1')}',
+          ),
         )!;
         expect(
           open(target.routeName, target.arguments),

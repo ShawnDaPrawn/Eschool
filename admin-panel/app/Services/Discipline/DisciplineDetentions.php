@@ -16,6 +16,8 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Events\DisciplineDetentionChanged;
+use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -177,5 +179,6 @@ class DisciplineDetentions
     private function version(DetentionSession $s, User $actor, array $payload): void
     {
         DetentionVersion::create(['session_id' => $s->id, 'actor_id' => $actor->id, 'revision' => $s->revision, 'created_at' => now(), 'payload' => $payload]);
+        Outbox::record(new DisciplineDetentionChanged(app(CurrentSchool::class)->id(), (int) $s->id, (int) $s->revision));
     }
 }

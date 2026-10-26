@@ -109,6 +109,54 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    if (context.watch<MeContextCubit>().context?.featureFlags['my_grade'] ==
+            true &&
+        allowsSchoolModule(context.watch<MeContextCubit>().context, 'my_grade'))
+      tile(
+        title: label('My grade'),
+        icon: Icons.groups_outlined,
+        onTap: () => open(Routes.myGrade),
+      ),
+    AvailableOnly(
+      featureKey:
+          'secure-cards:${context.watch<MeContextCubit>().context?.currentSchoolId}:${context.watch<MeContextCubit>().context?.user?.id}:${context.watch<MeContextCubit>().context?.roles.join(',')}',
+      enabled:
+          context.watch<MeContextCubit>().context?.isModuleOn('cards') ==
+              true &&
+          allowsSchoolModule(context.watch<MeContextCubit>().context, 'cards'),
+      probe: () async {
+        final session = context.read<MeContextCubit>();
+        final pinned = session.context;
+        if (pinned?.currentSchoolId == null ||
+            pinned?.user?.id == null ||
+            session.state is! MeContextLoaded)
+          return false;
+        return cardsDeployed(
+          ApiCardRepository(
+            Api.client,
+            schoolId: pinned!.currentSchoolId!,
+            accountId: pinned.user!.id,
+            contextActive: () =>
+                session.state is MeContextLoaded &&
+                cardAccessStillCurrent(pinned, session.context),
+          ),
+        );
+      },
+      child: tile(
+        title: label('School identity cards'),
+        icon: Icons.badge_outlined,
+        onTap: () => open(Routes.schoolCards),
+      ),
+    ),
+    if (context.watch<MeContextCubit>().context?.isModuleOn('daily_practice') ==
+            true &&
+        context.watch<MeContextCubit>().context?.roles.contains('Teacher') ==
+            true)
+      tile(
+        title: label('Practice question bank'),
+        icon: Icons.psychology_alt_outlined,
+        onTap: () => open(Routes.dailyPractice),
+      ),
     if (allowsSchoolModule(
       context.watch<MeContextCubit>().context,
       'discipline',
@@ -991,6 +1039,11 @@ Route<dynamic> staffRecognitionRoute() => AdaptivePageRoute(
             Api.client,
             schoolId: school,
             accountId: account,
+            changes: recognitionLiveChanges(
+              LiveUpdatesScope.eventsOf(context),
+              refreshes: LiveUpdatesScope.refreshesOf(context),
+              schoolId: school,
+            ),
             contextActive: () =>
                 active() &&
                 (schools.state.selectedId == null ||
@@ -1029,3 +1082,402 @@ class StaffRecognitionEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> dailyPracticeRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !me.roles.contains('Teacher') ||
+        !me.isModuleOn('daily_practice') ||
+        !allowsSchoolModule(me, 'daily_practice')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Practice question bank',
+        ),
+        body: const Center(child: Text('Not available for this account')),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PracticeSessionBoundary(
+        pinned: me,
+        builder: (context, active) {
+          bool read() =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school);
+          return PracticeReaderHost(
+            create: () => PracticeBankScreen(
+              repository: ApiPracticeRepository(
+                Api.client,
+                schoolId: school,
+                readerId: account,
+                contextActive: read,
+              ),
+              canRead: read,
+              canWrite: () =>
+                  read() &&
+                  allowsSchoolModule(
+                    session.context,
+                    'daily_practice',
+                    write: true,
+                  ),
+            ),
+          );
+        },
+      ),
+    );
+  },
+);
+
+Route<dynamic> consultationsRoute(Object? argument) => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    final validArgument = argument == null || (argument is int && argument > 0);
+    if (!validArgument ||
+        session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('consultations') != true ||
+        !allowsSchoolModule(me, 'consultations')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Polls, surveys and elections',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me!;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        consultationAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return BlocListener<MeContextCubit, MeContextState>(
+      listener: (context, state) {
+        if (!active()) Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: ContentContextBoundary(
+        schoolId: school,
+        readerId: account,
+        child: ConsultationSessionBoundary(
+          pinned: pinned,
+          builder: (_, generationActive) => ConsultationsScreen(
+            repository: ApiConsultationRepository(
+              Api.client,
+              schoolId: school,
+              accountId: account,
+              contextActive: () => generationActive() && active(),
+            ),
+            initialId: argument as int?,
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class ConsultationsEntry extends StatelessWidget {
+  const ConsultationsEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state is! MeContextLoaded ||
+              state.context.isModuleOn('consultations') != true ||
+              !allowsSchoolModule(state.context, 'consultations')) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.how_to_vote_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Polls, surveys and elections',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.consultations),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> staffPrivateGalleryRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !(me.isModuleOn('gallery') && allowsSchoolModule(me, 'gallery')) ||
+        !me.roles.any((role) => !['Parent', 'Student'].contains(role)) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Private photos'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: GallerySessionBoundary(
+        pinned: me,
+        builder: (active) => PrivateGalleryScreen(
+          repository: ApiPrivateGalleryRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () =>
+                active() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class StaffPrivateGalleryEntry extends StatelessWidget {
+  const StaffPrivateGalleryEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state.context?.isModuleOn('gallery') != true ||
+              !allowsSchoolModule(state.context, 'gallery'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Private photos'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.privateGallery),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> schoolCardsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('cards') != true ||
+        !allowsSchoolModule(me, 'cards')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'School identity cards',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me!;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        cardAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    final people = <CardPersonChoice>[
+      CardPersonChoice(
+        account,
+        pinned.user!.name,
+        pinned.roles.any((r) => r != 'Parent' && r != 'Student')
+            ? 'staff'
+            : pinned.roles.contains('Student')
+            ? 'learner'
+            : 'guardian',
+      ),
+      if (pinned.roles.contains('Parent'))
+        for (final child in pinned.children ?? <MeChild>[])
+          if (child.child.userId > 0 &&
+              child.child.school.id == school &&
+              child.approved == true)
+            CardPersonChoice(child.child.userId, child.child.name, 'learner'),
+    ];
+    return BlocListener<MeContextCubit, MeContextState>(
+      listener: (context, state) {
+        if (!active()) Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: ContentContextBoundary(
+        schoolId: school,
+        readerId: account,
+        child: CardSessionBoundary(
+          pinned: pinned,
+          builder: (_, generationActive) => SchoolCardsScreen(
+            repository: ApiCardRepository(
+              Api.client,
+              schoolId: school,
+              accountId: account,
+              contextActive: () => generationActive() && active(),
+            ),
+            people: people,
+            schoolName: pinned.currentSchool!.name,
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class SchoolCardsEntry extends StatelessWidget {
+  const SchoolCardsEntry({super.key});
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<MeContextCubit, MeContextState>(
+    builder: (context, state) {
+      final me = state.context;
+      if (state is! MeContextLoaded ||
+          me?.currentSchoolId == null ||
+          me?.user?.id == null ||
+          me?.isModuleOn('cards') != true ||
+          !allowsSchoolModule(me, 'cards'))
+        return const SizedBox.shrink();
+      return AvailableOnly(
+        featureKey:
+            'secure-cards:${me!.currentSchoolId}:${me.user!.id}:${me.roles.join(',')}',
+        probe: () => cardsDeployed(
+          ApiCardRepository(
+            Api.client,
+            schoolId: me.currentSchoolId!,
+            accountId: me.user!.id,
+            contextActive: () =>
+                context.read<MeContextCubit>().state is MeContextLoaded &&
+                cardAccessStillCurrent(
+                  me,
+                  context.read<MeContextCubit>().context,
+                ),
+          ),
+        ),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: Text(
+              SharedUiUtils.getTranslatedLabel(
+                context,
+                'School identity cards',
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed(Routes.schoolCards),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Route<dynamic> myGradeRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school < 1 ||
+        account == null ||
+        account < 1 ||
+        me.featureFlags['my_grade'] != true ||
+        !me.isModuleOn('my_grade') ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'My grade'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: MyGradeSessionBoundary(
+        pinned: me,
+        builder: (_, active) => MyGradeClientScreen(
+          client: Api.client,
+          schoolId: school,
+          readerId: account,
+          contextChanges: Stream<void>.multi((changes) {
+            final profile = session.stream.listen((_) => changes.add(null));
+            final selection = schools.stream.listen((_) => changes.add(null));
+            changes.onCancel = () {
+              profile.cancel();
+              selection.cancel();
+            };
+          }),
+          contextActive: () =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school),
+        ),
+      ),
+    );
+  },
+);

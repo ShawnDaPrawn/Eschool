@@ -6,12 +6,18 @@ namespace App\Services\Panel;
 
 use App\Models\User;
 use App\Services\Admissions\IntakeAuthority;
+use App\Services\Ai\Operations\AiSchoolControls;
+use App\Services\Ai\Quarantine\AiReviewAuthority;
+use App\Services\Cards\CardPanelScope;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
+use App\Services\FamilyForms\FamilyPanelScope;
+use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
+use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Platform\Modules\ModuleGate;
@@ -157,6 +163,24 @@ class Navigation
             return false;
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {
+            return false;
+        }
+        if (($item['family_form_actor'] ?? false) && ! app(FamilyPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['gallery_actor'] ?? false) && ! app(GalleryPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {
+            return false;
+        }
+        if (($item['ai_reviewer'] ?? false) && ! app(AiReviewAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['digest_manager'] ?? false) && ! app(DigestPanelScope::class)->available($user)) {
             return false;
         }
         if ($item['consultation_actor'] ?? false) {
