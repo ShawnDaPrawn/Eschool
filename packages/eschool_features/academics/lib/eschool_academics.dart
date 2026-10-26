@@ -50,6 +50,8 @@ export 'src/cover/cover_repository.dart';
 export 'src/cover/cover_screen.dart';
 
 export 'src/activities/activity_repository.dart';
+export 'src/activities/activity_file_repository.dart';
+export 'src/activities/activity_files_screen.dart';
 export 'src/activities/activity_groups_screen.dart';
 
 export 'src/growth/mastery_repository.dart';

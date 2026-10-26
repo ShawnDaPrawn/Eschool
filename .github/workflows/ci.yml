@@ -451,6 +451,13 @@ jobs:
             flow: facilitator_gallery_smoke_test.dart
             flavor: facilitator
           - app: e-school
+            flow: family_activity_files_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_activity_files_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_activity_files_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
             flow: family_forms_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_family_forms_smoke_test.dart

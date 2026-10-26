@@ -1900,5 +1900,22 @@
   "This module is read only. Existing requests can be cancelled.": "This module is read only. Existing requests can be cancelled.",
   "Times use the school timezone.": "Times use the school timezone.",
   "Your meeting access changed. Reopen this screen.": "Your meeting access changed. Reopen this screen.",
-  "Your request was saved.": "Your request was saved."
+  "Your request was saved.": "Your request was saved.",
+  "Documents": "Documents",
+  "Keep document": "Keep document",
+  "New uploads are unavailable. You can still remove a document.": "New uploads are unavailable. You can still remove a document.",
+  "No documents have been attached.": "No documents have been attached.",
+  "PDF up to 5 MB; JPEG or PNG up to 4 MB.": "PDF up to 5 MB; JPEG or PNG up to 4 MB.",
+  "Refresh documents": "Refresh documents",
+  "Remove document": "Remove document",
+  "Remove document?": "Remove document?",
+  "Retry the same removal": "Retry the same removal",
+  "Retry the same upload": "Retry the same upload",
+  "The document timed out. Try again.": "The document timed out. Try again.",
+  "The documents could not be loaded. Try again.": "The documents could not be loaded. Try again.",
+  "The removal may have finished. Retry the same change to confirm it.": "The removal may have finished. Retry the same change to confirm it.",
+  "The upload may have finished. Retry the same upload to confirm it.": "The upload may have finished. Retry the same upload to confirm it.",
+  "Upload document": "Upload document",
+  "View document": "View document",
+  "Your group access changed. Reopen Activity groups.": "Your group access changed. Reopen Activity groups."
 }

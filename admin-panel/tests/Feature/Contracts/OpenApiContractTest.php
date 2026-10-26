@@ -50,6 +50,13 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'issueTutorCheckpoint requires authentication' => [null, 'POST', 'api/v2/tutor/sessions/8aef50e7-2429-4d2c-a523-668ae436c4d4/checkpoints', [], 401],
+            'getTutorCheckpoint requires authentication' => [null, 'GET', 'api/v2/tutor/sessions/8aef50e7-2429-4d2c-a523-668ae436c4d4/checkpoints/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'answerTutorCheckpoint requires authentication' => [null, 'POST', 'api/v2/tutor/sessions/8aef50e7-2429-4d2c-a523-668ae436c4d4/checkpoints/8aef50e7-2429-4d2c-a523-668ae436c4d4/answer', [], 401],
+            'listActivityMaterialFiles requires authentication' => [null, 'GET', 'api/v2/activities/groups/1/materials/1/files', [], 401],
+            'uploadActivityMaterialFile requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/materials/1/files', [], 401],
+            'getActivityMaterialFile requires authentication' => [null, 'GET', 'api/v2/activities/groups/1/materials/1/files/8aef50e7-2429-4d2c-a523-668ae436c4d4/content', [], 401],
+            'removeActivityMaterialFile requires authentication' => [null, 'POST', 'api/v2/activities/groups/1/materials/1/files/8aef50e7-2429-4d2c-a523-668ae436c4d4/remove', [], 401],
             'getExamCoachOperation requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
             'listExamCoachStaffAnswers requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers', [], 401],
             'getExamCoachStaffAnswer requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],

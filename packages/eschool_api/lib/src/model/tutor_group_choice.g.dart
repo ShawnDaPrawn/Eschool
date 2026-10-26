@@ -33,6 +33,12 @@ TutorGroupChoice _$TutorGroupChoiceFromJson(
             .map((e) => TutorSourceChoice.fromJson(e as Map<String, dynamic>))
             .toList(),
       ),
+      topics: $checkedConvert(
+        'topics',
+        (v) => (v as List<dynamic>?)
+            ?.map((e) => TutorTopicChoice.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      ),
     );
     return val;
   },
@@ -46,4 +52,5 @@ Map<String, dynamic> _$TutorGroupChoiceToJson(TutorGroupChoice instance) =>
       'subject_id': instance.subjectId,
       'subject_name': instance.subjectName,
       'sources': instance.sources.map((e) => e.toJson()).toList(),
+      'topics': ?instance.topics?.map((e) => e.toJson()).toList(),
     };

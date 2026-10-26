@@ -43,6 +43,7 @@ TutorSessionResult _$TutorSessionResultFromJson(Map<String, dynamic> json) =>
               unknownValue: TutorSessionResultStateEnum.unknownDefaultOpenApi,
             ),
           ),
+          topicId: $checkedConvert('topic_id', (v) => (v as num?)?.toInt()),
         );
         return val;
       },
@@ -53,6 +54,7 @@ TutorSessionResult _$TutorSessionResultFromJson(Map<String, dynamic> json) =>
         'subjectId': 'subject_id',
         'groupId': 'group_id',
         'sessionYearId': 'session_year_id',
+        'topicId': 'topic_id',
       },
     );
 
@@ -66,6 +68,7 @@ Map<String, dynamic> _$TutorSessionResultToJson(TutorSessionResult instance) =>
       'group_id': instance.groupId,
       'session_year_id': instance.sessionYearId,
       'state': _$TutorSessionResultStateEnumEnumMap[instance.state]!,
+      'topic_id': ?instance.topicId,
     };
 
 const _$TutorSessionResultStateEnumEnumMap = {

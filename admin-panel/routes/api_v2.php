@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
@@ -151,6 +152,16 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
 });
+
+Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups'])
+    ->name('api.v2.activity-files.')->group(function () {
+        $c = ActivityFileController::class;
+        Route::get('/', [$c, 'listing'])->name('listing');
+        Route::post('/', [$c, 'upload'])->name('upload');
+        Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
+        Route::post('{file}/remove', [$c, 'remove'])->whereUuid('file')->name('remove');
+    });
 
 Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {
     $c = GroupController::class;
@@ -640,6 +651,9 @@ Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::get('sessions', [$c, 'index'])->name('index');
     Route::post('sessions', [$c, 'create'])->middleware('throttle:20,1')->name('create');
     Route::get('sessions/{session}', [$c, 'show'])->whereUuid('session')->name('show');
+    Route::post('sessions/{session}/checkpoints', [$c, 'issueCheckpoint'])->whereUuid('session')->middleware('throttle:20,1')->name('checkpoints.issue');
+    Route::get('sessions/{session}/checkpoints/{checkpoint}', [$c, 'checkpoint'])->whereUuid(['session', 'checkpoint'])->name('checkpoints.show');
+    Route::post('sessions/{session}/checkpoints/{checkpoint}/answer', [$c, 'answerCheckpoint'])->whereUuid(['session', 'checkpoint'])->middleware('throttle:20,1')->name('checkpoints.answer');
     Route::post('sessions/{session}/close', [$c, 'close'])->whereUuid('session')->name('close');
     Route::post('sessions/{session}/messages', [$c, 'send'])->whereUuid('session')->middleware('throttle:20,1')->name('send');
     Route::get('sessions/{session}/turns/{operation}', [$c, 'turn'])->whereUuid('session')->whereUuid('operation')->name('turn');

@@ -62,11 +62,14 @@ class TutorAccess
     {
         $person = $this->learner($actor, $write);
         // Load only ownership/scope columns until the current enrollment is authorized.
-        $meta = TutorSession::select('id', 'school_id', 'user_id', 'learner_id', 'teaching_group_id', 'subject_id', 'session_year_id', 'state')->findOrFail($id);
+        $meta = TutorSession::select('id', 'school_id', 'user_id', 'learner_id', 'teaching_group_id', 'subject_id', 'session_year_id', 'state', 'topic_id')->findOrFail($id);
         abort_unless((int) $meta->user_id === (int) $actor->id && (int) $meta->learner_id === (int) $person->id, 404);
         $group = $this->group($actor, (int) $meta->teaching_group_id, $write);
         abort_unless((int) $group->subject_id === (int) $meta->subject_id && (int) $group->session_year_id === (int) $meta->session_year_id, 404);
         abort_if($write && $meta->state !== 'open', 409, 'This tutor session is closed.');
+        if ($meta->topic_id !== null) {
+            app(TutorTopics::class)->topic($group, (int) $meta->topic_id);
+        }
 
         return TutorSession::findOrFail($id);
     }

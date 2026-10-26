@@ -44,7 +44,7 @@ pickers. Shared teacher/family views are delivered in PR #116. Dedicated facilit
 sign-in, atomic password/policy onboarding, fresh scoped sessions and the
 restricted shared group/message shell are implemented and under final review.
 The counsellor profile has no TeacherModel dependency; its restricted case/support
-menus will appear only alongside their actual authorized modules. Private binary group material uploads remain a follow-up to authored
+menus will appear only alongside their actual authorized modules. Private binary group material documents now have scanned/encrypted storage, typed API/SDK, staff panel and native reader/upload/removal flows alongside authored
 Markdown. The delivery checkpoint below supersedes this early-slice status. This is not a
 completed phase or a store-release qualification.
 
@@ -109,7 +109,7 @@ remains explicitly unverified and does not stop independent development.
 | Retained requirement | Software delivery | Remaining implementation/evidence |
 | --- | --- | --- |
 | Scoped facilitator shell and native identities | Implemented Android identities, school-scoped sign-in/onboarding, fresh role/session menus | iOS native build, physical-device and store distribution evidence |
-| Groups and scoped communications | Tree, dated allocations, sessions/registers, authored materials, audience cascades, messages and live presence | Encrypted/scanned binary material domain is implemented; its typed API and client/panel consumers plus dedicated group-chat threads/replies remain |
+| Groups and scoped communications | Tree, dated allocations, sessions/registers, authored materials, audience cascades, messages and live presence | Encrypted/scanned binary material documents have four typed API/SDK operations, staff panel controls and Teacher/Facilitator/learner/parent readers; dedicated group-chat threads/replies and consent notices remain |
 | Incident/counsellor workflow | Encrypted scoped casework, appointments, public/identified reports, sanitized private media, follow-up and guarded notices/inboxes | Deployment/device/external acceptance |
 | Consultations | Domain, panel, four app profiles, anonymous separation and scheduled generic notices | Deployment and real delivery acceptance; statutory elections remain Phase 6 |
 | Houses and awards | Caps/reversals, annual catalogue reuse, assembly, permanent awards, actual live Home counter/celebration | Deployed latency and device acceptance |

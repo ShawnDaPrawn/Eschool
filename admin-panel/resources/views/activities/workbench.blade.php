@@ -101,7 +101,7 @@
 <x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" type="select" name="published" :label="__('Material visibility')" :options="['0'=>__('Private draft'),'1'=>__('Published to group members')]" :value="(int) ($draft['published'] ?? false)" />
 <x-m3.button type="submit">{{ __('Save material') }}</x-m3.button>
 </form>
-@foreach($detail['materials'] as $row)<section><h3>{{ $row['title'] }}</h3><p>{{ $row['published'] ? __('Published') : __('Private draft') }}</p><div class="activity-markdown">{!! $row['html'] !!}</div><a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'edit'=>'material','record_id'=>$row['id']]) }}">{{ __('Edit material') }}</a></section>@endforeach
+@foreach($detail['materials'] as $row)<section><a href="{{ route('activity-files.listing',['group'=>$group['id'],'material'=>$row['id']]) }}">{{ __('Documents') }}</a><h3>{{ $row['title'] }}</h3><p>{{ $row['published'] ? __('Published') : __('Private draft') }}</p><div class="activity-markdown">{!! $row['html'] !!}</div><a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'edit'=>'material','record_id'=>$row['id']]) }}">{{ __('Edit material') }}</a></section>@endforeach
 </x-m3.card>
 @endif
 </fieldset></div></div>

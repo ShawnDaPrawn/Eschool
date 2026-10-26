@@ -33,11 +33,12 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\Concerns\UsesTwoSchools;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class ActivityFilesTest extends TestCase
 {
-    use UsesTwoSchools;
+    use UsesTwoSchools, ValidatesOpenApiResponses;
 
     private ActivityGroup $group;
 
@@ -204,6 +205,9 @@ class ActivityFilesTest extends TestCase
         app(ModuleGate::class)->forget();
         SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'groups'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
         app(ModuleGate::class)->forget();
+        $page = app(ActivityFiles::class)->listing($this->teacher, (int) $this->group->id, (int) $this->material->id);
+        $this->assertFalse($page['can_upload']);
+        $this->assertTrue($page['can_remove']);
         $this->refusal(fn () => $this->upload(), [403]);
         $intent = ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'material_revision' => 2];
         $result = app(ActivityFiles::class)->remove($this->teacher, (int) $this->group->id, (int) $this->material->id, $one['id'], $intent);
@@ -295,6 +299,7 @@ class ActivityFilesTest extends TestCase
         try {
             Storage::disk(ActivityFiles::DISK)->assertMissing($path);
         } finally {
+            ActivityMaterialFile::whereKey($one['id'])->delete();
             DB::beginTransaction();
         }
     }
@@ -311,6 +316,116 @@ class ActivityFilesTest extends TestCase
         $this->assertSame($scans, $this->scanner->scans);
         $this->parent->forceFill(['password_change_required' => true])->save();
         $this->refusal(fn () => $this->read($this->parent, $one['id']));
+    }
+
+    private function panelBase(): string
+    {
+        return '/activity-material-files/groups/'.$this->group->id.'/materials/'.$this->material->id;
+    }
+
+    public function test_panel_document_upload_download_and_revisioned_removal_use_the_same_scoped_domain(): void
+    {
+        $base = $this->panelBase();
+        $this->actingAs($this->teacher)->get($base)->assertOk()->assertSee('Upload document')->assertHeader('Cache-Control', 'no-store, private');
+        $intent = ['operation_id' => (string) Str::uuid(), 'material_revision' => 1];
+        $this->post($base, $intent + ['document' => UploadedFile::fake()->createWithContent('private.pdf', '%PDF-1.4 synthetic')])
+            ->assertRedirect($base)->assertHeader('Referrer-Policy', 'no-referrer')->assertSessionMissing('_old_input');
+        $file = ActivityMaterialFile::where('material_id', $this->material->id)->sole();
+        $this->get($base)->assertOk()->assertSee('private.pdf')->assertSee('Confirm document removal');
+        $this->get($base.'/'.$file->id.'/content')->assertOk()->assertContent('%PDF-1.4 synthetic')->assertHeader('Cache-Control', 'no-store, private');
+        $remove = ['operation_id' => (string) Str::uuid(), 'material_revision' => 2, 'revision' => 1];
+        $this->post($base.'/'.$file->id.'/remove', $remove)->assertRedirect($base);
+        $this->post($base.'/'.$file->id.'/remove', $remove)->assertRedirect($base);
+        $this->get($base.'/'.$file->id.'/content')->assertNotFound()->assertHeader('Referrer-Policy', 'no-referrer');
+    }
+
+    public function test_panel_validation_and_query_injection_do_not_flash_names_or_documents(): void
+    {
+        $base = $this->panelBase();
+        $this->actingAs($this->teacher)->post($base, ['operation_id' => 'wrong', 'material_revision' => 1,
+            'document' => UploadedFile::fake()->createWithContent('private-name.pdf', '%PDF-1.4')])
+            ->assertUnprocessable()->assertSee('Refresh the saved documents')->assertHeader('Cache-Control', 'no-store, private')
+            ->assertDontSee('private-name.pdf')->assertSessionMissing('_old_input')->assertSessionMissing('errors');
+        $this->post($base.'?operation_id='.Str::uuid(), ['material_revision' => 1])->assertUnprocessable()->assertSessionMissing('_old_input');
+        $this->assertSame(0, $this->scanner->scans);
+    }
+
+    public function test_panel_readonly_allows_removal_but_refuses_new_uploads_without_old_input(): void
+    {
+        $one = $this->upload();
+        config(['modules.groups' => ['default' => true, 'legacy' => true]]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'groups'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $base = $this->panelBase();
+        $this->actingAs($this->teacher)->get($base)->assertOk()->assertDontSee('name="document"', false)->assertSee('Confirm document removal');
+        $this->post($base, ['operation_id' => (string) Str::uuid(), 'material_revision' => 2,
+            'document' => UploadedFile::fake()->createWithContent('blocked.pdf', '%PDF-1.4')])
+            ->assertForbidden()->assertSessionMissing('_old_input')->assertHeader('Cache-Control', 'no-store, private');
+        $this->post($base.'/'.$one['id'].'/remove', ['operation_id' => (string) Str::uuid(), 'material_revision' => 2, 'revision' => 1])->assertRedirect($base);
+    }
+
+    public function test_panel_wrong_owner_and_ended_staff_grant_cannot_read_or_upload_files(): void
+    {
+        $one = $this->upload();
+        $base = $this->panelBase();
+        $this->actingAs(User::findOrFail($this->schoolA->ids['gina_user']))->get($base)->assertRedirect()->assertDontSee('Synthetic private worksheet');
+        $this->actingAs($this->teacher);
+        ActivityStaff::where('activity_group_id', $this->group->id)->update(['active' => false]);
+        $this->get($base.'/'.$one['id'].'/content')->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+    }
+
+    private function api(User $actor): self
+    {
+        $this->app['auth']->forgetGuards();
+
+        return $this->flushHeaders()->withToken($actor->createToken('synthetic-material-file')->plainTextToken)
+            ->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $actor->id]);
+    }
+
+    private function base(): string
+    {
+        return '/api/v2/activities/groups/'.$this->group->id.'/materials/'.$this->material->id.'/files';
+    }
+
+    public function test_typed_http_upload_family_binary_read_and_revocation_are_private_and_scope_bound(): void
+    {
+        $base = $this->base();
+        $bytes = "%PDF-1.4\nSynthetic private worksheet";
+        $this->api($this->teacher)->getJson($base)->assertOk()->assertJsonPath('data.can_upload', true)->assertJsonPath('data.can_remove', true);
+        $uploaded = $this->api($this->teacher)->post($base, ['operation_id' => (string) Str::uuid(), 'material_revision' => 1,
+            'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', $bytes)])->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+        $this->assertSame(2, $uploaded['material_revision']);
+        $this->api($this->parent)->getJson($base)->assertOk()->assertJsonPath('data.items.0.id', $uploaded['id'])
+            ->assertJsonPath('data.can_upload', false)->assertJsonPath('data.can_remove', false);
+        $this->get($base.'/'.$uploaded['id'].'/content')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertHeader('Referrer-Policy', 'no-referrer')->assertHeader('Content-Type', 'application/pdf')->assertContent($bytes);
+        $this->api($this->teacher)->postJson($base.'/'.$uploaded['id'].'/remove', ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'material_revision' => 2])
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.removed', true);
+        $this->api($this->parent)->getJson($base.'/'.$uploaded['id'].'/content')->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+    }
+
+    public function test_private_http_refusals_cover_auth_account_role_and_validation_without_session_flash(): void
+    {
+        $base = $this->base();
+        $this->get($base, ['Accept' => 'text/html'])->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer');
+        $this->api($this->parent)->withHeader('X-Account-Id', (string) $this->teacher->id)->getJson($base)->assertForbidden()->assertHeader('Cache-Control', 'no-store, private');
+        $this->api($this->parent)->post($base, ['operation_id' => (string) Str::uuid(), 'material_revision' => 1,
+            'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', '%PDF-1.4')])->assertForbidden();
+        $this->assertSame(0, $this->scanner->scans);
+        $this->api($this->teacher)->withHeader('Accept', 'text/html')->post($base, ['operation_id' => 'invalid', 'material_revision' => 1,
+            'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', '%PDF-1.4')])->assertUnprocessable()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('code', 'validation_failed')->assertSessionMissing('_old_input')->assertSessionMissing('errors');
+        $this->assertSame(0, ActivityMaterialFile::count());
+    }
+
+    public function test_private_http_writes_refuse_query_injected_fields_and_wrong_school(): void
+    {
+        $base = $this->base();
+        $this->api($this->teacher)->post($base.'?operation_id='.Str::uuid(), ['material_revision' => 1,
+            'document' => UploadedFile::fake()->createWithContent('synthetic.pdf', '%PDF-1.4')])->assertUnprocessable();
+        $this->api($this->teacher)->withHeader('X-School-Id', '2')->getJson($base)->assertForbidden();
+        $this->assertSame(0, $this->scanner->scans);
+        $this->assertSame(0, ActivityMaterialFile::count());
     }
 }
 
