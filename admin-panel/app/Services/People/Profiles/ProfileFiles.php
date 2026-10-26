@@ -53,25 +53,29 @@ class ProfileFiles
     public function upload(User $actor, User $person, string $profile, string $key, UploadedFile $document, ?Closure $authorize = null): void
     {
         $authorize?->__invoke();
-        $this->field($actor, $person, $profile, $key, write: true);
+        $definition = $this->field($actor, $person, $profile, $key, write: true);
         Validator::make(['document' => $document], self::rules())->validate();
+        $health = $definition->category()->where('key', 'health')->exists();
+        $prepared = $health ? app(HealthDocumentSafety::class)->prepare($document)
+            : ['bytes' => $document->getContent(), 'mime' => $document->getMimeType(), 'name' => FileNames::forUpload($document)];
         $id = (string) Str::uuid();
         $path = app(CurrentSchool::class)->storagePath('profile-files').'/'.$id.'.enc';
         try {
-            DB::transaction(function () use ($actor, $person, $profile, $key, $document, $id, $path, $authorize) {
+            DB::transaction(function () use ($actor, $person, $profile, $key, $id, $path, $authorize, $prepared, $health) {
                 $authorize?->__invoke();
                 $freshPerson = User::query()->lockForUpdate()->findOrFail($person->id);
                 $field = $this->field($actor, $freshPerson, $profile, $key, write: true, lock: true);
-                $bytes = $document->getContent();
+                abort_unless($field->category()->where('key', 'health')->exists() === $health, 409, 'The document field changed. Refresh before uploading.');
+                $bytes = $prepared['bytes'];
                 if (! Storage::disk(self::DISK)->put($path, Crypt::encryptString($bytes))) {
                     throw new RuntimeException('The profile file could not be stored.');
                 }
-                $mime = $document->getMimeType();
+                $mime = $prepared['mime'];
                 $extension = match ($mime) {
                     'application/pdf' => 'pdf', 'image/png' => 'png', 'image/jpeg' => 'jpg', default => throw new RuntimeException('Unsupported profile file.')
                 };
                 ProfileFile::query()->create(['id' => $id, 'user_id' => $person->id, 'definition_id' => $field->id,
-                    'name' => FileNames::forUpload($document), 'path' => $path, 'mime' => $mime, 'extension' => $extension, 'size' => strlen($bytes)]);
+                    'name' => $prepared['name'], 'path' => $path, 'mime' => $mime, 'extension' => $extension, 'size' => strlen($bytes)]);
                 ProfileFieldValue::query()->updateOrCreate(['user_id' => $person->id, 'definition_id' => $field->id],
                     ['value' => Crypt::encryptString(json_encode($id, JSON_THROW_ON_ERROR)), 'encrypted' => true]);
                 Audit::record('profile.file_uploaded', $person, [], ['field_key' => $key, 'file_id' => $id], schoolId: app(CurrentSchool::class)->id());

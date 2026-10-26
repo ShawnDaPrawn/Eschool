@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const consentId = '8aef50e7-2429-4d2c-a523-668ae436c4d4';
-const fileToken = '8aef50e7-2429-4d2c-a523-668ae436c4d4.png';
+const fixtureFileId = '8aef50e7-2429-4d2c-a523-668ae436c4d4.png';
 const privateWording = 'Synthetic complete private consent wording.';
 Map<String, dynamic> configJson({
   int school = 1,
@@ -85,7 +85,7 @@ Map<String, dynamic> healthJson({int person = 12, bool file = false}) => {
             'sensitive': true,
             'value': {
               'file': {
-                'id': fileToken,
+                'id': fixtureFileId,
                 'name': 'Synthetic medical image',
                 'mime': 'image/png',
                 'size': 67,

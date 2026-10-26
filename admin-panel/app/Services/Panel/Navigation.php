@@ -13,6 +13,7 @@ use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
 use App\Services\FamilyForms\FamilyPanelScope;
+use App\Services\FamilyVisits\VisitPanelScope;
 use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
@@ -166,6 +167,9 @@ class Navigation
             return false;
         }
         if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {
+            return false;
+        }
+        if (($item['family_visit_actor'] ?? false) && ! app(VisitPanelScope::class)->available($user)) {
             return false;
         }
         if (($item['family_form_actor'] ?? false) && ! app(FamilyPanelScope::class)->available($user)) {

@@ -124,6 +124,7 @@ class ApiRouteTenancyTest extends TestCase
         if (in_array(CardDeviceContext::class, $route->middleware, true)) {
             $this->assertContains($label, [
                 'POST api/v2/card-device/scan/qr', 'POST api/v2/card-device/scan/sun', 'GET api/v2/card-device/scans/{scan}/portrait',
+                'GET api/v2/card-device/scans/{scan}/gate-passes', 'POST api/v2/card-device/gate-passes/{pass}/collect',
             ], 'Dedicated device credentials must not escape the isolated reader endpoints');
             $this->assertContains(PrivateDomainResponse::class, $route->middleware);
             $this->assertFalse($route->requiresAuthentication(), 'User Sanctum credentials must not grant device authority');

@@ -10,19 +10,13 @@ use App\Models\Platform\ProfileFile;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\People\Profiles\ProfileFiles;
-use App\Services\Platform\Files\SafeImages;
-use App\Services\Platform\Files\UploadScanner;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Throwable;
 
 /** Reuses encrypted profile attachments, with current family purpose checked at every stage. */
 class HealthFiles
 {
-    public function __construct(private UploadScanner $scanner, private SafeImages $images) {}
-
     public function authorizeField(User $actor, int $learner, string $key, bool $write = false): User
     {
         $person = app(HealthForms::class)->person($actor, $learner, $write);
@@ -34,38 +28,12 @@ class HealthFiles
         return $person;
     }
 
-    private function scan(string $bytes): void
-    {
-        try {
-            $result = $this->scanner->scan($bytes);
-        } catch (Throwable) {
-            abort(503, 'Document safety checks are temporarily unavailable.');
-        }
-        abort_unless(($result['clean'] ?? false) === true && is_string($result['engine'] ?? null) && $result['engine'] !== '', 422, 'This document did not pass its safety checks.');
-    }
-
     public function upload(User $actor, int $learner, string $key, UploadedFile $file): array
     {
         $person = $this->authorizeField($actor, $learner, $key, true);
-        Validator::make(['document' => $file], ProfileFiles::rules())->validate();
-        $this->scan($file->getContent());
-        $path = null;
-        try {
-            if ($file->getMimeType() !== 'application/pdf') {
-                $bytes = $this->images->sanitize($file)['bytes'];
-                $this->scan($bytes);
-                $path = tempnam(sys_get_temp_dir(), 'health-image-');
-                abort_unless($path !== false && file_put_contents($path, $bytes) === strlen($bytes), 503, 'The document could not be prepared.');
-                $file = new UploadedFile($path, 'health-document.jpg', 'image/jpeg', null, true);
-            }
-            app(ProfileFiles::class)->upload($actor, $person, 'learner', $key, $file, fn () => $this->authorizeField($actor, $learner, $key, true));
+        app(ProfileFiles::class)->upload($actor, $person, 'learner', $key, $file, fn () => $this->authorizeField($actor, $learner, $key, true));
 
-            return app(HealthForms::class)->read($actor, $learner);
-        } finally {
-            if (is_string($path)) {
-                @unlink($path);
-            }
-        }
+        return app(HealthForms::class)->read($actor, $learner);
     }
 
     private function reference(User $actor, int $learner, string $token): User

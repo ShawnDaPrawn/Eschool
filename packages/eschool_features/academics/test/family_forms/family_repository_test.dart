@@ -125,12 +125,12 @@ void main() {
       final api = FakeApi(
         routes: {
           'GET v2/family-forms/learners/11/health': ok(healthJson(file: true)),
-          'GET v2/family-forms/learners/11/health/files/$fileToken':
+          'GET v2/family-forms/learners/11/health/files/$fixtureFileId':
               const FakeBinaryResponse([1, 2, 3], contentType: 'image/png'),
         },
       );
       final attachment = ProfileAttachment(
-        id: fileToken,
+        id: fixtureFileId,
         name: 'Synthetic',
         mime: 'image/png',
         size: 3,
@@ -139,7 +139,7 @@ void main() {
       expect(await repository(api).healthFile(11, 12, attachment), [1, 2, 3]);
       expect(api.requestedPaths, [
         'GET v2/family-forms/learners/11/health',
-        'GET v2/family-forms/learners/11/health/files/$fileToken',
+        'GET v2/family-forms/learners/11/health/files/$fixtureFileId',
         'GET v2/family-forms/learners/11/health',
       ]);
       for (final request in api.requests) {

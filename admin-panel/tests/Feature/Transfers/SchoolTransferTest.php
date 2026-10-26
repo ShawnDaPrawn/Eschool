@@ -35,6 +35,7 @@ use App\Models\Transfers\TransferStage;
 use App\Models\User;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileFiles;
+use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
@@ -65,6 +66,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\Support\DemoSchool;
+use Tests\Support\SyntheticCleanScanner;
 use Tests\TestCase;
 
 class SchoolTransferTest extends TestCase
@@ -390,6 +392,7 @@ class SchoolTransferTest extends TestCase
         $category = ProfileFieldCategory::where('profile_type', 'learner')->where('key', 'health')->firstOrFail();
         $field = app(ProfileDefinitions::class)->field($this->sender, ['category_id' => $category->id, 'key' => 'transfer_document', 'label' => 'Synthetic transfer document', 'type' => 'file', 'sensitive' => true, 'visible_to' => ['guardian', 'school_admin'], 'editable_by' => ['school_admin']]);
         $document = "%PDF-1.4\nSYNTHETIC TRANSFER DOCUMENT\n%%EOF";
+        $this->app->instance(UploadScanner::class, new SyntheticCleanScanner);
         app(ProfileFiles::class)->upload($this->sender, User::findOrFail($this->schoolA->ids['asha_user']), 'learner', 'transfer_document', UploadedFile::fake()->createWithContent('transfer-letter.pdf', $document));
         $file = ProfileFile::where('definition_id', $field->id)->sole();
         $input = $this->input();

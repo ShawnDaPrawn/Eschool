@@ -45,6 +45,7 @@ use App\Services\ParentPolicyService;
 use App\Services\People\EnrolmentService;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileFiles;
+use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -59,6 +60,7 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\Concerns\ValidatesOpenApiResponses;
+use Tests\Support\SyntheticCleanScanner;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -504,6 +506,7 @@ class TransitionEngineTest extends TestCase
         $definition = app(ProfileDefinitions::class)->field($this->superAdmin(), ['category_id' => $category->id, 'key' => 'exit_support', 'label' => 'Support file', 'type' => 'file', 'sensitive' => true, 'visible_to' => ['owner', 'guardian', 'school_admin'], 'editable_by' => ['school_admin']]);
         $learner = Students::findOrFail($this->schoolA->ids['asha']);
         $pdf = "%PDF-1.4\nPRIVATE EXIT DOCUMENT\n%%EOF";
+        $this->app->instance(UploadScanner::class, new SyntheticCleanScanner);
         app(ProfileFiles::class)->upload($this->superAdmin(), $learner->user, 'learner', 'exit_support', UploadedFile::fake()->createWithContent('support.pdf', $pdf));
         $document = ProfileFile::where('definition_id', $definition->id)->sole();
         $selection = $this->exitSelection(['document_ids' => [$document->id]]);
