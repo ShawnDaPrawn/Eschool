@@ -544,13 +544,69 @@ class _StaffHome extends StatelessWidget {
                     ),
                     canOpen: (feature) =>
                         repository.matches(generation, school, user) &&
-                        ((feature == 'wellbeing' &&
+                        ((feature == 'progress' &&
+                                repository.profile?.roles.contains('Teacher') ==
+                                    true &&
+                                repository
+                                        .profile
+                                        ?.features['private_notices'] ==
+                                    true) ||
+                            (feature == 'discipline' &&
+                                repository.profile?.features['discipline'] ==
+                                    true) ||
+                            (feature == 'wellbeing' &&
                                 repository.profile?.features['counselling'] ==
                                     true) ||
                             (feature == 'consultations' &&
                                 repository.profile?.features['consultations'] ==
                                     true)),
                     openFeature: (feature) async {
+                      if (feature == 'progress' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.roles.contains('Teacher') ==
+                              true &&
+                          repository.profile?.features['private_notices'] ==
+                              true) {
+                        bool activeProgress() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.roles.contains('Teacher') ==
+                                true &&
+                            repository.profile?.features['private_notices'] ==
+                                true;
+                        await open(
+                          'private_notices',
+                          ProgressNotesScreen(
+                            repository: ApiProgressRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: activeProgress,
+                            ),
+                            canRead: activeProgress,
+                          ),
+                        );
+                        return;
+                      }
+                      if (feature == 'discipline' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['discipline'] == true) {
+                        bool activeDiscipline() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.features['discipline'] == true;
+                        await open(
+                          'discipline',
+                          SchoolDisciplineScreen(
+                            repository: ApiDisciplineRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: activeDiscipline,
+                            ),
+                            canRead: activeDiscipline,
+                          ),
+                        );
+                        return;
+                      }
                       if (feature == 'consultations' &&
                           repository.matches(generation, school, user) &&
                           repository.profile?.features['consultations'] ==

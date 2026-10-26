@@ -520,6 +520,7 @@ class _SchoolDisciplineScreenState extends State<SchoolDisciplineScreen>
                   l('Discipline is read-only. Saved records remain available.'),
                 ),
               DropdownButtonFormField<int>(
+                isExpanded: true,
                 key: ValueKey('year-$_year'),
                 initialValue: _year,
                 decoration: InputDecoration(labelText: l('School year')),
@@ -597,6 +598,7 @@ class _SchoolDisciplineScreenState extends State<SchoolDisciplineScreen>
               record.toJson()['status'] != 'overturned' &&
               !(record.toJson()['status'] == 'hearing' && config.canHear)) ...[
             DropdownButtonFormField<String>(
+              isExpanded: true,
               key: ValueKey('decision-${record.revision}'),
               initialValue: record.toJson()['status'] == 'pending_review'
                   ? _decision
@@ -769,6 +771,7 @@ class _SchoolDisciplineScreenState extends State<SchoolDisciplineScreen>
             _pages(_people!.page, _people!.lastPage, people: true),
           _field(_date, 'Occurrence date', limit: 10),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             key: ValueKey('infraction-$_infraction'),
             initialValue: _infraction,
             decoration: InputDecoration(labelText: l('School infraction')),
@@ -816,6 +819,7 @@ class _SchoolDisciplineScreenState extends State<SchoolDisciplineScreen>
 
   Widget _sanctions(DisciplineRecordDetail record) =>
       DropdownButtonFormField<String>(
+        isExpanded: true,
         key: ValueKey('sanction-${record.id}-${record.revision}'),
         initialValue: _sanction,
         decoration: InputDecoration(labelText: l('Approved sanction')),
