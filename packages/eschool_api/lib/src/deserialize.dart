@@ -583,6 +583,27 @@ import 'package:eschool_api/src/model/get_wellbeing_access_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_configuration_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_report_response.dart';
+import 'package:eschool_api/src/model/group_chat_conversation.dart';
+import 'package:eschool_api/src/model/group_chat_conversation_response.dart';
+import 'package:eschool_api/src/model/group_chat_message.dart';
+import 'package:eschool_api/src/model/group_chat_message_create.dart';
+import 'package:eschool_api/src/model/group_chat_message_removal.dart';
+import 'package:eschool_api/src/model/group_chat_mutation.dart';
+import 'package:eschool_api/src/model/group_chat_mutation_response.dart';
+import 'package:eschool_api/src/model/group_chat_policy.dart';
+import 'package:eschool_api/src/model/group_chat_policy_change.dart';
+import 'package:eschool_api/src/model/group_chat_policy_response.dart';
+import 'package:eschool_api/src/model/group_chat_read_ack.dart';
+import 'package:eschool_api/src/model/group_chat_read_ack_response.dart';
+import 'package:eschool_api/src/model/group_chat_read_change.dart';
+import 'package:eschool_api/src/model/group_chat_receipt.dart';
+import 'package:eschool_api/src/model/group_chat_receipt_response.dart';
+import 'package:eschool_api/src/model/group_chat_thread.dart';
+import 'package:eschool_api/src/model/group_chat_thread_create.dart';
+import 'package:eschool_api/src/model/group_chat_thread_page.dart';
+import 'package:eschool_api/src/model/group_chat_thread_page_response.dart';
+import 'package:eschool_api/src/model/group_chat_thread_state_change.dart';
+import 'package:eschool_api/src/model/group_chat_thread_summary.dart';
 import 'package:eschool_api/src/model/guardian_approval.dart';
 import 'package:eschool_api/src/model/guardian_approvals_response.dart';
 import 'package:eschool_api/src/model/guardian_consent.dart';
@@ -709,6 +730,29 @@ import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/pagination.dart';
+import 'package:eschool_api/src/model/pathway_choice.dart';
+import 'package:eschool_api/src/model/pathway_configuration.dart';
+import 'package:eschool_api/src/model/pathway_configuration_response.dart';
+import 'package:eschool_api/src/model/pathway_elective_group.dart';
+import 'package:eschool_api/src/model/pathway_elective_result.dart';
+import 'package:eschool_api/src/model/pathway_mark.dart';
+import 'package:eschool_api/src/model/pathway_projection.dart';
+import 'package:eschool_api/src/model/pathway_projection_request.dart';
+import 'package:eschool_api/src/model/pathway_projection_response.dart';
+import 'package:eschool_api/src/model/pathway_reference.dart';
+import 'package:eschool_api/src/model/pathway_reference_page.dart';
+import 'package:eschool_api/src/model/pathway_reference_page_response.dart';
+import 'package:eschool_api/src/model/pathway_reference_response.dart';
+import 'package:eschool_api/src/model/pathway_reference_result.dart';
+import 'package:eschool_api/src/model/pathway_reference_write.dart';
+import 'package:eschool_api/src/model/pathway_released_evidence.dart';
+import 'package:eschool_api/src/model/pathway_rules.dart';
+import 'package:eschool_api/src/model/pathway_score_band.dart';
+import 'package:eschool_api/src/model/pathway_score_evidence.dart';
+import 'package:eschool_api/src/model/pathway_score_result.dart';
+import 'package:eschool_api/src/model/pathway_selection_result.dart';
+import 'package:eschool_api/src/model/pathway_subject_rule.dart';
+import 'package:eschool_api/src/model/pathway_term_choice.dart';
 import 'package:eschool_api/src/model/practice_access.dart';
 import 'package:eschool_api/src/model/practice_approval.dart';
 import 'package:eschool_api/src/model/practice_approve_input.dart';
@@ -838,6 +882,46 @@ import 'package:eschool_api/src/model/save_wellbeing_appointment_response.dart';
 import 'package:eschool_api/src/model/save_wellbeing_case_assignment_response.dart';
 import 'package:eschool_api/src/model/save_wellbeing_category_response.dart';
 import 'package:eschool_api/src/model/save_wellbeing_team_assignment_response.dart';
+import 'package:eschool_api/src/model/school_assistance_answer.dart';
+import 'package:eschool_api/src/model/school_assistance_citation.dart';
+import 'package:eschool_api/src/model/school_assistance_claim_request.dart';
+import 'package:eschool_api/src/model/school_assistance_close_request.dart';
+import 'package:eschool_api/src/model/school_assistance_configuration.dart';
+import 'package:eschool_api/src/model/school_assistance_configuration_response.dart';
+import 'package:eschool_api/src/model/school_assistance_document.dart';
+import 'package:eschool_api/src/model/school_assistance_document_body.dart';
+import 'package:eschool_api/src/model/school_assistance_document_body_response.dart';
+import 'package:eschool_api/src/model/school_assistance_document_page.dart';
+import 'package:eschool_api/src/model/school_assistance_document_page_response.dart';
+import 'package:eschool_api/src/model/school_assistance_document_result.dart';
+import 'package:eschool_api/src/model/school_assistance_document_result_response.dart';
+import 'package:eschool_api/src/model/school_assistance_message.dart';
+import 'package:eschool_api/src/model/school_assistance_office_queue.dart';
+import 'package:eschool_api/src/model/school_assistance_office_queue_response.dart';
+import 'package:eschool_api/src/model/school_assistance_office_thread_metadata.dart';
+import 'package:eschool_api/src/model/school_assistance_open_thread_request.dart';
+import 'package:eschool_api/src/model/school_assistance_prepare_answer_request.dart';
+import 'package:eschool_api/src/model/school_assistance_publish_request.dart';
+import 'package:eschool_api/src/model/school_assistance_reassign_request.dart';
+import 'package:eschool_api/src/model/school_assistance_reply_request.dart';
+import 'package:eschool_api/src/model/school_assistance_run_request.dart';
+import 'package:eschool_api/src/model/school_assistance_source_locator.dart';
+import 'package:eschool_api/src/model/school_assistance_staff_choice.dart';
+import 'package:eschool_api/src/model/school_assistance_staff_choices.dart';
+import 'package:eschool_api/src/model/school_assistance_staff_choices_response.dart';
+import 'package:eschool_api/src/model/school_assistance_thread.dart';
+import 'package:eschool_api/src/model/school_assistance_thread_metadata.dart';
+import 'package:eschool_api/src/model/school_assistance_thread_page.dart';
+import 'package:eschool_api/src/model/school_assistance_thread_page_response.dart';
+import 'package:eschool_api/src/model/school_assistance_thread_response.dart';
+import 'package:eschool_api/src/model/school_assistance_thread_result.dart';
+import 'package:eschool_api/src/model/school_assistance_thread_result_response.dart';
+import 'package:eschool_api/src/model/school_assistance_translation_request.dart';
+import 'package:eschool_api/src/model/school_assistance_turn.dart';
+import 'package:eschool_api/src/model/school_assistance_turn_response.dart';
+import 'package:eschool_api/src/model/school_assistance_unavailable_response.dart';
+import 'package:eschool_api/src/model/school_assistance_unavailable_response_data.dart';
+import 'package:eschool_api/src/model/school_assistance_withdraw_request.dart';
 import 'package:eschool_api/src/model/school_document.dart';
 import 'package:eschool_api/src/model/school_membership.dart';
 import 'package:eschool_api/src/model/school_subject_from_standard_write.dart';
@@ -3144,6 +3228,76 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'GetWellbeingReportResponse':
       return GetWellbeingReportResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'GroupChatAudience':
+    case 'GroupChatConversation':
+      return GroupChatConversation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatConversationResponse':
+      return GroupChatConversationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GroupChatMessage':
+      return GroupChatMessage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMessageCreate':
+      return GroupChatMessageCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMessageRemoval':
+      return GroupChatMessageRemoval.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMutation':
+      return GroupChatMutation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatMutationResponse':
+      return GroupChatMutationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatOperationType':
+    case 'GroupChatPersona':
+    case 'GroupChatPolicy':
+      return GroupChatPolicy.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatPolicyChange':
+      return GroupChatPolicyChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatPolicyResponse':
+      return GroupChatPolicyResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReadAck':
+      return GroupChatReadAck.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReadAckResponse':
+      return GroupChatReadAckResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReadChange':
+      return GroupChatReadChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReceipt':
+      return GroupChatReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatReceiptResponse':
+      return GroupChatReceiptResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThread':
+      return GroupChatThread.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadCreate':
+      return GroupChatThreadCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadKind':
+    case 'GroupChatThreadPage':
+      return GroupChatThreadPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadPageResponse':
+      return GroupChatThreadPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadStateChange':
+      return GroupChatThreadStateChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatThreadSummary':
+      return GroupChatThreadSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GroupChatVisibility':
     case 'GuardianApproval':
       return GuardianApproval.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -3570,6 +3724,77 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PathwayChoice':
+      return PathwayChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayConfiguration':
+      return PathwayConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayConfigurationResponse':
+      return PathwayConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'PathwayElectiveGroup':
+      return PathwayElectiveGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayElectiveResult':
+      return PathwayElectiveResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayMark':
+      return PathwayMark.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PathwayProjection':
+      return PathwayProjection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayProjectionRequest':
+      return PathwayProjectionRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayProjectionResponse':
+      return PathwayProjectionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReference':
+      return PathwayReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferencePage':
+      return PathwayReferencePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferencePageResponse':
+      return PathwayReferencePageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'PathwayReferenceResponse':
+      return PathwayReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferenceResult':
+      return PathwayReferenceResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferenceWrite':
+      return PathwayReferenceWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReleasedEvidence':
+      return PathwayReleasedEvidence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayRules':
+      return PathwayRules.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PathwayScoreBand':
+      return PathwayScoreBand.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayScoreEvidence':
+      return PathwayScoreEvidence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayScoreResult':
+      return PathwayScoreResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwaySelectionResult':
+      return PathwaySelectionResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwaySubjectRule':
+      return PathwaySubjectRule.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayTermChoice':
+      return PathwayTermChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'PracticeAccess':
       return PracticeAccess.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -3997,6 +4222,186 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'SaveWellbeingTeamAssignmentResponse':
       return SaveWellbeingTeamAssignmentResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceAnswer':
+      return SchoolAssistanceAnswer.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceCitation':
+      return SchoolAssistanceCitation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceClaimRequest':
+      return SchoolAssistanceClaimRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceCloseRequest':
+      return SchoolAssistanceCloseRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceConfiguration':
+      return SchoolAssistanceConfiguration.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceConfigurationResponse':
+      return SchoolAssistanceConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceDocument':
+      return SchoolAssistanceDocument.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceDocumentBody':
+      return SchoolAssistanceDocumentBody.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceDocumentBodyResponse':
+      return SchoolAssistanceDocumentBodyResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceDocumentPage':
+      return SchoolAssistanceDocumentPage.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceDocumentPageResponse':
+      return SchoolAssistanceDocumentPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceDocumentResult':
+      return SchoolAssistanceDocumentResult.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceDocumentResultResponse':
+      return SchoolAssistanceDocumentResultResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceMessage':
+      return SchoolAssistanceMessage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceOfficeQueue':
+      return SchoolAssistanceOfficeQueue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceOfficeQueueResponse':
+      return SchoolAssistanceOfficeQueueResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceOfficeThreadMetadata':
+      return SchoolAssistanceOfficeThreadMetadata.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceOpenThreadRequest':
+      return SchoolAssistanceOpenThreadRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistancePrepareAnswerRequest':
+      return SchoolAssistancePrepareAnswerRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistancePublishRequest':
+      return SchoolAssistancePublishRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceReassignRequest':
+      return SchoolAssistanceReassignRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceReplyRequest':
+      return SchoolAssistanceReplyRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceRunRequest':
+      return SchoolAssistanceRunRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceSourceLocator':
+      return SchoolAssistanceSourceLocator.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceStaffChoice':
+      return SchoolAssistanceStaffChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceStaffChoices':
+      return SchoolAssistanceStaffChoices.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceStaffChoicesResponse':
+      return SchoolAssistanceStaffChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceThread':
+      return SchoolAssistanceThread.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceThreadMetadata':
+      return SchoolAssistanceThreadMetadata.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceThreadPage':
+      return SchoolAssistanceThreadPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceThreadPageResponse':
+      return SchoolAssistanceThreadPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceThreadResponse':
+      return SchoolAssistanceThreadResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceThreadResult':
+      return SchoolAssistanceThreadResult.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceThreadResultResponse':
+      return SchoolAssistanceThreadResultResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceTranslationRequest':
+      return SchoolAssistanceTranslationRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceTurn':
+      return SchoolAssistanceTurn.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SchoolAssistanceTurnResponse':
+      return SchoolAssistanceTurnResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceUnavailableResponse':
+      return SchoolAssistanceUnavailableResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceUnavailableResponseData':
+      return SchoolAssistanceUnavailableResponseData.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SchoolAssistanceWithdrawRequest':
+      return SchoolAssistanceWithdrawRequest.fromJson(
             value as Map<String, dynamic>,
           )
           as ReturnType;

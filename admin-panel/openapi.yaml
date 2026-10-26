@@ -205,6 +205,10 @@ tags:
   description: School-reviewed licensed papers and private exam study plans.
 - name: FamilyVisits
   description: Private parent meeting bookings and staff-approved online early collection.
+- name: Pathways
+  description: School-reviewed sources, Grade 9 subject choices and private projected admission scores.
+- name: SchoolAssistance
+  description: Private sourced Parent answers, approved school documents and explicit school-office handoff.
 paths:
   /facilitator/sign-in:
     post:
@@ -7634,6 +7638,13 @@ paths:
         schema:
           type: integer
           minimum: 1
+      - name: chat_persona
+        in: query
+        required: false
+        description: Explicit current app persona. Only opted-in replies include chat_available; this parameter
+          never grants group or conversation access.
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
       responses:
         '200':
           description: Read an authorized activity group and materials.
@@ -21446,10 +21457,10 @@ paths:
       tags:
       - FamilyForms
       summary: Upload a private current health-field attachment
-      description: Current guardian or explicit health access, learner membership/enrolment, module write mode
-        and field authority are checked before validation and storage. PDF files up to 5 MB require scanning.
-        JPEG/PNG files up to 4 MB require scanning and pixel sanitization; scanner failure refuses the upload.
-        Reuses encrypted profile attachments.
+      description: Current guardian or explicit health access, learner membership/enrolment, module write mode and
+        field authority are checked before validation and storage. PDF files up to 5 MB require scanning. JPEG/PNG
+        files up to 4 MB require scanning and pixel sanitization; scanner failure refuses the upload. Reuses encrypted
+        profile attachments.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -21505,9 +21516,9 @@ paths:
       tags:
       - FamilyForms
       summary: Read a current private health-field attachment
-      description: Fresh purpose/guardian/learner/module/field authority and the current attachment reference
-        are checked before and after the encrypted file read. Replaced, cleared, transferred or withdrawn sources
-        cannot return bytes. No metadata URL is trusted.
+      description: Fresh purpose/guardian/learner/module/field authority and the current attachment reference are
+        checked before and after the encrypted file read. Replaced, cleared, transferred or withdrawn sources cannot
+        return bytes. No metadata URL is trusted.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -23009,7 +23020,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ActivityMaterialAttachmentRemove'
-
   /tutor/sessions/{session}/checkpoints:
     post:
       operationId: issueTutorCheckpoint
@@ -23169,6 +23179,2017 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TutorCheckpointAnswerWrite'
+  /pathways/configuration:
+    get:
+      operationId: getPathwayConfiguration
+      tags:
+      - Pathways
+      summary: getPathwayConfiguration
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pathways/references:
+    get:
+      operationId: listPathwayReferences
+      tags:
+      - Pathways
+      summary: listPathwayReferences
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: manage
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: School source managers may request expired and withdrawn references; this never grants learner-record
+          access.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferencePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: publishPathwayReference
+      tags:
+      - Pathways
+      summary: publishPathwayReference
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PathwayReferenceWrite'
+  /pathways/references/{reference}:
+    get:
+      operationId: getPathwayReference
+      tags:
+      - Pathways
+      summary: getPathwayReference
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+      - name: manage
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: School source managers may request expired and withdrawn references; this never grants learner-record
+          access.
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: revisePathwayReference
+      tags:
+      - Pathways
+      summary: revisePathwayReference
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PathwayReferenceWrite'
+  /pathways/references/{reference}/projection:
+    post:
+      operationId: calculatePathwayProjection
+      tags:
+      - Pathways
+      summary: calculatePathwayProjection
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayProjectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PathwayProjectionRequest'
+  /school-assistance/configuration:
+    get:
+      operationId: getSchoolAssistanceConfiguration
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceConfiguration
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/family/learners/{learner}/documents:
+    get:
+      operationId: listSchoolAssistanceDocuments
+      tags:
+      - SchoolAssistance
+      summary: listSchoolAssistanceDocuments
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceDocumentPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/family/learners/{learner}/documents/{document}:
+    get:
+      operationId: getSchoolAssistanceDocument
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceDocument
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceDocumentBodyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/family/learners/{learner}/threads:
+    get:
+      operationId: listSchoolAssistanceThreads
+      tags:
+      - SchoolAssistance
+      summary: listSchoolAssistanceThreads
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+    post:
+      operationId: openSchoolAssistanceThread
+      tags:
+      - SchoolAssistance
+      summary: openSchoolAssistanceThread
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceOpenThreadRequest'
+  /school-assistance/family/learners/{learner}/answers:
+    post:
+      operationId: prepareSchoolAssistanceAnswer
+      tags:
+      - SchoolAssistance
+      summary: prepareSchoolAssistanceAnswer
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceTurnResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistancePrepareAnswerRequest'
+  /school-assistance/family/learners/{learner}/translations:
+    post:
+      operationId: prepareSchoolAssistanceTranslation
+      tags:
+      - SchoolAssistance
+      summary: prepareSchoolAssistanceTranslation
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceTurnResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceTranslationRequest'
+  /school-assistance/threads/{thread}:
+    get:
+      operationId: getSchoolAssistanceThread
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceThread
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      - name: persona
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - parent
+          - office
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/threads/{thread}/reply:
+    post:
+      operationId: replySchoolAssistanceThread
+      tags:
+      - SchoolAssistance
+      summary: replySchoolAssistanceThread
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceReplyRequest'
+  /school-assistance/threads/{thread}/close:
+    post:
+      operationId: closeSchoolAssistanceThread
+      tags:
+      - SchoolAssistance
+      summary: closeSchoolAssistanceThread
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceCloseRequest'
+  /school-assistance/turns/{turn}:
+    get:
+      operationId: getSchoolAssistanceTurn
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceTurn
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: turn
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceTurnResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/turns/{turn}/run:
+    post:
+      operationId: runSchoolAssistanceTurn
+      tags:
+      - SchoolAssistance
+      summary: runSchoolAssistanceTurn
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: turn
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceTurnResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceRunRequest'
+  /school-assistance/office/queue:
+    get:
+      operationId: getSchoolAssistanceOfficeQueue
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceOfficeQueue
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceOfficeQueueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/office/staff:
+    get:
+      operationId: getSchoolAssistanceOfficeStaff
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceOfficeStaff
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceStaffChoicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/office/documents:
+    get:
+      operationId: listSchoolAssistanceOfficeDocuments
+      tags:
+      - SchoolAssistance
+      summary: listSchoolAssistanceOfficeDocuments
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceDocumentPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+    post:
+      operationId: publishSchoolAssistanceDocument
+      tags:
+      - SchoolAssistance
+      summary: publishSchoolAssistanceDocument
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceDocumentResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistancePublishRequest'
+  /school-assistance/office/documents/{document}:
+    get:
+      operationId: getSchoolAssistanceOfficeDocument
+      tags:
+      - SchoolAssistance
+      summary: getSchoolAssistanceOfficeDocument
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceDocumentBodyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+  /school-assistance/office/documents/{document}/withdraw:
+    post:
+      operationId: withdrawSchoolAssistanceDocument
+      tags:
+      - SchoolAssistance
+      summary: withdrawSchoolAssistanceDocument
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: document
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceDocumentResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceWithdrawRequest'
+  /school-assistance/office/threads/{thread}/claim:
+    post:
+      operationId: claimSchoolAssistanceThread
+      tags:
+      - SchoolAssistance
+      summary: claimSchoolAssistanceThread
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceClaimRequest'
+  /school-assistance/office/threads/{thread}/reassign:
+    post:
+      operationId: reassignSchoolAssistanceThread
+      tags:
+      - SchoolAssistance
+      summary: reassignSchoolAssistanceThread
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceThreadResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceReassignRequest'
+  /school-assistance/office/learners/{learner}/translations:
+    post:
+      operationId: prepareSchoolAssistanceOfficeTranslation
+      tags:
+      - SchoolAssistance
+      summary: prepareSchoolAssistanceOfficeTranslation
+      description: Fresh selected-school/account/guardian or assigned office authority before private retrieval
+        and every replay. Body-only exact UUID writes; source changes retire prepared reviews. External inference
+        remains disabled until qualified. Originals are preserved; translations never send messages or publish marks.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorised private school assistance result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceTurnResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: External inference is disabled, paused or unavailable; human handoff and documents remain
+            independent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchoolAssistanceTranslationRequest'
+  /activities/chat-policy:
+    get:
+      operationId: getGroupChatPolicy
+      tags:
+      - Activities
+      summary: Read the school role-pair conversation policy
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Read the school role-pair conversation policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatPolicyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      operationId: setGroupChatPolicy
+      tags:
+      - Activities
+      summary: Update school role-pair policy without granting conversation access
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Update school role-pair policy without granting conversation access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatPolicyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatPolicyChange'
+  /activities/groups/{group}/chat/operations/{operation}:
+    get:
+      operationId: getGroupChatOperation
+      tags:
+      - Activities
+      summary: Recover an owned metadata-only conversation outcome
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: persona
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
+      responses:
+        '200':
+          description: Recover an owned metadata-only conversation outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /activities/groups/{group}/chat/threads:
+    get:
+      operationId: listGroupChatThreads
+      tags:
+      - Activities
+      summary: List authorized group conversation summaries
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: persona
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
+      - name: before
+        in: query
+        required: false
+        schema:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      responses:
+        '200':
+          description: List authorized group conversation summaries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatThreadPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createGroupChatThread
+      tags:
+      - Activities
+      summary: Open a supervised announcement or private question
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Open a supervised announcement or private question
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatThreadCreate'
+  /activities/groups/{group}/chat/threads/{thread}:
+    get:
+      operationId: getGroupChatThread
+      tags:
+      - Activities
+      summary: Read fresh authorized conversation messages
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: persona
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/GroupChatPersona'
+      - name: before_message_id
+        in: query
+        required: false
+        schema:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+      responses:
+        '200':
+          description: Read fresh authorized conversation messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatConversationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /activities/groups/{group}/chat/threads/{thread}/messages:
+    post:
+      operationId: sendGroupChatMessage
+      tags:
+      - Activities
+      summary: Send an immutable group message with exact UUID replay
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Send an immutable group message with exact UUID replay
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatMessageCreate'
+  /activities/groups/{group}/chat/threads/{thread}/state:
+    post:
+      operationId: setGroupChatThreadState
+      tags:
+      - Activities
+      summary: Close or reopen an authorized conversation
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Close or reopen an authorized conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatThreadStateChange'
+  /activities/groups/{group}/chat/threads/{thread}/messages/{message}/remove:
+    post:
+      operationId: removeGroupChatMessage
+      tags:
+      - Activities
+      summary: Remove authorized message text with a private reason
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Remove authorized message text with a private reason
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatMutationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatMessageRemoval'
+  /activities/groups/{group}/chat/threads/{thread}/read:
+    post:
+      operationId: markGroupChatThreadRead
+      tags:
+      - Activities
+      summary: Advance the persona-specific visible message read cursor
+      description: Fresh school/account and explicit app-purpose/persona checks apply to every call, replay and
+        source read. Allocated staff supervise their own groups; families need current approved learner membership
+        and enrolment. Private ownership binds both account and persona. Titles and bodies never appear in metadata
+        receipts; a missing receipt is an unconfirmed outcome, not authorization to automatically repeat a discarded
+        draft with a new UUID.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: thread
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Advance the persona-specific visible message read cursor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupChatReadAckResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Conversation writes are unavailable in a readonly or historical context. Authorized moderation
+            and reads remain available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupChatReadChange'
 components:
   securitySchemes:
     bearerAuth:
@@ -27233,6 +29254,10 @@ components:
       - messages
       - counselling
       properties:
+        school_assistance:
+          type: boolean
+          description: Optional current school-office support capability; exact thread assignment is checked before
+            every private body read.
         teaching_assistant:
           type: boolean
           description: Optional fresh allocated-Teacher draft capability; absence means unavailable.
@@ -37903,6 +39928,10 @@ components:
           type: boolean
         can_capture:
           type: boolean
+        chat_available:
+          type: boolean
+          description: Only present when chat_persona was supplied; fresh current persona/group/module/policy access,
+            independent of group management permission.
     ActivityGroupRoster:
       type: object
       additionalProperties: false
@@ -48112,7 +50141,6 @@ components:
           type: integer
           enum:
           - 200
-
     TeachingGroupChoice:
       type: object
       additionalProperties: false
@@ -50428,7 +52456,6 @@ components:
         code:
           type: integer
           minimum: 0
-
     FamilyVisitChoice:
       type: object
       additionalProperties: false
@@ -51057,7 +53084,6 @@ components:
           type: integer
           enum:
           - 200
-
     ActivityMaterialAttachment:
       type: object
       additionalProperties: false
@@ -51352,8 +53378,8 @@ components:
         verified_by:
           anyOf:
           - type: string
-            description: When answered, approved_answer_definition identifies deterministic grading of the first attempt.
-              Never AI confidence or an official mark.
+            description: When answered, approved_answer_definition identifies deterministic grading of the first
+              attempt. Never AI confidence or an official mark.
           - type: 'null'
     TutorCheckpointDetailResponse:
       type: object
@@ -51386,3 +53412,2264 @@ components:
           type: string
           minLength: 1
           maxLength: 100
+    PathwayChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 240
+    PathwayTermChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - session_year_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 240
+        session_year_id:
+          type: integer
+          minimum: 1
+    PathwayConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - writable
+      - can_manage
+      - children
+      - subjects
+      - years
+      - terms
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        writable:
+          type: boolean
+        can_manage:
+          type: boolean
+        children:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/PathwayChoice'
+        subjects:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/PathwayChoice'
+        years:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/PathwayChoice'
+        terms:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/PathwayTermChoice'
+    PathwaySubjectRule:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - minimum_bp
+      - counts_for_score
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        minimum_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        counts_for_score:
+          type: boolean
+    PathwayScoreBand:
+      type: object
+      additionalProperties: false
+      required:
+      - minimum_bp
+      - points
+      properties:
+        minimum_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        points:
+          type: integer
+          minimum: 0
+          maximum: 20
+    PathwayElectiveGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - choose
+      - subject_ids
+      properties:
+        title:
+          type: string
+          maxLength: 120
+        choose:
+          type: integer
+          minimum: 1
+          maximum: 20
+        subject_ids:
+          type: array
+          maxItems: 30
+          items:
+            type: integer
+            minimum: 1
+    PathwayRules:
+      type: object
+      additionalProperties: false
+      properties:
+        subjects:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwaySubjectRule'
+        bands:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/PathwayScoreBand'
+        best_n:
+          type: integer
+          minimum: 1
+          maximum: 20
+        minimum_score:
+          type: integer
+          minimum: 0
+          maximum: 400
+        compulsory_subject_ids:
+          type: array
+          maxItems: 20
+          items:
+            type: integer
+            minimum: 1
+        elective_groups:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PathwayElectiveGroup'
+    PathwayReference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - kind
+      - status
+      - title
+      - institution
+      - source_title
+      - source_url
+      - source_year
+      - reviewed_on
+      - expires_on
+      - guidance
+      - rules
+      properties:
+        id:
+          type: string
+          maxLength: 36
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          maxLength: 24
+          enum:
+          - programme
+          - subject_choice_guide
+        status:
+          type: string
+          maxLength: 16
+          enum:
+          - published
+          - withdrawn
+        title:
+          type: string
+          maxLength: 191
+        institution:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        source_title:
+          type: string
+          maxLength: 240
+        source_url:
+          type: string
+          maxLength: 2048
+          format: uri
+        source_year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        reviewed_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        expires_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        guidance:
+          type: string
+          maxLength: 6000
+        rules:
+          $ref: '#/components/schemas/PathwayRules'
+    PathwayReferenceWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - kind
+      - status
+      - title
+      - institution
+      - source_title
+      - source_url
+      - source_year
+      - reviewed_on
+      - expires_on
+      - guidance
+      - rules
+      properties:
+        operation_id:
+          type: string
+          maxLength: 36
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        kind:
+          type: string
+          maxLength: 24
+          enum:
+          - programme
+          - subject_choice_guide
+        status:
+          type: string
+          maxLength: 16
+          enum:
+          - published
+          - withdrawn
+        title:
+          type: string
+          maxLength: 191
+        institution:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        source_title:
+          type: string
+          maxLength: 240
+        source_url:
+          type: string
+          maxLength: 2048
+          format: uri
+        source_year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        reviewed_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        expires_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        guidance:
+          type: string
+          maxLength: 6000
+        rules:
+          $ref: '#/components/schemas/PathwayRules'
+    PathwayReferenceResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - reference
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        reference:
+          $ref: '#/components/schemas/PathwayReference'
+    PathwayReferencePage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - items
+      - next_page
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/PathwayReference'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 100000
+    PathwayMark:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - percentage_bp
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+    PathwayProjectionRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - revision
+      - source
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          maxLength: 16
+          enum:
+          - released
+          - scenario
+          - selection
+        session_year_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        marks:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwayMark'
+        subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+    PathwayScoreEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - percentage_bp
+      - points
+      - minimum_bp
+      - counts_for_score
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        points:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 20
+        minimum_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        counts_for_score:
+          type: boolean
+    PathwayScoreResult:
+      type: object
+      additionalProperties: false
+      required:
+      - projected_score
+      - known_subtotal
+      - minimum_score
+      - status
+      - missing_subject_ids
+      - below_minimum_subject_ids
+      - counted_subject_ids
+      - subjects
+      properties:
+        projected_score:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 400
+        known_subtotal:
+          type: integer
+          minimum: 0
+          maximum: 400
+        minimum_score:
+          type: integer
+          minimum: 0
+          maximum: 400
+        status:
+          type: string
+          maxLength: 32
+          enum:
+          - unknown
+          - below_published_minimum
+          - meets_published_minimum
+        missing_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        below_minimum_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        counted_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        subjects:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwayScoreEvidence'
+    PathwayElectiveResult:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - choose
+      - selected
+      - valid
+      properties:
+        title:
+          type: string
+          maxLength: 120
+        choose:
+          type: integer
+          minimum: 1
+          maximum: 20
+        selected:
+          type: integer
+          minimum: 0
+          maximum: 30
+        valid:
+          type: boolean
+    PathwaySelectionResult:
+      type: object
+      additionalProperties: false
+      required:
+      - valid
+      - selected_subject_ids
+      - missing_compulsory_subject_ids
+      - groups
+      properties:
+        valid:
+          type: boolean
+        selected_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        missing_compulsory_subject_ids:
+          type: array
+          maxItems: 20
+          items:
+            type: integer
+            minimum: 1
+        groups:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PathwayElectiveResult'
+    PathwayReleasedEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - percentage_bp
+      - release_id
+      - grade_name
+      - provisional
+      - coverage_bp
+      - released_at
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        release_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+          maxLength: 191
+        provisional:
+          type: boolean
+        coverage_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        released_at:
+          type: string
+          maxLength: 64
+          format: date-time
+    PathwayProjection:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - reference_id
+      - revision
+      - kind
+      - source
+      - score
+      - selection
+      - released_evidence
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        reference_id:
+          type: string
+          maxLength: 36
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          maxLength: 24
+          enum:
+          - programme
+          - subject_choice_guide
+        source:
+          type: string
+          maxLength: 16
+          enum:
+          - released
+          - scenario
+          - selection
+        score:
+          anyOf:
+          - $ref: '#/components/schemas/PathwayScoreResult'
+          - type: 'null'
+        selection:
+          anyOf:
+          - $ref: '#/components/schemas/PathwaySelectionResult'
+          - type: 'null'
+        released_evidence:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwayReleasedEvidence'
+    PathwayConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayConfiguration'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PathwayReferenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayReferenceResult'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PathwayReferencePageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayReferencePage'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PathwayProjectionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayProjection'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    SchoolAssistanceConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - can_parent
+      - can_office
+      - languages
+      - answer_available
+      - translation_available
+      - school_id
+      - reader_id
+      properties:
+        can_parent:
+          type: boolean
+        can_office:
+          type: boolean
+        languages:
+          type: array
+          items:
+            type: string
+            maxLength: 16
+          maxItems: 30
+        answer_available:
+          type: boolean
+        translation_available:
+          type: boolean
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceDocument:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - document_key
+      - revision
+      - title
+      - source_reference
+      - expires_on
+      - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        document_key:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        source_reference:
+          type: string
+          maxLength: 2048
+        expires_on:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+          - type: 'null'
+        state:
+          type: string
+          enum:
+          - published
+          - withdrawn
+    SchoolAssistanceDocumentBody:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - document_key
+      - revision
+      - title
+      - source_reference
+      - expires_on
+      - state
+      - markdown
+      - school_id
+      - reader_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        document_key:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        source_reference:
+          type: string
+          maxLength: 2048
+        expires_on:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+          - type: 'null'
+        state:
+          type: string
+          enum:
+          - published
+          - withdrawn
+        markdown:
+          type: string
+          maxLength: 32000
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceDocumentResult:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - document_key
+      - revision
+      - title
+      - source_reference
+      - expires_on
+      - state
+      - school_id
+      - reader_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        document_key:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        source_reference:
+          type: string
+          maxLength: 2048
+        expires_on:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+          - type: 'null'
+        state:
+          type: string
+          enum:
+          - published
+          - withdrawn
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceDocumentPage:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      - school_id
+      - reader_id
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolAssistanceDocument'
+          maxItems: 20
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceThreadMetadata:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - open
+          - closed
+        revision:
+          type: integer
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+    SchoolAssistanceThreadPage:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      - school_id
+      - reader_id
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolAssistanceThreadMetadata'
+          maxItems: 20
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceOfficeThreadMetadata:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      - revision
+      - created_at
+      - assigned_to_reader
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - open
+          - closed
+        revision:
+          type: integer
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        assigned_to_reader:
+          type: boolean
+    SchoolAssistanceOfficeQueue:
+      type: object
+      additionalProperties: false
+      required:
+      - page
+      - last_page
+      - items
+      - school_id
+      - reader_id
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolAssistanceOfficeThreadMetadata'
+          maxItems: 20
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceStaffChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    SchoolAssistanceStaffChoices:
+      type: object
+      additionalProperties: false
+      required:
+      - staff
+      - school_id
+      - reader_id
+      properties:
+        staff:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolAssistanceStaffChoice'
+          maxItems: 100
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceMessage:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - author_kind
+      - text
+      - language
+      - sent_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        author_kind:
+          type: string
+          enum:
+          - parent
+          - office
+        text:
+          type: string
+          maxLength: 4000
+        language:
+          type: string
+          maxLength: 16
+        sent_at:
+          type: string
+          format: date-time
+    SchoolAssistanceThread:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - state
+      - learner_id
+      - expires_at
+      - page
+      - last_page
+      - messages
+      - school_id
+      - reader_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - open
+          - closed
+        learner_id:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolAssistanceMessage'
+          maxItems: 20
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceThreadResult:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - state
+      - school_id
+      - reader_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        state:
+          type: string
+          enum:
+          - open
+          - closed
+        message_id:
+          type: string
+          format: uuid
+        assigned_user_id:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 1000
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceSourceLocator:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        id:
+          type: string
+          format: uuid
+        year:
+          type: integer
+          minimum: 1
+        term_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        on_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+    SchoolAssistanceCitation:
+      type: object
+      additionalProperties: false
+      required:
+      - token
+      - kind
+      - title
+      - locator
+      properties:
+        token:
+          type: string
+          pattern: ^s[1-9][0-9]*$
+        kind:
+          type: string
+          enum:
+          - document
+          - calendar
+          - released_marks
+          - attendance
+          - support_message
+        title:
+          type: string
+        locator:
+          $ref: '#/components/schemas/SchoolAssistanceSourceLocator'
+    SchoolAssistanceAnswer:
+      type: object
+      additionalProperties: false
+      required:
+      - language
+      - text
+      - citations
+      - handoff
+      properties:
+        language:
+          type: string
+          maxLength: 16
+        text:
+          type: string
+          maxLength: 4000
+        citations:
+          type: array
+          items:
+            type: string
+            pattern: ^s[1-9][0-9]*$
+          maxItems: 20
+        handoff:
+          type: boolean
+    SchoolAssistanceTurn:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - purpose
+      - state
+      - learner_id
+      - expires_at
+      - language
+      - review_text
+      - citations
+      - response
+      - school_id
+      - reader_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          enum:
+          - answer
+          - translation
+        state:
+          type: string
+          enum:
+          - prepared
+          - completed
+        learner_id:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        language:
+          type: string
+          maxLength: 16
+        review_text:
+          type: string
+          maxLength: 24000
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolAssistanceCitation'
+          maxItems: 20
+        response:
+          anyOf:
+          - $ref: '#/components/schemas/SchoolAssistanceAnswer'
+          - type: 'null'
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    SchoolAssistanceOpenThreadRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - text
+      - language
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          maxLength: 4000
+        language:
+          type: string
+          maxLength: 16
+    SchoolAssistanceReplyRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - text
+      - language
+      - persona
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          maxLength: 4000
+        language:
+          type: string
+          maxLength: 16
+        persona:
+          type: string
+          enum:
+          - parent
+          - office
+    SchoolAssistanceCloseRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - persona
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        persona:
+          type: string
+          enum:
+          - parent
+          - office
+    SchoolAssistanceClaimRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+    SchoolAssistanceReassignRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - assigned_user_id
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        assigned_user_id:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 1000
+    SchoolAssistancePrepareAnswerRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - documents
+      - include_calendar
+      - include_records
+      - question
+      - language
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        documents:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 5
+        include_calendar:
+          type: boolean
+        include_records:
+          type: boolean
+        question:
+          type: string
+          maxLength: 2000
+        language:
+          type: string
+          maxLength: 16
+    SchoolAssistanceTranslationRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - message_id
+      - language
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        message_id:
+          type: string
+          format: uuid
+        language:
+          type: string
+          maxLength: 16
+    SchoolAssistanceRunRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - identifiers_reviewed
+      properties:
+        identifiers_reviewed:
+          type: boolean
+          description: 'Must be true: review exact text for visible names and identifiers before sharing.'
+    SchoolAssistancePublishRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - title
+      - markdown
+      - source_reference
+      - identifiers_reviewed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        document_key:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        expected_revision:
+          type: integer
+          minimum: 0
+        title:
+          type: string
+          maxLength: 191
+        markdown:
+          type: string
+          maxLength: 16000
+        source_reference:
+          type: string
+          maxLength: 2048
+        identifiers_reviewed:
+          type: boolean
+          description: 'Must be true: human-approved school publication and identifiers review.'
+        expires_on:
+          anyOf:
+          - type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
+          - type: 'null'
+    SchoolAssistanceWithdrawRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    SchoolAssistanceConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceConfiguration'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceDocumentBodyResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceDocumentBody'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceDocumentResultResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceDocumentResult'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceDocumentPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceDocumentPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceThreadPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceThreadPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceOfficeQueueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceOfficeQueue'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceStaffChoicesResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceStaffChoices'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceThreadResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceThread'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceThreadResultResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceThreadResult'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceTurnResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/SchoolAssistanceTurn'
+        code:
+          type: integer
+          enum:
+          - 200
+    SchoolAssistanceUnavailableResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - reason
+            properties:
+              reason:
+                type: string
+                pattern: ^[a-z][a-z0-9_]{0,95}$
+          - type: 'null'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        details:
+          type: string
+    GroupChatPersona:
+      type: string
+      enum:
+      - staff
+      - parent
+      - student
+    GroupChatAudience:
+      type: string
+      enum:
+      - learners
+      - guardians
+      - staff
+    GroupChatVisibility:
+      type: string
+      enum:
+      - thread
+      - staff
+    GroupChatThreadKind:
+      type: string
+      enum:
+      - announcement
+      - question
+    GroupChatOperationType:
+      type: string
+      enum:
+      - thread_created
+      - thread_state
+      - message_sent
+      - message_removed
+    GroupChatPolicy:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - staff_learners
+      - staff_guardians
+      - staff_staff
+      - learner_shared_replies
+      - guardian_shared_replies
+      properties:
+        revision:
+          type: integer
+          minimum: 0
+        staff_learners:
+          type: boolean
+        staff_guardians:
+          type: boolean
+        staff_staff:
+          type: boolean
+        learner_shared_replies:
+          type: boolean
+        guardian_shared_replies:
+          type: boolean
+    GroupChatThread:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - title
+      - audience
+      - private
+      - closed
+      - revision
+      - last_message_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        audience:
+          $ref: '#/components/schemas/GroupChatAudience'
+        private:
+          type: boolean
+        closed:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        last_message_at:
+          type: string
+          format: date-time
+    GroupChatThreadSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - activity_group_id
+      - title
+      - audience
+      - private
+      - closed
+      - revision
+      - last_message_at
+      - unread
+      properties:
+        id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        audience:
+          $ref: '#/components/schemas/GroupChatAudience'
+        private:
+          type: boolean
+        closed:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        last_message_at:
+          type: string
+          format: date-time
+        unread:
+          type: integer
+          minimum: 0
+    GroupChatThreadPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_before
+      - policy
+      - persona
+      - writable
+      - max_characters
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupChatThreadSummary'
+          maxItems: 25
+        next_before:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        policy:
+          $ref: '#/components/schemas/GroupChatPolicy'
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        writable:
+          type: boolean
+        max_characters:
+          type: integer
+          minimum: 1
+          maximum: 10000
+    GroupChatMessage:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - sender_id
+      - sender_name
+      - sender_persona
+      - body
+      - language
+      - revision
+      - reply_to
+      - private
+      - removed
+      - can_remove
+      - sent_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        sender_id:
+          type: integer
+          minimum: 1
+        sender_name:
+          type: string
+        sender_persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        body:
+          type:
+          - string
+          - 'null'
+          maxLength: 10000
+        language:
+          type: string
+          maxLength: 20
+        revision:
+          type: integer
+          minimum: 1
+        reply_to:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        private:
+          type: boolean
+        removed:
+          type: boolean
+        can_remove:
+          type: boolean
+        sent_at:
+          type: string
+          format: date-time
+    GroupChatConversation:
+      type: object
+      additionalProperties: false
+      required:
+      - thread
+      - items
+      - next_before
+      - can_close
+      - can_post
+      - can_reopen
+      - max_characters
+      - policy
+      properties:
+        thread:
+          $ref: '#/components/schemas/GroupChatThread'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupChatMessage'
+          maxItems: 50
+        next_before:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        can_close:
+          type: boolean
+        can_post:
+          type: boolean
+        can_reopen:
+          type: boolean
+        max_characters:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        policy:
+          $ref: '#/components/schemas/GroupChatPolicy'
+    GroupChatMutation:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_type
+      - persona
+      - thread_id
+      - activity_group_id
+      - revision
+      properties:
+        operation_type:
+          $ref: '#/components/schemas/GroupChatOperationType'
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        thread_id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        message_id:
+          type: integer
+          minimum: 1
+        closed:
+          type: boolean
+        removed:
+          type: boolean
+    GroupChatReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - recorded
+      - operation_id
+      - receipt
+      properties:
+        recorded:
+          type: boolean
+        operation_id:
+          type: string
+          format: uuid
+        receipt:
+          $ref: '#/components/schemas/GroupChatMutation'
+    GroupChatReadAck:
+      type: object
+      additionalProperties: false
+      required:
+      - thread_id
+      - last_message_id
+      properties:
+        thread_id:
+          type: string
+          format: uuid
+        last_message_id:
+          type: integer
+          minimum: 0
+    GroupChatPolicyChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - staff_learners
+      - staff_guardians
+      - staff_staff
+      - learner_shared_replies
+      - guardian_shared_replies
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        staff_learners:
+          type: boolean
+        staff_guardians:
+          type: boolean
+        staff_staff:
+          type: boolean
+        learner_shared_replies:
+          type: boolean
+        guardian_shared_replies:
+          type: boolean
+    GroupChatThreadCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - body
+      - language
+      - kind
+      - title
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        body:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: The current school max_characters response further limits this field.
+        language:
+          type: string
+          maxLength: 20
+          pattern: ^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8}){0,2}$
+        kind:
+          $ref: '#/components/schemas/GroupChatThreadKind'
+        audience:
+          $ref: '#/components/schemas/GroupChatAudience'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 191
+    GroupChatMessageCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - body
+      - language
+      - visibility
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        body:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: The current school max_characters response further limits this field.
+        language:
+          type: string
+          maxLength: 20
+          pattern: ^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8}){0,2}$
+        visibility:
+          $ref: '#/components/schemas/GroupChatVisibility'
+        reply_to:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    GroupChatThreadStateChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - revision
+      - closed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        revision:
+          type: integer
+          minimum: 1
+        closed:
+          type: boolean
+    GroupChatMessageRemoval:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - persona
+      - revision
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    GroupChatReadChange:
+      type: object
+      additionalProperties: false
+      required:
+      - persona
+      - last_message_id
+      properties:
+        persona:
+          $ref: '#/components/schemas/GroupChatPersona'
+        last_message_id:
+          type: integer
+          minimum: 1
+    GroupChatPolicyResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatPolicy'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatThreadPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatThreadPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatConversationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatConversation'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatMutationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatMutation'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatReceipt'
+        code:
+          type: integer
+          enum:
+          - 200
+    GroupChatReadAckResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          example: false
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/GroupChatReadAck'
+        code:
+          type: integer
+          enum:
+          - 200

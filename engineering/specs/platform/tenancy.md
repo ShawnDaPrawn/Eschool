@@ -199,3 +199,17 @@ snapshots and exact-operation receipts retain appointment and collection
 history. Platform staff and impersonation are excluded; only fresh verified
 guardians, scoped meeting hosts, explicitly authorised school staff and
 purpose-bound online gate readers can enter their respective workflows.
+# School assistance records
+
+`school_knowledge_documents`, `school_support_threads`,
+`school_support_messages` and `school_assistance_operations` are school-owned
+with required indexed school foreign keys and model tenant scopes. Approved
+documents are immutable per version. A private support message is read only
+after fresh Parent ownership or explicit office assignment; the unclaimed
+office queue contains opaque metadata. Sent text and exact-operation receipts
+are encrypted. Expired threads are refused before body retrieval, and the
+bounded tenant purge removes message bodies while retaining minimal receipts.
+
+## Pathway references
+
+`admission_requirements`, `admission_requirement_versions` and `pathway_operations` are school-owned, with required indexed foreign keys and scoped models. A composite current-version foreign key also binds a revision to its own source in the same school. Published source revisions and maintaining staff identities remain internal to that school's catalogue management. Private learner projections are transient and introduce no stored cross-school reference or new academic mark table.

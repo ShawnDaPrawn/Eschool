@@ -99,6 +99,14 @@ final readonly class ApiRoute
 
     public function sampleParameter(string $name): string
     {
+        if (str_starts_with($this->uri, 'api/v2/pathways/') && $name === 'reference') {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
+        if (str_starts_with($this->uri, 'api/v2/school-assistance/') && in_array($name, ['document', 'thread', 'turn'], true)) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if (str_starts_with($this->uri, 'api/v2/exam-coach/') && in_array($name, ['version', 'plan', 'answer', 'operation'], true)) {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
@@ -112,6 +120,10 @@ final readonly class ApiRoute
         }
 
         if (str_starts_with($this->uri, 'api/v2/family-visits/') && in_array($name, ['slot', 'pass'], true) || str_starts_with($this->uri, 'api/v2/card-device/') && $name === 'pass') {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
+        if (str_starts_with($this->uri, 'api/v2/activities/groups/') && str_contains($this->uri, '/chat/') && in_array($name, ['thread', 'operation'], true)) {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
 

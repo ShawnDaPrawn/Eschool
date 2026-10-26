@@ -228,7 +228,25 @@ class InferenceGateway
         }
         $roles = $policy->roles($fresh);
         $permitted = $scope?->audience === InferenceAudience::Family ? ['Parent', 'Student'] : ['Teacher', 'Super Admin', 'School Admin', 'Principal', 'Grade Head', 'Counsellor', 'Safeguarding', 'Facilitator'];
-        abort_unless(array_intersect($roles, $config['roles'], $permitted) !== [], 403);
+        if ($scope !== null) {
+            abort_unless($scope->schoolId === $schools->id() && $scope->actorId === (int) $fresh->id, 403);
+        }
+        $permittedActor = array_intersect($roles, $config['roles'], $permitted) !== [];
+        if (! $permittedActor && $scope?->audience === InferenceAudience::Staff
+            && in_array('Admin', $roles, true) && in_array('Admin', $config['roles'], true)) {
+            $allowlist = config('ai.inference.staff_actor_policies', []);
+            $policyClasses = config('ai.inference.feature_policies', []);
+            $class = is_array($allowlist) ? ($allowlist[$feature] ?? null) : null;
+            if (is_string($class) && is_array($policyClasses) && ($policyClasses[$feature] ?? null) === $class
+                && is_a($class, StaffInferenceActorPolicy::class, true)) {
+                $registeredPolicy = app(FeaturePolicyRegistry::class)->policy($feature);
+                if (get_class($registeredPolicy) === $class && $registeredPolicy instanceof StaffInferenceActorPolicy) {
+                    $registeredPolicy->authorizeStaffActor($fresh, $scope);
+                    $permittedActor = true;
+                }
+            }
+        }
+        abort_unless($permittedActor, 403);
         $registered = config('ai.inference.feature_policies', []);
         if ($scope === null && (! is_array($registered) || array_key_exists($feature, $registered))) {
             throw new AiUnavailable('feature_policy_required');

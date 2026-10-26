@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Activities\ActivityRequest;
 use App\Http\Resources\Activities\ActivityResource;
 use App\Services\Activities\ActivityGroups;
+use App\Services\Activities\Chat\GroupChatAccess;
+use App\Services\Activities\Chat\GroupChatPurpose;
 use Illuminate\Http\JsonResponse;
 
 class GroupController extends Controller
@@ -24,7 +26,14 @@ class GroupController extends Controller
 
     public function show(ActivityRequest $r, int $group): JsonResponse
     {
-        return $this->response($r, app(ActivityGroups::class)->detail($r->user(), $group));
+        $data = app(ActivityGroups::class)->detail($r->user(), $group);
+        if ($r->validated('chat_persona') !== null) {
+            $persona = (string) $r->validated('chat_persona');
+            app(GroupChatPurpose::class)->authorize($r, $persona);
+            $data['chat_available'] = app(GroupChatAccess::class)->available($r->user(), $group, $persona);
+        }
+
+        return $this->response($r, $data);
     }
 
     public function roster(ActivityRequest $r, int $group): JsonResponse
