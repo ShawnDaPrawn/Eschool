@@ -21,6 +21,7 @@ use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
+use App\Services\Pathways\PathwayPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
@@ -167,6 +168,9 @@ class Navigation
             return false;
         }
         if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {
+            return false;
+        }
+        if (($item['pathway_manager'] ?? false) && ! app(PathwayPanelScope::class)->available($user)) {
             return false;
         }
         if (($item['family_visit_actor'] ?? false) && ! app(VisitPanelScope::class)->available($user)) {

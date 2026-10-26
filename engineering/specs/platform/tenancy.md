@@ -199,3 +199,7 @@ snapshots and exact-operation receipts retain appointment and collection
 history. Platform staff and impersonation are excluded; only fresh verified
 guardians, scoped meeting hosts, explicitly authorised school staff and
 purpose-bound online gate readers can enter their respective workflows.
+
+## Pathway references
+
+`admission_requirements`, `admission_requirement_versions` and `pathway_operations` are school-owned, with required indexed foreign keys and scoped models. A composite current-version foreign key also binds a revision to its own source in the same school. Published source revisions and maintaining staff identities remain internal to that school's catalogue management. Private learner projections are transient and introduce no stored cross-school reference or new academic mark table.

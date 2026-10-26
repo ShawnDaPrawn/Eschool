@@ -3,6 +3,7 @@
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
 return [
+    'pathway' => ['name' => 'Subject choice and pathways', 'default' => false, 'dependencies' => ['people', 'academics']],
     'family_visits' => ['name' => 'Meetings and early collection', 'default' => false, 'dependencies' => ['people']],
     'teaching_assistant' => ['name' => 'Teaching assistant', 'default' => false, 'dependencies' => ['academics']],
     'test_insights' => ['name' => 'Test insights', 'default' => false, 'dependencies' => ['mastery']],
