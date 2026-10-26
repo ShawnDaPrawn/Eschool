@@ -21,3 +21,9 @@ The mobile/browser fixture now waits for the displayed saved revision rather
 than depending on that private key. Exact saved-definition, operation UUID and
 effect-count checks are retained. The 390 by 844 / 300-pixel keyboard regression
 passes with the new selector; the affected Chrome CI flows still need to rerun.
+
+Combined Phase 3/4 qualification: all 96 Teacher app tests pass. The staff
+policy/password fixture selects its actual POST sign-in request explicitly;
+a subsequent legitimate home read must not be mistaken for that request.
+Combined backend cohort: 606 tests / 3,141 assertions pass. Whole-app Family
+and Teacher analysis reports zero errors/warnings, and full-panel Pint passes.
