@@ -11,6 +11,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- **Platform admin area (`/saas`), first version.** Platform staff can see every school with its package and counts of learners, parents and teachers, set up a school with its first administrator (a one-time password, shown once), change its package and modules, and suspend, archive or restore it with a reason. It reads no person's record and is closed to school administrators. Opening it needs both a platform staff identity and an expiring grant set from the operator console. Support access into a school, imports and usage/health views are not part of this version. **Deploy:** run the migration, then `php artisan platform:staff-identity <user_id>` and `php artisan platform:admin-access <user_id> --hours=8` for each operator.
+
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
 
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.

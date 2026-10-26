@@ -101,6 +101,7 @@ final class SchoolOwnedTables
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
+        'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',

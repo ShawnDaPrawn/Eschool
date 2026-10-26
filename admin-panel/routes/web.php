@@ -68,6 +68,7 @@ use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
+use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
@@ -159,6 +160,18 @@ Route::middleware('school.context:public')->group(function () {
         Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
         Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
     });
+});
+
+// The platform admin area: active platform staff identities only, in no school
+// (no school.context). It lists schools and their counts, never their people.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
+    Route::get('/', [SaasController::class, 'index'])->name('index');
+    Route::get('/schools/create', [SaasController::class, 'create'])->name('schools.create');
+    Route::post('/schools', [SaasController::class, 'store'])->middleware('throttle:20,1')->name('schools.store');
+    Route::get('/schools/{school}', [SaasController::class, 'show'])->whereNumber('school')->name('schools.show');
+    Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->whereNumber('school')->name('schools.package');
+    Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->whereNumber('school')->name('schools.status');
+    Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->whereNumber('school')->name('schools.modules');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');

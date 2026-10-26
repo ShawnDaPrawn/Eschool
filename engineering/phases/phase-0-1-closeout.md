@@ -48,7 +48,7 @@ No cloud resource, live message, production migration or release is implied.
 | New sign-in methods | Password/handle/cookie foundations exist | Add passkeys, verified-domain Google/Microsoft and single-use parent email sign-in; prove replay/domain protections |
 | Pictures | Shared avatar assets and picker exist | Implement avatar/photo persistence and approval, keeping official learner photos separate |
 | School information | Backend/editor and typed shared My school client merged in #77 after all 27 checks passed | Staging verification remains separate |
-| Platform operations | Tenant/module foundations exist | Build platform-only school onboarding, packages, usage/health/delivery views and timed/reasoned/audited support access with protected-data exclusions |
+| Platform operations | Tenant/module foundations exist; `/saas` first version covers school onboarding, packages, modules and suspension ([spec](../specs/platform/saas-panel.md)) | Build usage/health/delivery views and timed/reasoned/audited support access with protected-data exclusions |
 | Imports | Legacy importers exist | Add guided mapping, validation report, dry run and rollback for all agreed data sets, including SA-SAMS and integer-cent opening balances |
 | Privacy | Guardian consent and audit foundations exist | Complete general consent records, table retention policy/job, provider agreement templates and authorised person exports |
 | Final verification | Feature tests and two-school route suite run continuously | Complete new route/role coverage and the combined onboarding/import/approval demo; verify supported clients |
