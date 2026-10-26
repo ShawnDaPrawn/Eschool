@@ -27,12 +27,12 @@ class CardOfflineSnapshots
     public const LIFETIME = 60;
 
     /** Each encrypted page is independently device-bound and expires in one minute. */
-    public function page(string $credential, ?string $after = null): array
+    public function page(string $credential, ?string $after = null, ?string $challenge = null): array
     {
         $device = app(CardReaders::class)->authenticate($credential, 'gate', true);
-        Validator::make(['after_card_id' => $after], ['after_card_id' => ['nullable', 'uuid']])->validate();
+        Validator::make(['after_card_id' => $after, 'request_id' => $challenge], ['after_card_id' => ['nullable', 'uuid'], 'request_id' => ['nullable', 'uuid']])->validate();
 
-        return DB::transaction(function () use ($credential, $device, $after) {
+        return DB::transaction(function () use ($credential, $device, $after, $challenge) {
             $school = app(CurrentSchool::class)->id();
             School::whereKey($school)->lockForUpdate()->firstOrFail();
             app(CardReaders::class)->authenticate($credential, 'gate', true);
@@ -74,7 +74,7 @@ class CardOfflineSnapshots
             $signing = app(CardSigningKeys::class)->current();
             $keys = CardKey::whereNull('revoked_at')->where('starts_at', '<=', now()->utc())->where('verify_until', '>', now()->utc())->get()
                 ->map(fn (CardKey $key) => ['id' => $key->id, 'public_key' => $key->public_key, 'starts_at' => $key->starts_at->getTimestamp(), 'sign_until' => $key->sign_until->getTimestamp(), 'verify_until' => $key->verify_until->getTimestamp()])->all();
-            $metadata = ['v' => 1, 's' => $school, 'd' => $device->id, 'id' => $context['snapshot_id'], 'i' => $start, 'e' => $context['expires_at'], 'cards' => $cards, 'keys' => $keys];
+            $metadata = ['v' => 1, 's' => $school, 'd' => $device->id, 'id' => $context['snapshot_id'], 'i' => $start, 'e' => $context['expires_at'], 'cards' => $cards, 'keys' => $keys, 'q' => $challenge];
             $secret = base64_decode($signing->secret_key, true);
             abort_unless(is_string($secret), 503);
             try {
@@ -87,7 +87,7 @@ class CardOfflineSnapshots
             abort_unless(now()->getTimestamp() < $context['expires_at'], 503, 'The offline roster took too long to prepare. Reconnect and refresh it.');
             $more = $cursor !== null && Card::where('status', 'active')->where('id', '>', $cursor)->exists();
 
-            return ['envelope' => $envelope, 'signing_key_id' => $signing->id, 'signing_public_key' => $signing->public_key, 'next_after' => $more ? $cursor : null];
+            return ['request_id' => $challenge, 'envelope' => $envelope, 'signing_key_id' => $signing->id, 'signing_public_key' => $signing->public_key, 'next_after' => $more ? $cursor : null];
         });
     }
 

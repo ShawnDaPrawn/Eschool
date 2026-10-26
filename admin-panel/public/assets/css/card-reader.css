@@ -5,3 +5,5 @@
 .school-identity-reader video { width: 100%; max-height: 24rem; }
 .school-identity-reader img { object-fit: contain; max-width: 100%; }
 .school-identity-reader [hidden] { display: none !important; }
+
+.school-identity-reader select,.school-identity-reader textarea{max-width:100%;min-width:0;width:100%;box-sizing:border-box;padding:.75rem;color:var(--md-sys-color-on-surface);background:var(--md-sys-color-surface);border:1px solid var(--md-sys-color-outline);border-radius:.5rem}.school-identity-reader fieldset{min-width:0;padding:1rem;border:1px solid var(--md-sys-color-outline);border-radius:.5rem}.school-identity-reader label{display:block;margin-block:.75rem .4rem}.school-identity-reader :is(input,select,textarea,button):focus-visible{outline:3px solid var(--md-sys-color-primary);outline-offset:2px}.school-identity-reader a{display:inline-block;min-height:2.75rem;padding-block:.5rem;text-decoration:underline;text-underline-offset:.15em;color:var(--md-sys-color-primary)}

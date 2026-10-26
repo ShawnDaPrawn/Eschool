@@ -35,6 +35,7 @@ export class OfflineCardSnapshot extends EventTarget {
   #manifest;
   #portraits;
   #started;
+  #received;
   #clock;
   #seen = new Set();
   #leases = new Set();
@@ -42,15 +43,16 @@ export class OfflineCardSnapshot extends EventTarget {
   #timer;
   #retired = false;
 
-  constructor(token, metadata, manifest, portraits, started, clock) {
+  constructor(token, metadata, manifest, portraits, started, received, clock) {
     super();
     if (token !== initialized) fail();
     this.#metadata = metadata;
     this.#manifest = manifest;
     this.#portraits = portraits;
     this.#started = started;
+    this.#received = received;
     this.#clock = clock;
-    this.#timer = setTimeout(() => this.dispose(), Math.max(0, 60000 - (clock() - started)));
+    this.#timer = setTimeout(() => this.dispose(), Math.max(0, 59000 - (clock() - started)));
     this.#timer?.unref?.();
   }
 
@@ -61,10 +63,14 @@ export class OfflineCardSnapshot extends EventTarget {
       fail();
     }
     this.#elapsed = elapsed;
-    return this.#metadata.i + Math.floor(elapsed / 1000);
+    // The server timestamp is whole seconds: its true instant can be just
+    // below i+1. Use the upper bound for expiry and freshly-issued proofs.
+    const upper = this.#metadata.i + 1 + Math.ceil(elapsed / 1000);
+    if (upper >= this.#metadata.e) { this.dispose(); fail(); }
+    return upper;
   }
 
-  static async open(packet, privateKey, {schoolId, deviceId, trustedSigningKeys, fetchedAt, clock = () => performance.now()} = {}) {
+  static async open(packet, privateKey, {schoolId, deviceId, trustedSigningKeys, expectedRequestId, fetchedAt, receivedAt, clock = () => performance.now()} = {}) {
     if (!object(packet) || !object(packet.envelope) || !integer(schoolId) || !uuid.test(deviceId ?? '')) fail();
     const envelope = packet.envelope, c = envelope.context;
     if (envelope.suite !== suite || !object(c) || c.school_id !== schoolId || c.device_id !== deviceId || !uuid.test(c.snapshot_id ?? '') ||
@@ -74,6 +80,9 @@ export class OfflineCardSnapshot extends EventTarget {
     // owner supplies a separate keyring obtained from authenticated HTTPS.
     if (!(trustedSigningKeys instanceof Map) || trustedSigningKeys.get(packet.signing_key_id) !== packet.signing_public_key) fail();
     if (!Number.isFinite(fetchedAt)) fail();
+    receivedAt ??= clock();
+    if (!Number.isFinite(receivedAt) || receivedAt < fetchedAt || receivedAt > clock()) fail();
+    if ((packet.request_id != null || expectedRequestId != null) && (!uuid.test(expectedRequestId ?? '') || packet.request_id !== expectedRequestId)) fail();
     const elapsed = clock() - fetchedAt;
     if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed >= 60000) fail();
     const context = {school_id: c.school_id, device_id: c.device_id, snapshot_id: c.snapshot_id, issued_at: c.issued_at, expires_at: c.expires_at};
@@ -98,6 +107,7 @@ export class OfflineCardSnapshot extends EventTarget {
       const metadata = JSON.parse(decoder.decode(bytes(parts[2], 98304, true)));
       if (!object(metadata) || metadata.v !== 1 || metadata.s !== schoolId || metadata.d !== deviceId || metadata.id !== c.snapshot_id ||
           metadata.i !== c.issued_at || metadata.e !== c.expires_at || !Array.isArray(metadata.cards) || metadata.cards.length > 100 || !Array.isArray(metadata.keys) || metadata.keys.length > 16) fail();
+      if (packet.request_id != null && metadata.q !== expectedRequestId) fail();
       const ids = new Set();
       for (const card of metadata.cards) {
         if (!object(card) || !uuid.test(card.id ?? '') || ids.has(card.id) || !integer(card.r) || !integer(card.u) || !['learner', 'guardian', 'staff'].includes(card.t) || !/^[a-f0-9]{64}$/.test(card.p ?? '')) fail();
@@ -111,7 +121,7 @@ export class OfflineCardSnapshot extends EventTarget {
         if (!object(key) || !uuid.test(key.id ?? '') || keyIds.has(key.id) || !integer(key.starts_at) || !integer(key.sign_until) || !integer(key.verify_until) || key.starts_at >= key.sign_until || key.sign_until > key.verify_until || bytes(key.public_key, 32).length !== 32) fail();
         keyIds.add(key.id);
       }
-      const snapshot = new OfflineCardSnapshot(initialized, metadata, value.manifest, value.portraits, fetchedAt, clock);
+      const snapshot = new OfflineCardSnapshot(initialized, metadata, value.manifest, value.portraits, fetchedAt, receivedAt, clock);
       snapshot.#now();
       return snapshot;
     } finally {
@@ -133,13 +143,20 @@ export class OfflineCardSnapshot extends EventTarget {
     if (!card || !key || claims.i < key.starts_at || claims.i >= key.sign_until || now >= key.verify_until) fail();
     const publicKey = await crypto.subtle.importKey('raw', bytes(key.public_key, 32), 'Ed25519', false, ['verify']);
     if (!await crypto.subtle.verify('Ed25519', publicKey, bytes(parts[2], 64, true), encoder.encode(parts.slice(0, 2).join('.')))) fail();
+    const nonceHash = await sha256(encoder.encode(claims.n));
     const checkedAt = this.#now();
-    if (claims.e <= checkedAt || this.#seen.has(claims.n)) fail();
+    if (claims.e <= checkedAt || key.verify_until <= checkedAt || this.#seen.has(claims.n)) fail();
     this.#seen.add(claims.n);
     const portrait = bytes(this.#portraits[card.id], 65536);
     this.#leases.add(portrait);
     return {cardId: card.id, personId: card.u, type: card.t, revision: card.r, status: 'active', portrait,
-      scannedAt: checkedAt, manifest: this.#manifest, collectionAuthorized: false, signInAuthorized: false};
+      scannedAt: Math.max(claims.i, this.#metadata.i + Math.max(0, Math.floor((this.#started + this.#elapsed - this.#received) / 1000))), manifest: this.#manifest, nonceHash, proofExpiresAt: claims.e,
+      collectionAuthorized: false, signInAuthorized: false};
+  }
+
+  get count() {
+    this.#now();
+    return this.#metadata.cards.length;
   }
 
   dispose() {

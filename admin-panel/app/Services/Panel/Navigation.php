@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Panel;
 
+use App\Http\Middleware\FoundationStaffContext;
 use App\Models\User;
 use App\Services\Admissions\IntakeAuthority;
 use App\Services\Ai\Operations\AiSchoolControls;
@@ -167,6 +168,9 @@ class Navigation
             return false;
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['foundation_classroom_actor'] ?? false) && ! app(FoundationStaffContext::class)->available($user)) {
             return false;
         }
         if (($item['card_actor'] ?? false) && ! app(CardPanelScope::class)->available($user, (bool) ($item['card_readers'] ?? false))) {

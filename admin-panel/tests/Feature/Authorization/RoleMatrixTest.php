@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Authorization;
 
+use App\Http\Middleware\FoundationCredentialContext;
 use App\Models\User;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Hash;
@@ -81,6 +82,22 @@ class RoleMatrixTest extends TestCase
 
         $this->assertSame([], $wronglyServed, ($role ?? 'An account with no role').' got past these role groups');
         $this->assertGreaterThan(0, $refusedOn, 'Every profile is outside some role group');
+    }
+
+    #[DataProvider('profiles')]
+    public function test_no_ordinary_account_role_can_borrow_restricted_tablet_or_learner_authority(?string $role): void
+    {
+        $token = $this->signIn($role);
+        $checked = 0;
+        foreach (ApiRoute::all($this->app['router']) as $route) {
+            if (array_intersect([FoundationCredentialContext::class.':device', FoundationCredentialContext::class.':learner'], $route->middleware) === []) {
+                continue;
+            }
+            $this->app['auth']->forgetGuards();
+            $this->withToken($token)->json($route->method, $route->path())->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+            $checked++;
+        }
+        $this->assertSame(6, $checked);
     }
 
     public function test_the_matrix_knows_every_role(): void

@@ -1,0 +1,146 @@
+tags:
+  - name: SecureCards
+paths:
+  /card-device/offline/snapshot:
+    get:
+      operationId: getSecureOfflineSnapshot
+      tags: [SecureCards]
+      summary: Prepare one encrypted, short-lived identity roster page for this reader.
+      description: Fresh gate delegation, issuer, school and card source checks precede encrypted private portraits. This is identity-only and grants no collection or sign-in authority.
+      security:
+        - CardDeviceCredential: []
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+        - name: request_id
+          in: query
+          required: true
+          description: Fresh random challenge echoed inside the signed roster; never reuse it for a cache reload.
+          schema: {type: string, format: uuid}
+        - name: after_card_id
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: A device-bound snapshot page expiring within sixty seconds.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SecureOfflineSnapshotResponse'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/ServerError'}
+        '503':
+          description: The bounded roster could not be prepared in time. Reconnect and refresh.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+  /card-device/offline/reconcile:
+    post:
+      operationId: reconcileSecureOfflineScan
+      tags: [SecureCards]
+      summary: Reconcile one signed offline identity scan without granting access.
+      description: Exact operation replay is metadata-only and rechecks the reader. Current identity, revision, signature epochs and global nonce use are checked before recording history. An offline log cannot authorize collection, sign-in or private portrait delivery.
+      security:
+        - CardDeviceCredential: []
+      parameters:
+        - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SecureOfflineReconciliation'}
+      responses:
+        '200':
+          description: Idempotent identity-only history result, never a gate grant.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SecureOfflineReceiptResponse'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/IdempotencyKeyInProgress'}
+        '422': {$ref: '#/components/responses/ValidationFailed'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+        '500': {$ref: '#/components/responses/ServerError'}
+components:
+  schemas:
+    SecureOfflineContext:
+      type: object
+      additionalProperties: false
+      required: [school_id, device_id, snapshot_id, issued_at, expires_at]
+      properties:
+        school_id: {type: integer, minimum: 1, maximum: 9007199254740991}
+        device_id: {type: string, format: uuid}
+        snapshot_id: {type: string, format: uuid}
+        issued_at: {type: integer, minimum: 1}
+        expires_at: {type: integer, minimum: 1}
+    SecureOfflineEnvelope:
+      type: object
+      additionalProperties: false
+      required: [suite, context, ephemeral_public_key, salt, nonce, tag, ciphertext]
+      properties:
+        suite: {type: string, pattern: '^X25519-HKDF-SHA256-A256GCM$'}
+        context: {$ref: '#/components/schemas/SecureOfflineContext'}
+        ephemeral_public_key: {type: string, minLength: 44, maxLength: 44, pattern: '^[A-Za-z0-9+/]+={0,2}$'}
+        salt: {type: string, minLength: 44, maxLength: 44, pattern: '^[A-Za-z0-9+/]+={0,2}$'}
+        nonce: {type: string, minLength: 16, maxLength: 16, pattern: '^[A-Za-z0-9+/]+={0,2}$'}
+        tag: {type: string, minLength: 24, maxLength: 24, pattern: '^[A-Za-z0-9+/]+={0,2}$'}
+        ciphertext: {type: string, minLength: 1, maxLength: 4194304, pattern: '^[A-Za-z0-9+/]+={0,2}$'}
+    SecureOfflineSnapshot:
+      type: object
+      additionalProperties: false
+      required: [request_id, envelope, signing_key_id, signing_public_key, next_after]
+      properties:
+        request_id: {type: string, format: uuid}
+        envelope: {$ref: '#/components/schemas/SecureOfflineEnvelope'}
+        signing_key_id: {type: string, format: uuid}
+        signing_public_key: {type: string, minLength: 44, maxLength: 44, pattern: '^[A-Za-z0-9+/]+={0,2}$'}
+        next_after:
+          type: [string, 'null']
+          format: uuid
+    SecureOfflineReconciliation:
+      type: object
+      additionalProperties: false
+      required: [operation_id, manifest, credential, scanned_at]
+      properties:
+        operation_id: {type: string, format: uuid}
+        manifest: {type: string, minLength: 1, maxLength: 131072}
+        credential: {type: string, minLength: 1, maxLength: 1024}
+        scanned_at: {type: integer, minimum: 1, maximum: 9007199254740991}
+    SecureOfflineReceipt:
+      type: object
+      additionalProperties: false
+      required: [scan_id, card_id, outcome, collection_authorized, sign_in_authorized]
+      properties:
+        scan_id: {type: string, format: uuid}
+        card_id: {type: string, format: uuid}
+        outcome: {type: string, pattern: '^(offline_accepted|status_changed|access_changed|duplicate)$'}
+        collection_authorized:
+          type: boolean
+          description: Always false. History reconciliation cannot authorize collection.
+          examples: [false]
+        sign_in_authorized:
+          type: boolean
+          description: Always false. No user or classroom session is created.
+          examples: [false]
+    SecureOfflineSnapshotResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error: {type: boolean}
+        message: {type: string}
+        data: {$ref: '#/components/schemas/SecureOfflineSnapshot'}
+        code: {type: integer, enum: [200]}
+    SecureOfflineReceiptResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error: {type: boolean}
+        message: {type: string}
+        data: {$ref: '#/components/schemas/SecureOfflineReceipt'}
+        code: {type: integer, enum: [200]}

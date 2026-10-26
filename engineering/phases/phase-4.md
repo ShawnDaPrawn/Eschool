@@ -12,7 +12,7 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 3 | Anonymous incidents, token follow-up, restricted counselling cases and appointments / Backend + App | Shared safeguarding policy with Phase 3; no impersonation access | community/wellbeing.md |
 | 4 | Polls, surveys and non-statutory elections / Backend + App | Audiences, scheduler, separate participation and responses | community/consultations.md |
 | 5 | House caps/reversals, reusable awards and assembly mode / Backend + App | Groups and audited permissions | community/houses-and-awards.md |
-| 6 | Signed/rotating cards, freeze, scan log and printer exports / Backend + App | Identity; physical chip/printer qualification | community/cards.md |
+| 6 | Signed/rotating cards, freeze, scan log, printer exports and restricted Foundation classroom entry / Backend + App | Identity; physical chip/printer qualification | community/cards.md; community/foundation-classroom.md |
 | 7 | Public resumable intake, waiting list, offers and atomic enrolment / Backend + App | Profiles, guardians, approvals, Files | community/intake-admissions.md |
 | 8 | Health/consent, parent meetings and gate passes / Backend + App | Restricted fields, cards and guardians | Health/consent and meeting/gate backend, private typed API, responsive panel and online reader implemented/tested in review; Parent/staff meeting clients implemented and browser-verified; CI/main integration pending |
 | 9 | Consent-controlled tags and private galleries / Backend + App | Files, guardian links and transfer events | community/private-gallery.md |
@@ -113,7 +113,7 @@ remains explicitly unverified and does not stop independent development.
 | Incident/counsellor workflow | Encrypted scoped casework, appointments, public/identified reports, sanitized private media, follow-up and guarded notices/inboxes | Deployment/device/external acceptance |
 | Consultations | Domain, panel, four app profiles, anonymous separation and scheduled generic notices | Deployment and real delivery acceptance; statutory elections remain Phase 6 |
 | Houses and awards | Caps/reversals, annual catalogue reuse, assembly, permanent awards, actual live Home counter/celebration | Deployed latency and device acceptance |
-| Cards | Private identity/portrait domain, rotation/freeze/replacement, published-vector crypto, delegated online scan execution, typed API, four app profiles, staff workbench, CR80 PDFs and online scanner | Offline identity snapshot/reconciliation domain and WebCrypto protocol are qualified in review; delegated HTTP/SDK, durable reader storage/queue and actual offline UI remain, alongside encoding runtime and restricted Foundation classroom entry; hardware acceptance |
+| Cards | Private identity/portrait domain, rotation/freeze/replacement, published-vector crypto, delegated online scan execution, typed API, four app profiles, staff workbench, CR80 PDFs and online scanner; bounded offline HTTP/SDK, actual three-width reader and atomic encrypted queue; restricted Teacher-delegated Foundation practice with typed HTTP and actual backend/browser qualification | NTAG encoding runtime and hardware/device acceptance |
 | Intake/admissions | Public resume, encrypted/scanned applications, waiting-list offers, atomic enrolment and balanced homeroom/house choices | Staging/deployment and external acceptance |
 | Health/consent, meetings and gate passes | Existing encrypted Health category reused behind fresh restricted access; immutable activity/trip consent/attestation domain, eleven private API/typed-client operations (including purpose-scoped Health files) and responsive staff publishing/permission workbench qualified | Native Parent Health/consent and staff effective-permission readers are implemented and browser-qualified; current-guardian consent notices/actions are browser-qualified; meetings/gate backend and all three app profiles are published separately by the root stream; deployed/device acceptance remains |
 | Personal photo gallery | Private group/family surfaces, approval/tag withdrawal, explicit transfer retention | Deployment/device acceptance |
@@ -130,3 +130,15 @@ implemented software and are not described as passed.
 Parents’ evening slots and early collection: [implementation and verification](../self-tests/family-visits.md). This increment supplies the domain, typed API, staff panel and online gate workflow; Parent/staff Flutter clients are retained follow-on work.
 
 Parent/staff meeting and collection clients are implemented in a separate review increment; [client evidence](../self-tests/family-visits-clients.md) records the passing Parent, Teacher and dedicated Facilitator browsers, shared tests and both app entry suites. This is source implementation status, not a claim that the increment has merged or all phase acceptance has passed.
+
+
+Restricted Foundation classroom entry is implemented in a separate review
+increment. Fresh manager/Teacher/group/device/guardian/card authority binds the
+short capability; printed locators do not create gate scans or ordinary account
+sessions. Fourteen focused native checks plus the deleted-year boundary pass, and
+all seven browser cases pass, including real manager→Teacher→tablet practice at
+390/820/1280 pixels, exact interrupted-save recovery, read-only inventory and card
+withdrawal. See [executed evidence](../self-tests/foundation-classroom.md).
+Canonical/SDK publication remains with the combined offline-card increment;
+physical tablet/camera and school-policy acceptance are separate from this
+software qualification.

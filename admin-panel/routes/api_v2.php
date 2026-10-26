@@ -18,6 +18,8 @@ use App\Http\Controllers\Api\V2\Activities\GroupChatController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
+use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
+use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
@@ -73,6 +75,8 @@ use App\Http\Middleware\AuthorizeTimetable;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\AuthorizeWellbeing;
 use App\Http\Middleware\CardDeviceContext;
+use App\Http\Middleware\FoundationCredentialContext;
+use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -643,6 +647,8 @@ Route::prefix('cards')->name('api.v2.cards.')->middleware([PrivateDomainResponse
 // Dedicated credentials cannot authorize any normal user endpoint.
 Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
     $controller = CardController::class;
+    Route::get('offline/snapshot', [CardOfflineController::class, 'snapshot'])->name('offline.snapshot');
+    Route::post('offline/reconcile', [CardOfflineController::class, 'reconcile'])->name('offline.reconcile');
     Route::post('scan/qr', [$controller, 'scan'])->name('qr');
     Route::post('scan/sun', [$controller, 'scan'])->name('sun');
     Route::get('scans/{scan}/portrait', [$controller, 'portrait'])->whereUuid('scan')->name('portrait');
@@ -838,4 +844,26 @@ Route::prefix('peer-tutoring')->name('api.v2.peer.')->middleware([PrivateDomainR
     Route::post('sessions/{session}/complete', [$controller, 'complete'])->whereUuid('session')->middleware('module:peer_tutoring,write')->name('sessions.complete');
     Route::post('sessions/{session}/cancel', [$controller, 'cancel'])->whereUuid('session')->name('sessions.cancel');
     Route::post('sessions/{session}/reverse', [$controller, 'reverse'])->whereUuid('session')->middleware('module:peer_tutoring,write')->name('sessions.reverse');
+});
+
+// Classroom credentials are purpose-bound and never authenticate a User.
+Route::prefix('foundation-classroom')->name('api.v2.foundation.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', FoundationStaffContext::class])->group(function () {
+    $c = FoundationController::class;
+    Route::get('configuration', [$c, 'configuration'])->defaults('foundation_action', 'configuration')->name('configuration');
+    Route::post('groups/{group}/eligibility', [$c, 'staffWrite'])->whereNumber('group')->defaults('foundation_action', 'eligibility')->name('eligibility');
+    Route::post('devices', [$c, 'staffWrite'])->defaults('foundation_action', 'register')->name('register');
+    Route::delete('devices/{device}', [$c, 'staffWrite'])->whereUuid('device')->defaults('foundation_action', 'device-revoke')->name('device-revoke');
+    Route::post('authorizations', [$c, 'staffWrite'])->defaults('foundation_action', 'grant')->name('grant');
+    Route::delete('authorizations/{lease}', [$c, 'staffWrite'])->whereUuid('lease')->defaults('foundation_action', 'revoke')->name('revoke');
+});
+Route::prefix('foundation-device')->name('api.v2.foundation.device.')->middleware([PrivateDomainResponse::class, FoundationCredentialContext::class.':device', 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    Route::post('select', [FoundationController::class, 'device'])->defaults('foundation_action', 'select')->name('select');
+});
+Route::prefix('foundation-learner')->name('api.v2.foundation.learner.')->middleware([PrivateDomainResponse::class, FoundationCredentialContext::class.':learner', 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    $c = FoundationController::class;
+    Route::get('context', [$c, 'learner'])->defaults('foundation_action', 'context')->name('context');
+    Route::post('practice', [$c, 'learner'])->defaults('foundation_action', 'issue')->name('issue');
+    Route::get('practice/{set}', [$c, 'learner'])->whereNumber('set')->defaults('foundation_action', 'read')->name('read');
+    Route::post('practice/{set}/entries/{entry}/review', [$c, 'learner'])->whereNumber(['set', 'entry'])->defaults('foundation_action', 'review')->name('review');
+    Route::post('leave', [$c, 'learner'])->defaults('foundation_action', 'leave')->name('leave');
 });

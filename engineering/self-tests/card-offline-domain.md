@@ -1,5 +1,9 @@
 # Offline card identity: domain and cryptographic protocol
 
+The later [offline reader delivery](card-offline-reader.md) implements the
+delegated API, durable encrypted queue and actual browser UI described below as
+remaining at this component checkpoint.
+
 This increment has no public endpoint, scanner entry or login/collection authority.
 It is a qualified component for the remaining offline reader workflow.
 

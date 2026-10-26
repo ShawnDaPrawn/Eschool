@@ -7,6 +7,7 @@ namespace Tests\Feature\Tenancy;
 use App\Http\Middleware\CardDeviceContext;
 use App\Http\Middleware\CheckChild;
 use App\Http\Middleware\CheckStudent;
+use App\Http\Middleware\FoundationCredentialContext;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Models\Parents;
@@ -121,8 +122,25 @@ class ApiRouteTenancyTest extends TestCase
         $route = $this->route($method, $uri);
         $label = $route->label();
 
+        $foundation = array_intersect([FoundationCredentialContext::class.':device', FoundationCredentialContext::class.':learner'], $route->middleware);
+        if ($foundation !== []) {
+            $this->assertContains($label, [
+                'POST api/v2/foundation-device/select', 'GET api/v2/foundation-learner/context',
+                'POST api/v2/foundation-learner/practice', 'GET api/v2/foundation-learner/practice/{set}',
+                'POST api/v2/foundation-learner/practice/{set}/entries/{entry}/review', 'POST api/v2/foundation-learner/leave',
+            ], 'Restricted classroom credentials must not escape their six isolated operations');
+            $this->assertContains(PrivateDomainResponse::class, $route->middleware);
+            $this->assertFalse($route->requiresAuthentication(), 'An ordinary account token must never grant restricted tablet authority');
+            $this->json($method, $route->path())->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+            $this->asA('tara')->json($method, $route->path())->assertUnauthorized();
+            $this->asB('tara')->json($method, $route->path())->assertUnauthorized();
+
+            return;
+        }
+
         if (in_array(CardDeviceContext::class, $route->middleware, true)) {
             $this->assertContains($label, [
+                'GET api/v2/card-device/offline/snapshot', 'POST api/v2/card-device/offline/reconcile',
                 'POST api/v2/card-device/scan/qr', 'POST api/v2/card-device/scan/sun', 'GET api/v2/card-device/scans/{scan}/portrait',
                 'GET api/v2/card-device/scans/{scan}/gate-passes', 'POST api/v2/card-device/gate-passes/{pass}/collect',
             ], 'Dedicated device credentials must not escape the isolated reader endpoints');

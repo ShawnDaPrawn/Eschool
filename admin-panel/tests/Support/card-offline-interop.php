@@ -23,9 +23,15 @@ $metadata = ['v' => 1, 's' => 1, 'd' => $context['device_id'], 'id' => $context[
 if ($input['empty'] ?? false) {
     $metadata['cards'] = [];
 }
+if (isset($input['request_id'])) {
+    $metadata['q'] = $input['request_id'];
+}
 $manifest = (new SignedOfflineManifest)->sign($metadata, $keyId, $secret);
-$proof = (new SignedCardQr)->issue(1, $card, 3, $keyId, $secret, 1000);
+$proof = (new SignedCardQr)->issue(1, $card, 3, $keyId, $secret, 1000 + ($input['proof_offset'] ?? 0));
 sodium_memzero($secret);
 sodium_memzero($pair);
 $packet = ['envelope' => (new CardOfflineCipher)->seal(['manifest' => $manifest, 'portraits' => ($input['empty'] ?? false) ? (object) [] : (object) [$card => base64_encode($portrait)]], base64_decode($input['public_key'], true), $context), 'signing_key_id' => $keyId, 'signing_public_key' => $public];
+if (isset($input['request_id'])) {
+    $packet['request_id'] = $input['request_id'];
+}
 echo json_encode(['packet' => $packet, 'proof' => $proof], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);

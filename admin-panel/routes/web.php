@@ -46,6 +46,7 @@ use App\Http\Controllers\Panel\Ai\AiControlPanelController;
 use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
 use App\Http\Controllers\Panel\Assistance\AssistancePanelController;
 use App\Http\Controllers\Panel\Cards\CardPanelController;
+use App\Http\Controllers\Panel\Classroom\FoundationPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
@@ -103,6 +104,7 @@ use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
 use App\Http\Middleware\EnforceReadOnlyYears;
+use App\Http\Middleware\FoundationStaffContext;
 use App\Http\Middleware\PrivateAcademicContent;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
@@ -945,6 +947,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
 });
 
 Route::view('card-reader', 'cards.scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.index');
+Route::view('card-reader/offline', 'cards.offline-scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.offline');
 
 // Every staff form resolves its actual group/year before private fields.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeFamilyFormsPanel::class])->prefix('family-forms')->name('family-forms-panel.')->group(function () {
@@ -1000,3 +1003,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
         Route::post('groups/{group}/threads/{thread}/{operation}', [$controller, 'write'])->whereNumber('group')->whereUuid('thread')->whereIn('operation', ['send', 'state'])->name('write');
         Route::post('groups/{group}/threads/{thread}/messages/{message}/remove', [$controller, 'write'])->whereNumber('group')->whereUuid('thread')->whereNumber('message')->defaults('operation', 'remove')->name('remove');
     });
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', FoundationStaffContext::class])->prefix('foundation-classrooms')->name('foundation-panel.')->group(function () {
+    $c = FoundationPanelController::class;
+    Route::get('/', [$c, 'index'])->defaults('foundation_action', 'configuration')->name('index');
+    Route::post('groups/{group}/eligibility', [$c, 'write'])->whereNumber('group')->defaults('foundation_action', 'eligibility')->name('eligibility');
+    Route::post('devices', [$c, 'write'])->defaults('foundation_action', 'register')->name('register');
+    Route::post('devices/{device}/revoke', [$c, 'write'])->whereUuid('device')->defaults('foundation_action', 'device-revoke')->name('device-revoke');
+    Route::post('authorizations', [$c, 'write'])->defaults('foundation_action', 'grant')->name('grant');
+    Route::post('authorizations/{lease}/revoke', [$c, 'write'])->whereUuid('lease')->defaults('foundation_action', 'revoke')->name('revoke');
+});
+Route::view('foundation-classroom', 'classroom.device')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('foundation-classroom.device');

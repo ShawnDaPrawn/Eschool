@@ -27,6 +27,7 @@ use App\Services\Cards\Cards;
 use App\Services\Cards\CardScans;
 use App\Services\Cards\CardSigningKeys;
 use App\Services\Cards\Crypto\SignedCardQr;
+use App\Services\Cards\Crypto\SignedOfflineManifest;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
@@ -578,5 +579,61 @@ class CardDomainTest extends TestCase
             $this->assertStringContainsString('rollback refused', $error->getMessage());
         }
         $this->assertSame('active', Card::findOrFail($card['id'])->status);
+    }
+
+    public function test_delegated_offline_http_round_trip_records_history_only_and_never_grants_collection(): void
+    {
+        $card = $this->issue();
+        $secret = random_bytes(32);
+        $reader = app(CardReaders::class)->register($this->admin, ['operation_id' => (string) Str::uuid(), 'name' => 'Synthetic offline reader', 'kind' => 'gate',
+            'public_key' => base64_encode(sodium_crypto_scalarmult_base($secret)), 'days' => 1]);
+        $proof = app(Cards::class)->credential($this->parent, $card['id']);
+        $this->app['auth']->forgetGuards();
+        $request = $this->flushHeaders()->withToken($reader['credential'])->withHeader('X-School-Id', '1');
+        $challenge = (string) Str::uuid();
+        $page = $request->getJson('/api/v2/card-device/offline/snapshot?request_id='.$challenge)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Referrer-Policy', 'no-referrer')->json('data');
+        $envelope = $page['envelope'];
+        $aad = json_encode(['suite' => $envelope['suite']] + $envelope['context'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $shared = sodium_crypto_scalarmult($secret, base64_decode($envelope['ephemeral_public_key'], true));
+        $key = hash_hkdf('sha256', $shared, 32, $aad, base64_decode($envelope['salt'], true));
+        $opened = json_decode(openssl_decrypt(base64_decode($envelope['ciphertext'], true), 'aes-256-gcm', $key, OPENSSL_RAW_DATA,
+            base64_decode($envelope['nonce'], true), base64_decode($envelope['tag'], true), $aad), true, 12, JSON_THROW_ON_ERROR);
+        $this->assertSame($challenge, $page['request_id']);
+        $signed = app(SignedOfflineManifest::class)->verify($opened['manifest'], base64_decode($page['signing_public_key'], true));
+        $this->assertSame($challenge, $signed['q']);
+        $input = ['operation_id' => (string) Str::uuid(), 'manifest' => $opened['manifest'], 'credential' => $proof['credential'], 'scanned_at' => now()->getTimestamp()];
+        $response = $request->postJson('/api/v2/card-device/offline/reconcile', $input)->assertOk()->assertJsonPath('data.outcome', 'offline_accepted')
+            ->assertJsonPath('data.collection_authorized', false)->assertJsonPath('data.sign_in_authorized', false)->assertHeader('Cache-Control', 'no-store, private');
+        $scan = $response->json('data.scan_id');
+        $request->postJson('/api/v2/card-device/offline/reconcile', $input)->assertOk()->assertJsonPath('data.scan_id', $scan);
+        $this->assertSame(1, CardScanLog::count());
+        $request->get('/api/v2/card-device/scans/'.$scan.'/portrait')->assertNotFound();
+        config(['modules.family_visits' => ['always_on' => true]]);
+        $request->getJson('/api/v2/card-device/scans/'.$scan.'/gate-passes')->assertNotFound();
+        $this->app['auth']->forgetGuards();
+        $request->getJson('/api/v2/cards/mine')->assertUnauthorized();
+        $request->getJson('/api/student/subjects')->assertUnauthorized();
+        $request->withHeader('X-School-Id', '2')->getJson('/api/v2/card-device/offline/snapshot')->assertForbidden();
+        sodium_memzero($secret);
+        sodium_memzero($shared);
+        sodium_memzero($key);
+    }
+
+    public function test_offline_endpoint_refusals_precede_body_validation_and_never_flash_private_proofs(): void
+    {
+        $this->app['auth']->forgetGuards();
+        $this->flushHeaders()->withHeader('Accept', 'text/html')->get('/api/v2/card-device/offline/snapshot')->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/api/v2/card-device/offline/reconcile', ['manifest' => 'Synthetic private proof'])->assertUnauthorized()->assertSessionMissing('_old_input');
+        $reader = $this->reader();
+        $request = $this->flushHeaders()->withToken($reader['credential'])->withHeaders(['X-School-Id' => '1', 'Accept' => 'text/html']);
+        $request->post('/api/v2/card-device/offline/reconcile', ['operation_id' => 'invalid', 'manifest' => 'Synthetic private proof'])->assertUnprocessable()->assertJsonPath('error', true)
+            ->assertHeader('Cache-Control', 'no-store, private')->assertSessionMissing('_old_input')->assertSessionMissing('errors');
+        $request->post('/api/v2/card-device/offline/reconcile?manifest=Synthetic-private-query', [])->assertUnprocessable()->assertSessionMissing('_old_input');
+        $request->getJson('/api/v2/card-device/offline/snapshot')->assertUnprocessable();
+        $request->getJson('/api/v2/card-device/offline/snapshot?request_id='.Str::uuid().'&after_card_id=invalid')->assertUnprocessable();
+        $encoder = $this->reader('encoder');
+        $this->flushHeaders()->withToken($encoder['credential'])->withHeader('X-School-Id', '1')->getJson('/api/v2/card-device/offline/snapshot')->assertForbidden();
+        $this->api($this->admin)->getJson('/api/v2/card-device/offline/snapshot')->assertUnauthorized();
+        $this->assertSame(0, CardScanLog::count());
     }
 }
