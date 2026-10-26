@@ -44,7 +44,7 @@ class AssistanceQueries
             abort_unless($office, 403);
         }
 
-        return ['can_parent' => $parent, 'can_office' => $office, 'languages' => config('assistance.languages'),
+        return ['can_parent' => $parent, 'can_office' => $office, 'writable' => app(ModuleGate::class)->writable('ask_school'), 'languages' => config('assistance.languages'),
             'answer_available' => $this->inferenceAvailable('school_assistant'),
             'translation_available' => $this->inferenceAvailable('message_translation')];
     }
