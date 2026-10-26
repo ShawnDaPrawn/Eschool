@@ -197,7 +197,7 @@ void main() {
     (tester) async {
       final key =
           'POST v2/peer-tutoring/sessions/${PeerSmokeFixture.existing}/complete';
-      final original = transport.routes[key] as dynamic;
+      final original = transport.routes[key] as Object Function(RequestOptions);
       var calls = 0;
       transport.routes[key] = (RequestOptions request) {
         calls++;
