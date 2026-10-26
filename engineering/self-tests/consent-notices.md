@@ -13,10 +13,9 @@ context query budgets. Whole-app PHPStan reports no errors; changed PHP passes
 Pint. Parent action/model/deep-link and existing form entry/locale checks pass13/13;
 changed client sources analyze with no issues. New fixtures were corrected to
 provide complete generated context fields, the actual typed AuthCubit provider,
-an explicit locale and the rendered Bloc loading frame. The updated existing
-Family browser target follows notification → reader → exact signed retry and
-health editing; that changed target has not yet run locally and remains CI/browser
-qualification, rather than a claimed pass.
+an explicit locale and the rendered Bloc loading frame. The updated existing Family browser journey now passes in the combined four-case
+Profile/consent Chrome build: Student denial and Parent notification → exact
+signed retry → health editing/revocation retain their assertions.
 
 The first real Parent notification endpoint test
 caught the tenant model's hidden `school_id`; the new action now receives both
@@ -33,6 +32,5 @@ existing reader, which independently reauthorizes exact consent wording and
 signature. This increment adds no public API operations or generated SDK models.
 
 No deployed mail/push transport or physical-device acceptance is implied by
-synthetic notification and app fixtures. The existing request/health journeys were qualified in the earlier form increment;
-this notice action has native/widget proof above. Mail/push provider delivery and
-the changed full-browser target remain separately recorded qualification.
+synthetic notification and app fixtures. The current request/health notice journey has actual Chrome proof above.
+Mail/push provider delivery and physical-device acceptance remain separate.
