@@ -50,6 +50,21 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getTeachingDraftConfiguration requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/configuration', [], 401],
+            'getTeachingDraftChoices requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/groups/1', [], 401],
+            'getTeachingDraftLearners requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/groups/1/learners', [], 401],
+            'getTeachingDrafts requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/drafts', [], 401],
+            'generateTeachingDraft requires authentication' => [null, 'POST', 'api/v2/teaching-assistant/groups/1/drafts', [], 401],
+            'getTeachingDraft requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/drafts/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getTeachingDraftReceipt requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'reviewTeachingDraft requires authentication' => [null, 'POST', 'api/v2/teaching-assistant/drafts/8aef50e7-2429-4d2c-a523-668ae436c4d4/review', [], 401],
+            'getTeachingDraftPdf requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/drafts/8aef50e7-2429-4d2c-a523-668ae436c4d4/pdf', [], 401],
+            'uploadTeachingDraftPhoto requires authentication' => [null, 'POST', 'api/v2/teaching-assistant/groups/1/photos', [], 401],
+            'getTeachingDraftPhoto requires authentication' => [null, 'GET', 'api/v2/teaching-assistant/photos/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'revokeTeachingDraftPhoto requires authentication' => [null, 'POST', 'api/v2/teaching-assistant/photos/8aef50e7-2429-4d2c-a523-668ae436c4d4/revoke', [], 401],
+            'getTaskInsightConfiguration requires authentication' => [null, 'GET', 'api/v2/test-insights/configuration', [], 401],
+            'getTaskInsightChoices requires authentication' => [null, 'GET', 'api/v2/test-insights/groups/1', [], 401],
+            'getTaskInsights requires authentication' => [null, 'GET', 'api/v2/test-insights/groups/1/tasks/1', [], 401],
             'getFamilyFormConfiguration requires authentication' => [null, 'GET', 'api/v2/family-forms/configuration', [], 401],
             'getFamilyConsents requires authentication' => [null, 'GET', 'api/v2/family-forms/consents', [], 401],
             'createFamilyConsent requires authentication' => [null, 'POST', 'api/v2/family-forms/consents', [], 401],

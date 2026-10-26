@@ -16,6 +16,10 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.teachingAssistant,
+
+    this.testInsights,
+
     this.myGrade,
 
     this.liveUpdates,
@@ -50,6 +54,14 @@ class FacilitatorFeatures {
 
     this.familyForms,
   });
+
+  /// Optional fresh allocated-Teacher draft capability; absence means unavailable.
+  @JsonKey(name: r'teaching_assistant', required: false, includeIfNull: false)
+  final bool? teachingAssistant;
+
+  /// Optional fresh allocated-Teacher task-insight capability; no generation authority is granted.
+  @JsonKey(name: r'test_insights', required: false, includeIfNull: false)
+  final bool? testInsights;
 
   /// A current dated grade-head working hub is available.
   @JsonKey(name: r'my_grade', required: false, includeIfNull: false)
@@ -120,6 +132,8 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.teachingAssistant == teachingAssistant &&
+          other.testInsights == testInsights &&
           other.myGrade == myGrade &&
           other.liveUpdates == liveUpdates &&
           other.gallery == gallery &&
@@ -140,6 +154,8 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      teachingAssistant.hashCode +
+      testInsights.hashCode +
       myGrade.hashCode +
       liveUpdates.hashCode +
       gallery.hashCode +

@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
+use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
@@ -658,4 +659,27 @@ Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([Private
     Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
     Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
     Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
+});
+
+// Teaching proposals remain private to the current allocated teacher.
+Route::prefix('teaching-assistant')->name('api.v2.teaching-assistant.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:teaching_assistant'])->group(function () {
+    $c = TeachingDraftController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::get('groups/{group}', [$c, 'choices'])->whereNumber('group')->name('choices');
+    Route::get('groups/{group}/learners', [$c, 'learners'])->whereNumber('group')->name('learners');
+    Route::get('drafts', [$c, 'index'])->name('index');
+    Route::post('groups/{group}/drafts', [$c, 'generate'])->whereNumber('group')->middleware('throttle:20,1')->name('generate');
+    Route::get('drafts/{draft}', [$c, 'show'])->whereUuid('draft')->name('show');
+    Route::get('operations/{operation}', [$c, 'receipt'])->whereUuid('operation')->name('receipt');
+    Route::post('drafts/{draft}/review', [$c, 'review'])->whereUuid('draft')->name('review');
+    Route::get('drafts/{draft}/pdf', [$c, 'pdf'])->whereUuid('draft')->name('pdf');
+    Route::post('groups/{group}/photos', [$c, 'upload'])->whereNumber('group')->middleware('throttle:20,1')->name('upload');
+    Route::get('photos/{photo}', [$c, 'preview'])->whereUuid('photo')->name('preview');
+    Route::post('photos/{photo}/revoke', [$c, 'revoke'])->whereUuid('photo')->name('revoke');
+});
+Route::prefix('test-insights')->name('api.v2.test-insights.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:test_insights'])->group(function () {
+    $c = TeachingDraftController::class;
+    Route::get('configuration', [$c, 'insightConfiguration'])->name('configuration');
+    Route::get('groups/{group}', [$c, 'insightChoices'])->whereNumber('group')->name('choices');
+    Route::get('groups/{group}/tasks/{task}', [$c, 'insights'])->whereNumber('group')->whereNumber('task')->name('show');
 });
