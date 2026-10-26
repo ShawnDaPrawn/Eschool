@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:eschool/ui/widgets/schoolAssistanceNoticeAction.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/notificationCubit.dart';
 import 'package:eschool/data/models/customNotification.dart';
@@ -211,6 +212,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 Navigator.of(context)
                                     .pushNamed(Routes.weeklyDigest),
                           ),
+                        ),
+                      if (notification.type ==
+                          'school_assistance.parent_update')
+                        SchoolAssistanceNoticeAction(
+                          noticeId: notification.id,
+                          schoolId: notification.schoolId,
+                          readerId: notification.readerId,
                         ),
                       if (notification.type == 'consultations.opened' ||
                           notification.type == 'consultations.staff_opened')

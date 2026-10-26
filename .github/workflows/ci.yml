@@ -522,6 +522,13 @@ jobs:
           - app: e-school-teacher
             flow: facilitator_teaching_and_notices_browser.dart
             flavor: facilitator
+          - app: e-school
+            flow: parent_school_assistance_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_school_assistance_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_school_assistance_smoke_test.dart
+            flavor: facilitator
     defaults:
       run:
         working-directory: ${{ matrix.app }}

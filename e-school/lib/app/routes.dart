@@ -165,6 +165,7 @@ class Routes {
   static const String familyVisits = '/family-visits';
   static const String peerTutoring = '/peer-tutoring';
   static const String pathway = '/pathways';
+  static const String schoolAssistance = '/ask-school';
   static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
@@ -195,6 +196,7 @@ class Routes {
       familyVisits => 'family_visits',
       peerTutoring => 'peer_tutoring',
       pathway => 'pathway',
+      schoolAssistance => 'ask_school',
       schoolCards => 'cards',
       tutor || tutorSummary => 'tutor',
       examCoach => 'exam_coach',
@@ -428,6 +430,8 @@ class Routes {
         return pathwayRoute();
       case peerTutoring:
         return peerTutoringRoute();
+      case schoolAssistance:
+        return schoolAssistanceRoute();
       case familyVisits:
         return familyVisitsRoute();
       case familyForms:

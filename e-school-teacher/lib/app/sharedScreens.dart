@@ -1941,3 +1941,96 @@ class PeerTutoringEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> schoolAssistanceRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = session.context?.currentSchoolId,
+        account = session.context?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        me == null ||
+        school == null ||
+        account == null ||
+        !me.roles.any((role) => role != 'Parent' && role != 'Student') ||
+        !me.isModuleOn('ask_school') ||
+        !allowsSchoolModule(me, 'ask_school')) {
+      return const ScreenScaffold(
+        title: 'School support office',
+        body: Center(child: Text('Not available for this account')),
+      );
+    }
+    bool active() =>
+        session.state is MeContextLoaded &&
+        assistanceAccessStillCurrent(me, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: AssistanceSessionBoundary(
+        pinned: me,
+        builder: (_, generationActive) => SchoolAssistanceScreen(
+          office: true,
+          repository: ApiAssistanceRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: () => active() && generationActive(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class SchoolAssistanceEntry extends StatelessWidget {
+  const SchoolAssistanceEntry({super.key});
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<MeContextCubit, MeContextState>(
+    builder: (context, state) {
+      final me = state.context;
+      if (state is! MeContextLoaded ||
+          me?.user?.id == null ||
+          me?.currentSchoolId == null ||
+          !me!.roles.any((role) => role != 'Parent' && role != 'Student') ||
+          !me.isModuleOn('ask_school') ||
+          !allowsSchoolModule(me, 'ask_school'))
+        return const SizedBox.shrink();
+      final pinned = me;
+      return AvailableOnly(
+        featureKey:
+            'school-office:${me.currentSchoolId}:${me.user!.id}:${me.roles.join(',')}',
+        probe: () async => (await ApiAssistanceRepository(
+          Api.client,
+          schoolId: me.currentSchoolId!,
+          readerId: me.user!.id,
+          contextActive: () =>
+              context.read<MeContextCubit>().state is MeContextLoaded &&
+              assistanceAccessStillCurrent(
+                pinned,
+                context.read<MeContextCubit>().context,
+              ),
+        ).configuration()).canOffice,
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.support_agent_outlined),
+            title: Text(
+              SharedUiUtils.getTranslatedLabel(
+                context,
+                'School support office',
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () =>
+                Navigator.of(context).pushNamed(Routes.schoolAssistance),
+          ),
+        ),
+      );
+    },
+  );
+}

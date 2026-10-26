@@ -21,7 +21,7 @@ automated isolation/authority tests and affected-profile self-test record.
 | Licensed past papers and exam coach | Mastery, timetable, vision/media safety | Licensed paper/PDF, deterministic study plans and provisional photo-feedback domain plus 29 private typed operations implemented and tested; Teacher/Facilitator library and review clients plus Student study-plan/approved-crop/feedback clients are implemented; all four actual profile Chrome journeys pass, with Parent denial. The direct web byte-buffer regression and retained native client checks pass; [client evidence](../self-tests/exam-coach-clients.md) |
 | Staff-approved teaching drafts and task insights | Marks, content and gateway | Private encrypted domain, fifteen typed API operations, scoped approved script crops, versioned review/explicit publication, approved PDFs and deterministic canonical task insights are implemented and backend/SDK tested in review; Teacher and dedicated Facilitator editors, private crop/receipt recovery, explicit publication and independent insight readers are implemented and software/browser tested in review. See [backend evidence](../self-tests/teaching-assistant-backend.md) and [app evidence](../self-tests/teaching-assistant-apps.md). |
 | Language-approved weekly parent digest | Own-child records, notifications and approved templates | Deterministic encrypted per-child weekly receipts, Monday school-local job, versioned language approval panel and Parent reader/home action implemented; automated and browser evidence in `engineering/self-tests/weekly-parent-digests.md`. Fluent school wording approval remains an explicit school action. |
-| Risk signals and staff-owned interventions | Marks, attendance and confirmed discipline counts; narrow own-authorised Counsellor case context in progress | Immutable dated observations, private typed API/SDK, separate caseloads, owner review/handoff panel and classic/native staff apps implemented and tested in review; no learner-facing risk labels |
+| Risk signals and staff-owned interventions | Marks, attendance and confirmed discipline counts; narrow own-authorised Counsellor case context implemented on read without shared persistence | Immutable dated observations, private typed API/SDK, separate caseloads, owner review/handoff panel and classic/native staff apps implemented and tested in review; no learner-facing risk labels |
 | Discipline framework, sanctions, detentions, escalation and acknowledgement | Fresh staff/guardian policies and audit | Year frameworks, encrypted records, reasoned grade-head review/overturn, principal hearings, revision-specific guardian acknowledgement, detention/count adapters and private HTTP/typed SDK and phone/desktop panel implemented and browser-tested in review; classic teacher, dedicated facilitator-teacher, learner and guardian apps implemented and browser-tested; source-aware notices follow; never automatic expulsion |
 | My grade dashboard and actions | Existing dated AcademicLeadership appointments | Current-year head scope, active learner roster, attendance/academic watch, pending discipline metadata and eligible nomination choices implemented. Teacher and dedicated Facilitator hub/actions, exact register/discipline navigation, current grade-parent message preselection and private context/lifecycle boundaries are implemented and software/browser tested in review; [spec](../specs/growth/my-grade.md). |
 | Relief cover, restricted support plans and leadership dashboard | Timetable, pastoral records and shared counsellor policy | Cover and restricted support domain/API/panel/staff apps implemented in review; principal attendance/activity dashboard implemented and browser-tested; risk/discipline adapters follow, later money data remains separate |
@@ -40,11 +40,15 @@ budgets, receipt intent and a ten-second overall deadline. Qualification and
 bounded payload preflight make no network calls; known local refusals settle zero
 while unknown dispatched outcomes consume the full conservative reservation.
 
-The feature-policy registry is empty by default, external inference is disabled,
-and providers remain unqualified. Concrete feature source loaders, safe Files
-vision, safeguarding review/retention and cost administration UI, and live-model
-evaluation capture remain subsequent feature work. No fake adapter result
-qualifies real provider safety or billing. Independent implementation continues.
+Concrete Tutor, Exam Coach, teaching-draft and school-assistance/translation
+policies are registered with fresh source ownership and bounded replay. Approved
+vision crops, quarantined media retention, safeguarding review and school cost/cap
+administration are implemented and software-tested as recorded above. External
+inference remains disabled by default and real-provider qualification remains
+separate. Recorded evaluation/scoring infrastructure is implemented; real-model
+observations, privacy/cost qualification and production acceptance are pending
+external evidence. Synthetic HTTP protocol results do not certify live provider
+safety, semantic quality or billing. Independent implementation continues.
 
 ## Concurrent integration and evidence
 

@@ -159,3 +159,6 @@ export 'src/pathways/pathway_session_boundary.dart';
 export 'src/peer_tutoring/peer_repository.dart';
 export 'src/peer_tutoring/peer_screen.dart';
 export 'src/peer_tutoring/peer_session_boundary.dart';
+export 'src/assistance/assistance_repository.dart';
+export 'src/assistance/assistance_screen.dart';
+export 'src/assistance/assistance_session_boundary.dart';
