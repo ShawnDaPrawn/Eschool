@@ -1,4 +1,4 @@
-# Exam Coach clients — qualification in progress
+# Exam Coach client verification
 
 Teacher, dedicated Facilitator Teacher and Student screens now use the existing
 private typed contract for licensed paper editing/publication, exact version
@@ -15,21 +15,28 @@ crop is retained and uploaded, with expiry checks before rendering.
 
 Evidence so far:
 
-- 46 focused repository, screen, pending-intent, Teacher entry/route/locale cases
-  pass. The additional real-screen/real-Dio Student photo protocol test passes
-  crop approval → multipart upload → own private answer/photo → provisional
-  feedback, and makes no staff requests.
+- The final retained focused suite contains 58 passing repository, screen,
+  pending-intent, Family entry/route/locale and byte-protocol cases. The actual
+  run passed 59 cases including one temporary native diagnostic, which was
+  retained privately rather than published as a second web UI harness.
 - Actual classic Teacher Chrome passes licensed draft/save recovery,
   publication, provisional confidence, exact review recovery and withdrawal.
 - Actual dedicated Facilitator Chrome passes its fresh feature-withdrawal and
   closed legacy-auth-box assertions, plus the complete Teaching Assistant flow
   using the corrected mobile fixture.
-- The actual Family Parent denial journey passes with zero Exam API requests.
-  The final full-app Student crop journey remains under qualification; it must
-  pass before this PR becomes ready. Its harness now preserves a mounted lazy
-  crop while reaching controls and explicitly verifies approval/upload readiness.
+- Actual Student and Parent Family Chrome journeys both pass. Student library →
+  exam count-back plan → explicit sharing and crop approval → private upload →
+  provisional confidence/feedback → withdrawal passes with exact account/school
+  headers. Parent entry/direct-route denial makes zero Exam API requests.
 
-The work is published as a draft for review while that last journey is resolved.
+The combined Family run also passes published-topic Tutor checkpoint recovery.
+Its structured results record all three individual journeys as passed. A real
+web-only bug was reproduced: WebCodecs rejects the immutable typed-byte view
+that protects a human intent. The decoder now receives its own bounded temporary
+native byte buffer, cleared after use, while the original intent remains frozen.
+The direct production WebCodecs → cropped PNG → encrypted intent → multipart
+regression passes in Chrome. No crop, byte, geometry or privacy guard is relaxed.
+
 Native Android and physical camera checks, real-provider evaluation, school
 licence approval and production release are not claimed. External inference
 remains disabled unless separately qualified and explicitly configured.

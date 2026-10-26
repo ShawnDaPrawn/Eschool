@@ -21,6 +21,13 @@ browser target analyze with zero errors or warnings (existing style information
 only). Every offered language receives explicit English fallback labels without
 overwriting existing translations.
 
-The combined actual Family Exam/Tutor journey is prepared but remains pending.
-Do not claim complete client qualification or provider acceptance from these
-software checks. External inference remains separately disabled/qualified.
+The actual combined Family Chrome run passes all three journeys. The Tutor
+journey selects a published topic, starts an approved check with inference off,
+withholds its explanation, recovers the exact first-answer UUID/body after an
+uncertain response and backgrounding, displays its verified result and erases
+private content after fresh source denial. No chat/model or official mark route
+is called. Structured per-journey results record this as passed independently
+of the Student Exam and Parent denial journeys in the same build.
+
+Software/client verification does not claim physical-device, real-provider or
+production acceptance. External inference remains separately disabled/qualified.
