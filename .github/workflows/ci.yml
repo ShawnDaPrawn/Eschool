@@ -116,6 +116,11 @@ jobs:
       - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate --force
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Qualify PHP and WebCrypto offline card interoperability
+        run: node --test tool/cards/offline-crypto.test.mjs
       - name: Routes load
         run: php artisan route:list > /dev/null
       # The whole panel is formatted with Pint's laravel preset (pint.json); unformatted code fails.
