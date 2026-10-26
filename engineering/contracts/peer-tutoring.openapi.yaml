@@ -1,0 +1,921 @@
+tags:
+- name: PeerTutoring
+  description: Supervised mastery-topic matching, private arrangements and append-only service minutes.
+paths:
+  /peer-tutoring/configuration:
+    get:
+      operationId: getPeerConfiguration
+      tags:
+      - PeerTutoring
+      summary: getPeerConfiguration
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: persona
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - staff
+          - parent
+          - student
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /peer-tutoring/groups/{group}/learners:
+    get:
+      operationId: getPeerGroupLearners
+      tags:
+      - PeerTutoring
+      summary: getPeerGroupLearners
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: persona
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - staff
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerRosterResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /peer-tutoring/groups/{group}/learners/{learner}/matches:
+    get:
+      operationId: getPeerMatches
+      tags:
+      - PeerTutoring
+      summary: getPeerMatches
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: persona
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - staff
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerMatchPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /peer-tutoring/sessions:
+    get:
+      operationId: listPeerSessions
+      tags:
+      - PeerTutoring
+      summary: listPeerSessions
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: persona
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - staff
+          - parent
+          - student
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerSessionPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createPeerSession
+      tags:
+      - PeerTutoring
+      summary: createPeerSession
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerSessionResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerSessionCreate'
+  /peer-tutoring/sessions/{session}:
+    get:
+      operationId: getPeerSession
+      tags:
+      - PeerTutoring
+      summary: getPeerSession
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: persona
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - staff
+          - parent
+          - student
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerSessionResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /peer-tutoring/sessions/{session}/complete:
+    post:
+      operationId: completePeerSession
+      tags:
+      - PeerTutoring
+      summary: completePeerSession
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerSessionResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerSessionComplete'
+  /peer-tutoring/sessions/{session}/cancel:
+    post:
+      operationId: cancelPeerSession
+      tags:
+      - PeerTutoring
+      summary: cancelPeerSession
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerSessionResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerSessionCorrection'
+  /peer-tutoring/sessions/{session}/reverse:
+    post:
+      operationId: reversePeerSession
+      tags:
+      - PeerTutoring
+      summary: reversePeerSession
+      description: Fresh school/account and explicit known app-purpose/persona checks apply to reads and exact operation
+        replays. Staff need their current academic group scope; families read only their own approved current learner
+        arrangements. Matching never exposes a partner mastery record. Confirmed attendance appends integer minutes;
+        optional points use the real category, placement, cap and reversal authority atomically. No mastery, mark
+        or permanent-profile points are fabricated.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorised private peer-tutoring result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PeerSessionResultResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerSessionCorrection'
+components:
+  schemas:
+    PeerChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 500
+    PeerPointCategory:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - minimum_points
+      - maximum_points
+      - default_points
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 500
+        minimum_points:
+          type: integer
+          minimum: -10000
+          maximum: 10000
+        maximum_points:
+          type: integer
+          minimum: -10000
+          maximum: 10000
+        default_points:
+          type: integer
+          minimum: -10000
+          maximum: 10000
+    PeerConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - persona
+      - timezone
+      - writable
+      - groups
+      - children
+      - can_award_points
+      - point_categories
+      properties:
+        school_id: &id002
+          type: integer
+          minimum: 1
+        reader_id: &id003
+          type: integer
+          minimum: 1
+        persona:
+          type: string
+          enum:
+          - staff
+          - parent
+          - student
+        timezone:
+          type: string
+          maxLength: 64
+        writable: &id001
+          type: boolean
+        groups:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/PeerChoice'
+        children:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/PeerChoice'
+        can_award_points: *id001
+        point_categories:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/PeerPointCategory'
+    PeerMatch:
+      type: object
+      additionalProperties: false
+      required:
+      - tutor_learner_id
+      - tutor_name
+      - tutee_learner_id
+      - topic_id
+      - topic_name
+      - reason
+      properties:
+        tutor_learner_id:
+          type: integer
+          minimum: 1
+        tutor_name:
+          type: string
+          maxLength: 500
+        tutee_learner_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        topic_name:
+          type: string
+          maxLength: 500
+        reason:
+          type: string
+          enum:
+          - not_yet_assessed
+          - prerequisite_gap
+          - topic_gap
+    PeerRoster:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - teaching_group_id
+      - items
+      properties:
+        school_id: *id002
+        reader_id: *id003
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/PeerChoice'
+    PeerMatchPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - teaching_group_id
+      - learner_id
+      - items
+      properties:
+        school_id: *id002
+        reader_id: *id003
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PeerMatch'
+    PeerSession:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - teaching_group_id
+      - topic_id
+      - topic_name
+      - tutor_learner_id
+      - tutor_name
+      - tutee_learner_id
+      - tutee_name
+      - supervisor_user_id
+      - supervisor_name
+      - starts_at
+      - ends_at
+      - venue
+      - status
+      - verified_minutes
+      - service_minutes
+      - service_for_reader
+      - house_point_id
+      - can_complete
+      - can_cancel
+      - can_reverse
+      properties:
+        id: &id005
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        topic_name:
+          type: string
+          maxLength: 500
+        tutor_learner_id:
+          type: integer
+          minimum: 1
+        tutor_name:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+        tutee_learner_id:
+          type: integer
+          minimum: 1
+        tutee_name:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+        supervisor_user_id:
+          type: integer
+          minimum: 1
+        supervisor_name:
+          type: string
+          maxLength: 500
+        starts_at: &id004
+          type: string
+          format: date-time
+        ends_at: *id004
+        venue:
+          type: string
+          maxLength: 191
+        status:
+          type: string
+          enum:
+          - scheduled
+          - completed
+          - cancelled
+          - reversed
+        verified_minutes:
+          anyOf:
+          - type: integer
+            minimum: 1
+            maximum: 180
+          - type: 'null'
+        service_minutes:
+          anyOf:
+          - type: integer
+            minimum: 0
+            maximum: 180
+          - type: 'null'
+        service_for_reader: *id001
+        house_point_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        can_complete: *id001
+        can_cancel: *id001
+        can_reverse: *id001
+    PeerSessionResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - session
+      properties:
+        school_id: *id002
+        reader_id: *id003
+        session:
+          $ref: '#/components/schemas/PeerSession'
+    PeerSessionPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - items
+      - next_page
+      properties:
+        school_id: *id002
+        reader_id: *id003
+        items:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/PeerSession'
+        next_page:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+    PeerSessionCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - persona
+      - operation_id
+      - teaching_group_id
+      - tutor_learner_id
+      - tutee_learner_id
+      - topic_id
+      - venue
+      - starts_at
+      - ends_at
+      properties:
+        persona:
+          type: string
+          enum:
+          - staff
+        operation_id: *id005
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        tutor_learner_id:
+          type: integer
+          minimum: 1
+        tutee_learner_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        venue:
+          type: string
+          maxLength: 191
+        starts_at: &id006
+          type: string
+          minLength: 16
+          maxLength: 16
+          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$
+          description: Unambiguous school-local wall clock; no guessed DST fold.
+        ends_at: *id006
+    PeerSessionComplete:
+      type: object
+      additionalProperties: false
+      required:
+      - persona
+      - operation_id
+      - revision
+      - minutes
+      properties:
+        persona:
+          type: string
+          enum:
+          - staff
+        operation_id: *id005
+        revision:
+          type: integer
+          minimum: 1
+        minutes:
+          type: integer
+          minimum: 1
+          maximum: 180
+        point_category_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        points:
+          anyOf:
+          - type: integer
+            minimum: 1
+            maximum: 10000
+          - type: 'null'
+    PeerSessionCorrection:
+      type: object
+      additionalProperties: false
+      required:
+      - persona
+      - operation_id
+      - revision
+      - reason
+      properties:
+        persona:
+          type: string
+          enum:
+          - staff
+        operation_id: *id005
+        revision:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          maxLength: 1000
+    PeerConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PeerConfiguration'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PeerRosterResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PeerRoster'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PeerMatchPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PeerMatchPage'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PeerSessionResultResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PeerSessionResult'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PeerSessionPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PeerSessionPage'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200

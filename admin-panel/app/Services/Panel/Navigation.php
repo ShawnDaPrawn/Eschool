@@ -23,6 +23,7 @@ use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Pathways\PathwayPanelScope;
+use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
@@ -175,6 +176,9 @@ class Navigation
             return false;
         }
         if (($item['assistance_office'] ?? false) && ! app(AssistanceQueries::class)->available($user)) {
+            return false;
+        }
+        if (($item['peer_actor'] ?? false) && ! app(PeerPanelScope::class)->available($user)) {
             return false;
         }
         if (($item['family_visit_actor'] ?? false) && ! app(VisitPanelScope::class)->available($user)) {

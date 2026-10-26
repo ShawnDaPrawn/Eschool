@@ -481,6 +481,61 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           AvailableOnly(
+            featureKey: 'peer-tutoring:$generation:$school:$user',
+            probe: () async {
+              try {
+                await ApiPeerRepository(
+                  repository.client,
+                  schoolId: school,
+                  accountId: user,
+                  persona: 'staff',
+                  contextActive: () =>
+                      repository.matches(generation, school, user),
+                ).configuration();
+                return repository.matches(generation, school, user);
+              } catch (_) {
+                return false;
+              }
+            },
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.people_outline),
+                title: Text(l('Peer tutoring')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AnimatedBuilder(
+                      animation: repository,
+                      builder: (_, __) {
+                        if (!repository.matches(generation, school, user))
+                          return ScreenScaffold(
+                            title: l('Peer tutoring'),
+                            body: Center(
+                              child: Text(
+                                l(
+                                  'Your peer tutoring access changed. Reopen this screen.',
+                                ),
+                              ),
+                            ),
+                          );
+                        return PeerTutoringScreen(
+                          repository: ApiPeerRepository(
+                            repository.client,
+                            schoolId: school,
+                            accountId: user,
+                            persona: 'staff',
+                            contextActive: () =>
+                                repository.matches(generation, school, user),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          AvailableOnly(
             featureKey: 'staff-family-visits:$generation:$school:$user',
             probe: () => familyVisitsDeployed(
               ApiFamilyVisitRepository(

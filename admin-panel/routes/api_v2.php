@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
+use App\Http\Controllers\Api\V2\PeerTutoring\PeerController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -823,4 +824,18 @@ Route::prefix('pathways')->name('api.v2.pathways.')->middleware([PrivateDomainRe
     Route::post('references', [$controller, 'store'])->middleware('module:pathway,write')->name('references.store');
     Route::put('references/{reference}', [$controller, 'update'])->whereUuid('reference')->middleware('module:pathway,write')->name('references.update');
     Route::post('references/{reference}/projection', [$controller, 'project'])->whereUuid('reference')->name('projection');
+});
+
+// Supervised staff writes and purpose-bound read-only family arrangements.
+Route::prefix('peer-tutoring')->name('api.v2.peer.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:peer_tutoring,read', 'throttle:60,1'])->group(function () {
+    $controller = PeerController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('groups/{group}/learners', [$controller, 'learners'])->whereNumber('group')->name('learners');
+    Route::get('groups/{group}/learners/{learner}/matches', [$controller, 'matches'])->whereNumber(['group', 'learner'])->name('matches');
+    Route::get('sessions', [$controller, 'index'])->name('sessions.index');
+    Route::get('sessions/{session}', [$controller, 'show'])->whereUuid('session')->name('sessions.show');
+    Route::post('sessions', [$controller, 'store'])->middleware('module:peer_tutoring,write')->name('sessions.store');
+    Route::post('sessions/{session}/complete', [$controller, 'complete'])->whereUuid('session')->middleware('module:peer_tutoring,write')->name('sessions.complete');
+    Route::post('sessions/{session}/cancel', [$controller, 'cancel'])->whereUuid('session')->name('sessions.cancel');
+    Route::post('sessions/{session}/reverse', [$controller, 'reverse'])->whereUuid('session')->middleware('module:peer_tutoring,write')->name('sessions.reverse');
 });
