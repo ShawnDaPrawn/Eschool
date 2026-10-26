@@ -102,6 +102,37 @@ class CardPortraits
         return ['bytes' => $this->bytes($portrait), 'mime' => 'image/jpeg', 'revision' => (int) $portrait->revision];
     }
 
+    /** A delegated gate snapshot receives only a small, private identity portrait. */
+    public function offline(string $credential, Card $card): array
+    {
+        app(CardReaders::class)->authenticate($credential, 'gate', true);
+        app(CardAccess::class)->active($card);
+        $portrait = CardPortrait::where('user_id', $card->user_id)->firstOrFail();
+        $bytes = $this->bytes($portrait);
+        $source = imagecreatefromstring($bytes);
+        abort_unless($source !== false, 503, 'The private portrait is unavailable.');
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $ratio = min(1, 128 / max($width, $height));
+        $thumbnail = imagescale($source, max(1, (int) floor($width * $ratio)), max(1, (int) floor($height * $ratio)));
+        imagedestroy($source);
+        abort_unless($thumbnail !== false, 503);
+        ob_start();
+        try {
+            $ok = imagejpeg($thumbnail, null, 70);
+            $small = ob_get_contents();
+        } finally {
+            ob_end_clean();
+            imagedestroy($thumbnail);
+        }
+        abort_unless($ok && is_string($small) && strlen($small) <= 65536, 503);
+        app(CardReaders::class)->authenticate($credential, 'gate', true);
+        app(CardAccess::class)->active($card->fresh());
+        abort_unless((int) $portrait->revision === (int) CardPortrait::whereKey($portrait->id)->value('revision'), 409);
+
+        return ['bytes' => $small, 'revision' => (int) $portrait->revision];
+    }
+
     /** The scanner may display only its own freshly accepted scan's portrait. */
     public function scanned(string $credential, string $scanId): array
     {

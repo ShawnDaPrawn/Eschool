@@ -99,8 +99,12 @@ cannot revive pixels. Both metadata and full portrait-body downloads time out.
 Device endpoints deliberately exclude Sanctum's cookie/CSRF authentication and
 still require the isolated delegated device guard.
 
-Offline snapshots, physical encoding runtime and restricted Foundation classroom
-entry remain unimplemented. The camera/WebNFC adapters and CR80 PDF geometry have
+Device-bound encrypted snapshot/reconciliation services and the matching WebCrypto
+protocol library are implemented as an isolated domain increment. The actual
+offline reader routes, authenticated key/cache ownership, durable local replay
+claims, reconciliation queue and display workflow remain to be connected.
+Physical encoding runtime and restricted Foundation classroom entry also remain
+implementation work. The camera/WebNFC adapters and CR80 PDF geometry have
 software checks; physical cameras, chips, printers, readers, deployed latency and
 native device journeys require separate acceptance. See card-domain, card-api,
 card-apps and card-panel self-test records for actual evidence.
