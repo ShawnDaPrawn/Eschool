@@ -1,0 +1,4 @@
+<fieldset class="m3-card m3-card--outlined" data-pathway-row="band" style="min-width:0;padding:16px;margin-block:12px"><legend>{{ __('Score band') }}</legend>
+<x-page.field :id="'pathway-band-'.$index.'-minimum'" :name="'score_bands['.$index.'][minimum_percent]'" type="number" :label="__('Band begins at percentage')" :value="$row['minimum_bp'] === null ? '' : \App\Services\Academics\AcademicNumbers::decimal($row['minimum_bp'])" min="0" max="100" step="0.01" :required="true" :restore-old-input="false" />
+<x-page.field :id="'pathway-band-'.$index.'-points'" :name="'score_bands['.$index.'][points]'" type="number" :label="__('Points awarded in this band')" :value="$row['points'] ?? ''" min="0" max="20" :required="true" :restore-old-input="false" />
+<button type="button" class="m3-button m3-button--text" data-pathway-remove>{{ __('Remove score band') }}</button></fieldset>

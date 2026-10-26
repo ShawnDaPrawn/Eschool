@@ -205,6 +205,8 @@ tags:
   description: School-reviewed licensed papers and private exam study plans.
 - name: FamilyVisits
   description: Private parent meeting bookings and staff-approved online early collection.
+- name: Pathways
+  description: School-reviewed sources, Grade 9 subject choices and private projected admission scores.
 paths:
   /facilitator/sign-in:
     post:
@@ -5063,10 +5065,10 @@ paths:
       tags:
       - Academics
       summary: getTimetableConfiguration
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5106,10 +5108,10 @@ paths:
       - Academics
       summary: getTimetableWeek
       description: Omit starts_on for the current school-local week and omit session_year_id for its school calendar.
-      x-scope-notes: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      x-scope-notes: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5160,10 +5162,10 @@ paths:
       tags:
       - Academics
       summary: getNextAcademicPeriod
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5202,10 +5204,10 @@ paths:
       tags:
       - Academics
       summary: createAcademicRoom
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5245,10 +5247,10 @@ paths:
       tags:
       - Academics
       summary: updateAcademicRoom
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5294,10 +5296,10 @@ paths:
       tags:
       - Academics
       summary: createAcademicBells
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5337,10 +5339,10 @@ paths:
       tags:
       - Academics
       summary: updateAcademicBells
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5386,10 +5388,10 @@ paths:
       tags:
       - Academics
       summary: previewAcademicTimetable
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5429,10 +5431,10 @@ paths:
       tags:
       - Academics
       summary: commitAcademicTimetable
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -5472,10 +5474,10 @@ paths:
       tags:
       - Academics
       summary: importAcademicTimetable
-      description: "Fresh current-school rights precede idempotent replay. Managers configure and preview placements;\
-        \ commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.\
-        \ A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian\u2019s selected\
-        \ child. Times use the school timezone; week patterns use ISO week parity. No fee condition applies."
+      description: Fresh current-school rights precede idempotent replay. Managers configure and preview placements;
+        commits require an unchanged fingerprint and no teacher, room, group, homeroom or dated-learner time clash.
+        A 409 requires a fresh preview. Family reads resolve only the learner or a current guardian’s selected child.
+        Times use the school timezone; week patterns use ISO week parity. No fee condition applies.
       parameters:
       - $ref: '#/components/parameters/ExpectedAccount'
       - $ref: '#/components/parameters/SchoolId'
@@ -21446,10 +21448,10 @@ paths:
       tags:
       - FamilyForms
       summary: Upload a private current health-field attachment
-      description: Current guardian or explicit health access, learner membership/enrolment, module write mode
-        and field authority are checked before validation and storage. PDF files up to 5 MB require scanning.
-        JPEG/PNG files up to 4 MB require scanning and pixel sanitization; scanner failure refuses the upload.
-        Reuses encrypted profile attachments.
+      description: Current guardian or explicit health access, learner membership/enrolment, module write mode and
+        field authority are checked before validation and storage. PDF files up to 5 MB require scanning. JPEG/PNG
+        files up to 4 MB require scanning and pixel sanitization; scanner failure refuses the upload. Reuses encrypted
+        profile attachments.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -21505,9 +21507,9 @@ paths:
       tags:
       - FamilyForms
       summary: Read a current private health-field attachment
-      description: Fresh purpose/guardian/learner/module/field authority and the current attachment reference
-        are checked before and after the encrypted file read. Replaced, cleared, transferred or withdrawn sources
-        cannot return bytes. No metadata URL is trusted.
+      description: Fresh purpose/guardian/learner/module/field authority and the current attachment reference are
+        checked before and after the encrypted file read. Replaced, cleared, transferred or withdrawn sources cannot
+        return bytes. No metadata URL is trusted.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -23009,7 +23011,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ActivityMaterialAttachmentRemove'
-
   /tutor/sessions/{session}/checkpoints:
     post:
       operationId: issueTutorCheckpoint
@@ -23169,6 +23170,274 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TutorCheckpointAnswerWrite'
+  /pathways/configuration:
+    get:
+      operationId: getPathwayConfiguration
+      tags:
+      - Pathways
+      summary: getPathwayConfiguration
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /pathways/references:
+    get:
+      operationId: listPathwayReferences
+      tags:
+      - Pathways
+      summary: listPathwayReferences
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: manage
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: School source managers may request expired and withdrawn references; this never grants learner-record
+          access.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferencePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: publishPathwayReference
+      tags:
+      - Pathways
+      summary: publishPathwayReference
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PathwayReferenceWrite'
+  /pathways/references/{reference}:
+    get:
+      operationId: getPathwayReference
+      tags:
+      - Pathways
+      summary: getPathwayReference
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+      - name: manage
+        in: query
+        required: false
+        schema:
+          type: boolean
+        description: School source managers may request expired and withdrawn references; this never grants learner-record
+          access.
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: revisePathwayReference
+      tags:
+      - Pathways
+      summary: revisePathwayReference
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayReferenceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PathwayReferenceWrite'
+  /pathways/references/{reference}/projection:
+    post:
+      operationId: calculatePathwayProjection
+      tags:
+      - Pathways
+      summary: calculatePathwayProjection
+      description: Fresh school and account authority. Source maintenance requires an explicit school staff permission
+        and immutable revision. Projections use only an approved current learner and their current guardian or self,
+        source-defined integer score rules and released or explicitly hypothetical marks. Missing marks remain unknown.
+        No inference, offer, official mark write or stored private scenario. Source expiry, withdrawal and replaced
+        revisions are rechecked before the result returns.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 36
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private pathway result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayProjectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PathwayProjectionRequest'
 components:
   securitySchemes:
     bearerAuth:
@@ -23394,7 +23663,7 @@ components:
           type: boolean
         learner_ids:
           type: array
-          description: "Only the caller\u2019s own eligible children in this group; never a roster."
+          description: Only the caller’s own eligible children in this group; never a roster.
           items:
             type: integer
             minimum: 1
@@ -48112,7 +48381,6 @@ components:
           type: integer
           enum:
           - 200
-
     TeachingGroupChoice:
       type: object
       additionalProperties: false
@@ -50428,7 +50696,6 @@ components:
         code:
           type: integer
           minimum: 0
-
     FamilyVisitChoice:
       type: object
       additionalProperties: false
@@ -51057,7 +51324,6 @@ components:
           type: integer
           enum:
           - 200
-
     ActivityMaterialAttachment:
       type: object
       additionalProperties: false
@@ -51352,8 +51618,8 @@ components:
         verified_by:
           anyOf:
           - type: string
-            description: When answered, approved_answer_definition identifies deterministic grading of the first attempt.
-              Never AI confidence or an official mark.
+            description: When answered, approved_answer_definition identifies deterministic grading of the first
+              attempt. Never AI confidence or an official mark.
           - type: 'null'
     TutorCheckpointDetailResponse:
       type: object
@@ -51386,3 +51652,707 @@ components:
           type: string
           minLength: 1
           maxLength: 100
+    PathwayChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 240
+    PathwayTermChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - session_year_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          maxLength: 240
+        session_year_id:
+          type: integer
+          minimum: 1
+    PathwayConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - writable
+      - can_manage
+      - children
+      - subjects
+      - years
+      - terms
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        writable: &id001
+          type: boolean
+        can_manage: *id001
+        children:
+          type: array
+          maxItems: 200
+          items: &id002
+            $ref: '#/components/schemas/PathwayChoice'
+        subjects:
+          type: array
+          maxItems: 500
+          items: *id002
+        years:
+          type: array
+          maxItems: 100
+          items: *id002
+        terms:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/PathwayTermChoice'
+    PathwaySubjectRule:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - minimum_bp
+      - counts_for_score
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        minimum_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        counts_for_score: *id001
+    PathwayScoreBand:
+      type: object
+      additionalProperties: false
+      required:
+      - minimum_bp
+      - points
+      properties:
+        minimum_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        points:
+          type: integer
+          minimum: 0
+          maximum: 20
+    PathwayElectiveGroup:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - choose
+      - subject_ids
+      properties:
+        title:
+          type: string
+          maxLength: 120
+        choose:
+          type: integer
+          minimum: 1
+          maximum: 20
+        subject_ids:
+          type: array
+          maxItems: 30
+          items:
+            type: integer
+            minimum: 1
+    PathwayRules:
+      type: object
+      additionalProperties: false
+      properties:
+        subjects:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwaySubjectRule'
+        bands:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/PathwayScoreBand'
+        best_n:
+          type: integer
+          minimum: 1
+          maximum: 20
+        minimum_score:
+          type: integer
+          minimum: 0
+          maximum: 400
+        compulsory_subject_ids:
+          type: array
+          maxItems: 20
+          items:
+            type: integer
+            minimum: 1
+        elective_groups:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PathwayElectiveGroup'
+    PathwayReference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - revision
+      - kind
+      - status
+      - title
+      - institution
+      - source_title
+      - source_url
+      - source_year
+      - reviewed_on
+      - expires_on
+      - guidance
+      - rules
+      properties:
+        id:
+          type: string
+          maxLength: 36
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          maxLength: 24
+          enum:
+          - programme
+          - subject_choice_guide
+        status:
+          type: string
+          maxLength: 16
+          enum:
+          - published
+          - withdrawn
+        title:
+          type: string
+          maxLength: 191
+        institution:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        source_title:
+          type: string
+          maxLength: 240
+        source_url:
+          type: string
+          maxLength: 2048
+          format: uri
+        source_year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        reviewed_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        expires_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        guidance:
+          type: string
+          maxLength: 6000
+        rules:
+          $ref: '#/components/schemas/PathwayRules'
+    PathwayReferenceWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - kind
+      - status
+      - title
+      - institution
+      - source_title
+      - source_url
+      - source_year
+      - reviewed_on
+      - expires_on
+      - guidance
+      - rules
+      properties:
+        operation_id:
+          type: string
+          maxLength: 36
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        kind:
+          type: string
+          maxLength: 24
+          enum:
+          - programme
+          - subject_choice_guide
+        status:
+          type: string
+          maxLength: 16
+          enum:
+          - published
+          - withdrawn
+        title:
+          type: string
+          maxLength: 191
+        institution:
+          type:
+          - string
+          - 'null'
+          maxLength: 191
+        source_title:
+          type: string
+          maxLength: 240
+        source_url:
+          type: string
+          maxLength: 2048
+          format: uri
+        source_year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        reviewed_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        expires_on:
+          type: string
+          maxLength: 10
+          minLength: 10
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        guidance:
+          type: string
+          maxLength: 6000
+        rules:
+          $ref: '#/components/schemas/PathwayRules'
+    PathwayReferenceResult:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - reference
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        reference: &id003
+          $ref: '#/components/schemas/PathwayReference'
+    PathwayReferencePage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - items
+      - next_page
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 25
+          items: *id003
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 100000
+    PathwayMark:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - percentage_bp
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+    PathwayProjectionRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - revision
+      - source
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        revision:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          maxLength: 16
+          enum:
+          - released
+          - scenario
+          - selection
+        session_year_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        term_id:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        marks:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwayMark'
+        subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+    PathwayScoreEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - percentage_bp
+      - points
+      - minimum_bp
+      - counts_for_score
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        points:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 20
+        minimum_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        counts_for_score: *id001
+    PathwayScoreResult:
+      type: object
+      additionalProperties: false
+      required:
+      - projected_score
+      - known_subtotal
+      - minimum_score
+      - status
+      - missing_subject_ids
+      - below_minimum_subject_ids
+      - counted_subject_ids
+      - subjects
+      properties:
+        projected_score:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 400
+        known_subtotal:
+          type: integer
+          minimum: 0
+          maximum: 400
+        minimum_score:
+          type: integer
+          minimum: 0
+          maximum: 400
+        status:
+          type: string
+          maxLength: 32
+          enum:
+          - unknown
+          - below_published_minimum
+          - meets_published_minimum
+        missing_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        below_minimum_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        counted_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        subjects:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwayScoreEvidence'
+    PathwayElectiveResult:
+      type: object
+      additionalProperties: false
+      required:
+      - title
+      - choose
+      - selected
+      - valid
+      properties:
+        title:
+          type: string
+          maxLength: 120
+        choose:
+          type: integer
+          minimum: 1
+          maximum: 20
+        selected:
+          type: integer
+          minimum: 0
+          maximum: 30
+        valid: *id001
+    PathwaySelectionResult:
+      type: object
+      additionalProperties: false
+      required:
+      - valid
+      - selected_subject_ids
+      - missing_compulsory_subject_ids
+      - groups
+      properties:
+        valid: *id001
+        selected_subject_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+            minimum: 1
+        missing_compulsory_subject_ids:
+          type: array
+          maxItems: 20
+          items:
+            type: integer
+            minimum: 1
+        groups:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/PathwayElectiveResult'
+    PathwayReleasedEvidence:
+      type: object
+      additionalProperties: false
+      required:
+      - subject_id
+      - percentage_bp
+      - release_id
+      - grade_name
+      - provisional
+      - coverage_bp
+      - released_at
+      properties:
+        subject_id:
+          type: integer
+          minimum: 1
+        percentage_bp:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000
+        release_id:
+          type: integer
+          minimum: 1
+        grade_name:
+          type: string
+          maxLength: 191
+        provisional: *id001
+        coverage_bp:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        released_at:
+          type: string
+          maxLength: 64
+          format: date-time
+    PathwayProjection:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - learner_id
+      - reference_id
+      - revision
+      - kind
+      - source
+      - score
+      - selection
+      - released_evidence
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        reference_id:
+          type: string
+          maxLength: 36
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          maxLength: 24
+          enum:
+          - programme
+          - subject_choice_guide
+        source:
+          type: string
+          maxLength: 16
+          enum:
+          - released
+          - scenario
+          - selection
+        score:
+          anyOf:
+          - $ref: '#/components/schemas/PathwayScoreResult'
+          - type: 'null'
+        selection:
+          anyOf:
+          - $ref: '#/components/schemas/PathwaySelectionResult'
+          - type: 'null'
+        released_evidence:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/PathwayReleasedEvidence'
+    PathwayConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id001
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayConfiguration'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PathwayReferenceResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id001
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayReferenceResult'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PathwayReferencePageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id001
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayReferencePage'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200
+    PathwayProjectionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error: *id001
+        message:
+          type: string
+          maxLength: 1000
+        data:
+          $ref: '#/components/schemas/PathwayProjection'
+        code:
+          type: integer
+          minimum: 200
+          maximum: 200

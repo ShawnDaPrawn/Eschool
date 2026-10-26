@@ -57,6 +57,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
+use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
@@ -956,4 +957,13 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->pre
     $controller = VisitPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
     Route::post('{operation}', [$controller, 'write'])->whereIn('operation', ['meeting-create', 'meeting-cancel', 'pass-approve', 'pass-cancel', 'rules'])->name('write');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:pathway,read'])->prefix('pathways')->name('pathways-panel.')->group(function () {
+    $controller = PathwayPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('new/{kind}', [$controller, 'form'])->whereIn('kind', ['programme', 'subject_choice_guide'])->name('new');
+    Route::get('references/{reference}/edit', [$controller, 'form'])->whereUuid('reference')->name('edit');
+    Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
+    Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
 });

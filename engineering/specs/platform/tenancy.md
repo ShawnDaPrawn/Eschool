@@ -209,3 +209,7 @@ after fresh Parent ownership or explicit office assignment; the unclaimed
 office queue contains opaque metadata. Sent text and exact-operation receipts
 are encrypted. Expired threads are refused before body retrieval, and the
 bounded tenant purge removes message bodies while retaining minimal receipts.
+
+## Pathway references
+
+`admission_requirements`, `admission_requirement_versions` and `pathway_operations` are school-owned, with required indexed foreign keys and scoped models. A composite current-version foreign key also binds a revision to its own source in the same school. Published source revisions and maintaining staff identities remain internal to that school's catalogue management. Private learner projections are transient and introduce no stored cross-school reference or new academic mark table.

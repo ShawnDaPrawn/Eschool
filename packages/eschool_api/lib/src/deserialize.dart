@@ -709,6 +709,29 @@ import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/pagination.dart';
+import 'package:eschool_api/src/model/pathway_choice.dart';
+import 'package:eschool_api/src/model/pathway_configuration.dart';
+import 'package:eschool_api/src/model/pathway_configuration_response.dart';
+import 'package:eschool_api/src/model/pathway_elective_group.dart';
+import 'package:eschool_api/src/model/pathway_elective_result.dart';
+import 'package:eschool_api/src/model/pathway_mark.dart';
+import 'package:eschool_api/src/model/pathway_projection.dart';
+import 'package:eschool_api/src/model/pathway_projection_request.dart';
+import 'package:eschool_api/src/model/pathway_projection_response.dart';
+import 'package:eschool_api/src/model/pathway_reference.dart';
+import 'package:eschool_api/src/model/pathway_reference_page.dart';
+import 'package:eschool_api/src/model/pathway_reference_page_response.dart';
+import 'package:eschool_api/src/model/pathway_reference_response.dart';
+import 'package:eschool_api/src/model/pathway_reference_result.dart';
+import 'package:eschool_api/src/model/pathway_reference_write.dart';
+import 'package:eschool_api/src/model/pathway_released_evidence.dart';
+import 'package:eschool_api/src/model/pathway_rules.dart';
+import 'package:eschool_api/src/model/pathway_score_band.dart';
+import 'package:eschool_api/src/model/pathway_score_evidence.dart';
+import 'package:eschool_api/src/model/pathway_score_result.dart';
+import 'package:eschool_api/src/model/pathway_selection_result.dart';
+import 'package:eschool_api/src/model/pathway_subject_rule.dart';
+import 'package:eschool_api/src/model/pathway_term_choice.dart';
 import 'package:eschool_api/src/model/practice_access.dart';
 import 'package:eschool_api/src/model/practice_approval.dart';
 import 'package:eschool_api/src/model/practice_approve_input.dart';
@@ -3570,6 +3593,77 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PathwayChoice':
+      return PathwayChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayConfiguration':
+      return PathwayConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayConfigurationResponse':
+      return PathwayConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'PathwayElectiveGroup':
+      return PathwayElectiveGroup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayElectiveResult':
+      return PathwayElectiveResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayMark':
+      return PathwayMark.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PathwayProjection':
+      return PathwayProjection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayProjectionRequest':
+      return PathwayProjectionRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayProjectionResponse':
+      return PathwayProjectionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReference':
+      return PathwayReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferencePage':
+      return PathwayReferencePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferencePageResponse':
+      return PathwayReferencePageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'PathwayReferenceResponse':
+      return PathwayReferenceResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferenceResult':
+      return PathwayReferenceResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReferenceWrite':
+      return PathwayReferenceWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayReleasedEvidence':
+      return PathwayReleasedEvidence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayRules':
+      return PathwayRules.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'PathwayScoreBand':
+      return PathwayScoreBand.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayScoreEvidence':
+      return PathwayScoreEvidence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayScoreResult':
+      return PathwayScoreResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwaySelectionResult':
+      return PathwaySelectionResult.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwaySubjectRule':
+      return PathwaySubjectRule.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PathwayTermChoice':
+      return PathwayTermChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'PracticeAccess':
       return PracticeAccess.fromJson(value as Map<String, dynamic>)
           as ReturnType;

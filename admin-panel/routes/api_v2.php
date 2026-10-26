@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
+use App\Http\Controllers\Api\V2\Pathways\PathwayController;
 use App\Http\Controllers\Api\V2\People\EnrolmentController;
 use App\Http\Controllers\Api\V2\People\ProfileConfigurationController;
 use App\Http\Controllers\Api\V2\People\ProfileController;
@@ -793,4 +794,15 @@ Route::prefix('school-assistance')->name('api.v2.school-assistance.')->middlewar
     $post('office/threads/{thread}/claim', 'office.claim');
     $post('office/threads/{thread}/reassign', 'office.reassign');
     $post('office/learners/{learner}/translations', 'office.translation');
+});
+
+// Source maintenance is a write; private hypothetical projections persist nothing.
+Route::prefix('pathways')->name('api.v2.pathways.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:pathway,read', 'throttle:60,1'])->group(function () {
+    $controller = PathwayController::class;
+    Route::get('configuration', [$controller, 'configuration'])->name('configuration');
+    Route::get('references', [$controller, 'index'])->name('references.index');
+    Route::get('references/{reference}', [$controller, 'show'])->whereUuid('reference')->name('references.show');
+    Route::post('references', [$controller, 'store'])->middleware('module:pathway,write')->name('references.store');
+    Route::put('references/{reference}', [$controller, 'update'])->whereUuid('reference')->middleware('module:pathway,write')->name('references.update');
+    Route::post('references/{reference}/projection', [$controller, 'project'])->whereUuid('reference')->name('projection');
 });
