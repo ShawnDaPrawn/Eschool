@@ -27,8 +27,27 @@ Executed locally against the upgraded private dependencies:
 - Both app and shared-consumer dependency resolution succeeds; the Family
   enforced-lockfile check also passes.
 
-Remaining: upgraded Flutter analysis/tests, private image/HTML/browser
-qualification, exact published-head CI and safe main merge. The local installer
+Additional upgraded-dependency qualification completed locally:
+- Both full app analyses: zero errors and warnings. Enforced lockfiles pass for
+  both apps, core, people and academics.
+- Shared peer/Pathway/chat cohort: 50 passing tests; core: 119; people: 21.
+- Actual private PNG/PDF profile Chrome flow passes. Actual Student, Parent,
+  classic Teacher and dedicated Facilitator peer tutoring Chrome journeys pass.
+  The first staff lazy-list target needed bounded scrolling; the corrected
+  browser helper retains all workflow assertions.
+- The peer uncertain-response regression passes with a typed transport fixture;
+  original request identifiers and payloads remain unchanged on retry.
+- Previously combined assistance/chat/API/payment native cohort: 651 tests /
+  3,330 assertions. New panel/notices/offline-domain integration is being checked
+  against the same private dependency set.
+
+The final combined full PHPStan attempt at 512 MiB exhausted its worker memory;
+a serial 1 GiB check is running. This is not recorded as a clean analysis. Final
+combined native and notice checks, published-head CI and safe main merge remain.
+Foundation and offline delegated UI/SDK follow-up are separate increments, and
+this checkpoint makes no claim for pending encoding or hardware acceptance.
+
+The local installer
 initially followed shared vendor namespace links. Those central packages were
 reinstalled at their original pinned versions and route-loading was verified;
 all upgraded namespaces are now private copies. Source files were unaffected.
