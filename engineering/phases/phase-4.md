@@ -14,7 +14,7 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 5 | House caps/reversals, reusable awards and assembly mode / Backend + App | Groups and audited permissions | community/houses-and-awards.md |
 | 6 | Signed/rotating cards, freeze, scan log and printer exports / Backend + App | Identity; physical chip/printer qualification | community/cards.md |
 | 7 | Public resumable intake, waiting list, offers and atomic enrolment / Backend + App | Profiles, guardians, approvals, Files | community/intake-admissions.md |
-| 8 | Health/consent, parent meetings and gate passes / Backend + App | Restricted fields, cards and guardians | Health/consent and meeting/gate backend, private typed API, responsive panel and online reader implemented/tested in review; meeting/collection Flutter clients implemented in review, with staff browser proof pending |
+| 8 | Health/consent, parent meetings and gate passes / Backend + App | Restricted fields, cards and guardians | Health/consent and meeting/gate backend, private typed API, responsive panel and online reader implemented/tested in review; Parent/staff meeting clients implemented and browser-verified; CI/main integration pending |
 | 9 | Consent-controlled tags and private galleries / Backend + App | Files, guardian links and transfer events | community/private-gallery.md |
 | 10 | Authorized school/group live channels / Backend + App | Groups, consultations, houses; provider choice within budget | community/live-updates.md |
 | 11a | School assistant and two-way translation / AI + App | Phase 3 moderated/metered AiGateway | Before implementation |
@@ -129,4 +129,4 @@ implemented software and are not described as passed.
 
 Parents’ evening slots and early collection: [implementation and verification](../self-tests/family-visits.md). This increment supplies the domain, typed API, staff panel and online gate workflow; Parent/staff Flutter clients are retained follow-on work.
 
-Parent/staff meeting and collection clients are implemented in a separate review increment; [client evidence](../self-tests/family-visits-clients.md) records the passing Parent browser/shared tests and pending staff profile proof. This is source implementation status, not a claim that the increment has merged or all phase acceptance has passed.
+Parent/staff meeting and collection clients are implemented in a separate review increment; [client evidence](../self-tests/family-visits-clients.md) records the passing Parent, Teacher and dedicated Facilitator browsers, shared tests and both app entry suites. This is source implementation status, not a claim that the increment has merged or all phase acceptance has passed.
