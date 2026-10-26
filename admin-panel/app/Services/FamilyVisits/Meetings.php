@@ -10,6 +10,7 @@ use App\Services\FamilyForms\SchoolFormTime;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class Meetings
 {
@@ -38,7 +39,7 @@ class Meetings
                     $data['learner_id'] = (int) $slot->learner_id;
                     $data['learner_name'] = app(VisitAccess::class)->learner((int) $slot->learner_id)->user->full_name;
                     $data['guardian_user_id'] = (int) $slot->guardian_user_id;
-                } catch (ModelNotFoundException|\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                } catch (ModelNotFoundException|HttpExceptionInterface) {
                     // Staff can cancel the occupied slot without restoring a stale private participant.
                 }
             }
