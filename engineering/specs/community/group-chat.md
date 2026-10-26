@@ -53,3 +53,19 @@ same actor, school, group and persona and still-authorized thread/message.
 Read results expose current post/reopen capabilities; closing/removing authorized
 content remains possible in a readonly module. Retention also clears an expired
 moderation reason when the message had already been removed.
+
+
+The staff panel uses `/group-conversations`, distinct from the management
+workbench. A dated allocation permits listing, composing, private replies,
+moderation and thread state changes; management alone grants none of those body
+rights. Expected account/school fields precede form validation, private failures
+never flash drafts, and selected historical years refuse writes. Foreground
+content has a 30-second monotonic lease with periodic source checks; background,
+page retirement and failed/expired checks erase the DOM and inputs.
+
+A message append records `group_chat.message_posted` in its database transaction;
+after-commit acceleration preserves the outbox as recovery. Per-recipient
+source keys make fanout idempotent. Private replies select only allocated staff
+and their original author; explicit peer-sharing policy is checked again for
+queued notices. Parent/Student notification list SQL restricts these new notices
+to that portal persona before pagination, including dual-role accounts.

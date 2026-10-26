@@ -29,12 +29,12 @@ class NotificationController extends Controller
 
             // Send To All Users(1) and Parents(4)
             $notification = NotificationVisibility::forUser(
-                Notification::where('session_year_id', $session_year_id), (int) $user, 4
+                Notification::where('session_year_id', $session_year_id)->where(fn ($q) => $q->whereNull('type')->orWhere('type', '<>', 'group_chat.staff_update'))->where(fn ($q) => $q->whereNull('type')->orWhere('type', '<>', 'group_chat.family_update')->orWhere(fn ($q) => $q->where('type', 'group_chat.family_update')->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(delivery_payload), delivery_payload, '{}'), '$.group_chat_persona')) = ?", ['parent']))), (int) $user, 4
             )->latest()->paginate();
             // The new private action can pin the actual recipient even when a
             // browser cookie changes before a stale client context refreshes.
             $notification->through(function (Notification $row) use ($user): Notification {
-                if ($row->type === 'consent.requested') {
+                if (in_array($row->type, ['consent.requested', 'group_chat.family_update'], true)) {
                     $row->setAttribute('reader_id', (int) $user);
                     $row->makeVisible('school_id');
                 }

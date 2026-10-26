@@ -151,3 +151,7 @@ export 'src/activities/group_chat_screen.dart';
 export 'src/family_visits/family_visit_repository.dart';
 export 'src/family_visits/family_visit_session_boundary.dart';
 export 'src/family_visits/family_visits_screen.dart';
+
+export 'src/pathways/pathway_repository.dart';
+export 'src/pathways/pathway_screen.dart';
+export 'src/pathways/pathway_session_boundary.dart';

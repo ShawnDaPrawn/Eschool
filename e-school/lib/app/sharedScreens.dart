@@ -2403,3 +2403,87 @@ class ExamCoachEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> pathwayRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('pathway') != true ||
+        !allowsSchoolModule(me, 'pathway') ||
+        !(me!.roles.contains('Parent') || me.roles.contains('Student'))) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Subject choice and pathways',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        pathwayAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PathwaySessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => PathwayScreen(
+          repository: ApiPathwayRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class PathwayEntry extends StatelessWidget {
+  const PathwayEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me == null ||
+              !(me.roles.contains('Parent') || me.roles.contains('Student')) ||
+              !me.isModuleOn('pathway') ||
+              !allowsSchoolModule(me, 'pathway')) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.route_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Subject choice and pathways',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.pathway),
+            ),
+          );
+        },
+      );
+}

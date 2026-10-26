@@ -40,6 +40,7 @@ use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
+use App\Http\Controllers\Panel\Activities\GroupChatPanelController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
 use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
@@ -95,6 +96,7 @@ use App\Http\Middleware\AuthorizeCardsPanel;
 use App\Http\Middleware\AuthorizeConsultationPanel;
 use App\Http\Middleware\AuthorizeFamilyFormsPanel;
 use App\Http\Middleware\AuthorizeGalleryPanel;
+use App\Http\Middleware\AuthorizeGroupChatPanel;
 use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
 use App\Http\Middleware\AuthorizeTransfer;
@@ -967,3 +969,15 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
     Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
 });
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeGroupChatPanel::class])
+    ->prefix('group-conversations')->name('group-chat-panel.')->group(function () {
+        $controller = GroupChatPanelController::class;
+        Route::get('/', [$controller, 'index'])->name('index');
+        Route::get('groups/{group}', [$controller, 'index'])->whereNumber('group')->name('group');
+        Route::get('groups/{group}/threads/{thread}', [$controller, 'index'])->whereNumber('group')->whereUuid('thread')->name('show');
+        Route::get('groups/{group}/lease/{thread?}', [$controller, 'lease'])->whereNumber('group')->whereUuid('thread')->name('lease');
+        Route::post('groups/{group}/create', [$controller, 'write'])->whereNumber('group')->defaults('operation', 'create')->name('create');
+        Route::post('groups/{group}/threads/{thread}/{operation}', [$controller, 'write'])->whereNumber('group')->whereUuid('thread')->whereIn('operation', ['send', 'state'])->name('write');
+        Route::post('groups/{group}/threads/{thread}/messages/{message}/remove', [$controller, 'write'])->whereNumber('group')->whereUuid('thread')->whereNumber('message')->defaults('operation', 'remove')->name('remove');
+    });

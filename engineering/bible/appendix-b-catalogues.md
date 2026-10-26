@@ -190,3 +190,15 @@ verified guardian tag approval; self-consent requires explicit school configurat
 erase retired image variants and old unknown rollback copies inside each school's
 private gallery directory. Academic completion invokes a synchronous references-only
 transfer event; separate immutable guardian choice controls retaining/copying tags.
+
+
+## Scoped group conversation notices
+
+`group_chat.staff_update` and `group_chat.family_update` belong to the optional
+`groups` module and also require the current `chat` switch/source policy. They use
+standard optional channel preferences. Staff notices open the allocated
+`/group-conversations` panel or the dedicated staff inbox's existing group reader;
+family notices open `/activities/groups`. Payloads contain IDs/revision/persona
+and a fixed route, never participant names, thread titles or message snippets.
+Fresh source guards precede fanout, transport and inbox counts/selection.
+The existing `communication.message` audience broadcasts remain separate.

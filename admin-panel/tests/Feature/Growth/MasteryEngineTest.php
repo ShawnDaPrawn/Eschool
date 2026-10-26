@@ -274,19 +274,35 @@ class MasteryEngineTest extends TestCase
     {
         DB::rollBack();
         try {
-            // Empty dependent practice tables must precede their topic parent.
-            $practicePath = database_path('migrations/2026_10_25_213000_create_daily_practice.php');
-            $practice = is_file($practicePath) ? require $practicePath : null;
-            $practice?->down();
+            // Roll back current dependent projections before their parents,
+            // just as the migration runner does. Keep foreign-key checks active.
+            $dependents = [];
+            foreach ([
+                '2026_10_26_003400_create_peer_tutoring.php',
+                '2026_10_25_240000_add_tutor_topics_and_verified_checkpoints.php',
+                '2026_10_25_213000_create_daily_practice.php',
+            ] as $file) {
+                $path = database_path('migrations/'.$file);
+                if (is_file($path)) {
+                    $dependents[] = require $path;
+                }
+            }
+            foreach ($dependents as $dependent) {
+                $dependent->down();
+            }
             $migration = require database_path('migrations/2026_10_25_020000_create_mastery_graph_and_evidence.php');
             $migration->down();
             $this->assertFalse(Schema::hasTable('mastery_topics'));
+            $this->assertFalse(Schema::hasTable('practice_items'));
+            $this->assertFalse(Schema::hasTable('tutor_checkpoints'));
             $migration->up();
-            $practice?->up();
-            $this->assertTrue(Schema::hasTable('mastery_topics'));
-            if ($practice !== null) {
-                $this->assertTrue(Schema::hasTable('practice_items'));
+            foreach (array_reverse($dependents) as $dependent) {
+                $dependent->up();
             }
+            $this->assertTrue(Schema::hasTable('mastery_topics'));
+            $this->assertTrue(Schema::hasTable('practice_items'));
+            $this->assertTrue(Schema::hasTable('tutor_checkpoints'));
+            $this->assertTrue(Schema::hasColumn('tutor_sessions', 'topic_id'));
         } finally {
             DB::beginTransaction();
         }
