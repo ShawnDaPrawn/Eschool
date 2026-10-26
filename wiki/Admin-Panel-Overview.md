@@ -299,7 +299,7 @@ In the page, the banner (`layouts/partials/read-only-banner.blade.php`) offers "
 | `/saas/schools/create` | Sets up a school with its roles, profile defaults and first Super Admin, whose one-time password is shown once on the next page |
 | `/saas/schools/{id}` | Package, status (suspend, archive or restore, with a reason) and module switches |
 
-Access needs both rows, set only from the operator console: `php artisan platform:staff-identity <user_id>` (the exclusion identity) and `php artisan platform:admin-access <user_id> [--hours=24] [--revoke]` (an expiring grant, 1 to 8760 hours). Revoking either, or letting the grant expire, closes `/saas` on the next request. The pages read counts only, never a learner, parent or staff record, and every change is written to `audit_log` with the staff member and the school. Not built yet: support access into a school, imports, and usage or delivery views.
+Access needs both rows, set only from the operator console: `php artisan platform:staff-identity <user_id>` (the exclusion identity) and `php artisan platform:admin-access <user_id> [--hours=24] [--revoke]` (an expiring grant, 1 to 8760 hours). An operator needs no school role: signing in with no role and both keys goes straight to `/saas`. Revoking either key, or letting the grant expire, closes `/saas` on the next request. The pages read counts only, never a learner, parent or staff record, and every change is written to `audit_log` with the staff member and the school. Not built yet: support access into a school, imports, and usage or delivery views.
 
 ### Demo school
 

@@ -6,13 +6,18 @@ Run on 26 October 2026 against [the spec](../specs/platform/saas-panel.md), on M
 
 | Check | Result |
 | --- | --- |
-| `phpunit tests/Feature/Platform/SaasPanelTest.php` | 22 tests, 181 assertions, passed |
-| Related suites: `tests/Feature/Platform`, `tests/Unit`, `Panel`, `Authorization`, `Contracts`, `RoutesTest`, `PrivateRouteReachabilityTest`, `AdminAuthorizationTest`, `AccountSecurityTest`, `Ai/AiOperationsTest` | 1,120 tests, 7,321 assertions, passed, 1 skipped (not one of the new tests) |
+| `phpunit tests/Feature/Platform/SaasPanelTest.php` | 28 tests, 225 assertions, passed |
+| Related suites: `tests/Feature/Platform`, `tests/Unit`, `Panel`, `Authorization`, `Contracts`, `Facilitators`, `RoutesTest`, `PrivateRouteReachabilityTest`, `AdminAuthorizationTest`, `AccountSecurityTest`, `AccessControlTest`, `SecurityTest`, `AdminRoleTest`, `PermissionsTest`, `Ai/AiOperationsTest` (the login controller was changed, so the sign-in suites are included) | 1,175 tests, passed, 1 skipped (not one of the new tests). Two installer tests failed once because a `storage/installed` file left by the browser check existed; they pass without it |
 | Deliberate breakage 1: remove the grant check so identity alone opens `/saas` | 3 of the new tests failed, as they should |
 | Deliberate breakage 2: send module switches to school 1 instead of the chosen school | 2 of the new tests failed, as they should |
+| Deliberate breakage 3, 4, 5: sign-in ignores operators; no first-run defaults for a new school; no read-only step on a downgrade | each made its own new tests fail, as they should |
 | `pint --test` on every changed or new file | passed |
 | `composer validate`, `route:list`, `config:cache`, `route:cache`, `view:cache`, shard-partition unit test | passed |
 | `migrate` on an empty database | passed, including `create_platform_admin_grants` |
+
+## Found in review and fixed
+
+Codex's review of the pull request found three real gaps that the first tests did not cover: a school set up from `/saas` had no current year or settings, so its administrator's first `/home` returned a 500; a downgrade to a package without fees hid fee records that should stay readable; and an operator with no school role was logged straight back out at sign-in. Each now has a test that fails without its fix.
 
 ## In a browser (Chromium, a local server on a separate database)
 

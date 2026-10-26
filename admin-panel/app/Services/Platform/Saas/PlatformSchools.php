@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Platform\Saas;
 
 use App\Models\Platform\School;
+use App\Models\SessionYear;
+use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
@@ -12,6 +14,7 @@ use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
+use Database\Seeders\EmailSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -100,6 +103,7 @@ class PlatformSchools
                     'package_key' => $data['package_key'],
                 ]);
                 app(SchoolRoles::class)->seed($school);
+                $this->currentSchool->run($school, fn () => $this->firstRunDefaults($school));
 
                 $password = Str::password(16, symbols: false);
                 $admin = User::query()->create([
@@ -140,6 +144,8 @@ class PlatformSchools
                 }
                 DB::table('schools')->where('id', $schoolId)->update(['package_key' => $package, 'updated_at' => now()]);
                 Audit::record('platform_school_package_changed', School::query()->findOrFail($schoolId), ['package_key' => $school->package_key], ['package_key' => $package, 'changed_by' => $actor->id], $schoolId);
+                // A money module the new package leaves out stays readable (read-only) while the school has its records.
+                $this->currentSchool->run($schoolId, fn () => app(ModuleGate::class)->keepRetainedMoneyReadable($actor));
                 // Entitlements follow the package, so the apps refresh their menus.
                 Outbox::record(new ContextChanged($schoolId, 'modules'));
             });
@@ -181,6 +187,27 @@ class PlatformSchools
 
         $this->currentSchool->run($schoolId, fn () => app(ModuleGate::class)->change($module, $enabled, $actor));
         Audit::record('platform_school_module_changed', School::query()->findOrFail($schoolId), [], ['module' => $module, 'enabled' => $enabled, 'changed_by' => $actor->id], $schoolId);
+    }
+
+    /**
+     * What the school's own panel needs before anyone signs in, as the
+     * installer does for the first school: its name and time zone as
+     * settings, the e-mail templates, and a current school year. The year
+     * is made current here directly: SessionYearService::makeCurrent() also
+     * writes the year into the browser session, which here is the platform
+     * staff member's, not the school's. Runs inside the school.
+     */
+    private function firstRunDefaults(School $school): void
+    {
+        Settings::query()->updateOrCreate(['type' => 'school_name'], ['message' => $school->name]);
+        Settings::query()->updateOrCreate(['type' => 'time_zone'], ['message' => $school->timezone]);
+        (new EmailSeeder)->run();
+
+        $year = now($school->timezone)->year;
+        $sessionYear = new SessionYear(['name' => (string) $year, 'start_date' => $year.'-01-01', 'end_date' => $year.'-12-31']);
+        $sessionYear->default = 1;
+        $sessionYear->save();
+        Settings::query()->updateOrCreate(['type' => 'session_year'], ['message' => (string) $sessionYear->id]);
     }
 
     /**

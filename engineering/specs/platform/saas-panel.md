@@ -26,6 +26,8 @@ Both of these, checked on fresh rows on every request ([`PlatformStaffAccess`](.
 1. an **active platform staff identity** (`platform_staff_identities`, `php artisan platform:staff-identity <user_id>`), the exclusion identity every operator has; and
 2. an **unexpired platform admin grant** (`platform_admin_grants`, `php artisan platform:admin-access <user_id> [--hours=24] [--revoke]`, 1 to 8760 hours), set only from the operator console.
 
+**Signing in.** An operator needs no school role. At sign-in (`LoginController::authenticated()`), an account with no school role that holds both keys goes to `/saas` instead of being refused; a role-less account without both keys is refused as before, and an operator who still has to change a first password is sent to the change form. An operator who also has a school role signs in to that school as usual and opens `/saas` by its address.
+
 The identity alone grants nothing (its spec: "not a grant of platform capabilities"), and neither does a school's Super Admin role. The account must be active and not owe a password change, and access is refused while acting inside a school (impersonation). Revoking either row, letting the grant expire or deactivating the account ends access on the next request. The middleware runs before any record lookup, so a refusal is the same for every school id.
 
 ## Acceptance tests
@@ -39,8 +41,11 @@ The identity alone grants nothing (its spec: "not a grant of platform capabiliti
 | Identity only, grant only, expired or revoked grant, deactivated or password-pending account | they open `/saas` | 403 |
 | Any user | a school id that does not exist | 403 for non-staff, 404 for staff |
 | Staff | they set up a school | the school, its roles and profile defaults exist; the administrator has one membership, Super Admin of that school; the password is shown once, is hashed, and is in no audit row or session |
+| An operator with both keys and no school role | they sign in on the normal form | they land on `/saas`; they hold no membership; a role-less account without both keys is still refused |
+| The new school's administrator | they sign in and open `/home` | it opens (the school has its own current year, name, time zone and e-mail templates) and shows nothing of another school; the staff member's own session year is not changed |
 | Staff | they use an email that already has an account, a taken or malformed short name, an unknown package or time zone | nothing is created |
 | Staff | they change school 2's package, status or a module | school 1's rows are unchanged; the audit row names the staff member, the school and, for a status, the reason |
+| Staff | they move a school with fee records to a package without fees | fees become read-only (readable, not writable), as when the school's own admin switches them off; a school with no fee records is left alone |
 | Staff | they suspend a school | its people have no active membership (refused at the next request) and nothing is deleted; restoring undoes it |
 | Staff | they suspend the install's default school | refused: public pages and sign-in run in it |
 | Staff | they switch a required module off, or a module outside the package on | refused, as for the school's own admin |
@@ -59,7 +64,7 @@ All web, session auth, `PrivateDomainResponse`, `platform.staff`; none under `sc
 | GET | `/saas` | schools with status, package and active people by role |
 | GET, POST | `/saas/schools/create`, `/saas/schools` | the set-up form; creates the school and shows the one-time password in that response (throttled 20 a minute) |
 | GET | `/saas/schools/{id}` | one school: counts, package, status, modules as the school sees them |
-| PUT | `/saas/schools/{id}/package` | package key from `config/school_packages.php`; queues `context.changed` for that school |
+| PUT | `/saas/schools/{id}/package` | package key from `config/school_packages.php`; a money module (fees) the new package leaves out stays read-only while the school has records; queues `context.changed` for that school. Moving back to a package that includes fees leaves it read-only until someone enables it (the school's own switch or `/saas`) |
 | PUT | `/saas/schools/{id}/status` | `active`, `suspended` or `archived`, with a reason of 10 to 500 characters |
 | PUT | `/saas/schools/{id}/modules/{module}` | `ModuleGate::change` inside that school, so the rules of the school's own switch apply |
 
@@ -70,6 +75,7 @@ Four standalone Material 3 pages (`resources/views/saas/`, `public/assets/css/sa
 ## Security notes
 
 - **No person is read.** Only counts of active memberships by role are queried; the platform staff member gets no role, membership or permission in any school, and no learner, guardian or staff row is listed or opened.
+- **First-run defaults.** Set-up gives the school what its own panel needs before anyone signs in, as the installer does for school 1: `school_name` and `time_zone` settings, the e-mail templates, and a current school year (the calendar year in the school's time zone). Roles and profile defaults come from the existing seeders. Anything else (grades, classes, terms) is for the school's administrator, through the Home checklist.
 - **The first administrator's password** is random (16 characters), flagged `password_change_required`, returned in the response to the POST and never redirected, flashed, stored or logged. Nothing is emailed from here. It is shown to the person who is about to hand it over; this is the weakest point of the flow and is replaced by an emailed set-up link once mail is live in an environment.
 - **Existing accounts** cannot be made the first administrator: a person's email already having an account is refused, so this page can never be used to add oneself or anyone else to a school that has people.
 - **The install's default school** cannot be suspended or archived: sign-in and public pages run in it.

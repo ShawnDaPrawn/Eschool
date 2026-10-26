@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
+use App\Services\Platform\Saas\PlatformStaffAccess;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,7 +59,10 @@ class LoginController extends Controller
             return $this->refuseLogin($request, 'app_only_login_not_allowed_on_web');
         }
 
-        if ($user->roles->isEmpty()) {
+        // An operator who holds both platform keys needs no school role: they
+        // belong to no school and go to the platform area (/saas).
+        $operator = $user->roles->isEmpty() && app(PlatformStaffAccess::class)->operatesPlatform($user);
+        if ($user->roles->isEmpty() && ! $operator) {
             return $this->refuseLogin($request, 'no_permission_message');
         }
 
@@ -70,7 +74,7 @@ class LoginController extends Controller
             $request->session()->put(RequirePasswordChange::SESSION_KEY, true);
         }
 
-        return null;
+        return $operator ? redirect()->route('saas.index') : null;
     }
 
     private function refuseLogin(Request $request, string $message): RedirectResponse

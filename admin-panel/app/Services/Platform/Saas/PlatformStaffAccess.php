@@ -30,11 +30,27 @@ class PlatformStaffAccess
         return app(CurrentSchool::class)->acrossSchools(function () use ($user): bool {
             $fresh = User::query()->where('status', 1)->find($user->getKey());
 
-            return $fresh !== null
-                && ! $fresh->password_change_required
-                && PlatformStaffIdentity::query()->where('user_id', $fresh->id)->where('active', true)->exists()
-                && PlatformAdminGrant::query()->where('user_id', $fresh->id)->where('active', true)->where('expires_at', '>', now())->exists();
+            return $fresh !== null && ! $fresh->password_change_required && $this->holdsBothKeys($fresh);
         });
+    }
+
+    /**
+     * Whether an active account holds both keys (identity and unexpired grant),
+     * whatever its password state. Used at sign-in, so an operator who still
+     * has to change a first password can reach the change form; /saas itself
+     * stays closed to them (allowed()).
+     */
+    public function operatesPlatform(User $user): bool
+    {
+        return app(CurrentSchool::class)->acrossSchools(
+            fn (): bool => User::query()->where('status', 1)->whereKey($user->getKey())->exists() && $this->holdsBothKeys($user)
+        );
+    }
+
+    private function holdsBothKeys(User $user): bool
+    {
+        return PlatformStaffIdentity::query()->where('user_id', $user->id)->where('active', true)->exists()
+            && PlatformAdminGrant::query()->where('user_id', $user->id)->where('active', true)->where('expires_at', '>', now())->exists();
     }
 
     /** The signed-in staff member, from a fresh row; 403 for anyone else. */
