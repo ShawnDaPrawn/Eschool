@@ -13,6 +13,7 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute('/exam-coach', Routes.examCoach),
   DeepLinkRoute(Routes.familyForms, Routes.familyForms),
   DeepLinkRoute(Routes.pathway, Routes.pathway),
+  DeepLinkRoute(Routes.peerTutoring, Routes.peerTutoring),
   DeepLinkRoute(Routes.tutor, Routes.tutor),
   DeepLinkRoute(Routes.tutorSummary, Routes.tutorSummary),
   DeepLinkRoute(

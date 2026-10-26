@@ -27,3 +27,5 @@ export 'src/testing/activity_file_fixtures.dart';
 export 'src/testing/exam_coach_fixture.dart';
 
 export 'src/testing/pathway_fixture.dart';
+
+export 'src/testing/peer_fixture.dart';

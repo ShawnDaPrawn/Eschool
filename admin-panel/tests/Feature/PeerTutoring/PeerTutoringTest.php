@@ -330,4 +330,51 @@ class PeerTutoringTest extends TestCase
             ['persona' => 'staff', 'operation_id' => (string) Str::uuid(), 'revision' => 1, 'reason' => 'Refused'])->assertNotFound();
         $this->assertSame('scheduled', $row->fresh()->status);
     }
+
+    public function test_staff_panel_matches_and_writes_are_scoped_to_the_rendered_account(): void
+    {
+        $staff = $this->actor();
+        $this->actingAs($staff)->get('/peer-tutoring?group='.$this->group.'&learner='.$this->schoolA->ids['asha'])
+            ->assertOk()->assertSee('Schedule peer session')->assertSee('expected_school_id', false);
+        $body = $this->input() + ['expected_school_id' => 1, 'expected_account_id' => $staff->id];
+        $this->post('/peer-tutoring/sessions', $body)->assertRedirect('/peer-tutoring');
+        $this->post('/peer-tutoring/sessions', $body)->assertRedirect('/peer-tutoring');
+        $this->assertSame(1, PeerTutoringSession::count());
+        $this->post('/peer-tutoring/sessions', array_replace($body, ['expected_account_id' => $this->actor('farid')->id]))->assertForbidden();
+        $this->post('/peer-tutoring/sessions', array_replace($body, ['expected_school_id' => 2]))->assertForbidden();
+        $this->actingAs($this->actor('farid'))->get('/peer-tutoring')->assertForbidden();
+        $this->actingAs($this->actor('theo'))->get('/peer-tutoring?group='.$this->group)->assertForbidden();
+    }
+
+    public function test_panel_confirms_integer_service_and_can_cancel_when_readonly(): void
+    {
+        $row = $this->create();
+        $this->travelTo(CarbonImmutable::parse('2026-02-10T14:00:00Z'));
+        $staff = $this->actor();
+        $this->actingAs($staff)->get('/peer-tutoring')->assertOk()->assertSee('Confirm supervised service');
+        $body = ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'minutes' => '35',
+            'point_category_id' => '', 'points' => '', 'expected_account_id' => $staff->id, 'expected_school_id' => 1];
+        $this->post('/peer-tutoring/sessions/'.$row->id.'/complete', $body)->assertRedirect('/peer-tutoring');
+        $this->assertSame(35, (int) ServiceHour::sum('minutes'));
+        $this->assertNull($row->fresh()->house_point_id);
+        $this->get('/peer-tutoring')->assertOk()->assertSee('Correct completed service');
+        $other = $this->create(['starts_at' => '2026-02-11T14:00', 'ends_at' => '2026-02-11T15:00']);
+        SchoolModule::where('module', 'peer_tutoring')->update(['read_only' => true]);
+        app(ModuleGate::class)->forget();
+        $this->get('/peer-tutoring')->assertOk()->assertDontSee('Schedule peer session')->assertSee('Cancel peer session');
+        $this->post('/peer-tutoring/sessions/'.$other->id.'/cancel', ['operation_id' => (string) Str::uuid(), 'revision' => 1,
+            'reason' => 'Supervision no longer available', 'expected_account_id' => $staff->id, 'expected_school_id' => 1])->assertRedirect('/peer-tutoring');
+        $this->assertSame('cancelled', $other->fresh()->status);
+    }
+
+    public function test_panel_rejects_query_writes_unknown_fields_and_malformed_schedule_without_effects(): void
+    {
+        $staff = $this->actor();
+        $this->actingAs($staff);
+        $body = $this->input() + ['expected_school_id' => 1, 'expected_account_id' => $staff->id];
+        $this->post('/peer-tutoring/sessions?venue=hidden', $body)->assertUnprocessable();
+        $this->post('/peer-tutoring/sessions', $body + ['hidden_learner_id' => 999])->assertUnprocessable();
+        $this->post('/peer-tutoring/sessions', array_replace($body, ['starts_at' => 'nonsense']))->assertUnprocessable()->assertSee('Peer tutoring');
+        $this->assertSame(0, PeerTutoringSession::count());
+    }
 }

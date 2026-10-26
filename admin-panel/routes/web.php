@@ -58,6 +58,7 @@ use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
+use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
@@ -966,4 +967,11 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::get('references/{reference}/edit', [$controller, 'form'])->whereUuid('reference')->name('edit');
     Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
     Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {
+    $controller = PeerPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('sessions', [$controller, 'write'])->defaults('action', 'create')->name('create');
+    Route::post('sessions/{session}/{action}', [$controller, 'write'])->whereUuid('session')->whereIn('action', ['complete', 'cancel', 'reverse'])->name('change');
 });

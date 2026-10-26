@@ -1857,3 +1857,86 @@ class ExamCoachEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> peerTutoringRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('peer_tutoring') != true ||
+        !allowsSchoolModule(me, 'peer_tutoring') ||
+        me?.isModuleOn('mastery') != true ||
+        !allowsSchoolModule(me, 'mastery') ||
+        !me!.roles.any(['Teacher', 'Facilitator'].contains)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Peer tutoring'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        peerAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: PeerSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => PeerTutoringScreen(
+          repository: ApiPeerRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            persona: 'staff',
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class PeerTutoringEntry extends StatelessWidget {
+  const PeerTutoringEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me == null ||
+              !me.roles.any(['Teacher', 'Facilitator'].contains) ||
+              !me.isModuleOn('peer_tutoring') ||
+              (!allowsSchoolModule(me, 'peer_tutoring') ||
+                  !me.isModuleOn('mastery') ||
+                  !allowsSchoolModule(me, 'mastery'))) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Peer tutoring'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.peerTutoring),
+            ),
+          );
+        },
+      );
+}
