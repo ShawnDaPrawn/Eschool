@@ -198,7 +198,7 @@ jobs:
       - name: Run every test assigned to this isolated runner
         run: |
           python3 tool/ci/phpunit_shard.py --shard ${{ matrix.shard }} --count 4 --output phpunit.ci-shard.xml
-          php artisan test --configuration=phpunit.ci-shard.xml
+          php vendor/bin/phpunit --configuration phpunit.ci-shard.xml
 
   admin-panel:
     name: Admin panel (PHP tests)

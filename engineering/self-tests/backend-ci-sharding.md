@@ -22,3 +22,10 @@ discovery on the integration tree found exactly **2,923 test cases**; the union
 of all four generated configurations matched that complete list exactly, with
 no duplicates or omissions. This verifies discovery, not execution of those
 tests; the new GitHub run must execute every shard before merge.
+
+The first four real runners executed **2,940 passing tests** plus the two
+integration opt-ins, which remain separately executed by the quality/runtime
+job. All four returned nonzero because Laravel's test wrapper supplied a second
+`--configuration` argument. The runner now invokes PHPUnit directly with exactly
+one generated configuration. That correction preserves warning enforcement and
+the required aggregate check; the first run is not recorded as green CI.
