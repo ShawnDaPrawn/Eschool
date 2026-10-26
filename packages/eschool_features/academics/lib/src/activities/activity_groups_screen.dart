@@ -10,6 +10,8 @@ import 'activity_repository.dart';
 import 'activity_file_repository.dart';
 import 'activity_files_screen.dart';
 import 'activity_write_screen.dart';
+import 'group_chat_repository.dart';
+import 'group_chat_screen.dart';
 
 /// One private route keeps group lists, registers and drafts inside the app's
 /// account/school boundary, including internal navigation on compact devices.
@@ -28,6 +30,7 @@ class ActivityGroupsScreen extends StatefulWidget {
 class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
     with WidgetsBindingObserver {
   ActivityFileRepository? _files;
+  GroupChatRepository? _chat;
   MaterialFileIntent? _upload;
   bool _picking = false, _uploading = false;
   int _fileRefresh = 0;
@@ -96,6 +99,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
       _epoch++;
       setState(() {
         _denied = true;
+        _chat = null;
         _files = null;
         _picking = false;
         _eraseUpload();
@@ -157,6 +161,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         old.repository.accountId != widget.repository.accountId ||
         !old.repository.isActive) {
       _files = null;
+      _chat = null;
       _picking = false;
       _eraseUpload();
       _list = null;
@@ -217,6 +222,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         _loading = false;
         if (list != null) _list = list;
         _detail = detail;
+        if (detail?.chatAvailable != true) _chat = null;
         if (_mode != null && detail?.canCapture != true) {
           _mode = null;
           _record = null;
@@ -234,6 +240,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         _error = 'Connect to refresh your activity access.';
         if (denied) {
           _denied = true;
+          _chat = null;
           _files = null;
           _eraseUpload();
           _detail = null;
@@ -521,6 +528,19 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
             '${l('Online now')}: $_onlineCount',
             key: const ValueKey('activity-online-count'),
           ),
+        if (detail.chatAvailable == true &&
+            widget.repository is GroupChatProvider)
+          FilledButton.icon(
+            onPressed: _loading || _error != null
+                ? null
+                : () => setState(
+                    () => _chat = (widget.repository as GroupChatProvider).chat(
+                      detail.group.id,
+                    ),
+                  ),
+            icon: const Icon(Icons.forum_outlined),
+            label: Text(l('Group conversations')),
+          ),
         if (detail.canCapture)
           Wrap(
             spacing: 8,
@@ -639,6 +659,18 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final chat = _chat;
+    if (chat != null) {
+      return GroupChatScreen(
+        key: ValueKey(chat),
+        repository: chat,
+        onlineCount: _onlineCount,
+        onClose: () {
+          setState(() => _chat = null);
+          _load();
+        },
+      );
+    }
     final privateBody = _picking
         ? Center(child: Text(l('Finish choosing the private document.')))
         : _upload != null
