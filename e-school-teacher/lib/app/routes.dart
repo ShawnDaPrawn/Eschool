@@ -137,6 +137,7 @@ class Routes {
   static const String reliefCover = '/pastoral/cover';
   static const String supportPlans = '/pastoral/support';
   static const String wellbeing = '/wellbeing';
+  static const String familyForms = '/family-forms';
   static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
@@ -165,6 +166,7 @@ class Routes {
       riskInterventions => 'early_warning',
       mastery => 'mastery',
       consultations => 'consultations',
+      familyForms => 'family_forms',
       schoolCards => 'cards',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
@@ -372,6 +374,8 @@ class Routes {
         return supportPlansRoute();
       case wellbeing:
         return wellbeingRoute();
+      case familyForms:
+        return familyFormsRoute();
       case schoolCards:
         return schoolCardsRoute();
       case consultations:
