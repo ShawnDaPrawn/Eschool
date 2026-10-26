@@ -102,7 +102,7 @@ separate. No deployed latency or phase completion is claimed.
 ## Retained-scope delivery checkpoint: 25 October 2026
 
 This tracks implemented software across published increments, not a claim that
-all increments are merged. Integration PR #203 tracks review/CI and main ancestry.
+all increments are merged. Integration PR #258 currently tracks subsequent review/CI and main ancestry; the earlier #203 integration is already on main.
 The cancelled pilot campaign is excluded; device/store/deployed-service evidence
 remains explicitly unverified and does not stop independent development.
 
@@ -119,8 +119,8 @@ remains explicitly unverified and does not stop independent development.
 | Personal photo gallery | Private group/family surfaces, approval/tag withdrawal, explicit transfer retention | Deployment/device acceptance |
 | Live updates | Real local Reverb/worker delivery, private credential-specific channels, scoped group presence, poll refresh and Home recognition consumers | Deployed/load/native-Reverb journey evidence; vendor queues wait for Phase 5 |
 | School assistant and translation | Published school-document/office-handoff domain, source-bound inference and 21 private API operations/typed client in PRs #279/#281/#283 | Parent/office screens and sourced answer/translation journeys remain; group-chat translation must consume its dedicated authorized immutable-source adapter |
-| Peer tutoring | Pending | Topic matching, supervision, service hours and house-point integration |
-| Pathways | Sourced, versioned requirements and deterministic Grade 9/projected score backend/API/typed client are qualified by the root stream | Root-owned panel and family journey qualification are in progress; deployed acceptance remains |
+| Peer tutoring | Scoped current-topic matching, supervised sessions, append-only integer service and atomic optional house points; nine typed API operations and deterministic SDK locally qualified (#289). Staff/family shared workflows and responsive panel are implemented (#290). | Panel browser passes at 390/820/1280, shared transport/widget and tenant boundaries pass. Four actual app journeys and final retry regression are pending; CI/main and external acceptance remain separate. |
+| Pathways | Reviewed immutable school sources, Grade 9 guides, source-specific integer score rules, manager panel and private Student/Parent planner are implemented and qualified (#282). | Actual panel at 390/820/1280 and complete Student/Parent Chrome journeys pass; published CI/main, school source review, fluent wording, staging/device and deployment acceptance remain separate. |
 
 The earlier integration of 54 source PRs is now on main. Subsequent verified
 increments remain in review until their exact integration head passes CI.
