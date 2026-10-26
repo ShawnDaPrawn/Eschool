@@ -3637,5 +3637,7 @@
   "Private document": "Private document",
   "Refresh the saved documents before choosing another upload.": "Refresh the saved documents before choosing another upload.",
   "Remove document?": "Remove document?",
-  "Upload document": "Upload document"
+  "Upload document": "Upload document",
+    "Own authorised active cases": "Own authorised active cases",
+    "Current cases you can open in counselling. This count does not affect the risk score.": "Current cases you can open in counselling. This count does not affect the risk score."
 }

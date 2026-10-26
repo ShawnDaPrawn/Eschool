@@ -398,7 +398,8 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
           !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(_review.text) ||
           (_state == 'completed' && _outcome.text.trim().isEmpty)) {
         setState(
-          () => _error = 'Enter an action, a calendar review date and an outcome for completed care.',
+          () => _error =
+              'Enter an action, a calendar review date and an outcome for completed care.',
         );
         return;
       }
@@ -422,7 +423,8 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
             _owner == null ||
             !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(_start.text)) {
           setState(
-            () => _error = 'Choose a learner, an eligible owner and a calendar start date.',
+            () => _error =
+                'Choose a learner, an eligible owner and a calendar start date.',
           );
           return;
         }
@@ -517,7 +519,8 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
             }
           }
           _busy = false;
-          _error = 'The saved action changed. Compare the current record before saving a new revision.';
+          _error =
+              'The saved action changed. Compare the current record before saving a new revision.';
         });
       } else if (e is ApiException &&
           (e.statusCode ?? 0) >= 400 &&
@@ -526,14 +529,16 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
         setState(() {
           _pending = null;
           _busy = false;
-          _error = 'The change was refused. Check the dates and current scope before trying again.';
+          _error =
+              'The change was refused. Check the dates and current scope before trying again.';
         });
       } else {
         if (!_current(epoch)) return;
         setState(() {
           _uncertain = true;
           _busy = false;
-          _error = 'The result is unknown. Retry the same change or check saved records before starting another.';
+          _error =
+              'The result is unknown. Retry the same change or check saved records before starting another.';
         });
       }
     }
@@ -577,27 +582,45 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
     String source,
     int? score,
     String reason,
-    String day,
-  ) => ListTile(
-    contentPadding: EdgeInsets.zero,
-    title: Text(
-      l(
-        {
-              'academic': 'Academic',
-              'attendance': 'Attendance',
-              'discipline': 'Discipline',
-              'wellbeing': 'Wellbeing',
-            }[source] ??
-            'Recorded evidence',
+    String day, {
+    int? count,
+  }) {
+    if (source == 'wellbeing' &&
+        reason == 'own_authorised_active_cases' &&
+        count != null) {
+      return ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(l('Own authorised active cases')),
+        subtitle: Text(
+          l(
+            'Current cases you can open in counselling. This count does not affect the risk score.',
+          ),
+        ),
+        trailing: Text('$count'),
+      );
+    }
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        l(
+          {
+                'academic': 'Academic',
+                'attendance': 'Attendance',
+                'discipline': 'Discipline',
+                'wellbeing': 'Wellbeing',
+              }[source] ??
+              'Recorded evidence',
+        ),
       ),
-    ),
-    subtitle: Text(
-      '${l({'academic_below_threshold': 'Below the school academic threshold', 'recorded_absence_threshold': 'Recorded absence needs follow-up', 'confirmed_discipline_count': 'Confirmed discipline entries', 'no_observed_signal': 'No concern in recorded evidence', 'insufficient_evidence': 'Not enough recorded evidence', 'source_unavailable': 'Source not available'}[reason] ?? 'Review the recorded evidence')} · $day',
-    ),
-    trailing: Text(
-      score == null ? l('Unknown') : '${l('Observed score')}: $score',
-    ),
-  );
+      subtitle: Text(
+        '${l({'academic_below_threshold': 'Below the school academic threshold', 'recorded_absence_threshold': 'Recorded absence needs follow-up', 'confirmed_discipline_count': 'Confirmed discipline entries', 'no_observed_signal': 'No concern in recorded evidence', 'insufficient_evidence': 'Not enough recorded evidence', 'source_unavailable': 'Source not available'}[reason] ?? 'Review the recorded evidence')} · $day',
+      ),
+      trailing: Text(
+        score == null ? l('Unknown') : '${l('Observed score')}: $score',
+      ),
+    );
+  }
+
   Widget _ownerPicker() {
     final people = <RiskOwnerChoice>[
       if (_owner != null &&
@@ -758,6 +781,7 @@ class _RiskInterventionsScreenState extends State<RiskInterventionsScreen>
                             s.score,
                             s.reasonCode,
                             s.asOf,
+                            count: s.signalCount,
                           ),
                       ],
                     ),

@@ -2026,5 +2026,7 @@
   "Choose another approved check": "Choose another approved check",
   "Read a completed check": "Read a completed check",
   "Continue an approved check": "Continue an approved check",
-  "Published topic (optional)": "Published topic (optional)"
+  "Published topic (optional)": "Published topic (optional)",
+  "Own authorised active cases": "Own authorised active cases",
+  "Current cases you can open in counselling. This count does not affect the risk score.": "Current cases you can open in counselling. This count does not affect the risk score."
 }
