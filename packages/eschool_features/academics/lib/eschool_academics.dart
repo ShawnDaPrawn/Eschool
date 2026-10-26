@@ -131,3 +131,5 @@ export 'src/my_grade/my_grade_private_action.dart';
 export 'src/teaching/teaching_repository.dart';
 export 'src/teaching/teaching_screen.dart';
 export 'src/teaching/teaching_session_boundary.dart';
+
+export 'src/private/private_pending_intent.dart';
