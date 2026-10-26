@@ -42,6 +42,7 @@ class SchoolRoles
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
+        'family-forms-manage', 'family-health-read', 'family-health-manage',
         'ai-settings-manage',
         'cards-manage', 'cards-readers-manage',
         'marks-view-all', 'marks-release',

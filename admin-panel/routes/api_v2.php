@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
+use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
 use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
@@ -643,4 +644,18 @@ Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::get('sessions/{session}/photos/{photo}', [$c, 'preview'])->whereUuid('session')->whereUuid('photo')->name('preview');
     Route::post('sessions/{session}/photos/{photo}/revoke', [$c, 'revoke'])->whereUuid('session')->whereUuid('photo')->name('revoke');
     Route::get('parent/learners/{learner}/subjects/{subject}/summary', [$c, 'summary'])->whereNumber('learner')->whereNumber('subject')->name('summary');
+});
+
+// Private health categories and exact, authenticated activity/trip consent.
+Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = FamilyFormController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('consents', [$controller, 'read'])->name('listing');
+    Route::post('consents', [$controller, 'write'])->name('create');
+    Route::get('consents/{consent}', [$controller, 'read'])->whereUuid('consent')->name('read');
+    Route::get('consents/{consent}/managed', [$controller, 'read'])->whereUuid('consent')->name('managed');
+    Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->name('cancel');
+    Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
+    Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
+    Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
 });

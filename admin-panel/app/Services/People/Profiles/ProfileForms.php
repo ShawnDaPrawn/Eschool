@@ -27,16 +27,16 @@ class ProfileForms
 
     public function __construct(private readonly ProfilePolicy $policy) {}
 
-    private function definitions(string $profile)
+    private function definitions(string $profile, ?string $category = null)
     {
-        return ProfileFieldDefinition::query()->where('profile_type', $profile)->whereHas('category')->with('category')
+        return ProfileFieldDefinition::query()->where('profile_type', $profile)->whereHas('category', fn ($query) => $query->when($category !== null, fn ($query) => $query->where('key', $category)))->with('category')
             ->orderBy('sort_order')->orderBy('id')->get();
     }
 
-    public function schema(User $actor, User $person, string $profile, bool $forExport = false): array
+    public function schema(User $actor, User $person, string $profile, bool $forExport = false, ?string $category = null): array
     {
         $context = $this->policy->resolve($actor, $person, $profile);
-        $fields = $this->definitions($profile)->filter(fn ($field) => $this->policy->field($context, $field)
+        $fields = $this->definitions($profile, $category)->filter(fn ($field) => $this->policy->field($context, $field)
             && (! $forExport || ! $field->sensitive || $this->policy->permission($context['actor'], 'profile-sensitive-export')));
         $values = ProfileFieldValue::query()->where('user_id', $person->id)->whereIn('definition_id', $fields->pluck('id'))->get()->keyBy('definition_id');
         $categories = [];

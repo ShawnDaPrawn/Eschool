@@ -52,7 +52,7 @@ export default defineConfig({
       // These workflows share one seeded school and mutate its catalogues,
       // module settings and preview fingerprints. Keep their writes ordered.
       workers: 1,
-      testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|academic-reports|academic-transitions|academic-content|academic-sasams|academic-languages|communication-messages|relief-cover|activity-groups|mastery|support-plans|public-reporting|progress-notes|wellbeing|leadership-dashboard|school-transfers|risk-interventions|school-discipline|recognition|admissions|consultations|private-gallery|weekly-digests|ai-flag-review|ai-controls|school-cards)\.spec\.ts/,
+      testMatch: /(navigation|search|year-switcher|school-switcher|modules|notification-rules|profile-fields|school-information|school-terms|subject-standards|curriculum-plans|teaching-groups|academic-timetable|academic-registers|academic-reports|academic-transitions|academic-content|academic-sasams|academic-languages|communication-messages|relief-cover|activity-groups|mastery|support-plans|public-reporting|progress-notes|wellbeing|leadership-dashboard|school-transfers|risk-interventions|school-discipline|recognition|admissions|consultations|private-gallery|weekly-digests|school-cards|family-forms|ai-flag-review|ai-controls)\.spec\.ts/,
       use: { ...desktop, viewport: { width: 1280, height: 800 } },
     },
     {

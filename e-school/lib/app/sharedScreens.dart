@@ -1,3 +1,4 @@
+import 'package:eschool/utils/tutorCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
@@ -1979,4 +1980,118 @@ class SchoolCardsEntry extends StatelessWidget {
       );
     },
   );
+}
+
+Route<dynamic> tutorRoute({required bool summary}) => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final auth = context.read<AuthCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    final children = context.read<ChildSelectionCubit>();
+    final learner = summary ? children.selected?.id : null;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        summary != auth.isParent() ||
+        !me.isModuleOn('tutor') ||
+        !allowsSchoolModule(me, 'tutor') ||
+        (summary
+            ? !me.roles.contains('Parent') ||
+                  learner == null ||
+                  children.selected?.schoolId != school
+            : !me.roles.contains('Student') ||
+                  me.approval?.isApproved != true)) {
+      return const ScreenScaffold(
+        title: 'Tutor',
+        body: Center(child: Text('Not available for this account')),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      learnerId: learner,
+      child: TutorSessionBoundary(
+        pinned: me,
+        builder: (context, fresh) => PracticeReaderHost(
+          create: () {
+            bool active() =>
+                fresh() &&
+                (schools.state.selectedId == null ||
+                    schools.state.selectedId == school) &&
+                (!summary ||
+                    children.selected?.id == learner &&
+                        children.selected?.schoolId == school);
+            return summary
+                ? TutorSummaryScreen(
+                    repository: ApiTutorSummaryRepository(
+                      Api.client,
+                      schoolId: school,
+                      readerId: account,
+                      contextActive: active,
+                    ),
+                    learnerId: learner!,
+                  )
+                : TutorScreen(
+                    repository: ApiTutorRepository(
+                      Api.client,
+                      schoolId: school,
+                      readerId: account,
+                      contextActive: active,
+                    ),
+                    selectCameraPhoto: selectTutorCameraPhoto,
+                    canWrite: () =>
+                        active() &&
+                        allowsSchoolModule(
+                          session.context,
+                          'tutor',
+                          write: true,
+                        ),
+                  );
+          },
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyTutorEntry extends StatelessWidget {
+  const FamilyTutorEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context,
+              parent = context.read<AuthCubit>().isParent();
+          if (state is! MeContextLoaded ||
+              me == null ||
+              !me.isModuleOn('tutor') ||
+              !allowsSchoolModule(me, 'tutor') ||
+              (parent
+                  ? !me.roles.contains('Parent')
+                  : !me.roles.contains('Student') ||
+                        me.approval?.isApproved != true))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.psychology_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  parent ? 'Tutor learning summary' : 'Ask your tutor',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context)
+                      .pushNamed(parent ? Routes.tutorSummary : Routes.tutor),
+            ),
+          );
+        },
+      );
 }

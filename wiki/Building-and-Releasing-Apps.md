@@ -224,16 +224,15 @@ A preview is the browser build, so it has no push notifications, and attaching f
 | `pubspec.yaml` `version` | `3.5.0+39` | `3.5.0+32` | `name+build`. Android `versionName`/`versionCode` come from here through `flutter.versionName` / `flutter.versionCode`. |
 | `lib/main.dart` comment | `///v-3.5.0` | `///v-3.5.0` | informational |
 | `ios/Runner/Info.plist` | `CFBundleShortVersionString = $(FLUTTER_BUILD_NAME)`, `CFBundleVersion = $(FLUTTER_BUILD_NUMBER)` | same | |
-| `ios/Runner.xcodeproj/project.pbxproj` (Runner target) | `FLUTTER_BUILD_NAME = 3.5.0`, `FLUTTER_BUILD_NUMBER = 3`, `MARKETING_VERSION = 3.5.0`, `CURRENT_PROJECT_VERSION = 3` | same | |
+| `ios/Runner.xcodeproj/project.pbxproj` (Runner target, every build configuration) | `MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"`, `CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"`; no `FLUTTER_BUILD_*` of its own | same | |
 
-Flutter writes `FLUTTER_BUILD_NAME` and `FLUTTER_BUILD_NUMBER` from `pubspec.yaml` (or `--build-name` / `--build-number`) into `ios/Flutter/Generated.xcconfig`, which `Release.xcconfig` includes. Xcode gives build settings defined on the target precedence over the target's base `.xcconfig`, so the hard-coded `FLUTTER_BUILD_NUMBER = 3` in both projects wins and iOS builds report build number 3 regardless of `pubspec.yaml`. Delete those two target-level settings (or keep them in sync) before uploading a new iOS build, and make sure the admin panel's `ios_app_version` / `teacher_ios_app_version` matches what the installed app actually reports, otherwise the force-update dialog can appear on every launch ([Mobile-Apps-Overview](Mobile-Apps-Overview#maintenance-mode-and-force-update)).
+Flutter writes `FLUTTER_BUILD_NAME` and `FLUTTER_BUILD_NUMBER` from `pubspec.yaml` (or `--build-name` / `--build-number`) into `ios/Flutter/Generated.xcconfig`, which `Debug.xcconfig` and `Release.xcconfig` include, so iOS reports the same version and build number as Android. Xcode gives build settings defined on the target precedence over the target's base `.xcconfig`: do not set `FLUTTER_BUILD_NAME` or `FLUTTER_BUILD_NUMBER` on the target (Xcode's General tab writes literal values into `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` if you edit Version or Build there). Until October 2026 both projects hard-coded build number 3, so every iOS build reported 3 whatever `pubspec.yaml` said. Make sure the admin panel's `ios_app_version` / `teacher_ios_app_version` matches what the installed app reports, otherwise the force-update dialog can appear on every launch ([Mobile-Apps-Overview](Mobile-Apps-Overview#maintenance-mode-and-force-update)).
 
 Release checklist:
 
 1. Bump `version` in `pubspec.yaml` (build number must increase for both stores).
-2. Fix or remove the iOS target-level `FLUTTER_BUILD_*` values as above.
-3. Build and upload. The web builds of the same commit go out with the deploy workflow.
-4. After the store release is live, update App Settings in the admin panel: `app_version` / `ios_app_version` (or the `teacher_*` keys) to the exact released value, then optionally set `force_app_update` to `1`.
+2. Build and upload. The web builds of the same commit go out with the deploy workflow.
+3. After the store release is live, update App Settings in the admin panel: `app_version` / `ios_app_version` (or the `teacher_*` keys) to the exact released value, then optionally set `force_app_update` to `1`.
 
 Version history of the apps is on [Release-History](Release-History).
 

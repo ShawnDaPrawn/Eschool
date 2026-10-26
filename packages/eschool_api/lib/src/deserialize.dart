@@ -442,6 +442,29 @@ import 'package:eschool_api/src/model/facilitator_sign_in_data.dart';
 import 'package:eschool_api/src/model/facilitator_sign_in_input.dart';
 import 'package:eschool_api/src/model/facilitator_sign_in_response.dart';
 import 'package:eschool_api/src/model/facilitator_sign_out_response.dart';
+import 'package:eschool_api/src/model/family_consent_cancel.dart';
+import 'package:eschool_api/src/model/family_consent_cancelled.dart';
+import 'package:eschool_api/src/model/family_consent_cancelled_response.dart';
+import 'package:eschool_api/src/model/family_consent_create.dart';
+import 'package:eschool_api/src/model/family_consent_created.dart';
+import 'package:eschool_api/src/model/family_consent_created_response.dart';
+import 'package:eschool_api/src/model/family_consent_detail.dart';
+import 'package:eschool_api/src/model/family_consent_detail_response.dart';
+import 'package:eschool_api/src/model/family_consent_managed.dart';
+import 'package:eschool_api/src/model/family_consent_managed_recipient.dart';
+import 'package:eschool_api/src/model/family_consent_managed_response.dart';
+import 'package:eschool_api/src/model/family_consent_page.dart';
+import 'package:eschool_api/src/model/family_consent_page_response.dart';
+import 'package:eschool_api/src/model/family_consent_sign.dart';
+import 'package:eschool_api/src/model/family_consent_signed.dart';
+import 'package:eschool_api/src/model/family_consent_signed_response.dart';
+import 'package:eschool_api/src/model/family_consent_summary.dart';
+import 'package:eschool_api/src/model/family_form_choice.dart';
+import 'package:eschool_api/src/model/family_form_configuration.dart';
+import 'package:eschool_api/src/model/family_form_configuration_response.dart';
+import 'package:eschool_api/src/model/family_form_group_choice.dart';
+import 'package:eschool_api/src/model/family_health_value.dart';
+import 'package:eschool_api/src/model/family_health_write.dart';
 import 'package:eschool_api/src/model/gallery_child.dart';
 import 'package:eschool_api/src/model/gallery_configuration.dart';
 import 'package:eschool_api/src/model/gallery_configuration_response.dart';
@@ -2504,6 +2527,85 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'FacilitatorSignOutResponse':
       return FacilitatorSignOutResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentCancel':
+      return FamilyConsentCancel.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentCancelled':
+      return FamilyConsentCancelled.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentCancelledResponse':
+      return FamilyConsentCancelledResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyConsentCreate':
+      return FamilyConsentCreate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentCreated':
+      return FamilyConsentCreated.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentCreatedResponse':
+      return FamilyConsentCreatedResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyConsentDetail':
+      return FamilyConsentDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentDetailResponse':
+      return FamilyConsentDetailResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentManaged':
+      return FamilyConsentManaged.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentManagedRecipient':
+      return FamilyConsentManagedRecipient.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyConsentManagedResponse':
+      return FamilyConsentManagedResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyConsentPage':
+      return FamilyConsentPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentPageResponse':
+      return FamilyConsentPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentSign':
+      return FamilyConsentSign.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentSigned':
+      return FamilyConsentSigned.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentSignedResponse':
+      return FamilyConsentSignedResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyConsentSummary':
+      return FamilyConsentSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyFormChoice':
+      return FamilyFormChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyFormConfiguration':
+      return FamilyFormConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyFormConfigurationResponse':
+      return FamilyFormConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'FamilyFormGroupChoice':
+      return FamilyFormGroupChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyHealthValue':
+      return FamilyHealthValue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FamilyHealthWrite':
+      return FamilyHealthWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'GalleryChild':
       return GalleryChild.fromJson(value as Map<String, dynamic>) as ReturnType;

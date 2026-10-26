@@ -197,6 +197,8 @@ tags:
   description: Private school identity cards and isolated online gate readers.
 - name: Tutor
   description: Own-learner subject tutoring, approved private working crops and metadata-only guardian summaries.
+- name: FamilyForms
+  description: Private health categories and activity/trip consent with authenticated guardian attestations.
 paths:
   /facilitator/sign-in:
     post:
@@ -18860,9 +18862,9 @@ paths:
       - Tutor
       summary: getTutorConfiguration
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -18900,9 +18902,9 @@ paths:
       - Tutor
       summary: listTutorSessions
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -18946,9 +18948,9 @@ paths:
       - Tutor
       summary: createTutorSession
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -18992,9 +18994,9 @@ paths:
       - Tutor
       summary: getTutorSession
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19045,9 +19047,9 @@ paths:
       - Tutor
       summary: closeTutorSession
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19097,9 +19099,9 @@ paths:
       - Tutor
       summary: sendTutorMessage
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19149,9 +19151,9 @@ paths:
       - Tutor
       summary: getTutorTurn
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19201,9 +19203,9 @@ paths:
       - Tutor
       summary: uploadTutorWorkingPhoto
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19253,9 +19255,9 @@ paths:
       - Tutor
       summary: getTutorWorkingPhoto
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19306,9 +19308,9 @@ paths:
       - Tutor
       summary: revokeTutorWorkingPhoto
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19364,9 +19366,9 @@ paths:
       - Tutor
       summary: getTutorParentSummary
       description: Fresh active approved own-learner subject/source authority is required before retrieval and replay.
-        Parent access is limited to the separate deterministic summary. Private writes accept body fields only. Feedback
-        is provisional and never posts official marks; provider activation and privacy/safety qualification remain
-        separate.
+        Parent access is limited to the separate deterministic summary. Private writes accept body fields only.
+        Feedback is provisional and never posts official marks; provider activation and privacy/safety qualification
+        remain separate.
       parameters:
       - $ref: '#/components/parameters/SchoolId'
       - $ref: '#/components/parameters/ExpectedAccount'
@@ -19409,6 +19411,399 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /family-forms/configuration:
+    get:
+      operationId: getFamilyFormConfiguration
+      tags:
+      - FamilyForms
+      summary: getFamilyFormConfiguration
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyFormConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /family-forms/consents:
+    get:
+      operationId: getFamilyConsents
+      tags:
+      - FamilyForms
+      summary: getFamilyConsents
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: activity_group_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyConsentPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createFamilyConsent
+      tags:
+      - FamilyForms
+      summary: createFamilyConsent
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyConsentCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyConsentCreate'
+  /family-forms/consents/{consent}:
+    get:
+      operationId: getFamilyConsent
+      tags:
+      - FamilyForms
+      summary: getFamilyConsent
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: consent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: learner_id
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyConsentDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /family-forms/consents/{consent}/managed:
+    get:
+      operationId: getManagedFamilyConsent
+      tags:
+      - FamilyForms
+      summary: getManagedFamilyConsent
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: consent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyConsentManagedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /family-forms/consents/{consent}/cancel:
+    post:
+      operationId: cancelFamilyConsent
+      tags:
+      - FamilyForms
+      summary: cancelFamilyConsent
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: consent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyConsentCancelledResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyConsentCancel'
+  /family-forms/consents/{consent}/learners/{learner}/response:
+    post:
+      operationId: signFamilyConsent
+      tags:
+      - FamilyForms
+      summary: signFamilyConsent
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: consent
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyConsentSignedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyConsentSign'
+  /family-forms/learners/{learner}/health:
+    get:
+      operationId: getFamilyHealthForm
+      tags:
+      - FamilyForms
+      summary: getFamilyHealthForm
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileFormResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: saveFamilyHealthForm
+      tags:
+      - FamilyForms
+      summary: saveFamilyHealthForm
+      description: Fresh school/guardian/group authority is checked before private records or operation replay.
+        Consents bind exact text and audience; a retained yes record is not operational authority. Medical values
+        never enter consent or meeting data.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private family result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileFormResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyHealthWrite'
 components:
   securitySchemes:
     bearerAuth:
@@ -23528,6 +23923,9 @@ components:
         cards:
           type: boolean
           description: Fresh card module/account access; does not grant issuance or device management rights.
+        family_forms:
+          type: boolean
+          description: Fresh staff family-form capability; does not grant guardian or clinical access.
     FacilitatorProfile:
       type: object
       additionalProperties: false
@@ -43727,3 +44125,587 @@ components:
           $ref: '#/components/schemas/TutorParentSummary'
         code:
           type: integer
+    FamilyFormChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - person_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        person_id:
+          type: integer
+          minimum: 1
+    FamilyFormGroupChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - session_year_id
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+    FamilyFormConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - children
+      - groups
+      - writable
+      - signature_name
+      - timezone
+      - session_year_id
+      - school_id
+      - reader_id
+      properties:
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyFormChoice'
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyFormGroupChoice'
+        writable:
+          type: boolean
+        signature_name:
+          type: string
+        timezone:
+          type: string
+        session_year_id:
+          type: integer
+          minimum: 1
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+    FamilyConsentSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - activity_group_id
+      - session_year_id
+      - status
+      - event_starts_at
+      - event_ends_at
+      - respond_by
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        activity_group_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          pattern: ^(open|cancelled)$
+        event_starts_at:
+          type: string
+          format: date-time
+        event_ends_at:
+          type: string
+          format: date-time
+        respond_by:
+          type: string
+          format: date-time
+    FamilyConsentPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - next_page
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyConsentSummary'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    FamilyConsentDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - status
+      - event_starts_at
+      - event_ends_at
+      - respond_by
+      - learner_id
+      - wording
+      - fingerprint
+      - revision
+      - decision
+      - signed_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+          pattern: ^(open|cancelled)$
+        event_starts_at:
+          type: string
+          format: date-time
+        event_ends_at:
+          type: string
+          format: date-time
+        respond_by:
+          type: string
+          format: date-time
+        learner_id:
+          type: integer
+          minimum: 1
+        wording:
+          type: string
+        fingerprint:
+          type: string
+          minLength: 64
+          maxLength: 64
+        revision:
+          type: integer
+          minimum: 0
+        decision:
+          type:
+          - string
+          - 'null'
+          pattern: ^(yes|no)$
+        signed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    FamilyConsentManagedRecipient:
+      type: object
+      additionalProperties: false
+      required:
+      - learner_id
+      - name
+      - current
+      - revision
+      - decision
+      - signed_at
+      - effective
+      properties:
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        current:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 0
+        decision:
+          type:
+          - string
+          - 'null'
+          pattern: ^(yes|no)$
+        signed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        effective:
+          type: boolean
+    FamilyConsentManaged:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - activity_group_id
+      - session_year_id
+      - status
+      - event_starts_at
+      - event_ends_at
+      - respond_by
+      - wording
+      - fingerprint
+      - revision
+      - recipients
+      - next_page
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        activity_group_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          pattern: ^(open|cancelled)$
+        event_starts_at:
+          type: string
+          format: date-time
+        event_ends_at:
+          type: string
+          format: date-time
+        respond_by:
+          type: string
+          format: date-time
+        wording:
+          type: string
+        fingerprint:
+          type: string
+          minLength: 64
+          maxLength: 64
+        revision:
+          type: integer
+          minimum: 1
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/FamilyConsentManagedRecipient'
+        next_page:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+    FamilyConsentCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - activity_group_id
+      - title
+      - wording
+      - event_starts_at
+      - event_ends_at
+      - respond_by
+      - learner_ids
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        activity_group_id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 191
+        wording:
+          type: string
+          maxLength: 20000
+        event_starts_at:
+          type: string
+          format: date-time
+        event_ends_at:
+          type: string
+          format: date-time
+        respond_by:
+          type: string
+          format: date-time
+        learner_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          minItems: 1
+          maxItems: 500
+          uniqueItems: true
+    FamilyConsentCreated:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - fingerprint
+      - revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+          minLength: 64
+          maxLength: 64
+        revision:
+          type: integer
+          minimum: 1
+    FamilyConsentSign:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - fingerprint
+      - decision
+      - acknowledged
+      - signed_name
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        fingerprint:
+          type: string
+          minLength: 64
+          maxLength: 64
+        decision:
+          type: string
+          pattern: ^(yes|no)$
+        acknowledged:
+          type: boolean
+          description: Must be true to attest that the exact consent wording was read.
+        signed_name:
+          type: string
+          maxLength: 191
+    FamilyConsentSigned:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - request_id
+      - learner_id
+      - decision
+      - revision
+      - signed_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        request_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        decision:
+          type: string
+          pattern: ^(yes|no)$
+        revision:
+          type: integer
+          minimum: 1
+        signed_at:
+          type: string
+          format: date-time
+    FamilyConsentCancel:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+    FamilyConsentCancelled:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - status
+      - revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          pattern: ^cancelled$
+        revision:
+          type: integer
+          minimum: 1
+    FamilyHealthValue:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        text:
+          type: string
+          maxLength: 10000
+        choices:
+          type: array
+          items:
+            type: string
+            maxLength: 512
+          maxItems: 100
+        flag:
+          type: boolean
+        clear:
+          type: boolean
+          description: True explicitly clears an optional health field.
+      minProperties: 1
+      maxProperties: 1
+    FamilyHealthWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - values
+      properties:
+        values:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/FamilyHealthValue'
+          minProperties: 1
+          maxProperties: 100
+    FamilyFormConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyFormConfiguration'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyConsentPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyConsentPage'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyConsentCreatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyConsentCreated'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyConsentDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyConsentDetail'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyConsentManagedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyConsentManaged'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyConsentCancelledResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyConsentCancelled'
+        code:
+          type: integer
+          enum:
+          - 200
+    FamilyConsentSignedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FamilyConsentSigned'
+        code:
+          type: integer
+          enum:
+          - 200

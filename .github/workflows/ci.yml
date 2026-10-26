@@ -83,8 +83,8 @@ jobs:
       - name: Verify Apache configuration
         run: docker run --rm --entrypoint apache2ctl navigateed-php-check configtest
 
-  admin-panel:
-    name: Admin panel (PHP tests)
+  admin-panel-quality:
+    name: Admin panel quality and runtime
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -148,7 +148,6 @@ jobs:
             sleep 2
           done
           CONTENT_CLAMAV_INTEGRATION=true php artisan test tests/Unit/ClamAvIntegrationTest.php
-      - run: php artisan test
       - name: Qualify actual private Reverb socket and immediate committed relay
         env:
           LIVE_REVERB_INTEGRATION: 'true'
@@ -157,6 +156,63 @@ jobs:
       # with CORS headers (docker/storage-cors.conf); the runner has apache2.
       - name: Storage CORS in Apache
         run: bash docker/tests/storage-cors.sh
+
+  admin-panel-tests:
+    name: Admin panel PHP shard ${{ matrix.shard }} of 4
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    defaults:
+      run:
+        working-directory: admin-panel
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: eschool_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: eschool_test
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3.36'
+          extensions: mbstring, intl, gd, zip, sodium, pdo_mysql, bcmath, exif, fileinfo
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate --force
+      - name: Verify complete, disjoint PHPUnit partition
+        run: python3 -m unittest discover -s tool/ci -p 'test_*.py'
+      - name: Run every test assigned to this isolated runner
+        run: |
+          python3 tool/ci/phpunit_shard.py --shard ${{ matrix.shard }} --count 4 --output phpunit.ci-shard.xml
+          php artisan test --configuration=phpunit.ci-shard.xml
+
+  admin-panel:
+    name: Admin panel (PHP tests)
+    if: always()
+    needs: [admin-panel-quality, admin-panel-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all PHP tests and quality/runtime checks
+        env:
+          QUALITY_RESULT: ${{ needs.admin-panel-quality.result }}
+          TEST_RESULT: ${{ needs.admin-panel-tests.result }}
+        run: |
+          test "$QUALITY_RESULT" = success
+          test "$TEST_RESULT" = success
 
   openapi:
     name: OpenAPI contract (lint)
@@ -381,6 +437,8 @@ jobs:
             flavor: facilitator
           - app: e-school
             flow: family_practice_smoke_test.dart
+          - app: e-school
+            flow: family_tutor_smoke_test.dart
           - app: e-school
             flow: family_consultations_smoke_test.dart
           - app: e-school

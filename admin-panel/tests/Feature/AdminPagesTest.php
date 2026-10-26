@@ -17,7 +17,7 @@ use Tests\TestCase;
 /**
  * Logs in as the Super Admin, then as a teacher, on a freshly installed app and
  * opens every GET page that takes no parameters, checking that none crashes
- * (and that none is forbidden to the Super Admin).
+ * (and that ordinary admin pages are not forbidden to the Super Admin).
  *
  * The pages are served by a separate `php -S` process (see RunsAppServer).
  */
@@ -31,6 +31,9 @@ class AdminPagesTest extends TestCase
     ];
 
     private const SKIP_PREFIXES = ['api/', 'install', '_debugbar', 'sanctum/', 'storage/'];
+
+    /** School administrators do not inherit safeguarding or platform identities. */
+    private const PURPOSE_RESTRICTED = ['ai-flags', 'platform/ai-costs'];
 
     protected function setUp(): void
     {
@@ -55,6 +58,11 @@ class AdminPagesTest extends TestCase
         $broken = [];
         foreach ($this->pageUris() as $uri) {
             $status = $client->get('/'.$uri)->status();
+            if (in_array($uri, self::PURPOSE_RESTRICTED, true)) {
+                $this->assertSame(403, $status, 'School admin acquired a separate purpose: '.$uri);
+
+                continue;
+            }
             if ($status === 403) {
                 $forbidden[] = $uri;
             } elseif ($status >= 500) {

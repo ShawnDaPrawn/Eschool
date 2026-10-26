@@ -58,6 +58,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 
 ### Apps
 
+- iOS builds of both apps (and the teacher app's facilitator and vendor builds) take their version and build number from `pubspec.yaml`, as Android does. Every iOS build used to report build number 3, so App Store Connect would refuse the second upload, and force update compared against the wrong build.
 - Both apps read the server address and environment from build settings (`--dart-define` `API_BASE_URL`, `ENV`, `FLAVOR`, or `config/staging.json` and `config/production.json`) instead of `lib/utils/constants.dart`.
 - Shared code, sign-in and notifications moved into the packages `eschool_core`, `eschool_session` and `eschool_notifications`; nothing changes on phones.
 - Tablet and desktop layouts: a navigation rail and a centred content column. Routes take typed arguments.

@@ -21,10 +21,13 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
-        'ai_school_limits', 'ai_settings_operations', 'tutor_sessions', 'tutor_messages', 'tutor_photos',
+        'tutor_sessions', 'tutor_messages', 'tutor_photos',
+        'past_papers', 'past_paper_versions', 'exam_study_plans', 'exam_coach_operations',
+        'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',
         'ai_quarantine_snapshots',
         'digest_language_templates', 'digest_preferences', 'weekly_parent_digests', 'digest_operations',
+        'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
         'cards', 'card_keys', 'card_portraits', 'card_reader_devices', 'card_chip_profiles', 'card_qr_uses', 'card_scan_logs', 'card_classroom_sessions', 'card_events', 'card_operations',
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
         'practice_items', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',

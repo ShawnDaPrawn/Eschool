@@ -262,7 +262,7 @@ The rules of `ForceUpdate.isRequired()`, unchanged from the apps' own check:
 - The `x.y.z` parts are compared one position at a time, and any position where the server number is larger triggers an update. This means a server value of `3.4.1` triggers the dialog for an installed `3.5.0`. Always set the server value to the exact version you released.
 - If both sides have a `+build` suffix, a larger server build number also triggers an update, independently of the version part.
 - Each part must be an integer; a two-part value such as `3.5` makes the check throw and no dialog is shown.
-- On iOS `PackageInfo` reads `CFBundleShortVersionString`/`CFBundleVersion`. The Xcode projects hard-code `FLUTTER_BUILD_NUMBER = 3` (see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#versioning)), so with force update on, an `ios_app_version` with a `+39` suffix makes the dialog appear on every launch.
+- On iOS `PackageInfo` reads `CFBundleShortVersionString`/`CFBundleVersion`, which come from `pubspec.yaml` like Android's version (see [Building-and-Releasing-Apps](Building-and-Releasing-Apps#versioning)). iOS builds made before the October 2026 fix report build number 3, so with force update on, an `ios_app_version` with a `+39` suffix makes the dialog appear on every launch of those builds.
 
 ## Push notifications
 

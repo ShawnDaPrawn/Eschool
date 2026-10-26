@@ -163,3 +163,12 @@ management is exposed. See `restricted-pastoral-access.md` for the full contract
 ## Principal dashboard activity observations
 
 `learner_activity_days` is school-owned and stores one learner/grade/year/day receipt per school. It contains no request path, clinical text or token metadata. Successful API use records only a currently approved, active, dated enrolled learner in the selected school. The daily retention command removes observations older than ninety days across each school context. Principal aggregates never consult global token `last_used_at`, which cannot identify the school of use.
+
+## Family consent records
+
+`consent_requests`, `consent_recipients`, `consent_responses` and
+`family_form_operations` are school-owned. Composite school/request, school/group
+and school/learner foreign keys prevent cross-school reference substitution.
+Wording, signatures' typed names and operation receipts are encrypted; immutable
+request fingerprints and response attestations bind the exact audience and text.
+Existing encrypted profile values remain the only health-value store.

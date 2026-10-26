@@ -50,6 +50,15 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getFamilyFormConfiguration requires authentication' => [null, 'GET', 'api/v2/family-forms/configuration', [], 401],
+            'getFamilyConsents requires authentication' => [null, 'GET', 'api/v2/family-forms/consents', [], 401],
+            'createFamilyConsent requires authentication' => [null, 'POST', 'api/v2/family-forms/consents', [], 401],
+            'getFamilyConsent requires authentication' => [null, 'GET', 'api/v2/family-forms/consents/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getManagedFamilyConsent requires authentication' => [null, 'GET', 'api/v2/family-forms/consents/8aef50e7-2429-4d2c-a523-668ae436c4d4/managed', [], 401],
+            'cancelFamilyConsent requires authentication' => [null, 'POST', 'api/v2/family-forms/consents/8aef50e7-2429-4d2c-a523-668ae436c4d4/cancel', [], 401],
+            'signFamilyConsent requires authentication' => [null, 'POST', 'api/v2/family-forms/consents/8aef50e7-2429-4d2c-a523-668ae436c4d4/learners/1/response', [], 401],
+            'getFamilyHealthForm requires authentication' => [null, 'GET', 'api/v2/family-forms/learners/1/health', [], 401],
+            'saveFamilyHealthForm requires authentication' => [null, 'PUT', 'api/v2/family-forms/learners/1/health', [], 401],
             'getSecureCardConfiguration requires authentication' => [null, 'GET', 'api/v2/cards/configuration', [], 401],
             'getMySecureCards requires authentication' => [null, 'GET', 'api/v2/cards/mine', [], 401],
             'getManagedSecureCards requires authentication' => [null, 'GET', 'api/v2/cards/managed', [], 401],
