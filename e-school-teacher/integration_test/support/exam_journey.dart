@@ -4,6 +4,24 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'smoke.dart' show pumpUntilFound, tapWhenReady;
 
+/// Read assertions must reveal their own row in the lazy phone list.
+Future<void> examReveal(WidgetTester tester, Finder target) async {
+  await tester.pump(const Duration(milliseconds: 300));
+  await pumpUntilFound(tester, find.byType(Scrollable));
+  tester
+      .state<ScrollableState>(find.byType(Scrollable).first)
+      .position
+      .jumpTo(0);
+  await tester.pump();
+  await tester.scrollUntilVisible(
+    target,
+    220,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(target);
+  await pumpUntilFound(tester, target);
+}
+
 Future<void> examTap(WidgetTester tester, Finder target) async {
   await tester.pump(const Duration(milliseconds: 300));
   await pumpUntilFound(tester, find.byType(Scrollable));
@@ -68,7 +86,7 @@ Future<void> runExamTeacher(
   await examTap(tester, find.text('Save reviewed draft'));
   await pumpUntilFound(tester, find.text('Retry exact saved request'));
   await examTap(tester, find.text('Retry exact saved request'));
-  await pumpUntilFound(tester, find.text('Publish reviewed paper'));
+  await examReveal(tester, find.text('Publish reviewed paper'));
   expect(fixture.paperEffects, 1);
   expect(fixture.writes.length, 2);
   expect(fixture.writes.first, fixture.writes.last);
@@ -86,15 +104,22 @@ Future<void> runExamTeacher(
     scrollable: find.byType(Scrollable).first,
   );
   await pumpUntilFound(tester, find.text('Explain the two equal parts.'));
+  await examReveal(tester, find.textContaining('73.0%'));
   expect(find.textContaining('73.0%'), findsOneWidget);
   await examFill(tester, 'Verified marks', '0.75');
   await examFill(tester, 'Review reason', 'Teacher verified the equal parts.');
   await examTap(tester, find.text('Confirm or correct provisional feedback'));
   await examTap(tester, find.text('Retry exact saved request'));
-  tester.state<ScrollableState>(find.byType(Scrollable).first).position.jumpTo(0);
+  tester
+      .state<ScrollableState>(find.byType(Scrollable).first)
+      .position
+      .jumpTo(0);
   await tester.pump();
-  await tester.scrollUntilVisible(find.text('Teacher review'), 220,
-    scrollable: find.byType(Scrollable).first);
+  await tester.scrollUntilVisible(
+    find.text('Teacher review'),
+    220,
+    scrollable: find.byType(Scrollable).first,
+  );
   await pumpUntilFound(tester, find.text('Teacher review'));
   expect(fixture.reviewEffects, 1);
   expect(fixture.reviews.length, 2);
