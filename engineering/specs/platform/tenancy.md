@@ -215,3 +215,5 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 `admission_requirements`, `admission_requirement_versions` and `pathway_operations` are school-owned, with required indexed foreign keys and scoped models. A composite current-version foreign key also binds a revision to its own source in the same school. Published source revisions and maintaining staff identities remain internal to that school's catalogue management. Private learner projections are transient and introduce no stored cross-school reference or new academic mark table.
 
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
+
+Foundation classroom eligibility and device/Teacher delegations (`foundation_classroom_groups`, `foundation_classroom_leases`) are school-owned. Existing classroom learner sessions additionally reference a same-school delegation, never a gate scan.

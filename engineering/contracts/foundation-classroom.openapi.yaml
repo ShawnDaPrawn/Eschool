@@ -1,0 +1,1160 @@
+tags:
+- name: FoundationClassroom
+  description: Restricted school classroom tablet entry and current-group daily practice.
+paths:
+  /foundation-classroom/configuration:
+    get:
+      operationId: getFoundationConfiguration
+      tags:
+      - FoundationClassroom
+      summary: getFoundationConfiguration
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100000
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetFoundationConfigurationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /foundation-classroom/groups/{group}/eligibility:
+    post:
+      operationId: setFoundationEligibility
+      tags:
+      - FoundationClassroom
+      summary: setFoundationEligibility
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetFoundationEligibilityResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoundationEligibilityInput'
+  /foundation-classroom/devices:
+    post:
+      operationId: registerFoundationTablet
+      tags:
+      - FoundationClassroom
+      summary: registerFoundationTablet
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterFoundationTabletResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoundationRegistrationInput'
+  /foundation-classroom/devices/{device}:
+    delete:
+      operationId: revokeFoundationTablet
+      tags:
+      - FoundationClassroom
+      summary: revokeFoundationTablet
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: device
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeFoundationTabletResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /foundation-classroom/authorizations:
+    post:
+      operationId: grantFoundationAuthorization
+      tags:
+      - FoundationClassroom
+      summary: grantFoundationAuthorization
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GrantFoundationAuthorizationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoundationGrantInput'
+  /foundation-classroom/authorizations/{lease}:
+    delete:
+      operationId: revokeFoundationAuthorization
+      tags:
+      - FoundationClassroom
+      summary: revokeFoundationAuthorization
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - bearerAuth: []
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: lease
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeFoundationAuthorizationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /foundation-device/select:
+    post:
+      operationId: selectFoundationLearner
+      tags:
+      - FoundationClassroom
+      summary: selectFoundationLearner
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - foundationDeviceAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SelectFoundationLearnerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoundationSelectInput'
+  /foundation-learner/context:
+    get:
+      operationId: getFoundationLearnerContext
+      tags:
+      - FoundationClassroom
+      summary: getFoundationLearnerContext
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - foundationLearnerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetFoundationLearnerContextResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /foundation-learner/practice:
+    post:
+      operationId: issueFoundationPractice
+      tags:
+      - FoundationClassroom
+      summary: issueFoundationPractice
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - foundationLearnerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueFoundationPracticeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoundationOperationInput'
+  /foundation-learner/practice/{set}:
+    get:
+      operationId: getFoundationPractice
+      tags:
+      - FoundationClassroom
+      summary: getFoundationPractice
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - foundationLearnerAuth: []
+      parameters:
+      - name: set
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetFoundationPracticeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /foundation-learner/practice/{set}/entries/{entry}/review:
+    post:
+      operationId: reviewFoundationPractice
+      tags:
+      - FoundationClassroom
+      summary: reviewFoundationPractice
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - foundationLearnerAuth: []
+      parameters:
+      - name: set
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewFoundationPracticeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FoundationReviewInput'
+  /foundation-learner/leave:
+    post:
+      operationId: leaveFoundationLearner
+      tags:
+      - FoundationClassroom
+      summary: leaveFoundationLearner
+      description: Fresh school, manager/Teacher allocation, eligibility, device issuer, guardian approval and current
+        card authority are checked before data, writes and receipt replay. No ordinary user authentication or gate
+        scan is created. Private writes accept body fields only and reject unknown fields; uncertain writes retry
+        the same operation UUID. Existing short delegations validate classroom credentials as reads, so read-only
+        card inventory does not disable independently writable daily practice; new registration and Teacher grants
+        still require writable card inventory.
+      security:
+      - foundationLearnerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: Freshly authorized private classroom result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveFoundationLearnerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  securitySchemes:
+    foundationDeviceAuth:
+      type: http
+      scheme: bearer
+      description: 'Single Authorization: Bearer NED1.school.device.secret, classroom kind only. No cookies, query
+        credentials or custom secret headers.'
+    foundationLearnerAuth:
+      type: http
+      scheme: bearer
+      description: 'Single Authorization: Bearer NEF1.school.session.secret~NED1.school.device.secret. Both credentials
+        are validated together; no general user or gate authority.'
+  schemas:
+    FoundationGroupChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - eligible
+      - revision
+      - can_authorize
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 191
+        eligible:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 0
+        can_authorize:
+          type: boolean
+    FoundationTablet:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - status
+      - expires_at
+      - active
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        status:
+          type: string
+          minLength: 1
+          maxLength: 30
+        expires_at:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+    FoundationLeaseSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - device_id
+      - teaching_group_id
+      - expires_at
+      - active
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        active:
+          type: boolean
+    FoundationConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - session_year_id
+      - can_manage
+      - can_grant
+      - writable
+      - page
+      - next_page
+      - groups
+      - devices
+      - leases
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        session_year_id:
+          type: integer
+          minimum: 1
+        can_manage:
+          type: boolean
+        can_grant:
+          type: boolean
+        writable:
+          type: boolean
+        page:
+          type: integer
+          minimum: 1
+        next_page:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        groups:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/FoundationGroupChoice'
+        devices:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/FoundationTablet'
+        leases:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/FoundationLeaseSummary'
+    FoundationOperationInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    FoundationEligibilityInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - eligible
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 0
+        eligible:
+          type: boolean
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 1000
+    FoundationEligibility:
+      type: object
+      additionalProperties: false
+      required:
+      - teaching_group_id
+      - eligible
+      - revision
+      properties:
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        eligible:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+    FoundationRegistrationInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - name
+      - setup_code
+      - days
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        setup_code:
+          type: string
+          pattern: ^NESET1\.[A-Za-z0-9_-]{43}$
+          description: Public Tablet setup code generated by the controlled tablet. Never a private key.
+        days:
+          type: integer
+          minimum: 1
+          maximum: 30
+    FoundationRegistration:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - tablet_access_code
+      - kind
+      - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        tablet_access_code:
+          type: string
+          maxLength: 159
+          pattern: ^NED1\.[1-9][0-9]*\.[a-f0-9-]{36}\.[a-f0-9]{64}$
+          description: Private classroom-only tablet access code. Keep in memory and never send in a URL, cookie
+            or an ordinary authentication request.
+        kind:
+          type: string
+          pattern: ^classroom$
+        expires_at:
+          type: string
+          format: date-time
+    FoundationGrantInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - device_id
+      - teaching_group_id
+      - minutes
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        minutes:
+          type: integer
+          minimum: 1
+          maximum: 60
+    FoundationAuthorization:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - device_id
+      - teaching_group_id
+      - classroom_authorization
+      - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        classroom_authorization:
+          type: string
+          maxLength: 159
+          pattern: ^NECL1\.[1-9][0-9]*\.[a-f0-9-]{36}\.[a-f0-9]{64}$
+          description: Short Teacher delegation for this exact classroom device and current eligible allocated group.
+        expires_at:
+          type: string
+          format: date-time
+    FoundationSelectInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - classroom_authorization
+      - locator
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        classroom_authorization:
+          type: string
+          minLength: 1
+          maxLength: 159
+        locator:
+          type: string
+          maxLength: 90
+          pattern: ^NELOC1\.[1-9][0-9]*\.[a-f0-9-]{36}$
+          description: Printed unsigned locator. It selects an approved current-group learner and never records
+            a gate scan.
+    FoundationLearnerContext:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - learner_id
+      - name
+      - teaching_group_id
+      - expires_at
+      - restricted
+      - capabilities
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 191
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        restricted:
+          type: boolean
+          description: Always true. No ordinary account or gate authority.
+        capabilities:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            type: string
+            pattern: ^daily_practice$
+    FoundationSelection:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - learner_id
+      - name
+      - teaching_group_id
+      - expires_at
+      - restricted
+      - capabilities
+      - classroom_session
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 191
+        teaching_group_id:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        restricted:
+          type: boolean
+          description: Always true. No ordinary account or gate authority.
+        capabilities:
+          type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            type: string
+            pattern: ^daily_practice$
+        classroom_session:
+          type: string
+          maxLength: 159
+          pattern: ^NEF1\.[1-9][0-9]*\.[a-f0-9-]{36}\.[a-f0-9]{64}$
+          description: Private short learner credential; subsequent learner requests combine this with the same
+            device credential in one Authorization Bearer value separated by ~.
+    FoundationReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - answer
+      - rating
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
+        rating:
+          type: integer
+          minimum: 2
+          maximum: 4
+    FoundationRevoked:
+      type: object
+      additionalProperties: false
+      required:
+      - revoked
+      properties:
+        revoked:
+          type: boolean
+    FoundationLeft:
+      type: object
+      additionalProperties: false
+      required:
+      - left
+      properties:
+        left:
+          type: boolean
+    GetFoundationConfigurationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationConfiguration'
+        code:
+          type: integer
+    SetFoundationEligibilityResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationEligibility'
+        code:
+          type: integer
+    RegisterFoundationTabletResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationRegistration'
+        code:
+          type: integer
+    RevokeFoundationTabletResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationRevoked'
+        code:
+          type: integer
+    GrantFoundationAuthorizationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationAuthorization'
+        code:
+          type: integer
+    RevokeFoundationAuthorizationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationRevoked'
+        code:
+          type: integer
+    SelectFoundationLearnerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationSelection'
+        code:
+          type: integer
+    GetFoundationLearnerContextResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationLearnerContext'
+        code:
+          type: integer
+    IssueFoundationPracticeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeDailySet'
+        code:
+          type: integer
+    GetFoundationPracticeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeDailySet'
+        code:
+          type: integer
+    ReviewFoundationPracticeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PracticeReview'
+        code:
+          type: integer
+    LeaveFoundationLearnerResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/FoundationLeft'
+        code:
+          type: integer
