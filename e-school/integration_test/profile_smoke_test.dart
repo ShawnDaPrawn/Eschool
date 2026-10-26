@@ -205,32 +205,16 @@ void main() {
         (upload.data as FormData).files.single.value.filename,
         'letter.png',
       );
+      final cachedImages = PaintingBinding.instance.imageCache.currentSize;
       await tapWhenReady(tester, find.text('View file'));
       final image = find.byWidgetPredicate(
-        (widget) => widget is Image && widget.image is MemoryImage,
+        (widget) => widget is RawImage && widget.image != null,
       );
       await pumpUntilFound(tester, image);
-      final stream = tester
-          .widget<Image>(image)
-          .image
-          .resolve(ImageConfiguration.empty);
-      ImageInfo? decoded;
-      Object? imageError;
-      final listener = ImageStreamListener(
-        (info, _) => decoded = info,
-        onError: (error, _) => imageError = error,
-      );
-      stream.addListener(listener);
-      final end = DateTime.now().add(const Duration(seconds: 10));
-      while (decoded == null &&
-          imageError == null &&
-          DateTime.now().isBefore(end)) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
-      stream.removeListener(listener);
-      expect(imageError, isNull);
-      expect(decoded?.image.width, 1);
-      decoded?.dispose();
+      final decoded = tester.widget<RawImage>(image).image!;
+      expect(decoded.width, 1);
+      expect(decoded.height, 1);
+      expect(PaintingBinding.instance.imageCache.currentSize, cachedImages);
       final read = api.requests.singleWhere(
         (request) => request.uri.path.contains('/protected/profile-files/'),
       );
@@ -239,6 +223,7 @@ void main() {
       expect(read.headers['Authorization'], 'Bearer smoke-token');
       await tapWhenReady(tester, find.byType(BackButton));
       await pumpUntilFound(tester, find.text('Unsaved bus'));
+      expect(decoded.debugDisposed, isTrue);
       await tapWhenReady(tester, find.text('Save profile'));
       await pumpUntilFound(tester, find.text('Profile saved'));
       final write = api.requests.singleWhere(
