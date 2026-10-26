@@ -168,7 +168,12 @@ void main() {
         )) {
           expect(request.headers['X-School-Id'], '1');
           expect(request.headers['X-Account-Id'], '$account');
-          expect(request.queryParameters, isEmpty);
+          expect(
+            request.queryParameters,
+            request.method == 'GET' && request.path.endsWith('/references')
+                ? {'page': 1}
+                : isEmpty,
+          );
           if (request.method != 'GET') {
             expect(request.method, 'POST');
             expect(request.path, endsWith('/projection'));

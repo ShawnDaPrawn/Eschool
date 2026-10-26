@@ -21,8 +21,8 @@ AI provider or academic mark write is introduced.
 
 ## Remaining qualification
 
-Actual manager panel browser checks at 390/820/1280 are pending. The shared
-planner client, Student/Parent entry and lifecycle/browser proof are being
-implemented separately; this backend slice does not claim those complete.
+Actual manager panel browser checks pass at 390/820/1280. The shared Student/
+Parent planner, guarded entries, lifecycle/refusal erasure and complete actual
+Student/Parent Chrome journeys also pass; see [client qualification](pathways-clients.md).
 Published-head CI, staging, school source review, fluent wording, physical
 devices and production acceptance remain separately recorded.

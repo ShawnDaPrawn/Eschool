@@ -19,7 +19,7 @@ release and spending limits are unchanged; pilot onboarding remains cancelled.
 | 10 | Authorized school/group live channels / Backend + App | Groups, consultations, houses; provider choice within budget | community/live-updates.md |
 | 11a | School assistant and two-way translation / AI + App | Phase 3 moderated/metered AiGateway | Before implementation |
 | 11b | Supervised topic-matched peer tutoring / Backend + App | Phase 3 mastery; house points | Before implementation |
-| 11c | Subject-choice and pathway planner / Backend + App | Sourced admission requirements and marks | Before implementation |
+| 11c | Subject-choice and pathway planner / Backend + App | Sourced admission requirements and marks | Reviewed school sources, immutable rules, manager maintenance and private Student/Parent planner implemented and browser-verified; CI/main pending |
 
 Each feature gets a scoped spec, tests and small PR; table order permits independent
 work, not an acceptance freeze. Phase 3 owns AiGateway/mastery. Phase 4 owns group

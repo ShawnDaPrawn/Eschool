@@ -19,14 +19,18 @@ Executed locally:
   pass at 390/820/1280, including no horizontal overflow, duplicate IDs, serious
   accessibility violations or captured page errors.
 
-The first Family Chrome attempt crashed without a new recorded kernel kill.
-The second reached the container memory ceiling and a new OOM kill. After
-reclaiming only completed generated caches, the third ran both roles through
-scenario/unknown/exact-decimal, released evidence and subject-choice checks;
-both then failed because the synthetic flow entered the final withdrawal field
-before its asynchronous source read painted. That fixture now explicitly waits
-for the field, retaining all journey and erasure assertions. The complete repeat
-is still pending; no browser completion is claimed yet.
+The complete Student and Parent Chrome journeys now pass against the combined
+assistant/chat/Pathway SDK from PR #284: initial unknown marks, exact decimal
+scenario, explicit released year and provisional coverage, sourced Grade 9
+choices, fresh guardian/source withdrawal, erasure, scoped headers, body-only
+private calculations and pagination-only catalogue queries. Both per-case
+results are recorded as passed by the actual integration driver.
+
+Earlier attempts included two tab crashes (one with a recorded container OOM
+kill) and fixture corrections: wait for the final asynchronous source read to
+paint before entering a mark, and expect the public page=1 catalogue query.
+The final repeat retains every journey, erasure and request-boundary assertion;
+its OOM counters did not increase. Completed generated caches were reclaimed.
 
 The updated browser flow is included in CI. Exact-head CI/main merge, staging,
 source maintenance by an appointed school reviewer, fluent wording, physical
