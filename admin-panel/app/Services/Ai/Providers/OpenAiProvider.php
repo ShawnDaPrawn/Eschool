@@ -38,13 +38,13 @@ class OpenAiProvider implements InferenceProvider
     public function preflight(ProviderRequest $request): void
     {
         [$path, $payload] = $this->payload($request);
-        app(ProviderTransport::class)->preflight('openai', $path, $payload, $request->operationId, deadline: $request->deadline);
+        app(ProviderTransport::class)->preflight('openai', $path, $payload, $request->operationId, deadline: $request->deadline, vision: $request->capability === Capability::Vision);
     }
 
     public function infer(ProviderRequest $request): ProviderResponse
     {
         [$path, $payload] = $this->payload($request);
-        $data = app(ProviderTransport::class)->post('openai', $path, $payload, $request->operationId, deadline: $request->deadline);
+        $data = app(ProviderTransport::class)->post('openai', $path, $payload, $request->operationId, deadline: $request->deadline, vision: $request->capability === Capability::Vision);
         if ($request->capability === Capability::Embed) {
             $vectors = $data['data'] ?? null;
             $tokens = $data['usage']['total_tokens'] ?? null;

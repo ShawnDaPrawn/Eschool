@@ -7,68 +7,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
 import '../localization/academic_text.dart';
+import '../media/private_image_dimensions.dart';
 import 'tutor_repository.dart';
 
-/// Bounds dimensions before any decoder allocates pixels. ImageDescriptor's
-/// encoded dimensions are intentionally unsupported by Flutter's web engine.
-({int width, int height}) tutorPhotoDimensions(Uint8List bytes) {
-  if (bytes.isEmpty || bytes.length > 4194304)
-    throw const FormatException('image limit');
-  int width = 0, height = 0;
-  final data = ByteData.sublistView(bytes);
-  const png = [137, 80, 78, 71, 13, 10, 26, 10];
-  if (bytes.length >= 33 &&
-      List.generate(8, (i) => bytes[i]).join(',') == png.join(',')) {
-    if (data.getUint32(8) != 13 ||
-        String.fromCharCodes(bytes.sublist(12, 16)) != 'IHDR')
-      throw const FormatException('invalid PNG');
-    width = data.getUint32(16);
-    height = data.getUint32(20);
-  } else if (bytes.length >= 4 && bytes[0] == 255 && bytes[1] == 216) {
-    var offset = 2;
-    while (offset + 3 < bytes.length) {
-      if (bytes[offset++] != 255) throw const FormatException('invalid JPEG');
-      while (offset < bytes.length && bytes[offset] == 255) {
-        offset++;
-      }
-      if (offset >= bytes.length) break;
-      final marker = bytes[offset++];
-      if (marker == 217 || marker == 218 || offset + 2 > bytes.length) break;
-      if (marker == 1 || (marker >= 208 && marker <= 215)) continue;
-      final length = data.getUint16(offset);
-      if (length < 2 || offset + length > bytes.length)
-        throw const FormatException('invalid JPEG');
-      if (const {
-        192,
-        193,
-        194,
-        195,
-        197,
-        198,
-        199,
-        201,
-        202,
-        203,
-        205,
-        206,
-        207,
-      }.contains(marker)) {
-        if (length < 8) throw const FormatException('invalid JPEG');
-        height = data.getUint16(offset + 3);
-        width = data.getUint16(offset + 5);
-        break;
-      }
-      offset += length;
-    }
-  }
-  if (width < 1 ||
-      height < 1 ||
-      width > 8192 ||
-      height > 8192 ||
-      width * height > 16777216)
-    throw const FormatException('image limit');
-  return (width: width, height: height);
-}
+/// Preserve the bounded public Tutor crop parser entrypoint.
+({int width, int height}) tutorPhotoDimensions(Uint8List bytes) =>
+    privateImageDimensions(bytes);
 
 /// A preview and rectangle use the same normalized PNG pixels sent to Files.
 /// This avoids JPEG orientation/device metadata changing the approved crop.
@@ -79,10 +23,15 @@ class TutorWorkingCrop extends StatefulWidget {
     required this.operation,
     required this.onApproved,
     required this.onCancel,
+    this.selectionTitle = 'Select only your working',
+    this.selectionGuidance =
+        'Drag around your working. Leave names and identifying details outside the selection.',
+    this.approvalLabel = 'I checked this selection contains only my working.',
     super.key,
   });
   final Uint8List bytes;
   final String session, operation;
+  final String selectionTitle, selectionGuidance, approvalLabel;
   final ValueChanged<TutorPhotoIntent> onApproved;
   final VoidCallback onCancel;
   @override
@@ -208,14 +157,12 @@ class _TutorWorkingCropState extends State<TutorWorkingCrop> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const AcademicText(
-              'Select only your working',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            AcademicText(
+              widget.selectionTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const AcademicText(
-              'Drag around your working. Leave names and identifying details outside the selection.',
-            ),
+            AcademicText(widget.selectionGuidance),
             if (_error != null) AcademicText(_error!),
             if (image == null && _error == null)
               const Center(child: CircularProgressIndicator()),
@@ -281,9 +228,7 @@ class _TutorWorkingCropState extends State<TutorWorkingCrop> {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: _approved,
-              title: const AcademicText(
-                'I checked this selection contains only my working.',
-              ),
+              title: AcademicText(widget.approvalLabel),
               onChanged:
                   _selection == null ||
                       _selection!.width < 1 ||

@@ -1,3 +1,4 @@
+import '../media/private_image_dimensions.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -313,7 +314,7 @@ class ApiTutorRepository implements TutorRepository {
     );
     _client.guard();
     _client.scope(
-      bytes.length <= 32768 &&
+      bytes.length <= privateWorkingMaximumBytes &&
           sha256.convert(bytes).toString() == reference.sha256,
     );
     return bytes;
