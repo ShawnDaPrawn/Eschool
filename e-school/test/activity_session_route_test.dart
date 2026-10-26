@@ -2,6 +2,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:eschool/app/sharedScreens.dart';
+import 'package:eschool/cubits/authCubit.dart';
+import 'package:eschool/data/models/parent.dart';
+import 'package:eschool/data/models/student.dart';
+import 'package:eschool/data/repositories/authRepository.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/testing.dart';
@@ -10,6 +14,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+
+class _Unsigned extends AuthRepository {
+  @override
+  bool getIsLogIn() => false;
+}
+
+class _ParentAuth extends AuthCubit {
+  _ParentAuth() : super(_Unsigned()) {
+    emit(
+      Authenticated(
+        jwtToken: 'synthetic-activity-session',
+        isStudent: false,
+        parent: Parent.fromJson({'id': 12}),
+        student: Student.fromJson({}),
+      ),
+    );
+  }
+}
 
 class _ContextRepository implements MeContextRepository {
   @override
@@ -50,6 +72,8 @@ void main() {
   testWidgets(
     'actual Parent activity route refreshes a cancelled group despite identical account context',
     (tester) async {
+      final auth = _ParentAuth();
+      addTearDown(auth.close);
       final me = MeContextCubit(
         repository: _ContextRepository(),
         cache: InMemoryMeContextCache(),
@@ -100,6 +124,7 @@ void main() {
       await tester.pumpWidget(
         MultiBlocProvider(
           providers: [
+            BlocProvider<AuthCubit>.value(value: auth),
             BlocProvider.value(value: me),
             BlocProvider.value(value: schools),
             BlocProvider.value(value: children),
@@ -108,7 +133,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-        expect(find.text('Private Hockey Group'), findsOneWidget);
+      expect(find.text('Private Hockey Group'), findsOneWidget);
       cancelled = true;
       await me
           .load(); // Loading and identical Loaded occur before the next frame.

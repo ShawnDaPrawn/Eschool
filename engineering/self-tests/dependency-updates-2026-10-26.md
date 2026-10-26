@@ -51,11 +51,29 @@ TypeScript, Actionlint and the complete public-delta secret scan also pass.
 The first published integration CI found one unused peer-test import. Removing
 the redundant import makes the complete academics analysis pass with zero
 errors/warnings (260 style infos); no analyzer rule or assertion was changed.
-Final combined native checks, published-head CI and safe main merge remain.
-Foundation and offline delegated UI/SDK follow-up are separate increments, and
-this checkpoint makes no claim for pending encoding or hardware acceptance.
+The merged backend/contract/tenancy cohort passes 1,372 tests / 10,464
+assertions. Full Pint passes. The additional Foundation/offline/global-route
+cohort passes 634 tests / 3,486 assertions against the upgraded dependencies.
+Full combined PHPStan (serial 1 GiB), Pint and Playwright TypeScript pass after
+that integration. Exact published-head CI and safe main merge remain.
+Qualified Foundation (#295) and delegated offline reader/SDK (#296) are retained
+in this integration, including all seven Foundation and five offline browser
+journeys recorded in their own evidence. Encoding remains a separate work item;
+no physical hardware or production acceptance is claimed.
 
 The local installer
 initially followed shared vendor namespace links. Those central packages were
 reinstalled at their original pinned versions and route-loading was verified;
 all upgraded namespaces are now private copies. Source files were unaffected.
+
+CI also exposed 50 new chat keys absent from six catalogues in each app, plus
+new Guardians/Learners fallbacks inconsistent with the existing Afrikaans/isiZulu
+glossary. The integration adds English fallbacks only for missing keys and
+applies the established glossary; existing translated values are preserved.
+The original catalogue equality, placeholder and glossary tests remain intact.
+
+All five original translation tests pass independently in each app after the
+catalogue repair. The existing Parent activity cancellation-refresh test also
+passes after its fixture provides the real Parent AuthCubit boundary required
+by the chat-aware entry route; its private-erasure and exact account/header
+assertions are retained.
