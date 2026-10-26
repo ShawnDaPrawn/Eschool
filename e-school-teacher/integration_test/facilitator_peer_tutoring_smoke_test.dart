@@ -17,8 +17,8 @@ class _Fixture extends ClinicalStaffFixture {
   @override
   Map<String, dynamic> profile() => {
     ...super.profile(),
-    'name': 'Synthetic card holder',
-    'roles': ['Facilitator'],
+    'name': 'Synthetic supervised tutor teacher',
+    'roles': ['Facilitator', 'Teacher'],
     'features': {'groups': false, 'messages': false, 'counselling': false},
   };
 }
