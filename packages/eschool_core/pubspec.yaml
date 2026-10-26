@@ -29,7 +29,7 @@ dependencies:
   path_provider: ^2.1.5
   # The PDF view of web builds; phones keep flutter_pdfview.
   pdfx: ^2.11.0
-  shimmer: ^3.0.0
+  shimmer: ^4.0.0
   timeago: ^3.7.1
   web_socket_channel: ^3.0.3
   web: ^1.1.1
