@@ -99,7 +99,7 @@ class EnrolApplication
             }
             $guardian->unsetRelation('roles')->unsetRelation('permissions')->assignRole('Parent');
             app(MembershipService::class)->forget($guardian);
-            $parent = Parents::firstOrCreate(['user_id' => $guardian->id], ['first_name' => $guardian->first_name, 'last_name' => $guardian->last_name, 'email' => $guardian->email, 'mobile' => $guardian->mobile, 'gender' => $guardian->gender ?? 'Not specified']);
+            $parent = Parents::firstOrCreate(['user_id' => $guardian->id], ['first_name' => $guardian->first_name, 'last_name' => $guardian->last_name, 'email' => $guardian->email, 'mobile' => $guardian->mobile ?? '', 'gender' => $guardian->gender ?? 'Not specified']);
             $person = User::create(['first_name' => $identity['first_name'], 'last_name' => $identity['last_name'], 'dob' => $identity['dob'], 'gender' => $identity['gender'] ?? 'Not specified',
                 'email' => 'intake-'.$row->public_id.'@learners.invalid', 'password' => bin2hex(random_bytes(32)), 'status' => 1]);
             $person->forceFill(['password_change_required' => true])->save();

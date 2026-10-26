@@ -19,9 +19,14 @@ class ModuleGate
     private array $jobRows = [];
 
     /** Cache on the HTTP request, never on a long-lived worker or global singleton. */
-    private function rows(): array
+    private function rows(bool $locked = false): array
     {
         $id = app(CurrentSchool::class)->id();
+        if ($locked) {
+            // A money domain may already hold a REPEATABLE READ snapshot.
+            // Current locked state, not that snapshot, decides a new write.
+            return SchoolModule::query()->where('school_id', $id)->lockForUpdate()->get()->keyBy('module')->all();
+        }
         $cacheKey = 'modules.school.'.$id;
         if (RequestContext::inHttpRequest() && request()->attributes->has($cacheKey)) {
             return request()->attributes->get($cacheKey);
@@ -42,7 +47,7 @@ class ModuleGate
     }
 
     /** @return array{enabled: bool, read_only: bool, in_package: bool} */
-    public function state(string $key, array $visited = []): array
+    public function state(string $key, array $visited = [], bool $locked = false): array
     {
         $off = ['enabled' => false, 'read_only' => false, 'in_package' => false];
         $definition = config('modules.'.$key);
@@ -52,9 +57,14 @@ class ModuleGate
         if ($definition['always_on'] ?? false) {
             return ['enabled' => true, 'read_only' => false, 'in_package' => true];
         }
-        $school = app(CurrentSchool::class)->school();
+        $school = $locked
+            ? School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id())
+            : app(CurrentSchool::class)->school();
+        if ($locked && $school?->status !== School::ACTIVE) {
+            return $off;
+        }
         $inPackage = in_array($key, config('school_packages.'.($school?->package_key ?? 'legacy'), []), true);
-        $row = $this->rows()[$key] ?? null;
+        $row = $this->rows($locked)[$key] ?? null;
         // A new school without rows still gets secure defaults. No implicit
         // entitlement is granted by enabling a switch in the database.
         $entitled = $inPackage && ($row?->in_package ?? true);
@@ -62,7 +72,7 @@ class ModuleGate
         $enabled = $entitled && ($row?->enabled ?? $default);
         $readOnly = $row?->read_only ?? false;
         foreach ($definition['dependencies'] ?? [] as $dependency) {
-            $state = $this->state($dependency, [...$visited, $key]);
+            $state = $this->state($dependency, [...$visited, $key], $locked);
             $enabled = $enabled && $state['enabled'];
             $readOnly = $readOnly || $state['read_only'];
         }
@@ -76,9 +86,9 @@ class ModuleGate
         return $this->state($key)['enabled'];
     }
 
-    public function writable(string $key): bool
+    public function writable(string $key, bool $locked = false): bool
     {
-        $state = $this->state($key);
+        $state = $this->state($key, [], $locked);
 
         return $state['enabled'] && ! $state['read_only'];
     }
@@ -124,7 +134,7 @@ class ModuleGate
                     }
                 }
             }
-            $readOnly = ! $enabled && ($definition['money'] ?? false) && $this->hasRetainedMoney($school->id);
+            $readOnly = ! $enabled && ($definition['money'] ?? false) && $this->hasRetainedMoney($school->id, $key);
             SchoolModule::query()->updateOrCreate(['module' => $key], [
                 'in_package' => $state['in_package'], 'enabled' => $enabled || $readOnly, 'read_only' => $readOnly,
                 'changed_by' => $actor->id, 'changed_at' => now(),
@@ -152,7 +162,7 @@ class ModuleGate
                 continue;
             }
             $state = $this->state($key);
-            if ($state['in_package'] || $state['enabled'] || ! $this->hasRetainedMoney($schoolId)) {
+            if ($state['in_package'] || $state['enabled'] || ! $this->hasRetainedMoney($schoolId, $key)) {
                 continue;
             }
             // in_package stays as it is: the package config decides entitlement, and a later upgrade must still count.
@@ -165,16 +175,21 @@ class ModuleGate
         $this->forget();
     }
 
-    private function hasRetainedMoney(int $schoolId): bool
+    private function hasRetainedMoney(int $schoolId, string $module): bool
     {
         // Preserve financial history as well as outstanding charges. These
         // integer-cents records are never removed by a switch operation.
-        foreach (['fees_classes', 'fees_paids', 'payment_transactions'] as $table) {
+        foreach ($module === 'fees' ? ['fees_classes', 'fees_paids', 'payment_transactions'] : [] as $table) {
             if (DB::table($table)->where('school_id', $schoolId)->exists()) {
                 return true;
             }
         }
 
-        return false;
+        // Canonical history remains readable even after a wallet is emptied.
+        // Opening an unused zero account alone does not retain a module.
+        return DB::table('ledger_accounts as a')->where('a.school_id', $schoolId)->where('a.module', $module)
+            ->where(fn ($query) => $query->where('a.balance_cents', '<>', 0)->orWhereExists(fn ($postings) => $postings
+                ->selectRaw('1')->from('ledger_postings as p')->whereColumn('p.school_id', 'a.school_id')->whereColumn('p.account_id', 'a.id')))
+            ->exists();
     }
 }

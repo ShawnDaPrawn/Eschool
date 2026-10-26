@@ -63,16 +63,8 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.of(context).pushReplacementNamed(Routes.auth);
       } else {
         if ((context.read<AuthCubit>().state as Authenticated).isStudent) {
-          if (context.read<AuthCubit>().getStudentDetails().isFeePaymentDue &&
-              context
-                  .read<AppConfigurationCubit>()
-                  .isCompulsoryFeePaymentMode()) {
-            Navigator.of(
-              context,
-            ).pushReplacementNamed(Routes.studentFeePaymentDueScreen);
-          } else {
-            Navigator.of(context).pushReplacementNamed(Routes.home);
-          }
+          // Arrears never restrict learning, marks or reports.
+          Navigator.of(context).pushReplacementNamed(Routes.home);
         } else if (_parentPoliciesPending) {
           Navigator.of(context).pushReplacementNamed(Routes.parentPolicies);
         } else {

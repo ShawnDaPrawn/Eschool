@@ -55,7 +55,7 @@ class Outbox
         $ids = OutboxEvent::query()
             ->whereNull('dispatched_at')
             ->where('attempts', '<', self::maxAttempts())
-            ->where(fn ($query) => $query->whereNull('available_at')->orWhere('available_at', '<=', now()))
+            ->where(fn ($query) => $query->whereNull('available_at')->orWhere('available_at', '<=', now()->utc()))
             ->orderBy('id')
             ->limit($limit)
             ->pluck('id');
@@ -82,7 +82,7 @@ class Outbox
 
         try {
             return DB::transaction(function () use ($id, &$type) {
-                $event = OutboxEvent::whereKey($id)->whereNull('dispatched_at')->lockForUpdate()->first();
+                $event = OutboxEvent::whereKey($id)->whereNull('dispatched_at')->where('attempts', '<', self::maxAttempts())->lockForUpdate()->first();
                 if (! $event || ($event->available_at && $event->available_at->isFuture())) {
                     return 'skipped';
                 }
@@ -92,7 +92,7 @@ class Outbox
                     $listener->handle($event);
                 }
 
-                $event->forceFill(['dispatched_at' => now(), 'last_error' => null])->save();
+                $event->forceFill(['dispatched_at' => now()->utc(), 'last_error' => null])->save();
 
                 return 'dispatched';
             });
@@ -133,7 +133,7 @@ class Outbox
         $event->forceFill([
             'attempts' => $attempts,
             'last_error' => Str::limit(class_basename($e).': '.$e->getMessage(), 490),
-            'available_at' => now()->addSeconds($delay),
+            'available_at' => now()->utc()->addSeconds($delay),
         ])->save();
 
         $context = ['event_id' => $id, 'type' => $type ?? $event->type, 'attempt' => $attempts, 'exception' => get_class($e)];

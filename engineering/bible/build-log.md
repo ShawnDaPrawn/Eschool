@@ -6,6 +6,27 @@ What each phase delivered, what it deferred and why, and which of our questions 
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 Groundwork | Built and merged; gate items that need the cloud or people open | 2026-10-21 | 2026-10-22 (code) | Queue, scheduler and worker; mail through SES with delivery records; outbox; audit log; money in cents; API v2 with `/me/context` and `openapi.yaml`; web builds of both apps; panel navigation by job, Home checklist, search, year switcher, new-year wizard; security fixes; staging and production definitions, deploy workflows and runbooks; CI gates. [Details](#phase-0-delivered) | Everything that needs the cloud project or people (staging, production changes, the restore drill, SES, seven days of the worker, UX scripts, the demo) and the follow-ups below. [Details](#phase-0-deferred-with-reasons) | Q0.1 to Q0.6 defaulted and waiting for the product owner; Q0.8 onwards defaulted by the streams ([phase-0-questions.md](../phases/phase-0-questions.md)) |
 | 1 Schools and identity | In progress ([plan](../phases/phase-1.md)) | 2026-10-22 | | | | Q1.1 to Q1.5 defaulted ([phase-1-questions.md](../phases/phase-1-questions.md)) |
+| 3 AI learning and pastoral care | Retained software implemented, verified and merged; external acceptance separate | 2026-10-24 | 2026-10-26 (software) | Gateway/evals, mastery, tutor/practice/exam, teaching/insights, digests, notes/risk/discipline, My grade, cover/support/dashboard and consented transfers. [Current record](../phases/phase-3.md) | Live-provider/model/cost, human safeguarding/UX, device and deployment evidence remain unrun or separately recorded | Provider/privacy and school-specific policy/source approval; no paid activation |
+| 4 Facilitator and community | Retained software implemented, verified and merged; external acceptance separate | 2026-10-24 | 2026-10-26 (software) | Scoped facilitator/groups/chat, wellbeing, consultations, recognition, cards/offline/encoding/Foundation, admissions, Health/consent/meetings/gate, galleries/live, assistance, supervised peer and pathways. [Current record](../phases/phase-4.md) | Physical hardware/driver/key-protection, iOS/store, fluent wording, school-policy/UX and deployed-service acceptance remain separate | School/provider/source/hardware qualification; ordinary chat translation is not included in assigned-office translation |
+
+## 26 October 2026 — Phase 3/4 software merged
+
+Main `990ea2a7bb22ca90091ad7bb32fd35b467831474` retains the closing reviewed
+source heads and exactly matches integration `4a5a43015219c62fc5a05b039eac5adac0c13410`
+(tree `41e1aba6cdeef405f38347d05b4323b1fc9c5535`). All 106 expected final
+[CI jobs](https://github.com/ShawnDaPrawn/Eschool/actions/runs/40373490109)
+passed, as did Security, Staff build identities and Firebase documentation on
+the same head. Temporary remote build-download failures were recovered on that
+unchanged commit; all required targets remained in the final successful inventory.
+
+This closes retained software construction and main integration, not external
+phase acceptance or production release. The cancelled pilot campaign stays out
+of scope. Feature self-tests preserve their actual synthetic/native/browser
+results and explicit hardware, provider, human review and deployment limits.
+The bounded pre-Phase-5 [recovery handover](../runbooks/phase-3-4-recovery.md)
+records shared retry, expiry and receipt boundaries. No new payment flow,
+provider activation or financial settlement is claimed by this checkpoint.
+
 
 ## Phase 0 delivered
 
@@ -535,3 +556,19 @@ receipt now retains its form date. No new payment flow or financial posting is a
 is in self-tests/leadership-fee-trends.md. This closing software increment remains
 in review until its integration head passes CI and reaches main. New financial
 products, bank/refund-ledger semantics and deployment acceptance remain separate.
+
+
+## Phase 5 preparation — 26 October 2026
+
+Owner-accepted scope: remove inherited debt navigation restrictions, establish
+an internal balanced immutable cents ledger, preserve financial/module/card/vendor
+handover boundaries, harden shared retry recovery, and improve dependency caching
+and new-money static checks. No new payment, wallet/vendor UI, opening-balance
+import or Phase 6 collection is activated. Existing receipts/floats stay intact.
+
+The [phase plan](../phases/phase-5.md), [kernel/cutover contract](../specs/money/ledger-foundation.md),
+[preparation evidence](../self-tests/money/preparation.md) and
+[scoped review](../security/p5-preparation.md) record implementation and its limits.
+The independent live-money assessment, actual provider/cash/statement qualification
+and external acceptance remain separate from this preparation checkpoint;
+independent development continues while those specific checks are pending.

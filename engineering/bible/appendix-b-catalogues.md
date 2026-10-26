@@ -202,3 +202,21 @@ family notices open `/activities/groups`. Payloads contain IDs/revision/persona
 and a fixed route, never participant names, thread titles or message snippets.
 Fresh source guards precede fanout, transport and inbox counts/selection.
 The existing `communication.message` audience broadcasts remain separate.
+
+## Money preparation boundary
+
+The internal ledger adds no public module entitlement, payment method or
+notification type. `wallet`, `vendors`, ticketing and financial card spending
+remain unavailable until their real domain/API/client capabilities are built.
+The existing `fees` module retains historical records read-only; the shared
+retention gate also recognizes module-specific ledger balances and posting
+history, including emptied wallets when those future modules are registered.
+No school's history grants another school's entitlement.
+
+`ledger:reconcile --json` runs nightly at02:20 and reports failures through the
+critical structured `money_ledger_reconciliation_failed` signal. Deployed paging
+must be connected to the school's existing operations route before real money
+uses this kernel. The command's default is read-only; `--rebuild` repairs only
+cached projections from valid posted history. Stable financial receipt identity
+is permanent, separate from the pruned24-hour HTTP replay cache. Existing notice
+routing still rechecks source, current recipient and transport permissions.

@@ -104,3 +104,12 @@ flowchart LR
 - [phase-0.md](phase-0.md)
 - [wiki Security-Model](../../wiki/Security-Model.md)
 - [runbooks/incident.md](../runbooks/incident.md)
+
+## Money-foundation preparation, 26 October 2026
+
+The internal ledger adds immutable school-scoped accounts/entries/postings,
+permanent operation/source identities, database finalization guards and a nightly
+reconciliation signal. It exposes no new public posting API or provider. The
+additional threat boundaries and exact verification limits are recorded in the
+[scoped preparation review](p5-preparation.md). This supplements the original
+system model; it does not certify the future commerce surfaces or live release.

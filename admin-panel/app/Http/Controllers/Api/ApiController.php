@@ -148,7 +148,9 @@ class ApiController extends Controller
                 $data['online_payment'] = $settings['online_payment'] ?? '1';
                 $data['is_demo'] = config('app.demo_mode');
 
-                $data['compulsory_fee_payment_mode'] = $settings['compulsory_fee_payment_mode'] ?? '';
+                // Keep the v1 field but never instruct installed clients to
+                // restrict learning. The stored setting controls reminders.
+                $data['compulsory_fee_payment_mode'] = '0';
                 $data['is_student_can_pay_fees'] = $settings['is_student_can_pay_fees'] ?? '';
 
                 if (isset($settings['max_file_size_in_bytes'])) {

@@ -212,7 +212,6 @@ class Routes {
       feesDetails ||
       feesTransaction ||
       paymentVerify ||
-      studentFeePaymentDueScreen ||
       webViewPaymentScreen => 'fees',
       _ => null,
     };

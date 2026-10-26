@@ -55,13 +55,17 @@ Parents have the flexibility to pay pending fees for the current session year. T
 
 In the settings -> fees transaction option, parents can review all fee payment transactions, including the amount and status of each payment made.
 
-## Compulsory Fee Payment Settings
+## Overdue fee reminders
 
-The Admin can enable the compulsory fee payment mode from the Fees Configurations form. When this mode is activated, parents are required to pay the compulsory fees for their child before the due date to ensure the continuation of their child's studies and access to the student application.
+School staff can enable overdue fee reminders in Fees Configuration and set the
+fee reminder start date with the school year's fee settings. The learner profile
+can show that fees are overdue once the applicable due date and reminder start
+date have passed, including an unpaid installment.
 
-The application-usage restriction will be activated only if the fee-payment is due after the free app usage date is reached. This can be added while setting-up fees settings while creating session year which defaults to compulsory fee payment's due date.
-
-After the due date is reached, the student has to pay fees to use application either fully for the session year or installments (if enabled). If they choose to pay installments and after next installment is due, they'll again not be able to use application without paying the due installment first.
+Unpaid fees never restrict learner access to the application, learning, marks or
+released reports. Learners sign in to Home, and parents can open their child's
+academic screens while fees remain unpaid. Fee statements and payments remain in
+the Fees section under the school's module and guardian permissions.
 
 ## Student Can Pay Their Own Fees
 

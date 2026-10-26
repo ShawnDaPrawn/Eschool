@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models\Platform;
 
+use App\Casts\UtcInstant;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 /**
  * A domain event in the outbox (domain_events). Written by Outbox::record()
@@ -15,9 +16,9 @@ use Illuminate\Support\Carbon;
  * @property int|null $school_id
  * @property string $type
  * @property array<string, mixed> $payload
- * @property Carbon $occurred_at
- * @property Carbon|null $available_at
- * @property Carbon|null $dispatched_at
+ * @property CarbonImmutable $occurred_at
+ * @property CarbonImmutable|null $available_at
+ * @property CarbonImmutable|null $dispatched_at
  * @property int $attempts
  * @property string|null $last_error
  */
@@ -32,9 +33,9 @@ class OutboxEvent extends Model
     protected $casts = [
         'school_id' => 'integer',
         'payload' => 'array',
-        'occurred_at' => 'datetime',
-        'available_at' => 'datetime',
-        'dispatched_at' => 'datetime',
+        'occurred_at' => UtcInstant::class,
+        'available_at' => UtcInstant::class,
+        'dispatched_at' => UtcInstant::class,
         'attempts' => 'integer',
     ];
 }

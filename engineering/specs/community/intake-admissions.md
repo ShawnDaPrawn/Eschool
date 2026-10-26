@@ -70,3 +70,13 @@ with application contact fields as defaults. A matching existing global identity
 keeps its identity values, including values held by another school; school-owned
 custom profile answers retain their separate school scope. Application contact
 email proof never substitutes for learner guardian approval.
+
+
+### Optional contact mobile and joined identity handover
+
+Contact mobile remains optional. Enrolment preserves null on the canonical
+User/contact data and uses an empty value only for the legacy Parents column
+that requires a non-null string. A missing number must not prevent enrolment or
+become an invented number. The admitted-community journey test composes actual
+invitation/approval, group allocation, card issue/scan, notice inbox and queued
+recipient checks, then refuses stale authority after school switch/withdrawal.
