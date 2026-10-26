@@ -63,7 +63,7 @@ class VisitQueries
             }
         }
         $hosts = [];
-        if ($manager || in_array('Parent', $roles, true)) {
+        if ($manager) {
             $rows = User::whereIn('id', SchoolMembership::active()->where('school_id', app(CurrentSchool::class)->id())->whereNotIn('role', ['Parent', 'Student'])->select('user_id'))->where('status', 1)->orderBy('id')->limit(201)->get();
             abort_if($rows->count() > 200, 422, 'Narrow the meeting staff roster.');
             foreach ($rows as $row) {

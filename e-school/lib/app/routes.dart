@@ -161,6 +161,7 @@ class Routes {
   static const String recognition = '/community/recognition';
   static const String schoolTransfers = '/academics/transfers';
   static const String familyForms = '/family-forms';
+  static const String familyVisits = '/family-visits';
   static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
@@ -188,6 +189,7 @@ class Routes {
       mastery => 'mastery',
       consultations => 'consultations',
       familyForms => 'family_forms',
+      familyVisits => 'family_visits',
       schoolCards => 'cards',
       tutor || tutorSummary => 'tutor',
       dailyPractice => 'daily_practice',
@@ -414,6 +416,8 @@ class Routes {
         return dailyPracticeRoute();
       case mastery:
         return masteryRoute();
+      case familyVisits:
+        return familyVisitsRoute();
       case familyForms:
         return familyFormsRoute();
       case schoolCards:
