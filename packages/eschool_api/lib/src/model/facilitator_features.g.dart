@@ -41,6 +41,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(Map<String, dynamic> json) =>
           learnerNotes: $checkedConvert('learner_notes', (v) => v as bool?),
           cards: $checkedConvert('cards', (v) => v as bool?),
           familyForms: $checkedConvert('family_forms', (v) => v as bool?),
+          examCoach: $checkedConvert('exam_coach', (v) => v as bool?),
         );
         return val;
       },
@@ -56,6 +57,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(Map<String, dynamic> json) =>
         'supportPlans': 'support_plans',
         'learnerNotes': 'learner_notes',
         'familyForms': 'family_forms',
+        'examCoach': 'exam_coach',
       },
     );
 
@@ -81,4 +83,5 @@ Map<String, dynamic> _$FacilitatorFeaturesToJson(
   'learner_notes': ?instance.learnerNotes,
   'cards': ?instance.cards,
   'family_forms': ?instance.familyForms,
+  'exam_coach': ?instance.examCoach,
 };

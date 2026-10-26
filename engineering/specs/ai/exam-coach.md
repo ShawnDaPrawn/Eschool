@@ -29,5 +29,4 @@ guardian approval, role/module withdrawal and source changes are tested. Questio
 No public file URLs, paid provider activation or invented live-model acceptance
 is part of implementation.
 
-Current work: library/study-plan domain is implemented and domain-tested. API/SDK,
-staff/learner clients and vision feedback are not yet implemented or qualified.
+Current work: the library/study-plan domain and seventeen private typed API operations are implemented and tested with the generated SDK. Staff/learner clients and the separate vision-feedback increment remain in progress; no full Exam Coach acceptance is claimed.

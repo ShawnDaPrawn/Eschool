@@ -433,6 +433,38 @@ import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
 import 'package:eschool_api/src/model/enrolment_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/exam_coach_configuration.dart';
+import 'package:eschool_api/src/model/exam_coach_configuration_response.dart';
+import 'package:eschool_api/src/model/exam_coach_exam_choice.dart';
+import 'package:eschool_api/src/model/exam_coach_exam_dates.dart';
+import 'package:eschool_api/src/model/exam_coach_exam_dates_response.dart';
+import 'package:eschool_api/src/model/exam_coach_group_choice.dart';
+import 'package:eschool_api/src/model/exam_coach_licence.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_list.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_list_response.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_receipt_response.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_summary.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_version.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_version_response.dart';
+import 'package:eschool_api/src/model/exam_coach_paper_write.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_list.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_list_response.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_paper.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_receipt_response.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_summary.dart';
+import 'package:eschool_api/src/model/exam_coach_plan_write.dart';
+import 'package:eschool_api/src/model/exam_coach_question.dart';
+import 'package:eschool_api/src/model/exam_coach_question_write.dart';
+import 'package:eschool_api/src/model/exam_coach_revision_write.dart';
+import 'package:eschool_api/src/model/exam_coach_staff_choices.dart';
+import 'package:eschool_api/src/model/exam_coach_staff_choices_response.dart';
+import 'package:eschool_api/src/model/exam_coach_study_day.dart';
+import 'package:eschool_api/src/model/exam_coach_study_plan.dart';
+import 'package:eschool_api/src/model/exam_coach_study_plan_response.dart';
+import 'package:eschool_api/src/model/exam_coach_topic_choice.dart';
+import 'package:eschool_api/src/model/exam_coach_withdrawal_write.dart';
 import 'package:eschool_api/src/model/facilitator_features.dart';
 import 'package:eschool_api/src/model/facilitator_policy.dart';
 import 'package:eschool_api/src/model/facilitator_profile.dart';
@@ -2534,6 +2566,112 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ErrorCode':
     case 'ErrorResponse':
       return ErrorResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachConfiguration':
+      return ExamCoachConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachConfigurationResponse':
+      return ExamCoachConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachExamChoice':
+      return ExamCoachExamChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachExamDates':
+      return ExamCoachExamDates.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachExamDatesResponse':
+      return ExamCoachExamDatesResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachGroupChoice':
+      return ExamCoachGroupChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachLicence':
+      return ExamCoachLicence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPaperList':
+      return ExamCoachPaperList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPaperListResponse':
+      return ExamCoachPaperListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPaperReceipt':
+      return ExamCoachPaperReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPaperReceiptResponse':
+      return ExamCoachPaperReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachPaperSummary':
+      return ExamCoachPaperSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPaperVersion':
+      return ExamCoachPaperVersion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPaperVersionResponse':
+      return ExamCoachPaperVersionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachPaperWrite':
+      return ExamCoachPaperWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPlanList':
+      return ExamCoachPlanList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPlanListResponse':
+      return ExamCoachPlanListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPlanPaper':
+      return ExamCoachPlanPaper.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPlanReceipt':
+      return ExamCoachPlanReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPlanReceiptResponse':
+      return ExamCoachPlanReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachPlanSummary':
+      return ExamCoachPlanSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachPlanWrite':
+      return ExamCoachPlanWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachQuestion':
+      return ExamCoachQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachQuestionWrite':
+      return ExamCoachQuestionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachRevisionWrite':
+      return ExamCoachRevisionWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachStaffChoices':
+      return ExamCoachStaffChoices.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachStaffChoicesResponse':
+      return ExamCoachStaffChoicesResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachStudyDay':
+      return ExamCoachStudyDay.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachStudyPlan':
+      return ExamCoachStudyPlan.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachStudyPlanResponse':
+      return ExamCoachStudyPlanResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachTopicChoice':
+      return ExamCoachTopicChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachWithdrawalWrite':
+      return ExamCoachWithdrawalWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'FacilitatorFeatures':
       return FacilitatorFeatures.fromJson(value as Map<String, dynamic>)
