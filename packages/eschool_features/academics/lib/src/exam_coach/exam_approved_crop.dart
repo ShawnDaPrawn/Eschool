@@ -17,8 +17,12 @@ Future<TutorPhotoIntent> examApprovedCrop(TutorPhotoIntent input) async {
   ui.Codec? codec;
   ui.Image? source, result;
   ui.Picture? picture;
+  // WebCodecs' JS interop requires a native Uint8List, while the exact human
+  // intent deliberately exposes an unmodifiable view. Keep that intent frozen
+  // and give the decoder its own bounded, short-lived buffer.
+  final decoderBytes = Uint8List.fromList(input.bytes);
   try {
-    codec = await ui.instantiateImageCodec(input.bytes);
+    codec = await ui.instantiateImageCodec(decoderBytes);
     source = (await codec.getNextFrame()).image;
     final recorder = ui.PictureRecorder();
     ui.Canvas(recorder).drawImageRect(
@@ -55,5 +59,6 @@ Future<TutorPhotoIntent> examApprovedCrop(TutorPhotoIntent input) async {
     picture?.dispose();
     source?.dispose();
     codec?.dispose();
+    decoderBytes.fillRange(0, decoderBytes.length, 0);
   }
 }

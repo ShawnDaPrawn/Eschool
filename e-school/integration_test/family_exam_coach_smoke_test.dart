@@ -178,6 +178,19 @@ void main() {
             'Share this cropped working and provisional feedback with my allocated teacher.',
           ),
         );
+        expect(
+          tester
+              .widget<CheckboxListTile>(
+                find.ancestor(
+                  of: find.text(
+                    'Share this cropped working and provisional feedback with my allocated teacher.',
+                  ),
+                  matching: find.byType(CheckboxListTile),
+                ),
+              )
+              .value,
+          isTrue,
+        );
         await tap(
           tester,
           find.text('Select the whole photo if it contains only working'),
@@ -188,10 +201,16 @@ void main() {
         );
         expect(
           tester
-              .widgetList<Checkbox>(find.byType(Checkbox))
-              .where((c) => c.value == true)
-              .length,
-          greaterThanOrEqualTo(2),
+              .widget<CheckboxListTile>(
+                find.ancestor(
+                  of: find.text(
+                    'I checked this selection contains only my working.',
+                  ),
+                  matching: find.byType(CheckboxListTile),
+                ),
+              )
+              .value,
+          isTrue,
         );
         await seek(tester, find.text('Use this working crop'));
         expect(
