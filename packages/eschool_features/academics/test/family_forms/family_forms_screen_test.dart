@@ -113,7 +113,7 @@ void main() {
       final pending = adapter.readFile(
         subject,
         ProfileAttachment(
-          id: fileToken,
+          id: fixtureFileId,
           name: 'Synthetic',
           mime: 'image/png',
           size: 3,

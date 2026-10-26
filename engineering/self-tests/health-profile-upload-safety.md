@@ -21,3 +21,9 @@ before scanning, purpose drift before storage, encrypted files, wrong-role/owner
 school boundaries, final withdrawal rollback, transfer and exit document round trips.
 Test scanners are explicit synthetic protocol fixtures; no deployed engine,
 retrospective scan of retained files or production acceptance is claimed.
+
+Two historical secret-scan flags are synthetic protected file identifiers, not
+credentials. The exact public commit/path/rule/line fingerprints are documented
+in .gitleaksignore; no rule or path is exempted broadly. Current fixtures use the
+name fixtureFileId. Renamed fixtures analyze cleanly, and the exact public
+ancestor history (573 commits) scans with no leaks.
