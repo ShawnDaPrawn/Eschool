@@ -269,7 +269,9 @@ minimal consent history; rollback refuses populated tables.
 
 `ledger_accounts` belongs to a school and fixes type, module, owner (optional
 user), reference, currency and normal debit/credit direction. Its integer-cent
-balance is a verified projection. `ledger_entries` fixes a school-unique permanent
+balance is a verified projection. Shared cash/collection account types select
+their immutable owning financial module at creation; wallet-only cash accounts
+require no fees entitlement. `ledger_entries` fixes a school-unique permanent
 idempotency key and a separate unique business source, canonical request hash,
 description/currency and UTC creation/finalization instants. `ledger_postings`
 stores positive integer cents and direction, with composite school/account and

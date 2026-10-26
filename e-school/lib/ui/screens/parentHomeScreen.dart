@@ -281,17 +281,22 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
             borderRadius: BorderRadius.circular(20),
           ),
           width: width,
-          height: 160,
+          constraints: const BoxConstraints(minHeight: 160),
           child: LayoutBuilder(
             builder: (context, boxConstraints) {
               return Stack(
+                alignment: Alignment.center,
                 clipBehavior: Clip.none,
                 children: [
                   Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 12,
+                      ),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           AbsorbPointer(
@@ -353,10 +358,6 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onPrimary,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12,
                               ),

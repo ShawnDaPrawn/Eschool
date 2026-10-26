@@ -17,20 +17,24 @@ final class LedgerService
 {
     public const MAX_CENTS = 9000000000000000;
 
-    public function openAccount(AccountType $type, string $reference, string $currency, ?int $ownerUserId = null): int
+    public function openAccount(AccountType $type, string $reference, string $currency, ?int $ownerUserId = null, ?string $module = null): int
     {
         self::identifier($reference);
         $currency = Money::zero($currency)->currency;
+        $module ??= $type->module();
+        if (! in_array($module, $type->allowedModules(), true)) {
+            throw new InvalidArgumentException('This account type does not belong to the selected financial module.');
+        }
         $school = app(CurrentSchool::class)->id();
 
-        return DB::transaction(function () use ($school, $type, $reference, $currency, $ownerUserId): int {
+        return DB::transaction(function () use ($school, $type, $reference, $currency, $ownerUserId, $module): int {
             $this->lockSchool($school);
             if ($ownerUserId !== null && SchoolMembership::query()->active()->where('school_id', $school)->where('user_id', $ownerUserId)->lockForUpdate()->first() === null) {
                 throw new DomainException('The account owner must have an active membership in this school.');
             }
             $existing = $this->accounts($school)->where('reference', $reference)->lockForUpdate()->first();
             if ($existing !== null) {
-                if ($existing->type !== $type->value || $existing->currency !== $currency || $existing->owner_user_id != $ownerUserId) {
+                if ($existing->type !== $type->value || $existing->currency !== $currency || $existing->owner_user_id != $ownerUserId || $existing->module !== $module) {
                     throw new DomainException('Account reference was already used with another definition.');
                 }
 
@@ -38,7 +42,7 @@ final class LedgerService
             }
 
             return $this->accounts($school)->insertGetId([
-                'school_id' => $school, 'type' => $type->value, 'reference' => $reference, 'module' => $type->module(),
+                'school_id' => $school, 'type' => $type->value, 'reference' => $reference, 'module' => $module,
                 'currency' => $currency, 'normal_direction' => $type->normalDirection(), 'owner_user_id' => $ownerUserId,
                 'balance_cents' => 0, 'created_at' => now('UTC')->format('Y-m-d H:i:s.u'),
             ]);

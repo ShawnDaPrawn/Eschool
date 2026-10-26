@@ -10,6 +10,7 @@ activation or physical-device acceptance is inferred from a merge.
 | Cohort | Result and scope |
 | --- | --- |
 | Final money/access/translation cohort | 25 tests passed, 14,536 assertions (including translation catalogue assertions). Twenty kernel tests cover integer balance/currency, permanent key/source replay, direct SQL immutability/invariants, owner/school/context refusal, disabled/package-removed wallet history, suspension, projection reconciliation, independent-process concurrent spends/retries, and four real two-connection stale snapshots. Two approved-unpaid access/privacy tests and three existing translation checks complete the cohort. |
+| Module independence follow-up | 34 tests / 294 assertions passed: the current 21 kernel tests plus 13 module-control tests, including wallet cash funding with fees off, immutable account-module ownership and disabled-switch refusal. Cohorts overlap and are not summed. |
 | Joined/backend handover cohort | 108 tests / 1,683 assertions passed across admissions, approval, module controls, table tenancy, outbox, live publication, notifier and queued delivery. This includes the three new admission→guardian→enrolment/transfer/receipt stories. |
 | Learner route widgets | 35 routing/widget tests passed, including both saved fee-lock redirects and the real route when the fees module is off. |
 | Family app analysis | No errors or warnings; existing informational lints remain. |
@@ -74,6 +75,23 @@ not claim a new complete four-profile browser/device sweep. No new wallet,
 vendor or payment UI exists in this foundation. Future scoped vendor access,
 online financial card authorization, source cutover and per-school history
 preservation are explicit [contracts](../../specs/money/ledger-foundation.md).
+
+## Parent overdue-reminder layout regression
+
+The first delivery head's strict Chrome child-switch job failed. A local run
+reproduced the same failure. A temporary diagnostic handler, which called the
+original error handler, captured two actual RenderFlex overflows of8.8pixels
+at the Parent child-card Column. The fixed160px card could not contain the
+additional informational reminder.
+
+Child cards now have a minimum height and grow with content, with padding for
+the existing bottom arrow. Reminder text has no false link underline. The
+original child-switch test was restored without diagnostic/error suppression,
+and its complete real Chrome flow passed. The ordinary framework error handling
+and all child selection/request assertions remain intact. No test was skipped
+or reclassified as a transport retry. Logs: `pre-money-child-browser-red.log`,
+`pre-money-child-browser-red-errors.json`, `pre-money-child-browser-green.log`.
+Hosted Chrome and Android jobs must pass on the final revision before merge.
 
 ## External evidence and subsequent slices
 

@@ -13,6 +13,11 @@ one explicit currency. Positive debit/credit lines must balance, contain 2–100
 postings, and fit the supported integer range. An immutable account has a school,
 type, stable reference, normal direction, currency, module and optional person.
 A person must have an active school membership when opening their account.
+Shared cash-desk/clearing/due-to-school accounts fix their owning financial module
+explicitly at creation (fees by default for fee callers). Wallet cash accounts
+use `module: wallet`, so wallet-only schools never require the fees switch.
+Wallet, vendor and family/fee-receivable types retain their own module ownership;
+an existing reference cannot be reassigned to bypass a disabled switch.
 
 Cash-desk, receivable and clearing accounts are debit-normal; family, wallet,
 vendor and due-to-school accounts are credit-normal. Each wallet's balance must

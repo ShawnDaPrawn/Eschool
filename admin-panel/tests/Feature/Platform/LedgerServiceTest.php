@@ -145,6 +145,21 @@ class LedgerServiceTest extends TestCase
         $this->refuses(fn () => $this->ledger->openAccount(AccountType::Family, 'family:1', 'ZAR', $this->schoolA->ids['mona_user']));
     }
 
+    public function test_wallet_cash_accounts_do_not_require_fees_and_cannot_be_reassigned_to_bypass_a_switch(): void
+    {
+        app(ModuleGate::class)->change('fees', false, $this->superAdmin());
+        $cash = $this->ledger->openAccount(AccountType::CashDesk, 'cash:wallet', 'ZAR', module: 'wallet');
+        $wallet = $this->ledger->openAccount(AccountType::Wallet, 'wallet:1', 'ZAR');
+        $this->ledger->post('wallet:fund', 'wallet:fund', 'Wallet cash deposit', [Posting::debit($cash, Money::ofCents(100)), Posting::credit($wallet, Money::ofCents(100))]);
+        $this->assertSame(100, $this->ledger->balance($wallet)->cents);
+        $this->assertSame('wallet', DB::table('ledger_accounts')->where('id', $cash)->value('module'));
+        $this->refuses(fn () => $this->ledger->openAccount(AccountType::CashDesk, 'cash:wallet', 'ZAR', module: 'fees'));
+        $this->refuses(fn () => $this->ledger->post('fees:cash', 'fees:cash', 'Wrong cash module', [Posting::debit($this->cash, Money::ofCents(100)), Posting::credit($wallet, Money::ofCents(100))]));
+        app(ModuleGate::class)->change('wallet', false, $this->superAdmin());
+        $this->refuses(fn () => $this->ledger->post('wallet:again', 'wallet:again', 'Disabled wallet deposit', [Posting::debit($cash, Money::ofCents(100)), Posting::credit($wallet, Money::ofCents(100))]));
+        $this->assertSame(1, DB::table('ledger_entries')->count());
+    }
+
     public function test_package_removal_preserves_wallet_history_and_refuses_new_money(): void
     {
         $wallet = $this->ledger->openAccount(AccountType::Wallet, 'wallet:1', 'ZAR');

@@ -17,3 +17,9 @@ exercise Home/subjects/marks/reports, guardian fee privacy and other-school
 refusal. Existing learner and child-switch smoke journeys now use unpaid
 profiles with compulsory mode enabled, including a persisted learner session.
 A widget test exercises the saved legacy route.
+
+
+The Parent child cards use a minimum height and expand for overdue-reminder text
+and larger content. The informational reminder has no link underline; opening
+the child keeps its academic destination. A real Chrome RED→GREEN case verifies
+the formerly overflowing two-child unpaid journey without suppressing errors.

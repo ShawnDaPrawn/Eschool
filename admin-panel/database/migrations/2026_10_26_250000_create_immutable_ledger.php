@@ -58,7 +58,9 @@ return new class extends Migration
             type IN ('fee_receivable','family','wallet','vendor','clearing','due_to_school','cash_desk')
             AND currency REGEXP '^[A-Z]{3}$'
             AND normal_direction = CASE WHEN type IN ('fee_receivable','cash_desk','clearing') THEN 'debit' ELSE 'credit' END
-            AND module = CASE type WHEN 'wallet' THEN 'wallet' WHEN 'vendor' THEN 'vendors' ELSE 'fees' END
+            AND ((type = 'wallet' AND module = 'wallet') OR (type = 'vendor' AND module = 'vendors')
+                OR (type IN ('fee_receivable','family') AND module = 'fees')
+                OR (type IN ('cash_desk','clearing','due_to_school') AND module IN ('fees','wallet','vendors','ticketing')))
             AND balance_cents BETWEEN -9000000000000000 AND 9000000000000000
             AND (type <> 'wallet' OR balance_cents >= 0)
             AND (type NOT IN ('clearing','due_to_school') OR balance_cents = 0))");

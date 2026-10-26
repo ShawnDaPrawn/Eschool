@@ -30,4 +30,13 @@ enum AccountType: string
             default => 'fees',
         };
     }
+
+    /** @return list<string> */
+    public function allowedModules(): array
+    {
+        return match ($this) {
+            self::CashDesk, self::Clearing, self::DueToSchool => ['fees', 'wallet', 'vendors', 'ticketing'],
+            default => [$this->module()],
+        };
+    }
 }
