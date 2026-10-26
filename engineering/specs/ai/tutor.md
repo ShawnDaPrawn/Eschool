@@ -17,3 +17,16 @@ The quarantine participant correlates operation, feature, school, actor and lear
 External inference, Tutor feature and provider qualification stay off by default. The deployment must explicitly choose a qualified model and conservative configured rate; code supplies neither live credentials nor an invented model/price acceptance. Eleven private HTTP operations and their typed SDK now expose the domain; Student conversation/photo readers and a separate Parent summary are now implemented and browser-qualified. Explicit topic selection and verified exercise outcome integration remain; this is not the full Phase 3 delivery.
 
 Own human-authored pending/failed questions and working can be recovered by the exact operation after fresh student/session authorization. This does not expose AI output without source checks: quarantined/purged input stays hidden, and completed AI replies always reauthorize their exact sources and approved photo references. Pending crop receipts are recoverable from the session; a per-owner pending/active crop quota never evicts an unresolved upload to make room. Explicit revocation frees capacity. Parent code only needs the existing own-child approved learning-content catalogue to choose subjects and the dedicated metadata summary; it has no chat/write authority or dependency on the mastery switch.
+
+Published-topic sessions optionally pin a current-group curriculum topic. Old
+subject-only requests retain their original request hash and remain supported.
+The selected topic is part of versioned prompt context and reauthorization.
+
+A separate deterministic checkpoint uses only a current teacher-approved practice
+version for that topic and one of the session's selected published content
+versions. Correct answers/explanations are hidden until the first valid attempt.
+That attempt is immutable and each learner can receive a version only once,
+across new sessions/UUIDs. It creates self-study (`practice` audience) mastery
+evidence; chat confidence and official question marks are never used as proof.
+Checkpoints require current daily-practice permission as well as Tutor, while
+ordinary subject chat remains available independently.

@@ -14,6 +14,7 @@ use App\Policies\Academics\ContentPolicy;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\ReleasedMarks;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -34,14 +35,16 @@ class TutorQueries
                     ->whereHas('audienceGroups', fn ($g) => $g->where('teaching_group_id', $group->id)))
                 ->latest('id')->limit(50)->get();
             $items[] = ['id' => (int) $group->id, 'name' => $group->name, 'subject_id' => (int) $group->subject_id, 'subject_name' => $group->subject?->name,
-                'sources' => $versions->map(fn ($v) => ['id' => (int) $v->id, 'title' => $v->metadata['title']])->all()];
+                'sources' => $versions->map(fn ($v) => ['id' => (int) $v->id, 'title' => $v->metadata['title']])->all(),
+                'topics' => app(TutorTopics::class)->forGroup($group)->map(fn ($node) => ['id' => (int) $node->id, 'name' => $node->name])->all()];
         }
         app(TutorAccess::class)->learner($actor);
 
         return ['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id, 'learner_id' => (int) $person->id,
             'session_year_id' => (int) schoolSetting('session_year'), 'groups' => $items,
             'inference_enabled' => config('ai.inference.enabled') === true && config('ai.inference.features.tutor.enabled') === true,
-            'photo_requires_approved_crop' => true, 'feedback_is_provisional' => true];
+            'photo_requires_approved_crop' => true, 'feedback_is_provisional' => true,
+            'checkpoints_enabled' => app(ModuleGate::class)->allows('daily_practice')];
     }
 
     public function sessions(User $actor, int $page = 1): array

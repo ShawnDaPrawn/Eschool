@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:eschool_api/src/model/tutor_source_choice.dart';
+import 'package:eschool_api/src/model/tutor_topic_choice.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'tutor_group_choice.g.dart';
@@ -26,6 +27,8 @@ class TutorGroupChoice {
     required this.subjectName,
 
     required this.sources,
+
+    this.topics,
   });
 
   // minimum: 1
@@ -45,6 +48,9 @@ class TutorGroupChoice {
   @JsonKey(name: r'sources', required: true, includeIfNull: false)
   final List<TutorSourceChoice> sources;
 
+  @JsonKey(name: r'topics', required: false, includeIfNull: false)
+  final List<TutorTopicChoice>? topics;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -53,7 +59,8 @@ class TutorGroupChoice {
           other.name == name &&
           other.subjectId == subjectId &&
           other.subjectName == subjectName &&
-          other.sources == sources;
+          other.sources == sources &&
+          other.topics == topics;
 
   @override
   int get hashCode =>
@@ -61,7 +68,8 @@ class TutorGroupChoice {
       name.hashCode +
       subjectId.hashCode +
       (subjectName == null ? 0 : subjectName.hashCode) +
-      sources.hashCode;
+      sources.hashCode +
+      topics.hashCode;
 
   factory TutorGroupChoice.fromJson(Map<String, dynamic> json) =>
       _$TutorGroupChoiceFromJson(json);

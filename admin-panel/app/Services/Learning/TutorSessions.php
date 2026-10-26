@@ -26,19 +26,25 @@ class TutorSessions
 {
     public const SUPPORT_MESSAGE = 'Please talk to a trusted adult or your school safeguarding team. If you are in immediate danger, contact local emergency services.';
 
-    public function create(User $actor, int $groupId, array $versions, string $operation): array
+    public function create(User $actor, int $groupId, array $versions, string $operation, ?int $topicId = null): array
     {
         $group = app(TutorAccess::class)->group($actor, $groupId, true);
         Validator::make(['versions' => $versions, 'operation_id' => $operation], ['versions' => ['required', 'array', 'min:1', 'max:3'],
             'versions.*' => ['required', 'integer', 'min:1', 'distinct'], 'operation_id' => ['required', 'uuid']])->validate();
+        if ($topicId !== null) {
+            app(TutorTopics::class)->topic($group, $topicId);
+        }
         $versions = array_map('intval', $versions);
         sort($versions);
-        $hash = hash('sha256', json_encode([$groupId, $versions], JSON_THROW_ON_ERROR));
+        $hash = hash('sha256', json_encode($topicId === null ? [$groupId, $versions] : [$groupId, $versions, $topicId], JSON_THROW_ON_ERROR));
         $school = app(CurrentSchool::class)->id();
 
-        return DB::transaction(function () use ($actor, $group, $versions, $operation, $hash, $school) {
+        return DB::transaction(function () use ($actor, $group, $versions, $operation, $hash, $school, $topicId) {
             School::lockForUpdate()->findOrFail($school);
             $group = app(TutorAccess::class)->group($actor, (int) $group->id, true);
+            if ($topicId !== null) {
+                app(TutorTopics::class)->topic($group, $topicId);
+            }
             $prior = TutorSession::where('operation_id', $operation)->first();
             if ($prior !== null) {
                 abort_unless((int) $prior->user_id === (int) $actor->id && hash_equals($hash, $prior->request_hash), 409);
@@ -48,7 +54,7 @@ class TutorSessions
                 $learner = app(TutorAccess::class)->learner($actor, true);
                 $session = TutorSession::create(['id' => (string) Str::uuid(), 'learner_id' => $learner->id, 'user_id' => $actor->id,
                     'teaching_group_id' => $group->id, 'subject_id' => $group->subject_id, 'session_year_id' => $group->session_year_id,
-                    'operation_id' => $operation, 'request_hash' => $hash, 'source_version_ids' => $versions]);
+                    'operation_id' => $operation, 'request_hash' => $hash, 'source_version_ids' => $versions, 'topic_id' => $topicId]);
             }
             foreach ($versions as $version) {
                 app(TutorContext::class)->version($actor, $session, $version);
@@ -198,7 +204,7 @@ class TutorSessions
     private function sessionData(TutorSession $session): array
     {
         return ['id' => $session->id, 'learner_id' => (int) $session->learner_id, 'subject_id' => (int) $session->subject_id,
-            'group_id' => (int) $session->teaching_group_id, 'session_year_id' => (int) $session->session_year_id, 'state' => $session->state];
+            'group_id' => (int) $session->teaching_group_id, 'session_year_id' => (int) $session->session_year_id, 'state' => $session->state, 'topic_id' => $session->topic_id];
     }
 
     public function read(User $actor, string $id, int $page = 1): array
@@ -215,7 +221,7 @@ class TutorSessions
         app(TutorAccess::class)->session($actor, $id);
 
         return $this->sessionData($session) + ['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $actor->id,
-            'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'turns' => $data, 'pending_photos' => $pendingPhotos];
+            'page' => $rows->currentPage(), 'last_page' => $rows->lastPage(), 'turns' => $data, 'pending_photos' => $pendingPhotos, 'checkpoints' => app(TutorCheckpoints::class)->summaries($actor, $session)];
     }
 
     public function turnByOperation(User $actor, string $session, string $operation): array

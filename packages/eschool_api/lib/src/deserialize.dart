@@ -995,6 +995,12 @@ import 'package:eschool_api/src/model/transfer_revision_input.dart';
 import 'package:eschool_api/src/model/transfer_summary.dart';
 import 'package:eschool_api/src/model/transfer_write_receipt.dart';
 import 'package:eschool_api/src/model/transfer_write_receipt_response.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_answer_write.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_detail.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_detail_response.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_option.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_question.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_summary.dart';
 import 'package:eschool_api/src/model/tutor_configuration.dart';
 import 'package:eschool_api/src/model/tutor_configuration_response.dart';
 import 'package:eschool_api/src/model/tutor_feedback.dart';
@@ -1015,6 +1021,7 @@ import 'package:eschool_api/src/model/tutor_session_result.dart';
 import 'package:eschool_api/src/model/tutor_session_result_response.dart';
 import 'package:eschool_api/src/model/tutor_session_write.dart';
 import 'package:eschool_api/src/model/tutor_source_choice.dart';
+import 'package:eschool_api/src/model/tutor_topic_choice.dart';
 import 'package:eschool_api/src/model/tutor_turn.dart';
 import 'package:eschool_api/src/model/tutor_turn_result.dart';
 import 'package:eschool_api/src/model/tutor_turn_result_response.dart';
@@ -4500,6 +4507,26 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'TutorCheckpointAnswerWrite':
+      return TutorCheckpointAnswerWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorCheckpointDetail':
+      return TutorCheckpointDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorCheckpointDetailResponse':
+      return TutorCheckpointDetailResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'TutorCheckpointOption':
+      return TutorCheckpointOption.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorCheckpointQuestion':
+      return TutorCheckpointQuestion.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorCheckpointSummary':
+      return TutorCheckpointSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'TutorConfiguration':
       return TutorConfiguration.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -4561,6 +4588,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'TutorSourceChoice':
       return TutorSourceChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'TutorTopicChoice':
+      return TutorTopicChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'TutorTurn':
       return TutorTurn.fromJson(value as Map<String, dynamic>) as ReturnType;
