@@ -109,7 +109,7 @@ remains explicitly unverified and does not stop independent development.
 | Retained requirement | Software delivery | Remaining implementation/evidence |
 | --- | --- | --- |
 | Scoped facilitator shell and native identities | Implemented Android identities, school-scoped sign-in/onboarding, fresh role/session menus | iOS native build, physical-device and store distribution evidence |
-| Groups and scoped communications | Tree, dated allocations, sessions/registers, authored materials, audience cascades, messages and live presence | Private binary materials and dedicated group-chat threads/replies |
+| Groups and scoped communications | Tree, dated allocations, sessions/registers, authored materials, audience cascades, messages and live presence | Encrypted/scanned binary material domain is implemented; its typed API and client/panel consumers plus dedicated group-chat threads/replies remain |
 | Incident/counsellor workflow | Encrypted scoped casework, appointments, public/identified reports, sanitized private media, follow-up and guarded notices/inboxes | Deployment/device/external acceptance |
 | Consultations | Domain, panel, four app profiles, anonymous separation and scheduled generic notices | Deployment and real delivery acceptance; statutory elections remain Phase 6 |
 | Houses and awards | Caps/reversals, annual catalogue reuse, assembly, permanent awards, actual live Home counter/celebration | Deployed latency and device acceptance |

@@ -45,7 +45,7 @@ final class SchoolOwnedTables
         'support_assignments', 'support_plans', 'support_plan_versions', 'support_reviews', 'support_disclosures', 'support_operations',
         'cover_absences', 'cover_assignments', 'cover_operations',
         'mastery_settings', 'mastery_topics', 'topic_links', 'mastery_evidence', 'mastery_records', 'mastery_scopes',
-        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_operations',
+        'activity_groups', 'activity_group_memberships', 'activity_group_staff', 'activity_sessions', 'activity_attendance', 'activity_materials', 'activity_material_files', 'activity_operations',
         'audiences', 'communication_role_rules', 'communication_operations', 'messages', 'message_recipients', 'message_reads',
         'content_operations', 'content_settings', 'content_items', 'content_sources', 'content_versions', 'content_item_groups', 'content_recipients', 'ai_usage', 'ai_flags',
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
