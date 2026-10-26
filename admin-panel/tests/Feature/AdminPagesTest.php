@@ -33,7 +33,7 @@ class AdminPagesTest extends TestCase
     private const SKIP_PREFIXES = ['api/', 'install', '_debugbar', 'sanctum/', 'storage/'];
 
     /** School administrators do not inherit safeguarding or platform identities. */
-    private const PURPOSE_RESTRICTED = ['ai-flags', 'platform/ai-costs'];
+    private const PURPOSE_RESTRICTED = ['ai-flags', 'platform/ai-costs', 'group-conversations'];
 
     protected function setUp(): void
     {

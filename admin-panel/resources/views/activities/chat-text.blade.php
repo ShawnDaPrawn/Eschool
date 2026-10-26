@@ -1,0 +1,2 @@
+<label for="chat-{{ $prefix }}-language">{{ __('Message language') }}</label><select id="chat-{{ $prefix }}-language" name="language">@foreach(['en'=>'English','af'=>'Afrikaans','zu'=>'isiZulu','ar'=>'العربية'] as $code=>$label)<option value="{{ $code }}" @selected(($draft['language']??'en')===$code)>{{ $label }}</option>@endforeach</select>
+<label for="chat-{{ $prefix }}-body">{{ __('Message') }}</label><textarea id="chat-{{ $prefix }}-body" name="body" required maxlength="{{ $max }}">{{ $draft['body']??'' }}</textarea>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Activities\Chat;
 
+use App\Events\Activities\GroupChatMessagePosted;
+use App\Jobs\Platform\DispatchOutbox;
 use App\Models\Activities\Chat\GroupChatMessage;
 use App\Models\Activities\Chat\GroupChatRead;
 use App\Models\Activities\Chat\GroupChatThread;
@@ -11,9 +13,12 @@ use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Activities\ActivityOperations;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class GroupChatMessages
 {
@@ -74,6 +79,14 @@ class GroupChatMessages
         $thread->last_message_at = now()->utc();
         $thread->save();
         $this->writable($actor, $group, $id, $persona);
+        Outbox::record(new GroupChatMessagePosted(app(CurrentSchool::class)->id(), $group, $id, (int) $message->id, (int) $message->revision));
+        DB::afterCommit(static function () {
+            try {
+                DispatchOutbox::dispatch();
+            } catch (Throwable $error) {
+                Log::warning('group_chat_notice_recovery_pending', ['exception' => $error::class]);
+            }
+        });
 
         return $message;
     }

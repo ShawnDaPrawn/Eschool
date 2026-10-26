@@ -100,6 +100,44 @@ class GroupChatAccess
         return $group;
     }
 
+    /** Small explicit candidate set for generic notice SQL; never management scope. */
+    public function groupIds(User $actor, string $persona): array
+    {
+        $fresh = $this->actor($actor, $persona);
+        $today = app(CommunityAuthority::class)->today();
+        $ids = [];
+        if ($persona === 'staff') {
+            $assignments = ActivityStaff::where('user_id', $fresh->id)->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->select(['activity_group_id', 'role', 'cascade'])->get();
+            foreach ($assignments as $assignment) {
+                $ids[] = (int) $assignment->activity_group_id;
+                if ($assignment->role === 'admin' && $assignment->cascade) {
+                    $group = ActivityGroup::find($assignment->activity_group_id);
+                    if ($group !== null) {
+                        $ids = [...$ids, ...app(CommunityAuthority::class)->descendants($group)];
+                    }
+                }
+            }
+        } else {
+            $ids = ActivityMembership::whereIn('learner_id', $this->learners($fresh, $persona))->where('active', true)->whereDate('starts_on', '<=', $today)->whereDate('ends_on', '>=', $today)->pluck('activity_group_id')->map(fn ($id) => (int) $id)->all();
+        }
+        $allowed = [];
+        foreach (array_unique($ids) as $id) {
+            try {
+                $this->group($fresh, $id, $persona);
+                $allowed[] = $id;
+            } catch (ModelNotFoundException) {
+                continue;
+            } catch (HttpExceptionInterface $error) {
+                if (! in_array($error->getStatusCode(), [403, 404, 423], true)) {
+                    throw $error;
+                }
+            }
+        }
+        $this->actor($actor, $persona);
+
+        return $allowed;
+    }
+
     public function available(User $actor, int $group, string $persona): bool
     {
         if (! app(ModuleGate::class)->allows('chat')) {

@@ -673,7 +673,10 @@ class _StaffHome extends StatelessWidget {
                     ),
                     canOpen: (feature) =>
                         repository.matches(generation, school, user) &&
-                        ((feature == 'progress' &&
+                        ((feature == 'group_chat' &&
+                                repository.profile?.features['groups'] ==
+                                    true) ||
+                            (feature == 'progress' &&
                                 repository.profile?.roles.contains('Teacher') ==
                                     true &&
                                 repository
@@ -695,6 +698,30 @@ class _StaffHome extends StatelessWidget {
                                 repository.profile?.features['consultations'] ==
                                     true)),
                     openFeature: (feature) async {
+                      if (feature == 'group_chat' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['groups'] == true) {
+                        await open(
+                          'groups',
+                          ActivityGroupsScreen(
+                            repository: ApiActivityRepository(
+                              repository.client,
+                              schoolId: school,
+                              accountId: user,
+                              chatPersona: 'staff',
+                              contextActive: () =>
+                                  repository.matches(
+                                    generation,
+                                    school,
+                                    user,
+                                  ) &&
+                                  repository.profile?.features['groups'] ==
+                                      true,
+                            ),
+                          ),
+                        );
+                        return;
+                      }
                       if (feature == 'progress' &&
                           repository.matches(generation, school, user) &&
                           repository.profile?.roles.contains('Teacher') ==
