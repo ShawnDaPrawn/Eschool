@@ -1,3 +1,8 @@
+The new [Ledger foundation](Ledger) is an internal preparation kernel. It has not
+replaced the historical receipt tables or enabled a new payment method. Existing
+academic access is independent of fee arrears: the reminder setting and its start
+date never lock a learner out of Home, marks or released reports.
+
 This page explains how school fees are modelled, how the student/parent app pays them online through Stripe, how a payment is confirmed (only by a signed gateway webhook), how staff record cash and cheque payments, and which settings drive all of it. It describes the code after the fee-forgery fixes in commit `839c9eb` and the Phase 0 removal of the Razorpay, Paystack and Flutterwave gateways (see [Removed gateways](#removed-gateways)). Stripe is the only gateway until the South African gateway arrives in Phase 5.
 
 For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin panel)](https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/), [Payment Gateway's Webhook Configuration](https://shawndaprawn.github.io/Eschool/admin-panel/webhook-config/) and [Fee Payment (features)](https://shawndaprawn.github.io/Eschool/features/fee-payment/).
@@ -180,7 +185,7 @@ Everything below is stored only in the `settings` table (`type`/`message` pairs,
 |---|---|---|---|
 | `currency_code`, `currency_symbol` | Fees configuration | none | Default currency; receipts; `/api/settings` |
 | `default_due_charges`, `enable_fees_installment` | Fees configuration | none | Defaults shown on the session-year form |
-| `compulsory_fee_payment_mode` | Fees configuration | none | When 1, login/profile APIs return `is_fee_payment_due` (from `free_app_use_date`, `fee_due_date`, installments) so the app can block use until fees are paid |
+| `compulsory_fee_payment_mode` | Fees configuration | none | When 1, login/profile APIs return `is_fee_payment_due` (from `free_app_use_date`, `fee_due_date`, installments) for an informational overdue-fee reminder; it never blocks Home, learning, marks or released reports |
 | `is_student_can_pay_fees` | Fees configuration | none | Sent to the app; the student payment endpoints do not check it |
 | `online_payment` | General settings (`SettingController::update`) | none | Sent to the app; not checked by the payment endpoints |
 | `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code` | Fees configuration | `STRIPE_WEBHOOK_SECRET` (`services.stripe.webhook_secret`) | Secret key from settings only; webhook secret from the setting, then the config fallback |

@@ -49,7 +49,7 @@ A user's screenshot or browser network tab shows the `X-Request-Id` response hea
 
 ```sql
 SELECT queue, COUNT(*) AS waiting, MIN(FROM_UNIXTIME(available_at)) AS oldest FROM jobs WHERE reserved_at IS NULL GROUP BY queue;
-SELECT id, uuid, queue, failed_at, LEFT(exception, 300) AS error FROM failed_jobs ORDER BY failed_at DESC LIMIT 20;
+SELECT id, uuid, queue, failed_at FROM failed_jobs ORDER BY failed_at DESC LIMIT 20;
 ```
 
 ## Common failures
@@ -70,10 +70,10 @@ The image's `artisan` role runs one command and exits. Run it as an execution of
 
 ```bash
 gcloud run jobs execute navigateed-scheduler --region=africa-south1 --project=<project> --wait \
-  --update-env-vars=CONTAINER_ROLE=artisan --args=queue:retry,all
+  --update-env-vars=CONTAINER_ROLE=artisan --args='queue:retry,<reviewed-failed-job-uuid>'
 ```
 
-Other useful ones: `--args=queue:failed`, `--args=migrate:status`, `--args=schedule:list`, `--args=permission:cache-reset`, `--args=db:seed,--class=InstallationSeeder,--force`. The output is in the execution's logs. Retry failed jobs only once their cause is fixed.
+Other useful ones: `--args=queue:failed`, `--args=migrate:status`, `--args=schedule:list`, `--args=permission:cache-reset`, `--args=db:seed,--class=InstallationSeeder,--force`. The output is in the execution's logs. Retry only reviewed failed-job UUIDs once their cause is fixed. A provider timeout does not prove it rejected the request: preserve the original operation/receipt and reconcile the unknown outcome before retrying. Do not dump job payloads or exception text into general incident logs. See [Phase 3/4 recovery](phase-3-4-recovery.md) for parked outbox events, fresh-recipient suppression and retention boundaries.
 
 ## Afterwards
 

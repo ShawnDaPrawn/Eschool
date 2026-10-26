@@ -217,3 +217,10 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
 
 Foundation classroom eligibility and device/Teacher delegations (`foundation_classroom_groups`, `foundation_classroom_leases`) are school-owned. Existing classroom learner sessions additionally reference a same-school delegation, never a gate scan.
+
+### Ledger preparation
+
+`ledger_accounts`, `ledger_entries` and `ledger_postings` are required school-owned
+tables. The internal service always supplies an explicit active school; composite
+foreign keys prevent cross-school account/entry postings even through raw SQL.
+There is no public ledger write API. See the [ledger contract](../money/ledger-foundation.md).

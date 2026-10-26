@@ -11,6 +11,17 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Internal school ledger foundation with balanced immutable integer-cents postings,
+  permanent receipt identities, protected wallet balances and nightly reconciliation.
+  Existing receipt history stays intact; this does not activate wallets or payment providers.
+  **Deploy:** rehearse the additive migration (including trigger privileges) and
+  `ledger:reconcile --json` on isolated staging; route critical reconciliation logs
+  to operations before real money uses the ledger.
+
+- Learner Home and parents' child academic screens remain accessible with unpaid
+  fees, including saved links to the former fee-lock screen. Guardian fee privacy
+  and approval checks continue to apply.
+
 - **Platform admin area (`/saas`), first version.** Platform staff can see every school with its package and counts of learners, parents and teachers, set up a school with its first administrator (a one-time password, shown once), change its package and modules, and suspend, archive or restore it with a reason. It reads no person's record and is closed to school administrators. Opening it needs both a platform staff identity and an expiring grant set from the operator console. Support access into a school, imports and usage/health views are not part of this version. **Deploy:** run the migration, then `php artisan platform:staff-identity <user_id>` and `php artisan platform:admin-access <user_id> --hours=8` for each operator.
 
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.

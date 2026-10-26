@@ -139,6 +139,8 @@ jobs:
       # Errors from before static analysis are listed in phpstan-baseline.neon; new ones fail.
       - name: Static analysis (Larastan)
         run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+      - name: Money kernel static analysis (Larastan level 5, no baseline)
+        run: vendor/bin/phpstan analyse -c phpstan-money.neon --memory-limit=1G --no-progress
       # Production installs can run php artisan optimize; every cache must build.
       - name: Config, routes and views cache
         run: php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
@@ -367,8 +369,22 @@ jobs:
           flutter-version: '3.47.7'
           channel: stable
           cache: true
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          # Pull-request caches are isolated by GitHub's ref scope. Forks only
+          # read existing caches; no shared credentials are cached.
+          cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
       - run: flutter pub get --enforce-lockfile
         working-directory: ${{ matrix.app }}
+      - name: Warm the pinned Gradle distribution with bounded download retries
+        working-directory: ${{ matrix.app }}
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if bash android/gradlew --version; then exit 0; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep "$((attempt * 5))"
+          done
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34

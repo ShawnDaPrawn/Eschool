@@ -13,7 +13,10 @@ use App\Models\Admissions\Intake;
 use App\Models\Admissions\IntakeGrade;
 use App\Models\Admissions\Offer;
 use App\Models\ClassSection;
+use App\Models\FeesPaid;
 use App\Models\Parents;
+use App\Models\PaymentTransaction;
+use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianInvitation;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
@@ -22,6 +25,7 @@ use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Students;
+use App\Models\Transfers\TransferReceipt;
 use App\Models\User;
 use App\Services\Admissions\AdmissionOffers;
 use App\Services\Admissions\AdmissionReview;
@@ -34,8 +38,15 @@ use App\Services\Admissions\EnrolApplications;
 use App\Services\Admissions\IntakeAuthority;
 use App\Services\Admissions\IntakeCatalogue;
 use App\Services\Admissions\IntakeRetention;
+use App\Services\Leadership\LeadershipFeeCollections;
 use App\Services\Platform\Files\UploadScanner;
+use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Transfers\TransferAccept;
+use App\Services\Transfers\TransferPackages;
+use App\Services\Transfers\TransferVault;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
@@ -136,6 +147,141 @@ class AdmissionsTest extends TestCase
         } catch (ValidationException $error) {
             $this->assertSame($status, $error->status);
         }
+    }
+
+    private function enrolApplicant(string $suffix, string $startsOn = '2026-02-01'): array
+    {
+        [$row] = $this->accepted($suffix);
+        $input = $this->op(['revision' => $row->revision, 'starts_on' => $startsOn, 'category_id' => $this->schoolA->ids['category']]);
+        $row = app(EnrolApplication::class)->enrol($this->admin, (int) $row->id, $input);
+        $learner = Students::with('user')->findOrFail($row->learner_id);
+        $guardian = User::findOrFail(GuardianLink::where('learner_id', $learner->id)->sole()->guardian_user_id);
+
+        return [$row, $learner, $guardian, $input];
+    }
+
+    private function acceptAdmittedGuardian(User $guardian): string
+    {
+        $invitation = GuardianInvitation::where('guardian_user_id', $guardian->id)->sole();
+        $this->app['auth']->forgetGuards();
+        $reply = $this->postJson('/api/v2/guardian/invitations/'.$invitation->encrypted_token.'/accept', ['password' => 'SyntheticInvitation2026'])->assertOk();
+        $this->assertNotNull($guardian->fresh()->email_verified_at);
+        $this->assertFalse($guardian->fresh()->password_change_required);
+
+        return $reply->json('token');
+    }
+
+    public function test_admission_invitation_approval_and_dated_membership_remain_separate_on_retries_and_withdrawal(): void
+    {
+        config(['identity.approval_enforced' => true]);
+        [$row, $learner, $guardian, $input] = $this->enrolApplicant('joined-onboarding', '2026-02-12');
+        $token = $this->acceptAdmittedGuardian($guardian);
+        $this->assertFalse(app(ApprovalService::class)->approved($learner));
+        $this->assertFalse(app(MembershipService::class)->isActiveMember($learner->user, 1));
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->postJson('/api/v2/guardian/approvals/'.$learner->id, ['decision' => 'approve', 'consent_version' => config('identity.consent_version')])
+            ->assertOk()->assertJsonPath('data.status', 'approved');
+        $this->assertTrue(app(ApprovalService::class)->approved($learner));
+        // Consent does not move a future school-membership start date forward.
+        app(MembershipService::class)->forget($learner->user);
+        $this->assertFalse(app(MembershipService::class)->isActiveMember($learner->user, 1));
+        $this->travelTo(CarbonImmutable::parse('2026-02-12T10:00:00+02:00'));
+        app(MembershipService::class)->forget($learner->user);
+        $this->assertTrue(app(MembershipService::class)->isActiveMember($learner->user, 1));
+        $learnerToken = AppTokens::issue($learner->user, AppTokens::STUDENT);
+        $this->app['auth']->forgetGuards();
+        $this->withToken($learnerToken)->getJson('/api/v2/me/context', ['X-School-Id' => '2'])->assertForbidden();
+
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->postJson('/api/v2/guardian/approvals/'.$learner->id, ['decision' => 'withdraw', 'consent_version' => config('identity.consent_version')])
+            ->assertOk()->assertJsonPath('data.status', 'withdrawn');
+        $this->assertSame(0, $learner->user->tokens()->count());
+        $this->assertFalse(app(ApprovalService::class)->approved($learner));
+        $this->assertSame($learner->id, app(EnrolApplication::class)->enrol($this->admin, (int) $row->id, $input)->learner_id);
+        $this->assertFalse(app(ApprovalService::class)->approved($learner));
+        $this->assertSame(1, GuardianInvitation::where('guardian_user_id', $guardian->id)->count());
+        $this->assertSame(1, IntakeGrade::findOrFail($row->intake_grade_id)->occupied_places);
+    }
+
+    public function test_an_admitted_approved_learner_transfers_identity_but_not_school_approval_or_early_membership(): void
+    {
+        config(['identity.approval_enforced' => true, 'modules.school_transfers.always_on' => true]);
+        Storage::fake(TransferVault::DISK);
+        [$row, $learner, $guardian] = $this->enrolApplicant('joined-transfer');
+        $this->acceptAdmittedGuardian($guardian);
+        $guardian = $guardian->fresh();
+        app(ApprovalService::class)->decide($guardian, $learner, 'approve', (string) config('identity.consent_version'));
+        $service = app(TransferPackages::class);
+        $package = $service->prepare($this->admin, $this->op(['learner_id' => $learner->id, 'guardian_id' => $guardian->id,
+            'to_school_id' => 2, 'external_school' => null, 'last_attended_on' => '2026-02-10', 'starts_on' => '2026-02-11', 'report_ids' => [], 'document_ids' => []]));
+        $consent = $this->op(['revision' => $package->revision, 'fingerprint' => $package->fingerprint, 'version' => config('school_transfers.consent_version'), 'confirmation' => true]);
+        SchoolMembership::where('user_id', $guardian->id)->where('role', 'Parent')->update(['status' => SchoolMembership::SUSPENDED]);
+        // The same loaded guardian cannot use stale authority on the saved package.
+        $this->refuse(403, fn () => $service->consent($guardian, (int) $package->id, $consent));
+        SchoolMembership::where('user_id', $guardian->id)->where('role', 'Parent')->update(['status' => SchoolMembership::ACTIVE]);
+        $package = $service->consent($guardian, (int) $package->id, $consent);
+        $package = $service->release($this->admin, (int) $package->id, $this->op(['revision' => $package->revision]));
+        $receipt = app(CurrentSchool::class)->run(2, function () use ($package, $guardian, $learner): TransferReceipt {
+            $receiver = User::create(['first_name' => 'Receiving', 'last_name' => 'Office', 'email' => 'joined-receiver@example.test', 'password' => bcrypt('SyntheticReceiver2026'), 'status' => 1]);
+            $receiver->assignRole('Super Admin');
+            SessionYear::whereKey($this->schoolB->ids['session_year'])->update(['start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+            ClassSection::with('class')->findOrFail($this->schoolB->ids['section_a'])->class->forceFill(['grade_level_id' => $this->gradeId])->save();
+            $input = $this->op(['revision' => $package->revision, 'fingerprint' => $package->fingerprint, 'session_year_id' => $this->schoolB->ids['session_year'],
+                'class_section_id' => $this->schoolB->ids['section_a'], 'category_id' => $this->schoolB->ids['category'], 'confirmation' => true]);
+            $receipt = app(TransferAccept::class)->accept($receiver, (int) $package->id, $input);
+            $this->assertSame($receipt->id, app(TransferAccept::class)->accept($receiver, (int) $package->id, $input)->id);
+            $received = Students::findOrFail($receipt->learner_id);
+            $this->assertSame($learner->user_id, $received->user_id);
+            $this->assertFalse(app(ApprovalService::class)->approved($received));
+            $this->assertSame(0, LearnerApproval::where('learner_id', $received->id)->count());
+            app(MembershipService::class)->forget($guardian);
+            $this->assertFalse(app(MembershipService::class)->isActiveMember($guardian, 2));
+            $this->assertFalse(GuardianLink::where('learner_id', $received->id)->sole()->can_see_fees);
+
+            return $receipt;
+        });
+        $this->assertSame('2026-02-10', Enrolment::where('learner_id', $learner->id)->sole()->ends_on->toDateString());
+        $this->travelTo(CarbonImmutable::parse('2026-02-11T10:00:00+02:00'));
+        app(MembershipService::class)->forget($learner->user);
+        $this->assertFalse(app(MembershipService::class)->isActiveMember($learner->user, 1));
+        app(CurrentSchool::class)->run(2, function () use ($receipt, $guardian, $learner): void {
+            $received = Students::findOrFail($receipt->learner_id);
+            app(MembershipService::class)->forget($guardian);
+            $this->assertTrue(app(MembershipService::class)->isActiveMember($guardian, 2));
+            $this->assertFalse(app(ApprovalService::class)->approved($received));
+            $this->refuse(403, fn () => AppTokens::issue($learner->user, AppTokens::STUDENT));
+        });
+        $this->assertSame('enrolled', $row->fresh()->state);
+        $this->assertSame(1, IntakeGrade::findOrFail($row->intake_grade_id)->occupied_places);
+    }
+
+    public function test_office_acknowledgement_is_not_a_second_leadership_receipt_and_replay_rechecks_school_membership(): void
+    {
+        config(['modules.fees.always_on' => true, 'modules.leadership_dashboard.always_on' => true]);
+        $this->intake->update(['application_fee_cents' => 12500]);
+        [$row] = $this->accepted('joined-fee');
+        $input = $this->op(['revision' => $row->revision, 'amount_cents' => 12500, 'reference' => 'Synthetic office acknowledgement']);
+        $paid = app(AdmissionReview::class)->officeFee($this->admin, (int) $row->id, $input);
+        SchoolMembership::where('user_id', $this->admin->id)->update(['status' => SchoolMembership::SUSPENDED]);
+        $this->refuse(403, fn () => app(AdmissionReview::class)->officeFee($this->admin, (int) $row->id, $input));
+        SchoolMembership::where('user_id', $this->admin->id)->update(['status' => SchoolMembership::ACTIVE]);
+        app(CurrentSchool::class)->run(2, fn () => $this->refuse(404, fn () => app(AdmissionReview::class)->officeFee($this->admin, (int) $row->id, $input)));
+        $this->assertSame($paid->revision, app(AdmissionReview::class)->officeFee($this->admin, (int) $row->id, $input)->revision);
+        $row = app(EnrolApplication::class)->enrol($this->admin, (int) $row->id, $this->op(['revision' => $paid->revision, 'starts_on' => '2026-02-01', 'category_id' => $this->schoolA->ids['category']]));
+        $learner = Students::findOrFail($row->learner_id);
+        $projection = app(LeadershipFeeCollections::class);
+        $year = $this->schoolA->ids['session_year'];
+        $this->assertSame(0, $projection->amount($projection->read($this->admin, $year, '2026-02-01', '2026-02-10'), $this->gradeId, '2026-02-01', '2026-02-10'));
+        PaymentTransaction::forceCreate(['student_id' => $learner->id, 'class_id' => $learner->class_id, 'parent_id' => $learner->guardian_id,
+            'payment_status' => 1, 'mode' => 0, 'type_of_fee' => 0, 'total_amount_cents' => 5000, 'session_year_id' => $year, 'date' => '2026-02-10']);
+        FeesPaid::forceCreate(['student_id' => $learner->id, 'class_id' => $learner->class_id, 'total_amount_cents' => 5000, 'session_year_id' => $year, 'date' => '2026-02-10', 'is_fully_paid' => 0]);
+        foreach ([1, 2] as $_) {
+            $this->assertSame(5000, $projection->amount($projection->read($this->admin, $year, '2026-02-01', '2026-02-10'), $this->gradeId, '2026-02-01', '2026-02-10'));
+        }
+        $this->assertSame(1, ApplicationEvent::where('application_id', $row->id)->where('kind', 'office_fee_acknowledged')->count());
+        $this->assertTrue($row->office_fee_paid);
+        $this->assertSame(12500, $row->office_fee_cents);
     }
 
     public function test_draft_is_encrypted_exact_initial_retry_is_stable_and_foreign_key_is_refused(): void

@@ -1,5 +1,4 @@
 import 'package:eschool/app/routes.dart';
-import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/cubits/resetPasswordRequestCubit.dart';
 import 'package:eschool/cubits/signInCubit.dart';
@@ -277,23 +276,10 @@ class _StudentLoginScreenState extends State<StudentLoginScreen>
                             );
                             //if user logs out, the login will set count to 0
                             SettingsRepository().setNotificationCount(0);
-                            if (context
-                                    .read<AuthCubit>()
-                                    .getStudentDetails()
-                                    .isFeePaymentDue &&
-                                context
-                                    .read<AppConfigurationCubit>()
-                                    .isCompulsoryFeePaymentMode()) {
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                                Routes.studentFeePaymentDueScreen,
-                                (Route<dynamic> route) => false,
-                              );
-                            } else {
-                              Navigator.of(context).pushNamedAndRemoveUntil(
-                                Routes.home,
-                                (Route<dynamic> route) => false,
-                              );
-                            }
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              Routes.home,
+                              (Route<dynamic> route) => false,
+                            );
                           } else if (state is SignInFailure) {
                             UiUtils.showCustomSnackBar(
                               context: context,

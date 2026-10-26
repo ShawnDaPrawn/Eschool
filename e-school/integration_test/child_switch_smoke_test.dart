@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:eschool/ui/screens/childDetailsScreen.dart';
 import 'package:eschool/ui/screens/parentHomeScreen.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -14,7 +15,22 @@ void main() {
   testWidgets('a parent of two switches child once and the screen follows', (
     tester,
   ) async {
-    final api = await startSmokeApp(tester, parentOfTwoRoutes());
+    final unpaidFamily = {
+      ...parentOfTwo(),
+      'children': [
+        {...student(), 'is_fee_payment_due': 1},
+        {...student(id: 12, firstName: 'Sipho'), 'is_fee_payment_due': 1},
+      ],
+    };
+    final api = await startSmokeApp(tester, {
+      ...parentOfTwoRoutes(),
+      'settings': (RequestOptions request) =>
+          request.queryParameters['type'] == 'app_settings'
+          ? ok({...appSettings, 'compulsory_fee_payment_mode': '1'})
+          : ok(''),
+      'POST parent/login': {...ok(unpaidFamily), 'token': 'smoke-parent-token'},
+      'parent/get-profile-data': ok(unpaidFamily),
+    });
 
     await tapWhenReady(tester, find.text('Login as Parent'));
     await pumpUntilFound(tester, find.text('Email or handle'));

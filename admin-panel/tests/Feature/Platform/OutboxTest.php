@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Jobs\Live\DispatchLiveOutbox;
 use App\Jobs\Platform\DispatchOutbox;
 use App\Models\Platform\OutboxEvent;
 use App\Services\Platform\Events\DomainEvent;
@@ -137,6 +138,65 @@ class OutboxTest extends TestCase
 
         $this->assertSame(2, OutboxEvent::sole()->attempts);
         Log::shouldHaveReceived('error')->withArgs(fn (string $message) => $message === 'outbox_event_parked')->once();
+    }
+
+    public function test_a_delayed_live_accelerator_cannot_resume_a_parked_event(): void
+    {
+        config(['platform.outbox.max_attempts' => 1, 'platform.outbox.backoff' => [1]]);
+        OutboxTestListener::$failuresLeft = 1;
+        $event = DB::transaction(fn () => Outbox::record(new ThingHappened(12)));
+        $this->assertSame('failed', Outbox::dispatchOne((int) $event->id));
+        $this->travel(2)->seconds();
+
+        (new DispatchLiveOutbox((int) $event->id))->handle();
+
+        $this->assertNull($event->fresh()->dispatched_at);
+        $this->assertSame(1, $event->fresh()->attempts);
+        $this->assertSame([], OutboxTestListener::$calls);
+        $this->assertSame(0, DB::table('settings')->where('type', 'outbox-test-12')->count());
+    }
+
+    public function test_backoff_created_in_a_school_timezone_is_not_due_on_the_utc_worker(): void
+    {
+        $this->travelTo('2026-10-26 12:00:00 UTC');
+        $timezone = date_default_timezone_get();
+        try {
+            date_default_timezone_set('Pacific/Honolulu');
+            OutboxTestListener::$failuresLeft = 1;
+            $event = DB::transaction(fn () => Outbox::record(new ThingHappened(13)));
+            $this->assertSame('failed', Outbox::dispatchOne((int) $event->id));
+            date_default_timezone_set('UTC');
+
+            $this->assertSame(['dispatched' => 0, 'failed' => 0, 'skipped' => 0], Outbox::dispatchPending());
+            $this->assertSame('2026-10-26 12:00:00.000000', DB::table('domain_events')->where('id', $event->id)->value('occurred_at'));
+            $this->assertSame('2026-10-26 12:01:00', DB::table('domain_events')->where('id', $event->id)->value('available_at'));
+            $this->travel(61)->seconds();
+            $this->assertSame(['dispatched' => 1, 'failed' => 0, 'skipped' => 0], Outbox::dispatchPending());
+            $this->assertSame([13], OutboxTestListener::$calls);
+        } finally {
+            date_default_timezone_set($timezone);
+        }
+    }
+
+    public function test_a_different_school_clock_cannot_shorten_a_utc_backoff(): void
+    {
+        $this->travelTo('2026-10-26 12:00:00 UTC');
+        $timezone = date_default_timezone_get();
+        try {
+            date_default_timezone_set('UTC');
+            OutboxTestListener::$failuresLeft = 1;
+            $event = DB::transaction(fn () => Outbox::record(new ThingHappened(14)));
+            $this->assertSame('failed', Outbox::dispatchOne((int) $event->id));
+            date_default_timezone_set('Pacific/Kiritimati');
+
+            $this->assertSame(['dispatched' => 0, 'failed' => 0, 'skipped' => 0], Outbox::dispatchPending());
+            $this->assertSame('skipped', Outbox::dispatchOne((int) $event->id));
+            $this->travel(61)->seconds();
+            $this->assertSame(['dispatched' => 1, 'failed' => 0, 'skipped' => 0], Outbox::dispatchPending());
+            $this->assertSame([14], OutboxTestListener::$calls);
+        } finally {
+            date_default_timezone_set($timezone);
+        }
     }
 
     public function test_the_dispatcher_is_scheduled_every_minute_and_runs_on_demand(): void

@@ -264,3 +264,20 @@ academic consent. `gallery_operations` stores encrypted idempotent references;
 `gallery_events` holds minimal audit references without image or caption bodies.
 All six are school owned. Withdrawn image bytes are erased without deleting the
 minimal consent history; rollback refuses populated tables.
+
+## Money preparation: immutable ledger
+
+`ledger_accounts` belongs to a school and fixes type, module, owner (optional
+user), reference, currency and normal debit/credit direction. Its integer-cent
+balance is a verified projection. `ledger_entries` fixes a school-unique permanent
+idempotency key and a separate unique business source, canonical request hash,
+description/currency and UTC creation/finalization instants. `ledger_postings`
+stores positive integer cents and direction, with composite school/account and
+school/entry foreign keys. Entry finalization requires at least two balanced
+lines; posted entries and posting rows cannot be edited/deleted. Account identity
+cannot be reassigned. Drafts are transaction-internal and any retained incomplete
+entry fails reconciliation. Populated rollback refuses historical erasure.
+
+No opening balances are imported. The legacy financial rows and float/cents twins
+remain until a later explicit reviewed reconciliation/cutover. Clearing and
+due-to-school account types exist but stay at zero until collection is built.

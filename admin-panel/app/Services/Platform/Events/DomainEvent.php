@@ -21,7 +21,7 @@ abstract class DomainEvent
 
     public function __construct()
     {
-        $this->occurredAt = CarbonImmutable::now();
+        $this->occurredAt = CarbonImmutable::now('UTC');
     }
 
     /** Dotted name listeners subscribe to, e.g. "fees.payment_recorded". */
