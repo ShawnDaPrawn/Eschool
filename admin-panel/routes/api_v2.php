@@ -660,6 +660,8 @@ Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([Private
     Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
     Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
     Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
+    Route::post('learners/{learner}/health/fields/{field}/file', [$controller, 'upload'])->whereNumber('learner')->where('field', '[a-z][a-z0-9_]{0,63}')->name('health.upload');
+    Route::get('learners/{learner}/health/files/{file}', [$controller, 'file'])->whereNumber('learner')->where('file', '[0-9a-f-]{36}\\.(pdf|png|jpg)')->name('health.file');
 });
 
 // Licensed school-reviewed papers, staff-only memos and own learner study plans.

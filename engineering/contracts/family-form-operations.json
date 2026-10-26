@@ -43,5 +43,15 @@
     "operation_id": "saveFamilyHealthForm",
     "method": "PUT",
     "path": "/family-forms/learners/{learner}/health"
+  },
+  {
+    "operation_id": "uploadFamilyHealthFile",
+    "method": "POST",
+    "path": "/family-forms/learners/{learner}/health/fields/{field}/file"
+  },
+  {
+    "operation_id": "getFamilyHealthFile",
+    "method": "GET",
+    "path": "/family-forms/learners/{learner}/health/files/{file}"
   }
 ]

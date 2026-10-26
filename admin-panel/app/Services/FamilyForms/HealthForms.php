@@ -8,12 +8,13 @@ use App\Models\Platform\ProfileFieldDefinition;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\People\Profiles\ProfileForms;
+use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\DB;
 
 /** Reuses encrypted profile categories; does not create a competing medical record. */
 class HealthForms
 {
-    private function person(User $actor, int $learner, bool $write = false): User
+    public function person(User $actor, int $learner, bool $write = false): User
     {
         $access = app(FamilyFormAccess::class);
         $fresh = $access->actor($actor, $write);
@@ -32,6 +33,15 @@ class HealthForms
         $schema = app(ProfileForms::class)->schema($actor, $person, 'learner', category: 'health');
         $schema['categories'] = array_values(array_filter($schema['categories'], fn ($row) => $row['key'] === 'health'));
         $this->person($actor, $learner);
+        if (! app(ModuleGate::class)->writable('family_forms')) {
+            foreach ($schema['categories'] as &$category) {
+                foreach ($category['fields'] as &$field) {
+                    $field['editable'] = false;
+                }
+                unset($field);
+            }
+            unset($category);
+        }
 
         return $schema;
     }

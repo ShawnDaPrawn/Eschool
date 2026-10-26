@@ -7,6 +7,8 @@ namespace App\Http\Requests\FamilyForms;
 use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Services\FamilyForms\Consents;
 use App\Services\FamilyForms\FamilyFormAccess;
+use App\Services\FamilyForms\HealthFiles;
+use App\Services\People\Profiles\ProfileFiles;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -23,13 +25,16 @@ class FamilyFormRequest extends FormRequest
     {
         // Domain callbacks recheck module writes and source scope before receipts.
         app(FamilyFormAccess::class)->actor($this->user(), revocation: true);
+        if ($this->action() === 'health.upload') {
+            app(HealthFiles::class)->authorizeField($this->user(), (int) $this->route('learner'), (string) $this->route('field'), true);
+        }
 
         return true;
     }
 
     public function validationData(): array
     {
-        return $this->isMethod('GET') ? $this->query->all() : $this->getInputSource()->all();
+        return $this->isMethod('GET') ? $this->query->all() : array_replace($this->getInputSource()->all(), $this->allFiles());
     }
 
     protected function prepareForValidation(): void
@@ -46,7 +51,8 @@ class FamilyFormRequest extends FormRequest
     public function rules(): array
     {
         return match ($this->action()) {
-            'configuration', 'health.read' => [],
+            'configuration', 'health.read', 'health.file' => [],
+            'health.upload' => ProfileFiles::rules(),
             'listing' => ['learner_id' => ['sometimes', 'integer', 'min:1'], 'activity_group_id' => ['sometimes', 'integer', 'min:1'], 'page' => ['sometimes', 'integer', 'between:1,100000']],
             'read' => ['learner_id' => ['required', 'integer', 'min:1']],
             'managed' => ['page' => ['sometimes', 'integer', 'between:1,100000']],

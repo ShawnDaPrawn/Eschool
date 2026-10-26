@@ -12,6 +12,7 @@ class PrivateRouteReachabilityTest extends TestCase
     public function test_finite_private_dimensions_reach_authentication_before_record_lookup(): void
     {
         foreach ([
+            'api/v2/family-forms/learners/{learner}/health/files/{file}',
             'api/v2/family-forms/consents/{consent}',
             'api/v2/family-forms/consents/{consent}/managed',
             'api/v2/pastoral/support/configuration/{audience}',

@@ -1,0 +1,121 @@
+paths:
+  /family-forms/learners/{learner}/health/fields/{field}/file:
+    post:
+      operationId: uploadFamilyHealthFile
+      tags:
+      - FamilyForms
+      summary: Upload a private current health-field attachment
+      description: Current guardian or explicit health access, learner membership/enrolment, module write mode
+        and field authority are checked before validation and storage. PDF files up to 5 MB require scanning.
+        JPEG/PNG files up to 4 MB require scanning and pixel sanitization; scanner failure refuses the upload.
+        Reuses encrypted profile attachments.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: field
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,63}$
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - document
+              properties:
+                document:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Freshly authorized Health category after the upload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileFormResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/ServerError'
+  /family-forms/learners/{learner}/health/files/{file}:
+    get:
+      operationId: getFamilyHealthFile
+      tags:
+      - FamilyForms
+      summary: Read a current private health-field attachment
+      description: Fresh purpose/guardian/learner/module/field authority and the current attachment reference
+        are checked before and after the encrypted file read. Replaced, cleared, transferred or withdrawn sources
+        cannot return bytes. No metadata URL is trusted.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: file
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f-]{36}\.(pdf|png|jpg)$
+      responses:
+        '200':
+          description: Current private encrypted-profile attachment.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Security-Policy:
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/ServerError'

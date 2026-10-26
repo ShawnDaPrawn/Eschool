@@ -15,22 +15,29 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\PlatformStaffIdentity;
+use App\Models\Platform\ProfileFieldCategory;
 use App\Models\Platform\ProfileFieldDefinition;
 use App\Models\Platform\ProfileFieldValue;
+use App\Models\Platform\ProfileFile;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\FamilyForms\Consents;
 use App\Services\FamilyForms\HealthForms;
+use App\Services\People\Profiles\ProfileDefinitions;
+use App\Services\People\Profiles\ProfileFiles;
 use App\Services\People\Profiles\ProfileForms;
+use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -444,5 +451,133 @@ class FamilyConsentTest extends TestCase
         $this->post($path.'/cancel', ['operation_id' => (string) Str::uuid(), 'revision' => $record['revision'], 'expected_account_id' => $this->teacher->id, 'expected_school_id' => 1])->assertRedirect($path.'/managed');
         $this->assertSame(1, ConsentResponse::count());
         $this->assertFalse(app(Consents::class)->effective($this->teacher, $record['id'], $this->learner));
+    }
+
+    private function healthFileField(): void
+    {
+        Storage::fake(ProfileFiles::DISK);
+        $category = ProfileFieldCategory::where('profile_type', 'learner')->where('key', 'health')->firstOrFail();
+        app(ProfileDefinitions::class)->field($this->admin, ['category_id' => $category->id, 'key' => 'health_document', 'label' => 'Synthetic health document', 'type' => 'file', 'sensitive' => true,
+            'visible_to' => ['guardian', 'school_admin'], 'editable_by' => ['guardian', 'school_admin']]);
+        $this->app->instance(UploadScanner::class, new class implements UploadScanner
+        {
+            public function scan(string $bytes): array
+            {
+                return ['clean' => true, 'engine' => 'synthetic-health-test', 'signature' => null];
+            }
+        });
+    }
+
+    public function test_health_attachment_upload_download_and_clear_remain_encrypted_and_current(): void
+    {
+        $this->healthFileField();
+        $path = "/api/v2/family-forms/learners/{$this->learner}/health";
+        $form = $this->api($this->parent)->post($path.'/fields/health_document/file', ['document' => UploadedFile::fake()->createWithContent('synthetic-letter.pdf', "%PDF-1.4\nSynthetic private health document\n%%EOF")])->assertOk();
+        $file = collect($form->json('data.categories.0.fields'))->firstWhere('key', 'health_document')['value']['file'];
+        $download = $path.'/files/'.$file['id'];
+        $this->get($download)->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('Content-Type', 'application/pdf')->assertHeader('Content-Security-Policy', 'sandbox')->assertSee('Synthetic private health document');
+        $stored = ProfileFile::sole();
+        $this->assertStringNotContainsString('Synthetic private health document', Storage::disk(ProfileFiles::DISK)->get($stored->path));
+        $this->assertStringNotContainsString('synthetic-letter', DB::table('profile_files')->value('name'));
+        $this->putJson($path, ['values' => ['health_document' => ['clear' => true]]])->assertOk();
+        $this->get($download)->assertNotFound();
+    }
+
+    public function test_health_attachment_wrong_owner_school_platform_and_module_cannot_return_bytes(): void
+    {
+        $this->healthFileField();
+        $path = "/api/v2/family-forms/learners/{$this->learner}/health";
+        $form = $this->api($this->parent)->post($path.'/fields/health_document/file', ['document' => UploadedFile::fake()->image('synthetic-image.jpg', 12, 16)])->assertOk();
+        $file = collect($form->json('data.categories.0.fields'))->firstWhere('key', 'health_document')['value']['file'];
+        $download = $path.'/files/'.$file['id'];
+        $this->api(User::findOrFail($this->schoolA->ids['gina_user']))->get($download)->assertNotFound();
+        $other = app(CurrentSchool::class)->run(2, fn () => User::findOrFail($this->schoolB->ids['farid_user']));
+        $this->api($other)->withHeader('X-School-Id', '2')->get($download)->assertNotFound();
+        PlatformStaffIdentity::create(['user_id' => $this->parent->id, 'active' => true]);
+        $this->api($this->parent)->get($download)->assertForbidden();
+        PlatformStaffIdentity::query()->delete();
+        config(['modules.family_forms' => ['always_on' => false]]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'family_forms'], ['enabled' => false, 'read_only' => false, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $this->get($download)->assertNotFound();
+    }
+
+    public function test_health_file_scope_is_rechecked_after_scanning_before_ciphertext_storage(): void
+    {
+        $this->healthFileField();
+        $parent = $this->parent->id;
+        $this->app->instance(UploadScanner::class, new class($parent) implements UploadScanner
+        {
+            public function __construct(private int $guardian) {}
+
+            public function scan(string $bytes): array
+            {
+                GuardianLink::where('guardian_user_id', $this->guardian)->update(['status' => 'inactive']);
+
+                return ['clean' => true, 'engine' => 'synthetic-source-withdrawal', 'signature' => null];
+            }
+        });
+        $this->api($this->parent)->post("/api/v2/family-forms/learners/{$this->learner}/health/fields/health_document/file", ['document' => UploadedFile::fake()->createWithContent('synthetic-letter.pdf', "%PDF-1.4\nSynthetic test\n%%EOF")])->assertForbidden();
+        $this->assertSame(0, ProfileFile::count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
+    }
+
+    public function test_readonly_health_schema_disables_all_edits_and_attachment_upload(): void
+    {
+        $this->healthFileField();
+        config(['modules.family_forms' => ['always_on' => false]]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'family_forms'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $path = "/api/v2/family-forms/learners/{$this->learner}/health";
+        $form = $this->api($this->parent)->getJson($path)->assertOk();
+        foreach ($form->json('data.categories.0.fields') as $field) {
+            $this->assertFalse($field['editable']);
+        }
+        $this->post($path.'/fields/health_document/file', ['document' => UploadedFile::fake()->image('synthetic-image.jpg')])->assertNotFound()->assertSessionMissing('_old_input');
+        $this->assertSame(0, ProfileFile::count());
+    }
+
+    public function test_health_file_guard_failure_after_storage_rolls_back_metadata_and_removes_ciphertext(): void
+    {
+        $this->healthFileField();
+        $fired = false;
+        DB::listen(function ($query) use (&$fired) {
+            if (! $fired && str_starts_with(strtolower($query->sql), 'insert into `profile_files`')) {
+                $fired = true;
+                GuardianLink::where('guardian_user_id', $this->parent->id)->update(['status' => 'inactive']);
+            }
+        });
+        $this->api($this->parent)->post("/api/v2/family-forms/learners/{$this->learner}/health/fields/health_document/file", ['document' => UploadedFile::fake()->createWithContent('synthetic-letter.pdf', "%PDF-1.4\nSynthetic test\n%%EOF")])->assertForbidden();
+        $this->assertTrue($fired);
+        $this->assertSame(0, ProfileFile::count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
+    }
+
+    public function test_nonhealth_attachment_is_refused_before_content_decryption(): void
+    {
+        $this->healthFileField();
+        $definitions = app(ProfileDefinitions::class);
+        $category = $definitions->category($this->admin, ['profile_type' => 'learner', 'key' => 'transport', 'label' => 'Synthetic transport']);
+        $definitions->field($this->admin, ['category_id' => $category->id, 'key' => 'transport_document', 'label' => 'Synthetic transport document', 'type' => 'file',
+            'visible_to' => ['guardian', 'school_admin'], 'editable_by' => ['guardian', 'school_admin']]);
+        app(ProfileFiles::class)->upload($this->parent, User::findOrFail($this->schoolA->ids['asha_user']), 'learner', 'transport_document', UploadedFile::fake()->createWithContent('transport.pdf', "%PDF-1.4\nSynthetic transport\n%%EOF"));
+        $file = ProfileFile::sole();
+        Storage::disk(ProfileFiles::DISK)->put($file->path, 'synthetic corrupt ciphertext');
+        $this->api($this->parent)->get("/api/v2/family-forms/learners/{$this->learner}/health/files/{$file->id}.pdf")->assertNotFound()->assertDontSee('Synthetic transport');
+    }
+
+    public function test_health_upload_fails_closed_when_scanning_is_unavailable(): void
+    {
+        $this->healthFileField();
+        $this->app->instance(UploadScanner::class, new class implements UploadScanner
+        {
+            public function scan(string $bytes): array
+            {
+                throw new \RuntimeException('Synthetic scanner outage');
+            }
+        });
+        $this->api($this->parent)->post("/api/v2/family-forms/learners/{$this->learner}/health/fields/health_document/file", ['document' => UploadedFile::fake()->createWithContent('synthetic-letter.pdf', "%PDF-1.4\nSynthetic private document\n%%EOF")])->assertStatus(503)->assertDontSee('Synthetic private document')->assertSessionMissing('_old_input');
+        $this->assertSame(0, ProfileFile::count());
+        $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
     }
 }

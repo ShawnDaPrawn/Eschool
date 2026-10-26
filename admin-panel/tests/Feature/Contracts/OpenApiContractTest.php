@@ -82,6 +82,8 @@ class OpenApiContractTest extends TestCase
             'getTaskInsightConfiguration requires authentication' => [null, 'GET', 'api/v2/test-insights/configuration', [], 401],
             'getTaskInsightChoices requires authentication' => [null, 'GET', 'api/v2/test-insights/groups/1', [], 401],
             'getTaskInsights requires authentication' => [null, 'GET', 'api/v2/test-insights/groups/1/tasks/1', [], 401],
+            'uploadFamilyHealthFile requires authentication' => [null, 'POST', 'api/v2/family-forms/learners/1/health/fields/health_document/file', [], 401],
+            'getFamilyHealthFile requires authentication' => [null, 'GET', 'api/v2/family-forms/learners/1/health/files/8aef50e7-2429-4d2c-a523-668ae436c4d4.pdf', [], 401],
             'getFamilyFormConfiguration requires authentication' => [null, 'GET', 'api/v2/family-forms/configuration', [], 401],
             'getFamilyConsents requires authentication' => [null, 'GET', 'api/v2/family-forms/consents', [], 401],
             'createFamilyConsent requires authentication' => [null, 'POST', 'api/v2/family-forms/consents', [], 401],
