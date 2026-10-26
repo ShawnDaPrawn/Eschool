@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Learning\TutorRequest;
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Learning\TutorAccess;
+use App\Services\Learning\TutorCheckpoints;
 use App\Services\Learning\TutorPhotos;
 use App\Services\Learning\TutorQueries;
 use App\Services\Learning\TutorSessions;
@@ -47,7 +48,7 @@ class TutorController extends Controller
 
     public function create(TutorRequest $r): JsonResponse
     {
-        return $this->result($r, fn () => app(TutorSessions::class)->create($r->user(), (int) $r->validated('group_id'), $r->validated('source_version_ids'), $r->validated('operation_id')));
+        return $this->result($r, fn () => app(TutorSessions::class)->create($r->user(), (int) $r->validated('group_id'), $r->validated('source_version_ids'), $r->validated('operation_id'), $r->validated('topic_id') === null ? null : (int) $r->validated('topic_id')));
     }
 
     public function show(TutorRequest $r, string $session): JsonResponse
@@ -96,5 +97,20 @@ class TutorController extends Controller
     public function summary(TutorRequest $r, int $learner, int $subject): JsonResponse
     {
         return $this->result($r, fn () => app(TutorQueries::class)->parentSummary($r->user(), $learner, $subject));
+    }
+
+    public function issueCheckpoint(TutorRequest $r, string $session): JsonResponse
+    {
+        return $this->result($r, fn () => app(TutorCheckpoints::class)->issue($r->user(), $session, $r->validated('operation_id')));
+    }
+
+    public function checkpoint(TutorRequest $r, string $session, string $checkpoint): JsonResponse
+    {
+        return $this->result($r, fn () => app(TutorCheckpoints::class)->read($r->user(), $session, $checkpoint));
+    }
+
+    public function answerCheckpoint(TutorRequest $r, string $session, string $checkpoint): JsonResponse
+    {
+        return $this->result($r, fn () => app(TutorCheckpoints::class)->answer($r->user(), $session, $checkpoint, $r->validated('operation_id'), $r->validated('answer')));
     }
 }

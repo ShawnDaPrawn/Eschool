@@ -32,6 +32,8 @@ class TutorConfiguration {
     required this.photoRequiresApprovedCrop,
 
     required this.feedbackIsProvisional,
+
+    this.checkpointsEnabled,
   });
 
   // minimum: 1
@@ -70,6 +72,10 @@ class TutorConfiguration {
   )
   final bool feedbackIsProvisional;
 
+  /// True only while the owning learner has current daily-practice access. Independent of external model activation.
+  @JsonKey(name: r'checkpoints_enabled', required: false, includeIfNull: false)
+  final bool? checkpointsEnabled;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -81,7 +87,8 @@ class TutorConfiguration {
           other.groups == groups &&
           other.inferenceEnabled == inferenceEnabled &&
           other.photoRequiresApprovedCrop == photoRequiresApprovedCrop &&
-          other.feedbackIsProvisional == feedbackIsProvisional;
+          other.feedbackIsProvisional == feedbackIsProvisional &&
+          other.checkpointsEnabled == checkpointsEnabled;
 
   @override
   int get hashCode =>
@@ -92,7 +99,8 @@ class TutorConfiguration {
       groups.hashCode +
       inferenceEnabled.hashCode +
       photoRequiresApprovedCrop.hashCode +
-      feedbackIsProvisional.hashCode;
+      feedbackIsProvisional.hashCode +
+      checkpointsEnabled.hashCode;
 
   factory TutorConfiguration.fromJson(Map<String, dynamic> json) =>
       _$TutorConfigurationFromJson(json);

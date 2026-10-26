@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:eschool_api/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
+import 'dart:typed_data';
 import 'package:eschool_api/src/model/activity_attendance_receipt_response.dart';
 import 'package:eschool_api/src/model/activity_attendance_write.dart';
 import 'package:eschool_api/src/model/activity_group_detail_response.dart';
@@ -17,6 +18,9 @@ import 'package:eschool_api/src/model/activity_group_response.dart';
 import 'package:eschool_api/src/model/activity_group_roster_response.dart';
 import 'package:eschool_api/src/model/activity_group_staff_response.dart';
 import 'package:eschool_api/src/model/activity_group_write.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_change_response.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_page_response.dart';
+import 'package:eschool_api/src/model/activity_material_attachment_remove.dart';
 import 'package:eschool_api/src/model/activity_material_response.dart';
 import 'package:eschool_api/src/model/activity_material_write.dart';
 import 'package:eschool_api/src/model/activity_membership_response.dart';
@@ -702,6 +706,115 @@ class ActivitiesApi {
     );
   }
 
+  /// Read authorized private attachment bytes
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [file]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [Uint8List] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<Uint8List>> getActivityMaterialFile({
+    required int group,
+    required int material,
+    required String file,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/groups/{group}/materials/{material}/files/{file}/content'
+            .replaceAll(
+              '{'
+              r'group'
+              '}',
+              group.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'material'
+              '}',
+              material.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'file'
+              '}',
+              file.toString(),
+            );
+    final _options = Options(
+      method: r'GET',
+      responseType: ResponseType.bytes,
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    Uint8List? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null ? null : rawData as Uint8List;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<Uint8List>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// List currently authorized activity groups
   /// School-scoped private activity data. Fresh membership, role and group authority precede validation and operation UUID replay. Managers control definitions and dated allocations; assigned staff capture only their own groups. Learners and guardians never receive peer rosters.
   ///
@@ -790,6 +903,115 @@ class ActivitiesApi {
     }
 
     return Response<ActivityGroupListResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// List authorized attachments and current write capabilities
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ActivityMaterialAttachmentPageResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ActivityMaterialAttachmentPageResponse>>
+  listActivityMaterialFiles({
+    required int group,
+    required int material,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/materials/{material}/files'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'material'
+          '}',
+          material.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ActivityMaterialAttachmentPageResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ActivityMaterialAttachmentPageResponse,
+              ActivityMaterialAttachmentPageResponse
+            >(
+              rawData,
+              'ActivityMaterialAttachmentPageResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ActivityMaterialAttachmentPageResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -987,6 +1209,141 @@ class ActivitiesApi {
     }
 
     return Response<ActivityGroupRosterResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Withdraw an attachment with an exact revisioned operation
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [file]
+  /// * [activityMaterialAttachmentRemove]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ActivityMaterialAttachmentChangeResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ActivityMaterialAttachmentChangeResponse>>
+  removeActivityMaterialFile({
+    required int group,
+    required int material,
+    required String file,
+    required ActivityMaterialAttachmentRemove activityMaterialAttachmentRemove,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/activities/groups/{group}/materials/{material}/files/{file}/remove'
+            .replaceAll(
+              '{'
+              r'group'
+              '}',
+              group.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'material'
+              '}',
+              material.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'file'
+              '}',
+              file.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(activityMaterialAttachmentRemove);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ActivityMaterialAttachmentChangeResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ActivityMaterialAttachmentChangeResponse,
+              ActivityMaterialAttachmentChangeResponse
+            >(
+              rawData,
+              'ActivityMaterialAttachmentChangeResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ActivityMaterialAttachmentChangeResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1588,6 +1945,140 @@ class ActivitiesApi {
     }
 
     return Response<ActivityGroupStaffResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Attach a scanned private PDF or sanitized photo
+  /// Private school/account-bound material files. Current group membership, active learner enrolment/approval, publication and author permissions are rechecked before processing and delivery. File IDs and metadata URLs never grant authority.
+  ///
+  /// Parameters:
+  /// * [group]
+  /// * [material]
+  /// * [operationId]
+  /// * [materialRevision]
+  /// * [document]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ActivityMaterialAttachmentChangeResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ActivityMaterialAttachmentChangeResponse>>
+  uploadActivityMaterialFile({
+    required int group,
+    required int material,
+    required String operationId,
+    required int materialRevision,
+    required MultipartFile document,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/activities/groups/{group}/materials/{material}/files'
+        .replaceAll(
+          '{'
+          r'group'
+          '}',
+          group.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'material'
+          '}',
+          material.toString(),
+        );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'multipart/form-data',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = FormData.fromMap(<String, dynamic>{
+        r'operation_id': operationId,
+        r'material_revision': materialRevision,
+        r'document': document,
+      });
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ActivityMaterialAttachmentChangeResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              ActivityMaterialAttachmentChangeResponse,
+              ActivityMaterialAttachmentChangeResponse
+            >(
+              rawData,
+              'ActivityMaterialAttachmentChangeResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ActivityMaterialAttachmentChangeResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

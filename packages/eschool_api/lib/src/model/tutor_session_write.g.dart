@@ -26,6 +26,7 @@ TutorSessionWrite _$TutorSessionWriteFromJson(Map<String, dynamic> json) =>
             'source_version_ids',
             (v) => (v as List<dynamic>).map((e) => (e as num).toInt()).toSet(),
           ),
+          topicId: $checkedConvert('topic_id', (v) => (v as num?)?.toInt()),
         );
         return val;
       },
@@ -33,6 +34,7 @@ TutorSessionWrite _$TutorSessionWriteFromJson(Map<String, dynamic> json) =>
         'operationId': 'operation_id',
         'groupId': 'group_id',
         'sourceVersionIds': 'source_version_ids',
+        'topicId': 'topic_id',
       },
     );
 
@@ -41,4 +43,5 @@ Map<String, dynamic> _$TutorSessionWriteToJson(TutorSessionWrite instance) =>
       'operation_id': instance.operationId,
       'group_id': instance.groupId,
       'source_version_ids': instance.sourceVersionIds.toList(),
+      'topic_id': ?instance.topicId,
     };

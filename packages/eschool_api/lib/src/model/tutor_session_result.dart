@@ -31,6 +31,8 @@ class TutorSessionResult {
     required this.sessionYearId,
 
     required this.state,
+
+    this.topicId,
   });
 
   // minimum: 1
@@ -68,6 +70,10 @@ class TutorSessionResult {
   )
   final TutorSessionResultStateEnum state;
 
+  // minimum: 1
+  @JsonKey(name: r'topic_id', required: false, includeIfNull: false)
+  final int? topicId;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -79,7 +85,8 @@ class TutorSessionResult {
           other.subjectId == subjectId &&
           other.groupId == groupId &&
           other.sessionYearId == sessionYearId &&
-          other.state == state;
+          other.state == state &&
+          other.topicId == topicId;
 
   @override
   int get hashCode =>
@@ -90,7 +97,8 @@ class TutorSessionResult {
       subjectId.hashCode +
       groupId.hashCode +
       sessionYearId.hashCode +
-      state.hashCode;
+      state.hashCode +
+      (topicId == null ? 0 : topicId.hashCode);
 
   factory TutorSessionResult.fromJson(Map<String, dynamic> json) =>
       _$TutorSessionResultFromJson(json);

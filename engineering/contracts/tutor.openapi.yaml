@@ -558,6 +558,165 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /tutor/sessions/{session}/checkpoints:
+    post:
+      operationId: issueTutorCheckpoint
+      tags:
+      - Tutor
+      summary: issueTutorCheckpoint
+      description: Own approved learner only. Fresh Tutor, daily-practice, current-group, topic and pinned teacher-approved
+        source checks precede reads and exact replay. Correct answers stay hidden until the immutable first attempt;
+        only self-study mastery evidence is recorded.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private Tutor result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorCheckpointDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Inference or private media is currently unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TutorOperationWrite'
+  /tutor/sessions/{session}/checkpoints/{checkpoint}:
+    get:
+      operationId: getTutorCheckpoint
+      tags:
+      - Tutor
+      summary: getTutorCheckpoint
+      description: Own approved learner only. Fresh Tutor, daily-practice, current-group, topic and pinned teacher-approved
+        source checks precede reads and exact replay. Correct answers stay hidden until the immutable first attempt;
+        only self-study mastery evidence is recorded.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: checkpoint
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private Tutor result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorCheckpointDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Inference or private media is currently unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /tutor/sessions/{session}/checkpoints/{checkpoint}/answer:
+    post:
+      operationId: answerTutorCheckpoint
+      tags:
+      - Tutor
+      summary: answerTutorCheckpoint
+      description: Own approved learner only. Fresh Tutor, daily-practice, current-group, topic and pinned teacher-approved
+        source checks precede reads and exact replay. Correct answers stay hidden until the immutable first attempt;
+        only self-study mastery evidence is recorded.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: session
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: checkpoint
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private Tutor result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TutorCheckpointDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          description: Inference or private media is currently unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TutorCheckpointAnswerWrite'
 components:
   schemas:
     TutorSourceChoice:
@@ -598,6 +757,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TutorSourceChoice'
+        topics:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/TutorTopicChoice'
     TutorConfiguration:
       type: object
       additionalProperties: false
@@ -633,6 +797,10 @@ components:
           type: boolean
         feedback_is_provisional:
           type: boolean
+        checkpoints_enabled:
+          type: boolean
+          description: True only while the owning learner has current daily-practice access. Independent of external
+            model activation.
     TutorSessionResult:
       type: object
       additionalProperties: false
@@ -672,6 +840,11 @@ components:
           enum:
           - open
           - closed
+        topic_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
     TutorSessionListItem:
       type: object
       additionalProperties: false
@@ -911,6 +1084,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TutorPhotoReceipt'
+        topic_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+        checkpoints:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/TutorCheckpointSummary'
     TutorPhotoReceipt:
       type: object
       additionalProperties: false
@@ -1030,6 +1213,11 @@ components:
           items:
             type: integer
             minimum: 1
+        topic_id:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
     TutorTurnWrite:
       type: object
       additionalProperties: false
@@ -1229,3 +1417,171 @@ components:
           $ref: '#/components/schemas/TutorParentSummary'
         code:
           type: integer
+    TutorTopicChoice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+    TutorCheckpointSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - ready
+          - answered
+    TutorCheckpointOption:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - text
+      properties:
+        id:
+          type: string
+          maxLength: 20
+        text:
+          type: string
+          maxLength: 1000
+    TutorCheckpointQuestion:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - prompt
+      - options
+      properties:
+        kind:
+          type: string
+          enum:
+          - choice
+          - number
+        prompt:
+          type: string
+          maxLength: 4000
+        options:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/TutorCheckpointOption'
+    TutorCheckpointDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - id
+      - session_id
+      - learner_id
+      - topic_id
+      - operation_id
+      - answer_operation_id
+      - state
+      - question
+      - correct
+      - explanation
+      - answered_at
+      - verified_by
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        learner_id:
+          type: integer
+          minimum: 1
+        topic_id:
+          type: integer
+          minimum: 1
+        operation_id:
+          type: string
+          format: uuid
+        answer_operation_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        state:
+          type: string
+          enum:
+          - ready
+          - answered
+        question:
+          $ref: '#/components/schemas/TutorCheckpointQuestion'
+        correct:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+        explanation:
+          anyOf:
+          - type: string
+            maxLength: 4000
+          - type: 'null'
+        answered_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        verified_by:
+          anyOf:
+          - type: string
+            description: When answered, approved_answer_definition identifies deterministic grading of the first
+              attempt. Never AI confidence or an official mark.
+          - type: 'null'
+    TutorCheckpointDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/TutorCheckpointDetail'
+        code:
+          type: integer
+    TutorCheckpointAnswerWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - answer
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        answer:
+          type: string
+          minLength: 1
+          maxLength: 100
