@@ -60,3 +60,9 @@ response outcomes retry the same UUID and payload. Background, profile refresh,
 role/module changes and fresh refusal dispose private routes and drafts. The
 operating-system file chooser retains scope metadata only, clears the previous
 medical editor first and reauthorizes after returning before uploading.
+
+The generic dynamic-profile upload route shares the same mandatory Health
+document pipeline as the family-purpose route. A different HTTP entrypoint cannot
+avoid scanning or image sanitization. Field purpose is pinned before scanning and
+checked again under the field lock before storage. Non-Health field behavior and
+existing API shapes are preserved.
