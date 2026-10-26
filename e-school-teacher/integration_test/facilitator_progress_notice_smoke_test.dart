@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/app.dart';
@@ -11,6 +13,26 @@ import 'package:integration_test/integration_test.dart';
 import 'support/staff_notice_fixture.dart';
 import 'support/smoke.dart' show pumpUntilFound, tapWhenReady;
 
+class _DelayedProgressRoster implements HttpClientAdapter {
+  _DelayedProgressRoster(this.delegate);
+  final HttpClientAdapter delegate;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.uri.path.endsWith('/growth/progress/groups/9/learners')) {
+      await Future<void>.delayed(const Duration(seconds: 3));
+    }
+    return delegate.fetch(options, requestStream, cancelFuture);
+  }
+
+  @override
+  void close({bool force = false}) => delegate.close(force: force);
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
@@ -18,9 +40,11 @@ void main() {
     (tester) async {
       expect(StaffBuildIdentity.current.canStartFacilitator, isTrue);
       final fixture = ProgressInboxFixture();
+      // The field renders before its roster arrives. Exercise that loading state.
       final repository = FacilitatorRepository(
         mode: AuthMode.bearer,
-        createDio: () => Dio()..httpClientAdapter = fixture.api,
+        createDio: () =>
+            Dio()..httpClientAdapter = _DelayedProgressRoster(fixture.api),
       );
       await initializeApp(facilitatorRepository: repository);
       await pumpUntilFound(tester, find.text('Facilitator sign-in'));
@@ -40,12 +64,22 @@ void main() {
         find.byKey(const ValueKey('learner-staff-9-1')),
       );
       expect(fixture.marked, isTrue);
+      final learnerMenu = find.descendant(
+        of: find.byKey(const ValueKey('learner-staff-9-1')),
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is DropdownButton<int> &&
+              w.onChanged != null &&
+              w.items?.any((item) => item.value == 11) == true,
+        ),
+      );
+      await pumpUntilFound(tester, learnerMenu);
+      await tapWhenReady(tester, learnerMenu);
+      await tapWhenReady(tester, find.text('Asha Synthetic').hitTestable());
       await tapWhenReady(
         tester,
-        find.byKey(const ValueKey('learner-staff-9-1')),
+        find.widgetWithText(ListTile, 'Synthetic allocated Teacher'),
       );
-      await tapWhenReady(tester, find.text('Asha Synthetic').last);
-      await tapWhenReady(tester, find.text('Synthetic allocated Teacher').last);
       await pumpUntilFound(
         tester,
         find.text('Private allocated academic observation'),
