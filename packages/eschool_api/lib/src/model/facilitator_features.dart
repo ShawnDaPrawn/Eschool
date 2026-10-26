@@ -53,6 +53,8 @@ class FacilitatorFeatures {
     this.cards,
 
     this.familyForms,
+
+    this.examCoach,
   });
 
   /// Optional fresh allocated-Teacher draft capability; absence means unavailable.
@@ -128,6 +130,10 @@ class FacilitatorFeatures {
   @JsonKey(name: r'family_forms', required: false, includeIfNull: false)
   final bool? familyForms;
 
+  /// Optional current exam-coach entry capability.
+  @JsonKey(name: r'exam_coach', required: false, includeIfNull: false)
+  final bool? examCoach;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -150,7 +156,8 @@ class FacilitatorFeatures {
           other.supportPlans == supportPlans &&
           other.learnerNotes == learnerNotes &&
           other.cards == cards &&
-          other.familyForms == familyForms;
+          other.familyForms == familyForms &&
+          other.examCoach == examCoach;
 
   @override
   int get hashCode =>
@@ -172,7 +179,8 @@ class FacilitatorFeatures {
       supportPlans.hashCode +
       learnerNotes.hashCode +
       cards.hashCode +
-      familyForms.hashCode;
+      familyForms.hashCode +
+      examCoach.hashCode;
 
   factory FacilitatorFeatures.fromJson(Map<String, dynamic> json) =>
       _$FacilitatorFeaturesFromJson(json);

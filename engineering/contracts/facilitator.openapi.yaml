@@ -189,6 +189,9 @@ components:
         family_forms:
           type: boolean
           description: Fresh staff family-form capability; does not grant guardian or clinical access.
+        exam_coach:
+          type: boolean
+          description: Optional current exam-coach entry capability.
     FacilitatorProfile:
       type: object
       additionalProperties: false

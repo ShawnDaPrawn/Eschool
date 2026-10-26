@@ -183,12 +183,14 @@ class PastPaperLibrary
     {
         $version = $this->version($actor, $groupId, $versionId, $staff);
         $definition = $version->definition;
+        $paper = PastPaper::findOrFail($version->past_paper_id);
         $questions = array_map(fn ($question) => $staff ? $question : array_diff_key($question, ['memo' => true]), $definition['questions']);
 
         return ['id' => (int) $version->past_paper_id, 'version_id' => $version->id, 'number' => (int) $version->number,
-            'title' => $definition['title'], 'paper_year' => (int) $version->paper_year, 'paper_code' => $version->paper_code,
+            'title' => $definition['title'], 'framework' => $paper->framework, 'paper_year' => (int) $version->paper_year, 'paper_code' => $version->paper_code,
             'state' => $version->state, 'licence_kind' => $definition['licence']['kind'], 'licence_reference' => $definition['licence']['reference'],
-            'questions' => $questions] + ($staff ? ['licence' => $definition['licence']] : []);
+            'questions' => $questions] + ($staff ? ['licence' => $definition['licence'], 'revision' => (int) $paper->revision, 'group_ids' => $version->group_ids,
+                'can_edit' => $paper->active && ((int) $paper->created_by === (int) $actor->id || app(ContentPolicy::class)->leads($actor, (int) $paper->grade_level_id))] : []);
     }
 
     public function document(User $actor, int $groupId, string $versionId, bool $memo = false, bool $staff = false): string

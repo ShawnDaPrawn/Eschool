@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V2\Growth\MyGradeController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
+use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
@@ -659,6 +660,34 @@ Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([Private
     Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
     Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
     Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
+    Route::post('learners/{learner}/health/fields/{field}/file', [$controller, 'upload'])->whereNumber('learner')->where('field', '[a-z][a-z0-9_]{0,63}')->name('health.upload');
+    Route::get('learners/{learner}/health/files/{file}', [$controller, 'file'])->whereNumber('learner')->where('file', '[0-9a-f-]{36}\\.(pdf|png|jpg)')->name('health.file');
+});
+
+// Licensed school-reviewed papers, staff-only memos and own learner study plans.
+Route::prefix('exam-coach')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:exam_coach'])->name('api.v2.exam-coach.')->group(function () {
+    $c = ExamCoachController::class;
+    Route::get('configuration', [$c, 'configuration'])->name('configuration');
+    Route::prefix('staff/groups/{group}')->whereNumber('group')->name('staff.')->group(function () use ($c) {
+        Route::get('choices', [$c, 'choices'])->name('choices');
+        Route::get('papers', [$c, 'staffPapers'])->name('papers');
+        Route::post('papers', [$c, 'draft'])->name('draft');
+        Route::post('papers/{paper}/versions', [$c, 'draft'])->whereNumber('paper')->name('revise');
+        Route::post('papers/{paper}/versions/{version}/publish', [$c, 'publish'])->whereNumber('paper')->whereUuid('version')->name('publish');
+        Route::post('papers/{paper}/withdraw', [$c, 'withdraw'])->whereNumber('paper')->name('withdraw');
+        Route::get('versions/{version}', [$c, 'staffVersion'])->whereUuid('version')->name('version');
+        Route::get('versions/{version}/paper', [$c, 'staffPaper'])->whereUuid('version')->name('paper');
+        Route::get('versions/{version}/memo', [$c, 'staffMemo'])->whereUuid('version')->name('memo');
+    });
+    Route::prefix('groups/{group}')->whereNumber('group')->group(function () use ($c) {
+        Route::get('papers', [$c, 'learnerPapers'])->name('papers');
+        Route::get('versions/{version}', [$c, 'learnerVersion'])->whereUuid('version')->name('version');
+        Route::get('versions/{version}/paper', [$c, 'learnerPaper'])->whereUuid('version')->name('paper');
+        Route::get('exams', [$c, 'dates'])->name('exams');
+        Route::post('plans', [$c, 'createPlan'])->name('create-plan');
+    });
+    Route::get('plans', [$c, 'plans'])->name('plans');
+    Route::get('plans/{plan}', [$c, 'plan'])->whereUuid('plan')->name('plan');
 });
 
 // Teaching proposals remain private to the current allocated teacher.

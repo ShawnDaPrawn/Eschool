@@ -14,6 +14,7 @@ use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Closure;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -49,14 +50,16 @@ class ProfileFiles
         return $field;
     }
 
-    public function upload(User $actor, User $person, string $profile, string $key, UploadedFile $document): void
+    public function upload(User $actor, User $person, string $profile, string $key, UploadedFile $document, ?Closure $authorize = null): void
     {
+        $authorize?->__invoke();
         $this->field($actor, $person, $profile, $key, write: true);
         Validator::make(['document' => $document], self::rules())->validate();
         $id = (string) Str::uuid();
         $path = app(CurrentSchool::class)->storagePath('profile-files').'/'.$id.'.enc';
         try {
-            DB::transaction(function () use ($actor, $person, $profile, $key, $document, $id, $path) {
+            DB::transaction(function () use ($actor, $person, $profile, $key, $document, $id, $path, $authorize) {
+                $authorize?->__invoke();
                 $freshPerson = User::query()->lockForUpdate()->findOrFail($person->id);
                 $field = $this->field($actor, $freshPerson, $profile, $key, write: true, lock: true);
                 $bytes = $document->getContent();
@@ -73,6 +76,7 @@ class ProfileFiles
                     ['value' => Crypt::encryptString(json_encode($id, JSON_THROW_ON_ERROR)), 'encrypted' => true]);
                 Audit::record('profile.file_uploaded', $person, [], ['field_key' => $key, 'file_id' => $id], schoolId: app(CurrentSchool::class)->id());
                 Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'profile.files'));
+                $authorize?->__invoke();
             });
         } catch (Throwable $error) {
             Storage::disk(self::DISK)->delete($path);

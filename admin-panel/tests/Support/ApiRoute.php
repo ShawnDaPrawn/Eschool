@@ -99,6 +99,10 @@ final readonly class ApiRoute
 
     public function sampleParameter(string $name): string
     {
+        if (str_starts_with($this->uri, 'api/v2/exam-coach/') && in_array($name, ['version', 'plan'], true)) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if (str_starts_with($this->uri, 'api/v2/teaching-assistant/') && in_array($name, ['draft', 'operation', 'photo'], true)) {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
@@ -108,6 +112,7 @@ final readonly class ApiRoute
         }
 
         return match ($name) {
+            'file' => str_starts_with($this->uri, 'api/v2/family-forms/learners/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4.pdf' : '1',
             'consent' => str_starts_with($this->uri, 'api/v2/family-forms/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',
             'card', 'scan', 'device' => str_starts_with($this->uri, 'api/v2/cards/') || str_starts_with($this->uri, 'api/v2/card-device/') || str_starts_with($this->uri, 'api/v2/card-readers/') ? '8aef50e7-2429-4d2c-a523-668ae436c4d4' : '1',
             'field' => 'test_field',
