@@ -37,9 +37,18 @@ class TeachingDraftController extends Controller
 
             return ResponseService::successResponse(data: array_merge($data, ['school_id' => $school, 'reader_id' => (int) $r->user()->id]));
         } catch (AiUnavailable $error) {
+            $allowance = match ($error->reason) {
+                'actor_daily_cap' => 'Your teaching allowance is used for today. Try again tomorrow.',
+                'learner_daily_cap' => 'This learner’s AI allowance is used for today. Try again tomorrow.',
+                'school_daily_cap' => 'The school AI allowance is used for today. Ask an administrator about the limit.',
+                default => null,
+            };
+            if ($allowance !== null) {
+                return ApiV2ExceptionRenderer::envelope(429, message: $allowance);
+            }
             $status = str_ends_with($error->reason, '_invalid') || str_ends_with($error->reason, '_required') ? 422 : 503;
 
-            return ApiV2ExceptionRenderer::envelope($status, data: ['reason' => $error->reason]);
+            return ApiV2ExceptionRenderer::envelope($status);
         }
     }
 

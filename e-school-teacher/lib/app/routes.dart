@@ -128,6 +128,8 @@ class Routes {
   static const String dailyPractice = '/learning/practice';
   static const String progressNotes = '/growth/progress';
   static const String myGrade = '/growth/my-grade';
+  static const String teachingAssistant = '/learning/teaching-assistant';
+  static const String testInsights = '/learning/test-insights';
   static const String schoolDiscipline = '/discipline';
   static const String privateGallery = '/community/private-gallery';
   static const String recognition = '/community/recognition';
@@ -157,6 +159,8 @@ class Routes {
     final module = switch (routeSettings.name) {
       progressNotes => 'academics',
       myGrade => 'my_grade',
+      teachingAssistant => 'teaching_assistant',
+      testInsights => 'test_insights',
       schoolDiscipline => 'discipline',
       riskInterventions => 'early_warning',
       mastery => 'mastery',
@@ -346,6 +350,10 @@ class Routes {
         return progressNotesRoute();
       case myGrade:
         return myGradeRoute();
+      case teachingAssistant:
+        return teachingWorkspaceRoute();
+      case testInsights:
+        return teachingWorkspaceRoute(insights: true);
       case schoolDiscipline:
         return schoolDisciplineRoute();
       case privateGallery:

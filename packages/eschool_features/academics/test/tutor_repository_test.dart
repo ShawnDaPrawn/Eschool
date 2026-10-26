@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:eschool_academics/eschool_academics.dart';
@@ -185,6 +187,44 @@ void main() {
         expect(api.requestedPaths, [
           'GET v2/tutor/parent/learners/9/subjects/4/summary',
         ]);
+      }
+    },
+  );
+  test(
+    'approved photo previews accept the bounded one-MiB derivative and still reject excess bytes',
+    () async {
+      for (final length in [684441, 1048577]) {
+        final bytes = Uint8List(length);
+        final reference = TutorPhotoReceipt.fromJson({
+          'school_id': 1,
+          'reader_id': 7,
+          'id': tutorPhoto,
+          'operation_id': tutorOperation,
+          'mime': 'image/png',
+          'sha256': sha256.convert(bytes).toString(),
+        });
+        final api = FakeApi(
+          routes: {
+            'GET v2/tutor/sessions/$tutorSession/photos/$tutorPhoto':
+                FakeBinaryResponse(bytes, contentType: 'image/png'),
+          },
+        );
+        final repo = ApiTutorRepository(
+          client(api),
+          schoolId: 1,
+          readerId: 7,
+          contextActive: () => true,
+        );
+        if (length <= 1048576) {
+          expect(await repo.preview(tutorSession, reference), bytes);
+        } else {
+          await expectLater(
+            repo.preview(tutorSession, reference),
+            throwsA(isA<ApiException>()),
+          );
+        }
+        expect(api.requests.single.headers['X-Account-Id'], '7');
+        expect(api.requests.single.headers['X-School-Id'], '1');
       }
     },
   );

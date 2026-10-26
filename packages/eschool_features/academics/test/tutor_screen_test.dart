@@ -339,4 +339,44 @@ void main() {
       expect(tutorFailureText(reason), contains('administrator'));
     }
   });
+  testWidgets(
+    'staff crop copy can describe anonymous learner working while defaults remain available',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TutorWorkingCrop(
+              bytes: Uint8List(0),
+              session: tutorSession,
+              operation: tutorOperation,
+              onApproved: (_) {},
+              onCancel: () {},
+              selectionTitle: 'Select the anonymous learner working',
+              selectionGuidance:
+                  'Exclude learner names and identifying details.',
+              approvalLabel:
+                  'I checked that this contains only anonymous learner working.',
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Select the anonymous learner working'), findsOneWidget);
+      expect(
+        find.text('Exclude learner names and identifying details.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'I checked that this contains only anonymous learner working.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('I checked this selection contains only my working.'),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

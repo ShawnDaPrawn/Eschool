@@ -7,6 +7,8 @@ namespace App\Services\Ai\Inference;
 /** Ephemeral provider data, never persisted in the metering or quarantine ledger. */
 final readonly class ResolvedVisionInput
 {
+    public const MAXIMUM_ENCODED_LENGTH = 1398104;
+
     /** @param list<VisionImage> $images */
     public function __construct(public string $text, public array $images)
     {
@@ -41,7 +43,7 @@ final readonly class ResolvedVisionInput
         }
         $images = [];
         foreach ($payload['images'] as $index => $image) {
-            if (! is_array($image) || array_keys($image) !== ['mime', 'data'] || $image['mime'] !== 'image/png' || ! is_string($image['data']) || strlen($image['data']) > 43692) {
+            if (! is_array($image) || array_keys($image) !== ['mime', 'data'] || $image['mime'] !== 'image/png' || ! is_string($image['data']) || strlen($image['data']) > self::MAXIMUM_ENCODED_LENGTH) {
                 throw new AiUnavailable('vision_media_invalid');
             }
             $bytes = base64_decode($image['data'], true);

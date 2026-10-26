@@ -51,7 +51,7 @@ class OpenAiModerator implements InferenceModerator
         } catch (AiUnavailable $error) {
             throw new InferenceNotDispatched($error->reason);
         }
-        app(ProviderTransport::class)->preflight('openai', '/moderations', $payload, $context->operationId, 'input', $context->deadline);
+        app(ProviderTransport::class)->preflight('openai', '/moderations', $payload, $context->operationId, 'input', $context->deadline, vision: is_array($input));
     }
 
     public function flags(Capability $capability, string $direction, string|array $content, ModerationContext $context): array
@@ -72,7 +72,7 @@ class OpenAiModerator implements InferenceModerator
         if (is_array($content) && $capability !== Capability::Vision) {
             throw new AiUnavailable('moderation_invalid');
         }
-        $data = app(ProviderTransport::class)->post('openai', '/moderations', $this->textPayload($direction, $content, $context), $context->operationId, $direction, $context->deadline);
+        $data = app(ProviderTransport::class)->post('openai', '/moderations', $this->textPayload($direction, $content, $context), $context->operationId, $direction, $context->deadline, vision: is_array($content));
         if (! is_array($data['results'] ?? null) || count($data['results']) !== 1 || ! is_bool($data['results'][0]['flagged'] ?? null)) {
             throw new AiUnavailable('moderation_invalid');
         }

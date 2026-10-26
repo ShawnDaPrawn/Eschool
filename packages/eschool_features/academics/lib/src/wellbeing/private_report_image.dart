@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
+import '../media/private_image_dimensions.dart';
+
 /// Decoded only for this mounted private reader. No global ImageCache entry,
 /// capability URL, disk thumbnail or late decode survives its disposal.
 class PrivateReportImage extends StatefulWidget {
@@ -9,10 +11,11 @@ class PrivateReportImage extends StatefulWidget {
     required this.base64,
     required this.label,
     this.maximumEdge = 360,
+    this.maximumEncodedLength = 524288,
     super.key,
   });
   final String base64, label;
-  final int maximumEdge;
+  final int maximumEdge, maximumEncodedLength;
   @override
   State<PrivateReportImage> createState() => _PrivateReportImageState();
 }
@@ -31,7 +34,8 @@ class _PrivateReportImageState extends State<PrivateReportImage> {
   void didUpdateWidget(PrivateReportImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.base64 != oldWidget.base64 ||
-        widget.maximumEdge != oldWidget.maximumEdge) {
+        widget.maximumEdge != oldWidget.maximumEdge ||
+        widget.maximumEncodedLength != oldWidget.maximumEncodedLength) {
       _image?.dispose();
       _image = null;
       _failed = false;
@@ -45,9 +49,18 @@ class _PrivateReportImageState extends State<PrivateReportImage> {
     try {
       if (widget.maximumEdge < 1 ||
           widget.maximumEdge > 1024 ||
-          widget.base64.length > 524288)
+          widget.maximumEncodedLength < 1 ||
+          widget.maximumEncodedLength > privateWorkingMaximumEncodedLength ||
+          widget.base64.length > widget.maximumEncodedLength)
         throw const FormatException();
-      codec = await ui.instantiateImageCodec(base64Decode(widget.base64));
+      final bytes = base64Decode(widget.base64);
+      privateImageDimensions(
+        bytes,
+        maximumBytes: privateWorkingMaximumBytes,
+        maximumEdge: widget.maximumEdge,
+        maximumPixels: widget.maximumEdge * widget.maximumEdge,
+      );
+      codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
       if (!mounted || generation != _generation) {
         frame.image.dispose();

@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/utils/teachingCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
@@ -109,6 +110,18 @@ List<Widget> sharedScreenEntries(
   String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
   void open(String route) => Navigator.of(context).pushNamed(route);
   return [
+    for (final entry in <(String, String, String)>[
+      ('teaching_assistant', Routes.teachingAssistant, 'Teaching assistant'),
+      ('test_insights', Routes.testInsights, 'Test insights'),
+    ])
+      if (context.watch<MeContextCubit>().context?.featureFlags[entry.$1] ==
+              true &&
+          allowsSchoolModule(context.watch<MeContextCubit>().context, entry.$1))
+        tile(
+          title: label(entry.$3),
+          icon: Icons.auto_awesome_outlined,
+          onTap: () => open(entry.$2),
+        ),
     if (context.watch<MeContextCubit>().context?.featureFlags['my_grade'] ==
             true &&
         allowsSchoolModule(context.watch<MeContextCubit>().context, 'my_grade'))
@@ -1477,6 +1490,74 @@ Route<dynamic> myGradeRoute() => AdaptivePageRoute(
               (schools.state.selectedId == null ||
                   schools.state.selectedId == school),
         ),
+      ),
+    );
+  },
+);
+
+Route<dynamic> teachingWorkspaceRoute({
+  bool insights = false,
+}) => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    final module = insights ? 'test_insights' : 'teaching_assistant';
+    if (me == null ||
+        school == null ||
+        school < 1 ||
+        account == null ||
+        account < 1 ||
+        me.featureFlags[module] != true ||
+        !me.isModuleOn(module) ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school)) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Teaching workspace'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: TeachingSessionBoundary(
+        pinned: me,
+        module: module,
+        builder: (_, active) {
+          bool current() =>
+              active() &&
+              (schools.state.selectedId == null ||
+                  schools.state.selectedId == school);
+          return TeachingScreen(
+            repository: ApiTeachingRepository(
+              Api.client,
+              schoolId: school,
+              readerId: account,
+              contextActive: current,
+            ),
+            insightsOnly: insights,
+            canRead: current,
+            canWrite: () =>
+                current() && session.context?.isModuleReadOnly(module) == false,
+            selectCameraPhoto: selectTeachingCameraPhoto,
+            exportPdf: (bytes, name) async {
+              if (!current()) return;
+              await DeviceFiles.saveDocument(
+                bytes,
+                'private-exports/$account/$school/$name',
+              );
+            },
+          );
+        },
       ),
     );
   },

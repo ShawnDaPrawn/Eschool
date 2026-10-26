@@ -14,9 +14,11 @@ use Throwable;
 /** Fixed-origin, bounded, single-attempt transport; never reports provider error bodies. */
 class ProviderTransport
 {
+    public const VISION_REQUEST_MAXIMUM_BYTES = 5242880;
+
     private const ORIGINS = ['openai' => 'https://api.openai.com/v1', 'anthropic' => 'https://api.anthropic.com/v1', 'deepseek' => 'https://api.deepseek.com'];
 
-    public function preflight(string $provider, string $path, array $payload, string $operationId, string $stage = 'inference', ?InferenceDeadline $deadline = null): void
+    public function preflight(string $provider, string $path, array $payload, string $operationId, string $stage = 'inference', ?InferenceDeadline $deadline = null, bool $vision = false): void
     {
         $paths = ['openai' => ['/chat/completions', '/embeddings', '/moderations'], 'anthropic' => ['/messages'], 'deepseek' => ['/chat/completions']];
         $key = config('ai.providers.'.$provider.'.key');
@@ -30,7 +32,7 @@ class ProviderTransport
         } catch (Throwable) {
             throw new InferenceNotDispatched('provider_request_invalid');
         }
-        if (strlen($bytes) > 262144) {
+        if (strlen($bytes) > ($vision ? self::VISION_REQUEST_MAXIMUM_BYTES : 262144)) {
             throw new InferenceNotDispatched('provider_request_limit');
         }
         $this->requestSeconds($deadline);
@@ -45,10 +47,10 @@ class ProviderTransport
         }
     }
 
-    public function post(string $provider, string $path, array $payload, string $operationId, string $stage = 'inference', ?InferenceDeadline $deadline = null): array
+    public function post(string $provider, string $path, array $payload, string $operationId, string $stage = 'inference', ?InferenceDeadline $deadline = null, bool $vision = false): array
     {
         // Repeat local preflight: qualification may change after input moderation.
-        $this->preflight($provider, $path, $payload, $operationId, $stage, $deadline);
+        $this->preflight($provider, $path, $payload, $operationId, $stage, $deadline, $vision);
         $seconds = $this->requestSeconds($deadline);
         $until = hrtime(true) + (int) ($seconds * 1000000000);
         $key = config('ai.providers.'.$provider.'.key');

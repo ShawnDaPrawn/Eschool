@@ -854,6 +854,7 @@ class _TutorPhotoPreviewState extends State<_TutorPhotoPreview> {
           child: PrivateReportImage(
             base64: _image!,
             maximumEdge: 768,
+            maximumEncodedLength: 1398104,
             label: academicText(context, 'Your approved working crop'),
           ),
         )
