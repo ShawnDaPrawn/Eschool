@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:eschool_academics/eschool_academics.dart';
+import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -92,6 +93,171 @@ Future<void> startPicker(WidgetTester tester) async {
 }
 
 void main() {
+  for (final kind in ['practice', 'follow_up_quiz', 'script_marks']) {
+    testWidgets('$kind requires saved edits and a fresh final confirmation', (
+      tester,
+    ) async {
+      final script = kind == 'script_marks';
+      final draft = teachingDetailJson(state: 'approved')..['kind'] = kind;
+      draft['definition'] = script
+          ? {
+              'question_marks': [
+                {
+                  'question_id': 8,
+                  'mark': '5.00',
+                  'confidence_bp': 7000,
+                  'reason': 'Visible calculation.',
+                },
+              ],
+            }
+          : {
+              'title': 'Reviewed fractions',
+              'questions': [
+                {
+                  'topic_id': 6,
+                  'estimated_seconds': 60,
+                  'definition': {
+                    'kind': 'number',
+                    'prompt': 'What is one half plus one half?',
+                    'explanation': 'Two halves make one whole.',
+                    'options': <dynamic>[],
+                    'answers': ['1'],
+                  },
+                },
+              ],
+            };
+      if (script) {
+        draft['question_labels'] = [
+          {'question_id': 8, 'number': '1', 'max_mark': '10.00'},
+        ];
+      }
+      final repo = FakeTeachingRepository()..current = draft;
+      await show(tester, repo);
+      await openDraft(tester, label: teachingKindLabel(kind));
+      await tap(tester, find.byType(CheckboxListTile));
+      final finalAction = find.widgetWithText(
+        FilledButton,
+        script ? 'Confirm official marks' : 'Publish to practice',
+      );
+      expect(tester.widget<FilledButton>(finalAction).onPressed, isNotNull);
+      final edited = find.byKey(
+        ValueKey(script ? 'teaching-edit-mark-0' : 'teaching-edit-q-0'),
+      );
+      await tester.ensureVisible(edited);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        edited,
+        script ? '7.00' : 'Changed visible question',
+      );
+      await tester.pump();
+      final checkbox = tester.widget<CheckboxListTile>(
+        find.byType(CheckboxListTile),
+      );
+      expect(checkbox.value, isFalse);
+      expect(checkbox.onChanged, isNull);
+      expect(tester.widget<FilledButton>(finalAction).onPressed, isNull);
+      expect(repo.sentReviews, isEmpty);
+      await tap(tester, find.byKey(const ValueKey('teaching-save-edit')));
+      expect(repo.sentReviews.single.body['action'], 'edit');
+      final saved = repo.current!['definition'] as Map;
+      expect(
+        script
+            ? (saved['question_marks'] as List).single['mark']
+            : (saved['questions'] as List).single['definition']['prompt'],
+        script ? '7.00' : 'Changed visible question',
+      );
+      await tap(tester, find.byKey(const ValueKey('teaching-approve')));
+      expect(
+        tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+        isFalse,
+      );
+      expect(tester.widget<FilledButton>(finalAction).onPressed, isNull);
+      await tap(tester, find.byType(CheckboxListTile));
+      await tap(tester, finalAction);
+      expect(repo.sentReviews.last.body['confirmed'], isTrue);
+      expect(repo.sentReviews.last.body['expected_revision'], 3);
+      expect(repo.publications, script ? 0 : 1);
+      expect(repo.officialMarkWrites, script ? 1 : 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
+
+  testWidgets(
+    'an original generation validation rejection permits a corrected submit',
+    (tester) async {
+      final repo = _RejectedGenerationRepository();
+      await show(tester, repo);
+      await tap(tester, find.text('New draft'));
+      final brief = find.byKey(const ValueKey('teaching-brief'));
+      await tester.enterText(brief, 'First rejected input');
+      await tester.pump();
+      await tap(tester, find.byKey(const ValueKey('teaching-generate')));
+      expect(find.text('Check saved request'), findsNothing);
+      await tester.ensureVisible(brief);
+      await tester.pumpAndSettle();
+      await tester.enterText(brief, 'Corrected fractions input');
+      await tester.pump();
+      await tap(tester, find.byKey(const ValueKey('teaching-generate')));
+      expect(repo.attempts, hasLength(2));
+      expect(repo.attempts[0].operation, isNot(repo.attempts[1].operation));
+      expect(repo.attempts[1].body['brief'], 'Corrected fractions input');
+      expect(repo.generations, 1);
+      expect(repo.receiptReads, 0);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    },
+  );
+
+  for (final resumed in [false, true]) {
+    testWidgets(
+      'a missing ${resumed ? 'resume' : 'manual'} receipt keeps its original generation',
+      (tester) async {
+        final repo = _MissingReceiptRepository()..loseGeneration = true;
+        await show(tester, repo);
+        await tap(tester, find.text('New draft'));
+        await tester.enterText(
+          find.byKey(const ValueKey('teaching-brief')),
+          'Prepare fractions practice.',
+        );
+        await tester.pump();
+        await tap(tester, find.byKey(const ValueKey('teaching-generate')));
+        if (resumed) {
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.inactive,
+          );
+          await tester.pump();
+          tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          );
+          await tester.pumpAndSettle();
+        } else {
+          await tap(tester, find.text('Check saved request'));
+        }
+        expect(repo.lookups, hasLength(1));
+        expect(
+          find.text('Reopen the teaching workspace to check your access.'),
+          findsNothing,
+        );
+        expect(find.text('Check saved request'), findsOneWidget);
+        await tap(tester, find.text('Check saved request'));
+        expect(repo.lookups, hasLength(2));
+        expect(repo.lookups.toSet(), hasLength(1));
+        expect(repo.generations, 1);
+        expect(repo.receiptReads, 1);
+        expect(find.text('Check saved request'), findsNothing);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox());
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      },
+    );
+  }
+
   testWidgets('a known school allowance refusal remains readable', (
     tester,
   ) async {
@@ -387,4 +553,26 @@ void main() {
       tester.view.resetDevicePixelRatio();
     },
   );
+}
+
+class _RejectedGenerationRepository extends FakeTeachingRepository {
+  final attempts = <TeachingGenerationIntent>[];
+  @override
+  Future<TeachingDraftDetail> generate(TeachingGenerationIntent intent) async {
+    attempts.add(intent);
+    if (attempts.length == 1)
+      throw ApiException('Rejected fields', statusCode: 422);
+    return super.generate(intent);
+  }
+}
+
+class _MissingReceiptRepository extends FakeTeachingRepository {
+  final lookups = <String>[];
+  @override
+  Future<TeachingDraftDetail> receipt(String operation) async {
+    lookups.add(operation);
+    if (lookups.length == 1)
+      throw ApiException('Not committed yet', statusCode: 404);
+    return super.receipt(operation);
+  }
 }
