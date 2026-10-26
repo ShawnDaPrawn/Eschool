@@ -51,3 +51,28 @@ quarantine and exact uncertain-write recovery are required. A disabled provider
 must show a clear availability message while document reading and human handoff
 remain usable; no synthetic answer is presented as real inference. Real-provider
 evaluation, contracts and production approval remain separate evidence.
+
+## Prepared inference and translation boundary
+
+Inference uses immutable, encrypted, 15-minute review turns. The reader sees the
+exact minimised text and confirms that visible names/identifiers have been
+reviewed; known Parent/learner identity stripping does not claim universal PII
+recognition. Each answer pins selected approved document versions plus optional
+school calendar, own released results and today's canonical attendance. There is
+no clinical, risk, staff-draft, question-bank or arbitrary source-class resolver.
+Current source changes retire the old review rather than replacing its evidence.
+
+Translation resolves one exact message from a Parent-owned/explicitly claimed
+school-support thread. It preserves the original and never sends the translated
+text as a message. A server-generated turn UUID binds gateway, moderation and
+usage, avoiding client UUID collisions across readers. Responses have validated
+language, bounded text and citations limited to the exact reviewed source tokens;
+unsupported answers offer human handoff. These structural checks do not certify
+a real provider's semantic grounding or translation quality.
+
+Both features default off, use the common moderation/caps/cost ledger and have
+versioned prompts and unscored evaluation fixtures. Safeguarding quarantine blocks
+the normal preview immediately; retention erases derived turn text and gateway
+replay bodies while preserving usage costs and original school documents/messages.
+The scheduled eraser also runs after module withdrawal. No private turn body is
+copied into the generic operation receipt.

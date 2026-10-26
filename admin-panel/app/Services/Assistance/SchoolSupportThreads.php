@@ -18,7 +18,7 @@ class SchoolSupportThreads
     private function input(array $input): array
     {
         return Validator::make($input, ['operation_id' => ['required', 'uuid'], 'text' => ['required', 'string', 'max:4000'],
-            'language' => ['required', 'string', 'regex:/^[a-z]{2}(?:-[A-Za-z]{2,8})?$/D', 'max:16']])->validate();
+            'language' => ['required', 'string', 'regex:/^[a-z]{2,3}(?:-[A-Za-z]{2,8})?$/D', 'max:16']])->validate();
     }
 
     private function append(User $actor, SupportThread $thread, array $input, bool $office): SupportMessage
