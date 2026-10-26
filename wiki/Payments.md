@@ -185,7 +185,7 @@ Everything below is stored only in the `settings` table (`type`/`message` pairs,
 |---|---|---|---|
 | `currency_code`, `currency_symbol` | Fees configuration | none | Default currency; receipts; `/api/settings` |
 | `default_due_charges`, `enable_fees_installment` | Fees configuration | none | Defaults shown on the session-year form |
-| `compulsory_fee_payment_mode` | Fees configuration | none | When 1, login/profile APIs return `is_fee_payment_due` (from `free_app_use_date`, `fee_due_date`, installments) for an informational overdue-fee reminder; it never blocks Home, learning, marks or released reports |
+| `compulsory_fee_payment_mode` | Fees configuration | none | When 1, login/profile APIs return `is_fee_payment_due` (from `free_app_use_date`, `fee_due_date`, installments) for an informational overdue-fee reminder. The public app-settings compatibility field is always `0`, so older installed apps cannot restore a fee lock. It never blocks Home, learning, marks or released reports |
 | `is_student_can_pay_fees` | Fees configuration | none | Sent to the app; the student payment endpoints do not check it |
 | `online_payment` | General settings (`SettingController::update`) | none | Sent to the app; not checked by the payment endpoints |
 | `stripe_status`, `stripe_publishable_key`, `stripe_secret_key`, `stripe_webhook_secret`, `stripe_webhook_url`, `stripe_currency_code` | Fees configuration | `STRIPE_WEBHOOK_SECRET` (`services.stripe.webhook_secret`) | Secret key from settings only; webhook secret from the setting, then the config fallback |

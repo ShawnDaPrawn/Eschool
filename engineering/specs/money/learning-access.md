@@ -1,8 +1,12 @@
 # Learning access while fees are outstanding
 
 A valid, guardian-approved learner can use Home, learning, marks and released
-reports while fees remain unpaid. The legacy compulsory-fee setting remains in
-the v1 settings contract, but does not control navigation or academic access. Panel wording describes overdue
+reports while fees remain unpaid. The legacy compulsory-fee field remains a
+string in the v1 settings contract
+and is always returned as `0`, so older installed clients cannot restore the
+former lock. The stored setting still controls overdue reminder calculation,
+which remains independent of navigation and academic access. Panel wording
+describes overdue
 fee reminders and their start date rather than paid access to learning.
 
 Fresh learner sign-in and returning-session startup both open Home. A parent's

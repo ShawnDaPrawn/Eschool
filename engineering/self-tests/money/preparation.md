@@ -11,6 +11,7 @@ activation or physical-device acceptance is inferred from a merge.
 | --- | --- |
 | Final money/access/translation cohort | 25 tests passed, 14,536 assertions (including translation catalogue assertions). Twenty kernel tests cover integer balance/currency, permanent key/source replay, direct SQL immutability/invariants, owner/school/context refusal, disabled/package-removed wallet history, suspension, projection reconciliation, independent-process concurrent spends/retries, and four real two-connection stale snapshots. Two approved-unpaid access/privacy tests and three existing translation checks complete the cohort. |
 | Module independence follow-up | 34 tests / 294 assertions passed: the current 21 kernel tests plus 13 module-control tests, including wallet cash funding with fees off, immutable account-module ownership and disabled-switch refusal. Cohorts overlap and are not summed. |
+| Installed v1 access/contracts | Approved unpaid access/privacy: 2 tests / 17 assertions passed with the stored reminder setting on, the outbound lock flag off and actual overdue status still present. API shape, guardian child privacy and secret-settings cohort: 15 tests / 279 assertions passed. |
 | Joined/backend handover cohort | 108 tests / 1,683 assertions passed across admissions, approval, module controls, table tenancy, outbox, live publication, notifier and queued delivery. This includes the three new admission→guardian→enrolment/transfer/receipt stories. |
 | Learner route widgets | 35 routing/widget tests passed, including both saved fee-lock redirects and the real route when the fees module is off. |
 | Family app analysis | No errors or warnings; existing informational lints remain. |
@@ -92,6 +93,16 @@ and all child selection/request assertions remain intact. No test was skipped
 or reclassified as a transport retry. Logs: `pre-money-child-browser-red.log`,
 `pre-money-child-browser-red-errors.json`, `pre-money-child-browser-green.log`.
 Hosted Chrome and Android jobs must pass on the final revision before merge.
+
+## Installed-client access compatibility
+
+The public v1 app-settings field `compulsory_fee_payment_mode` remains a string
+but is always disabled. Existing clients therefore receive no instruction to
+restore their old lock while awaiting an app update. A real API test enables
+the stored reminder setting, asserts the outbound flag is `0`, and still gets
+the actual unpaid profile flag `1` plus academic access. Stored reminder rules,
+fee/payment data and guardian fee rights remain unchanged. Contract snapshots
+retain their existing keys/types; no field is removed.
 
 ## External evidence and subsequent slices
 

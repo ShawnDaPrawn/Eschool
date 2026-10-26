@@ -39,6 +39,8 @@ class ArrearsAccessTest extends TestCase
 
     public function test_an_unpaid_approved_learner_keeps_home_marks_and_reports(): void
     {
+        $this->getJson('/api/settings?type=app_settings')->assertOk()
+            ->assertJsonPath('data.compulsory_fee_payment_mode', '0');
         $this->withToken($this->schoolA->tokens['asha'])
             ->getJson('/api/student/get-profile-data')->assertOk()->assertJsonPath('data.is_fee_payment_due', 1);
         foreach (['dashboard', 'subjects', 'exam-marks?exam_id='.$this->schoolA->ids['exam'], 'offline-exam-report?session_year_id='.$this->schoolA->ids['session_year']] as $path) {
