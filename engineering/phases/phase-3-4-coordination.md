@@ -98,3 +98,20 @@ must subscribe to completed transfers; retaining tags needs an explicit guardian
 choice bound to that specific signed consent. It must not extend old-school
 membership or generic image access. That integration remains subsequent gallery
 work while this transfer increment is reviewed.
+
+
+## Closing checkpoint and bounded preparation, 26 October 2026
+
+Both retained software streams are merged in main `990ea2a7b`; the current
+[Phase 3](phase-3.md) and [Phase 4](phase-4.md) records supersede the original
+branch/pending statuses above. The exact closing integration passed all 106
+expected CI jobs and its separate Security, Staff identity and Firebase checks.
+External evidence remains explicit rather than inferred from that result.
+
+The owner accepted bounded preparation before Phase 5. Recovery/retention and
+joined screen-state review, existing fee/ledger boundary corrections and the
+admissions/transfer/leadership financial handover are separate reviewable
+increments. Contracts, shared permissions and source ownership remain coordinated.
+These preparation records do not authorize new payments, live providers or
+production activation. Ordinary group-chat translation remains distinct from
+the completed original-preserving Parent-office message translation scope.

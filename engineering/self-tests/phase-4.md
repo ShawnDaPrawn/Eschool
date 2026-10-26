@@ -1,5 +1,38 @@
 # Phase 4 verification
 
+## Merged baseline: 26 October 2026
+
+Main `990ea2a7bb22ca90091ad7bb32fd35b467831474` has exactly the qualified
+`4a5a43015219c62fc5a05b039eac5adac0c13410` tree
+(`41e1aba6cdeef405f38347d05b4323b1fc9c5535`). The final
+[CI run](https://github.com/ShawnDaPrawn/Eschool/actions/runs/40373490109)
+passed all 106 expected jobs, including the complete four-way backend partition
+and required aggregate, all Android shards/identities, app/package checks,
+actual Chrome flows, panel Playwright, generated-client reproducibility and
+encoder protocol/emulator checks. The separate Security, Staff build identities
+and Firebase documentation workflows concluded successfully on the same head.
+Remote Gradle/Kotlin HTTP 504 downloads required same-commit failed/unfinished-job
+recovery; the final inventory retains every expected target and has no failed,
+cancelled or skipped job. No product assertion was waived.
+
+All retained software described by this phase plan is now merged. The dated
+sections below are historical feature evidence, so their earlier “pending” or
+“follow-on” wording does not describe the current implementation state. Later
+feature records provide the detailed affected-profile checks; this update does
+not claim to have rerun those suites.
+
+External evidence remains separate: real-model/provider qualification and
+observed costs, school safeguarding/privacy and representative UX review,
+fluent wording/source/licence approval, physical devices/cards/readers/printers,
+iOS compilation/store distribution, deployed latency/load, operations and
+production acceptance. The cancelled pilot campaign is not reinstated and none
+of these unrun checks is called passed. No paid provider or physical card
+execution is authorized by this record.
+
+The subsequent bounded operational audit is recorded in
+[Phase 3/4 recovery](../runbooks/phase-3-4-recovery.md); its PR/tests are separate
+from the already-qualified baseline above.
+
 ## Native build-identity foundation, 24 October 2026
 
 Scope: first part of step 1 only. Separate native identities, scheme/configuration
