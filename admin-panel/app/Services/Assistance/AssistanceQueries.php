@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Operations\AiSchoolControls;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -19,6 +20,9 @@ class AssistanceQueries
 {
     public function available(User $actor): bool
     {
+        if (! app(ModuleGate::class)->allows('ask_school')) {
+            return false;
+        }
         try {
             app(AssistanceAccess::class)->office($actor);
 

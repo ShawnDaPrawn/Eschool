@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
 use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
+use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
@@ -761,4 +762,35 @@ Route::prefix('card-device')->name('api.v2.family-visits.device.')->middleware([
     $controller = VisitController::class;
     Route::get('scans/{scan}/gate-passes', [$controller, 'read'])->whereUuid('scan')->name('lookup');
     Route::post('gate-passes/{pass}/collect', [$controller, 'write'])->whereUuid('pass')->name('collect');
+});
+
+Route::prefix('school-assistance')->name('api.v2.school-assistance.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:ask_school'])->group(function () {
+    $controller = AssistanceController::class;
+    $get = function (string $path, string $action) use ($controller): void {
+        Route::get($path, [$controller, 'read'])->whereNumber('learner')->whereUuid(['document', 'thread', 'turn'])->defaults('assistance_action', $action)->name($action);
+    };
+    $post = function (string $path, string $action) use ($controller): void {
+        Route::post($path, [$controller, 'write'])->whereNumber('learner')->whereUuid(['document', 'thread', 'turn'])->defaults('assistance_action', $action)->name($action);
+    };
+    $get('configuration', 'configuration');
+    $get('family/learners/{learner}/documents', 'documents');
+    $get('family/learners/{learner}/documents/{document}', 'document');
+    $get('family/learners/{learner}/threads', 'threads');
+    $post('family/learners/{learner}/threads', 'thread.open');
+    $post('family/learners/{learner}/answers', 'answer.prepare');
+    $post('family/learners/{learner}/translations', 'translation.prepare');
+    $get('threads/{thread}', 'thread.read');
+    $post('threads/{thread}/reply', 'thread.reply');
+    $post('threads/{thread}/close', 'thread.close');
+    $get('turns/{turn}', 'turn.read');
+    $post('turns/{turn}/run', 'turn.run');
+    $get('office/queue', 'office.queue');
+    $get('office/staff', 'office.staff');
+    $get('office/documents', 'office.documents');
+    $get('office/documents/{document}', 'office.document');
+    $post('office/documents', 'office.publish');
+    $post('office/documents/{document}/withdraw', 'office.withdraw');
+    $post('office/threads/{thread}/claim', 'office.claim');
+    $post('office/threads/{thread}/reassign', 'office.reassign');
+    $post('office/learners/{learner}/translations', 'office.translation');
 });
