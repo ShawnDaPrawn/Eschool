@@ -16,9 +16,10 @@ family-permitted mastery evidence determine weighting; the mastery module being
 off never authorizes raw staff marks. Schedule changes or withdrawn sources
 require a fresh plan, with the old receipt retained for audit.
 
-Answer-photo feedback is a separate follow-on domain/API/client increment. It
-will reuse bounded Files scanning, explicit cropped working approval, the
-registered vision gateway and safeguarding media/retention contracts. Only the
+Answer-photo feedback uses bounded Files scanning, explicit cropped working
+approval, the registered vision gateway and safeguarding media/retention
+contracts. Private typed operations support upload, own receipt recovery,
+feedback, withdrawal, allocated-teacher reads and reasoned review. Only the
 selected question and its approved memo enter context. Suggested marks and the
 model's confidence are provisional; staff explicitly confirm or correct them.
 No coaching action writes official assessment marks automatically.
@@ -29,4 +30,8 @@ guardian approval, role/module withdrawal and source changes are tested. Questio
 No public file URLs, paid provider activation or invented live-model acceptance
 is part of implementation.
 
-Current work: the library/study-plan domain and seventeen private typed API operations are implemented and tested with the generated SDK. Staff/learner clients and the separate vision-feedback increment remain in progress; no full Exam Coach acceptance is claimed.
+Current work: the library, study plans and photo feedback domain plus 29 private
+typed API operations are implemented and tested with the generated SDK. Photo
+feedback availability is explicit while inference remains disabled; the licensed
+library and deterministic plans remain usable independently. Staff/learner
+clients remain in progress; no full Exam Coach acceptance is claimed.

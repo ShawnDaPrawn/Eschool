@@ -50,6 +50,18 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getExamCoachOperation requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'listExamCoachStaffAnswers requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers', [], 401],
+            'getExamCoachStaffAnswer requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getExamCoachStaffAnswerPhoto requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/photo', [], 401],
+            'reviewExamCoachAnswer requires authentication' => [null, 'POST', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/review', [], 401],
+            'uploadExamCoachAnswer requires authentication' => [null, 'POST', 'api/v2/exam-coach/groups/1/versions/8aef50e7-2429-4d2c-a523-668ae436c4d4/answers', [], 401],
+            'getExamCoachAnswerOperation requires authentication' => [null, 'GET', 'api/v2/exam-coach/answer-operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'listExamCoachAnswers requires authentication' => [null, 'GET', 'api/v2/exam-coach/answers', [], 401],
+            'getExamCoachAnswer requires authentication' => [null, 'GET', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getExamCoachAnswerPhoto requires authentication' => [null, 'GET', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/photo', [], 401],
+            'requestExamCoachFeedback requires authentication' => [null, 'POST', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/feedback', [], 401],
+            'revokeExamCoachAnswer requires authentication' => [null, 'POST', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/revoke', [], 401],
             'getExamCoachConfiguration requires authentication' => [null, 'GET', 'api/v2/exam-coach/configuration', [], 401],
             'getExamCoachStaffChoices requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/choices', [], 401],
             'listExamCoachStaffPapers requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/papers', [], 401],
@@ -82,6 +94,8 @@ class OpenApiContractTest extends TestCase
             'getTaskInsightConfiguration requires authentication' => [null, 'GET', 'api/v2/test-insights/configuration', [], 401],
             'getTaskInsightChoices requires authentication' => [null, 'GET', 'api/v2/test-insights/groups/1', [], 401],
             'getTaskInsights requires authentication' => [null, 'GET', 'api/v2/test-insights/groups/1/tasks/1', [], 401],
+            'uploadFamilyHealthFile requires authentication' => [null, 'POST', 'api/v2/family-forms/learners/1/health/fields/health_document/file', [], 401],
+            'getFamilyHealthFile requires authentication' => [null, 'GET', 'api/v2/family-forms/learners/1/health/files/8aef50e7-2429-4d2c-a523-668ae436c4d4.pdf', [], 401],
             'getFamilyFormConfiguration requires authentication' => [null, 'GET', 'api/v2/family-forms/configuration', [], 401],
             'getFamilyConsents requires authentication' => [null, 'GET', 'api/v2/family-forms/consents', [], 401],
             'createFamilyConsent requires authentication' => [null, 'POST', 'api/v2/family-forms/consents', [], 401],

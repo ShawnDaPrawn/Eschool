@@ -660,6 +660,8 @@ Route::prefix('family-forms')->name('api.v2.family-forms.')->middleware([Private
     Route::post('consents/{consent}/learners/{learner}/response', [$controller, 'write'])->whereUuid('consent')->whereNumber('learner')->name('respond');
     Route::get('learners/{learner}/health', [$controller, 'read'])->whereNumber('learner')->name('health.read');
     Route::put('learners/{learner}/health', [$controller, 'write'])->whereNumber('learner')->name('health.save');
+    Route::post('learners/{learner}/health/fields/{field}/file', [$controller, 'upload'])->whereNumber('learner')->where('field', '[a-z][a-z0-9_]{0,63}')->name('health.upload');
+    Route::get('learners/{learner}/health/files/{file}', [$controller, 'file'])->whereNumber('learner')->where('file', '[0-9a-f-]{36}\\.(pdf|png|jpg)')->name('health.file');
 });
 
 // Licensed school-reviewed papers, staff-only memos and own learner study plans.
@@ -667,6 +669,11 @@ Route::prefix('exam-coach')->middleware([PrivateDomainResponse::class, 'auth:san
     $c = ExamCoachController::class;
     Route::get('configuration', [$c, 'configuration'])->name('configuration');
     Route::prefix('staff/groups/{group}')->whereNumber('group')->name('staff.')->group(function () use ($c) {
+        Route::get('operations/{operation}', [$c, 'operation'])->whereUuid('operation')->name('operation');
+        Route::get('answers', [$c, 'staffAnswers'])->name('answers');
+        Route::get('answers/{answer}', [$c, 'staffAnswer'])->whereUuid('answer')->name('answer');
+        Route::get('answers/{answer}/photo', [$c, 'staffAnswerPhoto'])->whereUuid('answer')->name('answer-photo');
+        Route::post('answers/{answer}/review', [$c, 'reviewAnswer'])->whereUuid('answer')->name('answer-review');
         Route::get('choices', [$c, 'choices'])->name('choices');
         Route::get('papers', [$c, 'staffPapers'])->name('papers');
         Route::post('papers', [$c, 'draft'])->name('draft');
@@ -678,12 +685,19 @@ Route::prefix('exam-coach')->middleware([PrivateDomainResponse::class, 'auth:san
         Route::get('versions/{version}/memo', [$c, 'staffMemo'])->whereUuid('version')->name('memo');
     });
     Route::prefix('groups/{group}')->whereNumber('group')->group(function () use ($c) {
+        Route::post('versions/{version}/answers', [$c, 'uploadAnswer'])->whereUuid('version')->middleware('throttle:20,1')->name('answer-upload');
         Route::get('papers', [$c, 'learnerPapers'])->name('papers');
         Route::get('versions/{version}', [$c, 'learnerVersion'])->whereUuid('version')->name('version');
         Route::get('versions/{version}/paper', [$c, 'learnerPaper'])->whereUuid('version')->name('paper');
         Route::get('exams', [$c, 'dates'])->name('exams');
         Route::post('plans', [$c, 'createPlan'])->name('create-plan');
     });
+    Route::get('answer-operations/{operation}', [$c, 'answerOperation'])->whereUuid('operation')->name('answer-operation');
+    Route::get('answers', [$c, 'answers'])->name('answers');
+    Route::get('answers/{answer}', [$c, 'answer'])->whereUuid('answer')->name('answer');
+    Route::get('answers/{answer}/photo', [$c, 'answerPhoto'])->whereUuid('answer')->name('answer-photo');
+    Route::post('answers/{answer}/feedback', [$c, 'sendAnswer'])->whereUuid('answer')->middleware('throttle:20,1')->name('answer-feedback');
+    Route::post('answers/{answer}/revoke', [$c, 'revokeAnswer'])->whereUuid('answer')->name('answer-revoke');
     Route::get('plans', [$c, 'plans'])->name('plans');
     Route::get('plans/{plan}', [$c, 'plan'])->whereUuid('plan')->name('plan');
 });

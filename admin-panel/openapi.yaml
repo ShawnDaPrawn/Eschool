@@ -21414,6 +21414,742 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /family-forms/learners/{learner}/health/fields/{field}/file:
+    post:
+      operationId: uploadFamilyHealthFile
+      tags:
+      - FamilyForms
+      summary: Upload a private current health-field attachment
+      description: Current guardian or explicit health access, learner membership/enrolment, module write mode
+        and field authority are checked before validation and storage. PDF files up to 5 MB require scanning.
+        JPEG/PNG files up to 4 MB require scanning and pixel sanitization; scanner failure refuses the upload.
+        Reuses encrypted profile attachments.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: field
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[a-z][a-z0-9_]{0,63}$
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - document
+              properties:
+                document:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Freshly authorized Health category after the upload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileFormResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/ServerError'
+  /family-forms/learners/{learner}/health/files/{file}:
+    get:
+      operationId: getFamilyHealthFile
+      tags:
+      - FamilyForms
+      summary: Read a current private health-field attachment
+      description: Fresh purpose/guardian/learner/module/field authority and the current attachment reference
+        are checked before and after the encrypted file read. Replaced, cleared, transferred or withdrawn sources
+        cannot return bytes. No metadata URL is trusted.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: learner
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: file
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-f-]{36}\.(pdf|png|jpg)$
+      responses:
+        '200':
+          description: Current private encrypted-profile attachment.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+            Content-Security-Policy:
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/ServerError'
+  /exam-coach/staff/groups/{group}/operations/{operation}:
+    get:
+      operationId: getExamCoachOperation
+      tags:
+      - ExamCoach
+      summary: getExamCoachOperation
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachOperationReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers:
+    get:
+      operationId: listExamCoachStaffAnswers
+      tags:
+      - ExamCoach
+      summary: listExamCoachStaffAnswers
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers/{answer}:
+    get:
+      operationId: getExamCoachStaffAnswer
+      tags:
+      - ExamCoach
+      summary: getExamCoachStaffAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers/{answer}/photo:
+    get:
+      operationId: getExamCoachStaffAnswerPhoto
+      tags:
+      - ExamCoach
+      summary: getExamCoachStaffAnswerPhoto
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh authorized approved cropped working pixels only.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/staff/groups/{group}/answers/{answer}/review:
+    post:
+      operationId: reviewExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: reviewExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerReviewReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCoachAnswerReviewWrite'
+  /exam-coach/groups/{group}/versions/{version}/answers:
+    post:
+      operationId: uploadExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: uploadExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: group
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerUploadReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExamCoachAnswerUploadWrite'
+  /exam-coach/answer-operations/{operation}:
+    get:
+      operationId: getExamCoachAnswerOperation
+      tags:
+      - ExamCoach
+      summary: getExamCoachAnswerOperation
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers:
+    get:
+      operationId: listExamCoachAnswers
+      tags:
+      - ExamCoach
+      summary: listExamCoachAnswers
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers/{answer}:
+    get:
+      operationId: getExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: getExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers/{answer}/photo:
+    get:
+      operationId: getExamCoachAnswerPhoto
+      tags:
+      - ExamCoach
+      summary: getExamCoachAnswerPhoto
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh authorized approved cropped working pixels only.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /exam-coach/answers/{answer}/feedback:
+    post:
+      operationId: requestExamCoachFeedback
+      tags:
+      - ExamCoach
+      summary: requestExamCoachFeedback
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCoachAnswerFeedbackWrite'
+  /exam-coach/answers/{answer}/revoke:
+    post:
+      operationId: revokeExamCoachAnswer
+      tags:
+      - ExamCoach
+      summary: revokeExamCoachAnswer
+      description: Private approved working, provisional feedback and explicit teacher correction. Fresh account/school/owner/group/source
+        authority precedes every file/body read and immutable operation replay. Quarantined or expired crops are
+        unavailable to learners and ordinary staff. Teacher review never posts official assessment marks. Writes
+        accept only documented body fields.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: answer
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Fresh private licensed paper or own study-plan result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamCoachAnswerRevocationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '423':
+          description: Historical academic context is read-only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamCoachOperationWrite'
 components:
   securitySchemes:
     bearerAuth:
@@ -47504,6 +48240,10 @@ components:
           maxItems: 200
         writable:
           type: boolean
+        photo_feedback_enabled:
+          type: boolean
+          description: Optional current activation/readiness for automated photo feedback; every request still checks
+            fresh source authority and budgets.
     ExamCoachStaffChoices:
       type: object
       additionalProperties: false
@@ -48176,6 +48916,467 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/ExamCoachStudyPlan'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerUploadReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - prepared
+    ExamCoachAnswerFeedback:
+      type: object
+      additionalProperties: false
+      required:
+      - question_token
+      - mark_units
+      - confidence_basis_points
+      - feedback
+      properties:
+        question_token:
+          type: string
+          maxLength: 64
+          pattern: ^[a-f0-9]{64}$
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        confidence_basis_points:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        feedback:
+          type: string
+          maxLength: 1600
+          minLength: 1
+    ExamCoachAnswerReview:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - mark_units
+      - reason
+      - answer_revision
+      properties:
+        id:
+          type: string
+          format: uuid
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+        answer_revision:
+          type: integer
+          minimum: 1
+    ExamCoachAnswerReviewReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - answer_id
+      - revision
+      - mark_units
+      properties:
+        id:
+          type: string
+          format: uuid
+        answer_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+    ExamCoachAnswerReviewWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - expected_revision
+      - mark_units
+      - reason
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        expected_revision:
+          type: integer
+          minimum: 1
+        mark_units:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        reason:
+          type: string
+          maxLength: 2000
+          minLength: 3
+    ExamCoachAnswerFeedbackWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - working
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        working:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+    ExamCoachOperationWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+    ExamCoachAnswerRevocation:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - state
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - purged
+    ExamCoachOperationReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - kind
+      - operation_id
+      - paper
+      - review
+      properties:
+        kind:
+          type: string
+          enum:
+          - paper
+          - answer_review
+        operation_id:
+          type: string
+          format: uuid
+        paper:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachPaperReceipt'
+          - type: 'null'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachAnswerReviewReceipt'
+          - type: 'null'
+    ExamCoachAnswerSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      - failure_code
+      - group_id
+      - paper_version_id
+      - question_number
+      - revision
+      - expires_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - prepared
+          - pending
+          - completed
+          - failed
+          - quarantined
+          - purged
+        failure_code:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+        group_id:
+          type: integer
+          minimum: 1
+        paper_version_id:
+          type: string
+          format: uuid
+        question_number:
+          type: string
+          maxLength: 16
+        revision:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+          maxLength: 191
+    ExamCoachAnswerList:
+      type: object
+      additionalProperties: false
+      required:
+      - answers
+      - page
+      - has_more
+      properties:
+        answers:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/ExamCoachAnswerSummary'
+        page:
+          type: integer
+          minimum: 1
+          maximum: 1000
+        has_more:
+          type: boolean
+    ExamCoachAnswerDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - operation_id
+      - state
+      - failure_code
+      - response
+      - review
+      properties:
+        id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          enum:
+          - prepared
+          - pending
+          - completed
+          - failed
+          - quarantined
+          - purged
+        failure_code:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+        group_id:
+          type: integer
+          minimum: 1
+        paper_version_id:
+          type: string
+          format: uuid
+        question_number:
+          type: string
+          maxLength: 16
+        revision:
+          type: integer
+          minimum: 1
+        expires_at:
+          type: string
+          format: date-time
+        working:
+          type: string
+          maxLength: 2000
+        response:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachAnswerFeedback'
+          - type: 'null'
+        review:
+          anyOf:
+          - $ref: '#/components/schemas/ExamCoachAnswerReview'
+          - type: 'null'
+        provisional:
+          type: boolean
+    ExamCoachAnswerUploadWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - question_number
+      - photo
+      - approved
+      - share_with_teacher
+      - crop_x
+      - crop_y
+      - crop_width
+      - crop_height
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        question_number:
+          type: string
+          maxLength: 16
+          pattern: ^[A-Za-z0-9().-]{1,16}$
+        photo:
+          type: string
+          format: binary
+        approved:
+          type: boolean
+          description: Must be true after explicit approved crop selection.
+        share_with_teacher:
+          type: boolean
+          description: Must be true after confirming sharing with the allocated teacher.
+        crop_x:
+          type: integer
+          minimum: 0
+          maximum: 8192
+        crop_y:
+          type: integer
+          minimum: 0
+          maximum: 8192
+        crop_width:
+          type: integer
+          minimum: 1
+          maximum: 8192
+        crop_height:
+          type: integer
+          minimum: 1
+          maximum: 8192
+    ExamCoachOperationReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachOperationReceipt'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerList'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerDetail'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerReviewReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerReviewReceipt'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerUploadReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerUploadReceipt'
+        code:
+          type: integer
+          minimum: 0
+    ExamCoachAnswerRevocationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ExamCoachAnswerRevocation'
         code:
           type: integer
           minimum: 0

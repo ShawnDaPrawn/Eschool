@@ -26,6 +26,8 @@ class ExamCoachConfiguration {
     required this.learnerGroups,
 
     required this.writable,
+
+    this.photoFeedbackEnabled,
   });
 
   // minimum: 1
@@ -45,6 +47,14 @@ class ExamCoachConfiguration {
   @JsonKey(name: r'writable', required: true, includeIfNull: false)
   final bool writable;
 
+  /// Optional current activation/readiness for automated photo feedback; every request still checks fresh source authority and budgets.
+  @JsonKey(
+    name: r'photo_feedback_enabled',
+    required: false,
+    includeIfNull: false,
+  )
+  final bool? photoFeedbackEnabled;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -53,7 +63,8 @@ class ExamCoachConfiguration {
           other.learnerId == learnerId &&
           other.staffGroups == staffGroups &&
           other.learnerGroups == learnerGroups &&
-          other.writable == writable;
+          other.writable == writable &&
+          other.photoFeedbackEnabled == photoFeedbackEnabled;
 
   @override
   int get hashCode =>
@@ -61,7 +72,8 @@ class ExamCoachConfiguration {
       (learnerId == null ? 0 : learnerId.hashCode) +
       staffGroups.hashCode +
       learnerGroups.hashCode +
-      writable.hashCode;
+      writable.hashCode +
+      photoFeedbackEnabled.hashCode;
 
   factory ExamCoachConfiguration.fromJson(Map<String, dynamic> json) =>
       _$ExamCoachConfigurationFromJson(json);

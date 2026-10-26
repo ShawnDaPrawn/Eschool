@@ -42,3 +42,13 @@ managed readers consume the existing typed roster rather than duplicating an
 unrestricted learner picker. Parent signing displays exact immutable wording,
 account-name attestation and the separate response deadline. Operational staff
 read current effective permission separately from the retained last answer.
+
+
+Configured Health attachments use private family-purpose wrappers over encrypted
+profile files, with current learner/guardian/module and field scope before every
+stage. The upload scans source content, strips image metadata, scans sanitized
+pixels, and refuses unavailable safety checks. A final authorization failure
+removes uncommitted ciphertext. Binary reads validate the current file reference
+and purpose again after decryption; a generic profile file is not automatically a
+Health attachment. A read-only Health schema exposes permitted values without
+editable controls.

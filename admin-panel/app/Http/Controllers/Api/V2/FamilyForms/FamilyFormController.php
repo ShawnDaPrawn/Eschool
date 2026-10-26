@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\FamilyForms\FamilyFormRequest;
 use App\Services\FamilyForms\Consents;
 use App\Services\FamilyForms\FamilyFormQueries;
+use App\Services\FamilyForms\HealthFiles;
 use App\Services\FamilyForms\HealthForms;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class FamilyFormController extends Controller
 {
@@ -43,6 +45,19 @@ class FamilyFormController extends Controller
             'cancel' => $service->cancel($actor, $id, $request->validated()),
             'health.save' => app(HealthForms::class)->save($actor, $learner, $request->profileValues()),
         });
+    }
+
+    public function upload(FamilyFormRequest $request): JsonResponse
+    {
+        return $this->result(app(HealthFiles::class)->upload($request->user(), (int) $request->route('learner'), (string) $request->route('field'), $request->file('document')));
+    }
+
+    public function file(FamilyFormRequest $request): Response
+    {
+        $content = app(HealthFiles::class)->read($request->user(), (int) $request->route('learner'), (string) $request->route('file'));
+
+        return response($content['bytes'], 200, ['Content-Type' => $content['mime'], 'Content-Disposition' => 'attachment; filename="'.$content['token'].'"',
+            'Cache-Control' => 'no-store, private', 'X-Content-Type-Options' => 'nosniff', 'Content-Security-Policy' => 'sandbox']);
     }
 
     private function result(array $data): JsonResponse

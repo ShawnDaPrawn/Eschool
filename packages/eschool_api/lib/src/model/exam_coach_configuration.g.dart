@@ -42,6 +42,10 @@ ExamCoachConfiguration _$ExamCoachConfigurationFromJson(
             .toList(),
       ),
       writable: $checkedConvert('writable', (v) => v as bool),
+      photoFeedbackEnabled: $checkedConvert(
+        'photo_feedback_enabled',
+        (v) => v as bool?,
+      ),
     );
     return val;
   },
@@ -50,6 +54,7 @@ ExamCoachConfiguration _$ExamCoachConfigurationFromJson(
     'learnerId': 'learner_id',
     'staffGroups': 'staff_groups',
     'learnerGroups': 'learner_groups',
+    'photoFeedbackEnabled': 'photo_feedback_enabled',
   },
 );
 
@@ -61,4 +66,5 @@ Map<String, dynamic> _$ExamCoachConfigurationToJson(
   'staff_groups': instance.staffGroups.map((e) => e.toJson()).toList(),
   'learner_groups': instance.learnerGroups.map((e) => e.toJson()).toList(),
   'writable': instance.writable,
+  'photo_feedback_enabled': ?instance.photoFeedbackEnabled,
 };
