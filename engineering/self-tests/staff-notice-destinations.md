@@ -13,9 +13,12 @@ item after Teacher-role removal. The new 390px flow proved a 61px dropdown
 RenderFlex overflow; bounded expanded dropdowns resolve it. Selected analysis
 has zero errors/warnings; formatting passes.
 
-Actual dedicated-flavour Chrome qualification is **pending**. The prepared
-integration target is facilitator_progress_notice_smoke_test.dart, with both
-progress and discipline entrypoint flows, scoped headers, withdrawal erasure
-and authBox-closed assertions. The coordinating agent will run it alongside
-Teaching Assistant in the combined Fac build. This source PR remains draft
-until that actual evidence is recorded; no browser pass is claimed here.
+Actual dedicated-flavour Chrome qualification now passes. The coordinating
+agent ran a combined Fac target registering both progress and discipline notice
+journeys plus Teaching Assistant with --flavor=facilitator and
+--dart-define=FLAVOR=facilitator. All three flows passed, process exit zero.
+The exact scoped school/account headers, private-body erasure after withdrawal,
+and authBox-closed assertions passed. Evidence log:
+/workspace/scratch/ta-facilitator-and-notices-browser.log. This is synthetic
+protocol/browser evidence; physical-device and live-provider qualification are
+separate. The PR was marked ready after this run.
