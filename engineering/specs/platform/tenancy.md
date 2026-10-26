@@ -188,3 +188,14 @@ checkpoint; teacher-approved curriculum definitions are resolved after fresh
 current-group/source checks. `tutor_sessions.topic_id` remains nullable for older
 subject-only sessions. School-scoped immutable issue/answer receipts and verified
 practice-provenance evidence are retained, without official mark writes.
+
+## Parent meetings and early collection
+
+`family_visit_rules`, `meeting_slots`, `gate_passes`,
+`family_visit_operations` and `family_visit_events` require an indexed,
+non-null school foreign key and scoped models. Learner, reader and scan
+references additionally use composite school foreign keys. Encrypted event
+snapshots and exact-operation receipts retain appointment and collection
+history. Platform staff and impersonation are excluded; only fresh verified
+guardians, scoped meeting hosts, explicitly authorised school staff and
+purpose-bound online gate readers can enter their respective workflows.

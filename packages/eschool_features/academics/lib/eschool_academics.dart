@@ -128,3 +128,13 @@ export 'src/tutor/tutor_session_boundary.dart';
 export 'src/tutor/tutor_working_crop.dart';
 export 'src/my_grade/my_grade_client_screen.dart';
 export 'src/my_grade/my_grade_private_action.dart';
+export 'src/teaching/teaching_repository.dart';
+export 'src/teaching/teaching_screen.dart';
+export 'src/teaching/teaching_session_boundary.dart';
+
+export 'src/family_forms/family_form_repository.dart';
+export 'src/family_forms/family_form_session_boundary.dart';
+export 'src/family_forms/family_forms_screen.dart';
+export 'src/family_forms/family_health_screen.dart';
+export 'src/family_forms/health_profile_adapter.dart';
+export 'src/private/private_pending_intent.dart';

@@ -38,6 +38,18 @@ class HomeContainer extends StatefulWidget {
 
 class _HomeContainerState extends State<HomeContainer> {
   List<MenuContainerDetails> get exploreAcademicsItems => [
+    for (final entry in <(String, String, String)>[
+      ('teaching_assistant', Routes.teachingAssistant, 'Teaching assistant'),
+      ('test_insights', Routes.testInsights, 'Test insights'),
+    ])
+      if (context.watch<MeContextCubit>().context?.featureFlags[entry.$1] ==
+              true &&
+          allowsSchoolModule(context.watch<MeContextCubit>().context, entry.$1))
+        MenuContainerDetails(
+          route: entry.$2,
+          iconPath: Assets.resultIcon,
+          titleKey: entry.$3,
+        ),
     if (context.watch<MeContextCubit>().context?.featureFlags['my_grade'] ==
             true &&
         allowsSchoolModule(context.watch<MeContextCubit>().context, 'my_grade'))
@@ -501,6 +513,7 @@ class _HomeContainerState extends State<HomeContainer> {
                           children: [
                             const AcademicNextPeriod(),
                             const StaffRecognitionEntry(),
+                            const FamilyFormsEntry(),
                             const SchoolCardsEntry(),
                             const StaffPrivateGalleryEntry(),
 

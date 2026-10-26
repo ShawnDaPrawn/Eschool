@@ -68,7 +68,9 @@
                 "mastery": "bool",
                 "module_switches": "bool",
                 "my_grade": "bool",
-                "relief_cover": "bool"
+                "relief_cover": "bool",
+                "teaching_assistant": "bool",
+                "test_insights": "bool"
             },
             "modules": [
                 {

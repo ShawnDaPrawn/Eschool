@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V2\Academics\TeachingGroupController;
 use App\Http\Controllers\Api\V2\Academics\TermCalendarController;
 use App\Http\Controllers\Api\V2\Academics\TimetableController;
 use App\Http\Controllers\Api\V2\Academics\TransitionController;
+use App\Http\Controllers\Api\V2\Activities\ActivityFileController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
 use App\Http\Controllers\Api\V2\Facilitators\SessionController;
 use App\Http\Controllers\Api\V2\FamilyForms\FamilyFormController;
+use App\Http\Controllers\Api\V2\FamilyVisits\VisitController;
 use App\Http\Controllers\Api\V2\Gallery\GalleryController;
 use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
@@ -150,6 +152,16 @@ Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
     Route::get('session', [$c, 'show'])->middleware(['auth:sanctum', 'school.context', 'role.any'])->name('session');
     Route::post('sign-out', [$c, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
 });
+
+Route::prefix('activities/groups/{group}/materials/{material}/files')->where(['group' => '[1-9][0-9]{0,17}', 'material' => '[1-9][0-9]{0,17}'])
+    ->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups'])
+    ->name('api.v2.activity-files.')->group(function () {
+        $c = ActivityFileController::class;
+        Route::get('/', [$c, 'listing'])->name('listing');
+        Route::post('/', [$c, 'upload'])->name('upload');
+        Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
+        Route::post('{file}/remove', [$c, 'remove'])->whereUuid('file')->name('remove');
+    });
 
 Route::prefix('activities')->middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:groups', 'cache.headers:private;no_store'])->name('api.v2.activities.')->group(function () {
     $c = GroupController::class;
@@ -726,4 +738,27 @@ Route::prefix('test-insights')->name('api.v2.test-insights.')->middleware([Priva
     Route::get('configuration', [$c, 'insightConfiguration'])->name('configuration');
     Route::get('groups/{group}', [$c, 'insightChoices'])->whereNumber('group')->name('choices');
     Route::get('groups/{group}/tasks/{task}', [$c, 'insights'])->whereNumber('group')->whereNumber('task')->name('show');
+});
+
+// Family visits have a separate module; cancellation remains possible after shutdown.
+Route::prefix('family-visits')->name('api.v2.family-visits.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any'])->group(function () {
+    $controller = VisitController::class;
+    Route::get('configuration', [$controller, 'read'])->name('configuration');
+    Route::get('meetings', [$controller, 'read'])->name('meetings.list');
+    Route::post('meetings', [$controller, 'write'])->name('meetings.create');
+    Route::post('meetings/{slot}/book', [$controller, 'write'])->whereUuid('slot')->name('meetings.book');
+    Route::post('meetings/{slot}/unbook', [$controller, 'write'])->whereUuid('slot')->name('meetings.unbook');
+    Route::post('meetings/{slot}/cancel', [$controller, 'write'])->whereUuid('slot')->name('meetings.cancel');
+    Route::get('passes', [$controller, 'read'])->name('passes.list');
+    Route::post('passes', [$controller, 'write'])->name('passes.request');
+    Route::post('passes/{pass}/approve', [$controller, 'write'])->whereUuid('pass')->name('passes.approve');
+    Route::post('passes/{pass}/cancel', [$controller, 'write'])->whereUuid('pass')->name('passes.cancel');
+    Route::put('rules', [$controller, 'write'])->name('rules.save');
+});
+
+// A user bearer token cannot exercise delegated gate-reader collection authority.
+Route::prefix('card-device')->name('api.v2.family-visits.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
+    $controller = VisitController::class;
+    Route::get('scans/{scan}/gate-passes', [$controller, 'read'])->whereUuid('scan')->name('lookup');
+    Route::post('gate-passes/{pass}/collect', [$controller, 'write'])->whereUuid('pass')->name('collect');
 });

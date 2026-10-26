@@ -11,11 +11,13 @@
   const status = select('status');
   const photo = select('photo');
   const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
-  let token = '', school = '', generation = 0, busy = false, pending = null;
-  let stream = null, nfc = null, objectUrl = null, clearTimer = null;
+  let token = '', school = '', generation = 0, busy = false, pending = null, collectionPending = null;
+  let stream = null, nfc = null, objectUrl = null, clearTimer = null, displayGeneration = 0;
   const current = (epoch) => epoch === generation && token !== '' && document.visibilityState === 'visible';
   function clearPixels() {
+    displayGeneration++;
     clearTimeout(clearTimer); clearTimer = null;
+    select('gate').hidden = true; select('gate-options').replaceChildren(); select('gate-message').textContent = '';
     photo.removeAttribute('src'); select('result').hidden = true;
     select('kind').textContent = '';
     if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -27,12 +29,12 @@
     if (nfc) nfc.abort(); nfc = null;
   }
   function clear() {
-    generation++; busy = false; token = ''; school = ''; pending = null; select('retry').hidden = true;
+    generation++; busy = false; token = ''; school = ''; pending = null; collectionPending = null; select('retry').hidden = true; select('collect-retry').hidden = true;
     requests.forEach((request) => request.abort()); requests.clear();
     stopCapture(); clearPixels(); credential.value = ''; proof.value = '';
     select('ready').hidden = true; status.textContent = '';
   }
-  async function send(path, body, epoch) {
+  async function send(path, body, epoch, jsonResponse = false) {
     if (!current(epoch)) throw new Error(text('Reader access changed.'));
     const request = new AbortController(); requests.add(request);
     const timeout = setTimeout(() => request.abort(), 10000);
@@ -41,23 +43,70 @@
         signal: request.signal,
         method: body ? 'POST' : 'GET', credentials: 'omit', cache: 'no-store',
         referrerPolicy: 'no-referrer',
-        headers: { Accept: body ? 'application/json' : 'image/jpeg', Authorization: `Bearer ${token}`, 'X-School-Id': school, ...(body ? {'Content-Type': 'application/json'} : {}) },
+        headers: { Accept: body || jsonResponse ? 'application/json' : 'image/jpeg', Authorization: `Bearer ${token}`, 'X-School-Id': school, ...(body ? {'Content-Type': 'application/json'} : {}) },
         ...(body ? {body: JSON.stringify(body)} : {}),
       });
       if (!current(epoch)) throw new Error(text('Reader access changed.'));
       if (!response.ok) {
-        const fail = (message) => { const error = new Error(message); error.definitive = response.status < 500 && response.status !== 429; return error; };
+        const fail = (message) => { const error = new Error(message); error.status = response.status; error.definitive = response.status < 500 && response.status !== 429; return error; };
         if ([401, 403].includes(response.status)) throw fail(text('Reader or card access was refused. Recheck the registered reader and current card.'));
         if (response.status === 409) throw fail(text('This proof was already used or the card is frozen. Ask for a fresh code or secure tap.'));
         throw fail(text('The card could not be verified. Reconnect and try again.'));
       }
-      if (body) return await response.json();
+      if (body || jsonResponse) return await response.json();
       if (!(response.headers.get('Content-Type') || '').startsWith('image/jpeg')) throw new Error(text('The private portrait is unavailable.'));
       return await response.blob();
     } catch (error) {
       if (error.name === 'AbortError' || error instanceof TypeError) throw new Error(text('Connection interrupted. Retry the same verification.'));
       throw error;
     } finally { clearTimeout(timeout); requests.delete(request); }
+  }
+  async function collect(epoch) {
+    if (busy || !collectionPending || !current(epoch)) return;
+    busy = true; select('collect-retry').hidden = true;
+    select('gate-options').replaceChildren();
+    try {
+      const envelope = await send(collectionPending.path, collectionPending.body, epoch, true);
+      if (!current(epoch)) return;
+      if (envelope.error !== false || envelope.data?.id !== collectionPending.id || envelope.data?.status !== 'collected') throw new Error('Invalid collection receipt');
+      collectionPending = null; clearPixels(); status.textContent = text('Collection recorded.');
+    } catch (error) {
+      if (!current(epoch)) return;
+      clearPixels();
+      if (error.definitive) { collectionPending = null; status.textContent = text('Collection was refused. Scan again and check current approval.'); }
+      else { select('collect-retry').hidden = false; status.textContent = text('Collection outcome is uncertain. Retry the same record before another scan.'); }
+    } finally { if (epoch === generation) busy = false; }
+  }
+  async function gate(result, epoch, display) {
+    if (result.type !== 'learner') return;
+    try {
+      const envelope = await send(`/scans/${result.scan_id}/gate-passes`, null, epoch, true);
+      if (!current(epoch) || display !== displayGeneration || select('result').hidden) return;
+      const data = envelope.data;
+      if (envelope.error !== false || data?.scan_id !== result.scan_id || data.collector_check_required !== true || !Array.isArray(data.passes) || data.passes.length > 1) throw new Error('Invalid collection clearance');
+      if (data.available === false) return;
+      if (data.available !== true) throw new Error('Invalid collection availability');
+      select('gate').hidden = false;
+      select('gate-message').textContent = data.passes.length ? '' : text('No current staff-approved collection pass.');
+      for (const pass of data.passes) {
+        if (!uuid.test(pass.id || '') || !Number.isInteger(pass.revision) || pass.revision < 1 || typeof pass.collector !== 'string' || pass.collector.length < 1 || pass.collector.length > 191 || !Number.isFinite(Date.parse(pass.ends_at)) || !Number.isFinite(Date.parse(pass.starts_at)) || Date.parse(pass.starts_at) > Date.now() || Date.parse(pass.ends_at) <= Date.now()) throw new Error('Invalid collection clearance');
+        const card = document.createElement('form'), name = document.createElement('p'), label = document.createElement('label'), check = document.createElement('input'), button = document.createElement('button');
+        name.textContent = `${text('Named collector')}: ${pass.collector}`;
+        check.type = 'checkbox'; check.required = true; check.name = 'collector_confirmed';
+        label.append(check, document.createTextNode(text('I checked the named collector in person.')));
+        button.type = 'submit'; button.className = 'm3-button m3-button--filled'; button.textContent = text('Record collection'); button.disabled = true;
+        check.addEventListener('change', () => { button.disabled = !check.checked; });
+        card.append(name, label, button);
+        card.addEventListener('submit', (event) => {
+          event.preventDefault(); if (!check.checked || !current(epoch) || display !== displayGeneration || busy || collectionPending || select('result').hidden) return;
+          collectionPending = {id: pass.id, path: `/gate-passes/${pass.id}/collect`, body: {operation_id: crypto.randomUUID(), revision: pass.revision, scan_id: result.scan_id, collector_confirmed: true}};
+          collect(epoch);
+        });
+        select('gate-options').append(card);
+      }
+    } catch (_) {
+      if (current(epoch) && display === displayGeneration && !select('result').hidden) { select('gate-options').replaceChildren(); select('gate').hidden = false; select('gate-message').textContent = text('Early collection could not be checked. Reconnect and scan again.'); }
+    }
   }
   function decode(value) {
     if (value.startsWith('NEQ1.') && value.length <= 1024) return ['/scan/qr', {credential: value}];
@@ -70,6 +119,7 @@
   }
   async function scan(value, retry = false) {
     if (busy || !token) return;
+    if (collectionPending) { status.textContent = text('Retry or clear the previous collection before scanning another card.'); return; }
     if (pending && !retry) { status.textContent = text('Retry or clear the previous verification before scanning another card.'); return; }
     const epoch = generation; const started = performance.now(); busy = true; clearPixels(); proof.value = '';
     status.textContent = text('Verifying card…');
@@ -88,7 +138,8 @@
       select('kind').textContent = ({learner: text('Learner'), staff: text('Staff'), guardian: text('Guardian')})[result.type];
       select('result').hidden = false; status.textContent = text('Current card verified.');
       pending = null; select('retry').hidden = true;
-      stopCapture(); clearTimer = setTimeout(() => { clearPixels(); status.textContent = text('Scan a school card.'); }, remaining);
+      stopCapture(); clearTimer = setTimeout(() => { clearPixels(); if (!collectionPending) status.textContent = text('Scan a school card.'); }, remaining);
+      gate(result, epoch, displayGeneration);
     } catch (error) {
       if (current(epoch)) { clearPixels(); if (error.definitive) pending = null; select('retry').hidden = !pending; status.textContent = error.message || text('The card could not be verified.'); }
     } finally { if (epoch === generation) { busy = false; stopCapture(); } }
@@ -101,6 +152,7 @@
     status.textContent = text('Scan a school card.');
   });
   credential.addEventListener('input', () => { if (token) { const candidate = credential.value; clear(); credential.value = candidate; } });
+  select('collect-retry').addEventListener('click', () => collect(generation));
   select('retry').addEventListener('click', () => { if (pending) scan('', true); });
   select('manual').addEventListener('submit', (event) => { event.preventDefault(); scan(proof.value); });
   select('stop').addEventListener('click', clear);

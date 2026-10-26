@@ -24,6 +24,8 @@ const List<DeepLinkRoute> deepLinkRoutes = [
     arguments: consultationLinkArguments,
   ),
   DeepLinkRoute(Routes.myGrade, Routes.myGrade),
+  DeepLinkRoute(Routes.teachingAssistant, Routes.teachingAssistant),
+  DeepLinkRoute(Routes.testInsights, Routes.testInsights),
   DeepLinkRoute(Routes.schoolDiscipline, Routes.schoolDiscipline),
   DeepLinkRoute('/school-discipline', Routes.schoolDiscipline),
   DeepLinkRoute(Routes.recognition, Routes.recognition),

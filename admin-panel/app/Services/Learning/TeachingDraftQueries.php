@@ -22,6 +22,11 @@ class TeachingDraftQueries
 {
     public function available(User $actor, string $module = 'teaching_assistant'): bool
     {
+        // Context already loaded the request's module map. Disabled features
+        // require no extra identity or teaching-allocation queries.
+        if (! app(ModuleGate::class)->allows($module)) {
+            return false;
+        }
         try {
             return $this->configuration($actor, $module)['groups'] !== [];
         } catch (HttpExceptionInterface|ModelNotFoundException) {

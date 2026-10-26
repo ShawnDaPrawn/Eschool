@@ -1,3 +1,4 @@
+import 'package:eschool_teacher/utils/teachingCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
@@ -456,6 +457,28 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['family_forms'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.family_restroom_outlined),
+                title: Text(l('Activity consent')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'family_forms',
+                  FamilyFormsScreen(
+                    staffOnly: true,
+                    repository: ApiFamilyFormRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['family_forms'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['cards'] == true)
             Card(
               child: ListTile(
@@ -544,13 +567,69 @@ class _StaffHome extends StatelessWidget {
                     ),
                     canOpen: (feature) =>
                         repository.matches(generation, school, user) &&
-                        ((feature == 'wellbeing' &&
+                        ((feature == 'progress' &&
+                                repository.profile?.roles.contains('Teacher') ==
+                                    true &&
+                                repository
+                                        .profile
+                                        ?.features['private_notices'] ==
+                                    true) ||
+                            (feature == 'discipline' &&
+                                repository.profile?.features['discipline'] ==
+                                    true) ||
+                            (feature == 'wellbeing' &&
                                 repository.profile?.features['counselling'] ==
                                     true) ||
                             (feature == 'consultations' &&
                                 repository.profile?.features['consultations'] ==
                                     true)),
                     openFeature: (feature) async {
+                      if (feature == 'progress' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.roles.contains('Teacher') ==
+                              true &&
+                          repository.profile?.features['private_notices'] ==
+                              true) {
+                        bool activeProgress() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.roles.contains('Teacher') ==
+                                true &&
+                            repository.profile?.features['private_notices'] ==
+                                true;
+                        await open(
+                          'private_notices',
+                          ProgressNotesScreen(
+                            repository: ApiProgressRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: activeProgress,
+                            ),
+                            canRead: activeProgress,
+                          ),
+                        );
+                        return;
+                      }
+                      if (feature == 'discipline' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['discipline'] == true) {
+                        bool activeDiscipline() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.features['discipline'] == true;
+                        await open(
+                          'discipline',
+                          SchoolDisciplineScreen(
+                            repository: ApiDisciplineRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: activeDiscipline,
+                            ),
+                            canRead: activeDiscipline,
+                          ),
+                        );
+                        return;
+                      }
                       if (feature == 'consultations' &&
                           repository.matches(generation, school, user) &&
                           repository.profile?.features['consultations'] ==
@@ -629,6 +708,45 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
+          for (final entry in <(String, String, bool)>[
+            ('teaching_assistant', 'Teaching assistant', false),
+            ('test_insights', 'Test insights', true),
+          ])
+            if (profile.features[entry.$1] == true)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.auto_awesome_outlined),
+                  title: Text(l(entry.$2)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    bool current() =>
+                        repository.matches(generation, school, user) &&
+                        repository.profile?.features[entry.$1] == true;
+                    open(
+                      entry.$1,
+                      TeachingScreen(
+                        repository: ApiTeachingRepository(
+                          repository.client,
+                          schoolId: school,
+                          readerId: user,
+                          contextActive: current,
+                        ),
+                        insightsOnly: entry.$3,
+                        canRead: current,
+                        canWrite: current,
+                        selectCameraPhoto: selectTeachingCameraPhoto,
+                        exportPdf: (bytes, name) async {
+                          if (!current()) return;
+                          await DeviceFiles.saveDocument(
+                            bytes,
+                            'private-exports/$user/$school/$name',
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
           if (profile.features['my_grade'] == true)
             Card(
               child: ListTile(
@@ -808,6 +926,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'family_forms',
             'cards',
             'gallery',
             'consultations',

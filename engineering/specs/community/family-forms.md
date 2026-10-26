@@ -52,3 +52,17 @@ removes uncommitted ciphertext. Binary reads validate the current file reference
 and purpose again after decryption; a generic profile file is not automatically a
 Health attachment. A read-only Health schema exposes permitted values without
 editable controls.
+
+Native Parent readers pin the school/account/context generation and expose one
+current child at a time. Teacher and Facilitator apps expose the managed permission
+roster without the family Health editor or guardian signing controls. Unknown
+response outcomes retry the same UUID and payload. Background, profile refresh,
+role/module changes and fresh refusal dispose private routes and drafts. The
+operating-system file chooser retains scope metadata only, clears the previous
+medical editor first and reauthorizes after returning before uploading.
+
+The generic dynamic-profile upload route shares the same mandatory Health
+document pipeline as the family-purpose route. A different HTTP entrypoint cannot
+avoid scanning or image sanitization. Field purpose is pinned before scanning and
+checked again under the field lock before storage. Non-Health field behavior and
+existing API shapes are preserved.

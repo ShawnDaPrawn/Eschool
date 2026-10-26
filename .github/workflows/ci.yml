@@ -451,6 +451,13 @@ jobs:
             flow: facilitator_gallery_smoke_test.dart
             flavor: facilitator
           - app: e-school
+            flow: family_forms_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_family_forms_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_family_forms_smoke_test.dart
+            flavor: facilitator
+          - app: e-school
             flow: family_cards_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_my_grade_smoke_test.dart
@@ -479,6 +486,11 @@ jobs:
             flavor: facilitator
           - app: e-school-teacher
             flow: facilitator_risk_smoke_test.dart
+            flavor: facilitator
+          - app: e-school-teacher
+            flow: teacher_teaching_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_teaching_and_notices_browser.dart
             flavor: facilitator
     defaults:
       run:

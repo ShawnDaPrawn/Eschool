@@ -12,3 +12,9 @@ c3301f3cfd09a5bb43231571632d3f8a629148f4:admin-panel/tests/Unit/Cards/SignedCard
 # shape example, not a valid Ed25519 card proof (the verifier rejects it).
 # This exemption does not cover valid-shaped card credentials or other lines.
 3357bda2b0ed2263dd45409b307ffd417c34df24:packages/eschool_api/test/secure_card_contract_test.dart:generic-api-key:37
+# Exact historical synthetic Health attachment identifiers. These UUID.png
+# values identify protected fake files; they are not API keys, bearer tokens or
+# cryptographic secrets, and cannot authorize a request. Both fixtures contain
+# only synthetic records. Current constants use fixtureFileId to state purpose.
+59605fe72fa34f47321468e86fa633e2455d29fe:packages/eschool_features/academics/lib/src/testing/family_form_fixtures.dart:generic-api-key:6
+59605fe72fa34f47321468e86fa633e2455d29fe:packages/eschool_features/academics/test/family_forms/fixture.dart:generic-api-key:10
