@@ -42,6 +42,8 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Security
 
+- Private group conversation drafts keep their conversation type, audience and private reply target after validation errors. Destinations are checked again before retaining text; unavailable targets discard the draft rather than selecting a broader audience. Reply drafts are not copied into the new-conversation form.
+
 - Pin the shared web, worker and scheduler image and PHP CI jobs to PHP 8.3.36 for CVE-2026-109618 and CVE-2026-109619 (PHP2Shell). CI now verifies the built runtime and Apache configuration. **Deploy:** rebuild and replace all three roles; existing containers remain vulnerable until updated. See `engineering/runbooks/deploy.md`.
 
 Phase 0 (Groundwork): built on the phase branch, not yet released to production. Nothing changes for teachers, learners and parents on their phones; the admin panel's navigation and school-year tools are new, and the platform underneath is ready for Phase 1.

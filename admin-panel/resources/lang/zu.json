@@ -3861,5 +3861,6 @@
     "School identity card": "School identity card",
     "Secure chip verified": "Secure chip verified",
     "This private view has expired. Reload to check current access.": "This private view has expired. Reload to check current access.",
-    "Use a school-controlled computer and contactless reader. Private keys and current chip keys are entered only into the local utility.": "Use a school-controlled computer and contactless reader. Private keys and current chip keys are entered only into the local utility."
+    "Use a school-controlled computer and contactless reader. Private keys and current chip keys are entered only into the local utility.": "Use a school-controlled computer and contactless reader. Private keys and current chip keys are entered only into the local utility.",
+    "The draft destination is unavailable. Start a new message after checking the audience.": "The draft destination is unavailable. Start a new message after checking the audience."
 }

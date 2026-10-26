@@ -8,6 +8,7 @@ use App\Models\Activities\ActivityGroup;
 use App\Models\Activities\ActivityMembership;
 use App\Models\Activities\ActivityStaff;
 use App\Models\Activities\Chat\GroupChatMessage;
+use App\Models\Activities\Chat\GroupChatPolicy;
 use App\Models\Activities\Chat\GroupChatThread;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianLink;
@@ -16,6 +17,8 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
+use App\Services\Activities\Chat\GroupChatMessages;
+use App\Services\Activities\Chat\GroupChatThreads;
 use App\Services\Platform\Identity\ApprovalService;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
@@ -115,6 +118,94 @@ class GroupChatPanelTest extends TestCase
         $this->post($this->path('/create'), $this->input(['expected_school_id' => 2]))->assertForbidden();
         $this->post($this->path('/create').'?body=Synthetic-query', $this->input())->assertUnprocessable()->assertSessionMissing('_old_input');
         $this->assertSame(0, GroupChatMessage::count());
+    }
+
+    /** Read the browser's actual successful controls, including default select behavior. */
+    private function formInput(string $html, string $action): array
+    {
+        $document = new \DOMDocument;
+        @$document->loadHTML('<?xml encoding="UTF-8">'.$html);
+        $xpath = new \DOMXPath($document);
+        $form = $xpath->query('//form[contains(@action, "'.$action.'")]')->item(0);
+        $this->assertNotNull($form);
+        $input = [];
+        foreach ($xpath->query('.//input[@name] | .//textarea[@name] | .//select[@name]', $form) as $control) {
+            $value = $control->getAttribute('value');
+            if ($control->nodeName === 'textarea') {
+                $value = $control->textContent;
+            } elseif ($control->nodeName === 'select') {
+                $option = $xpath->query('.//option[@selected]', $control)->item(0)
+                    ?? $xpath->query('.//option', $control)->item(0);
+                $value = $option?->getAttribute('value') ?? '';
+            }
+            $input[$control->getAttribute('name')] = $value;
+        }
+
+        return $input;
+    }
+
+    public function test_private_create_destinations_survive_validation_and_actual_form_resubmission(): void
+    {
+        $this->actingAs($this->teacher, 'web')->withSession(['school_id' => 1]);
+        foreach ([['question', 'learners'], ['question', 'guardians'], ['question', 'staff'], ['announcement', 'staff']] as [$kind, $audience]) {
+            $body = 'Synthetic confidential '.$kind.' '.$audience;
+            $response = $this->post($this->path('/create'), $this->input(['kind' => $kind, 'audience' => $audience, 'title' => '', 'body' => $body]));
+            $response->assertUnprocessable()->assertSee($body)->assertSessionMissing('_old_input')->assertSessionMissing('errors')
+                ->assertHeader('Cache-Control', 'no-store, private');
+            $form = $this->formInput($response->getContent(), '/create');
+            $this->assertSame($kind, $form['kind']);
+            $this->assertSame($audience, $form['audience']);
+            $form['title'] = 'Corrected synthetic title';
+            $this->post($this->path('/create'), $form)->assertRedirect();
+            $message = GroupChatMessage::orderByDesc('id')->firstOrFail();
+            $thread = GroupChatThread::findOrFail($message->thread_id);
+            $this->assertSame($body, $message->body);
+            $this->assertSame($kind === 'question', $thread->private);
+            $this->assertSame($audience, $thread->audience);
+            $this->assertSame([], app(GroupChatThreads::class)->listing($this->parent, (int) $this->group->id, 'parent')['items']);
+            $student = User::findOrFail(Students::findOrFail($this->learner)->user_id);
+            $this->assertSame([], app(GroupChatThreads::class)->listing($student, (int) $this->group->id, 'student')['items']);
+        }
+    }
+
+    public function test_invalid_or_withdrawn_create_destination_does_not_retain_sendable_private_text(): void
+    {
+        $this->actingAs($this->teacher, 'web')->withSession(['school_id' => 1]);
+        foreach ([['kind' => 'invalid'], ['kind' => ['question']], ['audience' => 'invalid'], ['audience' => ['staff']]] as $invalid) {
+            $response = $this->post($this->path('/create'), $this->input($invalid + ['body' => 'Synthetic unsafe destination']));
+            $response->assertUnprocessable()->assertDontSee('Synthetic unsafe destination')->assertSessionMissing('_old_input');
+        }
+        GroupChatPolicy::create(['staff_staff' => false, 'revision' => 1]);
+        $this->post($this->path('/create'), $this->input(['audience' => 'staff', 'title' => '', 'body' => 'Synthetic withdrawn audience']))
+            ->assertUnprocessable()->assertDontSee('Synthetic withdrawn audience');
+        $this->post($this->path('/create'), $this->input(['audience' => 'staff']))->assertForbidden();
+        $this->assertSame(0, GroupChatMessage::count());
+    }
+
+    public function test_private_reply_validation_keeps_destination_and_never_copies_text_into_create_form(): void
+    {
+        $this->actingAs($this->teacher, 'web')->withSession(['school_id' => 1]);
+        $this->post($this->path('/create'), $this->input())->assertRedirect();
+        $thread = GroupChatThread::sole();
+        $reply = app(GroupChatMessages::class)->send($this->parent, (int) $this->group->id, $thread->id,
+            ['operation_id' => (string) Str::uuid(), 'persona' => 'parent', 'visibility' => 'staff', 'body' => 'Synthetic parent question', 'language' => 'en']);
+        $path = $this->path('/threads/'.$thread->id.'/send');
+        $input = $this->input(['visibility' => 'thread', 'reply_to' => $reply['message_id'], 'language' => 'invalid!', 'body' => 'Synthetic private response']);
+        $response = $this->post($path, $input)->assertUnprocessable()->assertSessionMissing('_old_input');
+        $form = $this->formInput($response->getContent(), '/send');
+        $this->assertSame((string) $reply['message_id'], $form['reply_to']);
+        $this->assertSame('', $this->formInput($response->getContent(), '/create')['body']);
+        $form['language'] = 'en';
+        $this->post($path, $form)->assertRedirect();
+        $message = GroupChatMessage::orderByDesc('id')->firstOrFail();
+        $this->assertSame('staff', $message->visibility);
+        $this->assertSame((int) $this->parent->id, (int) $message->private_user_id);
+        $this->assertSame($reply['message_id'], (int) $message->reply_to);
+        GroupChatMessage::whereKey($reply['message_id'])->update(['removed_at' => now(), 'body' => null]);
+        $this->post($path, $input)->assertUnprocessable()->assertDontSee('Synthetic private response</textarea>', false);
+        foreach ([['reply_to' => ['invalid']], ['reply_to' => 999999], ['reply_to' => null, 'visibility' => 'staff'], ['visibility' => 'invalid']] as $invalid) {
+            $this->post($path, array_replace($input, $invalid))->assertUnprocessable()->assertDontSee('Synthetic private response</textarea>', false);
+        }
     }
 
     public function test_selected_historical_year_cannot_post_or_flash_private_text(): void
