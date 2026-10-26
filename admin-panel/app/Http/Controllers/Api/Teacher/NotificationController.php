@@ -30,6 +30,15 @@ class NotificationController extends Controller
                 Notification::where('session_year_id', $session_year_id), (int) $user, 5
             )->latest()->paginate();
 
+            $notification->through(function (Notification $row) use ($user): Notification {
+                if ($row->type === 'school_assistance.office_update') {
+                    $row->setAttribute('reader_id', (int) $user);
+                    $row->makeVisible('school_id');
+                }
+
+                return $row;
+            });
+
             return ResponseService::successResponse('Data Fetched Successfully', $notification ?? '');
         } catch (\Exception $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);

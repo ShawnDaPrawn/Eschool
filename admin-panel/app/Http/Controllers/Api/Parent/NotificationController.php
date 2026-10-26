@@ -34,7 +34,7 @@ class NotificationController extends Controller
             // The new private action can pin the actual recipient even when a
             // browser cookie changes before a stale client context refreshes.
             $notification->through(function (Notification $row) use ($user): Notification {
-                if ($row->type === 'consent.requested') {
+                if (in_array($row->type, ['consent.requested', 'school_assistance.parent_update'], true)) {
                     $row->setAttribute('reader_id', (int) $user);
                     $row->makeVisible('school_id');
                 }

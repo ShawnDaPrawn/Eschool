@@ -14,6 +14,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\Role;
 use App\Models\Platform\SchoolModule;
 use App\Models\User;
+use App\Services\Academics\ReleasedMarks;
 use App\Services\Ai\Inference\AiUnavailable;
 use App\Services\Ai\Inference\AuthorizedInferenceScope;
 use App\Services\Ai\Inference\Capability;
@@ -91,6 +92,40 @@ class AssistanceInferenceTest extends TestCase
     private function prepare(?array $input = null): array
     {
         return app(AssistanceInference::class)->prepare($this->actor('farid'), $this->schoolA->ids['asha'], 'answer', $input ?? $this->input());
+    }
+
+    public function test_released_fact_review_excludes_internal_record_ids_but_source_hash_keeps_their_revision_binding(): void
+    {
+        $result = ['subject_name' => 'Mathematics', 'release_id' => 987654321, 'learner_id' => 123456789,
+            'subject_id' => $this->subject, 'provisional' => false, 'percentage_bp' => 7350, 'released_at' => '2026-02-10T08:00:00Z'];
+        $this->partialMock(ReleasedMarks::class, function ($mock) use ($result): void {
+            $mock->shouldReceive('periods')->andReturn(['periods' => [['session_year_id' => $this->year, 'term_id' => null, 'year_name' => 'Current year']]]);
+            $mock->shouldReceive('list')->andReturn(['results' => [$result]]);
+        });
+        $turn = $this->prepare(array_replace($this->input(), ['include_records' => true]));
+        $input = json_decode($turn['review_text'], true, flags: JSON_THROW_ON_ERROR);
+        $record = json_decode($input['sources'][1]['text'], true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame(['results' => [['subject_name' => 'Mathematics', 'provisional' => false, 'percentage_bp' => 7350]]], $record);
+        $this->assertStringNotContainsString('987654321', $turn['review_text']);
+        $row = AssistanceTurn::findOrFail($turn['id']);
+        $this->assertSame(hash('sha256', json_encode(['results' => [$result]], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)), $row->source_manifest[1]['sha256']);
+    }
+
+    public function test_parent_translation_minimises_the_authorised_original_office_author_and_keeps_original_unchanged(): void
+    {
+        $thread = app(SchoolSupportThreads::class)->open($this->actor('farid'), $this->schoolA->ids['asha'], [
+            'operation_id' => (string) Str::uuid(), 'text' => 'When are lessons?', 'language' => 'en',
+        ]);
+        app(SchoolSupportThreads::class)->claim($this->superAdmin(), $thread['id'], ['operation_id' => (string) Str::uuid(), 'expected_revision' => 1]);
+        $author = $this->superAdmin();
+        $original = 'Contact '.$author->first_name.' at '.$author->email.' about school hours.';
+        $message = app(SchoolSupportThreads::class)->reply($author, $thread['id'], ['operation_id' => (string) Str::uuid(), 'text' => $original, 'language' => 'en'], true);
+        $turn = app(AssistanceInference::class)->prepare($this->actor('farid'), $this->schoolA->ids['asha'], 'translation', [
+            'operation_id' => (string) Str::uuid(), 'message_id' => $message['message_id'], 'language' => 'af',
+        ]);
+        $this->assertStringNotContainsString($author->email, $turn['review_text']);
+        $this->assertStringContainsString('[person]', $turn['review_text']);
+        $this->assertSame($original, SupportMessage::findOrFail($message['message_id'])->text);
     }
 
     private function qualifyProtocol(): void

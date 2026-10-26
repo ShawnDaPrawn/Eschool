@@ -43,6 +43,7 @@ use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
 use App\Http\Controllers\Panel\Ai\AiReviewPanelController;
+use App\Http\Controllers\Panel\Assistance\AssistancePanelController;
 use App\Http\Controllers\Panel\Cards\CardPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
@@ -966,4 +967,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::get('references/{reference}/edit', [$controller, 'form'])->whereUuid('reference')->name('edit');
     Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
     Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
+    $controller = AssistancePanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('threads/{thread}', [$controller, 'index'])->whereUuid('thread')->name('thread');
+    Route::post('threads/{thread}/{operation}', [$controller, 'write'])->whereUuid('thread')->whereIn('operation', ['claim', 'reply', 'close', 'reassign', 'translate'])->name('thread-write');
+    Route::post('documents', [$controller, 'write'])->defaults('operation', 'publish')->name('publish');
+    Route::post('documents/{document}/withdraw', [$controller, 'write'])->whereUuid('document')->defaults('operation', 'withdraw')->name('withdraw');
+    Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
 });
