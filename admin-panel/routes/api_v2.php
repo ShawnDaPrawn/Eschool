@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V2\Activities\GroupChatController;
 use App\Http\Controllers\Api\V2\Activities\GroupController;
 use App\Http\Controllers\Api\V2\Assistance\AssistanceController;
 use App\Http\Controllers\Api\V2\Cards\CardController;
+use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
@@ -646,6 +647,8 @@ Route::prefix('cards')->name('api.v2.cards.')->middleware([PrivateDomainResponse
 // Dedicated credentials cannot authorize any normal user endpoint.
 Route::prefix('card-device')->name('api.v2.cards.device.')->middleware([PrivateDomainResponse::class, CardDeviceContext::class, 'throttle:60,1'])->withoutMiddleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
     $controller = CardController::class;
+    Route::get('offline/snapshot', [CardOfflineController::class, 'snapshot'])->name('offline.snapshot');
+    Route::post('offline/reconcile', [CardOfflineController::class, 'reconcile'])->name('offline.reconcile');
     Route::post('scan/qr', [$controller, 'scan'])->name('qr');
     Route::post('scan/sun', [$controller, 'scan'])->name('sun');
     Route::get('scans/{scan}/portrait', [$controller, 'portrait'])->whereUuid('scan')->name('portrait');

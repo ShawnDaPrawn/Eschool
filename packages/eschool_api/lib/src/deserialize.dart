@@ -547,6 +547,23 @@ import 'package:eschool_api/src/model/family_visit_revision.dart';
 import 'package:eschool_api/src/model/family_visit_rules.dart';
 import 'package:eschool_api/src/model/family_visit_rules_response.dart';
 import 'package:eschool_api/src/model/family_visit_rules_write.dart';
+import 'package:eschool_api/src/model/foundation_authorization.dart';
+import 'package:eschool_api/src/model/foundation_configuration.dart';
+import 'package:eschool_api/src/model/foundation_eligibility.dart';
+import 'package:eschool_api/src/model/foundation_eligibility_input.dart';
+import 'package:eschool_api/src/model/foundation_grant_input.dart';
+import 'package:eschool_api/src/model/foundation_group_choice.dart';
+import 'package:eschool_api/src/model/foundation_learner_context.dart';
+import 'package:eschool_api/src/model/foundation_lease_summary.dart';
+import 'package:eschool_api/src/model/foundation_left.dart';
+import 'package:eschool_api/src/model/foundation_operation_input.dart';
+import 'package:eschool_api/src/model/foundation_registration.dart';
+import 'package:eschool_api/src/model/foundation_registration_input.dart';
+import 'package:eschool_api/src/model/foundation_review_input.dart';
+import 'package:eschool_api/src/model/foundation_revoked.dart';
+import 'package:eschool_api/src/model/foundation_select_input.dart';
+import 'package:eschool_api/src/model/foundation_selection.dart';
+import 'package:eschool_api/src/model/foundation_tablet.dart';
 import 'package:eschool_api/src/model/gallery_child.dart';
 import 'package:eschool_api/src/model/gallery_configuration.dart';
 import 'package:eschool_api/src/model/gallery_configuration_response.dart';
@@ -572,6 +589,9 @@ import 'package:eschool_api/src/model/get_consultation_ballot_response.dart';
 import 'package:eschool_api/src/model/get_consultation_configuration_response.dart';
 import 'package:eschool_api/src/model/get_consultation_history_record_response.dart';
 import 'package:eschool_api/src/model/get_consultation_results_response.dart';
+import 'package:eschool_api/src/model/get_foundation_configuration_response.dart';
+import 'package:eschool_api/src/model/get_foundation_learner_context_response.dart';
+import 'package:eschool_api/src/model/get_foundation_practice_response.dart';
 import 'package:eschool_api/src/model/get_identified_incident_follow_up_response.dart';
 import 'package:eschool_api/src/model/get_managed_consultation_results_response.dart';
 import 'package:eschool_api/src/model/get_practice_access_response.dart';
@@ -583,6 +603,7 @@ import 'package:eschool_api/src/model/get_wellbeing_access_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_configuration_response.dart';
 import 'package:eschool_api/src/model/get_wellbeing_report_response.dart';
+import 'package:eschool_api/src/model/grant_foundation_authorization_response.dart';
 import 'package:eschool_api/src/model/group_chat_conversation.dart';
 import 'package:eschool_api/src/model/group_chat_conversation_response.dart';
 import 'package:eschool_api/src/model/group_chat_message.dart';
@@ -646,6 +667,7 @@ import 'package:eschool_api/src/model/intervention_queue_response.dart';
 import 'package:eschool_api/src/model/intervention_update.dart';
 import 'package:eschool_api/src/model/intervention_version.dart';
 import 'package:eschool_api/src/model/intervention_version_record.dart';
+import 'package:eschool_api/src/model/issue_foundation_practice_response.dart';
 import 'package:eschool_api/src/model/issue_practice_daily_set_response.dart';
 import 'package:eschool_api/src/model/learner_note_assignment.dart';
 import 'package:eschool_api/src/model/learner_note_assignment_response.dart';
@@ -663,6 +685,7 @@ import 'package:eschool_api/src/model/learner_note_list_response.dart';
 import 'package:eschool_api/src/model/learner_note_metadata.dart';
 import 'package:eschool_api/src/model/learner_note_revision.dart';
 import 'package:eschool_api/src/model/learner_note_update.dart';
+import 'package:eschool_api/src/model/leave_foundation_learner_response.dart';
 import 'package:eschool_api/src/model/link_wellbeing_case_incident_response.dart';
 import 'package:eschool_api/src/model/list_consultation_audience_choices_response.dart';
 import 'package:eschool_api/src/model/list_consultation_history_response.dart';
@@ -861,11 +884,15 @@ import 'package:eschool_api/src/model/recognition_review.dart';
 import 'package:eschool_api/src/model/recognition_settings.dart';
 import 'package:eschool_api/src/model/recognition_versioned_correction.dart';
 import 'package:eschool_api/src/model/recognition_year.dart';
+import 'package:eschool_api/src/model/register_foundation_tablet_response.dart';
 import 'package:eschool_api/src/model/reply_anonymous_incident_response.dart';
 import 'package:eschool_api/src/model/reply_identified_incident_response.dart';
 import 'package:eschool_api/src/model/reply_wellbeing_report_response.dart';
+import 'package:eschool_api/src/model/review_foundation_practice_response.dart';
 import 'package:eschool_api/src/model/review_practice_entry_response.dart';
 import 'package:eschool_api/src/model/revise_practice_question_response.dart';
+import 'package:eschool_api/src/model/revoke_foundation_authorization_response.dart';
+import 'package:eschool_api/src/model/revoke_foundation_tablet_response.dart';
 import 'package:eschool_api/src/model/risk_assignment.dart';
 import 'package:eschool_api/src/model/risk_assignment_result.dart';
 import 'package:eschool_api/src/model/risk_assignment_result_response.dart';
@@ -979,7 +1006,16 @@ import 'package:eschool_api/src/model/secure_card_revocation_response.dart';
 import 'package:eschool_api/src/model/secure_card_scan_receipt.dart';
 import 'package:eschool_api/src/model/secure_card_scan_receipt_response.dart';
 import 'package:eschool_api/src/model/secure_card_sun_scan.dart';
+import 'package:eschool_api/src/model/secure_offline_context.dart';
+import 'package:eschool_api/src/model/secure_offline_envelope.dart';
+import 'package:eschool_api/src/model/secure_offline_receipt.dart';
+import 'package:eschool_api/src/model/secure_offline_receipt_response.dart';
+import 'package:eschool_api/src/model/secure_offline_reconciliation.dart';
+import 'package:eschool_api/src/model/secure_offline_snapshot.dart';
+import 'package:eschool_api/src/model/secure_offline_snapshot_response.dart';
+import 'package:eschool_api/src/model/select_foundation_learner_response.dart';
 import 'package:eschool_api/src/model/session_year.dart';
+import 'package:eschool_api/src/model/set_foundation_eligibility_response.dart';
 import 'package:eschool_api/src/model/set_my_handle_request.dart';
 import 'package:eschool_api/src/model/set_wellbeing_case_status_response.dart';
 import 'package:eschool_api/src/model/staff_private_notice.dart';
@@ -3117,6 +3153,57 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'FamilyVisitRulesWrite':
       return FamilyVisitRulesWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'FoundationAuthorization':
+      return FoundationAuthorization.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationConfiguration':
+      return FoundationConfiguration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationEligibility':
+      return FoundationEligibility.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationEligibilityInput':
+      return FoundationEligibilityInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationGrantInput':
+      return FoundationGrantInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationGroupChoice':
+      return FoundationGroupChoice.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationLearnerContext':
+      return FoundationLearnerContext.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationLeaseSummary':
+      return FoundationLeaseSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationLeft':
+      return FoundationLeft.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationOperationInput':
+      return FoundationOperationInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationRegistration':
+      return FoundationRegistration.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationRegistrationInput':
+      return FoundationRegistrationInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationReviewInput':
+      return FoundationReviewInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationRevoked':
+      return FoundationRevoked.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationSelectInput':
+      return FoundationSelectInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationSelection':
+      return FoundationSelection.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'FoundationTablet':
+      return FoundationTablet.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'GalleryChild':
       return GalleryChild.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'GalleryConfiguration':
@@ -3202,6 +3289,21 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'GetFoundationConfigurationResponse':
+      return GetFoundationConfigurationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GetFoundationLearnerContextResponse':
+      return GetFoundationLearnerContextResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'GetFoundationPracticeResponse':
+      return GetFoundationPracticeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'GetIdentifiedIncidentFollowUpResponse':
       return GetIdentifiedIncidentFollowUpResponse.fromJson(
             value as Map<String, dynamic>,
@@ -3244,6 +3346,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'GetWellbeingReportResponse':
       return GetWellbeingReportResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'GrantFoundationAuthorizationResponse':
+      return GrantFoundationAuthorizationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'GroupChatAudience':
     case 'GroupChatConversation':
@@ -3456,6 +3563,11 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'InterventionVersionRecord':
       return InterventionVersionRecord.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'IssueFoundationPracticeResponse':
+      return IssueFoundationPracticeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'IssuePracticeDailySetResponse':
       return IssuePracticeDailySetResponse.fromJson(
             value as Map<String, dynamic>,
@@ -3512,6 +3624,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'LearnerNoteUpdate':
       return LearnerNoteUpdate.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'LeaveFoundationLearnerResponse':
+      return LeaveFoundationLearnerResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'LinkWellbeingCaseIncidentResponse':
       return LinkWellbeingCaseIncidentResponse.fromJson(
@@ -4158,6 +4275,11 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'RecognitionYear':
       return RecognitionYear.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'RegisterFoundationTabletResponse':
+      return RegisterFoundationTabletResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ReplyAnonymousIncidentResponse':
       return ReplyAnonymousIncidentResponse.fromJson(
             value as Map<String, dynamic>,
@@ -4173,11 +4295,26 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'ReviewFoundationPracticeResponse':
+      return ReviewFoundationPracticeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ReviewPracticeEntryResponse':
       return ReviewPracticeEntryResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'RevisePracticeQuestionResponse':
       return RevisePracticeQuestionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RevokeFoundationAuthorizationResponse':
+      return RevokeFoundationAuthorizationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'RevokeFoundationTabletResponse':
+      return RevokeFoundationTabletResponse.fromJson(
             value as Map<String, dynamic>,
           )
           as ReturnType;
@@ -4607,8 +4744,43 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'SecureCardSunScan':
       return SecureCardSunScan.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'SecureOfflineContext':
+      return SecureOfflineContext.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureOfflineEnvelope':
+      return SecureOfflineEnvelope.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureOfflineReceipt':
+      return SecureOfflineReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureOfflineReceiptResponse':
+      return SecureOfflineReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SecureOfflineReconciliation':
+      return SecureOfflineReconciliation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureOfflineSnapshot':
+      return SecureOfflineSnapshot.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'SecureOfflineSnapshotResponse':
+      return SecureOfflineSnapshotResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'SelectFoundationLearnerResponse':
+      return SelectFoundationLearnerResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'SessionYear':
       return SessionYear.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'SetFoundationEligibilityResponse':
+      return SetFoundationEligibilityResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'SetMyHandleRequest':
       return SetMyHandleRequest.fromJson(value as Map<String, dynamic>)
           as ReturnType;

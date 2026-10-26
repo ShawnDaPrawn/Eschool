@@ -30,11 +30,13 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\Concerns\UsesPracticeScenario;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class FoundationClassroomTest extends TestCase
 {
     use UsesPracticeScenario;
+    use ValidatesOpenApiResponses;
 
     private array $device;
 
@@ -184,6 +186,44 @@ class FoundationClassroomTest extends TestCase
         $this->getJson('/api/v2/me/context')->assertUnauthorized();
         $this->postJson('/api/v2/foundation-learner/practice?operation_id='.(string) Str::uuid(), ['operation_id' => (string) Str::uuid()])->assertUnprocessable();
         $this->withHeader('X-School-Id', '2')->getJson('/api/v2/foundation-learner/context')->assertForbidden();
+    }
+
+    public function test_all_twelve_typed_http_operations_preserve_restricted_classroom_authority(): void
+    {
+        $manager = $this->superAdmin()->createToken('synthetic-classroom-manager')->plainTextToken;
+        $teacher = $this->actor()->createToken('synthetic-classroom-teacher')->plainTextToken;
+        $as = function (string $credential) {
+            $this->app['auth']->forgetGuards();
+
+            return $this->flushHeaders()->withToken($credential)->withHeader('X-School-Id', '1');
+        };
+        $as($manager)->getJson('/api/v2/foundation-classroom/configuration')->assertOk()->assertJsonPath('data.can_manage', true);
+        $as($manager)->postJson('/api/v2/foundation-classroom/groups/'.$this->group.'/eligibility', [
+            'operation_id' => (string) Str::uuid(), 'revision' => 1, 'eligible' => true, 'reason' => 'Maintain explicit classroom eligibility',
+        ])->assertOk();
+        $public = sodium_crypto_box_publickey(sodium_crypto_box_keypair());
+        $device = $as($manager)->postJson('/api/v2/foundation-classroom/devices', [
+            'operation_id' => (string) Str::uuid(), 'name' => 'Typed synthetic tablet', 'days' => 1,
+            'setup_code' => 'NESET1.'.rtrim(strtr(base64_encode($public), '+/', '-_'), '='),
+        ])->assertOk()->json('data');
+        $grant = $as($teacher)->postJson('/api/v2/foundation-classroom/authorizations', [
+            'operation_id' => (string) Str::uuid(), 'device_id' => $device['id'], 'teaching_group_id' => $this->group, 'minutes' => 30,
+        ])->assertOk()->json('data');
+        $selected = $as($device['tablet_access_code'])->postJson('/api/v2/foundation-device/select', [
+            'operation_id' => (string) Str::uuid(), 'classroom_authorization' => $grant['classroom_authorization'], 'locator' => 'NELOC1.1.'.$this->card['id'],
+        ])->assertOk()->assertJsonPath('data.restricted', true)->json('data');
+        $restricted = $selected['classroom_session'].'~'.$device['tablet_access_code'];
+        $as($restricted)->getJson('/api/v2/foundation-learner/context')->assertOk()->assertJsonPath('data.capabilities', ['daily_practice']);
+        $set = $as($restricted)->postJson('/api/v2/foundation-learner/practice', ['operation_id' => (string) Str::uuid()])->assertOk()->json('data');
+        $as($restricted)->getJson('/api/v2/foundation-learner/practice/'.$set['id'])->assertOk();
+        $as($restricted)->postJson('/api/v2/foundation-learner/practice/'.$set['id'].'/entries/'.$set['items'][0]['id'].'/review', [
+            'operation_id' => (string) Str::uuid(), 'answer' => '0.5', 'rating' => 3,
+        ])->assertOk();
+        $as($restricted)->postJson('/api/v2/foundation-learner/leave')->assertOk()->assertJsonPath('data.left', true);
+        $as($teacher)->deleteJson('/api/v2/foundation-classroom/authorizations/'.$grant['id'])->assertOk()->assertJsonPath('data.revoked', true);
+        $as($manager)->deleteJson('/api/v2/foundation-classroom/devices/'.$device['id'])->assertOk()->assertJsonPath('data.revoked', true);
+        $this->assertSame(1, PracticeReview::count());
+        $this->assertSame(0, CardScanLog::count());
     }
 
     public function test_readonly_card_inventory_does_not_grant_new_delegations_or_stop_existing_practice(): void

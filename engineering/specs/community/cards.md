@@ -99,8 +99,24 @@ cannot revive pixels. Both metadata and full portrait-body downloads time out.
 Device endpoints deliberately exclude Sanctum's cookie/CSRF authentication and
 still require the isolated delegated device guard.
 
-Offline snapshots, physical encoding runtime and restricted Foundation classroom
-entry remain unimplemented. The camera/WebNFC adapters and CR80 PDF geometry have
+Device-bound encrypted snapshot/reconciliation services and the matching WebCrypto
+protocol library are implemented as an isolated domain increment. The actual
+offline reader routes, authenticated key/cache ownership, durable local replay
+claims, reconciliation queue and display workflow remain to be connected.
+Physical encoding runtime and restricted Foundation classroom entry also remain
+implementation work. The camera/WebNFC adapters and CR80 PDF geometry have
 software checks; physical cameras, chips, printers, readers, deployed latency and
 native device journeys require separate acceptance. See card-domain, card-api,
 card-apps and card-panel self-test records for actual evidence.
+
+
+The delegated offline workflow adds two device-only operations, a fresh signed
+request UUID and a standalone foreground scanner. Browser IndexedDB contains only
+nonextractable keys, opaque local nonce claims and device-encrypted exact retry
+records. Roster/photo data is never persisted or rehydrated with a fresh clock.
+Atomic durable claims precede photo acceptance across tabs; reconciliation stays
+history-only. Signature/expiry checks use a conservative whole-second upper
+bound, while recorded scan time uses a receipt-based lower bound, capped below
+by the signed credential issue time. A cache expires within sixty seconds even
+across slow downloads. Actual device/physical gate timing is recorded separately
+from local browser evidence.

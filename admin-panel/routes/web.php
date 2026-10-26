@@ -944,6 +944,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
 });
 
 Route::view('card-reader', 'cards.scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.index');
+Route::view('card-reader/offline', 'cards.offline-scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.offline');
 
 // Every staff form resolves its actual group/year before private fields.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeFamilyFormsPanel::class])->prefix('family-forms')->name('family-forms-panel.')->group(function () {

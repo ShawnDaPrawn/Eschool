@@ -50,6 +50,18 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getFoundationConfiguration requires authentication' => [null, 'GET', 'api/v2/foundation-classroom/configuration', [], 401],
+            'setFoundationEligibility requires authentication' => [null, 'POST', 'api/v2/foundation-classroom/groups/1/eligibility', [], 401],
+            'registerFoundationTablet requires authentication' => [null, 'POST', 'api/v2/foundation-classroom/devices', [], 401],
+            'revokeFoundationTablet requires authentication' => [null, 'DELETE', 'api/v2/foundation-classroom/devices/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'grantFoundationAuthorization requires authentication' => [null, 'POST', 'api/v2/foundation-classroom/authorizations', [], 401],
+            'revokeFoundationAuthorization requires authentication' => [null, 'DELETE', 'api/v2/foundation-classroom/authorizations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'selectFoundationLearner requires authentication' => [null, 'POST', 'api/v2/foundation-device/select', [], 401],
+            'getFoundationLearnerContext requires authentication' => [null, 'GET', 'api/v2/foundation-learner/context', [], 401],
+            'issueFoundationPractice requires authentication' => [null, 'POST', 'api/v2/foundation-learner/practice', [], 401],
+            'getFoundationPractice requires authentication' => [null, 'GET', 'api/v2/foundation-learner/practice/1', [], 401],
+            'reviewFoundationPractice requires authentication' => [null, 'POST', 'api/v2/foundation-learner/practice/1/entries/1/review', [], 401],
+            'leaveFoundationLearner requires authentication' => [null, 'POST', 'api/v2/foundation-learner/leave', [], 401],
             'getGroupChatPolicy requires authentication' => [null, 'GET', 'api/v2/activities/chat-policy', [], 401],
             'setGroupChatPolicy requires authentication' => [null, 'PUT', 'api/v2/activities/chat-policy', [], 401],
             'getGroupChatOperation requires authentication' => [null, 'GET', 'api/v2/activities/groups/1/chat/operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
@@ -186,6 +198,8 @@ class OpenApiContractTest extends TestCase
             'freezeSecureCard requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/freeze', [], 401],
             'replaceSecureCard requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/replace', [], 401],
             'restoreSecureCard requires authentication' => [null, 'POST', 'api/v2/cards/8aef50e7-2429-4d2c-a523-668ae436c4d4/restore', [], 401],
+            'getSecureOfflineSnapshot requires authentication' => [null, 'GET', 'api/v2/card-device/offline/snapshot', [], 401],
+            'reconcileSecureOfflineScan requires authentication' => [null, 'POST', 'api/v2/card-device/offline/reconcile', [], 401],
             'scanSecureCardQr requires authentication' => [null, 'POST', 'api/v2/card-device/scan/qr', [], 401],
             'scanSecureCardSun requires authentication' => [null, 'POST', 'api/v2/card-device/scan/sun', [], 401],
             'getScannedSecureCardPortrait requires authentication' => [null, 'GET', 'api/v2/card-device/scans/8aef50e7-2429-4d2c-a523-668ae436c4d4/portrait', [], 401],
