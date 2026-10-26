@@ -27,6 +27,7 @@ Map<String, dynamic> riskMeta({
 
 class RiskFake implements RiskRepository {
   RiskFake({this.principal = false, this.empty = false});
+  int? ownCaseCount;
   final bool principal, empty;
   bool? writable = true;
   @override
@@ -236,8 +237,10 @@ class RiskFake implements RiskRepository {
               {
                 'source': 'wellbeing',
                 'score': null,
-                'signal_count': null,
-                'reason_code': 'source_unavailable',
+                'signal_count': ownCaseCount,
+                'reason_code': ownCaseCount == null
+                    ? 'source_unavailable'
+                    : 'own_authorised_active_cases',
                 'grade_level_id': 5,
                 'as_of': '2026-02-10',
               },
@@ -495,5 +498,21 @@ void main() {
     await tapRisk(tester, 'Early warning list');
     expect(find.text('Unknown'), findsOneWidget);
     expect(find.textContaining('Observed score: 0'), findsNothing);
+  });
+  testWidgets('own clinical context is labelled separately from a risk score', (
+    tester,
+  ) async {
+    final repo = RiskFake()..ownCaseCount = 2;
+    await frameRisk(tester, repo, width: 390);
+    await tapRisk(tester, 'Early warning list');
+    expect(find.text('Own authorised active cases'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.textContaining('Observed score'), findsNothing);
+    expect(
+      find.text(
+        'Current cases you can open in counselling. This count does not affect the risk score.',
+      ),
+      findsOneWidget,
+    );
   });
 }

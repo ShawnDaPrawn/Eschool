@@ -2026,5 +2026,7 @@
   "The upload may have finished. Retry the same upload to confirm it.": "The upload may have finished. Retry the same upload to confirm it.",
   "Upload document": "Upload document",
   "View document": "View document",
-  "Your group access changed. Reopen Activity groups.": "Your group access changed. Reopen Activity groups."
+  "Your group access changed. Reopen Activity groups.": "Your group access changed. Reopen Activity groups.",
+  "Own authorised active cases": "Own authorised active cases",
+  "Current cases you can open in counselling. This count does not affect the risk score.": "Current cases you can open in counselling. This count does not affect the risk score."
 }
