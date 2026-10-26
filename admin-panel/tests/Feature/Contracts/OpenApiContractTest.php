@@ -50,6 +50,18 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'getExamCoachOperation requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'listExamCoachStaffAnswers requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers', [], 401],
+            'getExamCoachStaffAnswer requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getExamCoachStaffAnswerPhoto requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/photo', [], 401],
+            'reviewExamCoachAnswer requires authentication' => [null, 'POST', 'api/v2/exam-coach/staff/groups/1/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/review', [], 401],
+            'uploadExamCoachAnswer requires authentication' => [null, 'POST', 'api/v2/exam-coach/groups/1/versions/8aef50e7-2429-4d2c-a523-668ae436c4d4/answers', [], 401],
+            'getExamCoachAnswerOperation requires authentication' => [null, 'GET', 'api/v2/exam-coach/answer-operations/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'listExamCoachAnswers requires authentication' => [null, 'GET', 'api/v2/exam-coach/answers', [], 401],
+            'getExamCoachAnswer requires authentication' => [null, 'GET', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
+            'getExamCoachAnswerPhoto requires authentication' => [null, 'GET', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/photo', [], 401],
+            'requestExamCoachFeedback requires authentication' => [null, 'POST', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/feedback', [], 401],
+            'revokeExamCoachAnswer requires authentication' => [null, 'POST', 'api/v2/exam-coach/answers/8aef50e7-2429-4d2c-a523-668ae436c4d4/revoke', [], 401],
             'getExamCoachConfiguration requires authentication' => [null, 'GET', 'api/v2/exam-coach/configuration', [], 401],
             'getExamCoachStaffChoices requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/choices', [], 401],
             'listExamCoachStaffPapers requires authentication' => [null, 'GET', 'api/v2/exam-coach/staff/groups/1/papers', [], 401],

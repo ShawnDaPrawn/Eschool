@@ -433,6 +433,21 @@ import 'package:eschool_api/src/model/enrolment_list_response.dart';
 import 'package:eschool_api/src/model/enrolment_list_response_data.dart';
 import 'package:eschool_api/src/model/enrolment_response.dart';
 import 'package:eschool_api/src/model/error_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_detail.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_detail_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_feedback.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_feedback_write.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_list.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_list_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review_receipt_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_review_write.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_revocation.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_revocation_response.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_summary.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_upload_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_answer_upload_receipt_response.dart';
 import 'package:eschool_api/src/model/exam_coach_configuration.dart';
 import 'package:eschool_api/src/model/exam_coach_configuration_response.dart';
 import 'package:eschool_api/src/model/exam_coach_exam_choice.dart';
@@ -440,6 +455,9 @@ import 'package:eschool_api/src/model/exam_coach_exam_dates.dart';
 import 'package:eschool_api/src/model/exam_coach_exam_dates_response.dart';
 import 'package:eschool_api/src/model/exam_coach_group_choice.dart';
 import 'package:eschool_api/src/model/exam_coach_licence.dart';
+import 'package:eschool_api/src/model/exam_coach_operation_receipt.dart';
+import 'package:eschool_api/src/model/exam_coach_operation_receipt_response.dart';
+import 'package:eschool_api/src/model/exam_coach_operation_write.dart';
 import 'package:eschool_api/src/model/exam_coach_paper_list.dart';
 import 'package:eschool_api/src/model/exam_coach_paper_list_response.dart';
 import 'package:eschool_api/src/model/exam_coach_paper_receipt.dart';
@@ -2567,6 +2585,65 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ErrorResponse':
       return ErrorResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'ExamCoachAnswerDetail':
+      return ExamCoachAnswerDetail.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerDetailResponse':
+      return ExamCoachAnswerDetailResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerFeedback':
+      return ExamCoachAnswerFeedback.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerFeedbackWrite':
+      return ExamCoachAnswerFeedbackWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerList':
+      return ExamCoachAnswerList.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerListResponse':
+      return ExamCoachAnswerListResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerReview':
+      return ExamCoachAnswerReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerReviewReceipt':
+      return ExamCoachAnswerReviewReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerReviewReceiptResponse':
+      return ExamCoachAnswerReviewReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerReviewWrite':
+      return ExamCoachAnswerReviewWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerRevocation':
+      return ExamCoachAnswerRevocation.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerRevocationResponse':
+      return ExamCoachAnswerRevocationResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerSummary':
+      return ExamCoachAnswerSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachAnswerUploadReceipt':
+      return ExamCoachAnswerUploadReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachAnswerUploadReceiptResponse':
+      return ExamCoachAnswerUploadReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ExamCoachConfiguration':
       return ExamCoachConfiguration.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2589,6 +2666,17 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ExamCoachLicence':
       return ExamCoachLicence.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachOperationReceipt':
+      return ExamCoachOperationReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ExamCoachOperationReceiptResponse':
+      return ExamCoachOperationReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ExamCoachOperationWrite':
+      return ExamCoachOperationWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ExamCoachPaperList':
       return ExamCoachPaperList.fromJson(value as Map<String, dynamic>)

@@ -99,7 +99,7 @@ final readonly class ApiRoute
 
     public function sampleParameter(string $name): string
     {
-        if (str_starts_with($this->uri, 'api/v2/exam-coach/') && in_array($name, ['version', 'plan'], true)) {
+        if (str_starts_with($this->uri, 'api/v2/exam-coach/') && in_array($name, ['version', 'plan', 'answer', 'operation'], true)) {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
 

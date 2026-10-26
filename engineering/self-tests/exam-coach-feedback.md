@@ -20,6 +20,30 @@ Whole-application static analysis and owned formatting pass.
 Unused crops expire after seven days; attempted working after thirty. Reads
 check expiry immediately. Scheduled deletion also erases derived review prose,
 reconciles old own-school orphan files and preserves curriculum and metering.
-HTTP feedback/review contracts, apps, live-model safety and physical camera
-qualification remain unfinished. Synthetic protocol replies are not provider
+Apps, live-model safety and physical camera qualification remain unfinished. Synthetic protocol replies are not provider
 qualification. All external inference remains disabled by default.
+
+The HTTP follow-on adds twelve private operations, bringing Exam Coach to 29.
+Real requests cover uploaded crop approval/sharing, exact upload/feedback/review
+UUID replay, opaque receipt recovery after unknown outcomes, cross-group/source
+withdrawal, wrong account/owner/role and body-only writes without session flash.
+All twelve route refusals reach authentication with private no-store/no-referrer
+headers. The disabled photo-feedback capability is explicit while published
+licensed papers stay readable.
+
+The typed contract cohort passes 538 executions / 2,726 assertions; 29 affected
+route-tenancy cases pass 232 assertions. The additional disabled-capability
+positive case passes 16 assertions. The pinned Dart generator produces 2,147
+files and its manifest twice byte-identically. All 143 SDK tests pass; SDK
+analysis has no errors or warnings, with generated style information remaining.
+Strict OpenAPI lint and affected PHP static analysis/formatting pass.
+
+A new retention regression first reproduced an old orphan being starved behind
+200 recent files. Cleanup now batches candidate references and bounds deletions
+rather than the first file names. Recent unresolved writes and exact active row
+paths remain; purged audit rows cannot retain pixels. Each pass deletes at most
+200 old unreferenced files. No real provider or physical camera result is claimed.
+
+After the cleanup correction, the complete affected Exam library/feedback HTTP
+cohort passes **27 tests / 829 assertions**, including exact review recovery,
+paused inference and tenant/role/owner/source withdrawal.

@@ -95,17 +95,21 @@ class ExamWorkingPhotos
         }
     }
 
-    public function revoke(User $actor, string $id): void
+    public function revoke(User $actor, string $id, string $operation): array
     {
-        $school = app(CurrentSchool::class)->id();
-        DB::transaction(function () use ($actor, $id, $school) {
-            School::lockForUpdate()->findOrFail($school);
-            app(ExamCoachAccess::class)->learner($actor);
-            // Own revocation remains possible after rights or a source are withdrawn.
-            $row = ExamAnswer::where('user_id', $actor->id)->findOrFail($id);
+        $guard = function () use ($actor, $id) {
+            $person = app(ExamCoachAccess::class)->learner($actor);
+            $row = ExamAnswer::where('user_id', $actor->id)->where('learner_id', $person->id)->findOrFail($id);
+            // Own revocation remains possible after paper rights/source withdrawal.
             app(ExamCoachAccess::class)->learnerGroup($actor, (int) $row->teaching_group_id, true);
-            $row->update(['revoked_at' => now('UTC')]);
+        };
+
+        return app(ExamCoachOperations::class)->run($actor, 'answer.revoke', ['operation_id' => $operation, 'answer_id' => $id], $guard, function () use ($actor, $id) {
+            $row = ExamAnswer::where('user_id', $actor->id)->findOrFail($id);
+            $row->update(['revoked_at' => $row->revoked_at ?? now('UTC')]);
             $this->purge($row);
+
+            return ['id' => $id, 'state' => 'purged'];
         });
     }
 
@@ -120,7 +124,7 @@ class ExamWorkingPhotos
             abort_if($disk->exists($path) && ! $disk->delete($path), 503, 'Private working deletion needs a retry.');
         }
         abort_unless(app(CurrentSchool::class)->id() === $school, 403);
-        $row->update(['state' => 'purged', 'purged_at' => now('UTC'), 'path' => null, 'working' => null, 'response' => null, 'crop' => null]);
+        $row->update(['state' => 'purged', 'purged_at' => $row->purged_at ?? now('UTC'), 'path' => null, 'working' => null, 'response' => null, 'crop' => null]);
         foreach (ExamAnswerReview::where('exam_answer_id', $row->id)->get() as $review) {
             $review->update(['reason' => 'Expired private working review']);
         }
@@ -143,13 +147,32 @@ class ExamWorkingPhotos
 
         $prefix = app(CurrentSchool::class)->storagePath('exam-working');
         $disk = Storage::disk(self::DISK);
-        foreach (array_slice($disk->files($prefix), 0, 200) as $path) {
-            $name = basename($path);
-            if ($path === $prefix.'/'.$name && preg_match('/^([a-f0-9-]{36})\\.enc$/D', $name, $match)
-                && $disk->lastModified($path) < now('UTC')->subDay()->timestamp && ! ExamAnswer::whereKey($match[1])->exists()) {
+        $deleted = 0;
+        $cutoff = now('UTC')->subDay()->timestamp;
+        foreach (array_chunk($disk->files($prefix), 200) as $paths) {
+            abort_unless(app(CurrentSchool::class)->id() === $school, 403);
+            $candidates = [];
+            foreach ($paths as $path) {
+                $name = basename($path);
+                if ($path === $prefix.'/'.$name && preg_match('/^([a-f0-9-]{36})\\.enc$/D', $name, $match)
+                    && Str::isUuid($match[1]) && $disk->lastModified($path) < $cutoff) {
+                    $candidates[$match[1]] = $path;
+                }
+            }
+            if ($candidates === []) {
+                continue;
+            }
+            $referenced = ExamAnswer::whereIn('id', array_keys($candidates))->whereNull('purged_at')->get(['id', 'path'])->keyBy('id');
+            foreach ($candidates as $id => $path) {
+                if ($referenced->get($id)?->path === $path) {
+                    continue;
+                }
                 abort_unless(app(CurrentSchool::class)->id() === $school, 403);
                 abort_unless($disk->delete($path), 503, 'Private orphan deletion needs a retry.');
                 abort_unless(app(CurrentSchool::class)->id() === $school, 403);
+                if (++$deleted >= 200) {
+                    break 2;
+                }
             }
         }
 
