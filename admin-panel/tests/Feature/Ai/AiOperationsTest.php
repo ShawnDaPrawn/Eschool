@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\Ai\Operations\AiPlatformCosts;
 use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -144,5 +145,61 @@ class AiOperationsTest extends TestCase
         $this->assertTrue(PlatformAiCostGrant::firstOrFail()->active);
         $this->artisan('platform:ai-cost-access', ['user_id' => $actor->id, '--revoke' => true])->assertSuccessful();
         $this->assertFalse(PlatformAiCostGrant::firstOrFail()->active);
+    }
+
+    private function withAppliedClock(string $zone, callable $check): void
+    {
+        $timezone = date_default_timezone_get();
+        $configured = config('app.timezone');
+        $previous = now()->copy();
+        try {
+            config(['app.timezone' => $zone]);
+            date_default_timezone_set($zone);
+            $this->travelTo(CarbonImmutable::parse('2026-02-10 12:00:00', 'UTC')->setTimezone($zone));
+            $check();
+        } finally {
+            config(['app.timezone' => $configured]);
+            date_default_timezone_set($timezone);
+            $this->travelTo($previous);
+        }
+    }
+
+    public function test_expired_cost_grant_cannot_revive_in_a_negative_timezone(): void
+    {
+        $actor = $this->superAdmin();
+        $this->grant($actor);
+        PlatformAiCostGrant::where('user_id', $actor->id)->update(['expires_at' => '2026-02-10 11:00:00']);
+        $this->withAppliedClock('Pacific/Honolulu', function () use ($actor): void {
+            try {
+                app(AiPlatformCosts::class)->actor($actor);
+                $this->fail('An expired UTC cost grant revived under the applied clock.');
+            } catch (HttpException $error) {
+                $this->assertSame(403, $error->getStatusCode());
+            }
+            $this->assertSame('2026-02-10T11:00:00.000000Z', PlatformAiCostGrant::firstOrFail()->expires_at->toISOString());
+        });
+    }
+
+    public function test_valid_cost_grant_survives_a_positive_timezone(): void
+    {
+        $actor = $this->superAdmin();
+        $this->grant($actor);
+        PlatformAiCostGrant::where('user_id', $actor->id)->update(['expires_at' => '2026-02-10 12:30:00']);
+        $this->withAppliedClock('Pacific/Kiritimati', function () use ($actor): void {
+            $this->assertSame($actor->id, app(AiPlatformCosts::class)->actor($actor)->id);
+            $this->assertSame('2026-02-10T12:30:00.000000Z', PlatformAiCostGrant::firstOrFail()->expires_at->toISOString());
+        });
+    }
+
+    public function test_console_cost_expiry_is_persisted_as_utc_from_an_applied_clock(): void
+    {
+        $actor = $this->superAdmin();
+        PlatformStaffIdentity::create(['user_id' => $actor->id, 'active' => true]);
+        $this->withAppliedClock('Pacific/Honolulu', function () use ($actor): void {
+            $this->artisan('platform:ai-cost-access', ['user_id' => $actor->id, '--hours' => 2])->assertSuccessful();
+            $grant = PlatformAiCostGrant::firstOrFail();
+            $this->assertSame('2026-02-10 14:00:00', $grant->getRawOriginal('expires_at'));
+            $this->assertSame('2026-02-10T14:00:00.000000Z', $grant->expires_at->toISOString());
+        });
     }
 }
