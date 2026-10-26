@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Admissions\IntakeAuthority;
 use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Ai\Quarantine\AiReviewAuthority;
+use App\Services\Assistance\AssistanceQueries;
 use App\Services\Cards\CardPanelScope;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
@@ -171,6 +172,9 @@ class Navigation
             return false;
         }
         if (($item['pathway_manager'] ?? false) && ! app(PathwayPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['assistance_office'] ?? false) && ! app(AssistanceQueries::class)->available($user)) {
             return false;
         }
         if (($item['family_visit_actor'] ?? false) && ! app(VisitPanelScope::class)->available($user)) {

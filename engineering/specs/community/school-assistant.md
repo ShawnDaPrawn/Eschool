@@ -70,6 +70,35 @@ language, bounded text and citations limited to the exact reviewed source tokens
 unsupported answers offer human handoff. These structural checks do not certify
 a real provider's semantic grounding or translation quality.
 
+## Office workbench and private update notices
+
+`/ask-school` provides the panel office entry, including school Admin/Super Admin
+accounts that cannot use a Teacher or Facilitator login. It reuses the same fresh
+office authority and claim-before-body services. Queue metadata, approved document
+versions, explicit replies, reasoned reassignment, closing and read-side translation
+reviews have separate forms. Every write pins the current account/school and an
+exact operation UUID. Validation and historical-year refusals never flash private
+drafts to the session; fresh office/source authority precedes any draft reflection.
+Visibility loss, BFCache restoration and a bounded foreground lease retire private
+page contents and require a server reload.
+
+`school_assistance.parent_update` and `school_assistance.office_update` contain
+only generic wording, the implemented `/ask-school` destination and an opaque
+recipient intent UUID. Thread/message/learner IDs and message/translated/source
+text remain outside the notification payload. Open/reply/claim/reassignment/close
+record recipient intents and outbox delivery inside the exact domain transaction;
+replay adds nothing and rollback removes both. Unclaimed-office notices retire on
+claim; assigned-office and Parent notices require current source ownership,
+office/guardian authority and an unexpired conversation before counts, inbox rows
+or queued transport. The shared execution-time scope rechecks a prepared query.
+
+Notice intents expire within 30 days or the conversation's earlier expiry. The
+latest 500 intents per recipient are retained; pruning does not alter the original
+conversation or metering ledger. Parent actions explicitly use the selected child
+and fresh account/school context. Office actions open the queue, never a body
+supplied by the notification. Disabling inference leaves human conversations and
+approved source readers working.
+
 Both features default off, use the common moderation/caps/cost ledger and have
 versioned prompts and unscored evaluation fixtures. Safeguarding quarantine blocks
 the normal preview immediately; retention erases derived turn text and gateway

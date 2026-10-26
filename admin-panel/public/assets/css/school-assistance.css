@@ -1,0 +1,6 @@
+.assistance-workbench .assistance-fields { display: grid; gap: var(--md-sys-spacing-4, 1rem); margin-block: var(--md-sys-spacing-4, 1rem); }
+.assistance-workbench .assistance-private-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.assistance-workbench .m3-card { margin-block: var(--md-sys-spacing-3, .75rem); }
+.assistance-workbench nav { display: flex; flex-wrap: wrap; gap: var(--md-sys-spacing-2, .5rem); }
+.assistance-workbench a:not(.m3-button) { text-decoration: underline; }
+.assistance-workbench input, .assistance-workbench select, .assistance-workbench textarea { min-width: 0; max-width: 100%; }
