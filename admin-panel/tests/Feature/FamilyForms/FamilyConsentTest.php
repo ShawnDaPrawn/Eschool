@@ -377,4 +377,72 @@ class FamilyConsentTest extends TestCase
         $this->assertTrue(app(Consents::class)->effective($this->teacher, $request['id'], $this->learner));
         $this->assertSame('yes', app(Consents::class)->read($this->parent, $request['id'], $this->learner)['decision']);
     }
+
+    private function panelData(array $changes = []): array
+    {
+        return $changes + ['operation_id' => (string) Str::uuid(), 'expected_account_id' => $this->teacher->id, 'expected_school_id' => 1,
+            'activity_group_id' => $this->group->id, 'title' => 'Synthetic panel trip', 'wording' => 'Synthetic complete wording <script>unsafe()</script>',
+            'event_starts_at_local' => '2026-02-20T10:00', 'event_ends_at_local' => '2026-02-20T12:00', 'respond_by_local' => '2026-02-19T12:00', 'learner_ids' => [$this->learner]];
+    }
+
+    public function test_panel_publishes_exact_wording_and_records_then_withdraws_permission(): void
+    {
+        $this->actingAs($this->teacher)->get('/family-forms/new')->assertOk()->assertSee('Publish activity or trip consent')->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/family-forms/prepare', $this->panelData())->assertOk()->assertSee('Publish exact consent request')->assertSee(Students::findOrFail($this->learner)->user->full_name);
+        $this->post('/family-forms/consents', $this->panelData())->assertRedirect();
+        $record = ConsentRequest::sole();
+        $this->assertSame('2026-02-20T08:00:00+00:00', $record->event_starts_at->toIso8601String());
+        $this->get("/family-forms/consents/{$record->id}/managed")->assertOk()->assertSee('Permission is not current')->assertSee('&lt;script&gt;unsafe()&lt;/script&gt;', false)->assertDontSee('<script>unsafe()</script>', false);
+        $request = app(Consents::class)->read($this->parent, $record->id, $this->learner);
+        $path = "/api/v2/family-forms/consents/{$record->id}/learners/{$this->learner}/response";
+        $this->api($this->parent)->postJson($path, $this->response($request))->assertOk();
+        $this->flushHeaders()->actingAs($this->teacher, 'web')->get("/family-forms/consents/{$record->id}/managed")->assertOk()->assertSee('Current signed permission');
+        $this->api($this->parent)->postJson($path, $this->response($request, ['decision' => 'no', 'revision' => 1]))->assertOk();
+        $this->assertFalse(app(Consents::class)->effective($this->teacher, $record->id, $this->learner));
+    }
+
+    public function test_panel_invalid_draft_is_private_escaped_and_never_session_flashed(): void
+    {
+        $this->actingAs($this->teacher)->post('/family-forms/consents', $this->panelData(['learner_ids' => []]))->assertUnprocessable()
+            ->assertSee('&lt;script&gt;unsafe()&lt;/script&gt;', false)->assertDontSee('<script>unsafe()</script>', false)
+            ->assertSessionMissing('_old_input')->assertSessionMissing('errors')->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/family-forms/consents', $this->panelData(['expected_account_id' => $this->parent->id]))->assertForbidden()->assertDontSee('Synthetic complete wording')->assertSessionMissing('_old_input');
+        $this->post('/family-forms/consents?title=private-query', $this->panelData())->assertUnprocessable()->assertDontSee('Synthetic complete wording')->assertSessionMissing('_old_input');
+        $this->assertSame(0, ConsentRequest::count());
+    }
+
+    public function test_panel_refuses_family_only_unassigned_and_foreign_staff_before_private_body(): void
+    {
+        $record = $this->create();
+        $this->actingAs(User::findOrFail($this->schoolA->ids['theo_user']))->get("/family-forms/consents/{$record['id']}/managed")->assertNotFound()->assertDontSee('Synthetic exact consent');
+        $this->actingAs($this->parent)->get("/family-forms/consents/{$record['id']}/managed")->assertForbidden()->assertDontSee('Synthetic exact consent');
+        $other = app(CurrentSchool::class)->run(2, fn () => User::findOrFail($this->schoolB->ids['farid_user']));
+        $this->actingAs($other)->withHeaders(['X-School-Id' => '2'])->get("/family-forms/consents/{$record['id']}/managed")->assertForbidden()->assertDontSee('Synthetic exact consent');
+    }
+
+    public function test_eligible_roster_filters_stale_enrolment_without_breaking_valid_classmates(): void
+    {
+        $duplicate = ActivityMembership::where('learner_id', $this->learner)->firstOrFail()->replicate();
+        $duplicate->save();
+        $second = (int) Students::where('id', '!=', $this->learner)->firstOrFail()->id;
+        ActivityMembership::create(['activity_group_id' => $this->group->id, 'learner_id' => $second, 'role' => 'member', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'active' => true, 'reason' => 'Synthetic retained participant', 'revision' => 1]);
+        $data = ['operation_id' => (string) Str::uuid(), 'activity_group_id' => $this->group->id, 'event_starts_at' => '2026-02-20T10:00:00+02:00', 'event_ends_at' => '2026-02-20T12:00:00+02:00', 'respond_by' => '2026-02-19T12:00:00+02:00'];
+        $this->assertSame([$this->learner], array_column(app(Consents::class)->eligible($this->teacher, $data), 'id'));
+        Enrolment::where('learner_id', $this->learner)->update(['ends_on' => '2026-02-19']);
+        $this->assertSame([], app(Consents::class)->eligible($this->teacher, $data));
+    }
+
+    public function test_panel_readonly_module_keeps_staff_cancellation_and_retained_history(): void
+    {
+        $record = $this->create();
+        app(Consents::class)->respond($this->parent, $record['id'], $this->learner, $this->response($record));
+        config(['modules.family_forms' => ['always_on' => false]]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'family_forms'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $path = "/family-forms/consents/{$record['id']}";
+        $this->actingAs($this->teacher)->get($path.'/managed')->assertOk()->assertSee('Current signed permission');
+        $this->post($path.'/cancel', ['operation_id' => (string) Str::uuid(), 'revision' => $record['revision'], 'expected_account_id' => $this->teacher->id, 'expected_school_id' => 1])->assertRedirect($path.'/managed');
+        $this->assertSame(1, ConsentResponse::count());
+        $this->assertFalse(app(Consents::class)->effective($this->teacher, $record['id'], $this->learner));
+    }
 }

@@ -46,6 +46,7 @@ use App\Http\Controllers\Panel\Cards\CardPanelController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
+use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
@@ -89,6 +90,7 @@ use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeCardsPanel;
 use App\Http\Middleware\AuthorizeConsultationPanel;
+use App\Http\Middleware\AuthorizeFamilyFormsPanel;
 use App\Http\Middleware\AuthorizeGalleryPanel;
 use App\Http\Middleware\AuthorizeIntake;
 use App\Http\Middleware\AuthorizeRecognition;
@@ -924,3 +926,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
 });
 
 Route::view('card-reader', 'cards.scanner')->middleware([PrivateDomainResponse::class, 'throttle:60,1'])->name('card-reader.index');
+
+// Every staff form resolves its actual group/year before private fields.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeFamilyFormsPanel::class])->prefix('family-forms')->name('family-forms-panel.')->group(function () {
+    $controller = FamilyPanelController::class;
+    Route::get('/', [$controller, 'index'])->defaults('operation', 'index')->name('index');
+    Route::get('new', [$controller, 'form'])->defaults('operation', 'new')->name('new');
+    Route::post('prepare', [$controller, 'write'])->defaults('operation', 'prepare')->name('prepare');
+    Route::post('consents', [$controller, 'write'])->defaults('operation', 'create')->name('create');
+    Route::get('consents/{consent}/managed', [$controller, 'show'])->whereUuid('consent')->defaults('operation', 'managed')->name('managed');
+    Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->defaults('operation', 'cancel')->name('cancel');
+});

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\FamilyForms;
 
 use App\Models\Activities\ActivityGroup;
+use App\Models\Activities\ActivityMembership;
 use App\Models\FamilyForms\ConsentRecipient;
 use App\Models\FamilyForms\ConsentRequest;
 use App\Models\FamilyForms\ConsentResponse;
@@ -104,6 +105,38 @@ class Consents
         abort_unless(hash_equals($request->fingerprint, $this->fingerprint($request)), 409, 'This consent wording could not be verified.');
 
         return $request;
+    }
+
+    /** Server-authorized candidates for the actual event span; never offer stale retained rows. */
+    public function eligible(User $actor, array $input): array
+    {
+        app(FamilyFormAccess::class)->actor($actor, true);
+        $rules = self::rules('create');
+        foreach (['title', 'wording', 'learner_ids', 'learner_ids.*'] as $key) {
+            unset($rules[$key]);
+        }
+        $data = Validator::make($input, $rules)->validate();
+        $group = app(CommunityAuthority::class)->groupStaff($actor, (int) $data['activity_group_id'], true);
+        $request = new ConsentRequest(['session_year_id' => $group->session_year_id, 'activity_group_id' => $group->id,
+            'event_starts_at' => CarbonImmutable::parse($data['event_starts_at'])->utc(), 'event_ends_at' => CarbonImmutable::parse($data['event_ends_at'])->utc(),
+            'respond_by' => CarbonImmutable::parse($data['respond_by'])->utc()]);
+        abort_unless($request->respond_by->isFuture() && $request->event_starts_at->isFuture(), 422, 'Choose a future event and response deadline.');
+        $this->staff($actor, $request, true);
+        [$from, $to] = $this->dates($request);
+        $ids = ActivityMembership::where('activity_group_id', $group->id)->where('active', true)->whereDate('starts_on', '<=', $from)->whereDate('ends_on', '>=', $to)->distinct()->orderBy('learner_id')->limit(501)->pluck('learner_id');
+        abort_if($ids->count() > 500, 422, 'Narrow this activity before publishing consent.');
+        $items = [];
+        foreach ($ids as $id) {
+            try {
+                $learner = app(FamilyFormAccess::class)->eventLearner((int) $id, (int) $group->id, (int) $group->session_year_id, $from, $to);
+                $items[] = ['id' => (int) $learner->id, 'person_id' => (int) $learner->user_id, 'name' => $learner->user->full_name];
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                // A departed/withdrawn participant must not invalidate all valid classmates.
+            }
+        }
+        $this->staff($actor, $request, true);
+
+        return $items;
     }
 
     public function create(User $actor, array $input): array

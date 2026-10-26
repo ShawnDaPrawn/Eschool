@@ -34,3 +34,11 @@ are rechecked before release or receipt replay.
 
 Deliver the consent domain first, then typed API/panel/apps. Meetings and gate
 passes are independent follow-ons; they are not implemented by this specification.
+
+
+The staff consent workbench resolves eligible participants on the server for the
+complete school-local event span. Authoring remains usable on phones; native
+managed readers consume the existing typed roster rather than duplicating an
+unrestricted learner picker. Parent signing displays exact immutable wording,
+account-name attestation and the separate response deadline. Operational staff
+read current effective permission separately from the retained last answer.
