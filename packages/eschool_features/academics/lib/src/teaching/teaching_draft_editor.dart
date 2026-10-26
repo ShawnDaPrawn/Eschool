@@ -13,12 +13,14 @@ class TeachingDraftEditor extends StatefulWidget {
     required this.writable,
     required this.onEdit,
     required this.onApprove,
+    this.onDirtyChanged,
     super.key,
   });
   final TeachingDraftDetail draft;
   final bool busy, writable;
   final ValueChanged<TeachingDraftDefinition> onEdit;
   final VoidCallback onApprove;
+  final ValueChanged<bool>? onDirtyChanged;
 
   @override
   State<TeachingDraftEditor> createState() => _TeachingDraftEditorState();
@@ -62,7 +64,10 @@ class _TeachingDraftEditorState extends State<TeachingDraftEditor> {
       decoration: InputDecoration(labelText: academicText(context, label)),
       onChanged: (text) {
         change(text);
-        if (!_dirty) setState(() => _dirty = true);
+        if (!_dirty) {
+          setState(() => _dirty = true);
+          widget.onDirtyChanged?.call(true);
+        }
       },
     ),
   );
