@@ -76,9 +76,9 @@ class _TeachingScreenState extends State<TeachingScreen>
   String _cropScope = const Uuid().v4();
   String _kind = 'worksheet', _language = 'en', _error = '';
   int? _group, _source, _learner, _task;
-  int _epoch = 0, _learnerPage = 1;
+  int _epoch = 0, _learnerPage = 1, _editorVersion = 0;
   bool _busy = true, _suspended = false, _dead = false;
-  bool _creating = false, _confirmed = false;
+  bool _creating = false, _confirmed = false, _editorDirty = false;
   bool _picking = false;
 
   String l(String value) => academicText(context, value);
@@ -125,6 +125,7 @@ class _TeachingScreenState extends State<TeachingScreen>
     _photoBytes.clear();
     _picked = null;
     _confirmed = false;
+    _editorDirty = false;
     _cropScope = const Uuid().v4();
     if (locators) {
       _photos.clear();
@@ -226,17 +227,26 @@ class _TeachingScreenState extends State<TeachingScreen>
       setState(() => _photoBytes[reference.id] = bytes);
     }
     if (_generationOperation != null) {
-      final result = await widget.repository.receipt(_generationOperation!);
+      final result = await _generationReceipt(epoch, _generationOperation!);
+      if (result == null) return;
       if (!_current(epoch)) return;
       setState(() {
         _detail = result;
+        _editorVersion++;
+        _editorDirty = false;
+        _confirmed = false;
         _draftLocator = result.id;
         _generationOperation = null;
       });
     } else if (_draftLocator != null) {
       final result = await widget.repository.read(_draftLocator!);
       if (!_current(epoch)) return;
-      setState(() => _detail = result);
+      setState(() {
+        _detail = result;
+        _editorVersion++;
+        _editorDirty = false;
+        _confirmed = false;
+      });
     }
   });
 
@@ -286,6 +296,8 @@ class _TeachingScreenState extends State<TeachingScreen>
     setState(() {
       _group = group;
       _detail = null;
+      _editorDirty = false;
+      _confirmed = false;
       _draftLocator = null;
       _insight = null;
       _choices = null;
@@ -308,6 +320,8 @@ class _TeachingScreenState extends State<TeachingScreen>
     if (!_current(epoch)) return;
     setState(() {
       _detail = result;
+      _editorVersion++;
+      _editorDirty = false;
       _draftLocator = id;
       _confirmed = false;
       _creating = false;
@@ -345,10 +359,23 @@ class _TeachingScreenState extends State<TeachingScreen>
     final intent = TeachingGenerationIntent(_group!, input);
     _generationOperation = intent.operation;
     await _perform((epoch) async {
-      final result = await widget.repository.generate(intent);
+      late final TeachingDraftDetail result;
+      try {
+        result = await widget.repository.generate(intent);
+      } on ApiException catch (error) {
+        // A rejected original POST created no draft. Unknown outcomes keep
+        // their UUID until an explicitly requested receipt is available.
+        if (_current(epoch) && error.statusCode == 422) {
+          _generationOperation = null;
+        }
+        rethrow;
+      }
       if (!_current(epoch)) return;
       setState(() {
         _detail = result;
+        _editorVersion++;
+        _editorDirty = false;
+        _confirmed = false;
         _draftLocator = result.id;
         _generationOperation = null;
         _creating = false;
@@ -360,13 +387,36 @@ class _TeachingScreenState extends State<TeachingScreen>
     });
   }
 
+  Future<TeachingDraftDetail?> _generationReceipt(
+    int epoch,
+    String operation,
+  ) async {
+    try {
+      return await widget.repository.receipt(operation);
+    } on ApiException catch (error) {
+      if (error.statusCode != 404) rethrow;
+      // Receipt lookup can race an uncommitted generation. Keep the original
+      // operation and the workspace; a missing receipt is not permission loss.
+      if (_current(epoch)) {
+        setState(() {
+          _error = 'This request is still pending. Check its saved result.';
+        });
+      }
+      return null;
+    }
+  }
+
   Future<void> _recover() => _perform((epoch) async {
     final operation = _generationOperation;
     if (operation == null) return;
-    final result = await widget.repository.receipt(operation);
+    final result = await _generationReceipt(epoch, operation);
+    if (result == null) return;
     if (!_current(epoch)) return;
     setState(() {
       _detail = result;
+      _editorVersion++;
+      _editorDirty = false;
+      _confirmed = false;
       _draftLocator = result.id;
       _generationOperation = null;
       _creating = false;
@@ -379,6 +429,10 @@ class _TeachingScreenState extends State<TeachingScreen>
     TeachingDraftDefinition? definition,
   }) async {
     if (!_writable || _detail == null || _pendingReview != null) return;
+    if (_editorDirty && action != 'edit') return;
+    if (const {'publish_practice', 'confirm_marks'}.contains(action) &&
+        !_confirmed)
+      return;
     final intent = TeachingReviewIntent(
       _detail!.id,
       TeachingDraftReview.fromJson({
@@ -403,6 +457,7 @@ class _TeachingScreenState extends State<TeachingScreen>
         if (!_current(epoch)) return;
         setState(() {
           _detail = fresh;
+          _editorDirty = false;
           _pendingReview = null;
           _confirmed = false;
         });
@@ -779,12 +834,16 @@ class _TeachingScreenState extends State<TeachingScreen>
       ),
       if (draft.definition != null)
         TeachingDraftEditor(
-          key: ValueKey('${draft.id}:${draft.revision}'),
+          key: ValueKey('${draft.id}:${draft.revision}:$_editorVersion'),
           draft: draft,
           busy: _busy || _pendingReview != null,
           writable:
               _writable &&
               const {'ready', 'approved'}.contains(draft.state.value),
+          onDirtyChanged: (dirty) => setState(() {
+            _editorDirty = dirty;
+            _confirmed = false;
+          }),
           onEdit: (definition) => _review('edit', definition: definition),
           onApprove: () => _review('approve'),
         )
@@ -808,7 +867,8 @@ class _TeachingScreenState extends State<TeachingScreen>
         CheckboxListTile(
           value: _confirmed,
           controlAffinity: ListTileControlAffinity.leading,
-          onChanged: !_busy && _writable && _pendingReview == null
+          onChanged:
+              !_busy && _writable && !_editorDirty && _pendingReview == null
               ? (value) => setState(() => _confirmed = value ?? false)
               : null,
           title: AcademicText(
@@ -822,6 +882,7 @@ class _TeachingScreenState extends State<TeachingScreen>
               !_busy &&
                   _writable &&
                   _confirmed &&
+                  !_editorDirty &&
                   _pendingReview == null &&
                   (draft.kind.value != 'script_marks' ||
                       draft.definition!.questionMarks!.every(

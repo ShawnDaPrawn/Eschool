@@ -1416,6 +1416,111 @@ class FamilyFormsEntry extends StatelessWidget {
   );
 }
 
+Route<dynamic> familyVisitsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        me?.isModuleOn('family_visits') != true ||
+        !allowsSchoolModule(me, 'family_visits') ||
+        !(me!.roles.any((role) => role != 'Parent' && role != 'Student'))) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(
+          context,
+          'Meetings and early collection',
+        ),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        familyVisitAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return ContentContextBoundary(
+      schoolId: school,
+      readerId: account,
+      child: FamilyVisitSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => FamilyVisitsScreen(
+          staffOnly: true,
+          repository: ApiFamilyVisitRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class FamilyVisitsEntry extends StatelessWidget {
+  const FamilyVisitsEntry({super.key});
+  @override
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<MeContextCubit, MeContextState>(
+    builder: (context, state) {
+      final me = state.context;
+      if (state is! MeContextLoaded ||
+          me?.currentSchoolId == null ||
+          me?.user?.id == null ||
+          me?.isModuleOn('family_visits') != true ||
+          !allowsSchoolModule(me, 'family_visits') ||
+          !(me!.roles.any((role) => role != 'Parent' && role != 'Student'))) {
+        return const SizedBox.shrink();
+      }
+      return AvailableOnly(
+        featureKey:
+            'family-visits:${me.currentSchoolId}:${me.user!.id}:${me.roles.join(',')}:${me.children.hashCode}',
+        probe: () => familyVisitsDeployed(
+          ApiFamilyVisitRepository(
+            Api.client,
+            schoolId: me.currentSchoolId!,
+            accountId: me.user!.id,
+            contextActive: () =>
+                context.read<MeContextCubit>().state is MeContextLoaded &&
+                familyVisitAccessStillCurrent(
+                  me,
+                  context.read<MeContextCubit>().context,
+                ),
+          ),
+          staffOnly: true,
+        ),
+        child: Card(
+          child: ListTile(
+            leading: const Icon(Icons.event_available_outlined),
+            title: Text(
+              SharedUiUtils.getTranslatedLabel(
+                context,
+                'Meetings and early collection',
+              ),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed(Routes.familyVisits),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 Route<dynamic> schoolCardsRoute() => AdaptivePageRoute(
   contentColumn: false,
   builder: (context) {
