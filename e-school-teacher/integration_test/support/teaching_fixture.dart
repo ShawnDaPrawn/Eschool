@@ -190,8 +190,38 @@ Future<void> runTeachingApproval(
     'Teacher reviewed browser worksheet',
   );
   await tapWhenReady(tester, find.byKey(const ValueKey('teaching-save-edit')));
+  // The mobile IME can leave this long editor scrolled to its save controls.
+  // Require the server-backed revision, then bring its refreshed title field
+  // into view rather than polling an off-screen EditableText indefinitely.
+  await tester.scrollUntilVisible(
+    find.byKey(const ValueKey('teaching-edit-title')),
+    -220,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(find.byKey(const ValueKey('teaching-edit-title')));
+  await pumpUntilFound(
+    tester,
+    find.byKey(const ValueKey('${TeachingSmokeFixture.draftId}:2')),
+  );
+  expect(
+    fixture.current!['definition']['title'],
+    'Teacher reviewed browser worksheet',
+  );
+  expect(
+    fixture.reviews.single['definition']['title'],
+    'Teacher reviewed browser worksheet',
+  );
   await pumpUntilFound(tester, find.text('Teacher reviewed browser worksheet'));
   await tapWhenReady(tester, find.byKey(const ValueKey('teaching-approve')));
+  await tester.pumpAndSettle();
+  expect(fixture.reviews.where((r) => r['action'] == 'approve'), hasLength(1));
+  // This recovery action is a separate lazy ListView child above the editor.
+  // Waiting alone never builds it on a phone after scrolling to Approve.
+  await tester.scrollUntilVisible(
+    find.text('Recover original review'),
+    -220,
+    scrollable: find.byType(Scrollable).first,
+  );
   await tapWhenReady(tester, find.text('Recover original review'));
   await pumpUntilFound(tester, find.textContaining('Approved'));
   expect(fixture.effects, 2);
