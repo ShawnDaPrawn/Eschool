@@ -14,9 +14,29 @@ for (const width of [390, 820, 1280]) {
     const setup = JSON.parse(execute("echo json_encode(require base_path('e2e/support/group-chat-fixture.php'));"));
     await page.setViewportSize({width, height: 1000});
     const errors = collectErrors(page, baseURL!);
+    const expectedErrors = [`HTTP 422: /group-conversations/groups/${setup.group}/create`];
     await signIn(page, accounts.teacher);
     await page.goto('/group-conversations');
     await page.getByRole('link', {name: setup.name, exact: true}).click();
+    await page.getByText('Start a conversation', {exact: true}).click();
+    // Exercise the real browser's 422 form, then change only the invalid field.
+    await page.getByLabel('Title', {exact: true}).fill(`Synthetic private draft ${width}`);
+    await page.getByLabel('Conversation type', {exact: true}).selectOption('question');
+    await page.getByLabel('Audience', {exact: true}).selectOption('staff');
+    await page.getByLabel('Message', {exact: true}).fill('Synthetic confidential draft');
+    await page.getByLabel('Message language', {exact: true}).evaluate((select: HTMLSelectElement) => {
+      select.add(new Option('Invalid synthetic language', 'invalid!', true, true));
+    });
+    await page.getByRole('button', {name: 'Create conversation', exact: true}).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByLabel('Conversation type', {exact: true})).toHaveValue('question');
+    await expect(page.getByLabel('Audience', {exact: true})).toHaveValue('staff');
+    await expect(page.getByLabel('Message', {exact: true})).toHaveValue('Synthetic confidential draft');
+    await page.getByLabel('Message language', {exact: true}).selectOption('en');
+    await page.getByRole('button', {name: 'Create conversation', exact: true}).click();
+    await expect(page).toHaveURL(/\/threads\/[a-f0-9-]{36}$/);
+    await expect(page.getByRole('region', {name: 'Selected conversation'})).toContainText('Staff · Private question');
+    await page.getByRole('link', {name: 'Refresh group conversations', exact: true}).click();
     await page.getByText('Start a conversation', {exact: true}).click();
     await page.getByLabel('Title', {exact: true}).fill(`Synthetic announcement ${width}`);
     await page.getByLabel('Audience', {exact: true}).selectOption('guardians');
@@ -36,6 +56,14 @@ for (const width of [390, 820, 1280]) {
     await expect(selected.getByText('Synthetic private parent question', {exact: true})).toBeVisible();
     await selected.getByLabel('Reply destination').selectOption(String(parentMessage));
     await selected.getByLabel('Message', {exact: true}).fill('Synthetic private staff response');
+    await selected.getByLabel('Message language', {exact: true}).evaluate((select: HTMLSelectElement) => {
+      select.add(new Option('Invalid synthetic language', 'invalid!', true, true));
+    });
+    await selected.getByRole('button', {name: 'Send reply', exact: true}).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(selected.getByLabel('Reply destination')).toHaveValue(String(parentMessage));
+    await expect(page.locator('#chat-create-body')).toHaveValue('');
+    await selected.getByLabel('Message language', {exact: true}).selectOption('en');
     await selected.getByRole('button', {name: 'Send reply', exact: true}).click();
     await expect(selected.getByText('Synthetic private staff response', {exact: true})).toBeVisible();
     const read = await family.request.get(`${endpoint}?persona=parent`, {headers});
@@ -55,14 +83,15 @@ for (const width of [390, 820, 1280]) {
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     const ids = await page.locator('[id]').evaluateAll(nodes => nodes.map(node => node.id));
     expect(ids.length).toBe(new Set(ids).size);
-    expect(errors).toEqual([]);
+    expectedErrors.push(`HTTP 422: /group-conversations/groups/${setup.group}/threads/${thread}/send`);
+    expect(errors).toEqual(expectedErrors);
     const lease = new URL((await page.locator('[data-lease-url]').getAttribute('data-lease-url'))!);
     // A heartbeat rechecks the server allocation; stale private DOM is erased.
     execute(`app(\\App\\Services\\Platform\\Tenancy\\CurrentSchool::class)->run(1,fn()=>\\App\\Models\\Activities\\ActivityStaff::where('activity_group_id',${setup.group})->where('user_id',${setup.teacher})->update(['active'=>false]));`);
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect(page.getByText('This private view has expired. Reload to check your current access.', {exact: true})).toBeVisible();
     await expect(page.getByText('Synthetic private staff response', {exact: true})).toHaveCount(0);
-    expect(errors).toEqual([`HTTP 404: ${lease.pathname}${lease.search}`]);
+    expect(errors).toEqual([...expectedErrors, `HTTP 404: ${lease.pathname}${lease.search}`]);
     await family.close();
   });
 }

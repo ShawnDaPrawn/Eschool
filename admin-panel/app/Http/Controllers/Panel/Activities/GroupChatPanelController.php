@@ -42,11 +42,19 @@ class GroupChatPanelController extends Controller
         }
         $canWrite = $group !== null && $access->writable($actor, (int) $group->id, 'staff') && ! app(SessionYearContext::class)->isReadOnly();
         $draft = [];
+        $draftOperation = null;
         // Only validation failures retain bounded author input in this private
         // response. It is never flashed into the session or copied into a URL.
-        if (! $request->isMethodSafe() && $status === 422) {
+        if (! $request->isMethodSafe() && $status === 422 && in_array($request->route('operation'), ['create', 'send'], true)) {
+            $destination = $this->draftDestination($request, $listing, $conversation);
+            if ($destination === null) {
+                $messages[] = __('The draft destination is unavailable. Start a new message after checking the audience.');
+            } else {
+                $draftOperation = $request->route('operation');
+                $draft = $destination;
+            }
             foreach (['title' => 191, 'body' => app(GroupChatRules::class)->maxCharacters(), 'reason' => 2000, 'language' => 20] as $key => $limit) {
-                if (is_string($request->input($key))) {
+                if ($draftOperation !== null && is_string($request->input($key))) {
                     $draft[$key] = mb_substr($request->input($key), 0, $limit);
                 }
             }
@@ -55,7 +63,43 @@ class GroupChatPanelController extends Controller
         $schoolId = app(CurrentSchool::class)->id();
         $operationId = $status === 422 && Str::isUuid((string) $request->input('operation_id')) ? $request->input('operation_id') : (string) Str::uuid();
 
-        return response()->view('activities.chat', compact('groups', 'group', 'listing', 'conversation', 'canWrite', 'draft', 'messages', 'accountId', 'schoolId', 'operationId'), $status);
+        return response()->view('activities.chat', compact('groups', 'group', 'listing', 'conversation', 'canWrite', 'draft', 'draftOperation', 'messages', 'accountId', 'schoolId', 'operationId'), $status);
+    }
+
+    /** Keep text only with a destination still offered by this freshly authorized page. */
+    private function draftDestination(GroupChatPanelRequest $request, ?array $listing, ?array $conversation): ?array
+    {
+        if ($request->route('operation') === 'create') {
+            $kind = $request->input('kind');
+            $audience = $request->input('audience');
+            if (! in_array($kind, ['question', 'announcement'], true)
+                || ! in_array($audience, ['learners', 'guardians', 'staff'], true)
+                || ! ($listing['policy']['staff_'.$audience] ?? false)) {
+                return null;
+            }
+
+            return ['kind' => $kind, 'audience' => $audience];
+        }
+
+        $visibility = $request->input('visibility');
+        $reply = $request->input('reply_to');
+        if (! in_array($visibility, ['thread', 'staff'], true)) {
+            return null;
+        }
+        if ($reply === null || $reply === '') {
+            return $visibility === 'thread' ? ['visibility' => 'thread', 'reply_to' => null] : null;
+        }
+        if (filter_var($reply, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
+            return null;
+        }
+        foreach ($conversation['items'] ?? [] as $item) {
+            if ($item['id'] === (int) $reply && $item['private'] && ! $item['removed'] && $item['sender_persona'] !== 'staff') {
+                return ['visibility' => $visibility, 'reply_to' => (int) $reply];
+            }
+        }
+
+        // Removed, unauthorized or off-page targets must never fall back to the audience.
+        return null;
     }
 
     public function lease(GroupChatPanelRequest $request): JsonResponse

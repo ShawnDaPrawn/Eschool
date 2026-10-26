@@ -34,12 +34,12 @@
 @if($canWrite && $conversation['can_post'])
 <form method="post" action="{{ route('group-chat-panel.write',['group'=>$group->id,'thread'=>$conversation['thread']['id'],'operation'=>'send']) }}">
 @csrf @include('activities.chat-context',['id'=>$operationId])
-<input type="hidden" name="visibility" value="thread">
+<input type="hidden" name="visibility" value="{{ $draftOperation==='send' ? ($draft['visibility']??'thread') : 'thread' }}">
 <label for="chat-reply-target">{{ __('Reply destination') }}</label><select id="chat-reply-target" name="reply_to"><option value="">{{ __('This conversation audience') }}</option>
-@foreach($conversation['items'] as $item)@if($item['private'] && !$item['removed'] && $item['sender_persona']!=='staff')<option value="{{ $item['id'] }}">{{ __('Private reply to') }} {{ $item['sender_name'] }} ({{ $item['id'] }})</option>@endif @endforeach
+@foreach($conversation['items'] as $item)@if($item['private'] && !$item['removed'] && $item['sender_persona']!=='staff')<option value="{{ $item['id'] }}" @selected($draftOperation==='send' && ($draft['reply_to']??null)===$item['id'])>{{ __('Private reply to') }} {{ $item['sender_name'] }} ({{ $item['id'] }})</option>@endif @endforeach
 </select>
 <p>{{ __('Choosing a private family message keeps your response private to that author and group staff.') }}</p>
-@include('activities.chat-text',['max'=>$conversation['max_characters'],'prefix'=>'reply'])
+@include('activities.chat-text',['max'=>$conversation['max_characters'],'prefix'=>'reply','draft'=>$draftOperation==='send'?$draft:[]])
 <button class="m3-button m3-button--filled" type="submit">{{ __('Send reply') }}</button></form>
 @endif
 @if($canWrite && ($conversation['can_close'] || $conversation['can_reopen']))
@@ -55,12 +55,12 @@
 @if($listing['next_before'])<a href="{{ route('group-chat-panel.group',['group'=>$group->id,'before'=>$listing['next_before']]) }}">{{ __('Earlier conversations') }}</a>@endif
 </section>
 @if($canWrite && $listing['writable'])
-<details><summary>{{ __('Start a conversation') }}</summary><form method="post" action="{{ route('group-chat-panel.create',['group'=>$group->id]) }}">
-@csrf @include('activities.chat-context',['id'=>(string)\Illuminate\Support\Str::uuid()])
-<label for="chat-create-title">{{ __('Title') }}</label><input id="chat-create-title" name="title" value="{{ $draft['title']??'' }}" required maxlength="191">
-<label for="chat-create-kind">{{ __('Conversation type') }}</label><select id="chat-create-kind" name="kind"><option value="announcement">{{ __('Group announcement') }}</option><option value="question">{{ __('Private staff question') }}</option></select>
-<label for="chat-create-audience">{{ __('Audience') }}</label><select id="chat-create-audience" name="audience">@foreach(['learners'=>'staff_learners','guardians'=>'staff_guardians','staff'=>'staff_staff'] as $audience=>$policy)@if($listing['policy'][$policy])<option value="{{ $audience }}">{{ __(ucfirst($audience)) }}</option>@endif @endforeach</select>
-@include('activities.chat-text',['max'=>$listing['max_characters'],'prefix'=>'create'])
+<details @if($draftOperation==='create') open @endif><summary>{{ __('Start a conversation') }}</summary><form method="post" action="{{ route('group-chat-panel.create',['group'=>$group->id]) }}">
+@csrf @include('activities.chat-context',['id'=>$draftOperation==='create'?$operationId:(string)\Illuminate\Support\Str::uuid()])
+<label for="chat-create-title">{{ __('Title') }}</label><input id="chat-create-title" name="title" value="{{ $draftOperation==='create'?($draft['title']??''):'' }}" required maxlength="191">
+<label for="chat-create-kind">{{ __('Conversation type') }}</label><select id="chat-create-kind" name="kind"><option value="announcement" @selected(($draft['kind']??'announcement')==='announcement')>{{ __('Group announcement') }}</option><option value="question" @selected(($draft['kind']??null)==='question')>{{ __('Private staff question') }}</option></select>
+<label for="chat-create-audience">{{ __('Audience') }}</label><select id="chat-create-audience" name="audience">@foreach(['learners'=>'staff_learners','guardians'=>'staff_guardians','staff'=>'staff_staff'] as $audience=>$policy)@if($listing['policy'][$policy])<option value="{{ $audience }}" @selected(($draft['audience']??null)===$audience)>{{ __(ucfirst($audience)) }}</option>@endif @endforeach</select>
+@include('activities.chat-text',['max'=>$listing['max_characters'],'prefix'=>'create','draft'=>$draftOperation==='create'?$draft:[]])
 <button class="m3-button m3-button--filled" type="submit">{{ __('Create conversation') }}</button></form></details>
 @elseif(!$canWrite)<p>{{ __('This group is currently read only.') }}</p>@endif
 @endif
