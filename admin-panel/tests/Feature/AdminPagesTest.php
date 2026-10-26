@@ -33,7 +33,7 @@ class AdminPagesTest extends TestCase
     private const SKIP_PREFIXES = ['api/', 'install', '_debugbar', 'sanctum/', 'storage/'];
 
     /** Purpose-restricted pages and source downloads require their own bound context. */
-    private const PURPOSE_RESTRICTED = ['ai-flags', 'platform/ai-costs', 'group-conversations', 'school-cards/encoder-runtime', 'saas', 'saas/schools/create'];
+    private const PURPOSE_RESTRICTED = ['ai-flags', 'platform/ai-costs', 'group-conversations', 'school-cards/encoder-runtime', 'saas', 'saas/schools/create', 'saas/password'];
 
     protected function setUp(): void
     {

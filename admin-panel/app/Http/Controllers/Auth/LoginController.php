@@ -67,7 +67,10 @@ class LoginController extends Controller
             return $this->refuseLogin($request, 'app_only_login_not_allowed_on_web');
         }
 
-        if ($user->roles->isEmpty()) {
+        // An operator who holds both platform keys needs no school role: they
+        // belong to no school and go to the platform area (/saas).
+        $operator = $user->roles->isEmpty() && app(PlatformStaffAccess::class)->operatesPlatform($user);
+        if ($user->roles->isEmpty() && ! $operator) {
             return $this->refuseLogin($request, 'no_permission_message');
         }
 
@@ -77,9 +80,12 @@ class LoginController extends Controller
 
         if (RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
             $request->session()->put(RequirePasswordChange::SESSION_KEY, true);
+            if ($operator) {
+                $user->forceFill(['password_change_required' => true])->save();
+            }
         }
 
-        return null;
+        return $operator ? redirect()->route('saas.index') : null;
     }
 
     private function refuseLogin(Request $request, string $message): RedirectResponse

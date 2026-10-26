@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
+use App\Services\Platform\Saas\PlatformStaffAccess;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,7 @@ class RequirePasswordChange
     public const SESSION_KEY = 'must_change_password';
 
     /** What someone who must change their password can still open. */
-    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*'];
+    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*', 'saas/password'];
 
     public static function isDefaultPassword(User $user, string $password): bool
     {
@@ -43,9 +44,18 @@ class RequirePasswordChange
 
         $message = trans('Please change your password before you continue. It is still the default one.');
         if ($request->expectsJson() || $request->ajax()) {
-            return response()->json(['error' => true, 'message' => $message], 403);
+            $response = response()->json(['error' => true, 'message' => $message], 403);
+        } else {
+            $destination = app(PlatformStaffAccess::class)->operatesPlatform($request->user())
+                ? route('saas.password') : url('resetpassword');
+            $response = redirect($destination)->withErrors(['password' => $message]);
+        }
+        if ($request->is('saas', 'saas/*')) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+            $response->headers->set('Referrer-Policy', 'no-referrer');
+            $response->headers->set('X-Content-Type-Options', 'nosniff');
         }
 
-        return redirect('resetpassword')->withErrors(['password' => $message]);
+        return $response;
     }
 }

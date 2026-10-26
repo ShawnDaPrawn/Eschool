@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -23,9 +24,16 @@ class EnsurePlatformStaff
     /**
      * @param  Closure(Request): Response  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $purpose = null): Response
     {
-        $this->access->actor($request->user());
+        $actor = $this->access->actor($request->user(), $purpose === 'password');
+        Auth::guard('web')->setUser($actor);
+        $request->setUserResolver(fn () => $actor);
+        if ($purpose === 'password' && $request->isMethod('POST')) {
+            abort_if($request->query->count() !== 0, 400);
+            // Never flash old/new password fields, even for an HTML Accept.
+            $request->headers->set('Accept', 'application/json');
+        }
 
         return $next($request);
     }
