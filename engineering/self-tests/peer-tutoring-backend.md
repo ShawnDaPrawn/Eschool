@@ -29,8 +29,9 @@ No point policy, provider, production module or live school is activated.
   paths, nine operations and seventeen schemas. Generation repeated with
   identical hashes for 2,436 Dart files and their manifest (2,437 entries).
 
-The staff panel, shared native staff/family workflows, context erasure and actual
-browser journeys are subsequent work. This checkpoint is backend/API software
+The staff panel and shared native staff/family workflows, context erasure and
+actual four-profile browser journeys are now implemented and locally qualified;
+see [client evidence](peer-tutoring-clients.md). This checkpoint is backend/API software
 qualification, not complete peer tutoring or Phase 4 acceptance. Published-head
 CI, staging, wording review, physical devices and production approval remain
 separate evidence.
