@@ -21,7 +21,13 @@ Recorded checks so far:
   bounded expiry and the real outer transaction rollback.
 - Panel TypeScript checks pass. Selected Pint checks pass.
 
-The final combined native/inventory and migration rehearsal, static analysis and
-actual three-width panel browser proof are pending at this checkpoint. App client
+The combined assistance/inventory cohort passes 45 cases / 1,373 assertions,
+including all seven final notice cases. The first combined attempt encountered an
+old root-owned local file-cache lock directory; the native runner uses the real
+database session-lock store, the exact case passes, and the complete affected
+cohort then exits green. No locking or product assertion was disabled. Full
+existing-school down/up/backfill rehearsal passes 1 / 327 with the new intent
+migration. Static analysis and actual three-width panel browser proof remain
+pending at this checkpoint. App client
 journeys are a separate increment. This record does not claim real provider,
 semantic translation, physical-device, production or human acceptance evidence.
