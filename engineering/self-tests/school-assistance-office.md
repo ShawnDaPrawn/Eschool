@@ -27,7 +27,12 @@ old root-owned local file-cache lock directory; the native runner uses the real
 database session-lock store, the exact case passes, and the complete affected
 cohort then exits green. No locking or product assertion was disabled. Full
 existing-school down/up/backfill rehearsal passes 1 / 327 with the new intent
-migration. Static analysis and actual three-width panel browser proof remain
-pending at this checkpoint. App client
+migration. Selected affected PHP static analysis reports no errors. Actual panel browser
+journeys pass at 390/820/1280 pixels (3 / 3, 56.2 seconds), including claim,
+private original messages, escaped script text, translation review with provider
+disabled, document publication/withdrawal, serious/critical axe checks, console
+errors and horizontal overflow. The first browser attempt used an exact DOM-label
+finder that included the required asterisk; the final test selects the exact
+accessible textbox role/name, with no product or assertion bypass. App client
 journeys are a separate increment. This record does not claim real provider,
 semantic translation, physical-device, production or human acceptance evidence.
