@@ -155,7 +155,11 @@ class InferenceGateway
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
             $outputFlags = $moderator->flags($capability, 'output', $result->output, $moderationContext);
             $this->freshContext($schoolId, $actor, $capability, $request->feature, $config, $scope, $policy, $deadline);
-            $this->quarantine($usage, $outputFlags, 'output', $result->output);
+            // Retain only the already-resolved, exact approved references for
+            // output-only flags; safeguarding resolvers still load bytes afresh.
+            $flaggedOutput = $vision !== null && is_string($result->output)
+                ? ['text' => $result->output, 'media' => $vision->manifest()['media']] : $result->output;
+            $this->quarantine($usage, $outputFlags, 'output', $flaggedOutput);
             $usage->update(['state' => 'completed', 'reserved_units' => 0, 'used_units' => $result->tokens, 'reserved_cost_cents' => 0,
                 'cost_cents' => $this->cost($result->tokens, $config['cents_per_million_tokens']), 'inference_output' => ['output' => $result->output],
                 'output_sha256' => hash('sha256', json_encode($result->output, JSON_THROW_ON_ERROR)), 'completed_at' => now()]);

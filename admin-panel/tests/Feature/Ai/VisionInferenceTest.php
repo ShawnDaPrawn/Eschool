@@ -172,6 +172,26 @@ class VisionInferenceTest extends TestCase
         $this->assertStringNotContainsString(base64_encode(VisionProbeResolver::$image->bytes), json_encode($private));
     }
 
+    public function test_output_only_flag_retains_exact_approved_media_refs_without_pixels_or_new_sources(): void
+    {
+        $calls = 0;
+        Http::swap(new Factory);
+        Http::fake(function ($request) use (&$calls) {
+            if (str_ends_with($request->url(), '/moderations')) {
+                return Http::response(['results' => [['flagged' => ++$calls === 2]]]);
+            }
+
+            return Http::response($this->reply($request->url()));
+        });
+        $this->refuse(fn () => $this->inferProbe(), 'inference_quarantined');
+        Http::assertSentCount(3);
+        $snapshot = AiQuarantineSnapshot::firstOrFail();
+        $this->assertSame('output', $snapshot->stage);
+        $this->assertSame(['text' => 'A bounded working hint.', 'media' => VisionProbeResolver::input()->manifest()['media']], $snapshot->private_content);
+        $this->assertSame(140, AiUsage::firstOrFail()->used_units);
+        $this->assertStringNotContainsString(base64_encode(VisionProbeResolver::$image->bytes), json_encode($snapshot->private_content));
+    }
+
     public function test_revocation_during_moderation_prevents_photo_dispatch(): void
     {
         Http::swap(new Factory);

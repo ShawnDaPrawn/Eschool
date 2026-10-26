@@ -448,12 +448,15 @@ class TutorDomainTest extends TestCase
         Http::assertNothingSent();
     }
 
-    private function flaggedCrop(): array
+    private function flaggedCrop(bool $output = false): array
     {
         $session = $this->openTutor();
         $operation = (string) Str::uuid();
         $reference = $this->photo($session, $operation);
-        $this->turn($session, $operation, text: 'I am being abused.', photos: [$reference['id']]);
+        if ($output) {
+            $this->outputChange = fn ($data) => array_replace($data, ['subject_token' => 'wrong-subject']);
+        }
+        $this->turn($session, $operation, text: $output ? 'Help me with this fractions working.' : 'I am being abused.', photos: [$reference['id']]);
         $usage = AiUsage::firstOrFail();
         unset($reference['operation_id']);
         $reviewer = User::create(['first_name' => 'Synthetic', 'last_name' => 'Safeguard', 'email' => 'tutor-reviewer@example.test',
@@ -476,6 +479,20 @@ class TutorDomainTest extends TestCase
         $this->assertSame(60, getimagesizefromstring($data['bytes'])[1]);
         $this->assertStringNotContainsString('PRIVATE-PERSON', $data['bytes']);
         $this->assertSame('quarantined', $usage->fresh()->state);
+    }
+
+    public function test_output_only_quarantine_keeps_exact_crop_available_to_safeguarding_but_not_the_learner(): void
+    {
+        [$reviewer, $usage, $reference] = $this->flaggedCrop(true);
+        $snapshot = AiQuarantineSnapshot::firstOrFail();
+        $this->assertSame('output', $snapshot->stage);
+        $this->assertSame([$reference], $snapshot->private_content['media'] ?? []);
+        $flag = AiFlag::firstOrFail();
+        $data = app(AiFlagReviews::class)->media($reviewer, $flag->id, $reference['id']);
+        $this->assertSame($reference['sha256'], hash('sha256', $data['bytes']));
+        $photo = TutorPhoto::findOrFail($reference['id']);
+        $this->refuses(fn () => app(TutorPhotos::class)->preview($this->actor('asha'), $photo->tutor_session_id, $photo->id), 404);
+        $this->refuses(fn () => app(TutorQuarantineMedia::class)->read($this->actor(), $usage, $reference), 403);
     }
 
     public function test_quarantine_crop_reader_refuses_non_safeguarding_other_school_and_unbound_reference(): void
