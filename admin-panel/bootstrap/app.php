@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureDefaultSchool;
 use App\Http\Middleware\EnsureLearnerApproved;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
+use App\Http\Middleware\EnsurePlatformStaff;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\EnsureUserHasAnyRole;
@@ -158,6 +159,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'school.context' => SetSchoolContext::class,
             // Pages that change what every school shares: the default school only.
             'school.default' => EnsureDefaultSchool::class,
+            // The platform admin area (/saas): active platform staff identities only.
+            'platform.staff' => EnsurePlatformStaff::class,
             'Role' => CheckRole::class,
             'checkChild' => CheckChild::class,
             'checkStudent' => CheckStudent::class,

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\RequirePasswordChange;
 use App\Providers\RouteServiceProvider;
+use App\Services\Platform\Saas\PlatformStaffAccess;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,6 +55,14 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user): ?RedirectResponse
     {
+        // Platform operators deliberately have no school role or membership.
+        // A fresh, explicit platform grant opens only /saas; default/flagged
+        // passwords still cannot enter that area.
+        if (app(PlatformStaffAccess::class)->allowed($user)
+            && ! RequirePasswordChange::mustChange($user, (string) $request->input('password'))) {
+            return redirect()->route('saas.index');
+        }
+
         if ($user->hasAnyRole(['Parent', 'Student'])) {
             return $this->refuseLogin($request, 'app_only_login_not_allowed_on_web');
         }

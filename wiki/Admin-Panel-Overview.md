@@ -113,6 +113,7 @@ The framework's own `EncryptCookies` is already in the default `web` group, so a
 | `signed` | `Illuminate\Routing\Middleware\ValidateSignature` (the framework class, not the app's) |
 | `throttle` | `Illuminate\Routing\Middleware\ThrottleRequests` |
 | `verified` | `Illuminate\Auth\Middleware\EnsureEmailIsVerified` |
+| `platform.staff` | `App\Http\Middleware\EnsurePlatformStaff`: the platform admin area (`/saas`); an active platform staff identity and an unexpired platform admin grant, in no school |
 | `installer` | `dacoto\LaravelWizardInstaller\Middleware\InstallerMiddleware` |
 | `to.install` | `dacoto\LaravelWizardInstaller\Middleware\ToInstallMiddleware` |
 
@@ -287,6 +288,18 @@ In the page, the banner (`layouts/partials/read-only-banner.blade.php`) offers "
 3. Year-end checks: results published, promotions decided, open leave, unpaid fees.
 4. Preview (`GET new-year/preview`): what will be copied and who moves up.
 5. Make it current (`POST new-year/make-current`): the copies and `SessionYearService::makeCurrent()` run in one transaction.
+
+### Platform admin area
+
+`/saas` is the area platform staff use to manage schools; it is not part of any school's panel and no school's administrator can open it (`engineering/specs/platform/saas-panel.md`). Routes are in `routes/web.php` under the `saas.` names, run `platform.staff` (and never `school.context`), and answer with `Cache-Control: no-store, private`.
+
+| Page | Does |
+|---|---|
+| `/saas` | Every school with its status, package and active people by role |
+| `/saas/schools/create` | Sets up a school with its roles, profile defaults and first Super Admin, whose one-time password is shown once on the next page |
+| `/saas/schools/{id}` | Package, status (suspend, archive or restore, with a reason) and module switches |
+
+Access needs both rows, set only from the operator console: `php artisan platform:staff-identity <user_id>` (the exclusion identity) and `php artisan platform:admin-access <user_id> [--hours=24] [--revoke]` (an expiring grant, 1 to 8760 hours). Revoking either, or letting the grant expire, closes `/saas` on the next request. The pages read counts only, never a learner, parent or staff record, and every change is written to `audit_log` with the staff member and the school. Not built yet: support access into a school, imports, and usage or delivery views.
 
 ### Demo school
 
