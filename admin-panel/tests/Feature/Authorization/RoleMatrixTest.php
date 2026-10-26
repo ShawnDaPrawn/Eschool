@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Authorization;
 
+use App\Http\Middleware\CardEncoderContext;
 use App\Http\Middleware\FoundationCredentialContext;
 use App\Models\User;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -98,6 +99,22 @@ class RoleMatrixTest extends TestCase
             $checked++;
         }
         $this->assertSame(6, $checked);
+    }
+
+    #[DataProvider('profiles')]
+    public function test_no_ordinary_account_role_can_borrow_encoder_key_delivery_authority(?string $role): void
+    {
+        $token = $this->signIn($role);
+        $checked = 0;
+        foreach (ApiRoute::all($this->app['router']) as $route) {
+            if (! in_array(CardEncoderContext::class, $route->middleware, true)) {
+                continue;
+            }
+            $this->app['auth']->forgetGuards();
+            $this->withToken($token)->json($route->method, $route->path())->assertUnauthorized()->assertHeader('Cache-Control', 'no-store, private');
+            $checked++;
+        }
+        $this->assertSame(2, $checked);
     }
 
     public function test_the_matrix_knows_every_role(): void

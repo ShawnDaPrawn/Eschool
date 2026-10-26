@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_academics/testing.dart';
 import 'package:eschool_core/eschool_core.dart';

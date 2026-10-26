@@ -48,9 +48,16 @@ class CardPanelController extends Controller
         $names = User::whereIn('id', array_column($listing['items'], 'person_id'))->get()->mapWithKeys(fn ($user) => [$user->id => $user->full_name]);
         $devices = $readers ? CardReaderDevice::select(['id', 'name', 'kind', 'status', 'expires_at'])->orderByDesc('created_at')->limit(100)->get() : collect();
         $canWrite = app(ModuleGate::class)->writable('cards');
+        $canEncode = false;
+        try {
+            app(CardAccess::class)->encode($request->user(), false);
+            $canEncode = true;
+        } catch (HttpExceptionInterface) {
+        }
+        $readerKinds = $canEncode ? ['gate' => __('Gate'), 'encoder' => __('Card encoder')] : ['gate' => __('Gate')];
         $operation = Str::isUuid($request->input('operation_id', '')) ? $request->input('operation_id') : (string) Str::uuid();
 
-        return response()->view('cards.workbench', compact('readers', 'school', 'account', 'type', 'page', 'search', 'selected', 'people', 'listing', 'names', 'devices', 'operation', 'messages', 'canWrite'), $status);
+        return response()->view('cards.workbench', compact('readers', 'school', 'account', 'type', 'page', 'search', 'selected', 'people', 'listing', 'names', 'devices', 'operation', 'messages', 'canWrite', 'canEncode', 'readerKinds'), $status);
     }
 
     public function write(Request $request): Response|RedirectResponse

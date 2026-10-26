@@ -24,6 +24,8 @@ return [
          */
         'allow' => [
             // Switching the year or the school, and signing out.
+            // Chip personalization targets a fresh current identity, not the selected academic year.
+            'school-cards/cards/*/encoding',
             'set-session-year',
             'school/switch',
             'logout',
