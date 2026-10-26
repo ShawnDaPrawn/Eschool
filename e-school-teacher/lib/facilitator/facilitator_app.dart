@@ -631,6 +631,11 @@ class _StaffHome extends StatelessWidget {
                             (feature == 'wellbeing' &&
                                 repository.profile?.features['counselling'] ==
                                     true) ||
+                            (feature == 'school_assistance' &&
+                                repository
+                                        .profile
+                                        ?.features['school_assistance'] ==
+                                    true) ||
                             (feature == 'consultations' &&
                                 repository.profile?.features['consultations'] ==
                                     true)),
@@ -677,6 +682,28 @@ class _StaffHome extends StatelessWidget {
                               contextActive: activeDiscipline,
                             ),
                             canRead: activeDiscipline,
+                          ),
+                        );
+                        return;
+                      }
+                      if (feature == 'school_assistance' &&
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['school_assistance'] ==
+                              true) {
+                        bool current() =>
+                            repository.matches(generation, school, user) &&
+                            repository.profile?.features['school_assistance'] ==
+                                true;
+                        await open(
+                          'school_assistance',
+                          SchoolAssistanceScreen(
+                            office: true,
+                            repository: ApiAssistanceRepository(
+                              repository.client,
+                              schoolId: school,
+                              readerId: user,
+                              contextActive: current,
+                            ),
                           ),
                         );
                         return;
@@ -833,6 +860,31 @@ class _StaffHome extends StatelessWidget {
                   },
                 ),
               ),
+          if (profile.features['school_assistance'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.support_agent_outlined),
+                title: Text(l('School support office')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  bool current() =>
+                      repository.matches(generation, school, user) &&
+                      repository.profile?.features['school_assistance'] == true;
+                  open(
+                    'school_assistance',
+                    SchoolAssistanceScreen(
+                      office: true,
+                      repository: ApiAssistanceRepository(
+                        repository.client,
+                        schoolId: school,
+                        readerId: user,
+                        contextActive: current,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           if (profile.features['my_grade'] == true)
             Card(
               child: ListTile(
@@ -1012,6 +1064,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'school_assistance',
             'exam_coach',
             'family_forms',
             'cards',

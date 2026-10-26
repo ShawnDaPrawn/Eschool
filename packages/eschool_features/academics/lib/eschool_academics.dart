@@ -149,3 +149,7 @@ export 'src/private/private_pending_intent.dart';
 export 'src/family_visits/family_visit_repository.dart';
 export 'src/family_visits/family_visit_session_boundary.dart';
 export 'src/family_visits/family_visits_screen.dart';
+
+export 'src/assistance/assistance_repository.dart';
+export 'src/assistance/assistance_screen.dart';
+export 'src/assistance/assistance_session_boundary.dart';

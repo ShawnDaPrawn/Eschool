@@ -2400,3 +2400,92 @@ class ExamCoachEntry extends StatelessWidget {
         },
       );
 }
+
+Route<dynamic> schoolAssistanceRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final children = context.read<ChildSelectionCubit>();
+    final me = session.context, child = children.selected;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    final learner = child?.id;
+    if (session.state is! MeContextLoaded ||
+        school == null ||
+        account == null ||
+        learner == null ||
+        child?.schoolId != school ||
+        !context.read<AuthCubit>().isParent() ||
+        me?.roles.contains('Parent') != true ||
+        me?.isModuleOn('ask_school') != true ||
+        !allowsSchoolModule(me, 'ask_school')) {
+      return const ScreenScaffold(
+        title: 'Ask the school',
+        body: Center(child: Text('Not available for this account')),
+      );
+    }
+    final pinned = me!;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        assistanceAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school) &&
+        children.state.selectedId == learner;
+    return BlocListener<ChildSelectionCubit, ChildSelectionState>(
+      listenWhen: (before, after) => before.selectedId != after.selectedId,
+      listener: (context, state) {
+        if (state.selectedId != learner)
+          Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: ContentContextBoundary(
+        schoolId: school,
+        readerId: account,
+        child: AssistanceSessionBoundary(
+          pinned: pinned,
+          builder: (_, generationActive) => SchoolAssistanceScreen(
+            learnerId: learner,
+            learnerName: child!.child.name,
+            repository: ApiAssistanceRepository(
+              Api.client,
+              schoolId: school,
+              readerId: account,
+              contextActive: () => active() && generationActive(),
+            ),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class SchoolAssistanceEntry extends StatelessWidget {
+  const SchoolAssistanceEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          final child = context.watch<ChildSelectionCubit>().selected;
+          if (state is! MeContextLoaded ||
+              me?.user?.id == null ||
+              me?.currentSchoolId == null ||
+              child?.schoolId != me?.currentSchoolId ||
+              !context.read<AuthCubit>().isParent() ||
+              me?.roles.contains('Parent') != true ||
+              me?.isModuleOn('ask_school') != true ||
+              !allowsSchoolModule(me, 'ask_school'))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.support_agent_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Ask the school'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.schoolAssistance),
+            ),
+          );
+        },
+      );
+}

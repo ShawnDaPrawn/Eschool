@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Assistance;
 
+use App\Models\Academics\AcademicLeadership;
 use App\Models\Ai\AiSchoolLimit;
 use App\Models\Assistance\AssistanceTurn;
 use App\Models\Assistance\SupportMessage;
@@ -134,5 +135,18 @@ class SchoolAssistanceApiTest extends TestCase
         $this->postJson($this->base.'/threads/'.$thread.'/reply', ['operation_id' => (string) Str::uuid(),
             'text' => 'Must not be written', 'language' => 'en', 'persona' => 'parent'])->assertForbidden();
         $this->assertSame(1, SupportMessage::count());
+    }
+
+    public function test_classic_teacher_and_dedicated_staff_require_a_current_principal_appointment_for_office(): void
+    {
+        $actor = $this->actor('tara');
+        $position = AcademicLeadership::create(['user_id' => $actor->id, 'session_year_id' => $this->year,
+            'grade_level_id' => null, 'kind' => 'principal', 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic current office appointment']);
+        foreach (['Teacher', 'Facilitator'] as $role) {
+            $actor->syncRoles([$role]);
+            $this->actingAs($actor)->getJson($this->base.'/configuration')->assertOk()->assertJsonPath('data.can_office', true);
+        }
+        $position->delete();
+        $this->getJson($this->base.'/office/queue')->assertForbidden();
     }
 }
