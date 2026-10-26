@@ -20,6 +20,10 @@ return app(CurrentSchool::class)->acrossSchools(function (): array {
     if (SchoolMembership::query()->where('user_id', $operator->id)->exists()) {
         throw new RuntimeException('The platform fixture must have no school membership.');
     }
+    if ((getenv('SAAS_FIXTURE_ACTION') ?: 'initial') === 'pending') {
+        $operator->forceFill(['password' => 'NavigateDemo2026', 'password_change_required' => false])->save();
+        $operator->forceFill(['password_change_required' => true])->save();
+    }
     PlatformStaffIdentity::query()->updateOrCreate(['user_id' => $operator->id], ['active' => true]);
     PlatformAdminGrant::query()->updateOrCreate(['user_id' => $operator->id], [
         'active' => (getenv('SAAS_FIXTURE_ACTION') ?: 'initial') !== 'revoke', 'expires_at' => now()->addHour(),

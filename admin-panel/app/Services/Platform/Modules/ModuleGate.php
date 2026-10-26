@@ -137,6 +137,34 @@ class ModuleGate
         });
     }
 
+    /**
+     * After a package change: a money module the package no longer includes
+     * stays readable, never writable, while the school has retained records,
+     * as when its own admin switches it off. A module already read-only, or
+     * never used, is left as it is. Runs in the school whose package changed.
+     */
+    public function keepRetainedMoneyReadable(User $actor): void
+    {
+        $schoolId = app(CurrentSchool::class)->id();
+        $this->forget();
+        foreach (config('modules') as $key => $definition) {
+            if (! ($definition['money'] ?? false)) {
+                continue;
+            }
+            $state = $this->state($key);
+            if ($state['in_package'] || $state['enabled'] || ! $this->hasRetainedMoney($schoolId)) {
+                continue;
+            }
+            // in_package stays as it is: the package config decides entitlement, and a later upgrade must still count.
+            $row = SchoolModule::query()->firstOrNew(['module' => $key]);
+            if (! $row->exists) {
+                $row->in_package = true;
+            }
+            $row->fill(['enabled' => true, 'read_only' => true, 'changed_by' => $actor->id, 'changed_at' => now()])->save();
+        }
+        $this->forget();
+    }
+
     private function hasRetainedMoney(int $schoolId): bool
     {
         // Preserve financial history as well as outstanding charges. These

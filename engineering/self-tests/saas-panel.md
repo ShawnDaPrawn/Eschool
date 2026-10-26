@@ -6,13 +6,18 @@ Run on 26 October 2026 against [the spec](../specs/platform/saas-panel.md), on M
 
 | Check | Result |
 | --- | --- |
-| `phpunit tests/Feature/Platform/SaasPanelTest.php` | 22 tests, 181 assertions, passed |
-| Related suites: `tests/Feature/Platform`, `tests/Unit`, `Panel`, `Authorization`, `Contracts`, `RoutesTest`, `PrivateRouteReachabilityTest`, `AdminAuthorizationTest`, `AccountSecurityTest`, `Ai/AiOperationsTest` | 1,120 tests, 7,321 assertions, passed, 1 skipped (not one of the new tests) |
+| `phpunit tests/Feature/Platform/SaasPanelTest.php` | 28 tests, 225 assertions, passed |
+| Related suites: `tests/Feature/Platform`, `tests/Unit`, `Panel`, `Authorization`, `Contracts`, `Facilitators`, `RoutesTest`, `PrivateRouteReachabilityTest`, `AdminAuthorizationTest`, `AccountSecurityTest`, `AccessControlTest`, `SecurityTest`, `AdminRoleTest`, `PermissionsTest`, `Ai/AiOperationsTest` (the login controller was changed, so the sign-in suites are included) | 1,175 tests, passed, 1 skipped (not one of the new tests). Two installer tests failed once because a `storage/installed` file left by the browser check existed; they pass without it |
 | Deliberate breakage 1: remove the grant check so identity alone opens `/saas` | 3 of the new tests failed, as they should |
 | Deliberate breakage 2: send module switches to school 1 instead of the chosen school | 2 of the new tests failed, as they should |
+| Deliberate breakage 3, 4, 5: sign-in ignores operators; no first-run defaults for a new school; no read-only step on a downgrade | each made its own new tests fail, as they should |
 | `pint --test` on every changed or new file | passed |
 | `composer validate`, `route:list`, `config:cache`, `route:cache`, `view:cache`, shard-partition unit test | passed |
 | `migrate` on an empty database | passed, including `create_platform_admin_grants` |
+
+## Found in review and fixed
+
+Codex's review of the pull request found three real gaps that the first tests did not cover: a school set up from `/saas` had no current year or settings, so its administrator's first `/home` returned a 500; a downgrade to a package without fees hid fee records that should stay readable; and an operator with no school role was logged straight back out at sign-in. Each now has a test that fails without its fix.
 
 ## In a browser (Chromium, a local server on a separate database)
 
@@ -51,3 +56,16 @@ Five real regressions were reproduced before correction:
 Reproduction is checked in at `admin-panel/tests/Feature/Platform/SaasPanelTest.php` and `admin-panel/e2e/tests/saas-panel.spec.ts`; the new browser fixture refuses non-local/non-test databases and never gives the synthetic operator a school membership. The flow is included in the existing serial Playwright project. No API schema or generated SDK changed.
 
 Full hosted CI, staging, production deployment and real operator provisioning remain separate. The initially described future platform tools remain outside this first version; this review does not claim they were built.
+
+## Latest PR #301 head reconciliation
+
+The contributor advanced the PR to `45d58ab921b88d9c5a3f597253188d96e1060975` (commits `bd761da0` and `45d58ab9`) after the earlier review. The reviewed reconciliation retains that exact ancestry and the earlier qualified `350f1c6a74bbdc1e6f2f5d4d0509bca0372ba718` tree. All nine upstream changed files were read.
+
+- The two exact historical Health fixture gitleaks exemptions are byte-for-byte identical to the previously reviewed allowlist. They exempt only synthetic protected-file UUID.png identifiers at the two specified historical lines; they authorize no requests and expose no key material.
+- School name/timezone settings and existing email templates are seeded only inside the new school. The contributor's school-local January–December year is retained as a clearly labelled editable setup preset. No Bible mandate, terms, assessment plan, published grading policy or marks are invented. Other schools and the platform operator's selected year stay unchanged. The earlier safe no-year Home/readers remain covered using a missing-year fixture.
+- One post-package `ModuleGate::keepRetainedMoneyReadable` transition replaces the duplicate pre/post lifecycle. The same retained-history owner HTTP200/read-only and unused-school checks pass.
+- The contributor's new pending-operator test stopped after redirecting to `/resetpassword`; following the redirect actually failed with “account not linked to an active school.” That was reproduced RED. The narrow `/saas/password` GET/POST purpose now permits only a fresh, active, non-impersonated identity+unexpired grant to settle their own password. Normal `/saas` remains blocked until settled. The standard existing password handler is reused, with CSRF, throttling, no-store responses and JSON validation without secret session flash. No school role or membership is granted, and generic school reset routes are unchanged.
+
+Qualification: scoped SaaS/modules/account-security cohort **62 tests / 557 assertions passed**. After the final private-validation/header refinement, the owned SaaS suite passed **36 / 328**, and the added public-default-password operator regression passed **1 / 13** (persistent forced-change flag → standalone password form → successful replacement → SaaS, still no school membership). Selected changed production source Larastan passed with **0 errors**; changed-file Pint, JavaScript syntax and Playwright TypeScript passed. The initial no-year fixture hit the legitimate product default-year deletion guard, so its setup unsets default before deletion; the guard was retained. An ignored installed marker left by the earlier browser was removed before installer tests; no installer behavior was changed.
+
+The refreshed three-width browser passed all **3 flows in 37.4 seconds** at 390/820/1280 px. It additionally exercises the actual pending-operator form, rejects a missing CSRF token with 419, then runs the existing school creation/separate-admin/denial/revocation scenario, including axe/overflow/private-header and no-own-500/page-error assertions; no staging, real operator grant or production activation is implied.

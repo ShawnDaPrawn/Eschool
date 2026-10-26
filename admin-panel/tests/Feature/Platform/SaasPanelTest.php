@@ -10,6 +10,7 @@ use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
+use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
@@ -93,6 +94,8 @@ class SaasPanelTest extends TestCase
 
         $this->get('/saas')->assertForbidden();
         $this->get('/saas/schools/create')->assertForbidden();
+        $this->get('/saas/password')->assertForbidden();
+        $this->postJson('/saas/password', [])->assertForbidden();
         $this->get('/saas/schools/2')->assertForbidden();
         $this->post('/saas/schools', $this->newSchool())->assertForbidden();
         $this->put('/saas/schools/2/package', ['package_key' => 'standard'])->assertForbidden();
@@ -193,11 +196,11 @@ class SaasPanelTest extends TestCase
             }
             $count++;
             $middleware = $route->gatherMiddleware();
-            $this->assertContains('platform.staff', $middleware, $route->uri());
+            $this->assertContains(str_starts_with($route->getName() ?? '', 'saas.password') ? 'platform.staff:password' : 'platform.staff', $middleware, $route->uri());
             $this->assertContains('auth', $middleware, $route->uri());
             $this->assertNotContains('school.context', $middleware, $route->uri());
         }
-        $this->assertSame(7, $count);
+        $this->assertSame(9, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void
@@ -234,7 +237,7 @@ class SaasPanelTest extends TestCase
 
     public function test_role_free_sign_in_still_refuses_missing_expired_revoked_or_unsettled_authority(): void
     {
-        foreach (['identity_missing', 'grant_missing', 'expired', 'revoked', 'password_pending', 'inactive', 'default_password'] as $case) {
+        foreach (['identity_missing', 'grant_missing', 'expired', 'revoked', 'inactive'] as $case) {
             auth()->forgetGuards();
             app(CurrentSchool::class)->forget();
             $password = $case === 'default_password' ? 'superadmin' : 'Synthetic-operator-login-937!';
@@ -374,6 +377,24 @@ class SaasPanelTest extends TestCase
         $this->assertSame([$school->id], $active->pluck('school_id')->all());
     }
 
+    public function test_the_new_administrator_can_open_the_panel_home_and_sees_nothing_of_other_schools(): void
+    {
+        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
+
+        auth()->forgetGuards();
+        $this->actingAs($admin)->get('/home')->assertOk()->assertDontSee('Baobab')->assertDontSee('Jacaranda');
+
+        // The school has its own current year and settings, and the staff member's session year was not touched.
+        $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
+        $year = DB::table('session_years')->where('school_id', $school->id)->first();
+        $this->assertSame(1, (int) $year->default);
+        $this->assertDatabaseHas('settings', ['school_id' => $school->id, 'type' => 'session_year', 'message' => (string) $year->id]);
+        $this->assertDatabaseHas('settings', ['school_id' => $school->id, 'type' => 'school_name', 'message' => 'Marula Primary']);
+        $this->assertSame(1, DB::table('session_years')->where('school_id', 1)->where('default', 1)->count());
+        $this->assertSame(1, DB::table('session_years')->where('default', 1)->where('school_id', 2)->count());
+    }
+
     public function test_a_name_gets_a_unique_short_name_when_none_is_given(): void
     {
         $this->actingAs($this->staff());
@@ -503,6 +524,148 @@ class SaasPanelTest extends TestCase
         $this->put('/saas/schools/987654/package', ['package_key' => 'core'])->assertNotFound();
         $this->put('/saas/schools/987654/status', ['status' => 'suspended', 'reason' => 'No such school at all'])->assertNotFound();
         $this->put('/saas/schools/987654/modules/chat', ['enabled' => 0])->assertNotFound();
+    }
+
+    public function test_a_downgrade_keeps_retained_fee_records_readable_but_not_writable(): void
+    {
+        $staff = $this->staff();
+        $this->actingAs($staff);
+        $this->put('/saas/schools/2/package', ['package_key' => 'standard'])->assertRedirect();
+        $this->put('/saas/schools/2/modules/fees', ['enabled' => 1])->assertRedirect();
+        $this->assertGreaterThan(0, DB::table('fees_paids')->where('school_id', 2)->count());
+        app(CurrentSchool::class)->run(2, fn () => $this->assertTrue(app(ModuleGate::class)->writable('fees')));
+
+        $this->put('/saas/schools/2/package', ['package_key' => 'core'])->assertRedirect();
+
+        app(CurrentSchool::class)->run(2, function () {
+            $state = app(ModuleGate::class)->state('fees');
+            $this->assertTrue($state['enabled']);
+            $this->assertTrue($state['read_only']);
+            $this->assertFalse($state['in_package']);
+        });
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->schoolB->tokens['asha'])->getJson('/api/student/fees-paid-list')->assertOk();
+        $this->postJson('/api/student/store-fees', [])->assertForbidden();
+        // Another school's fees were never touched.
+        app(CurrentSchool::class)->run(1, fn () => $this->assertTrue(app(ModuleGate::class)->writable('fees')));
+    }
+
+    public function test_a_downgrade_leaves_a_school_without_fee_records_alone(): void
+    {
+        $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool(['package_key' => 'standard']))->assertOk();
+        $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
+
+        $this->put('/saas/schools/'.$school->id.'/package', ['package_key' => 'core'])->assertRedirect();
+
+        $this->assertDatabaseMissing('school_modules', ['school_id' => $school->id, 'module' => 'fees', 'read_only' => true]);
+    }
+
+    // ---- signing in as an operator ----
+
+    private function operatorWithoutRoles(string $email = 'operator@platform.example', bool $identity = true, bool $grant = true, bool $changePassword = false): User
+    {
+        $user = User::query()->create(['first_name' => 'Pat', 'last_name' => 'Operator', 'email' => $email, 'mobile' => '', 'password' => 'a-long-password-1', 'status' => 1]);
+        $user->forceFill(['password_change_required' => $changePassword])->save();
+        $identity && PlatformStaffIdentity::query()->create(['user_id' => $user->id]);
+        $grant && PlatformAdminGrant::query()->create(['user_id' => $user->id, 'active' => true, 'expires_at' => now()->addHour()]);
+
+        return $user;
+    }
+
+    public function test_an_operator_with_no_school_role_signs_in_and_lands_on_the_platform_area(): void
+    {
+        $operator = $this->operatorWithoutRoles();
+
+        $this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1'])->assertRedirect('/saas');
+        $this->assertAuthenticatedAs($operator);
+        $this->get('/saas')->assertOk()->assertSee('Baobab High');
+        // Their account holds no school role or membership.
+        $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
+    }
+
+    public function test_a_role_less_account_without_both_keys_is_still_refused_at_sign_in(): void
+    {
+        foreach ([
+            $this->operatorWithoutRoles('identity@platform.example', identity: true, grant: false),
+            $this->operatorWithoutRoles('grant@platform.example', identity: false, grant: true),
+            $this->operatorWithoutRoles('neither@platform.example', identity: false, grant: false),
+        ] as $user) {
+            $this->post('/login', ['email' => $user->email, 'password' => 'a-long-password-1'])->assertRedirect('/login');
+            $this->assertGuest();
+        }
+    }
+
+    public function test_an_operator_who_must_change_a_password_is_kept_out_of_the_platform_area_until_they_do(): void
+    {
+        $operator = $this->operatorWithoutRoles(changePassword: true);
+
+        $this->post('/login', ['email' => $operator->email, 'password' => 'a-long-password-1']);
+        // The panel's forced-change rule sends them to the change form; /saas itself is closed to them either way.
+        $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertTrue(app(PlatformStaffAccess::class)->operatesPlatform($operator));
+        $this->assertFalse(app(PlatformStaffAccess::class)->allowed($operator));
+        $this->get('/saas/password')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->post('/saas/password', ['old_password' => 'a-long-password-1', 'new_password' => 'short', 'confirm_password' => 'mismatch'], ['Accept' => 'text/html'])->assertUnprocessable()->assertSessionMissing('_old_input');
+        $this->postJson('/saas/password', ['old_password' => 'a-long-password-1', 'new_password' => 'Synthetic-rotated-platform-password-674!', 'confirm_password' => 'Synthetic-rotated-platform-password-674!'])->assertOk()->assertJsonPath('error', false);
+        $this->assertFalse($operator->fresh()->password_change_required);
+        $this->get('/saas')->assertOk();
+        $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
+        $this->assertDatabaseMissing('model_has_roles', ['model_id' => $operator->id, 'model_type' => User::class]);
+    }
+
+    public function test_default_password_operator_must_replace_it_before_entering_saas(): void
+    {
+        $operator = $this->operatorWithoutRoles();
+        $operator->password = 'superadmin';
+        $operator->save();
+        $this->post('/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas');
+        $this->assertTrue($operator->fresh()->password_change_required);
+        $this->assertFalse(app(PlatformStaffAccess::class)->allowed($operator));
+        $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');
+        $this->get('/saas/password')->assertOk();
+        $this->postJson('/saas/password', ['old_password' => 'superadmin', 'new_password' => 'Synthetic-rotated-platform-password-674!', 'confirm_password' => 'Synthetic-rotated-platform-password-674!'])->assertOk()->assertJsonPath('error', false);
+        $this->get('/saas')->assertOk();
+        $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
+    }
+
+    public function test_own_platform_password_cannot_bypass_fresh_identity_grant_or_impersonation(): void
+    {
+        $operator = $this->operatorWithoutRoles(changePassword: true);
+        $this->actingAs($operator);
+        foreach (['expired', 'identity_revoked', 'grant_revoked'] as $case) {
+            PlatformStaffIdentity::query()->where('user_id', $operator->id)->update(['active' => $case !== 'identity_revoked']);
+            PlatformAdminGrant::query()->where('user_id', $operator->id)->update(['active' => $case !== 'grant_revoked', 'expires_at' => $case === 'expired' ? now()->utc()->subMinute() : now()->utc()->addHour()]);
+            $this->get('/saas/password')->assertForbidden()->assertHeader('Cache-Control', 'no-store, private');
+            $this->postJson('/saas/password', ['old_password' => 'a-long-password-1', 'new_password' => 'Synthetic-rotated-platform-password-674!', 'confirm_password' => 'Synthetic-rotated-platform-password-674!'])->assertForbidden();
+            $this->assertTrue($operator->fresh()->password_change_required);
+        }
+        PlatformStaffIdentity::query()->where('user_id', $operator->id)->update(['active' => true]);
+        PlatformAdminGrant::query()->where('user_id', $operator->id)->update(['active' => true, 'expires_at' => now()->utc()->addHour()]);
+        app(CurrentSchool::class)->impersonate(School::query()->findOrFail(1));
+        try {
+            $this->assertFalse(app(PlatformStaffAccess::class)->operatesPlatform($operator));
+        } finally {
+            app(CurrentSchool::class)->forget();
+        }
+        $this->assertSame(0, SchoolMembership::query()->where('user_id', $operator->id)->count());
+    }
+
+    public function test_no_year_home_guard_survives_removal_of_the_editable_onboarding_preset(): void
+    {
+        $response = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $admin = $response->viewData('admin');
+        $school = $response->viewData('school');
+        app(CurrentSchool::class)->run($school, function (): void {
+            Settings::query()->where('type', 'session_year')->get()->each->delete();
+            SessionYear::query()->update(['default' => 0]);
+            SessionYear::query()->get()->each->delete();
+        });
+        $admin->forceFill(['password_change_required' => false])->save();
+        auth()->forgetGuards();
+        $this->actingAs($admin)->get('/home')->assertOk();
+        foreach (['attendance', 'assessment', 'leaves', 'events'] as $widget) {
+            $this->getJson('/home/widget/'.$widget)->assertOk();
+        }
     }
 
     // ---- the operator console grant ----

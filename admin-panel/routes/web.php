@@ -173,6 +173,13 @@ Route::middleware('school.context:public')->group(function () {
     });
 });
 
+// An operator's own password has a separate purpose: pending accounts may
+// settle it, but cannot enter /saas or any school through this route.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:password'])->group(function () {
+    Route::view('saas/password', 'saas.password')->name('saas.password');
+    Route::post('saas/password', [HomeController::class, 'changePassword'])->middleware('throttle:password')->name('saas.password.store');
+});
+
 // The platform admin area: active platform staff identities only, in no school
 // (no school.context). It lists schools and their counts, never their people.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {

@@ -13,7 +13,7 @@ function fixture(action = 'initial'): { email: string } {
 test.describe.configure({ mode: 'serial' });
 for (const width of [390, 820, 1280]) {
   test(`role-free operator, private school setup and revocation at ${width}px`, async ({ page, browser }) => {
-    const operator = fixture();
+    const operator = fixture('pending');
     await page.setViewportSize({ width, height: 1000 });
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -22,6 +22,17 @@ for (const width of [390, 820, 1280]) {
     await page.locator('[name=email]').fill(operator.email);
     await page.locator('[name=password]').fill(PASSWORD);
     await page.locator('form button[type=submit], form input[type=submit]').first().click();
+    await expect(page).toHaveURL(/\/saas\/password$/);
+    await expect(page.getByRole('heading', { name: 'Change your platform password', exact: true })).toBeVisible();
+    const csrfDenied = await page.request.post(new URL('/saas/password', page.url()).toString(), {
+      data: { old_password: PASSWORD, new_password: 'Synthetic-platform-rotated-password-674!', confirm_password: 'Synthetic-platform-rotated-password-674!' },
+    });
+    expect(csrfDenied.status()).toBe(419);
+    await page.getByLabel('Current password', { exact: true }).fill(PASSWORD);
+    await page.getByLabel('New password', { exact: true }).fill('Synthetic-platform-rotated-password-674!');
+    await page.getByLabel('Confirm new password', { exact: true }).fill('Synthetic-platform-rotated-password-674!');
+    expect(await seriousViolations(page)).toEqual([]);
+    await page.getByRole('button', { name: 'Change password', exact: true }).click();
     await expect(page).toHaveURL(/\/saas$/);
     await expect(page.getByRole('heading', { name: 'Schools', exact: true })).toBeVisible();
     expect(await page.locator('main').innerText()).not.toContain('@');
