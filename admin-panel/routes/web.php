@@ -972,6 +972,23 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
 });
 
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
+    $controller = AssistancePanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('threads/{thread}', [$controller, 'index'])->whereUuid('thread')->name('thread');
+    Route::post('threads/{thread}/{operation}', [$controller, 'write'])->whereUuid('thread')->whereIn('operation', ['claim', 'reply', 'close', 'reassign', 'translate'])->name('thread-write');
+    Route::post('documents', [$controller, 'write'])->defaults('operation', 'publish')->name('publish');
+    Route::post('documents/{document}/withdraw', [$controller, 'write'])->whereUuid('document')->defaults('operation', 'withdraw')->name('withdraw');
+    Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
+});
+
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {
+    $controller = PeerPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::post('sessions', [$controller, 'write'])->defaults('action', 'create')->name('create');
+    Route::post('sessions/{session}/{action}', [$controller, 'write'])->whereUuid('session')->whereIn('action', ['complete', 'cancel', 'reverse'])->name('change');
+});
+
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', AuthorizeGroupChatPanel::class])
     ->prefix('group-conversations')->name('group-chat-panel.')->group(function () {
         $controller = GroupChatPanelController::class;
