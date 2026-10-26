@@ -22,7 +22,7 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
-        'tutor_sessions', 'tutor_messages', 'tutor_photos',
+        'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
         'past_papers', 'past_paper_versions', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
         'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',

@@ -181,3 +181,10 @@ Their models use `BelongsToSchool`; school foreign keys and indexes are checked
 by the inventory suite. Draft-version links include the school in their foreign
 key. Encrypted contexts, definitions, crop metadata and aggregate snapshots stay
 inside this boundary; operation IDs and private filenames do not grant access.
+
+Tutor topic/checkpoint follow-on: `tutor_checkpoints` is school-owned and indexed
+by school, owner and session. Only its owning approved learner may read/answer a
+checkpoint; teacher-approved curriculum definitions are resolved after fresh
+current-group/source checks. `tutor_sessions.topic_id` remains nullable for older
+subject-only sessions. School-scoped immutable issue/answer receipts and verified
+practice-provenance evidence are retained, without official mark writes.

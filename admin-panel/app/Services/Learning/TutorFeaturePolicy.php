@@ -55,6 +55,10 @@ class TutorFeaturePolicy implements InferenceFeaturePolicy
             throw new AiUnavailable('tutor_context_limit');
         }
         $references = array_map(fn ($ref) => 'content:'.$ref['id'].':'.$ref['sha256'], $message->source_manifest['versions']);
+        if (($message->source_manifest['topic'] ?? null) !== null) {
+            $ref = $message->source_manifest['topic'];
+            $references[] = 'topic:'.$ref['id'].':'.$ref['source_id'].':'.$ref['sha256'];
+        }
         foreach ($message->source_manifest['notes'] as $ref) {
             $references[] = 'tutor-note:'.$ref['id'].':'.$ref['revision'].':'.$ref['sha256'];
         }

@@ -43,7 +43,8 @@ class TutorRequest extends FormRequest
         $operation = ['operation_id' => ['required', 'uuid']];
         $rules = match ($this->route()->getActionMethod()) {
             'create' => $operation + ['group_id' => ['required', 'integer', 'min:1'], 'source_version_ids' => ['required', 'array', 'min:1', 'max:3'],
-                'source_version_ids.*' => ['required', 'integer', 'min:1', 'distinct']],
+                'source_version_ids.*' => ['required', 'integer', 'min:1', 'distinct'], 'topic_id' => ['sometimes', 'nullable', 'integer', 'min:1']],
+            'answerCheckpoint' => $operation + ['answer' => ['required', 'string', 'max:100']],
             'send' => $operation + ['question' => ['required', 'string', 'max:1000'], 'working' => ['sometimes', 'nullable', 'string', 'max:2000'],
                 'photo_ids' => ['sometimes', 'array', 'max:3'], 'photo_ids.*' => ['required', 'uuid', 'distinct']],
             'upload' => $operation + SafeImages::rules() + ['approved' => ['required', 'accepted'], 'crop_x' => ['required', 'integer', 'min:0', 'max:8192'],

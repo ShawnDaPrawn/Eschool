@@ -639,6 +639,9 @@ Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum'
     Route::get('sessions', [$c, 'index'])->name('index');
     Route::post('sessions', [$c, 'create'])->middleware('throttle:20,1')->name('create');
     Route::get('sessions/{session}', [$c, 'show'])->whereUuid('session')->name('show');
+    Route::post('sessions/{session}/checkpoints', [$c, 'issueCheckpoint'])->whereUuid('session')->middleware('throttle:20,1')->name('checkpoints.issue');
+    Route::get('sessions/{session}/checkpoints/{checkpoint}', [$c, 'checkpoint'])->whereUuid(['session', 'checkpoint'])->name('checkpoints.show');
+    Route::post('sessions/{session}/checkpoints/{checkpoint}/answer', [$c, 'answerCheckpoint'])->whereUuid(['session', 'checkpoint'])->middleware('throttle:20,1')->name('checkpoints.answer');
     Route::post('sessions/{session}/close', [$c, 'close'])->whereUuid('session')->name('close');
     Route::post('sessions/{session}/messages', [$c, 'send'])->whereUuid('session')->middleware('throttle:20,1')->name('send');
     Route::get('sessions/{session}/turns/{operation}', [$c, 'turn'])->whereUuid('session')->whereUuid('operation')->name('turn');
