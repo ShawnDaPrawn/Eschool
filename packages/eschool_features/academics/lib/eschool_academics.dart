@@ -143,3 +143,7 @@ export 'src/exam_coach/exam_screen.dart';
 export 'src/exam_coach/exam_session_boundary.dart';
 
 export 'src/private/private_pending_intent.dart';
+
+export 'src/family_visits/family_visit_repository.dart';
+export 'src/family_visits/family_visit_session_boundary.dart';
+export 'src/family_visits/family_visits_screen.dart';

@@ -139,6 +139,7 @@ class Routes {
   static const String supportPlans = '/pastoral/support';
   static const String wellbeing = '/wellbeing';
   static const String familyForms = '/family-forms';
+  static const String familyVisits = '/family-visits';
   static const String schoolCards = '/school-cards';
   static const String consultations = '/consultations';
   static const String activityGroups = '/activities/groups';
@@ -168,6 +169,7 @@ class Routes {
       mastery => 'mastery',
       consultations => 'consultations',
       familyForms => 'family_forms',
+      familyVisits => 'family_visits',
       schoolCards => 'cards',
       examCoach => 'exam_coach',
       dailyPractice => 'daily_practice',
@@ -378,6 +380,8 @@ class Routes {
         return supportPlansRoute();
       case wellbeing:
         return wellbeingRoute();
+      case familyVisits:
+        return familyVisitsRoute();
       case familyForms:
         return familyFormsRoute();
       case schoolCards:

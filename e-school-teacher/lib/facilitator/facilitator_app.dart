@@ -1,6 +1,7 @@
 import 'package:eschool_teacher/utils/teachingCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart' show AvailableOnly;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -479,6 +480,56 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
+          AvailableOnly(
+            featureKey: 'staff-family-visits:$generation:$school:$user',
+            probe: () => familyVisitsDeployed(
+              ApiFamilyVisitRepository(
+                repository.client,
+                schoolId: school,
+                accountId: user,
+                contextActive: () =>
+                    repository.matches(generation, school, user),
+              ),
+              staffOnly: true,
+            ),
+            child: Card(
+              child: ListTile(
+                leading: const Icon(Icons.event_available_outlined),
+                title: Text(l('Meetings and early collection')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AnimatedBuilder(
+                      animation: repository,
+                      builder: (_, __) {
+                        if (!repository.matches(generation, school, user))
+                          return ScreenScaffold(
+                            title: l('Meetings and early collection'),
+                            body: Center(
+                              child: Text(
+                                l(
+                                  'Your meeting access changed. Reopen this screen.',
+                                ),
+                              ),
+                            ),
+                          );
+                        return FamilyVisitsScreen(
+                          staffOnly: true,
+                          repository: ApiFamilyVisitRepository(
+                            repository.client,
+                            schoolId: school,
+                            accountId: user,
+                            contextActive: () =>
+                                repository.matches(generation, school, user),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           if (profile.features['cards'] == true)
             Card(
               child: ListTile(

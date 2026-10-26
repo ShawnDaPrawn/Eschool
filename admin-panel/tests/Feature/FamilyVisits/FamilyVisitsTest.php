@@ -325,6 +325,17 @@ class FamilyVisitsTest extends TestCase
         $this->post('/family-visits/meeting-create', array_merge($body, ['title' => str_repeat('x', 192)]))->assertUnprocessable()->assertSessionMissing('_old_input');
     }
 
+    public function test_parent_configuration_excludes_the_staff_roster_while_authorised_slots_include_their_host(): void
+    {
+        $slot = $this->slot();
+        $config = app(VisitQueries::class)->configuration($this->parent);
+        $this->assertSame([], $config['hosts']);
+        $this->assertNotEmpty($config['children']);
+        $this->assertNotEmpty(app(VisitQueries::class)->configuration($this->admin)['hosts']);
+        $listing = app(VisitQueries::class)->meetings($this->parent, $this->learner);
+        $this->assertSame($slot['host_name'], $listing['items'][0]['host_name']);
+    }
+
     private function api(User $user): self
     {
         $this->app['auth']->forgetGuards();
