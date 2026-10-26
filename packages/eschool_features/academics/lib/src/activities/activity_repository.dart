@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'activity_file_repository.dart';
 
 abstract interface class ActivityRepository {
   int get schoolId;
@@ -27,7 +28,8 @@ abstract interface class ActivityRepository {
 }
 
 /// A private, in-memory school/account session. No persisted group cache.
-class ApiActivityRepository implements ActivityRepository {
+class ApiActivityRepository
+    implements ActivityRepository, ActivityFileProvider {
   ApiActivityRepository(
     this.client, {
     required this.schoolId,
@@ -39,6 +41,16 @@ class ApiActivityRepository implements ActivityRepository {
   final int schoolId, accountId;
   final bool Function() contextActive;
   final String _token;
+  @override
+  ActivityFileRepository files(int group, int material) =>
+      ApiActivityFileRepository(
+        client,
+        schoolId: schoolId,
+        accountId: accountId,
+        groupId: group,
+        materialId: material,
+        contextActive: () => isActive,
+      );
   @override
   bool get isActive =>
       schoolId > 0 &&

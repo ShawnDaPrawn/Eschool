@@ -26,3 +26,5 @@ export 'src/profile/profile_screen.dart';
 
 export 'src/profile/profile_file_field.dart'
     show ProfileFilePicker, ProfileFileSelector, pickProfileFile;
+
+export 'src/profile/private_document_view.dart';
