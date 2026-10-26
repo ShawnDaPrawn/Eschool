@@ -69,7 +69,7 @@ class AssistanceController extends Controller
 
             return response()->json(['error' => false, 'message' => 'OK', 'data' => $data + ['school_id' => app(CurrentSchool::class)->id(), 'reader_id' => (int) $r->user()->id], 'code' => 200]);
         } catch (AiUnavailable $error) {
-            $status = in_array($error->reason, ['school_budget_exceeded', 'actor_budget_exceeded', 'learner_budget_exceeded'], true) ? 429 : 503;
+            $status = in_array($error->reason, ['school_daily_cap', 'actor_daily_cap', 'learner_daily_cap'], true) ? 429 : 503;
 
             return ApiV2ExceptionRenderer::envelope($status, data: ['reason' => $error->reason]);
         }

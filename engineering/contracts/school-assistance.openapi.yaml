@@ -39,7 +39,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -48,7 +52,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/family/learners/{learner}/documents:
     get:
       operationId: listSchoolAssistanceDocuments
@@ -92,7 +96,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -101,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/family/learners/{learner}/documents/{document}:
     get:
       operationId: getSchoolAssistanceDocument
@@ -151,7 +159,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -160,7 +172,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/family/learners/{learner}/threads:
     get:
       operationId: listSchoolAssistanceThreads
@@ -204,7 +216,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -213,7 +229,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
     post:
       operationId: openSchoolAssistanceThread
       tags:
@@ -249,7 +265,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -258,7 +278,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -301,7 +321,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -310,7 +334,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -353,7 +377,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -362,7 +390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -420,7 +448,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -429,7 +461,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/threads/{thread}/reply:
     post:
       operationId: replySchoolAssistanceThread
@@ -466,7 +498,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -475,7 +511,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -518,7 +554,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -527,7 +567,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -577,7 +617,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -586,7 +630,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/turns/{turn}/run:
     post:
       operationId: runSchoolAssistanceTurn
@@ -623,7 +667,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -632,7 +680,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -676,7 +724,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -685,7 +737,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/office/staff:
     get:
       operationId: getSchoolAssistanceOfficeStaff
@@ -723,7 +775,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -732,7 +788,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/office/documents:
     get:
       operationId: listSchoolAssistanceOfficeDocuments
@@ -770,7 +826,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -779,7 +839,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
     post:
       operationId: publishSchoolAssistanceDocument
       tags:
@@ -809,7 +869,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -818,7 +882,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -868,7 +932,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -877,7 +945,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
   /school-assistance/office/documents/{document}/withdraw:
     post:
       operationId: withdrawSchoolAssistanceDocument
@@ -914,7 +982,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -923,7 +995,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -966,7 +1038,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -975,7 +1051,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -1018,7 +1094,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -1027,7 +1107,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -1070,7 +1150,11 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationFailed'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          description: Private inference allowance exhausted or rate limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
         '500':
           $ref: '#/components/responses/ServerError'
         '503':
@@ -1079,7 +1163,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SchoolAssistanceUnavailableResponse'
       requestBody:
         required: true
         content:
@@ -1100,21 +1184,26 @@ components:
       - school_id
       - reader_id
       properties:
-        can_parent: &id001
+        can_parent:
           type: boolean
-        can_office: *id001
+        can_office:
+          type: boolean
         languages:
           type: array
           items:
             type: string
             maxLength: 16
           maxItems: 30
-        answer_available: *id001
-        translation_available: *id001
-        school_id: &id002
+        answer_available:
+          type: boolean
+        translation_available:
+          type: boolean
+        school_id:
           type: integer
           minimum: 1
-        reader_id: *id002
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceDocument:
       type: object
       additionalProperties: false
@@ -1127,10 +1216,12 @@ components:
       - expires_on
       - state
       properties:
-        id: &id003
+        id:
           type: string
           format: uuid
-        document_key: *id003
+        document_key:
+          type: string
+          format: uuid
         revision:
           type: integer
           minimum: 1
@@ -1165,11 +1256,13 @@ components:
       - school_id
       - reader_id
       properties:
-        id: &id004
+        id:
           type: string
           format: uuid
-        document_key: *id004
-        revision: &id005
+        document_key:
+          type: string
+          format: uuid
+        revision:
           type: integer
           minimum: 1
         title:
@@ -1191,8 +1284,12 @@ components:
         markdown:
           type: string
           maxLength: 32000
-        school_id: *id005
-        reader_id: *id005
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceDocumentResult:
       type: object
       additionalProperties: false
@@ -1207,11 +1304,13 @@ components:
       - school_id
       - reader_id
       properties:
-        id: &id006
+        id:
           type: string
           format: uuid
-        document_key: *id006
-        revision: &id007
+        document_key:
+          type: string
+          format: uuid
+        revision:
           type: integer
           minimum: 1
         title:
@@ -1230,8 +1329,12 @@ components:
           enum:
           - published
           - withdrawn
-        school_id: *id007
-        reader_id: *id007
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceDocumentPage:
       type: object
       additionalProperties: false
@@ -1242,17 +1345,23 @@ components:
       - school_id
       - reader_id
       properties:
-        page: &id008
+        page:
           type: integer
           minimum: 1
-        last_page: *id008
+        last_page:
+          type: integer
+          minimum: 1
         items:
           type: array
           items:
             $ref: '#/components/schemas/SchoolAssistanceDocument'
           maxItems: 20
-        school_id: *id008
-        reader_id: *id008
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceThreadMetadata:
       type: object
       additionalProperties: false
@@ -1286,17 +1395,23 @@ components:
       - school_id
       - reader_id
       properties:
-        page: &id009
+        page:
           type: integer
           minimum: 1
-        last_page: *id009
+        last_page:
+          type: integer
+          minimum: 1
         items:
           type: array
           items:
             $ref: '#/components/schemas/SchoolAssistanceThreadMetadata'
           maxItems: 20
-        school_id: *id009
-        reader_id: *id009
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceOfficeThreadMetadata:
       type: object
       additionalProperties: false
@@ -1333,17 +1448,23 @@ components:
       - school_id
       - reader_id
       properties:
-        page: &id010
+        page:
           type: integer
           minimum: 1
-        last_page: *id010
+        last_page:
+          type: integer
+          minimum: 1
         items:
           type: array
           items:
             $ref: '#/components/schemas/SchoolAssistanceOfficeThreadMetadata'
           maxItems: 20
-        school_id: *id010
-        reader_id: *id010
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceStaffChoice:
       type: object
       additionalProperties: false
@@ -1369,10 +1490,12 @@ components:
           items:
             $ref: '#/components/schemas/SchoolAssistanceStaffChoice'
           maxItems: 100
-        school_id: &id011
+        school_id:
           type: integer
           minimum: 1
-        reader_id: *id011
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceMessage:
       type: object
       additionalProperties: false
@@ -1418,7 +1541,7 @@ components:
         id:
           type: string
           format: uuid
-        revision: &id012
+        revision:
           type: integer
           minimum: 1
         state:
@@ -1426,19 +1549,29 @@ components:
           enum:
           - open
           - closed
-        learner_id: *id012
+        learner_id:
+          type: integer
+          minimum: 1
         expires_at:
           type: string
           format: date-time
-        page: *id012
-        last_page: *id012
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
         messages:
           type: array
           items:
             $ref: '#/components/schemas/SchoolAssistanceMessage'
           maxItems: 20
-        school_id: *id012
-        reader_id: *id012
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceThreadResult:
       type: object
       additionalProperties: false
@@ -1449,10 +1582,10 @@ components:
       - school_id
       - reader_id
       properties:
-        id: &id013
+        id:
           type: string
           format: uuid
-        revision: &id014
+        revision:
           type: integer
           minimum: 1
         state:
@@ -1460,13 +1593,21 @@ components:
           enum:
           - open
           - closed
-        message_id: *id013
-        assigned_user_id: *id014
+        message_id:
+          type: string
+          format: uuid
+        assigned_user_id:
+          type: integer
+          minimum: 1
         reason:
           type: string
           maxLength: 1000
-        school_id: *id014
-        reader_id: *id014
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceSourceLocator:
       type: object
       additionalProperties: false
@@ -1562,7 +1703,7 @@ components:
           enum:
           - prepared
           - completed
-        learner_id: &id015
+        learner_id:
           type: integer
           minimum: 1
         expires_at:
@@ -1583,8 +1724,12 @@ components:
           anyOf:
           - $ref: '#/components/schemas/SchoolAssistanceAnswer'
           - type: 'null'
-        school_id: *id015
-        reader_id: *id015
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
     SchoolAssistanceOpenThreadRequest:
       type: object
       additionalProperties: false
@@ -1669,10 +1814,12 @@ components:
         operation_id:
           type: string
           format: uuid
-        expected_revision: &id016
+        expected_revision:
           type: integer
           minimum: 1
-        assigned_user_id: *id016
+        assigned_user_id:
+          type: integer
+          minimum: 1
         reason:
           type: string
           maxLength: 1000
@@ -1696,9 +1843,10 @@ components:
             type: string
             format: uuid
           maxItems: 5
-        include_calendar: &id017
+        include_calendar:
           type: boolean
-        include_records: *id017
+        include_records:
+          type: boolean
         question:
           type: string
           maxLength: 2000
@@ -1713,10 +1861,12 @@ components:
       - message_id
       - language
       properties:
-        operation_id: &id018
+        operation_id:
           type: string
           format: uuid
-        message_id: *id018
+        message_id:
+          type: string
+          format: uuid
         language:
           type: string
           maxLength: 16
@@ -1967,3 +2117,31 @@ components:
           type: integer
           enum:
           - 200
+    SchoolAssistanceUnavailableResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+            required:
+            - reason
+            properties:
+              reason:
+                type: string
+                pattern: ^[a-z][a-z0-9_]{0,95}$
+          - type: 'null'
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        details:
+          type: string

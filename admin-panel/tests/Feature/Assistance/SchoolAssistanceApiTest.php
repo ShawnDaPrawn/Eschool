@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Assistance;
 
+use App\Models\Ai\AiSchoolLimit;
 use App\Models\Assistance\AssistanceTurn;
 use App\Models\Assistance\SupportMessage;
 use App\Models\Platform\GuardianLink;
@@ -12,11 +13,12 @@ use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Concerns\UsesPracticeScenario;
+use Tests\Concerns\ValidatesOpenApiResponses;
 use Tests\TestCase;
 
 class SchoolAssistanceApiTest extends TestCase
 {
-    use UsesPracticeScenario;
+    use UsesPracticeScenario, ValidatesOpenApiResponses;
 
     private string $base = '/api/v2/school-assistance';
 
@@ -101,5 +103,21 @@ class SchoolAssistanceApiTest extends TestCase
         GuardianLink::where('guardian_user_id', $this->actor('farid')->id)->delete();
         $this->getJson($this->base.'/threads/'.$id.'?persona=parent')->assertNotFound()->assertDontSee('PRIVATE-FORM-TEXT');
         $this->postJson($this->family().'/threads', $input)->assertNotFound()->assertHeader('Cache-Control', 'no-store, private');
+    }
+
+    public function test_effective_school_cap_has_a_typed_private_429_without_provider_dispatch(): void
+    {
+        $doc = $this->publish();
+        $turn = $this->actingAs($this->actor('farid'))->postJson($this->family().'/answers', [
+            'operation_id' => (string) Str::uuid(), 'documents' => [$doc], 'include_calendar' => false,
+            'include_records' => false, 'language' => 'en', 'question' => 'When do lessons start?',
+        ])->assertOk()->json('data.id');
+        config(['ai.inference.enabled' => true, 'ai.inference.features.school_assistant.enabled' => true,
+            'ai.inference.features.school_assistant.model' => 'bounded-protocol-test',
+            'ai.inference.features.school_assistant.cents_per_million_tokens' => 1000]);
+        AiSchoolLimit::create(['limits' => ['school_daily_tokens' => 0]]);
+        $this->postJson($this->base.'/turns/'.$turn.'/run', ['identifiers_reviewed' => true])->assertStatus(429)
+            ->assertJsonPath('data.reason', 'school_daily_cap')->assertHeader('Cache-Control', 'no-store, private');
+        Http::assertNothingSent();
     }
 }

@@ -131,6 +131,9 @@ components:
       - messages
       - counselling
       properties:
+        school_assistance:
+          type: boolean
+          description: Optional current school-office support capability; exact thread assignment is checked before every private body read.
         live_updates:
           type: boolean
           description: Optional fresh live-session capability, emitted only when the live transport is implemented
