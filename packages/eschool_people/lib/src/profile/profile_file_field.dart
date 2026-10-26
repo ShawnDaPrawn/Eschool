@@ -4,6 +4,7 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/profile/profile_cubit.dart';
 import 'package:eschool_people/src/profile/profile_repository.dart';
 import 'package:eschool_people/src/profile/private_document_view.dart';
+import 'package:eschool_people/src/profile/profile_context_boundary.dart';
 import 'package:eschool_people/src/common/people_widgets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +74,7 @@ class ProfileFileField extends StatelessWidget {
                     state.busy || cubit.repository is! ProfileFileRepository
                     ? null
                     : () {
+                        final lease = ProfileReadScope.maybeOf(context);
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) => _ProfileFileView(
@@ -80,6 +82,7 @@ class ProfileFileField extends StatelessWidget {
                                   cubit.repository as ProfileFileRepository,
                               subject: state.subject,
                               file: file,
+                              lease: lease,
                             ),
                           ),
                         );
@@ -157,7 +160,9 @@ class _ProfileFileView extends StatelessWidget {
     required this.repository,
     required this.subject,
     required this.file,
+    this.lease,
   });
+  final ProfileReadLease? lease;
   final ProfileFileRepository repository;
   final ProfileSubject subject;
   final ProfileAttachment file;
@@ -173,5 +178,7 @@ class _ProfileFileView extends StatelessWidget {
     name: file.name,
     mime: file.mime,
     loadBytes: () => repository.readFile(subject, file),
+    isActive: () => lease?.isActive ?? true,
+    authorizationChanges: lease,
   );
 }

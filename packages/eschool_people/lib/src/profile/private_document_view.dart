@@ -15,6 +15,7 @@ class PrivateDocumentView extends StatefulWidget {
     required this.mime,
     required this.loadBytes,
     this.isActive = _alwaysActive,
+    this.authorizationChanges,
     this.onClose,
     this.embedded = false,
     this.maximumBytes = 5 * 1024 * 1024,
@@ -24,6 +25,7 @@ class PrivateDocumentView extends StatefulWidget {
   final String name, mime;
   final Future<Uint8List> Function() loadBytes;
   final bool Function() isActive;
+  final Listenable? authorizationChanges;
   final VoidCallback? onClose;
   final bool embedded;
   final int maximumBytes;
@@ -42,12 +44,18 @@ class _PrivateDocumentViewState extends State<PrivateDocumentView>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    widget.authorizationChanges?.addListener(authorizationChanged);
     load();
   }
 
   @override
   void didUpdateWidget(PrivateDocumentView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.authorizationChanges != widget.authorizationChanges) {
+      oldWidget.authorizationChanges?.removeListener(authorizationChanged);
+      widget.authorizationChanges?.addListener(authorizationChanged);
+    }
+    if (!widget.isActive()) authorizationChanged();
     if (widget.identity != oldWidget.identity ||
         widget.mime != oldWidget.mime ||
         widget.name != oldWidget.name) {
@@ -56,6 +64,13 @@ class _PrivateDocumentViewState extends State<PrivateDocumentView>
       error = null;
       if (!suspended) load();
     }
+  }
+
+  void authorizationChanged() {
+    if (widget.isActive()) return;
+    generation++;
+    clearBytes();
+    if (mounted) setState(() => error = null);
   }
 
   void clearBytes() {
@@ -138,6 +153,7 @@ class _PrivateDocumentViewState extends State<PrivateDocumentView>
   void dispose() {
     generation++;
     WidgetsBinding.instance.removeObserver(this);
+    widget.authorizationChanges?.removeListener(authorizationChanged);
     clearBytes();
     super.dispose();
   }
