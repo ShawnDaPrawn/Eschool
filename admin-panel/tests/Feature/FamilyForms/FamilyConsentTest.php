@@ -25,11 +25,13 @@ use App\Models\Students;
 use App\Models\User;
 use App\Services\FamilyForms\Consents;
 use App\Services\FamilyForms\HealthForms;
+use App\Services\ParentPolicyService;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\People\Profiles\ProfileFiles;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -579,5 +581,26 @@ class FamilyConsentTest extends TestCase
         $this->api($this->parent)->post("/api/v2/family-forms/learners/{$this->learner}/health/fields/health_document/file", ['document' => UploadedFile::fake()->createWithContent('synthetic-letter.pdf', "%PDF-1.4\nSynthetic private document\n%%EOF")])->assertStatus(503)->assertDontSee('Synthetic private document')->assertSessionMissing('_old_input');
         $this->assertSame(0, ProfileFile::count());
         $this->assertSame([], Storage::disk(ProfileFiles::DISK)->allFiles());
+    }
+
+    public function test_facilitator_family_menu_requires_a_fresh_actual_group_without_inheriting_family_rights(): void
+    {
+        $this->teacher->forceFill(['password_change_required' => false])->save();
+        ParentPolicyService::acceptCurrent($this->teacher);
+        $token = $this->teacher->createToken(AppTokens::FACILITATOR)->plainTextToken;
+        $this->flushHeaders()->withToken($token)->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->teacher->id]);
+        $this->getJson('/api/v2/facilitator/session')->assertOk()->assertJsonPath('data.features.family_forms', true);
+        ActivityStaff::where('activity_group_id', $this->group->id)->update(['active' => false]);
+        $this->getJson('/api/v2/facilitator/session')->assertOk()->assertJsonPath('data.features.family_forms', false);
+        ActivityStaff::where('activity_group_id', $this->group->id)->update(['active' => true]);
+        SchoolMembership::where('school_id', 1)->where('user_id', $this->teacher->id)->where('role', 'Teacher')->update(['status' => 'ended']);
+        SchoolMembership::create(['school_id' => 1, 'user_id' => $this->teacher->id, 'role' => 'Facilitator', 'status' => 'active', 'starts_on' => '2026-01-01']);
+        $this->teacher->assignRole('Facilitator');
+        $this->getJson('/api/v2/facilitator/session')->assertOk()->assertJsonPath('data.features.family_forms', true);
+        $this->getJson('/api/v2/family-forms/configuration')->assertOk()->assertJsonCount(0, 'data.children');
+        config(['modules.family_forms' => ['always_on' => false]]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'family_forms'], ['enabled' => false, 'read_only' => false, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $this->getJson('/api/v2/facilitator/session')->assertOk()->assertJsonPath('data.features.family_forms', false);
     }
 }

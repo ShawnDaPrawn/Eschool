@@ -15,6 +15,8 @@ dependencies:
     path: ../../eschool_core
   eschool_session:
     path: ../../eschool_session
+  eschool_people:
+    path: ../../eschool_people
   flutter_bloc: ^9.1.1
   equatable: ^2.0.8
   hive: ^2.2.3

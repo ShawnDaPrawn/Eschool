@@ -12,6 +12,7 @@ class ScreenScaffold extends StatelessWidget {
     required this.body,
     this.action,
     this.showBackButton = true,
+    this.onBack,
     super.key,
   });
 
@@ -21,6 +22,9 @@ class ScreenScaffold extends StatelessWidget {
   /// An icon button at the end of the header.
   final Widget? action;
   final bool showBackButton;
+
+  /// An enclosing private navigator may own the exit action.
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +42,16 @@ class ScreenScaffold extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 48,
-                    child: showBackButton && Navigator.of(context).canPop()
+                    child:
+                        showBackButton &&
+                            (onBack != null || Navigator.of(context).canPop())
                         ? IconButton(
                             tooltip: MaterialLocalizations.of(
                               context,
                             ).backButtonTooltip,
-                            onPressed: () => Navigator.of(context).maybePop(),
+                            onPressed:
+                                onBack ??
+                                () => Navigator.of(context).maybePop(),
                             icon: SvgPicture.asset(
                               SharedUiUtils.getBackButtonPath(context),
                               width: 23,

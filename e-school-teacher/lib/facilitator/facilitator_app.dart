@@ -457,6 +457,28 @@ class _StaffHome extends StatelessWidget {
                 },
               ),
             ),
+          if (profile.features['family_forms'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.family_restroom_outlined),
+                title: Text(l('Activity consent')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'family_forms',
+                  FamilyFormsScreen(
+                    staffOnly: true,
+                    repository: ApiFamilyFormRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['family_forms'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['cards'] == true)
             Card(
               child: ListTile(
@@ -904,6 +926,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'family_forms',
             'cards',
             'gallery',
             'consultations',

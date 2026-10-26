@@ -10,24 +10,36 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     this.subjects = const [ProfileSubject()],
     this.onSaved,
+    this.titleKey = profileDetailsKey,
+    this.onExit,
     this.pickFile = pickProfileFile,
+    this.selectFile,
     super.key,
   });
   final List<ProfileSubject> subjects;
   final VoidCallback? onSaved;
+  final String titleKey;
+  final VoidCallback? onExit;
   final ProfileFilePicker pickFile;
+  final ProfileFileSelector? selectFile;
 
   static Widget withRepository(
     ProfileRepository repository, {
     List<ProfileSubject> subjects = const [ProfileSubject()],
     VoidCallback? onSaved,
+    String titleKey = profileDetailsKey,
+    VoidCallback? onExit,
     ProfileFilePicker pickFile = pickProfileFile,
+    ProfileFileSelector? selectFile,
   }) => BlocProvider(
     create: (_) => ProfileCubit(repository)..load(subjects.first),
     child: ProfileScreen(
       subjects: subjects,
       onSaved: onSaved,
+      titleKey: titleKey,
+      onExit: onExit,
       pickFile: pickFile,
+      selectFile: selectFile,
     ),
   );
 
@@ -59,7 +71,21 @@ class ProfileScreen extends StatelessWidget {
     String label(String key) => SharedUiUtils.getTranslatedLabel(context, key);
     return Scaffold(
       appBar: AppBar(
-        title: Text(label(profileDetailsKey)),
+        title: Text(label(titleKey)),
+        leading: onExit == null
+            ? null
+            : IconButton(
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () async {
+                  final state = context.read<ProfileCubit>().state;
+                  if (!state.busy &&
+                      await discard(context, state) &&
+                      context.mounted) {
+                    onExit?.call();
+                  }
+                },
+              ),
         actions: [
           IconButton(
             tooltip: label(profileReloadKey),
@@ -165,6 +191,7 @@ class ProfileScreen extends StatelessWidget {
                   key: ValueKey(state.revision),
                   state: state,
                   pickFile: pickFile,
+                  selectFile: selectFile,
                 ),
             ],
           );
@@ -178,9 +205,11 @@ class _ProfileFields extends StatefulWidget {
   const _ProfileFields({
     required this.state,
     required this.pickFile,
+    this.selectFile,
     super.key,
   });
   final ProfileFilePicker pickFile;
+  final ProfileFileSelector? selectFile;
   final ProfileState state;
   @override
   State<_ProfileFields> createState() => _ProfileFieldsState();
@@ -233,6 +262,7 @@ class _ProfileFieldsState extends State<_ProfileFields> {
         state: widget.state,
         cubit: context.read<ProfileCubit>(),
         pickFile: widget.pickFile,
+        selectFile: widget.selectFile,
       );
     }
     final current = value(field);

@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/profile/profile_cubit.dart';
 import 'package:eschool_people/src/profile/profile_repository.dart';
@@ -7,6 +9,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 typedef ProfileFilePicker = Future<ProfileUpload?> Function();
+
+/// An enclosing private route owns selection, errors and fresh authorization.
+/// It may immediately dispose this editor; no medical form is retained awaiting it.
+typedef ProfileFileSelector =
+    void Function(ProfileSubject subject, String field);
 
 Future<ProfileUpload?> pickProfileFile() async {
   final file = await FilePicker.pickFile(
@@ -33,12 +40,14 @@ class ProfileFileField extends StatelessWidget {
     required this.state,
     required this.cubit,
     this.pickFile = pickProfileFile,
+    this.selectFile,
     super.key,
   });
   final ProfileFormField field;
   final ProfileState state;
   final ProfileCubit cubit;
   final ProfileFilePicker pickFile;
+  final ProfileFileSelector? selectFile;
 
   @override
   Widget build(BuildContext context) {
@@ -80,14 +89,19 @@ class ProfileFileField extends StatelessWidget {
               OutlinedButton.icon(
                 icon: const Icon(Icons.upload_file),
                 label: Text(label(profileFileUploadKey)),
-                onPressed: state.busy
+                onPressed:
+                    state.busy || (selectFile != null && state.draft.isNotEmpty)
                     ? null
                     : () async {
+                        if (selectFile != null) {
+                          selectFile!(state.subject, field.key);
+                          return;
+                        }
                         try {
                           final picked = await pickFile();
-                          if (picked == null ||
-                              !context.mounted ||
-                              cubit.isClosed) {
+                          if (picked == null) return;
+                          if (!context.mounted || cubit.isClosed) {
+                            picked.bytes.fillRange(0, picked.bytes.length, 0);
                             return;
                           }
                           if (picked.bytes.length > 5 * 1024 * 1024) {
@@ -126,6 +140,8 @@ class ProfileFileField extends StatelessWidget {
                       ? cubit.change(field, ProfileValue(clear: true))
                       : cubit.reset(field),
           ),
+        if (field.editable && selectFile != null && state.draft.isNotEmpty)
+          Text(label('Save your changes before adding a document.')),
         if (field.editable)
           Text(
             label(profileFileLimitKey),
@@ -150,49 +166,94 @@ class _ProfileFileView extends StatefulWidget {
   State<_ProfileFileView> createState() => _ProfileFileViewState();
 }
 
-class _ProfileFileViewState extends State<_ProfileFileView> {
+class _ProfileFileViewState extends State<_ProfileFileView>
+    with WidgetsBindingObserver {
   Uint8List? bytes;
-  MemoryImage? image;
+  ui.Image? image;
   ApiException? error;
-  bool pdfReady = false;
+  bool pdfReady = false, suspended = false;
+  int generation = 0;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     load();
   }
 
-  Future<void> load() async {
-    try {
-      final result = await widget.repository.readFile(
-        widget.subject,
-        widget.file,
-      );
-      if (!mounted) return;
-      setState(() {
-        bytes = result;
-        if (widget.file.mime != 'application/pdf') image = MemoryImage(result);
-      });
-    } catch (failure) {
+  void clearBytes() {
+    image?.dispose();
+    image = null;
+    bytes?.fillRange(0, bytes!.length, 0);
+    bytes = null;
+    pdfReady = false;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      generation++;
+      suspended = true;
+      clearBytes();
+      if (mounted) setState(() => error = null);
+    } else {
+      suspended = false;
       if (mounted) {
+        setState(() {});
+        load();
+      }
+    }
+  }
+
+  Future<void> load() async {
+    final epoch = ++generation;
+    Uint8List? result;
+    ui.Codec? codec;
+    try {
+      result = await widget.repository.readFile(widget.subject, widget.file);
+      if (!mounted || suspended || epoch != generation) {
+        result.fillRange(0, result.length, 0);
+        return;
+      }
+      if (widget.file.mime != 'application/pdf') {
+        codec = await ui.instantiateImageCodec(
+          result,
+          targetWidth: 1024,
+          allowUpscaling: false,
+        );
+        final frame = await codec.getNextFrame();
+        if (!mounted || suspended || epoch != generation) {
+          frame.image.dispose();
+          result.fillRange(0, result.length, 0);
+          return;
+        }
+        image = frame.image;
+      }
+      setState(() => bytes = result);
+    } catch (failure) {
+      result?.fillRange(0, result.length, 0);
+      if (mounted && !suspended && epoch == generation) {
         setState(() {
           error = failure is ApiException
               ? failure
               : ApiException(ApiErrorCodes.defaultErrorMessageKey);
         });
       }
+    } finally {
+      codec?.dispose();
     }
   }
 
   @override
   void dispose() {
-    image?.evict();
-    bytes = null;
-    image = null;
+    generation++;
+    WidgetsBinding.instance.removeObserver(this);
+    clearBytes();
     super.dispose();
   }
 
   void retry() {
-    image?.evict();
+    image?.dispose();
+    bytes?.fillRange(0, bytes!.length, 0);
     setState(() {
       error = null;
       bytes = null;
@@ -205,7 +266,9 @@ class _ProfileFileViewState extends State<_ProfileFileView> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(widget.file.name)),
-    body: error != null
+    body: suspended
+        ? const SizedBox.shrink()
+        : error != null
         ? LoadFailure(error: error!, onRetry: retry)
         : bytes == null
         ? const Center(child: CircularProgressIndicator())
@@ -237,12 +300,10 @@ class _ProfileFileViewState extends State<_ProfileFileView> {
           )
         : InteractiveViewer(
             child: Center(
-              child: Image(
-                image: image!,
-                errorBuilder: (_, _, _) => LoadFailure(
-                  error: ApiException(ApiErrorCodes.defaultErrorMessageKey),
-                  onRetry: retry,
-                ),
+              child: Semantics(
+                image: true,
+                label: widget.file.name,
+                child: RawImage(image: image, fit: BoxFit.contain),
               ),
             ),
           ),
