@@ -25,6 +25,7 @@ SchoolAssistanceConfiguration _$SchoolAssistanceConfigurationFromJson(
       ],
     );
     final val = SchoolAssistanceConfiguration(
+      writable: $checkedConvert('writable', (v) => v as bool?),
       canParent: $checkedConvert('can_parent', (v) => v as bool),
       canOffice: $checkedConvert('can_office', (v) => v as bool),
       languages: $checkedConvert(
@@ -54,6 +55,7 @@ SchoolAssistanceConfiguration _$SchoolAssistanceConfigurationFromJson(
 Map<String, dynamic> _$SchoolAssistanceConfigurationToJson(
   SchoolAssistanceConfiguration instance,
 ) => <String, dynamic>{
+  'writable': ?instance.writable,
   'can_parent': instance.canParent,
   'can_office': instance.canOffice,
   'languages': instance.languages,

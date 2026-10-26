@@ -120,4 +120,19 @@ class SchoolAssistanceApiTest extends TestCase
             ->assertJsonPath('data.reason', 'school_daily_cap')->assertHeader('Cache-Control', 'no-store, private');
         Http::assertNothingSent();
     }
+
+    public function test_readonly_module_preserves_parent_sources_and_threads_without_write_controls(): void
+    {
+        $doc = $this->publish();
+        $thread = $this->actingAs($this->actor('farid'))->postJson($this->family().'/threads', [
+            'operation_id' => (string) Str::uuid(), 'text' => 'Existing parent request', 'language' => 'en',
+        ])->assertOk()->json('data.id');
+        SchoolModule::where('module', 'ask_school')->update(['read_only' => true]);
+        $this->getJson($this->base.'/configuration')->assertOk()->assertJsonPath('data.writable', false);
+        $this->getJson($this->family().'/documents/'.$doc)->assertOk();
+        $this->getJson($this->base.'/threads/'.$thread.'?persona=parent')->assertOk();
+        $this->postJson($this->base.'/threads/'.$thread.'/reply', ['operation_id' => (string) Str::uuid(),
+            'text' => 'Must not be written', 'language' => 'en', 'persona' => 'parent'])->assertForbidden();
+        $this->assertSame(1, SupportMessage::count());
+    }
 }

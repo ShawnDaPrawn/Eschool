@@ -137,4 +137,28 @@ void main() {
       expect(result.data!.data.response, isNull);
     },
   );
+  test('readonly support capability preserves absence and explicit false', () {
+    final basic = {
+      'school_id': 1,
+      'reader_id': 12,
+      'can_parent': true,
+      'can_office': false,
+      'languages': ['en'],
+      'answer_available': false,
+      'translation_available': false,
+    };
+    expect(SchoolAssistanceConfiguration.fromJson(basic).writable, isNull);
+    expect(
+      SchoolAssistanceConfiguration.fromJson(
+        basic,
+      ).toJson().containsKey('writable'),
+      isFalse,
+    );
+    final readOnly = SchoolAssistanceConfiguration.fromJson({
+      ...basic,
+      'writable': false,
+    });
+    expect(readOnly.writable, isFalse);
+    expect(readOnly.toJson()['writable'], isFalse);
+  });
 }
