@@ -350,6 +350,22 @@ class ActivityFilesTest extends TestCase
         $this->assertSame(0, $this->scanner->scans);
     }
 
+    public function test_http_readonly_removal_keeps_privacy_revocation_without_enabling_new_uploads(): void
+    {
+        $one = $this->upload();
+        config(['modules.groups' => ['default' => true, 'legacy' => true]]);
+        SchoolModule::updateOrCreate(['school_id' => 1, 'module' => 'groups'], ['enabled' => true, 'read_only' => true, 'in_package' => true]);
+        app(ModuleGate::class)->forget();
+        $this->api($this->teacher)->postJson($this->base().'/'.$one['id'].'/remove',
+            ['operation_id' => (string) Str::uuid(), 'material_revision' => 2, 'revision' => 1])
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('data.removed', true);
+        $scans = $this->scanner->scans;
+        $this->api($this->teacher)->post($this->base(), ['operation_id' => (string) Str::uuid(), 'material_revision' => 3,
+            'document' => UploadedFile::fake()->createWithContent('blocked.pdf', '%PDF-1.4')])->assertForbidden();
+        $this->assertSame($scans, $this->scanner->scans);
+        $this->assertSame(1, ActivityMaterialFile::count());
+    }
+
     public function test_panel_readonly_allows_removal_but_refuses_new_uploads_without_old_input(): void
     {
         $one = $this->upload();

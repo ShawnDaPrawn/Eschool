@@ -113,5 +113,9 @@ Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-work
 // Temporary teaching proposals/crops expire independently of module availability.
 Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOverlapping();
 
+Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
 // Recovery also reaches a guardian verified after the original publication.
 Schedule::command('consents:notify-open')->everyFiveMinutes()->name('consent-notice-recovery')->withoutOverlapping();
+
+// Privacy cleanup remains enabled when a school or module is paused.
+Schedule::command('chat:prune-groups')->hourly()->name('group-chat-retention')->withoutOverlapping();
