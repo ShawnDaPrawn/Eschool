@@ -120,5 +120,11 @@ export 'src/my_grade/my_grade_screen.dart';
 export 'src/cards/card_repository.dart';
 export 'src/cards/cards_screen.dart';
 export 'src/cards/card_session_boundary.dart';
+
+export 'src/tutor/tutor_repository.dart';
+export 'src/tutor/tutor_screen.dart';
+export 'src/tutor/tutor_summary_screen.dart';
+export 'src/tutor/tutor_session_boundary.dart';
+export 'src/tutor/tutor_working_crop.dart';
 export 'src/my_grade/my_grade_client_screen.dart';
 export 'src/my_grade/my_grade_private_action.dart';

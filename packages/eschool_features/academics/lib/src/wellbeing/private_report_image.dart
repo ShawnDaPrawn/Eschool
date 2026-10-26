@@ -8,9 +8,11 @@ class PrivateReportImage extends StatefulWidget {
   const PrivateReportImage({
     required this.base64,
     required this.label,
+    this.maximumEdge = 360,
     super.key,
   });
   final String base64, label;
+  final int maximumEdge;
   @override
   State<PrivateReportImage> createState() => _PrivateReportImageState();
 }
@@ -28,7 +30,8 @@ class _PrivateReportImageState extends State<PrivateReportImage> {
   @override
   void didUpdateWidget(PrivateReportImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.base64 != oldWidget.base64) {
+    if (widget.base64 != oldWidget.base64 ||
+        widget.maximumEdge != oldWidget.maximumEdge) {
       _image?.dispose();
       _image = null;
       _failed = false;
@@ -40,14 +43,18 @@ class _PrivateReportImageState extends State<PrivateReportImage> {
     final generation = ++_generation;
     ui.Codec? codec;
     try {
-      if (widget.base64.length > 524288) throw const FormatException();
+      if (widget.maximumEdge < 1 ||
+          widget.maximumEdge > 1024 ||
+          widget.base64.length > 524288)
+        throw const FormatException();
       codec = await ui.instantiateImageCodec(base64Decode(widget.base64));
       final frame = await codec.getNextFrame();
       if (!mounted || generation != _generation) {
         frame.image.dispose();
         return;
       }
-      if (frame.image.width > 360 || frame.image.height > 360) {
+      if (frame.image.width > widget.maximumEdge ||
+          frame.image.height > widget.maximumEdge) {
         frame.image.dispose();
         throw const FormatException();
       }

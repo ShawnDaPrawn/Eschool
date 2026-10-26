@@ -151,6 +151,8 @@ class Routes {
   static const String academicContent = '/academics/content';
   static const String mastery = '/growth/mastery';
   static const String weeklyDigest = '/learning/weekly-digest';
+  static const String tutor = '/learning/tutor';
+  static const String tutorSummary = '/learning/tutor-summary';
   static const String dailyPractice = '/learning/practice';
   static const String familyDiscipline = '/discipline';
   static const String familyProgress = '/growth/progress';
@@ -185,6 +187,7 @@ class Routes {
       mastery => 'mastery',
       consultations => 'consultations',
       schoolCards => 'cards',
+      tutor || tutorSummary => 'tutor',
       dailyPractice => 'daily_practice',
       activityGroups => 'groups',
       schoolMessages => 'communication',
@@ -401,6 +404,10 @@ class Routes {
         return reportConcernRoute();
       case weeklyDigest:
         return familyWeeklyDigestRoute();
+      case tutor:
+        return tutorRoute(summary: false);
+      case tutorSummary:
+        return tutorRoute(summary: true);
       case dailyPractice:
         return dailyPracticeRoute();
       case mastery:

@@ -382,6 +382,8 @@ jobs:
           - app: e-school
             flow: family_practice_smoke_test.dart
           - app: e-school
+            flow: family_tutor_smoke_test.dart
+          - app: e-school
             flow: family_consultations_smoke_test.dart
           - app: e-school
             flow: parent_digest_smoke_test.dart
