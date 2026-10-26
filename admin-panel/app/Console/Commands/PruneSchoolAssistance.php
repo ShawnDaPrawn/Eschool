@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Platform\School;
 use App\Services\Assistance\AssistanceInference;
+use App\Services\Assistance\AssistanceNotices;
 use App\Services\Assistance\SchoolSupportThreads;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Console\Command;
@@ -31,6 +32,8 @@ class PruneSchoolAssistance extends Command
                 do {
                     $turns = app(AssistanceInference::class)->purgeExpired();
                 } while ($turns === 200);
+
+                app(AssistanceNotices::class)->prune();
 
                 return $count;
             });

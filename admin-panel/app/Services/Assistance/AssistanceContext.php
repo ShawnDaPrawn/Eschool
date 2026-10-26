@@ -54,10 +54,10 @@ class AssistanceContext
         $manifest = [];
         $sources = [];
         $citations = [];
-        $add = function (string $kind, array $locator, array $body, string $title) use (&$manifest, &$sources, &$citations, $actor, $learner): void {
+        $add = function (string $kind, array $locator, array $body, string $title, ?array $providerBody = null) use (&$manifest, &$sources, &$citations, $actor, $learner): void {
             $token = 's'.(count($manifest) + 1);
             $manifest[] = ['kind' => $kind, 'locator' => $locator, 'sha256' => $this->hash($body)];
-            $sources[] = ['source' => $token, 'text' => $this->minimize($actor, $learner, json_encode($body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE))];
+            $sources[] = ['source' => $token, 'text' => $this->minimize($actor, $learner, json_encode($providerBody ?? $body, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE))];
             $citations[] = ['token' => $token, 'kind' => $kind, 'title' => $title, 'locator' => $locator];
         };
         foreach ($data['documents'] as $id) {
@@ -76,7 +76,10 @@ class AssistanceContext
             foreach ($periods as $period) {
                 $marks = $released->list($actor, $learner, $year, $period['term_id']);
                 abort_if(count($marks['results']) > 20, 422, 'Choose a smaller academic record selection.');
-                $add('released_marks', ['year' => $year, 'term_id' => $period['term_id']], ['results' => $marks['results']], 'Your child’s released results: '.($period['term_name'] ?? $period['year_name']));
+                // Internal release/learner/grade IDs and audit timestamps remain in
+                // the immutable source hash; only the reviewed facts leave it.
+                $facts = array_map(fn ($row) => array_intersect_key($row, array_flip(['subject_name', 'provisional', 'percentage_bp'])), $marks['results']);
+                $add('released_marks', ['year' => $year, 'term_id' => $period['term_id']], ['results' => $marks['results']], 'Your child’s released results: '.($period['term_name'] ?? $period['year_name']), ['results' => $facts]);
             }
             $attendance = app(RegisterQueries::class)->today($actor, $learner);
             $add('attendance', ['on_date' => $today], ['on_date' => $today, 'entries' => array_map(fn ($row) => ['kind' => $row['kind'], 'state' => $row['state']], $attendance['entries'])], 'Your child’s attendance today');
@@ -110,9 +113,11 @@ class AssistanceContext
         // The authorised family supplies minimisation context even for an assigned office reader.
         $parent = User::findOrFail($thread->parent_user_id);
         $text = $this->minimize($parent, (int) $thread->learner_id, $message->text);
-        foreach ([$actor->first_name, $actor->last_name, $actor->email] as $value) {
+        // The exact authorised original author can differ from this reader.
+        $author = User::findOrFail($message->author_id);
+        foreach ([$actor->first_name, $actor->last_name, $actor->email, $author->first_name, $author->last_name, $author->email, $author->mobile] as $value) {
             if (is_string($value) && strlen($value) >= 3) {
-                $text = str_ireplace($value, '[person]', $text);
+                $text = preg_replace('/(?<![\pL\pN])'.preg_quote($value, '/').'(?![\pL\pN])/iu', '[person]', $text);
             }
         }
 

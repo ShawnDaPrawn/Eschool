@@ -41,6 +41,7 @@ class SchoolSupportThreads
                 $thread = SupportThread::create(['id' => (string) Str::uuid(), 'parent_user_id' => $actor->id, 'learner_id' => $learner,
                     'assigned_user_id' => null, 'state' => 'open', 'revision' => 1, 'expires_at' => now()->utc()->addDays(90)]);
                 $message = $this->append($actor, $thread, $data, false);
+                app(AssistanceNotices::class)->changed($thread, $actor, $message->id);
 
                 return ['id' => $thread->id, 'message_id' => $message->id, 'revision' => $thread->revision, 'state' => $thread->state];
             });
@@ -96,6 +97,7 @@ class SchoolSupportThreads
                 $thread = SupportThread::findOrFail($id);
                 abort_unless($thread->state === 'open' && $thread->revision === (int) ($input['expected_revision'] ?? 0), 409);
                 $thread->update(['assigned_user_id' => $actor->id, 'revision' => $thread->revision + 1]);
+                app(AssistanceNotices::class)->changed($thread, $actor);
 
                 return ['id' => $id, 'revision' => $thread->revision, 'state' => $thread->state];
             });
@@ -115,10 +117,11 @@ class SchoolSupportThreads
         };
 
         return app(AssistanceOperations::class)->once($actor, 'thread.reassign', ['id' => $id] + $data, $authorize,
-            function () use ($id, $data): array {
+            function () use ($actor, $id, $data): array {
                 $row = SupportThread::findOrFail($id);
                 abort_unless($row->state === 'open' && $row->revision === (int) $data['expected_revision'], 409);
                 $row->update(['assigned_user_id' => (int) $data['assigned_user_id'], 'revision' => $row->revision + 1]);
+                app(AssistanceNotices::class)->changed($row, $actor);
 
                 // The immutable office operation receipt keeps the reason
                 // encrypted. Parent thread reads never return staff reasons.
@@ -152,6 +155,7 @@ class SchoolSupportThreads
                 abort_if(SupportMessage::where('thread_id', $id)->count() >= 200, 422, 'This thread reached its bounded message limit.');
                 $row = $this->append($actor, $thread, $data, $office);
                 $thread->update(['revision' => $thread->revision + 1]);
+                app(AssistanceNotices::class)->changed($thread, $actor, $row->id);
 
                 return ['id' => $id, 'message_id' => $row->id, 'revision' => $thread->revision, 'state' => $thread->state];
             });
@@ -169,6 +173,7 @@ class SchoolSupportThreads
                 $thread = app(AssistanceAccess::class)->thread($actor, $id, true, $office);
                 abort_unless($thread->revision === (int) ($input['expected_revision'] ?? 0), 409);
                 $thread->update(['state' => 'closed', 'revision' => $thread->revision + 1, 'closed_at' => now()->utc()]);
+                app(AssistanceNotices::class)->changed($thread, $actor);
 
                 return ['id' => $id, 'revision' => $thread->revision, 'state' => 'closed'];
             });

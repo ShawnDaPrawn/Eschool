@@ -653,6 +653,7 @@ Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
             Api.client,
             schoolId: school,
             accountId: account,
+            chatPersona: 'staff',
             contextActive: () => generationActive() && active(),
           ),
         ),
