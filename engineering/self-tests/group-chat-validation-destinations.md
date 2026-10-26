@@ -59,3 +59,17 @@ Hosted exact-head CI remains a separate verification step. The complete local
 backend suite, other app/device profiles and staging/production acceptance are
 not claimed. No merge, deployment, production-data access or meeting
 idempotency change is part of this repair.
+
+## Hosted catalogue correction
+
+The first hosted run on `c494390820d9e3b067c2f113cac6f7e279288e13`
+passed Security, panel quality/runtime and PHP shards 1–3. Shard 4 exposed the
+new warning's missing Afrikaans/isiZulu catalogue entries (one failure and one
+error in `SouthAfricanLanguagesTest`). The follow-up adds the same explicit
+English fallback used by the surrounding untranslated chat labels, preserving
+catalogue order and placeholders. It makes no controller or test changes and
+does not claim fluent-language acceptance.
+
+The exact affected `SouthAfricanLanguagesTest` and `TranslationsTest` now pass
+locally on MariaDB: 7 tests / 45,333 assertions. Hosted verification must use
+the updated follow-up head, not the superseded first run.
