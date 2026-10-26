@@ -41,9 +41,17 @@ Additional upgraded-dependency qualification completed locally:
   3,330 assertions. New panel/notices/offline-domain integration is being checked
   against the same private dependency set.
 
-The final combined full PHPStan attempt at 512 MiB exhausted its worker memory;
-a serial 1 GiB check is running. This is not recorded as a clean analysis. Final
-combined native and notice checks, published-head CI and safe main merge remain.
+The first combined PHPStan attempt at 512 MiB exhausted its worker memory;
+the full serial 1 GiB rerun passes with zero errors. Merged Family assistance/chat
+notice actions pass 22 tests; classic Teacher and dedicated Facilitator chat
+notices pass 13 tests. Selected Family analysis has no issues; selected staff
+analysis has zero errors/warnings (six existing style infos). Playwright
+TypeScript, Actionlint and the complete public-delta secret scan also pass.
+
+The first published integration CI found one unused peer-test import. Removing
+the redundant import makes the complete academics analysis pass with zero
+errors/warnings (260 style infos); no analyzer rule or assertion was changed.
+Final combined native checks, published-head CI and safe main merge remain.
 Foundation and offline delegated UI/SDK follow-up are separate increments, and
 this checkpoint makes no claim for pending encoding or hardware acceptance.
 
