@@ -31,7 +31,13 @@ Verified locally on 26 October 2026:
 - All 20 offered app catalogues retain their existing values and provide all 42
   new labels, with explicit English fallbacks where draft translations are absent.
 
-Pending before readying this client PR: Teacher and dedicated Facilitator Chrome
-calendar journeys, both app entry/locale unit suites and the final CI result.
-Those flows and the three explicit Chrome CI targets are included in source;
-no unrun browser, native device, fluent-language or production pass is claimed.
+The Teacher and dedicated Facilitator Chrome calendar journeys now pass too:
+only the authenticated host calendar is visible, guardian booking/request controls
+are absent, no write is attempted, requests carry school/account scope and fresh
+withdrawal erases private appointments. The dedicated shell keeps the legacy
+`authBox` closed. Both app entry/locale suites pass two tests each. The staff
+fixtures assert the complete host-and-venue text rendered by the calendar.
+
+The three explicit Chrome CI targets are included in source. Final CI and main
+integration remain pending; no native-device, fluent-language, staging or
+production pass is claimed.

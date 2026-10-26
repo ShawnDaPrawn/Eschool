@@ -50,10 +50,17 @@ class FamilyFormAccess
         return $learner;
     }
 
-    public function guardian(User $actor, int $learnerId, bool $write = false, bool $revocation = false, bool $attest = false): User
+    public function parentActor(User $actor, bool $write = false, bool $revocation = false): User
     {
         $fresh = $this->actor($actor, $write, $revocation);
         abort_unless(in_array('Parent', app(ProfilePolicy::class)->roles($fresh), true), 403);
+
+        return $fresh;
+    }
+
+    public function guardian(User $actor, int $learnerId, bool $write = false, bool $revocation = false, bool $attest = false): User
+    {
+        $fresh = $this->parentActor($actor, $write, $revocation);
         $this->learner($learnerId, ! $revocation);
         $parent = (int) (Parents::where('user_id', $fresh->id)->value('id') ?? 0);
         abort_unless(app(GuardianService::class)->childrenFor((int) $fresh->id, $parent)->whereKey($learnerId)->exists(), 404);

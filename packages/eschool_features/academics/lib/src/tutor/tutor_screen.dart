@@ -12,6 +12,7 @@ import '../wellbeing/report_photo_picker.dart';
 import '../wellbeing/private_report_image.dart';
 import 'tutor_repository.dart';
 import 'tutor_working_crop.dart';
+import 'tutor_checkpoint_card.dart';
 
 String tutorFailureText(String? reason) => switch (reason) {
   'actor_daily_cap' || 'learner_daily_cap' || 'tutor_daily_turn_cap' =>
@@ -62,6 +63,8 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
   Uint8List? _picked;
   String? _sessionId, _operation, _error;
   int? _group;
+  int? _topic;
+  final _checkpointRecovery = TutorCheckpointRecovery();
   int _epoch = 0;
   bool _loading = true,
       _busy = false,
@@ -96,6 +99,7 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
     _picked = null;
     _intent = null;
     _uploadIntent = null;
+    _checkpointRecovery.close();
     super.dispose();
   }
 
@@ -128,6 +132,7 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.repository != widget.repository ||
         oldWidget.initialSession != widget.initialSession) {
+      _checkpointRecovery.close();
       _epoch++;
       _erase();
       _sessionId = widget.initialSession;
@@ -268,6 +273,12 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
   Future<void> _open([String? id]) async {
     if (!_active || _busy || _loading || _unknown || (id == null && !_editable))
       return;
+    if (_checkpointRecovery.unresolved && id != _sessionId) {
+      setState(
+        () => _error = 'Check the existing topic before starting another.',
+      );
+      return;
+    }
     final epoch = _epoch;
     setState(() {
       _busy = true;
@@ -288,6 +299,7 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
               .take(3)
               .map((source) => source.id)
               .toSet(),
+          topicId: _topic,
         );
         final value = await widget.repository.create(_creation!);
         if (!_current(epoch)) return;
@@ -595,7 +607,37 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
                           )
                           .toList(),
                       onChanged: _editable && _creation == null
-                          ? (value) => setState(() => _group = value)
+                          ? (value) => setState(() {
+                              _group = value;
+                              _topic = null;
+                            })
+                          : null,
+                    ),
+                  if (configuration.groups
+                          .where((g) => g.id == _group)
+                          .firstOrNull
+                          ?.topics
+                          ?.isNotEmpty ==
+                      true)
+                    DropdownButtonFormField<int>(
+                      key: ValueKey('tutor-topic-$_group'),
+                      initialValue: _topic,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: l('Published topic (optional)'),
+                      ),
+                      items: configuration.groups
+                          .firstWhere((g) => g.id == _group)
+                          .topics!
+                          .map(
+                            (t) => DropdownMenuItem(
+                              value: t.id,
+                              child: Text(t.name),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _editable && _creation == null
+                          ? (value) => setState(() => _topic = value)
                           : null,
                     ),
                   const SizedBox(height: 12),
@@ -627,10 +669,37 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
                     ),
                 ],
                 if (detail != null) ...[
+                  if (detail.topicId != null)
+                    AcademicText(
+                      configuration?.groups
+                              .expand((g) => g.topics ?? <TutorTopicChoice>[])
+                              .where((t) => t.id == detail.topicId)
+                              .firstOrNull
+                              ?.name ??
+                          'Published topic',
+                    ),
                   const AcademicText(
                     'Hints help you learn. Feedback is for practice and does not change your school marks.',
                   ),
                   const SizedBox(height: 12),
+                  if (configuration?.checkpointsEnabled == true &&
+                      detail.topicId != null &&
+                      widget.repository is TutorCheckpointRepository)
+                    TutorCheckpointCard(
+                      key: ValueKey('checkpoint-${detail.id}-$_epoch'),
+                      repository:
+                          widget.repository as TutorCheckpointRepository,
+                      owner: widget.repository,
+                      session: detail.id,
+                      recovery: _checkpointRecovery,
+                      current: () => _active,
+                      writable: () =>
+                          _active &&
+                          (widget.canWrite?.call() ?? true) &&
+                          detail.state.value == 'open',
+                      summaries:
+                          detail.checkpoints ?? <TutorCheckpointSummary>[],
+                    ),
                   ...detail.turns.map(_turn),
                   if (_unknown)
                     Card(
@@ -790,7 +859,9 @@ class _TutorScreenState extends State<TutorScreen> with WidgetsBindingObserver {
                   ],
                   const SizedBox(height: 12),
                   TextButton(
-                    onPressed: _editable ? _close : null,
+                    onPressed: _editable && !_checkpointRecovery.unresolved
+                        ? _close
+                        : null,
                     child: const AcademicText('Close this conversation'),
                   ),
                 ],

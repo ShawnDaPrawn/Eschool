@@ -3624,5 +3624,20 @@
     "Verification took too long. Retry the same verification.": "Verification took too long. Retry the same verification.",
     "Verified card": "Verified card",
     "Verify card": "Verify card",
-    "Verifying card…": "Verifying card…"
+    "Verifying card…": "Verifying card…",
+  "Back to school": "Back to school",
+  "Confirm document removal": "Confirm document removal",
+  "Documents": "imibhalo",
+  "Documents are available only to current authorized group members.": "Documents are available only to current authorized group members.",
+  "Download document": "Download document",
+  "Group material documents": "Group material documents",
+  "New uploads are unavailable. You can still remove a document.": "New uploads are unavailable. You can still remove a document.",
+  "No documents have been attached.": "No documents have been attached.",
+  "PDF up to 5 MB; JPEG or PNG up to 4 MB.": "PDF up to 5 MB; JPEG or PNG up to 4 MB.",
+  "Private document": "Private document",
+  "Refresh the saved documents before choosing another upload.": "Refresh the saved documents before choosing another upload.",
+  "Remove document?": "Remove document?",
+  "Upload document": "Upload document",
+    "Own authorised active cases": "Own authorised active cases",
+    "Current cases you can open in counselling. This count does not affect the risk score.": "Current cases you can open in counselling. This count does not affect the risk score."
 }

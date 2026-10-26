@@ -1,9 +1,10 @@
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_people/src/profile/profile_cubit.dart';
 import 'package:eschool_people/src/profile/profile_repository.dart';
+import 'package:eschool_people/src/profile/private_document_view.dart';
+import 'package:eschool_people/src/profile/profile_context_boundary.dart';
 import 'package:eschool_people/src/common/people_widgets.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +74,7 @@ class ProfileFileField extends StatelessWidget {
                     state.busy || cubit.repository is! ProfileFileRepository
                     ? null
                     : () {
+                        final lease = ProfileReadScope.maybeOf(context);
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
                             builder: (_) => _ProfileFileView(
@@ -80,6 +82,7 @@ class ProfileFileField extends StatelessWidget {
                                   cubit.repository as ProfileFileRepository,
                               subject: state.subject,
                               file: file,
+                              lease: lease,
                             ),
                           ),
                         );
@@ -152,160 +155,30 @@ class ProfileFileField extends StatelessWidget {
   }
 }
 
-/// Authenticated bytes live only for this route. No public URL or disk cache.
-class _ProfileFileView extends StatefulWidget {
+class _ProfileFileView extends StatelessWidget {
   const _ProfileFileView({
     required this.repository,
     required this.subject,
     required this.file,
+    this.lease,
   });
+  final ProfileReadLease? lease;
   final ProfileFileRepository repository;
   final ProfileSubject subject;
   final ProfileAttachment file;
   @override
-  State<_ProfileFileView> createState() => _ProfileFileViewState();
-}
-
-class _ProfileFileViewState extends State<_ProfileFileView>
-    with WidgetsBindingObserver {
-  Uint8List? bytes;
-  ui.Image? image;
-  ApiException? error;
-  bool pdfReady = false, suspended = false;
-  int generation = 0;
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    load();
-  }
-
-  void clearBytes() {
-    image?.dispose();
-    image = null;
-    bytes?.fillRange(0, bytes!.length, 0);
-    bytes = null;
-    pdfReady = false;
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) {
-      generation++;
-      suspended = true;
-      clearBytes();
-      if (mounted) setState(() => error = null);
-    } else {
-      suspended = false;
-      if (mounted) {
-        setState(() {});
-        load();
-      }
-    }
-  }
-
-  Future<void> load() async {
-    final epoch = ++generation;
-    Uint8List? result;
-    ui.Codec? codec;
-    try {
-      result = await widget.repository.readFile(widget.subject, widget.file);
-      if (!mounted || suspended || epoch != generation) {
-        result.fillRange(0, result.length, 0);
-        return;
-      }
-      if (widget.file.mime != 'application/pdf') {
-        codec = await ui.instantiateImageCodec(
-          result,
-          targetWidth: 1024,
-          allowUpscaling: false,
-        );
-        final frame = await codec.getNextFrame();
-        if (!mounted || suspended || epoch != generation) {
-          frame.image.dispose();
-          result.fillRange(0, result.length, 0);
-          return;
-        }
-        image = frame.image;
-      }
-      setState(() => bytes = result);
-    } catch (failure) {
-      result?.fillRange(0, result.length, 0);
-      if (mounted && !suspended && epoch == generation) {
-        setState(() {
-          error = failure is ApiException
-              ? failure
-              : ApiException(ApiErrorCodes.defaultErrorMessageKey);
-        });
-      }
-    } finally {
-      codec?.dispose();
-    }
-  }
-
-  @override
-  void dispose() {
-    generation++;
-    WidgetsBinding.instance.removeObserver(this);
-    clearBytes();
-    super.dispose();
-  }
-
-  void retry() {
-    image?.dispose();
-    bytes?.fillRange(0, bytes!.length, 0);
-    setState(() {
-      error = null;
-      bytes = null;
-      image = null;
-      pdfReady = false;
-    });
-    load();
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.file.name)),
-    body: suspended
-        ? const SizedBox.shrink()
-        : error != null
-        ? LoadFailure(error: error!, onRetry: retry)
-        : bytes == null
-        ? const Center(child: CircularProgressIndicator())
-        : widget.file.mime == 'application/pdf'
-        ? Stack(
-            children: [
-              PdfDocumentView(
-                bytes: bytes,
-                onLoaded: () {
-                  if (mounted) {
-                    setState(() {
-                      pdfReady = true;
-                    });
-                  }
-                },
-                onError: () {
-                  if (mounted) {
-                    setState(() {
-                      error = ApiException(
-                        ApiErrorCodes.defaultErrorMessageKey,
-                      );
-                    });
-                  }
-                },
-              ),
-              if (!pdfReady) const Center(child: CircularProgressIndicator()),
-              if (pdfReady) const SizedBox(key: ValueKey('profile-file-ready')),
-            ],
-          )
-        : InteractiveViewer(
-            child: Center(
-              child: Semantics(
-                image: true,
-                label: widget.file.name,
-                child: RawImage(image: image, fit: BoxFit.contain),
-              ),
-            ),
-          ),
+  Widget build(BuildContext context) => PrivateDocumentView(
+    identity: (
+      repository,
+      subject.schoolId,
+      subject.personId,
+      subject.profileType,
+      file.id,
+    ),
+    name: file.name,
+    mime: file.mime,
+    loadBytes: () => repository.readFile(subject, file),
+    isActive: () => lease?.isActive ?? true,
+    authorizationChanges: lease,
   );
 }

@@ -38,6 +38,7 @@ use App\Http\Controllers\Panel\Academics\SubjectStandardController;
 use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
+use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
 use App\Http\Controllers\Panel\Ai\AiControlPanelController;
@@ -262,6 +263,18 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('subjects/{subject}/refresh', [$controller, 'refresh'])->whereNumber('subject')->name('refresh');
             Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->name('rebuild');
         });
+        // This purpose resolves the material's actual year in ActivityFiles:
+        // uploads require its current writable year; removal stays available.
+        Route::prefix('activity-material-files/groups/{group}/materials/{material}')->name('activity-files.')
+            ->whereNumber(['group', 'material'])
+            ->withoutMiddleware([EnforceReadOnlyYears::class])
+            ->middleware([PrivateDomainResponse::class, 'module:groups,read'])->group(function () {
+                $c = ActivityFilePanelController::class;
+                Route::get('/', [$c, 'index'])->name('listing');
+                Route::post('/', [$c, 'write'])->name('upload');
+                Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
+                Route::post('{file}/remove', [$c, 'write'])->whereUuid('file')->name('remove');
+            });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
             Route::get('/', [$c, 'index'])->name('index');
