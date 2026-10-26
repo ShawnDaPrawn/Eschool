@@ -2,15 +2,24 @@ import 'dart:async';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
+import 'package:eschool_people/eschool_people.dart';
+import 'package:uuid/uuid.dart';
 
 import '../content/content_widgets.dart';
 import 'activity_repository.dart';
+import 'activity_file_repository.dart';
+import 'activity_files_screen.dart';
 import 'activity_write_screen.dart';
 
 /// One private route keeps group lists, registers and drafts inside the app's
 /// account/school boundary, including internal navigation on compact devices.
 class ActivityGroupsScreen extends StatefulWidget {
-  const ActivityGroupsScreen({required this.repository, super.key});
+  const ActivityGroupsScreen({
+    required this.repository,
+    this.pickFile = pickProfileFile,
+    super.key,
+  });
+  final ProfileFilePicker pickFile;
   final ActivityRepository repository;
   @override
   State<ActivityGroupsScreen> createState() => _ActivityGroupsScreenState();
@@ -18,6 +27,17 @@ class ActivityGroupsScreen extends StatefulWidget {
 
 class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
     with WidgetsBindingObserver {
+  ActivityFileRepository? _files;
+  MaterialFileIntent? _upload;
+  bool _picking = false, _uploading = false;
+  int _fileRefresh = 0;
+  final Stopwatch _clock = Stopwatch()..start();
+  void _eraseUpload() {
+    _upload?.erase();
+    _upload = null;
+    _uploading = false;
+  }
+
   ActivityGroupList? _list;
   ActivityGroupDetail? _detail;
   int _page = 1, _epoch = 0;
@@ -76,6 +96,9 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
       _epoch++;
       setState(() {
         _denied = true;
+        _files = null;
+        _picking = false;
+        _eraseUpload();
         _detail = null;
         _list = null;
         _mode = null;
@@ -105,7 +128,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         _refreshFromLive();
         return;
       }
-      if (_dirty || _mode != null) {
+      if (_dirty || _mode != null || _picking || _upload != null) {
         setState(() => _liveChanged = true);
         return;
       }
@@ -115,6 +138,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
   }
 
   Future<void> _acceptLiveRefresh() async {
+    if (_picking) return;
     if (!await _leave() || !mounted) return;
     setState(() {
       _mode = null;
@@ -128,9 +152,13 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
   @override
   void didUpdateWidget(covariant ActivityGroupsScreen old) {
     super.didUpdateWidget(old);
-    if (old.repository.schoolId != widget.repository.schoolId ||
+    if (!identical(old.repository, widget.repository) ||
+        old.repository.schoolId != widget.repository.schoolId ||
         old.repository.accountId != widget.repository.accountId ||
         !old.repository.isActive) {
+      _files = null;
+      _picking = false;
+      _eraseUpload();
       _list = null;
       _detail = null;
       _mode = null;
@@ -142,6 +170,7 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
   @override
   void dispose() {
     _epoch++;
+    _eraseUpload();
     _liveTimer?.cancel();
     _liveSubscription?.cancel();
     _liveRefreshes?.cancel();
@@ -155,12 +184,14 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       setState(() => _hidden = false);
-      _load();
+      if (!_picking) _load(group: _files?.groupId);
     } else if ([
       AppLifecycleState.inactive,
       AppLifecycleState.paused,
       AppLifecycleState.hidden,
     ].contains(state)) {
+      if (_upload != null) _dirty = false;
+      _eraseUpload();
       setState(() => _hidden = true);
     }
   }
@@ -203,6 +234,8 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         _error = 'Connect to refresh your activity access.';
         if (denied) {
           _denied = true;
+          _files = null;
+          _eraseUpload();
           _detail = null;
           _list = null;
           _mode = null;
@@ -241,7 +274,16 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
 
   Future<void> _back() async {
     if (!await _leave() || !mounted) return;
-    if (_mode != null) {
+    if (_files != null) {
+      final group = _files!.groupId;
+      setState(() {
+        _files = null;
+        _picking = false;
+        _eraseUpload();
+        _dirty = false;
+      });
+      await _load(group: group);
+    } else if (_mode != null) {
       setState(() {
         _mode = null;
         _record = null;
@@ -251,6 +293,143 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
     } else if (_detail != null) {
       setState(() => _detail = null);
       await _load();
+    }
+  }
+
+  Future<void> _chooseDocument() async {
+    final files = _files;
+    if (files == null || _picking || _uploading || _upload != null) return;
+    final owner = widget.repository,
+        deadline = _clock.elapsed + const Duration(seconds: 60);
+    bool current() =>
+        mounted &&
+        identical(owner, widget.repository) &&
+        owner.isActive &&
+        identical(files, _files);
+    ProfileUpload? selected;
+    _epoch++;
+    setState(() {
+      _list = null;
+      _detail = null;
+      _record = null;
+      _mode = null;
+      _picking = true;
+      _error = null;
+    });
+    _syncLiveGroup();
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!current()) return;
+      selected = await widget.pickFile();
+      for (var count = 0; count < 125 && current() && _hidden; count++) {
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+      }
+      if (!current() || _hidden) return;
+      final page = await files.listing();
+      if (!current() || _hidden) return;
+      if (_clock.elapsed > deadline) {
+        throw ApiException(
+          'The document selection expired. Choose it again.',
+          isApiMessage: true,
+        );
+      }
+      if (!page.canUpload) {
+        throw ApiException(
+          'Your group access changed. Reopen Activity groups.',
+          statusCode: 403,
+          isApiMessage: true,
+        );
+      }
+      if (selected != null) {
+        _upload = MaterialFileIntent(
+          operationId: const Uuid().v4(),
+          materialRevision: page.materialRevision,
+          name: selected.name,
+          bytes: selected.bytes,
+        );
+        selected = null; // ownership transfers to the foreground exact intent
+        _dirty = true;
+      }
+    } catch (error) {
+      if (current()) {
+        setState(
+          () => _error = error is ApiException && error.isApiMessage
+              ? error.errorMessage
+              : 'The documents could not be loaded. Try again.',
+        );
+      }
+    } finally {
+      selected?.bytes.fillRange(0, selected.bytes.length, 0);
+      if (current()) setState(() => _picking = false);
+    }
+    if (!current() || _hidden) return;
+    if (_upload != null) {
+      await _sendUpload();
+    } else {
+      await _load(group: files.groupId);
+    }
+  }
+
+  Future<void> _sendUpload() async {
+    final files = _files, intent = _upload;
+    if (files == null || intent == null || _uploading || intent.erased) return;
+    bool current() =>
+        mounted &&
+        !_hidden &&
+        widget.repository.isActive &&
+        identical(files, _files) &&
+        identical(intent, _upload);
+    setState(() {
+      _uploading = true;
+      _error = null;
+    });
+    try {
+      await files.upload(intent);
+      if (!current()) {
+        intent.erase();
+        if (mounted && identical(intent, _upload)) {
+          setState(() {
+            _eraseUpload();
+            _dirty = false;
+            _files = null;
+            _detail = null;
+            _list = null;
+            _denied = true;
+          });
+        }
+        return;
+      }
+      setState(() {
+        _eraseUpload();
+        _dirty = false;
+        _fileRefresh++;
+      });
+      await _load(group: files.groupId);
+    } catch (error) {
+      if (!current()) {
+        intent.erase();
+        if (mounted && identical(intent, _upload)) {
+          setState(() {
+            _eraseUpload();
+            _dirty = false;
+            _files = null;
+            _detail = null;
+            _list = null;
+            _denied = true;
+          });
+        }
+        return;
+      }
+      setState(() {
+        _uploading = false;
+        if (error is ApiException && !error.isTransportFailure) {
+          _eraseUpload();
+          _dirty = false;
+        }
+        _error = error is ApiException && error.isApiMessage
+            ? error.errorMessage
+            : 'The upload may have finished. Retry the same upload to confirm it.';
+      });
     }
   }
 
@@ -428,6 +607,19 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
                   ),
                   if (!material.published) Text(l('Private draft')),
                   ContentMarkdownView(markdown: material.markdown),
+                  if (widget.repository is ActivityFileProvider)
+                    TextButton.icon(
+                      onPressed: _loading || _error != null
+                          ? null
+                          : () => setState(() {
+                              _files =
+                                  (widget.repository as ActivityFileProvider)
+                                      .files(detail.group.id, material.id);
+                              _fileRefresh++;
+                            }),
+                      icon: const Icon(Icons.attach_file),
+                      label: Text(l('Documents')),
+                    ),
                   if (detail.canCapture &&
                       (detail.canManage ||
                           material.authorId == widget.repository.accountId))
@@ -447,7 +639,32 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final privateBody = _mode != null && _detail != null
+    final privateBody = _picking
+        ? Center(child: Text(l('Finish choosing the private document.')))
+        : _upload != null
+        ? ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                l(
+                  'The upload may have finished. Retry the same upload to confirm it.',
+                ),
+              ),
+              if (_uploading) const LinearProgressIndicator(),
+              FilledButton(
+                onPressed: _uploading ? null : _sendUpload,
+                child: Text(l('Retry the same upload')),
+              ),
+            ],
+          )
+        : _files != null
+        ? ActivityFilesScreen(
+            key: ValueKey((_files, _fileRefresh)),
+            repository: _files!,
+            onChoose: _chooseDocument,
+            enabled: !_loading && _error == null && !_hidden,
+          )
+        : _mode != null && _detail != null
         ? ActivityWriteScreen(
             key: ValueKey('$_mode:${_record?['id'] ?? 0}'),
             repository: widget.repository,
@@ -474,14 +691,19 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
         ? _group()
         : _groups();
     return PopScope(
-      canPop: _detail == null && _mode == null && !_dirty,
+      canPop:
+          _detail == null &&
+          _mode == null &&
+          _files == null &&
+          !_dirty &&
+          !_picking,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _back();
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(l('Activity groups')),
-          leading: _detail == null
+          leading: _detail == null && _files == null
               ? null
               : IconButton(
                   tooltip: MaterialLocalizations.of(context).backButtonTooltip,
@@ -491,7 +713,9 @@ class _ActivityGroupsScreenState extends State<ActivityGroupsScreen>
           actions: [
             IconButton(
               tooltip: l('Refresh activity access'),
-              onPressed: _loading ? null : _load,
+              onPressed: _loading || _picking || _upload != null
+                  ? null
+                  : () => _load(group: _files?.groupId),
               icon: const Icon(Icons.refresh),
             ),
           ],
