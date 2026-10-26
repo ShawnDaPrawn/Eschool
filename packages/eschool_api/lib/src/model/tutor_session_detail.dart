@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:eschool_api/src/model/tutor_photo_receipt.dart';
+import 'package:eschool_api/src/model/tutor_checkpoint_summary.dart';
 import 'package:eschool_api/src/model/tutor_turn.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -41,6 +42,10 @@ class TutorSessionDetail {
     required this.turns,
 
     required this.pendingPhotos,
+
+    this.topicId,
+
+    this.checkpoints,
   });
 
   // minimum: 1
@@ -92,6 +97,13 @@ class TutorSessionDetail {
   @JsonKey(name: r'pending_photos', required: true, includeIfNull: false)
   final List<TutorPhotoReceipt> pendingPhotos;
 
+  // minimum: 1
+  @JsonKey(name: r'topic_id', required: false, includeIfNull: false)
+  final int? topicId;
+
+  @JsonKey(name: r'checkpoints', required: false, includeIfNull: false)
+  final List<TutorCheckpointSummary>? checkpoints;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -107,7 +119,9 @@ class TutorSessionDetail {
           other.page == page &&
           other.lastPage == lastPage &&
           other.turns == turns &&
-          other.pendingPhotos == pendingPhotos;
+          other.pendingPhotos == pendingPhotos &&
+          other.topicId == topicId &&
+          other.checkpoints == checkpoints;
 
   @override
   int get hashCode =>
@@ -122,7 +136,9 @@ class TutorSessionDetail {
       page.hashCode +
       lastPage.hashCode +
       turns.hashCode +
-      pendingPhotos.hashCode;
+      pendingPhotos.hashCode +
+      (topicId == null ? 0 : topicId.hashCode) +
+      checkpoints.hashCode;
 
   factory TutorSessionDetail.fromJson(Map<String, dynamic> json) =>
       _$TutorSessionDetailFromJson(json);

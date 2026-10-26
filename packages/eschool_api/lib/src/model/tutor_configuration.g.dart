@@ -48,6 +48,10 @@ TutorConfiguration _$TutorConfigurationFromJson(
         'feedback_is_provisional',
         (v) => v as bool,
       ),
+      checkpointsEnabled: $checkedConvert(
+        'checkpoints_enabled',
+        (v) => v as bool?,
+      ),
     );
     return val;
   },
@@ -59,6 +63,7 @@ TutorConfiguration _$TutorConfigurationFromJson(
     'inferenceEnabled': 'inference_enabled',
     'photoRequiresApprovedCrop': 'photo_requires_approved_crop',
     'feedbackIsProvisional': 'feedback_is_provisional',
+    'checkpointsEnabled': 'checkpoints_enabled',
   },
 );
 
@@ -72,4 +77,5 @@ Map<String, dynamic> _$TutorConfigurationToJson(TutorConfiguration instance) =>
       'inference_enabled': instance.inferenceEnabled,
       'photo_requires_approved_crop': instance.photoRequiresApprovedCrop,
       'feedback_is_provisional': instance.feedbackIsProvisional,
+      'checkpoints_enabled': ?instance.checkpointsEnabled,
     };
