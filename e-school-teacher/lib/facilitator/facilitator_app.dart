@@ -982,6 +982,7 @@ class _StaffHome extends StatelessWidget {
                       repository.client,
                       schoolId: school,
                       accountId: user,
+                      chatPersona: 'staff',
                       contextActive: () =>
                           repository.matches(generation, school, user) &&
                           repository.profile?.features['groups'] == true,

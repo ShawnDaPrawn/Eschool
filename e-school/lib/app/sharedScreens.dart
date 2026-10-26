@@ -815,6 +815,9 @@ Route<dynamic> activityGroupsRoute() => AdaptivePageRoute(
             Api.client,
             schoolId: school,
             accountId: account,
+            chatPersona: context.read<AuthCubit>().isParent()
+                ? 'parent'
+                : 'student',
             contextActive: () => generationActive() && active(),
           ),
         ),
