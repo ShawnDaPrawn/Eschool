@@ -15,6 +15,7 @@ class ProfileState extends Equatable {
     this.error,
     this.revision = 0,
     this.saved = false,
+    this.fieldsSaved = false,
   });
   final ProfileStatus status;
   final ProfileForm? form;
@@ -24,6 +25,8 @@ class ProfileState extends Equatable {
   final ApiException? error;
   final int revision;
   final bool saved;
+  // Attachment writes re-fetch the form but do not change /me/context fields.
+  final bool fieldsSaved;
   @override
   List<Object?> get props => [
     status,
@@ -34,6 +37,7 @@ class ProfileState extends Equatable {
     error,
     revision,
     saved,
+    fieldsSaved,
   ];
 }
 
@@ -234,6 +238,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         error: state.error,
         revision: state.revision,
         saved: true,
+        fieldsSaved: true,
       ),
     );
     return true;
