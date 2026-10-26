@@ -9,6 +9,7 @@ import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/ui/widgets/noDataContainer.dart';
+import 'package:eschool/ui/widgets/familyConsentNoticeAction.dart';
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/utils/constants.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
@@ -188,6 +189,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
                         textAlign: TextAlign.start,
                       ),
+                      if (notification.type == 'consent.requested')
+                        FamilyConsentNoticeAction(
+                          noticeId: notification.id,
+                          schoolId: notification.schoolId,
+                          readerId: notification.readerId,
+                        ),
                       if (notification.type == 'digest.weekly')
                         Align(
                           alignment: AlignmentDirectional.centerStart,

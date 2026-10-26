@@ -1,3 +1,5 @@
 .activity-workbench .activity-columns{display:grid;grid-template-columns:minmax(13rem,1fr) minmax(0,3fr);gap:1rem;align-items:start}.activity-workbench .activity-sections{border:0;margin:0;padding:0;display:grid;gap:1rem;min-width:0}.activity-workbench .activity-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:1rem;align-items:end;margin-block:1rem}.activity-workbench .activity-form textarea{min-height:10rem}.activity-workbench ul{padding-inline-start:1.3rem}.activity-workbench li{margin-block:.65rem;overflow-wrap:anywhere}.activity-workbench dl{display:grid;grid-template-columns:minmax(6rem,1fr) minmax(0,2fr)}.activity-workbench dd,.activity-workbench .activity-markdown{overflow-wrap:anywhere}.activity-workbench .activity-markdown pre{white-space:pre-wrap}@media(max-width:850px){.activity-workbench .activity-columns{grid-template-columns:minmax(0,1fr)}}
 
 .activity-workbench a:not(.m3-button){text-decoration:underline;text-underline-offset:.15em}
+
+.activity-workbench .activity-document-name{overflow-wrap:anywhere}

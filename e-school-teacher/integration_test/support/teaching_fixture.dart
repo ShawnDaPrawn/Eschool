@@ -199,10 +199,7 @@ Future<void> runTeachingApproval(
     scrollable: find.byType(Scrollable).first,
   );
   await tester.ensureVisible(find.byKey(const ValueKey('teaching-edit-title')));
-  await pumpUntilFound(
-    tester,
-    find.byKey(const ValueKey('${TeachingSmokeFixture.draftId}:2')),
-  );
+  await pumpUntilFound(tester, find.text('Revision 2 · Ready for review'));
   expect(
     fixture.current!['definition']['title'],
     'Teacher reviewed browser worksheet',

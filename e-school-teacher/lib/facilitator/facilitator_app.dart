@@ -759,6 +759,41 @@ class _StaffHome extends StatelessWidget {
                 ),
               ),
             ),
+          if (profile.features['exam_coach'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.menu_book_outlined),
+                title: Text(l('Exam Coach')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  bool current() =>
+                      repository.matches(generation, school, user) &&
+                      repository.profile?.features['exam_coach'] == true;
+                  open(
+                    'exam_coach',
+                    ExamScreen(
+                      repository: ApiExamRepository(
+                        repository.client,
+                        schoolId: school,
+                        readerId: user,
+                        contextActive: current,
+                      ),
+                      staff: true,
+                      canRead: current,
+                      canWrite: current,
+                      selectCameraPhoto: selectTeachingCameraPhoto,
+                      exportPdf: (bytes, name) async {
+                        if (!current()) return;
+                        await DeviceFiles.saveDocument(
+                          bytes,
+                          'private-exports/$user/$school/$name',
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
           for (final entry in <(String, String, bool)>[
             ('teaching_assistant', 'Teaching assistant', false),
             ('test_insights', 'Test insights', true),
@@ -977,6 +1012,7 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           if (![
+            'exam_coach',
             'family_forms',
             'cards',
             'gallery',

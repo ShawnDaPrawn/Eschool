@@ -50,6 +50,8 @@ export 'src/cover/cover_repository.dart';
 export 'src/cover/cover_screen.dart';
 
 export 'src/activities/activity_repository.dart';
+export 'src/activities/activity_file_repository.dart';
+export 'src/activities/activity_files_screen.dart';
 export 'src/activities/activity_groups_screen.dart';
 
 export 'src/growth/mastery_repository.dart';
@@ -137,6 +139,11 @@ export 'src/family_forms/family_form_session_boundary.dart';
 export 'src/family_forms/family_forms_screen.dart';
 export 'src/family_forms/family_health_screen.dart';
 export 'src/family_forms/health_profile_adapter.dart';
+
+export 'src/exam_coach/exam_repository.dart';
+export 'src/exam_coach/exam_screen.dart';
+export 'src/exam_coach/exam_session_boundary.dart';
+
 export 'src/private/private_pending_intent.dart';
 
 export 'src/family_visits/family_visit_repository.dart';

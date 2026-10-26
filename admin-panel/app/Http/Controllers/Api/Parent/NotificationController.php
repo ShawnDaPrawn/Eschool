@@ -31,6 +31,16 @@ class NotificationController extends Controller
             $notification = NotificationVisibility::forUser(
                 Notification::where('session_year_id', $session_year_id), (int) $user, 4
             )->latest()->paginate();
+            // The new private action can pin the actual recipient even when a
+            // browser cookie changes before a stale client context refreshes.
+            $notification->through(function (Notification $row) use ($user): Notification {
+                if ($row->type === 'consent.requested') {
+                    $row->setAttribute('reader_id', (int) $user);
+                    $row->makeVisible('school_id');
+                }
+
+                return $row;
+            });
 
             return ResponseService::successResponse('Data Fetched Successfully', $notification ?? '', [], 200);
         } catch (Throwable $e) {

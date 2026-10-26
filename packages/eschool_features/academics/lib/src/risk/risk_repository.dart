@@ -117,6 +117,18 @@ class ApiRiskRepository implements RiskRepository {
       await _send('signals', query: {'session_year_id': year, 'page': page}),
     );
     _scope(row.sessionYearId == year && row.page == page);
+    for (final learner in row.learners) {
+      for (final signal in learner.signals) {
+        if (signal.reasonCode == 'own_authorised_active_cases') {
+          _scope(
+            signal.source_.value == 'wellbeing' &&
+                signal.score == null &&
+                signal.signalCount != null &&
+                signal.signalCount! >= 0,
+          );
+        }
+      }
+    }
     return row;
   }
 

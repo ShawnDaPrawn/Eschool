@@ -48,7 +48,10 @@ void main() {
       find.widgetWithText(CustomRoundedButton, 'Sign in'),
     );
     await tapWhenReady(tester, find.text('Meetings and early collection'));
-    await pumpUntilFound(tester, find.text('Synthetic private meeting room'));
+    await pumpUntilFound(
+      tester,
+      find.text('Synthetic meeting host · Synthetic private meeting room'),
+    );
     expect(find.text('Synthetic current learner'), findsOneWidget);
     expect(find.byKey(const ValueKey('visit-collector')), findsNothing);
     expect(find.text('Book this meeting'), findsNothing);
@@ -60,7 +63,10 @@ void main() {
       tester,
       find.text('Your meeting access changed. Reopen this screen.'),
     );
-    expect(find.text('Synthetic private meeting room'), findsNothing);
+    expect(
+      find.text('Synthetic meeting host · Synthetic private meeting room'),
+      findsNothing,
+    );
     final requests = api.requests.where(
       (r) => r.uri.path.contains('/family-visits/'),
     );
@@ -72,6 +78,7 @@ void main() {
       ),
       isTrue,
     );
+    expect(forms.writes, isEmpty);
     expect(tester.takeException(), isNull);
   });
 }
