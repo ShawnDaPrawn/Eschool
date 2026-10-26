@@ -12,6 +12,10 @@ use Stripe\StripeClient;
 
 class StripePayment implements PaymentInterface
 {
+    // Reviewed against stripe-php 22 and the public Stripe versioning guide.
+    // Keep wire behavior explicit when a future SDK changes its default.
+    public const API_VERSION = '2026-09-30.endive';
+
     private StripeClient $stripe;
 
     private string $currencyCode;
@@ -22,7 +26,10 @@ class StripePayment implements PaymentInterface
     public function __construct($secretKey, $currencyCode)
     {
         // Call Stripe Class and Create Payment Intent
-        $this->stripe = new StripeClient($secretKey);
+        $this->stripe = new StripeClient([
+            'api_key' => $secretKey,
+            'stripe_version' => self::API_VERSION,
+        ]);
         $this->currencyCode = $currencyCode;
     }
 
