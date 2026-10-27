@@ -141,3 +141,13 @@ Peach is not a preferred provider. Keep payment boundaries provider-neutral and
 deprioritize provider-specific adapters/onboarding; continue billing, wallets and
 commerce without waiting for a gateway. This supersedes the Phase 0 Peach default.
 No live payment/provider activation or extra spend is implied.
+
+## Phase 5 increments 1–15 and legacy money decision (27 October 2026)
+
+The owner authorized implementation, testing and safe main integration of all
+increments1–15 in `engineering/phases/phase-5-delivery-1-15.md`. Payment gateway
+integration remains deferred. Old legacy money records may be discarded rather
+than imported/reconciled into the new ledger; retire their dependencies safely.
+This does not authorize deleting the new immutable ledger/domain history or
+production activation. Configure school-specific financial rules explicitly and
+keep unrelated development moving while particular evidence/settings are pending.

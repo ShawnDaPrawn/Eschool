@@ -396,3 +396,19 @@ transactions can be reviewed and excluded with a reason, without posting money.
 Matched/excluded/all filters retain history. Resolutions are immutable; mistakes
 need a reasoned correction workflow rather than editing bank evidence. Disabled
 fees keep read-only history. No gateway or bank connection is required.
+
+## Arrears and accounting
+
+Open **Money → Arrears and accounting**. Choose one currency and see current,
+1–29,30–59,60–89 and90+ day unpaid invoice shares. Held credit is shown separately
+because it may belong to another holder or be pinned to a learner. Filters change
+the family list; totals still cover all accounts in that currency. Open a family
+to review its full statement and separately allocate eligible credit.
+
+Download aged debtors, invoice-share detail or posted fee journals as private CSVs.
+Journal dates use the school calendar; ageing always shows current balances. For
+Xero/QuickBooks column presets, configure your actual chart codes/names, base
+currency and date format first; Xero also needs the organisation's exact zero-tax
+label. Verify the CSV against your accountant's current import template. Journal
+references are stable: choose non-overlapping periods and import each once.
+Exports do not change money. Disabled fees retain report/download access.

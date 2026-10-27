@@ -697,3 +697,18 @@ accounting exports, reminders, discounts, refunds, gateways and remaining wallet
 commerce are separate increments. External bank qualification/reconciliation,
 fluent language, staging/devices and independent live-money review remain release
 evidence. No production, bank connection or paid-provider activation.
+
+## 2026-10-27 — delivery through money increment15; arrears/accounting
+
+The owner authorized all remaining increments1–15 and permits discarding legacy
+seed money instead of migrating it; new immutable ledger/domain history remains.
+Payment gateways remain deferred. The execution inventory is in
+phases/phase-5-delivery-1-15.md. School-specific financial rules remain explicit
+configuration rather than invented global defaults.
+
+The first slice adds current-date arrears ageing and private, reconciled CSVs for
+aged debtors, invoice-holder shares and fee journals. Credits remain separate,
+currencies never mix, accounting mappings/currency/date format are explicit, and
+exports cannot post money. Verification is in self-tests/money/arrears-exports.md
+and the feature PR. Later increments and external release evidence remain tracked
+separately; no production/provider activation or cancelled pilot is introduced.
