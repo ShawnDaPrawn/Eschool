@@ -10,8 +10,8 @@ or reconciling abandoned seed money into the new financial source.
 
 | Increment | Scope | Implementation / integration |
 | --- | --- | --- |
-| 1 | Arrears ageing and accounting CSV exports | In progress |
-| 2 | Scheduled fee reminders through Notifier | Pending |
+| 1 | Arrears ageing and accounting CSV exports | Published PR315; local qualification passed; hosted checks pending |
+| 2 | Scheduled fee reminders through Notifier | Implementation and automated qualification in progress |
 | 3 | Expanded fee-plan rules and payment schedules | Pending |
 | 4 | Automatic/rule/membership fee items and VAT | Pending |
 | 5 | Discounts, bursaries, exemptions and approval | Pending |

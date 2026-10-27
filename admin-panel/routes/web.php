@@ -66,6 +66,7 @@ use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemPanelController;
 use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
+use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
@@ -368,6 +369,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('review', [$c, 'review'])->name('review');
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{note}', [$c, 'show'])->whereNumber('note')->name('show');
+        });
+        Route::prefix('fee-reminders')->name('fee-reminders.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeReminderPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'save'])->name('save');
         });
         Route::prefix('fee-reporting')->name('fee-reporting.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeReportPanelController::class;

@@ -19,6 +19,8 @@ parameters:
         - database/migrations/2026_10_27_400000_create_fee_items.php
         - database/migrations/2026_10_27_500000_create_bank_statement_imports.php
         - database/migrations/2026_10_27_600000_create_fee_accounting_settings.php
+        - database/migrations/2026_10_27_700000_create_fee_reminders.php
+        - app/Console/Commands/SendFeeReminders.php
         - app/Services/Platform/Ledger/AccountType.php
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php

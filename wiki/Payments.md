@@ -412,3 +412,10 @@ currency and date format first; Xero also needs the organisation's exact zero-ta
 label. Verify the CSV against your accountant's current import template. Journal
 references are stable: choose non-overlapping periods and import each once.
 Exports do not change money. Disabled fees retain report/download access.
+
+Finance can configure private fee-statement reminders under **Money → Fee
+reminders**. Choose minimum overdue days, cadence and earliest school-local hour
+then explicitly enable the schedule. The existing minute scheduler invokes the
+hourly `fees:remind` command. Prompts contain no balances/names, recheck current
+access/debt at delivery and respect parent notification choices. Queued history
+means an intent was recorded; channel preferences/access still determine delivery.

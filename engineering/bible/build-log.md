@@ -712,3 +712,14 @@ currencies never mix, accounting mappings/currency/date format are explicit, and
 exports cannot post money. Verification is in self-tests/money/arrears-exports.md
 and the feature PR. Later increments and external release evidence remain tracked
 separately; no production/provider activation or cancelled pilot is introduced.
+
+## 2026-10-27 — scheduled private fee reminders
+
+Increment2 adds explicitly enabled school-local reminder schedules, durable
+account/parent cadence, private generic Notifier prompts, fresh overdue-share
+checks at delivery and scoped inbox history. Financial records are unchanged.
+Finance configures the cadence/hour; parent channel preferences remain effective.
+Notification retention preserves immutable cadence and rejects rebinding.
+Verification is tracked in self-tests/money/fee-reminders.md and the feature PR.
+No gateway or external transport activation is included; subsequent increments and
+external release evidence continue separately.
