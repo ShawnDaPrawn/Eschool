@@ -57,3 +57,24 @@ finance and peer-tutoring browser suites then passed together: **7 checks in
 1.8 minutes**, at 390/820/1280px, including the actual early-morning window.
 Fixture Pint and PHP syntax checks passed. Both public PR source histories are
 retained for integration; hosted CI must qualify their combined revision.
+
+## Native teaching test input
+
+The combined hosted run found one facilitator Android assertion failure after
+22 passing cases: revision 2 still contained the original worksheet title.
+The plain widget reproduction passed. Flutter's `TestTextInput.enterText`
+documentation warns that injecting text with a real IME connection can leave
+that keyboard confused about the editing state. A controlled input probe
+confirmed the framework title changed while the last `TextInput.setEditingState`
+sent to the platform remained the original title; explicitly mirroring the
+editing value made both agree.
+
+The shared teaching smoke helper now mirrors the current editing value to the
+native IME before dismissing it, pumps the edited frame and asserts the edited
+controller value before Save. The existing saved-title, review-body, one-effect
+recovery and withdrawal assertions remain intact. Application code is unchanged.
+Teacher mobile/entry checks: 4 passed; shared teaching screen/repository checks:
+23 passed. Targeted analysis has no errors or warnings (one pre-existing brace
+style info), and Dart format passed. Native qualification remains required on
+the corrected hosted head; the earlier Android assertion is not waived or
+classified as an infrastructure failure.

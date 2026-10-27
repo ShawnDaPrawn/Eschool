@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:eschool_core/testing.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'smoke.dart' show pumpUntilFound, tapWhenReady;
@@ -187,6 +189,26 @@ Future<void> runTeachingApproval(
   expect(fixture.receipts, 1);
   await tester.enterText(
     find.byKey(const ValueKey('teaching-edit-title')),
+    'Teacher reviewed browser worksheet',
+  );
+  // TestTextInput injects the framework value, but an integration binding
+  // leaves the real Android IME connected. Mirror that value before hiding
+  // the keyboard so its final editing event cannot restore the old title.
+  if (!kIsWeb) {
+    final title = tester.widget<TextField>(
+      find.byKey(const ValueKey('teaching-edit-title')),
+    );
+    await SystemChannels.textInput.invokeMethod<void>(
+      'TextInput.setEditingState',
+      title.controller!.value.toJSON(),
+    );
+  }
+  await tester.pump();
+  expect(
+    tester
+        .widget<TextField>(find.byKey(const ValueKey('teaching-edit-title')))
+        .controller!
+        .text,
     'Teacher reviewed browser worksheet',
   );
   await tapWhenReady(tester, find.byKey(const ValueKey('teaching-save-edit')));
