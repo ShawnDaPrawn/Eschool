@@ -12,10 +12,12 @@
 <form method="post" action="{{ route('fee-items.rules-save',['item'=>$item->id]) }}" data-year-safe>
 @include('money.fee-plans.hidden',['revision'=>$rule?->revision??0])
 <fieldset @disabled(!$canWrite)><legend>{{ __('Automatic eligibility') }}</legend>
-<x-m3.select name="mode" :label="__('Item charging mode')" :options="['manual'=>__('Manual charges only'),'compulsory'=>__('Compulsory by rule'),'membership'=>__('Membership-driven')]" :value="$rule?->mode??'manual'" required />
+<x-m3.select name="mode" :label="__('Item charging mode')" :options="['manual'=>__('Manual charges only'),'compulsory'=>__('Compulsory by rule'),'opt_in'=>__('Parent opt-in'),'membership'=>__('Membership-driven')]" :value="$rule?->mode??'manual'" required />
+<x-m3.select name="opt_in_billing" :label="__('Optional item billing frequency')" :options="['once_per_year'=>__('Once per school year'),'per_occurrence'=>__('Per billed occurrence until withdrawn')]" :value="$rule?->opt_in_billing" :placeholder="__('Choose explicitly for parent opt-in items')" />
 <x-m3.select name="target_choice" :label="__('Eligible enrolments')" :options="$targets" :value="($rule?->target_scope??'all').':'.($rule?->target_id??0)" required />
 @php($selectedSource=$rule?->activity_group_id?'activity_group:'.$rule->activity_group_id:($rule?->teaching_group_id?'teaching_group:'.$rule->teaching_group_id:($rule?->subject_id?'subject:'.$rule->subject_id:'')))
 <x-m3.select name="membership_choice" :label="__('Membership source')" :options="$sources" :value="$selectedSource" />
+<p>{{ __('Parent opt-in items require every current payer to approve the current price and allocation before charging. Archive an agreed item to stop future offers; its approval requirement is retained.') }}</p>
 <p>{{ __('Select one source for membership-driven items. Manual and compulsory items use no membership source. Manual items use all enrolments and no additional rules.') }}</p>
 <details><summary>{{ __('Additional matching rules') }}</summary>
 <p>{{ __('Every rule must match. Each rule accepts any listed value. Campus and boarding can use eligible learner profile fields; hidden or sensitive fields are unavailable.') }}</p>

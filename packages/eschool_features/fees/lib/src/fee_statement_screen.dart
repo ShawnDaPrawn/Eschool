@@ -5,15 +5,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'fee_statement_cubit.dart';
 import 'fee_statement_repository.dart';
 import 'fee_text.dart';
+import 'fee_opt_in_repository.dart';
+import 'fee_opt_in_screen.dart';
 
 class FeeStatementScreen extends StatefulWidget {
   const FeeStatementScreen({
     required this.repository,
     this.learnerNames = const {},
+    this.optionalItems,
     super.key,
   });
   final FeeStatementRepository repository;
   final Map<int, String> learnerNames;
+  final FeeOptInRepository? optionalItems;
 
   @override
   State<FeeStatementScreen> createState() => _FeeStatementScreenState();
@@ -22,6 +26,7 @@ class FeeStatementScreen extends StatefulWidget {
 class _FeeStatementScreenState extends State<FeeStatementScreen>
     with WidgetsBindingObserver {
   late FeeStatementCubit _cubit;
+  int? _optionalFamily;
 
   @override
   void initState() {
@@ -34,6 +39,7 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
   void didUpdateWidget(FeeStatementScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(widget.repository, oldWidget.repository)) {
+      _optionalFamily = null;
       _cubit.close();
       _cubit = FeeStatementCubit(widget.repository)..accounts();
     }
@@ -159,6 +165,12 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                     onPressed: () => _cubit.statement(account.id),
                     child: _text('Open statement'),
                   ),
+                  if (widget.optionalItems != null)
+                    OutlinedButton(
+                      onPressed: () =>
+                          setState(() => _optionalFamily = account.id),
+                      child: _text('Optional fee items'),
+                    ),
                 ],
               ),
             ),
@@ -179,6 +191,11 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
     children: [
       _scope(),
       Text(statement.name, style: Theme.of(context).textTheme.titleLarge),
+      if (widget.optionalItems != null)
+        OutlinedButton(
+          onPressed: () => setState(() => _optionalFamily = statement.id),
+          child: _text('Optional fee items'),
+        ),
       if (statement.grossChargedCents != null ||
           statement.creditedCents != null) ...[
         _amount(
@@ -435,54 +452,65 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
 
   @override
   Widget build(BuildContext context) =>
-      BlocBuilder<FeeStatementCubit, FeeStatementState>(
-        bloc: _cubit,
-        builder: (context, state) => PopScope(
-          canPop: state is! FeeStatementReady,
-          onPopInvokedWithResult: (didPop, result) {
-            if (!didPop && state is FeeStatementReady) _cubit.accounts();
+      _optionalFamily != null && widget.optionalItems != null
+      ? FeeOptInScreen(
+          repository: widget.optionalItems!,
+          familyId: _optionalFamily!,
+          onBack: () {
+            _cubit.accounts();
+            setState(() => _optionalFamily = null);
           },
-          child: ScreenScaffold(
-            title: feeText(context, 'Fee statements'),
-            onBack: state is FeeStatementReady ? () => _cubit.accounts() : null,
-            action: state is FeeStatementLoading
-                ? null
-                : IconButton(
-                    tooltip: feeText(context, 'Refresh fee statements'),
-                    onPressed: () => _cubit.accounts(),
-                    icon: const Icon(Icons.refresh),
+        )
+      : BlocBuilder<FeeStatementCubit, FeeStatementState>(
+          bloc: _cubit,
+          builder: (context, state) => PopScope(
+            canPop: state is! FeeStatementReady,
+            onPopInvokedWithResult: (didPop, result) {
+              if (!didPop && state is FeeStatementReady) _cubit.accounts();
+            },
+            child: ScreenScaffold(
+              title: feeText(context, 'Fee statements'),
+              onBack: state is FeeStatementReady
+                  ? () => _cubit.accounts()
+                  : null,
+              action: state is FeeStatementLoading
+                  ? null
+                  : IconButton(
+                      tooltip: feeText(context, 'Refresh fee statements'),
+                      onPressed: () => _cubit.accounts(),
+                      icon: const Icon(Icons.refresh),
+                    ),
+              body: ContentColumn(
+                child: switch (state) {
+                  FeeStatementLoading() => const Center(
+                    child: CircularProgressIndicator(),
                   ),
-            body: ContentColumn(
-              child: switch (state) {
-                FeeStatementLoading() => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                FeeAccountsReady() => _accounts(state.page),
-                FeeStatementReady() => _statement(state.statement),
-                FeeStatementFailure() => EmptyStateMessage(
-                  icon: Icons.receipt_long_outlined,
-                  title: feeText(
-                    context,
-                    state.accessChanged
-                        ? 'Your fee access changed'
-                        : 'Current fee statement unavailable',
+                  FeeAccountsReady() => _accounts(state.page),
+                  FeeStatementReady() => _statement(state.statement),
+                  FeeStatementFailure() => EmptyStateMessage(
+                    icon: Icons.receipt_long_outlined,
+                    title: feeText(
+                      context,
+                      state.accessChanged
+                          ? 'Your fee access changed'
+                          : 'Current fee statement unavailable',
+                    ),
+                    message: feeText(
+                      context,
+                      state.accessChanged
+                          ? 'Reopen this screen after refreshing your account.'
+                          : 'Reconnect and try again to view current balances.',
+                    ),
+                    action: state.accessChanged
+                        ? null
+                        : OutlinedButton(
+                            onPressed: () => _cubit.accounts(),
+                            child: _text('Try again'),
+                          ),
                   ),
-                  message: feeText(
-                    context,
-                    state.accessChanged
-                        ? 'Reopen this screen after refreshing your account.'
-                        : 'Reconnect and try again to view current balances.',
-                  ),
-                  action: state.accessChanged
-                      ? null
-                      : OutlinedButton(
-                          onPressed: () => _cubit.accounts(),
-                          child: _text('Try again'),
-                        ),
-                ),
-              },
+                },
+              ),
             ),
           ),
-        ),
-      );
+        );
 }

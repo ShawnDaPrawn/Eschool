@@ -199,3 +199,58 @@ Map<String, dynamic> feeVatStatementFixture({
       .addAll({'vat_cents': 39, 'net_cents': 261});
   return data;
 }
+
+/// Current-year offers contain only this payer's share and approval state.
+Map<String, dynamic> feeOptionalItemsFixture({
+  int schoolId = 1,
+  int holderId = 21,
+  int familyId = 7,
+  bool writable = true,
+}) => <String, dynamic>{
+  'school_id': schoolId,
+  'holder_user_id': holderId,
+  'fee_account_id': familyId,
+  'session_year_id': 3,
+  'writable': writable,
+  'current_page': 1,
+  'per_page': 20,
+  'total': 2,
+  'items': <Map<String, dynamic>>[
+    <String, dynamic>{
+      'fee_item_id': 91,
+      'name': 'Synthetic optional family excursion',
+      'scope': 'family',
+      'billing': 'once_per_year',
+      'learner_id': null,
+      'learner_name': null,
+      'currency': 'ZAR',
+      'available': true,
+      'can_approve': true,
+      'price_cents': 1001,
+      'share_cents': 501,
+      'vat_cents': 66,
+      'selected': false,
+      'current_terms_approved': false,
+      'revision': 0,
+      'fingerprint': 'a' * 64,
+    },
+    <String, dynamic>{
+      'fee_item_id': 92,
+      'name': 'Synthetic recurring learner activity',
+      'scope': 'learner',
+      'billing': 'per_occurrence',
+      'learner_id': 11,
+      'learner_name': 'Asha Synthetic',
+      'currency': 'ZAR',
+      'available': true,
+      'can_approve': true,
+      'price_cents': 3000,
+      'share_cents': 1500,
+      'vat_cents': 0,
+      'selected': true,
+      'current_terms_approved': true,
+      'revision': 1,
+      'fingerprint': 'b' * 64,
+    },
+  ],
+};

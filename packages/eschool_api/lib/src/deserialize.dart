@@ -225,6 +225,7 @@ import 'package:eschool_api/src/model/branding.dart';
 import 'package:eschool_api/src/model/calendar_removed_response.dart';
 import 'package:eschool_api/src/model/cancel_consultation_response.dart';
 import 'package:eschool_api/src/model/cast_consultation_vote_response.dart';
+import 'package:eschool_api/src/model/change_parent_fee_item_consent_response.dart';
 import 'package:eschool_api/src/model/child.dart';
 import 'package:eschool_api/src/model/class_grade_mapping.dart';
 import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
@@ -694,6 +695,7 @@ import 'package:eschool_api/src/model/list_consultation_responses_response.dart'
 import 'package:eschool_api/src/model/list_consultations_response.dart';
 import 'package:eschool_api/src/model/list_managed_consultations_response.dart';
 import 'package:eschool_api/src/model/list_parent_fee_accounts_response.dart';
+import 'package:eschool_api/src/model/list_parent_fee_optional_items_response.dart';
 import 'package:eschool_api/src/model/list_staff_private_notices_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_appointments_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_case_assignments_response.dart';
@@ -761,6 +763,10 @@ import 'package:eschool_api/src/model/parent_fee_charge.dart';
 import 'package:eschool_api/src/model/parent_fee_charge_page.dart';
 import 'package:eschool_api/src/model/parent_fee_credit_note.dart';
 import 'package:eschool_api/src/model/parent_fee_credit_page.dart';
+import 'package:eschool_api/src/model/parent_fee_item_consent_change.dart';
+import 'package:eschool_api/src/model/parent_fee_item_consent_receipt.dart';
+import 'package:eschool_api/src/model/parent_fee_optional_item.dart';
+import 'package:eschool_api/src/model/parent_fee_optional_items_page.dart';
 import 'package:eschool_api/src/model/parent_fee_receipt.dart';
 import 'package:eschool_api/src/model/parent_fee_receipt_page.dart';
 import 'package:eschool_api/src/model/parent_fee_statement.dart';
@@ -2079,6 +2085,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CastConsultationVoteResponse':
       return CastConsultationVoteResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ChangeParentFeeItemConsentResponse':
+      return ChangeParentFeeItemConsentResponse.fromJson(
             value as Map<String, dynamic>,
           )
           as ReturnType;
@@ -3685,6 +3696,11 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'ListParentFeeOptionalItemsResponse':
+      return ListParentFeeOptionalItemsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ListStaffPrivateNoticesResponse':
       return ListStaffPrivateNoticesResponse.fromJson(
             value as Map<String, dynamic>,
@@ -3902,6 +3918,18 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ParentFeeCreditPage':
       return ParentFeeCreditPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeItemConsentChange':
+      return ParentFeeItemConsentChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeItemConsentReceipt':
+      return ParentFeeItemConsentReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeOptionalItem':
+      return ParentFeeOptionalItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeOptionalItemsPage':
+      return ParentFeeOptionalItemsPage.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ParentFeeReceipt':
       return ParentFeeReceipt.fromJson(value as Map<String, dynamic>)

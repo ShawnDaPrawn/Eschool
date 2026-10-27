@@ -50,6 +50,12 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'listParentFeeOptionalItems requires authentication' => [null, 'GET', 'api/v2/parent/fees/accounts/1/optional-items', [], 401],
+            'changeParentFeeItemConsent requires authentication' => [null, 'POST', 'api/v2/parent/fees/accounts/1/optional-items/1/consents', [], 401],
+            'listParentFeeOptionalItems refuses learner' => ['asha', 'GET', 'api/v2/parent/fees/accounts/1/optional-items', [], 403],
+            'listParentFeeOptionalItems refuses teacher' => ['tara', 'GET', 'api/v2/parent/fees/accounts/1/optional-items', [], 403],
+            'changeParentFeeItemConsent refuses learner' => ['asha', 'POST', 'api/v2/parent/fees/accounts/1/optional-items/1/consents', [], 403],
+            'changeParentFeeItemConsent refuses teacher' => ['tara', 'POST', 'api/v2/parent/fees/accounts/1/optional-items/1/consents', [], 403],
             'listParentFeeAccounts requires authentication' => [null, 'GET', 'api/v2/parent/fees/accounts', [], 401],
             'getParentFeeStatement requires authentication' => [null, 'GET', 'api/v2/parent/fees/accounts/1/statement', [], 401],
             'getSecureEncodingPlan requires authentication' => [null, 'GET', 'api/v2/card-encoder/plans/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],

@@ -13,7 +13,7 @@ or reconciling abandoned seed money into the new financial source.
 | 1 | Arrears ageing and accounting CSV exports | Merged PR315; exact source CI and review passed |
 | 2 | Scheduled fee reminders through Notifier | Merged PR316 through the qualified PR317 tree; both sources verified on main |
 | 3 | Expanded fee-plan rules and payment schedules | Merged PR317; final CI108/108 and review passed |
-| 4 | Automatic/rule/membership fee items and VAT | VAT PR318 final validation follow-up; compulsory/membership automation qualified locally; opt-ins next |
+| 4 | Automatic/rule/membership fee items and VAT | VAT PR318 and automation PR319 in hosted qualification; parent opt-ins implemented with API/app/Finance tests, final qualification underway |
 | 5 | Discounts, bursaries, exemptions and approval | Pending |
 | 6 | Pro-rata joins/leavers, refunds and payer corrections | Pending |
 | 7 | Personal wallets, statements and spending limits | Pending |

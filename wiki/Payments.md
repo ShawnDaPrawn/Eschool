@@ -445,3 +445,12 @@ Use the same occurrence reference while resolving exceptions later. Review the
 payer exceptions and every allocation; confirm any exclusions before posting.
 Family items charge once for the family. Membership changes affect future charges;
 posted invoices require reasoned credits. This does not record parent opt-in consent.
+
+## Parent optional fee items
+
+Finance chooses **Parent opt-in** and an explicit yearly or per-occurrence frequency
+under an item's rules. Parents open **Optional fee items** from their account or
+statement, review their own price/share/VAT and frequency, and confirm. Every
+current payer must approve the current terms before Finance can bill. Changed
+prices or allocations need renewed approval. Withdrawing stops future optional
+charges; posted invoices require the existing reasoned credit process.

@@ -752,3 +752,13 @@ new invoices, exceptions and already-charged targets; family occurrences dedupli
 posting rechecks eligibility and the whole batch is atomic and permanently replayable.
 New batches retain exact sealed child invoices without raw occurrence plaintext.
 Verification is in self-tests/money/automatic-fee-items.md; opt-in consent is next.
+
+## 2026-10-27 — parent optional fee approvals
+
+Increment4 adds explicit yearly/per-occurrence opt-in terms, current own parent
+review and immutable approval/withdrawal. All current payers must approve material
+terms before billing; fresh guardian checks precede cached replay. Annual duplicate
+billing is refused even with another occurrence reference. API/SDK/shared parent UI
+and Finance browser coverage are included. Qualification is tracked in
+self-tests/money/fee-item-opt-ins.md and the PR. Discounts and increments5–15 remain
+next; gateway and production activation remain deferred.

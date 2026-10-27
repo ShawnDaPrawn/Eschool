@@ -394,3 +394,11 @@ history remains unchanged.
 rules and explicit canonical source FKs. `fee_item_batches` retains the original
 review, exact sealed charge IDs and total; SQL checks source tenancy, exact child
 identity and immutable history. Existing manual financial rows are unchanged.
+
+### Parent fee item approvals
+
+`fee_item_consents` is tenant-owned, append-only and revisioned by item/account/year/
+target/actor. It retains active/withdrawn state, permanent UUID, material terms hash
+and own frozen consent snapshot. Tenant FKs and SQL guards preserve targets, current
+payer insertion and immutable history. Eligibility rules add explicit opt-in billing
+frequency. No balance table or financial posting is created by an approval.

@@ -123,7 +123,7 @@ final class FeeCharges
         $learners = Students::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
         abort_unless($learners->count() === count($ids), 404);
         $people = User::whereIn('id', $learners->pluck('user_id'))->orderBy('id')->lockForUpdate()->get(['id', 'first_name', 'last_name'])->keyBy('id');
-        $eligibility = app(FeeItemEligibility::class)->forCharge($item, $ids, (int) $year->id, $data['charged_on']);
+        $eligibility = app(FeeItemEligibility::class)->forCharge($item, $ids, (int) $year->id, $data['charged_on'], $account);
         $tax = app(FeeTaxes::class)->snapshot($item);
         $amount = $tax['gross_cents'];
         $grand = BillingPreview::shares($amount, $holders);

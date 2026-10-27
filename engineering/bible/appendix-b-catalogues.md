@@ -294,3 +294,10 @@ statements add optional own VAT metadata; disabled fees retain history.
 Existing fees module and fee-items-manage permission cover compulsory and dated
 membership batch preparation/posting. No new notification, provider or parent
 consent is inferred. Existing guardian/payer and disabled-history checks apply.
+
+### Parent optional fee items
+
+Existing fees/current parent guardian policies cover own optional offers and
+approval/withdrawal. Fee visibility alone does not grant approval rights. New v2
+routes use fresh authority before idempotent replay. No provider, notification type
+or spend is added. Disabled fees keep read-only offers and prior agreements.

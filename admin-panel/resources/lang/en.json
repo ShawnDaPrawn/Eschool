@@ -4414,5 +4414,10 @@
     "Reviewed item targets": "Reviewed item targets",
     "Save item eligibility": "Save item eligibility",
     "Select one source for membership-driven items. Manual and compulsory items use no membership source. Manual items use all enrolments and no additional rules.": "Select one source for membership-driven items. Manual and compulsory items use no membership source. Manual items use all enrolments and no additional rules.",
-    "This batch is posted and immutable. Original invoices and any later credits remain in their recorded history.": "This batch is posted and immutable. Original invoices and any later credits remain in their recorded history."
+    "This batch is posted and immutable. Original invoices and any later credits remain in their recorded history.": "This batch is posted and immutable. Original invoices and any later credits remain in their recorded history.",
+    "Parent opt-in": "Parent opt-in",
+    "Optional item billing frequency": "Optional item billing frequency",
+    "Once per school year": "Once per school year",
+    "Per billed occurrence until withdrawn": "Per billed occurrence until withdrawn",
+    "Choose explicitly for parent opt-in items": "Choose explicitly for parent opt-in items"
 }
