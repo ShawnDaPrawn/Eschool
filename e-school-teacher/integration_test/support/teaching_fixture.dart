@@ -4,16 +4,22 @@ import 'package:dio/dio.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
 
 import 'smoke.dart' show pumpUntilFound, tapWhenReady;
 
 /// These API smoke flows inject framework text, rather than type on an IME.
 /// Keep one input transport throughout; mixing injected text with a live Android
 /// keyboard can restore its stale editing value when focus leaves the field.
-class TeachingSmokeTestBinding extends IntegrationTestWidgetsFlutterBinding {
-  @override
-  bool get registerTestTextInput => true;
+void useTeachingTestKeyboard() {
+  setUp(() {
+    // Native flutter test initializes its integration binding before main().
+    // Reuse it and register only this flow's simulated input transport.
+    final input = TestWidgetsFlutterBinding.instance.testTextInput;
+    if (!input.isRegistered) {
+      input.register();
+      addTearDown(input.unregister);
+    }
+  });
 }
 
 /// Synthetic responses matching the separately contract-tested staff API.

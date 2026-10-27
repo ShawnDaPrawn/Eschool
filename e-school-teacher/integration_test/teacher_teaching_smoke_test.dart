@@ -3,13 +3,15 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
 import 'support/smoke.dart';
 import 'support/teaching_fixture.dart';
 
 void main() {
-  TeachingSmokeTestBinding();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  useTeachingTestKeyboard();
   testWidgets(
     'Teacher recovers, edits and approves a private three-level draft without publishing marks',
     (tester) async {

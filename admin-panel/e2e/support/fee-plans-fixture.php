@@ -18,6 +18,14 @@ if (! str_ends_with($database, '_test') && $database !== 'eschool_e2e') {
 }
 
 return app(CurrentSchool::class)->run(1, function (): array {
+    $names = ['Synthetic fee-plan browser year', 'Synthetic fee-plan browser next year'];
+    if (getenv('FEE_PLAN_FIXTURE_ACTION') === 'cleanup') {
+        // Hide only these synthetic years from later wizard choices. Keep their
+        // plans, receipts and enrolments for evidence rather than deleting money.
+        SessionYear::whereIn('name', $names)->where('default', 0)->delete();
+
+        return ['active_fixture_years' => SessionYear::whereIn('name', $names)->count()];
+    }
     $admin = User::where('email', 'admin.a@demo.navigateed.test')->firstOrFail();
     // The earlier AI-controls fixture borrows Finance as a platform operator.
     // Restore its school-only identity; money must continue to refuse support.
@@ -26,8 +34,10 @@ return app(CurrentSchool::class)->run(1, function (): array {
     PlatformStaffIdentity::where('user_id', $finance->id)->update(['active' => false]);
     app(ModuleGate::class)->change('fees', true, $admin);
     $y = (int) now()->format('Y') + 2;
-    $year = SessionYear::firstOrCreate(['name' => 'Synthetic fee-plan browser year'], ['start_date' => "$y-01-01", 'end_date' => "$y-12-31"]);
-    $next = SessionYear::firstOrCreate(['name' => 'Synthetic fee-plan browser next year'], ['start_date' => ($y + 1).'-01-01', 'end_date' => ($y + 1).'-12-31']);
+    $year = SessionYear::withTrashed()->firstOrCreate(['name' => $names[0]], ['start_date' => "$y-01-01", 'end_date' => "$y-12-31"]);
+    $next = SessionYear::withTrashed()->firstOrCreate(['name' => $names[1]], ['start_date' => ($y + 1).'-01-01', 'end_date' => ($y + 1).'-12-31']);
+    $year->restore();
+    $next->restore();
     FeePlan::whereIn('session_year_id', [$year->id, $next->id])->update(['state' => 'archived']);
     $learner = Students::whereNotNull('class_section_id')->firstOrFail();
     Enrolment::updateOrCreate(['learner_id' => $learner->id, 'session_year_id' => $year->id], ['class_section_id' => $learner->class_section_id,

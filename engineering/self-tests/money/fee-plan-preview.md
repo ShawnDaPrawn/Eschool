@@ -74,15 +74,19 @@ Android job passed 23 cases, but the classic Teacher job later failed the same
 saved-title assertion after 25 passing cases. This was not treated as an
 infrastructure failure or retried unchanged.
 
-Both synthetic teaching integration tests now initialize a dedicated binding
-with Flutter's registered test keyboard, before starting the app. All injected
+The first dedicated-binding attempt passed in Chrome, but the native runner
+had already initialized its integration binding before calling the test's
+`main()`, so constructing a replacement failed. Both teaching tests now reuse
+that existing binding and register Flutter's test keyboard in setup, before
+starting the app, restoring registration at teardown when needed. All injected
 text uses that one transport instead of sharing a live Android IME. The helper
 requires the registered keyboard and checks the edited title after focus leaves
 the field. The saved-title, request-body, revision, one-effect recovery and
 withdrawal assertions remain intact. Application code is unchanged.
 
 Teacher mobile/entry checks: 4 passed, including the narrow viewport/keyboard
-insets regression; the earlier shared teaching screen/repository cohort passed
+insets regression with an existing binding and initially unregistered input,
+reproducing native runner startup; the earlier shared teaching cohort passed
 23 cases. Targeted analysis has no errors or warnings (one pre-existing brace
 style info), and Dart format passed. The final combined revision requires all
 hosted checks before merge. These synthetic API smoke tests do not claim real
@@ -117,3 +121,18 @@ the platform-cost operator's access, school Finance create/copy/preview and
 ordinary Teacher refusal, retaining accessibility, overflow and error checks.
 Fixture Pint, PHP syntax and whitespace checks passed. The complete hosted
 suite must qualify the final revision before merge.
+
+The next complete hosted run passed all finance flows and 392 browser checks,
+but the final year wizard selected the fixture's far-future year. The finance
+suite now soft-deletes only its two explicitly named synthetic years in teardown
+and restores them for a repeat run. Plans, enrolments and durable receipts remain
+available as evidence; no money records or production code are deleted or changed.
+The wizard's current/next-year and switch-back assertions remain unchanged.
+
+The unchanged AI-controls, finance and final year-wizard browser tests then
+passed together in order: **11 checks in 4.0 minutes**, including the original
+global setup, no retries, all three finance widths and Teacher refusal. The
+wizard created the expected next year, switched to it and restored the original
+current year. The actual Teacher Chromium integration flow also passed with
+the reused binding and setup-registered keyboard. Final native hosted
+qualification is still required; no earlier failure is waived.

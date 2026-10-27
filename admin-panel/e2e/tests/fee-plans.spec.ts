@@ -5,10 +5,14 @@ import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
 
 type Fixture = { year: number; next: number; date: string; learner: string };
-function fixture(): Fixture {
-  return JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/fee-plans-fixture.php'));"], {
+function runFixture(action = 'prepare'): string {
+  return execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/fee-plans-fixture.php'));"], {
     cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8',
-  }).trim());
+    env: { ...process.env, FEE_PLAN_FIXTURE_ACTION: action },
+  }).trim();
+}
+function fixture(): Fixture {
+  return JSON.parse(runFixture());
 }
 async function check(page: Page) {
   expect(await seriousViolations(page)).toEqual([]);
@@ -18,6 +22,9 @@ async function check(page: Page) {
 
 test.describe.configure({ mode: 'serial' });
 test.use({ storageState: { cookies: [], origins: [] } });
+test.afterAll(() => {
+  expect(JSON.parse(runFixture('cleanup')).active_fixture_years).toBe(0);
+});
 for (const width of [390, 820, 1280]) {
   test(`finance creates, previews and copies an annual fee plan at ${width}px`, async ({ page, baseURL }) => {
     const data = fixture();
