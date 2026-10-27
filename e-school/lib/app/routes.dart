@@ -113,6 +113,8 @@ class Routes {
 
   static const String childFees = '/fees';
 
+  static const String feeStatements = '/fee-statements';
+
   static const String feesDetails = '/feesDetails';
 
   static const String paymentVerify = '/paymentVerify';
@@ -208,6 +210,7 @@ class Routes {
       chatUserProfile ||
       chatUserSearch => 'chat',
       examOnline || resultOnline => 'online_exams',
+      feeStatements ||
       childFees ||
       feesDetails ||
       feesTransaction ||
@@ -331,6 +334,9 @@ class Routes {
 
       case academicCalendar:
         return AcademicCalendarScreen.route(routeSettings);
+
+      case feeStatements:
+        return feeStatementsRoute();
 
       case childFees:
         return FeesStatusScreen.route(routeSettings);

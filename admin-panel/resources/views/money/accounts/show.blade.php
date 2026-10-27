@@ -10,6 +10,9 @@
     <x-m3.button variant="text" :href="route('fee-accounts.index')">{{ __('Back to family accounts') }}</x-m3.button>
     @if($canWrite)<x-m3.button variant="outlined" :href="route('fee-accounts.edit',['account'=>$account->id])">{{ __('Review learners and holder shares') }}</x-m3.button>@endif
     @if(!$canWrite)<p>{{ __('Billing history is read-only while fees are disabled.') }}</p>@endif
+    @can('fee-payments-manage')
+    <x-m3.button variant="outlined" :href="route('fee-payments.statement',['account'=>$account->id])">{{ __('Account statement and receipts') }}</x-m3.button>
+    @endcan
     <h2 class="m3-title-large">{{ __('Posted invoices') }}</h2>
     @if($invoices->isEmpty())<x-page.empty-state :title="__('No posted invoices yet')" :message="__('Prepare, review and approve a bill run before posting charges.')" />
     @else

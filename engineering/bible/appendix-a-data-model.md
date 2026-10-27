@@ -307,3 +307,17 @@ entry fails reconciliation. Populated rollback refuses historical erasure.
 No opening balances are imported. The legacy financial rows and float/cents twins
 remain until a later explicit reviewed reconciliation/cutover. Clearing and
 due-to-school account types exist but stay at zero until collection is built.
+
+## Phase 5: manual fee receipts and allocations
+
+School-owned `fee_payment_policies` retains a revisioned explicit allocation rule.
+Immutable `payments` binds a verified manual cash/EFT receipt, family, beneficiary
+holder, optional learner, unique transaction reference, received date and posted
+asset/held-credit entry. `payment_allocation_runs` retains a reviewed fingerprint
+and sealed batch; immutable `payment_allocations` attributes integer cents to
+that holder's exact posted invoice line. Tenant composite keys, amount caps and
+finalization triggers protect receipt/line/run relationships. Fee-bank accounts
+are debit-normal, fees-only assets; held family/holder credit uses a family
+liability without a personal-wallet owner. Allocation reduces credit and receivable,
+leaving income unchanged. The shared permanent `billing_operations` protects UUID
+replay. See [payments and statements](../specs/money/payments-statements.md).

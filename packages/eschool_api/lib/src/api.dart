@@ -15,6 +15,7 @@ import 'package:eschool_api/src/api/discipline_api.dart';
 import 'package:eschool_api/src/api/exam_coach_api.dart';
 import 'package:eschool_api/src/api/family_forms_api.dart';
 import 'package:eschool_api/src/api/family_visits_api.dart';
+import 'package:eschool_api/src/api/fee_statements_api.dart';
 import 'package:eschool_api/src/api/foundation_classroom_api.dart';
 import 'package:eschool_api/src/api/gallery_api.dart';
 import 'package:eschool_api/src/api/growth_api.dart';
@@ -204,6 +205,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   FamilyVisitsApi getFamilyVisitsApi() {
     return FamilyVisitsApi(dio);
+  }
+
+  /// Get FeeStatementsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  FeeStatementsApi getFeeStatementsApi() {
+    return FeeStatementsApi(dio);
   }
 
   /// Get FoundationClassroomApi instance, base route and serializer can be overridden by a given but be careful,

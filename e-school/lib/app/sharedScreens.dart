@@ -1,5 +1,6 @@
 import 'package:eschool/utils/tutorCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
+import 'package:eschool_fees/eschool_fees.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/parent.dart';
@@ -2660,6 +2661,95 @@ class SchoolAssistanceEntry extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   Navigator.of(context).pushNamed(Routes.schoolAssistance),
+            ),
+          );
+        },
+      );
+}
+
+Route<dynamic> feeStatementsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>();
+    final schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        me == null ||
+        school == null ||
+        account == null ||
+        !me.roles.contains('Parent') ||
+        !me.isModuleOn('fees') ||
+        !allowsSchoolModule(me, 'fees')) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Fee statements'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        feeAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return BlocListener<MeContextCubit, MeContextState>(
+      listener: (_, state) {
+        if (!active()) Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: FeeSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => FeeStatementScreen(
+          repository: ApiFeeStatementRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+          learnerNames: {
+            for (final child in pinned.children ?? <MeChild>[])
+              if (child.child.school.id == school)
+                child.child.id: child.child.name,
+          },
+        ),
+      ),
+    );
+  },
+);
+
+class FeeStatementsEntry extends StatelessWidget {
+  const FeeStatementsEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state is! MeContextLoaded ||
+              !state.context.roles.contains('Parent') ||
+              !state.context.isModuleOn('fees') ||
+              !allowsSchoolModule(state.context, 'fees')) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.receipt_long_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'Fee statements'),
+              ),
+              subtitle: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Your learner shares, receipts and held credits',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.feeStatements),
             ),
           );
         },

@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\V2\Learning\PracticeController;
 use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
+use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -388,6 +389,12 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
     Route::middleware($money)->group(function () {
         //
     });
+});
+
+Route::prefix('parent/fees')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role:Parent', 'parent.policy', 'module:fees,read'])->name('api.v2.parent.fees.')->group(function () {
+    $c = ParentFeeController::class;
+    Route::get('accounts', [$c, 'index'])->name('accounts');
+    Route::get('accounts/{account}/statement', [$c, 'show'])->whereNumber('account')->name('statement');
 });
 
 Route::prefix('parent')->middleware(['auth:sanctum', 'school.context', 'role:Parent', 'parent.children.session.active', 'parent.policy', 'idempotent'])->name('api.v2.parent.')->group(function () use ($money) {

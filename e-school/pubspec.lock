@@ -294,6 +294,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  eschool_fees:
+    dependency: "direct main"
+    description:
+      path: "../packages/eschool_features/fees"
+      relative: true
+    source: path
+    version: "0.1.0"
   eschool_notifications:
     dependency: "direct main"
     description:

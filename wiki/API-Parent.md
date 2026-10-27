@@ -813,3 +813,22 @@ These live in `ApiController` without the `parent/` prefix and are documented on
 - [Student and Parent App](Student-Parent-App)
 - [Roles and Permissions](Roles-and-Permissions)
 - [Testing and CI](Testing-and-CI)
+
+
+## Private ledger fee statements (API v2)
+
+`GET /api/v2/parent/fees/accounts` accepts `page` and `per_page` (maximum50).
+`GET /api/v2/parent/fees/accounts/{account}/statement` accepts independent
+`charges_page` / `receipts_page` and `per_page`. Both require bearer authentication,
+explicit current school, fresh active Parent role/membership and fee-visible
+canonical guardian links. They are `private, no-store`; there are no parent writes.
+The generated SDK exposes `FeeStatementsApi` with closed parent-only DTOs.
+
+Every envelope binds `school_id` and `holder_user_id`. Summary totals cover all
+permitted rows, independent of pagination. Charges expose only the actor's shares;
+receipts omit bank references, ledger IDs and every other holder. Receipts involving
+hidden learners are withheld entirely. Account/charge/receipt pagination metadata
+is explicit. `scope=your_visible_ledger_records` distinguishes this ledger from
+legacy history. Outstanding invoice debt and held credit are separate amounts;
+`net_cents` must not be presented as automatically payable debt. Missing/foreign
+accounts return404 without disclosure; revoked authorization returns403.

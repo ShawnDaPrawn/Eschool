@@ -11,6 +11,14 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Finance can record verified cash/EFT fee receipts, review allocation to explicit
+  holder shares, and retain overpayments as credit. Parents have private fee
+  statements showing their charges, applied payments and held credit separately.
+  Legacy payment history remains separate; no payment gateway is activated.
+  **Deploy:** rehearse the additive payment migration and reconciliation on isolated
+  staging, explicitly assign `fee-payments-manage` to real Finance roles, and
+  confirm the school allocation rule before allocating.
+
 - Internal school ledger foundation with balanced immutable integer-cents postings,
   permanent receipt identities, protected wallet balances and nightly reconciliation.
   Existing receipt history stays intact; this does not activate wallets or payment providers.

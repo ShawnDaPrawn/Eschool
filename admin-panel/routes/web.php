@@ -61,6 +61,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
+use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
@@ -338,6 +339,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        Route::prefix('fee-payments')->name('fee-payments.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeePaymentPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('new', [$c, 'record'])->name('create');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::get('accounts/{account}/statement', [$c, 'statement'])->whereNumber('account')->name('statement');
+            Route::get('{payment}', [$c, 'show'])->whereNumber('payment')->name('show');
+            Route::get('{payment}/allocation', [$c, 'preview'])->whereNumber('payment')->name('preview');
+            Route::post('{payment}/allocation', [$c, 'allocate'])->whereNumber('payment')->name('allocate');
         });
         Route::prefix('fee-accounts')->name('fee-accounts.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeAccountPanelController::class;

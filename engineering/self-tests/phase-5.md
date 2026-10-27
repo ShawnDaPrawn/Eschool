@@ -17,3 +17,8 @@ Keep future feature evidence alongside that record, with implementation,
 automated checks, staging/provider/device acceptance and production release
 tracked separately. A pending external check blocks its affected release,
 not independent development. The cancelled pilot campaign remains cancelled.
+
+
+[Manual payments and private statements](money/payments-statements.md) records
+verified cash/EFT, held credit, reviewed allocation and private parent API/app
+reads. It does not qualify refunds, wallets, gateways or the rest of commerce.

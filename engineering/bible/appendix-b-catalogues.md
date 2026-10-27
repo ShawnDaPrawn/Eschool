@@ -232,3 +232,15 @@ uses this kernel. The command's default is read-only; `--rebuild` repairs only
 cached projections from valid posted history. Stable financial receipt identity
 is permanent, separate from the pruned24-hour HTTP replay cache. Existing notice
 routing still rechecks source, current recipient and transport permissions.
+
+
+## Fee receipt and allocation boundary
+
+The existing `fees` module now covers manual ledger receipts, reviewed allocation
+and private parent statements. Staff writes require `fee-payments-manage`, separate
+from plan/account/billing permissions. Super Admin and the synthetic Finance role
+receive it; real custom Finance roles need explicit assignment. Internal
+`fees.payment_recorded` and `fees.payment_allocated` outbox events contain IDs and
+cents only. They do not register a new notification type or send messages.
+Cash/EFT is an office verification workflow, not an enabled gateway. Held history
+remains readable when fees are disabled; fresh policy blocks new writes.

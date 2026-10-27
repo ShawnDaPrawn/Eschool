@@ -608,3 +608,23 @@ level5 passed without baseline. Hosted qualification and merge are tracked on th
 feature PR; detailed evidence is in self-tests/money/family-billing.md. Remaining
 fee policies, allocations/parent statements, wallets and commerce, external
 acceptance and independent live-money review remain separate Phase5 work.
+
+## 2026-10-27 — verified fee receipts and private statements
+
+The next money increment adds manual verified cash/EFT receipts, explicit holder
+and optional learner pins, separate held credit, reviewed allocation to immutable
+invoice shares, Finance statements and private parent v2/app statements. Receipt
+and allocation posting is balanced, atomic and durably idempotent. Source
+uniqueness prevents another UUID from recording the same bank/cash receipt.
+Fresh owner/school/module policy, hidden-sibling redaction, database history guards
+and semantic credit/receivable reconciliation protect financial reads and writes.
+The app clears private data on revoked access/account/school/logout changes and
+keeps debt separate from held credit. No gateway is selected or activated.
+
+Local and hosted evidence is tracked in
+[self-tests/money/payments-statements.md](../self-tests/money/payments-statements.md);
+[scoped review](../security/p5-payments-statements.md) records controls and tooling
+limits. Hosted qualification and integration remain tracked on the feature PR.
+The rest of fee rules/refunds/bank matching, wallets and commerce remains future
+Phase5 work; external cash/bank observation, devices, fluent language review,
+independent live-money assessment and production approval remain separate.

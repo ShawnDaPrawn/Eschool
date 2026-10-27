@@ -212,6 +212,8 @@ tags:
   description: Supervised mastery-topic matching, private arrangements and append-only service minutes.
 - name: FoundationClassroom
   description: Restricted school classroom tablet entry and current-group daily practice.
+- name: FeeStatements
+  description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
 paths:
   /facilitator/sign-in:
     post:
@@ -26142,6 +26144,118 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SecureEncodingConfirmation'
+  /parent/fees/accounts:
+    get:
+      operationId: listParentFeeAccounts
+      tags:
+      - FeeStatements
+      summary: List your visible fee accounts
+      description: Requires a fresh active Parent role and fee-visible guardian links. Only the authenticated holder
+        shares and receipts are exposed; other holders and hidden learner records are excluded. Available as retained
+        read-only history.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      responses:
+        '200':
+          description: Private holder-owned ledger records. Earlier legacy fee history is separate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListParentFeeAccountsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '409':
+          description: Financial history needs reconciliation before a reliable statement can be shown.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /parent/fees/accounts/{account}/statement:
+    get:
+      operationId: getParentFeeStatement
+      tags:
+      - FeeStatements
+      summary: Read your learner shares, payments and held credits
+      description: Private school- and holder-owned statement with independent charge/receipt pages and totals over
+        all permitted records. Mixed receipts involving a learner whose fee visibility was revoked are withheld. Does
+        not expose other holder names, bank transaction references, ledger IDs, or legacy payment history.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: account
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - name: charges_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: receipts_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      responses:
+        '200':
+          description: Private holder-owned ledger records. Earlier legacy fee history is separate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetParentFeeStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '409':
+          description: Financial history needs reconciliation before a reliable statement can be shown.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -58120,5 +58234,371 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/SecureEncodingReceipt'
+        code:
+          type: integer
+    ParentFeeAccountSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - holder_user_id
+      - name
+      - reference
+      - currency
+      - charged_cents
+      - allocated_cents
+      - outstanding_cents
+      - credit_cents
+      - net_cents
+      - next_due_on
+      - scope
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        reference:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        charged_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        allocated_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        outstanding_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        credit_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        net_cents:
+          type: integer
+          format: int64
+        next_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        scope:
+          type: string
+          enum:
+          - your_visible_ledger_records
+    ParentFeeCharge:
+      type: object
+      additionalProperties: false
+      required:
+      - invoice_line_id
+      - invoice_number
+      - learner_id
+      - learner_name
+      - description
+      - period_start
+      - period_end
+      - issued_on
+      - due_on
+      - currency
+      - charged_cents
+      - allocated_cents
+      - outstanding_cents
+      properties:
+        invoice_line_id:
+          type: integer
+          format: int64
+          minimum: 1
+        invoice_number:
+          type: string
+        learner_id:
+          type: integer
+          format: int64
+          minimum: 1
+        learner_name:
+          type: string
+        description:
+          type: string
+        period_start:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        period_end:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        issued_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        due_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        charged_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        allocated_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        outstanding_cents:
+          type: integer
+          format: int64
+          minimum: 0
+    ParentFeeReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - number
+      - pinned_learner_id
+      - method
+      - received_on
+      - currency
+      - amount_cents
+      - allocated_cents
+      - credit_cents
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        number:
+          type: string
+        pinned_learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+        method:
+          type: string
+          enum:
+          - cash
+          - eft
+        received_on:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 1
+        allocated_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        credit_cents:
+          type: integer
+          format: int64
+          minimum: 0
+    ParentFeeAccountsPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - current_page
+      - per_page
+      - total
+      - school_id
+      - holder_user_id
+      properties:
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ParentFeeAccountSummary'
+        current_page:
+          type: integer
+          format: int64
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+    ParentFeeChargePage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - current_page
+      - per_page
+      - total
+      properties:
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ParentFeeCharge'
+        current_page:
+          type: integer
+          format: int64
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+    ParentFeeReceiptPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - current_page
+      - per_page
+      - total
+      properties:
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ParentFeeReceipt'
+        current_page:
+          type: integer
+          format: int64
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+    ParentFeeStatement:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - holder_user_id
+      - name
+      - reference
+      - currency
+      - charged_cents
+      - allocated_cents
+      - outstanding_cents
+      - credit_cents
+      - net_cents
+      - next_due_on
+      - scope
+      - charges
+      - receipts
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        reference:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        charged_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        allocated_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        outstanding_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        credit_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        net_cents:
+          type: integer
+          format: int64
+        next_due_on:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{4}-\d{2}-\d{2}$
+        scope:
+          type: string
+          enum:
+          - your_visible_ledger_records
+        charges:
+          $ref: '#/components/schemas/ParentFeeChargePage'
+        receipts:
+          $ref: '#/components/schemas/ParentFeeReceiptPage'
+    ListParentFeeAccountsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ParentFeeAccountsPage'
+        code:
+          type: integer
+    GetParentFeeStatementResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ParentFeeStatement'
         code:
           type: integer

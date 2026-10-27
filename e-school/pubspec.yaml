@@ -12,6 +12,8 @@ environment:
 
 
 dependencies:
+  eschool_fees:
+    path: ../packages/eschool_features/fees
   eschool_academics:
     path: ../packages/eschool_features/academics
   flutter:
