@@ -587,3 +587,24 @@ The [phase plan](../phases/phase-5.md), [kernel/cutover contract](../specs/money
 The independent live-money assessment, actual provider/cash/statement qualification
 and external acceptance remain separate from this preparation checkpoint;
 independent development continues while those specific checks are pending.
+
+
+## 2026-10-27 — family accounts and annual bill runs
+
+Added school-scoped, year-specific family holders with exact percentage shares
+and explicit learner payer assignments. Finance can prepare a retained annual
+preview, resolve exceptions, approve it and explicitly post sealed invoices with
+balanced integer-cent receivable/income entries. Fresh guardian/membership and
+input checks, permanent actor-bound operation receipts, revision checks, tenant
+keys and database immutability protect posting and history. Future-year planning
+is available; actual posting requires the current year. No legacy parent mapping
+or learner activation is inferred, and no provider is selected or activated.
+
+Local money/Bootstrap verification passed38 tests/299 assertions; browser checks
+passed all4 Finance/Teacher cases at390/820/1280 with accessibility and error
+assertions. A real synthetic1,200-learner run posted600 invoices in15.1 seconds,
+with73 preview queries and balanced ledger/projection totals. Money Larastan
+level5 passed without baseline. Hosted qualification and merge are tracked on the
+feature PR; detailed evidence is in self-tests/money/family-billing.md. Remaining
+fee policies, allocations/parent statements, wallets and commerce, external
+acceptance and independent live-money review remain separate Phase5 work.

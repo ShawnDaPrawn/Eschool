@@ -71,6 +71,35 @@ To prepare the next year, open a plan, choose **Copy to a new school year**, ent
 the uplift percentage and create the draft copy. Review the resulting amount and
 scope before activating it.
 
+## Family accounts and annual bill runs
+
+To correct an unbilled payer assignment, edit the original account and deselect
+the learner, save, then assign them to the intended account. An existing account
+may be left empty; posted charges retain their original payer and history.
+
+In **Money → Family accounts**, create an account, choose the school year and
+learners, then select the guardians responsible for it. Each guardian needs
+current fee visibility for every selected learner. Enter shares totalling 100%.
+Shares are your explicit school decision; the system does not infer them from
+legacy parent fields. Existing invoices keep their recorded holders and amounts.
+
+In **Money → Bill runs**, prepare an annual preview with the enrolment date,
+due date and confirmation that these annual tuition fees carry no VAT. Review
+every exception and amount. Missing payers, overlapping plans and unresolved
+pro-rata/leaver rules need correction before this run can proceed. Previously
+invoiced annual tuition is shown and excluded.
+
+Approve the preview, then explicitly post it. Inputs are checked again at each
+stage; changed inputs require a fresh preview. Posting creates permanent family
+invoices and learner lines; it does not collect payment. Only the current school
+year can post. Repeating the same submission does not create another invoice.
+
+Open an account to see its receivable balance and invoice history. Posted
+invoices retain their original learner amounts and holder shares. Disabling fees
+keeps this financial history read-only. Parent-facing statements, allocations,
+credits and additional fee policies follow separately. Payment gateway integration
+is deferred and requires no provider to prepare these accounts and bill runs.
+
 ## Overdue fee reminders
 
 School staff can enable overdue fee reminders in Fees Configuration and set the

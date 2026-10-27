@@ -10,6 +10,7 @@ parameters:
         - app/Http/Controllers/Panel/Money
         - app/Http/Requests/Money
         - database/migrations/2026_10_26_260000_create_fee_plan_catalogue.php
+        - database/migrations/2026_10_27_100000_create_family_billing.php
         - app/Services/Platform/Ledger/AccountType.php
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php

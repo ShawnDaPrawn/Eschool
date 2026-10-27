@@ -18,6 +18,8 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // but must never be copied into Laravel's plain session old-input flash.
 return [
     ['paths' => ['fee-plans', 'fee-plans/*'], 'title' => 'Fee plans', 'route' => 'fee-plans.index', 'fields' => []],
+    ['paths' => ['fee-accounts', 'fee-accounts/*'], 'title' => 'Family accounts', 'route' => 'fee-accounts.index', 'fields' => []],
+    ['paths' => ['fee-bill-runs', 'fee-bill-runs/*', 'fee-invoices/*'], 'title' => 'Bill runs', 'route' => 'fee-bill-runs.index', 'fields' => []],
     ['paths' => ['ask-school', 'ask-school/*'], 'title' => 'School support office', 'route' => 'assistance-panel.index', 'guard' => AssistancePanelScope::class,
         'fields' => ['text' => ['label' => 'Your reply draft', 'limit' => 4000], 'reason' => ['label' => 'Your handoff reason draft', 'limit' => 1000], 'title' => ['label' => 'Document title draft', 'limit' => 191], 'markdown' => ['label' => 'Approved school text draft', 'limit' => 16000], 'source_reference' => ['label' => 'Source reference draft', 'limit' => 2048]]],
     ['paths' => ['ai-flags', 'ai-flags/*'], 'title' => 'Flagged learning content', 'route' => 'ai-review.index', 'guard' => AiReviewPanelScope::class, 'fields' => ['reason' => ['label' => 'Your private review note', 'limit' => 2000]]],

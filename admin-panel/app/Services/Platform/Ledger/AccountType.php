@@ -7,6 +7,7 @@ namespace App\Services\Platform\Ledger;
 enum AccountType: string
 {
     case FeeReceivable = 'fee_receivable';
+    case FeeIncome = 'fee_income';
     case Family = 'family';
     case Wallet = 'wallet';
     case Vendor = 'vendor';
