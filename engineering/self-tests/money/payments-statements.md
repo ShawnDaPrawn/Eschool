@@ -9,7 +9,7 @@ Executed locally on PHP 8.3/MySQL:
 
 - Existing Money/Bootstrap cohort plus the first18 payment cases: **56 tests /
   474 assertions**, passed. Two additional private panel workflow cases passed
-  **43 assertions**; final combined count is recorded after qualification below.
+  **43 assertions**. The final combined regression cohort is recorded below.
 - Receipt source/UUID uniqueness, exact cents, partial/overpayment, split holders,
   sibling/learner pins, stale previews, atomic rollback, immutable history,
   school/owner/role isolation and fresh guardian/module revocation passed.
@@ -31,8 +31,7 @@ logout/account/school changes remove the view and invalidate outstanding work. P
 **6 passed**, including explicit Parent/module availability, learner exclusion,
 disabled direct links, exact deep link and all four offered phrase catalogues.
 SDK generation succeeded with pinned tooling. Non-English new keys use English
-fallback pending fluent review. Browser/native and final static outcomes follow
-qualification; unrun checks are not claimed passed.
+fallback pending fluent review. Hosted Android outcomes remain required; unrun checks are not claimed passed.
 
 Actual bank/cash reconciliation, physical-device/staging/user acceptance,
 independent live-money review and production approval remain separate. The legacy
@@ -55,3 +54,14 @@ or warnings (generator-style informational lints remain); all **182 SDK tests**
 passed. Baseline-free money level 5 and configured whole-panel static analysis
 passed. New package analysis is clean. Browser TypeScript, JavaScript syntax,
 selected Pint, whitespace and the documentation production build passed.
+
+Final local regression cohort: **711 tests / 20,306 assertions passed**, including
+the Money/Bootstrap suite, ledger service/concurrency/stale snapshots, school-owned
+inventory, navigation, retained-year behavior, permissions, routes, translations
+and OpenAPI authentication/response scenarios. All **41 affected app entry and
+navigation tests** passed. The complete learner/parent Chrome smoke flow passed:
+learner exclusion, real login and parent Home entry, both learner shares, receipt
+history and reserved credit, scoped headers, and denial clearing private details.
+The lazy list is scrolled using real gestures before inspecting later receipts.
+No binding, input helper or assertion was weakened. Hosted Android/CI must still
+qualify the final source; final run links and merge evidence are on the PR.
