@@ -659,3 +659,23 @@ refund/pro-rata policy, live payouts, new fee rules/items, gateways, wallets and
 commerce remain separate increments. New labels have English fallback in all
 offered catalogues pending fluent review. Physical-device/staging/user acceptance
 and independent live-money review remain separate; no production activation.
+
+## 2026-10-27 — fee items and reviewed one-off invoicing
+
+Added a revisioned additional-item catalogue and explicit learner/family occurrence
+charging. Exact-cent family apportionment preserves grand holder totals and
+balanced learner amounts. Stable occurrence uniqueness prevents duplicate billing
+across UUIDs and key rotation; private reference text is encrypted. Current
+year/enrolment/payer checks and an HMAC review precede atomic invoice, ledger,
+audit/outbox and permanent receipt creation. Annual tuition uniqueness and
+immutable history remain intact. Tuition-first now prioritises annual tuition
+before additional fees; existing pins and credit-note release/reallocation work
+with item lines. Finance and parent views explain the new charges through
+additive optional statement metadata.
+
+Verification is recorded in self-tests/money/fee-items.md and the feature PR.
+Taxable/automatic membership/rule items, discounts, refunds, gateways, wallets and
+commerce remain separate increments. New phrases have explicit English fallback
+in every offered catalogue pending fluent review. External staging/devices,
+real-money reconciliation and independent acceptance remain separate from source
+completion; no production or paid-provider activation.

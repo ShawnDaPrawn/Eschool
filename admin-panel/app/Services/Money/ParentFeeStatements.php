@@ -88,7 +88,7 @@ final class ParentFeeStatements
                 }
                 // Explicit whitelist: another holder's identity, shares, ledger
                 // and source references never enter the parent's resource.
-                $rows[] = array_intersect_key($row, array_flip(['invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'description', 'period_start', 'period_end',
+                $rows[] = array_intersect_key($row, array_flip(['invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'charge_kind', 'charge_scope', 'description', 'period_start', 'period_end',
                     'issued_on', 'due_on', 'currency', 'gross_charged_cents', 'credited_cents', 'charged_cents', 'allocated_cents', 'outstanding_cents']));
             }
             // Owning a receipt does not restore guardian visibility to this

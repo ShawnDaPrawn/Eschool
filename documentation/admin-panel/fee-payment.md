@@ -21,3 +21,19 @@ net charges, remaining debt and held funds. Restored funds can be allocated thro
 the existing reviewed receipt workflow. This action does not pay out cash or money
 from the bank. Parents see their permitted correction category and amounts; the
 private Finance explanation remains restricted.
+
+## Add a one-off fee item
+
+With **Fee items and charges** permission, create an additional item, choose
+**Learner** or **Family**, set its price/currency, confirm **No VAT charged**, and
+activate it. Choose **Prepare item charge**, select the family payer and (for a
+learner item) the learner. Enter an occurrence reference and charge/due dates.
+Review the exact amounts before confirming the invoice. Taxable items are outside
+this workflow.
+
+A family item is charged once. The review shows how that amount is divided across
+its learners while preserving each holder's total share. Reusing the occurrence
+reference cannot bill it again. Posted invoices stay intact when catalogue prices
+change; use a credit note for corrections. Statements show the item name and
+explain family apportionment. Tuition-first allocation pays tuition before these
+additional charges, retaining holder and learner restrictions.

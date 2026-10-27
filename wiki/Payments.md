@@ -347,3 +347,28 @@ held funds separately. Historical invoice amounts and receipt amounts are retain
 Disabled fees retain credit history read-only. Private explanations are encrypted
 at rest and available only to authorized Finance; parents see fixed categories
 and their own currently permitted shares.
+
+## Fee items and one-off charges
+
+Finance with `fee-items-manage` opens **Fee items and charges**, creates a learner
+or family item, enters its price/currency and explicitly selects **No VAT charged**.
+Activate the item when ready. Taxable items and automatic membership/discount rules
+remain separate work. Item names appear on invoices and parent statements.
+
+Choose **Prepare item charge**, select its family payer, then select the learner
+for a learner item. A family item charges the family once and apportions its total
+over the reviewed learner roster, preserving each holder's overall percentage
+share exactly. Review all learner/holder amounts, occurrence, date and due date
+before confirming. Use a unique occurrence reference, such as an excursion
+identifier: reopening a form or using a new request UUID cannot bill it twice.
+Another occurrence requires another reference. Duplicate protection also survives
+application-key rotation; the private reference text is encrypted at rest.
+
+Posting creates a new immutable invoice and balanced receivable/income entry.
+Existing annual tuition can still bill once per learner/year in either order.
+Catalogue price/name revisions do not alter earlier invoices. An item with charge
+history keeps its scope and currency; archive it to stop future charges. Correct
+a posted share through a credit note. Oldest-first allocation uses due/date/line
+order; tuition-first prioritises annual tuition, then additional items, while
+retaining holder and learner restrictions. Retained financial history is readable
+when fees are disabled. No payment gateway or payout is activated.

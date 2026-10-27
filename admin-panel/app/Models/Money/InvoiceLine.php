@@ -23,6 +23,6 @@ class InvoiceLine extends Model
 
     protected function casts(): array
     {
-        return ['invoice_id' => 'integer', 'learner_id' => 'integer', 'session_year_id' => 'integer', 'fee_plan_id' => 'integer', 'plan_revision' => 'integer', 'amount_cents' => 'integer', 'vat_cents' => 'integer', 'holder_shares' => 'array', 'period_start' => 'date:Y-m-d', 'period_end' => 'date:Y-m-d'];
+        return ['fee_charge_id' => 'integer', 'invoice_id' => 'integer', 'learner_id' => 'integer', 'session_year_id' => 'integer', 'fee_plan_id' => 'integer', 'plan_revision' => 'integer', 'amount_cents' => 'integer', 'vat_cents' => 'integer', 'holder_shares' => 'array', 'period_start' => 'date:Y-m-d', 'period_end' => 'date:Y-m-d'];
     }
 }

@@ -229,6 +229,10 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(charge.description),
+                if (charge.chargeKind?.value == 'fee_item')
+                  _text('Additional fee'),
+                if (charge.chargeScope?.value == 'family')
+                  _text('Family charge apportioned to this learner'),
                 Text(
                   '${charge.invoiceNumber} · ${feeDate(charge.periodStart)} – ${feeDate(charge.periodEnd)}',
                 ),

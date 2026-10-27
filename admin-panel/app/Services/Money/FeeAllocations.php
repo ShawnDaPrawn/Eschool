@@ -77,9 +77,12 @@ final class FeeAllocations
         $left = $available;
         $rows = [];
         if ($policy !== null) {
-            // All currently supported charges are tuition. Future fee items
-            // must add their category priority before tuition_first differs.
-            foreach (app(FeeStatements::class)->charges($account, $payment->holder_user_id) as $charge) {
+            $charges = app(FeeStatements::class)->charges($account, $payment->holder_user_id);
+            if ($policy->allocation_order === 'tuition_first') {
+                // PHP's stable sort preserves due/date/line order within each category.
+                usort($charges, fn ($a, $b) => ($a['charge_kind'] === 'annual_tuition' ? 0 : 1) <=> ($b['charge_kind'] === 'annual_tuition' ? 0 : 1));
+            }
+            foreach ($charges as $charge) {
                 if ($left === 0) {
                     break;
                 }

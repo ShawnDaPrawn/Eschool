@@ -10,7 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Repository implements FeeStatementRepository {
-  _Repository({this.withCredits = false});
+  _Repository({this.withCredits = false, this.withItems = false});
+  final bool withItems;
   final bool withCredits;
   bool active = true;
   Object? error;
@@ -28,7 +29,9 @@ class _Repository implements FeeStatementRepository {
   }) async {
     if (error != null) throw error!;
     return ParentFeeAccountsPage.fromJson(
-      withCredits ? feeCreditedAccountsFixture() : feeAccountsFixture(),
+      (withCredits || withItems)
+          ? feeCreditedAccountsFixture()
+          : feeAccountsFixture(),
     );
   }
 
@@ -44,7 +47,11 @@ class _Repository implements FeeStatementRepository {
     return pending?.future ??
         Future.value(
           ParentFeeStatement.fromJson(
-            withCredits ? feeCreditedStatementFixture() : feeStatementFixture(),
+            withItems
+                ? feeItemStatementFixture()
+                : withCredits
+                ? feeCreditedStatementFixture()
+                : feeStatementFixture(),
           ),
         );
   }
@@ -273,6 +280,63 @@ void main() {
       );
       await expectLater(repo.statement(7), throwsA(isA<ApiException>()));
     });
+  }
+  test(
+    'item scope and future item categories keep private statement history readable',
+    () async {
+      final data = feeItemStatementFixture();
+      final rows = ((data['charges'] as Map)['items'] as List);
+      (rows.first as Map)['charge_kind'] = 'future_category';
+      final api = FakeApi(
+        routes: {'GET v2/parent/fees/accounts/7/statement': _ok(data)},
+      );
+      final repo = ApiFeeStatementRepository(
+        ApiClient(
+          authToken: () => 'synthetic',
+          onUnauthorized: () {},
+          createDio: () => Dio()..httpClientAdapter = api,
+        ),
+        schoolId: 1,
+        accountId: 21,
+        contextActive: () => true,
+      );
+      final result = await repo.statement(7);
+      expect(
+        result.charges.items.first.description,
+        'Synthetic family activity fee',
+      );
+      expect(result.charges.items.last.chargeScope?.value, 'family');
+      expect(result.chargedCents, 702);
+    },
+  );
+  for (final width in [390.0, 820.0, 1280.0]) {
+    testWidgets(
+      'family item scope and credited shares remain clear at $width',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final repo = _Repository(withItems: true);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(),
+            home: FeeStatementScreen(repository: repo),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Open statement'));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(find.text('Asha Synthetic'), 200);
+        expect(find.text('Additional fee'), findsWidgets);
+        expect(
+          find.text('Family charge apportioned to this learner'),
+          findsWidgets,
+        );
+        expect(find.text('Synthetic family activity fee'), findsWidgets);
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets(

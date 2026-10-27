@@ -44,7 +44,7 @@ final class BillRuns
         app(MoneyPolicy::class)->authorize($actor, self::PERMISSION);
         $data = Validator::make($input, self::operationRules())->validate() + ['run_id' => $id];
         $receipt = app(BillingOperations::class)->once($actor, self::PERMISSION, 'bill_approve', $data, function () use ($actor, $id, $data): array {
-            $run = BillRun::lockForUpdate()->findOrFail($id);
+            $run = BillRun::where('kind', 'annual')->lockForUpdate()->findOrFail($id);
             abort_unless($run->state === 'preview' && $run->revision === (int) $data['revision'], 409, 'This bill run changed. Review its current state.');
             $this->verify($actor, $run);
             $run->update(['state' => 'approved', 'revision' => $run->revision + 1, 'approved_by' => $actor->id, 'approved_at' => now('UTC')]);
@@ -61,7 +61,7 @@ final class BillRuns
         app(MoneyPolicy::class)->authorize($actor, self::PERMISSION);
         $data = Validator::make($input, self::postingRules())->validate() + ['run_id' => $id];
         $receipt = app(BillingOperations::class)->once($actor, self::PERMISSION, 'bill_post', $data, function () use ($actor, $id, $data): array {
-            $run = BillRun::lockForUpdate()->findOrFail($id);
+            $run = BillRun::where('kind', 'annual')->lockForUpdate()->findOrFail($id);
             abort_unless($run->state === 'approved' && $run->revision === (int) $data['revision'], 409, 'Approve and review the current bill run before posting.');
             $year = SessionYear::where('default', 1)->lockForUpdate()->first();
             abort_unless($year !== null && (int) $year->id === (int) $run->session_year_id, 422, 'Only the current school year can post invoices.');

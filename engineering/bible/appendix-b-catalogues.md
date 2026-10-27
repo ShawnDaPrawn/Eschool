@@ -253,3 +253,10 @@ Finance capability. Internal `fees.credit_posted` outbox events contain IDs and
 cents only; private explanations are excluded from events/audits/parent DTOs.
 Existing parent fee reads add optional gross/credited/released amounts and an
 independent credit-note page, without adding a parent write or payment provider.
+
+### Additional fee-item catalogue
+
+The fees module gains `fee-items-manage` for Finance and school-owned `fee_items`
+and `fee_charges`. Internal `fees.item_charged` events carry only charge identity
+and cents. Existing parent fee statement reads add optional kind/scope metadata;
+there is no parent financial write, provider call or notification spend.

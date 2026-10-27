@@ -149,6 +149,8 @@ void main() {
         'Your learner shares, receipts and held credits',
         'Your invoice balance still due',
         'Your held credit',
+        'Additional fee',
+        'Family charge apportioned to this learner',
       ]) {
         expect(json[key], isA<String>(), reason: '${file.path}: $key');
       }
