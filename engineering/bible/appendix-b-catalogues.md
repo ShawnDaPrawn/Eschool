@@ -244,3 +244,12 @@ receive it; real custom Finance roles need explicit assignment. Internal
 cents only. They do not register a new notification type or send messages.
 Cash/EFT is an office verification workflow, not an enabled gateway. Held history
 remains readable when fees are disabled; fresh policy blocks new writes.
+
+### Credit-note additions (27 October 2026)
+
+Fees: school-owned `fee_credit_notes` and `fee_credit_releases` retain immutable
+corrections and links to original allocations. `fee-credits-manage` is a separate
+Finance capability. Internal `fees.credit_posted` outbox events contain IDs and
+cents only; private explanations are excluded from events/audits/parent DTOs.
+Existing parent fee reads add optional gross/credited/released amounts and an
+independent credit-note page, without adding a parent write or payment provider.

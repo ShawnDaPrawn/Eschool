@@ -72,9 +72,9 @@ void main() {
               ],
           }),
           'GET v2/parent/fees/accounts': (RequestOptions _) =>
-              privateRead(feeAccountsFixture()),
+              privateRead(feeCreditedAccountsFixture()),
           'GET v2/parent/fees/accounts/7/statement': (RequestOptions _) =>
-              privateRead(feeStatementFixture()),
+              privateRead(feeCreditedStatementFixture()),
         });
         await tapWhenReady(
           tester,
@@ -109,7 +109,17 @@ void main() {
         await pumpUntilFound(tester, find.text('Your learner charges'));
         expect(find.text('Your invoice balance still due'), findsOneWidget);
         expect(find.text('Your held credit'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Asha Synthetic'),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
         expect(find.text('Asha Synthetic'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Cara Synthetic'),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
         expect(find.text('Cara Synthetic'), findsOneWidget);
         await tester.scrollUntilVisible(
           find.text('Your receipts and credits'),
@@ -130,11 +140,19 @@ void main() {
         );
         await tester.pump();
         expect(find.text('FEE-PAY-SYNTHETIC-2'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('FEE-CN-SYNTHETIC-1'),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
+        expect(find.text('Billing correction'), findsOneWidget);
+        expect(find.text('Restored to receipts'), findsOneWidget);
         allowed = false;
         await tapWhenReady(tester, find.byTooltip('Refresh fee statements'));
         await pumpUntilFound(tester, find.text('Your fee access changed'));
         expect(find.text('Synthetic family'), findsNothing);
         expect(find.text('FEE-PAY-SYNTHETIC-1'), findsNothing);
+        expect(find.text('FEE-CN-SYNTHETIC-1'), findsNothing);
         expect(find.text('Asha Synthetic'), findsNothing);
         final reads = api.requests.where(
           (r) => r.uri.path.contains('/parent/fees/'),

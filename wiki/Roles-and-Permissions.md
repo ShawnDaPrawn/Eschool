@@ -328,3 +328,10 @@ and Finance statements. Plan/account/bill permissions alone do not grant it.
 Super Admin and synthetic demo Finance include it. Actual custom roles must be
 assigned explicitly. Parent read-only statements use fresh Parent/guardian policy,
 not this staff permission; learners have no access to the parent endpoint.
+
+`fee-credits-manage` independently permits Finance to review/post credit notes and
+read their private explanations. Receipt, family-account and bill-run permissions
+do not implicitly grant it. School Super Admin receives it through school role
+seeding; custom roles require an explicit grant. Parent fee reads expose only
+fixed categories and the parent's currently permitted amounts, never this private
+Finance capability.

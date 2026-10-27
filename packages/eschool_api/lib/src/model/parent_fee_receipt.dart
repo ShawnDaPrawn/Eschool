@@ -33,6 +33,8 @@ class ParentFeeReceipt {
     required this.allocatedCents,
 
     required this.creditCents,
+
+    this.releasedCents,
   });
 
   // minimum: 1
@@ -72,6 +74,11 @@ class ParentFeeReceipt {
   @JsonKey(name: r'credit_cents', required: true, includeIfNull: false)
   final int creditCents;
 
+  /// Cumulative money restored to this receipt by posted credit notes; current held money remains credit_cents.
+  // minimum: 0
+  @JsonKey(name: r'released_cents', required: false, includeIfNull: false)
+  final int? releasedCents;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -84,7 +91,8 @@ class ParentFeeReceipt {
           other.currency == currency &&
           other.amountCents == amountCents &&
           other.allocatedCents == allocatedCents &&
-          other.creditCents == creditCents;
+          other.creditCents == creditCents &&
+          other.releasedCents == releasedCents;
 
   @override
   int get hashCode =>
@@ -96,7 +104,8 @@ class ParentFeeReceipt {
       currency.hashCode +
       amountCents.hashCode +
       allocatedCents.hashCode +
-      creditCents.hashCode;
+      creditCents.hashCode +
+      releasedCents.hashCode;
 
   factory ParentFeeReceipt.fromJson(Map<String, dynamic> json) =>
       _$ParentFeeReceiptFromJson(json);

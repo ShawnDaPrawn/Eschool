@@ -42,7 +42,7 @@ class SchoolRoles
     ];
 
     private const SUPER_ADMIN_PERMISSIONS = [
-        'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage',
+        'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage', 'fee-credits-manage',
         'fee-plans-manage',
         'pathways-manage',
         'family-visits-manage', 'family-forms-manage', 'family-health-read', 'family-health-manage',

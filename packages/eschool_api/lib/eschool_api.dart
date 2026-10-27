@@ -804,6 +804,8 @@ export 'package:eschool_api/src/model/parent_fee_account_summary.dart';
 export 'package:eschool_api/src/model/parent_fee_accounts_page.dart';
 export 'package:eschool_api/src/model/parent_fee_charge.dart';
 export 'package:eschool_api/src/model/parent_fee_charge_page.dart';
+export 'package:eschool_api/src/model/parent_fee_credit_note.dart';
+export 'package:eschool_api/src/model/parent_fee_credit_page.dart';
 export 'package:eschool_api/src/model/parent_fee_receipt.dart';
 export 'package:eschool_api/src/model/parent_fee_receipt_page.dart';
 export 'package:eschool_api/src/model/parent_fee_statement.dart';

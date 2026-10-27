@@ -49,6 +49,10 @@ ParentFeeReceipt _$ParentFeeReceiptFromJson(
         (v) => (v as num).toInt(),
       ),
       creditCents: $checkedConvert('credit_cents', (v) => (v as num).toInt()),
+      releasedCents: $checkedConvert(
+        'released_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
     );
     return val;
   },
@@ -58,6 +62,7 @@ ParentFeeReceipt _$ParentFeeReceiptFromJson(
     'amountCents': 'amount_cents',
     'allocatedCents': 'allocated_cents',
     'creditCents': 'credit_cents',
+    'releasedCents': 'released_cents',
   },
 );
 
@@ -72,6 +77,7 @@ Map<String, dynamic> _$ParentFeeReceiptToJson(ParentFeeReceipt instance) =>
       'amount_cents': instance.amountCents,
       'allocated_cents': instance.allocatedCents,
       'credit_cents': instance.creditCents,
+      'released_cents': ?instance.releasedCents,
     };
 
 const _$ParentFeeReceiptMethodEnumEnumMap = {

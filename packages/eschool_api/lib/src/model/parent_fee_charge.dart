@@ -41,6 +41,10 @@ class ParentFeeCharge {
     required this.allocatedCents,
 
     required this.outstandingCents,
+
+    this.grossChargedCents,
+
+    this.creditedCents,
   });
 
   // minimum: 1
@@ -75,6 +79,7 @@ class ParentFeeCharge {
   @JsonKey(name: r'currency', required: true, includeIfNull: false)
   final String currency;
 
+  /// Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
   // minimum: 0
   @JsonKey(name: r'charged_cents', required: true, includeIfNull: false)
   final int chargedCents;
@@ -86,6 +91,16 @@ class ParentFeeCharge {
   // minimum: 0
   @JsonKey(name: r'outstanding_cents', required: true, includeIfNull: false)
   final int outstandingCents;
+
+  /// Original recorded invoice shares before credit notes. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'gross_charged_cents', required: false, includeIfNull: false)
+  final int? grossChargedCents;
+
+  /// Posted credit notes against these original shares. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'credited_cents', required: false, includeIfNull: false)
+  final int? creditedCents;
 
   @override
   bool operator ==(Object other) =>
@@ -103,7 +118,9 @@ class ParentFeeCharge {
           other.currency == currency &&
           other.chargedCents == chargedCents &&
           other.allocatedCents == allocatedCents &&
-          other.outstandingCents == outstandingCents;
+          other.outstandingCents == outstandingCents &&
+          other.grossChargedCents == grossChargedCents &&
+          other.creditedCents == creditedCents;
 
   @override
   int get hashCode =>
@@ -119,7 +136,9 @@ class ParentFeeCharge {
       currency.hashCode +
       chargedCents.hashCode +
       allocatedCents.hashCode +
-      outstandingCents.hashCode;
+      outstandingCents.hashCode +
+      grossChargedCents.hashCode +
+      creditedCents.hashCode;
 
   factory ParentFeeCharge.fromJson(Map<String, dynamic> json) =>
       _$ParentFeeChargeFromJson(json);

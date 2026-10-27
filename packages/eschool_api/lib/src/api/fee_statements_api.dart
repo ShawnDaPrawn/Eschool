@@ -19,7 +19,7 @@ class FeeStatementsApi {
   const FeeStatementsApi(this._dio);
 
   /// Read your learner shares, payments and held credits
-  /// Private school- and holder-owned statement with independent charge/receipt pages and totals over all permitted records. Mixed receipts involving a learner whose fee visibility was revoked are withheld. Does not expose other holder names, bank transaction references, ledger IDs, or legacy payment history.
+  /// Private school- and holder-owned statement with independent charge/receipt/credit-note pages and totals over all permitted records. Mixed receipts involving a learner whose fee visibility was revoked are withheld. Does not expose other holder names, bank transaction references, ledger IDs, or legacy payment history.
   ///
   /// Parameters:
   /// * [account]
@@ -27,6 +27,7 @@ class FeeStatementsApi {
   /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
   /// * [chargesPage]
   /// * [receiptsPage]
+  /// * [creditsPage]
   /// * [perPage]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -43,6 +44,7 @@ class FeeStatementsApi {
     int? xAccountId,
     int? chargesPage = 1,
     int? receiptsPage = 1,
+    int? creditsPage = 1,
     int? perPage = 20,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -82,6 +84,7 @@ class FeeStatementsApi {
     final _queryParameters = <String, dynamic>{
       if (chargesPage != null) r'charges_page': chargesPage,
       if (receiptsPage != null) r'receipts_page': receiptsPage,
+      if (creditsPage != null) r'credits_page': creditsPage,
       if (perPage != null) r'per_page': perPage,
     };
 

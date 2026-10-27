@@ -111,9 +111,11 @@ class FeePaymentPanelController extends Controller
         $statement = app(FeeStatements::class)->finance($account);
         $charges = $this->page($request, $statement['charges'], 'charges_page');
         $receipts = $this->page($request, $statement['payments'], 'receipts_page');
+        $creditNotes = $this->page($request, $statement['credit_notes'], 'credits_page');
+        $holderNames = collect($statement['charges'])->pluck('holder_name', 'holder_user_id');
         $canWrite = app(ModuleGate::class)->writable('fees');
 
-        return response()->view('money.payments.statement', compact('account', 'statement', 'charges', 'receipts', 'canWrite'));
+        return response()->view('money.payments.statement', compact('account', 'statement', 'charges', 'receipts', 'creditNotes', 'holderNames', 'canWrite'));
     }
 
     private function page(FeePaymentPanelRequest $request, array $rows, string $name): LengthAwarePaginator

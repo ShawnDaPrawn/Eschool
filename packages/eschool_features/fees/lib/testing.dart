@@ -36,7 +36,7 @@ Map<String, dynamic> feeStatementFixture({
   'charges': {
     'items': [
       for (final child in [11, 12])
-        {
+        <String, dynamic>{
           'invoice_line_id': child,
           'invoice_number': 'BILL-SYNTHETIC',
           'learner_id': child,
@@ -59,7 +59,7 @@ Map<String, dynamic> feeStatementFixture({
   'receipts': {
     'items': [
       for (final receipt in [1, 2])
-        {
+        <String, dynamic>{
           'id': receipt,
           'number': 'FEE-PAY-SYNTHETIC-$receipt',
           'pinned_learner_id': receipt == 2 ? 12 : null,
@@ -75,4 +75,77 @@ Map<String, dynamic> feeStatementFixture({
     'per_page': 20,
     'total': 2,
   },
+};
+
+/// A paid share correction returns 300 cents to its original receipt.
+Map<String, dynamic> feeCreditedStatementFixture({
+  int schoolId = 1,
+  int holderId = 21,
+}) {
+  final original = feeStatementFixture(schoolId: schoolId, holderId: holderId);
+  final charges = (original['charges'] as Map<String, dynamic>);
+  final rows = (charges['items'] as List).cast<Map<String, dynamic>>();
+  rows[0].addAll({
+    'gross_charged_cents': 501,
+    'credited_cents': 300,
+    'charged_cents': 201,
+    'allocated_cents': 201,
+  });
+  rows[1].addAll({'gross_charged_cents': 501, 'credited_cents': 0});
+  final receiptRows =
+      ((original['receipts'] as Map<String, dynamic>)['items'] as List)
+          .cast<Map<String, dynamic>>();
+  receiptRows[0].addAll({
+    'allocated_cents': 600,
+    'credit_cents': 300,
+    'released_cents': 300,
+  });
+  return {
+    ...original,
+    'gross_charged_cents': 1002,
+    'credited_cents': 300,
+    'charged_cents': 702,
+    'allocated_cents': 600,
+    'credit_cents': 350,
+    'net_cents': -248,
+    'credit_notes': {
+      'items': [
+        {
+          'id': 31,
+          'number': 'FEE-CN-SYNTHETIC-1',
+          'invoice_line_id': 11,
+          'invoice_number': 'BILL-SYNTHETIC',
+          'learner_id': 11,
+          'learner_name': 'Asha Synthetic',
+          'currency': 'ZAR',
+          'amount_cents': 300,
+          'unpaid_cents': 0,
+          'released_cents': 300,
+          'reason_code': 'billing_error',
+          'issued_on': '2026-06-15',
+        },
+      ],
+      'current_page': 1,
+      'per_page': 20,
+      'total': 1,
+    },
+  };
+}
+
+Map<String, dynamic> feeCreditedAccountsFixture({
+  int schoolId = 1,
+  int holderId = 21,
+}) => {
+  ...feeAccountsFixture(schoolId: schoolId, holderId: holderId),
+  'items': [
+    {
+      ...feeAccountFixture(schoolId: schoolId, holderId: holderId),
+      'gross_charged_cents': 1002,
+      'credited_cents': 300,
+      'charged_cents': 702,
+      'allocated_cents': 600,
+      'credit_cents': 350,
+      'net_cents': -248,
+    },
+  ],
 };

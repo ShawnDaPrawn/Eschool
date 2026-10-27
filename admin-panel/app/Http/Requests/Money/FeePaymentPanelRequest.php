@@ -30,7 +30,7 @@ class FeePaymentPanelRequest extends MoneyPanelRequest
     public function rules(): array
     {
         if ($this->isMethodSafe()) {
-            return $this->readRules() + ['account_id' => ['sometimes', 'integer', 'min:1'], 'charges_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'receipts_page' => ['sometimes', 'integer', 'min:1', 'max:1000000']];
+            return $this->readRules() + ['account_id' => ['sometimes', 'integer', 'min:1'], 'charges_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'receipts_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'credits_page' => ['sometimes', 'integer', 'min:1', 'max:1000000']];
         }
 
         return $this->bindingRules() + match (true) {

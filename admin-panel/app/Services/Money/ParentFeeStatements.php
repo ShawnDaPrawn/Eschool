@@ -27,15 +27,15 @@ final class ParentFeeStatements
         });
     }
 
-    public function show(User $actor, int $id, int $chargesPage = 1, int $receiptsPage = 1, int $perPage = 20): array
+    public function show(User $actor, int $id, int $chargesPage = 1, int $receiptsPage = 1, int $perPage = 20, int $creditsPage = 1): array
     {
-        return DB::transaction(function () use ($actor, $id, $chargesPage, $receiptsPage, $perPage): array {
+        return DB::transaction(function () use ($actor, $id, $chargesPage, $receiptsPage, $perPage, $creditsPage): array {
             $all = $this->owned($actor);
             abort_unless(isset($all[$id]), 404);
             $statement = $all[$id];
             app(ParentFeePolicy::class)->authorize($actor);
 
-            return $this->summary($statement) + ['charges' => $this->page($statement['charges'], $chargesPage, $perPage), 'receipts' => $this->page($statement['payments'], $receiptsPage, $perPage)];
+            return $this->summary($statement) + ['charges' => $this->page($statement['charges'], $chargesPage, $perPage), 'receipts' => $this->page($statement['payments'], $receiptsPage, $perPage), 'credit_notes' => $this->page($statement['credit_notes'], $creditsPage, $perPage)];
         });
     }
 
@@ -59,6 +59,7 @@ final class ParentFeeStatements
         $projections->completeAccounts($ids);
         $charges = $projections->chargesFor($ids, (int) $actor->id);
         $payments = $projections->receiptsFor($ids, (int) $actor->id);
+        $credits = $projections->creditNotesFor($ids, (int) $actor->id);
         $school = app(CurrentSchool::class)->id();
         $hiddenPaymentIds = DB::table('payment_allocations as a')->join('payments as p', function ($j) {
             $j->on('p.school_id', '=', 'a.school_id')->on('p.id', '=', 'a.payment_id');
@@ -88,7 +89,7 @@ final class ParentFeeStatements
                 // Explicit whitelist: another holder's identity, shares, ledger
                 // and source references never enter the parent's resource.
                 $rows[] = array_intersect_key($row, array_flip(['invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'description', 'period_start', 'period_end',
-                    'issued_on', 'due_on', 'currency', 'charged_cents', 'allocated_cents', 'outstanding_cents']));
+                    'issued_on', 'due_on', 'currency', 'gross_charged_cents', 'credited_cents', 'charged_cents', 'allocated_cents', 'outstanding_cents']));
             }
             // Owning a receipt does not restore guardian visibility to this
             // family. A visible learner elsewhere cannot authorize its history.
@@ -101,9 +102,9 @@ final class ParentFeeStatements
                     || ($payment['pinned_learner_id'] !== null && ! in_array($payment['pinned_learner_id'], $visible, true))) {
                     continue;
                 }
-                $receipts[] = array_intersect_key($payment, array_flip(['id', 'number', 'pinned_learner_id', 'method', 'received_on', 'currency', 'amount_cents', 'allocated_cents', 'credit_cents']));
+                $receipts[] = array_intersect_key($payment, array_flip(['id', 'number', 'pinned_learner_id', 'method', 'received_on', 'currency', 'amount_cents', 'released_cents', 'allocated_cents', 'credit_cents']));
             }
-            $byAccount[$id] = ['id' => $id, 'name' => $account->name, 'reference' => $account->reference, 'currency' => $account->currency, 'school_id' => $school, 'holder_user_id' => (int) $actor->id, 'charges' => $rows, 'payments' => $receipts];
+            $byAccount[$id] = ['id' => $id, 'name' => $account->name, 'reference' => $account->reference, 'currency' => $account->currency, 'school_id' => $school, 'holder_user_id' => (int) $actor->id, 'charges' => $rows, 'payments' => $receipts, 'credit_notes' => array_values(array_map(fn ($n) => array_intersect_key($n, array_flip(['id', 'number', 'invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'currency', 'amount_cents', 'unpaid_cents', 'released_cents', 'reason_code', 'issued_on'])), array_filter($credits, fn ($n) => $n['fee_account_id'] === $id && in_array($n['learner_id'], $visible, true))))];
         }
 
         return $byAccount;
@@ -118,7 +119,7 @@ final class ParentFeeStatements
         sort($due);
 
         return array_intersect_key($statement, array_flip(['id', 'name', 'reference', 'currency', 'school_id', 'holder_user_id'])) + [
-            'charged_cents' => array_sum(array_column($charges, 'charged_cents')), 'allocated_cents' => array_sum(array_column($charges, 'allocated_cents')),
+            'gross_charged_cents' => array_sum(array_column($charges, 'gross_charged_cents')), 'credited_cents' => array_sum(array_column($charges, 'credited_cents')), 'charged_cents' => array_sum(array_column($charges, 'charged_cents')), 'allocated_cents' => array_sum(array_column($charges, 'allocated_cents')),
             'outstanding_cents' => $outstanding, 'credit_cents' => $credit, 'net_cents' => $outstanding - $credit, 'next_due_on' => $due[0] ?? null,
             'scope' => 'your_visible_ledger_records',
         ];

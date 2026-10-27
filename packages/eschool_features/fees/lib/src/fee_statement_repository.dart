@@ -10,6 +10,7 @@ abstract interface class FeeStatementRepository {
     int familyId, {
     int chargesPage = 1,
     int receiptsPage = 1,
+    int creditsPage = 1,
     int perPage = 20,
   });
 }
@@ -71,6 +72,11 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
     return Map<String, dynamic>.from(response!['data'] as Map);
   }
 
+  bool _correction(int? gross, int? credited, int net) =>
+      (credited ?? 0) >= 0 &&
+      (gross ?? net) >= 0 &&
+      (gross ?? net) == net + (credited ?? 0);
+
   bool _money(
     String currency,
     int charged,
@@ -108,6 +114,11 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
       if (item.schoolId != schoolId ||
           item.holderUserId != accountId ||
           item.id < 1 ||
+          !_correction(
+            item.grossChargedCents,
+            item.creditedCents,
+            item.chargedCents,
+          ) ||
           item.scope !=
               ParentFeeAccountSummaryScopeEnum.yourVisibleLedgerRecords ||
           !_money(
@@ -129,15 +140,18 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
     int familyId, {
     int chargesPage = 1,
     int receiptsPage = 1,
+    int creditsPage = 1,
     int perPage = 20,
   }) async {
     if (familyId < 1) throw ArgumentError.value(familyId);
     _paging(chargesPage, perPage);
     _paging(receiptsPage, perPage);
+    _paging(creditsPage, perPage);
     final result = ParentFeeStatement.fromJson(
       await _send('/$familyId/statement', {
         'charges_page': chargesPage,
         'receipts_page': receiptsPage,
+        'credits_page': creditsPage,
         'per_page': perPage,
       }),
     );
@@ -163,8 +177,41 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
         result.receipts.total < 0) {
       _invalid();
     }
+    if (!_correction(
+      result.grossChargedCents,
+      result.creditedCents,
+      result.chargedCents,
+    )) {
+      _invalid();
+    }
+    final notes = result.creditNotes;
+    if (notes != null) {
+      if (notes.currentPage != creditsPage ||
+          notes.perPage != perPage ||
+          notes.total < 0 ||
+          notes.items.length > perPage) {
+        _invalid();
+      }
+      for (final note in notes.items) {
+        if (note.id < 1 ||
+            note.invoiceLineId < 1 ||
+            note.learnerId < 1 ||
+            note.currency != result.currency ||
+            note.amountCents < 1 ||
+            note.unpaidCents < 0 ||
+            note.releasedCents < 0 ||
+            note.amountCents != note.unpaidCents + note.releasedCents) {
+          _invalid();
+        }
+      }
+    }
     for (final row in result.charges.items) {
-      if (row.learnerId < 1 ||
+      if (!_correction(
+            row.grossChargedCents,
+            row.creditedCents,
+            row.chargedCents,
+          ) ||
+          row.learnerId < 1 ||
           row.invoiceLineId < 1 ||
           row.currency != result.currency ||
           row.chargedCents < 0 ||
@@ -175,7 +222,8 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
       }
     }
     for (final row in result.receipts.items) {
-      if (row.id < 1 ||
+      if ((row.releasedCents ?? 0) < 0 ||
+          row.id < 1 ||
           row.currency != result.currency ||
           row.amountCents < 1 ||
           row.allocatedCents < 0 ||

@@ -55,6 +55,14 @@ ParentFeeCharge _$ParentFeeChargeFromJson(Map<String, dynamic> json) =>
             'outstanding_cents',
             (v) => (v as num).toInt(),
           ),
+          grossChargedCents: $checkedConvert(
+            'gross_charged_cents',
+            (v) => (v as num?)?.toInt(),
+          ),
+          creditedCents: $checkedConvert(
+            'credited_cents',
+            (v) => (v as num?)?.toInt(),
+          ),
         );
         return val;
       },
@@ -70,6 +78,8 @@ ParentFeeCharge _$ParentFeeChargeFromJson(Map<String, dynamic> json) =>
         'chargedCents': 'charged_cents',
         'allocatedCents': 'allocated_cents',
         'outstandingCents': 'outstanding_cents',
+        'grossChargedCents': 'gross_charged_cents',
+        'creditedCents': 'credited_cents',
       },
     );
 
@@ -88,4 +98,6 @@ Map<String, dynamic> _$ParentFeeChargeToJson(ParentFeeCharge instance) =>
       'charged_cents': instance.chargedCents,
       'allocated_cents': instance.allocatedCents,
       'outstanding_cents': instance.outstandingCents,
+      'gross_charged_cents': ?instance.grossChargedCents,
+      'credited_cents': ?instance.creditedCents,
     };

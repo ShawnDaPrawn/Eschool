@@ -2,8 +2,9 @@
 
 Status: ledger foundation, fee-plan catalogue/enrolment previews and family
 accounts/annual preview/approve/post billing are merged. Manual fee receipts,
-allocation and private parent statements are the current implementation increment;
-qualification and integration are tracked on its feature PR.
+allocation and private parent statements are merged. Credit notes and fee
+corrections are the current implementation increment; qualification and integration
+are tracked on its feature PR.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence
@@ -42,11 +43,18 @@ posting against receivable/income accounts. It excludes already invoiced annual
 charges and exposes missing/invalid payers and unsupported policies as exceptions.
 See [family billing](../specs/money/family-billing.md). Policy-dependent charges remain separate work.
 
-The current increment records verified manual cash/EFT receipts, holds credit for
+The previous increment records verified manual cash/EFT receipts, holds credit for
 an explicit holder/optional learner, reviews and posts allocation, and exposes
 private parent statements in API v2 and the parent app. No provider is selected.
 See [payments and statements](../specs/money/payments-statements.md) and its
 [verification record](../self-tests/money/payments-statements.md).
+
+The current increment adds reasoned credit notes against recorded invoice shares,
+reduces unpaid debt and restores paid money to original holder receipts with learner
+pins retained. Original documents remain immutable; Finance reviews the exact
+correction before confirming. See [credit notes](../specs/money/credit-notes.md)
+and [verification](../self-tests/money/credit-notes.md). No automatic school refund
+formula or payout is selected.
 
 Remaining fee rules/items/discounts, refunds, payment adapters and bank
 matching, wallets/approvals/limits/withdrawals, vendors/orders/settlement,

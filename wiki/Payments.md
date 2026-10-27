@@ -329,3 +329,21 @@ A receipt touching a learner they can no longer view is withheld; totals explici
 cover permitted ledger records. Other holders' details and raw bank references
 are never in the parent response. No Pay now/provider activation is introduced.
 Existing v1 receipt screens and the legacy leadership aggregate remain unchanged.
+
+## Credit notes and corrections
+
+Finance users with `fee-credits-manage` open **Fee credit notes**, choose a family
+and a recorded learner/holder share, and enter a positive amount, correction
+category and private explanation. Review the debt reduction and funds restored
+before confirming. Changed charges/allocations require a fresh review. Exact
+replay records the correction once. An original invoice cannot be edited.
+
+Credits reduce unpaid debt first. A paid correction returns funds to their original
+receipts as held credit, retaining the original holder and any learner restriction.
+Finance can review a later allocation through the existing receipt workflow.
+This does not send cash, make a bank payout or choose a school refund formula.
+Statements show original charges, credits, net charges, applied payments, debt and
+held funds separately. Historical invoice amounts and receipt amounts are retained.
+Disabled fees retain credit history read-only. Private explanations are encrypted
+at rest and available only to authorized Finance; parents see fixed categories
+and their own currently permitted shares.

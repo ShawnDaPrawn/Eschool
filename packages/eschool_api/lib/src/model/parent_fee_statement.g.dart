@@ -70,6 +70,20 @@ ParentFeeStatement _$ParentFeeStatementFromJson(
         'receipts',
         (v) => ParentFeeReceiptPage.fromJson(v as Map<String, dynamic>),
       ),
+      grossChargedCents: $checkedConvert(
+        'gross_charged_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
+      creditedCents: $checkedConvert(
+        'credited_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
+      creditNotes: $checkedConvert(
+        'credit_notes',
+        (v) => v == null
+            ? null
+            : ParentFeeCreditPage.fromJson(v as Map<String, dynamic>),
+      ),
     );
     return val;
   },
@@ -82,6 +96,9 @@ ParentFeeStatement _$ParentFeeStatementFromJson(
     'creditCents': 'credit_cents',
     'netCents': 'net_cents',
     'nextDueOn': 'next_due_on',
+    'grossChargedCents': 'gross_charged_cents',
+    'creditedCents': 'credited_cents',
+    'creditNotes': 'credit_notes',
   },
 );
 
@@ -102,6 +119,9 @@ Map<String, dynamic> _$ParentFeeStatementToJson(ParentFeeStatement instance) =>
       'scope': _$ParentFeeStatementScopeEnumEnumMap[instance.scope]!,
       'charges': instance.charges.toJson(),
       'receipts': instance.receipts.toJson(),
+      'gross_charged_cents': ?instance.grossChargedCents,
+      'credited_cents': ?instance.creditedCents,
+      'credit_notes': ?instance.creditNotes?.toJson(),
     };
 
 const _$ParentFeeStatementScopeEnumEnumMap = {
