@@ -40,3 +40,20 @@ is claimed by these engineering checks.
 This slice does not implement all fee rules, family payers, bill approval/posting,
 pro-rata/refunds, gateways, wallets or commerce. It cannot take a payment or charge
 a family. No launch gate is claimed; independent development continues.
+
+## Peer fixture integration
+
+Reviewed and incorporated the published source of PR #309, the test-only
+[peer clock correction](../peer-browser-clock.md). Its isolated school membership
+dates cover the fixture's three-hour backdated session preparation. Application
+role, approval and allocation checks remain enforced.
+
+Independently reproduced the old fixture's 403 through `ProfilePolicy::actor` /
+`PeerAccess` at controlled school time 2026-10-28 02:15 (Africa/Johannesburg),
+with memberships beginning that day. The corrected fixture returned its prepared
+session at the same time and preconditions. Each probe ran in an outer transaction
+and rolled back. On a freshly migrated/seeded isolated database, the unchanged
+finance and peer-tutoring browser suites then passed together: **7 checks in
+1.8 minutes**, at 390/820/1280px, including the actual early-morning window.
+Fixture Pint and PHP syntax checks passed. Both public PR source histories are
+retained for integration; hosted CI must qualify their combined revision.
