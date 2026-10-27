@@ -58351,6 +58351,18 @@ components:
           type: string
         description:
           type: string
+        charge_kind:
+          type: string
+          enum:
+          - annual_tuition
+          - fee_item
+          description: Optional charge category; missing values retain older-server display.
+        charge_scope:
+          type: string
+          enum:
+          - learner
+          - family
+          description: Family items are billed once and apportioned over recorded learners while preserving whole-family holder shares.
         period_start:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$

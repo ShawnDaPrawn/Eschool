@@ -849,3 +849,15 @@ visible learner/invoice, fixed reason category, issue date and amount split into
 identities never appear. Existing canonical guardian and hidden-child protections
 continue to apply to summaries, history and receipts. Regenerated SDK models keep
 all additions optional for older server responses.
+
+### Additional fee-item lines
+
+Optional `charge_kind` (`annual_tuition` or `fee_item`) and `charge_scope` (`learner`
+or `family`) identify statement lines without changing required learner IDs or
+amount fields. Family items are billed once, then apportioned over recorded
+learners while preserving exact whole-family holder totals. A parent sees only
+their holder shares for currently fee-visible learners. Partial guardian
+revocation removes the hidden learner's lines and amounts, including a family
+apportionment. Private occurrence references, hashes and charge snapshots are
+excluded. Older responses may omit the new fields; unknown future enum values
+keep existing statement history readable.

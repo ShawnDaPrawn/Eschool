@@ -164,3 +164,11 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
   credit while retaining holder and learner restrictions.
 - Finance and private parent statements show original charges, credit notes and
   net balances; private Finance explanations remain excluded from parent reads.
+
+### Phase 5 fee items
+
+- Finance can maintain additional learner/family fee items and review one-off
+  occurrence invoices with exact payer shares and duplicate protection.
+- Family charges bill once, retain real learner visibility and work with existing
+  credit notes, held payments and learner pins. Tuition-first allocation now
+  distinguishes annual tuition from additional items.

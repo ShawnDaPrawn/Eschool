@@ -1,10 +1,9 @@
 # Phase 5 — money and commerce
 
-Status: ledger foundation, fee-plan catalogue/enrolment previews and family
-accounts/annual preview/approve/post billing are merged. Manual fee receipts,
-allocation and private parent statements are merged. Credit notes and fee
-corrections are the current implementation increment; qualification and integration
-are tracked on its feature PR.
+Status: ledger foundation, fee plans, family accounts/annual billing, manual fee
+receipts/allocation, private parent statements and credit notes are merged.
+Fee items and reviewed one-off charges are the current implementation increment;
+qualification and integration are tracked on its feature PR.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence
@@ -49,14 +48,21 @@ private parent statements in API v2 and the parent app. No provider is selected.
 See [payments and statements](../specs/money/payments-statements.md) and its
 [verification record](../self-tests/money/payments-statements.md).
 
-The current increment adds reasoned credit notes against recorded invoice shares,
+The previous increment adds reasoned credit notes against recorded invoice shares,
 reduces unpaid debt and restores paid money to original holder receipts with learner
 pins retained. Original documents remain immutable; Finance reviews the exact
 correction before confirming. See [credit notes](../specs/money/credit-notes.md)
 and [verification](../self-tests/money/credit-notes.md). No automatic school refund
 formula or payout is selected.
 
-Remaining fee rules/items/discounts, refunds, payment adapters and bank
+The current increment adds a revisioned additional-item catalogue and reviewed
+one-off learner/family invoices. Family charges are billed once and apportioned
+using exact holder totals and real learner records. Annual tuition uniqueness,
+credit-note corrections and learner pins remain intact; tuition-first allocation
+now distinguishes tuition from additional items. See [fee items](../specs/money/fee-items.md)
+and [verification](../self-tests/money/fee-items.md).
+
+Remaining automatic fee rules/taxable items/discounts, refunds, payment adapters and bank
 matching, wallets/approvals/limits/withdrawals, vendors/orders/settlement,
 ticketing, online card/QR spending and the finance/app surfaces remain future
 Phase 5 slices. Clearing and due-to-school balances remain zero until Phase 6.

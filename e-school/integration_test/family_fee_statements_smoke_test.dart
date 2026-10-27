@@ -74,7 +74,7 @@ void main() {
           'GET v2/parent/fees/accounts': (RequestOptions _) =>
               privateRead(feeCreditedAccountsFixture()),
           'GET v2/parent/fees/accounts/7/statement': (RequestOptions _) =>
-              privateRead(feeCreditedStatementFixture()),
+              privateRead(feeItemStatementFixture()),
         });
         await tapWhenReady(
           tester,
@@ -115,6 +115,11 @@ void main() {
           scrollable: find.byType(Scrollable).last,
         );
         expect(find.text('Asha Synthetic'), findsOneWidget);
+        expect(find.text('Additional fee'), findsWidgets);
+        expect(
+          find.text('Family charge apportioned to this learner'),
+          findsWidgets,
+        );
         await tester.scrollUntilVisible(
           find.text('Cara Synthetic'),
           200,

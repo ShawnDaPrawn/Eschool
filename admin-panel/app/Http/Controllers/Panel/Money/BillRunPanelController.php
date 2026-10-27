@@ -19,7 +19,7 @@ class BillRunPanelController extends Controller
 {
     public function index(BillRunPanelRequest $request): Response
     {
-        $runs = BillRun::orderByDesc('id')->paginate(30);
+        $runs = BillRun::where('kind', 'annual')->orderByDesc('id')->paginate(30);
         $canWrite = app(ModuleGate::class)->writable('fees');
 
         return response()->view('money.bill-runs.index', compact('runs', 'canWrite'));
@@ -35,7 +35,7 @@ class BillRunPanelController extends Controller
 
     public function show(BillRunPanelRequest $request): Response
     {
-        $run = BillRun::findOrFail((int) $request->route('run'));
+        $run = BillRun::where('kind', 'annual')->findOrFail((int) $request->route('run'));
         $snapshot = $run->snapshot;
         $filtered = array_filter($snapshot['rows'], fn ($r) => (! $request->boolean('exceptions_only') || $r['issues'] !== [])
             && (! $request->filled('search') || str_contains(mb_strtolower($r['name']), mb_strtolower((string) $request->input('search')))));
@@ -73,6 +73,8 @@ class BillRunPanelController extends Controller
         $invoice = Invoice::whereNotNull('sealed_at')->findOrFail((int) $request->route('invoice'));
         $lines = InvoiceLine::where('invoice_id', $invoice->id)->orderBy('id')->paginate(50);
 
-        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines'));
+        $backUrl = BillRun::findOrFail($invoice->bill_run_id)->kind === 'annual' ? route('fee-bill-runs.show', ['run' => $invoice->bill_run_id]) : route('fee-bill-runs.index');
+
+        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines', 'backUrl'));
     }
 }

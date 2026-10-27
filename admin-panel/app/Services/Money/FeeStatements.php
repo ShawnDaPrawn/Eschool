@@ -43,13 +43,15 @@ final class FeeStatements
             ->selectRaw('n.invoice_line_id, n.holder_user_id, SUM(n.amount_cents) AS cents')->groupBy('n.invoice_line_id', 'n.holder_user_id')->get() as $credit) {
             $credited[(int) $credit->invoice_line_id][(int) $credit->holder_user_id] = (int) $credit->cents;
         }
-        $lines = InvoiceLine::join('invoices as i', function ($j) {
+        $lines = InvoiceLine::leftJoin('fee_charges as fc', function ($j) {
+            $j->on('fc.school_id', '=', 'invoice_lines.school_id')->on('fc.id', '=', 'invoice_lines.fee_charge_id');
+        })->join('invoices as i', function ($j) {
             $j->on('i.school_id', '=', 'invoice_lines.school_id')->on('i.id', '=', 'invoice_lines.invoice_id');
         })->join('bill_runs as b', function ($j) {
             $j->on('b.school_id', '=', 'i.school_id')->on('b.id', '=', 'i.bill_run_id');
         })->whereIn('i.fee_account_id', $accountIds)->whereNotNull('i.sealed_at')->where('b.state', 'posted')
             ->orderBy('i.due_on')->orderBy('i.issued_on')->orderBy('invoice_lines.id')
-            ->get(['invoice_lines.*', 'i.fee_account_id', 'i.number as invoice_number', 'i.due_on', 'i.issued_on']);
+            ->get(['fc.scope as fee_charge_scope', 'invoice_lines.*', 'i.fee_account_id', 'i.number as invoice_number', 'i.due_on', 'i.issued_on']);
         $rows = [];
         foreach ($lines as $line) {
             foreach ($line->holder_shares as $share) {
@@ -62,7 +64,7 @@ final class FeeStatements
                 abort_unless($credit >= 0 && $net >= 0 && $used >= 0 && $used <= $net, 409, 'Fee history needs reconciliation.');
                 $rows[] = ['fee_account_id' => (int) $line->getAttribute('fee_account_id'), 'invoice_line_id' => (int) $line->id, 'invoice_id' => (int) $line->invoice_id, 'invoice_number' => (string) $line->getAttribute('invoice_number'),
                     'learner_id' => (int) $line->learner_id, 'learner_name' => $line->learner_name, 'holder_user_id' => $share['user_id'], 'holder_name' => $share['name'],
-                    'description' => $line->description, 'period_start' => $line->period_start->toDateString(), 'period_end' => $line->period_end->toDateString(),
+                    'charge_kind' => $line->fee_charge_id === null ? 'annual_tuition' : 'fee_item', 'charge_scope' => $line->getAttribute('fee_charge_scope') ?? 'learner', 'description' => $line->description, 'period_start' => $line->period_start->toDateString(), 'period_end' => $line->period_end->toDateString(),
                     'issued_on' => (string) $line->getAttribute('issued_on'), 'due_on' => (string) $line->getAttribute('due_on'), 'currency' => $line->currency, 'gross_charged_cents' => $share['amount_cents'], 'credited_cents' => $credit, 'charged_cents' => $net,
                     'allocated_cents' => $used, 'outstanding_cents' => $net - $used];
             }

@@ -6,8 +6,8 @@
     <x-page.header :title="$invoice->number" />
     <p>{{ $invoice->account_name }} · <strong>{{ \App\Services\Platform\Ledger\Money::ofCents($invoice->total_cents,$invoice->currency)->format() }}</strong></p>
     <p>{{ __('Issued on') }}: {{ $invoice->issued_on->toDateString() }} · {{ __('Due on') }}: {{ $invoice->due_on->toDateString() }}</p>
-    <p>{{ __('No VAT charged on these annual tuition fees.') }}</p>
-    <x-m3.button variant="text" :href="route('fee-bill-runs.show',['run'=>$invoice->bill_run_id])">{{ __('Back to bill run') }}</x-m3.button>
+    <p>{{ __('No VAT charged on this invoice.') }}</p>
+    <x-m3.button variant="text" :href="$backUrl??route('fee-bill-runs.show',['run'=>$invoice->bill_run_id])">{{ $backLabel??__('Back to bill run') }}</x-m3.button>
     @if(auth()->user()->can('fee-credits-manage'))<x-m3.button variant="outlined" :href="route('fee-credit-notes.new',['account_id'=>$invoice->fee_account_id])">{{ __('Prepare credit note') }}</x-m3.button>@endif
     <p>{{ __('This invoice records the original charge. Credit notes and current balances are shown on the account statement.') }}</p>
     <h2 class="m3-title-large">{{ __('Recorded holder shares') }}</h2>

@@ -26,6 +26,10 @@ class ParentFeeCharge {
 
     required this.description,
 
+    this.chargeKind,
+
+    this.chargeScope,
+
     required this.periodStart,
 
     required this.periodEnd,
@@ -63,6 +67,24 @@ class ParentFeeCharge {
 
   @JsonKey(name: r'description', required: true, includeIfNull: false)
   final String description;
+
+  /// Optional charge category; missing values retain older-server display.
+  @JsonKey(
+    name: r'charge_kind',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue: ParentFeeChargeChargeKindEnum.unknownDefaultOpenApi,
+  )
+  final ParentFeeChargeChargeKindEnum? chargeKind;
+
+  /// Family items are billed once and apportioned over recorded learners while preserving whole-family holder shares.
+  @JsonKey(
+    name: r'charge_scope',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue: ParentFeeChargeChargeScopeEnum.unknownDefaultOpenApi,
+  )
+  final ParentFeeChargeChargeScopeEnum? chargeScope;
 
   @JsonKey(name: r'period_start', required: true, includeIfNull: false)
   final String periodStart;
@@ -111,6 +133,8 @@ class ParentFeeCharge {
           other.learnerId == learnerId &&
           other.learnerName == learnerName &&
           other.description == description &&
+          other.chargeKind == chargeKind &&
+          other.chargeScope == chargeScope &&
           other.periodStart == periodStart &&
           other.periodEnd == periodEnd &&
           other.issuedOn == issuedOn &&
@@ -129,6 +153,8 @@ class ParentFeeCharge {
       learnerId.hashCode +
       learnerName.hashCode +
       description.hashCode +
+      chargeKind.hashCode +
+      chargeScope.hashCode +
       periodStart.hashCode +
       periodEnd.hashCode +
       issuedOn.hashCode +
@@ -149,4 +175,38 @@ class ParentFeeCharge {
   String toString() {
     return toJson().toString();
   }
+}
+
+/// Optional charge category; missing values retain older-server display.
+enum ParentFeeChargeChargeKindEnum {
+  @JsonValue(r'annual_tuition')
+  annualTuition(r'annual_tuition'),
+  @JsonValue(r'fee_item')
+  feeItem(r'fee_item'),
+  @JsonValue(r'unknown_default_open_api')
+  unknownDefaultOpenApi(r'unknown_default_open_api');
+
+  const ParentFeeChargeChargeKindEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+/// Family items are billed once and apportioned over recorded learners while preserving whole-family holder shares.
+enum ParentFeeChargeChargeScopeEnum {
+  @JsonValue(r'learner')
+  learner(r'learner'),
+  @JsonValue(r'family')
+  family(r'family'),
+  @JsonValue(r'unknown_default_open_api')
+  unknownDefaultOpenApi(r'unknown_default_open_api');
+
+  const ParentFeeChargeChargeScopeEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
 }

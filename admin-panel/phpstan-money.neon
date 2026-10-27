@@ -16,6 +16,7 @@ parameters:
         - database/migrations/2026_10_27_100000_create_family_billing.php
         - database/migrations/2026_10_27_200000_create_fee_payments.php
         - database/migrations/2026_10_27_300000_create_fee_credit_notes.php
+        - database/migrations/2026_10_27_400000_create_fee_items.php
         - app/Services/Platform/Ledger/AccountType.php
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php

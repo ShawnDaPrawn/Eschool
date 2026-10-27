@@ -332,3 +332,21 @@ and payment with positive cents. Composite tenant foreign keys and finalization
 triggers enforce original share caps, valid original payments and ledger sides.
 Sealed notes/releases are immutable; a populated schema refuses rollback. Existing
 allocations remain gross history; effective allocations subtract sealed releases.
+
+## Fee items and one-off charges
+
+`fee_items`: school, public invoice name, learner/family scope, integer price,
+currency, explicit no-VAT treatment, state and revision. Scope/currency freeze
+once charge history exists. `fee_charges`: school/item/account/year, optional
+learner, scope/target, encrypted private occurrence reference with stable digest,
+item revision, HMAC snapshot, typed bill run, amount/currency, actor and UTC
+creation/seal times. Composite occurrence uniqueness is independent of request
+UUIDs and application-key rotation.
+
+Bill runs distinguish annual and item sources. Invoice lines optionally refer
+to a fee charge, retaining real learner IDs and null plan references for items.
+A generated annual-only learner key preserves the existing annual uniqueness
+rule; item/learner uniqueness prevents repeated family lines. Source, reviewed
+line/share data, sealed totals and invoice links are checked by database guards.
+No financial history is rewritten by the migration. Populated item/charge history
+refuses rollback; an empty down/up is rehearsed.

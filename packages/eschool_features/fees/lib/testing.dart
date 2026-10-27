@@ -149,3 +149,26 @@ Map<String, dynamic> feeCreditedAccountsFixture({
     },
   ],
 };
+
+/// One family item is apportioned over real learners, retaining credit history.
+Map<String, dynamic> feeItemStatementFixture({
+  int schoolId = 1,
+  int holderId = 21,
+}) {
+  final data = feeCreditedStatementFixture(
+    schoolId: schoolId,
+    holderId: holderId,
+  );
+  for (final row in ((data['charges'] as Map)['items'] as List)) {
+    (row as Map<String, dynamic>).addAll({
+      'charge_kind': 'fee_item',
+      'charge_scope': 'family',
+      'description': 'Synthetic family activity fee',
+      'invoice_number': 'ITEM-SYNTHETIC',
+    });
+  }
+  (((data['credit_notes'] as Map)['items'] as List).single
+          as Map<String, dynamic>)['invoice_number'] =
+      'ITEM-SYNTHETIC';
+  return data;
+}

@@ -33,7 +33,7 @@ final class BillingPreview
             $holders = app(FamilyHolders::class)->snapshots($sets);
             $billed = DB::table('invoice_lines as l')->join('invoices as i', function ($join) {
                 $join->on('i.id', '=', 'l.invoice_id')->on('i.school_id', '=', 'l.school_id');
-            })->where('l.school_id', $school)->where('l.session_year_id', $year)->lockForUpdate()->get(['l.learner_id', 'l.invoice_id', 'i.sealed_at'])->keyBy('learner_id');
+            })->where('l.school_id', $school)->where('l.session_year_id', $year)->whereNull('l.fee_charge_id')->lockForUpdate()->get(['l.learner_id', 'l.invoice_id', 'i.sealed_at'])->keyBy('learner_id');
             $rows = [];
             $totals = [];
             $exceptions = [];

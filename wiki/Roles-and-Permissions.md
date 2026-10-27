@@ -335,3 +335,10 @@ do not implicitly grant it. School Super Admin receives it through school role
 seeding; custom roles require an explicit grant. Parent fee reads expose only
 fixed categories and the parent's currently permitted amounts, never this private
 Finance capability.
+
+`fee-items-manage` controls the additional fee catalogue, reviewed one-off charging
+and private occurrence history. School Super Admin receives the capability through
+school role seeding; custom Finance roles need an explicit grant. It does not
+implicitly grant receipt handling, annual billing, credit-note approval or parent
+fee visibility. The existing separate capabilities continue to govern those
+operations. Revocation is rechecked before a write or permanent replay is returned.
