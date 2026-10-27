@@ -105,6 +105,6 @@ class FeeItemPanelController extends Controller
         $backUrl = route('fee-item-charges.show', ['charge' => $charge->id]);
         $backLabel = __('Back to fee charge');
 
-        return response()->view('money.bill-runs.invoice',compact('invoice','lines','backUrl','backLabel'));
+        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines', 'backUrl', 'backLabel'));
     }
 }
