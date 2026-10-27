@@ -75,9 +75,10 @@ controller value before Save. The existing saved-title, review-body, one-effect
 recovery and withdrawal assertions remain intact. Application code is unchanged.
 Teacher mobile/entry checks: 4 passed; shared teaching screen/repository checks:
 23 passed. Targeted analysis has no errors or warnings (one pre-existing brace
-style info), and Dart format passed. Native qualification remains required on
-the corrected hosted head; the earlier Android assertion is not waived or
-classified as an infrastructure failure.
+style info), and Dart format passed. The corrected facilitator Android job then
+passed all 23 cases in hosted CI. The earlier assertion was not waived or
+classified as an infrastructure failure. The final combined revision still
+requires all hosted checks before merge.
 
 ## Documentation runner compatibility
 
@@ -87,3 +88,24 @@ on that image. Pin this documentation job to supported Ubuntu 24.04. Browser,
 accessibility and documentation checks remain enabled with the same dependency
 versions; no product code or deployment credentials are changed. Hosted
 qualification is required on the corrected revision.
+
+## Shared finance browser fixture
+
+The complete hosted browser suite passed 388 cases but found a 403 at the new
+finance flow. The earlier AI-controls fixture borrows the same Finance account
+as a platform operator and leaves its global support identity active. Fee
+planning correctly refuses that identity. A controlled transaction reproduced
+the 403 after AI-controls setup; restoring the school-only Finance identity
+made the same authorization succeed. Both probes rolled back.
+
+The isolated fee-plan fixture now deactivates that account's temporary platform
+identity and AI-cost grant before its finance flows. Application policies,
+support exclusions and all browser assertions remain unchanged. This reset
+is restricted by the fixture's existing isolated-test-database guard.
+
+The unchanged AI-controls and finance browser suites passed together in order:
+**10 checks in 1.3 minutes**, at 390/820/1280px, with no retries. This includes
+the platform-cost operator's access, school Finance create/copy/preview and
+ordinary Teacher refusal, retaining accessibility, overflow and error checks.
+Fixture Pint, PHP syntax and whitespace checks passed. The complete hosted
+suite must qualify the final revision before merge.
