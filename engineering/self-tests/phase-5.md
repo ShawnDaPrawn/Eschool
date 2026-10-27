@@ -9,6 +9,10 @@ The first annual-plan catalogue and enrolment-preview implementation is recorded
 in [fee-plan preview verification](money/fee-plan-preview.md). It is separate from
 bill posting, payments and the remaining commerce capabilities.
 
+[Family billing verification](money/family-billing.md) records the next Finance
+account and annual preview/approve/post increment. It does not qualify payment
+allocation, parent-facing statements, refunds, wallets or commerce.
+
 Keep future feature evidence alongside that record, with implementation,
 automated checks, staging/provider/device acceptance and production release
 tracked separately. A pending external check blocks its affected release,

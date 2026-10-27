@@ -5,3 +5,8 @@
 .fee-plan-card {
     margin-block: var(--m3-space-4);
 }
+
+.fee-plan-workbench select[multiple] {
+    height: auto;
+    min-block-size: 8rem;
+}

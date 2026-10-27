@@ -3,6 +3,17 @@ replaced the historical receipt tables or enabled a new payment method. Existing
 academic access is independent of fee arrears: the reminder setting and its start
 date never lock a learner out of Home, marks or released reports.
 
+The new **Money → Family accounts / Bill runs** workspace adds explicit
+school-year payer/guardian shares, annual previews with exceptions, approval and
+atomic posting of sealed invoices. Charges debit family receivables and credit
+school fee income; they do not collect payment or repost historical receipts.
+Annual learner/year uniqueness and permanent operation receipts prevent duplicate
+bills. Existing v1 fee/payment history remains its own unchanged contract.
+Parent statements, allocations, taxable items/discounts/pro-rata/credits and
+payment-provider work follow separately. No gateway has been selected and Peach
+is not preferred; the legacy Stripe documentation below does not select it for
+new Phase 5 billing. See [the family billing contract](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/money/family-billing.md).
+
 This page explains how school fees are modelled, how the student/parent app pays them online through Stripe, how a payment is confirmed (only by a signed gateway webhook), how staff record cash and cheque payments, and which settings drive all of it. It describes the code after the fee-forgery fixes in commit `839c9eb` and the Phase 0 removal of the Razorpay, Paystack and Flutterwave gateways (see [Removed gateways](#removed-gateways)). Stripe is the only gateway until the South African gateway arrives in Phase 5.
 
 For the click-by-click admin steps see the Docusaurus pages [Fee Payment (admin panel)](https://shawndaprawn.github.io/Eschool/admin-panel/fee-payment/), [Payment Gateway's Webhook Configuration](https://shawndaprawn.github.io/Eschool/admin-panel/webhook-config/) and [Fee Payment (features)](https://shawndaprawn.github.io/Eschool/features/fee-payment/).

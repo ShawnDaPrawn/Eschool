@@ -46,6 +46,9 @@ return [
             // Plan configuration always names its target year and has no invoice/
             // money effects. Preparing a new year must work from any header year.
             'fee-plans/*',
+            'fee-accounts/*',
+            'fee-bill-runs/new',
+            'fee-bill-runs/*/approve',
 
             // Reports target an explicit year/batch. Fresh canonical authority,
             // approval order and revision checks govern historical corrections.

@@ -41,6 +41,9 @@ final class ReconcileLedger extends Command
                 })->where('e.school_id', $school)->groupBy('e.id')->havingRaw("COUNT(p.id) < 2 OR COALESCE(SUM(CASE p.direction WHEN 'debit' THEN p.cents ELSE -p.cents END),0) <> 0")
                     ->pluck('e.id')->count();
                 $drafts = DB::table('ledger_entries')->where('school_id', $school)->whereNull('posted_at')->count();
+                $invoiceDrafts = DB::table('invoices as i')->join('bill_runs as b', function ($join) {
+                    $join->on('b.id', '=', 'i.bill_run_id')->on('b.school_id', '=', 'i.school_id');
+                })->where('i.school_id', $school)->where(fn ($q) => $q->whereNull('i.sealed_at')->orWhere('b.state', '<>', 'posted'))->count();
                 $legacy = [];
                 foreach (CentsColumns::COLUMNS as $table => $columns) {
                     foreach ($columns as $float => $cents) {
@@ -54,14 +57,15 @@ final class ReconcileLedger extends Command
                 }
                 // Never repair from invalid/incomplete history. This switch
                 // repairs projections only, never entries, receipts or floats.
-                $repair = (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0;
+                $repair = (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
-                return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts,
+                return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
                     'legacy_cents_mismatches' => $legacy];
             });
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
+                || $report['incomplete_invoices'] > 0
                 || $report['legacy_cents_mismatches'] !== [] || ($report['projection_differences'] !== [] && ! $report['projections_rebuilt']);
             if ($bad) {
                 Log::critical('money_ledger_reconciliation_failed', $report);

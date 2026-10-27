@@ -20,7 +20,9 @@ Wallet, vendor and family/fee-receivable types retain their own module ownership
 an existing reference cannot be reassigned to bypass a disabled switch.
 
 Cash-desk, receivable and clearing accounts are debit-normal; family, wallet,
-vendor and due-to-school accounts are credit-normal. Each wallet's balance must
+vendor, fee-income and due-to-school accounts are credit-normal. Annual invoices
+debit the family's dedicated receivable and credit school fee income; family
+credit/wallet balances are not used as invented revenue. Each wallet's balance must
 stay nonnegative. Clearing and due-to-school accounts can be opened at zero but
 cannot receive postings until the later collection phase is implemented.
 
@@ -59,6 +61,8 @@ on failure; operations must connect that signal to their existing alert route.
 it does not backfill cents, import opening balances, alter receipts or repost
 history. Existing `money:backfill-cents` remains a separate mutating command.
 Neither command proves statements agree with a school's bank/cash records.
+Reconciliation also reports unsealed invoices or invoices whose bill run was
+not committed as posted; it refuses projection repair while those drafts remain.
 
 ## Module and identity boundaries
 

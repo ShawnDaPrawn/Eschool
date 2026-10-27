@@ -59,6 +59,8 @@ use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
+use App\Http\Controllers\Panel\Money\BillRunPanelController;
+use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
@@ -337,6 +339,28 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::prefix('fee-accounts')->name('fee-accounts.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeAccountPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('new', [$c, 'save'])->name('create');
+            Route::get('{account}', [$c, 'show'])->whereNumber('account')->name('show');
+            Route::get('{account}/edit', [$c, 'form'])->whereNumber('account')->name('edit');
+            Route::post('{account}', [$c, 'save'])->whereNumber('account')->name('save');
+            Route::post('{account}/archive', [$c, 'archive'])->whereNumber('account')->name('archive');
+        });
+        Route::prefix('fee-bill-runs')->name('fee-bill-runs.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = BillRunPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('new', [$c, 'prepare'])->name('prepare');
+            Route::get('{run}', [$c, 'show'])->whereNumber('run')->name('show');
+            Route::post('{run}/approve', [$c, 'approve'])->whereNumber('run')->name('approve');
+            Route::post('{run}/post', [$c, 'post'])->whereNumber('run')->name('post');
+        });
+        Route::get('fee-invoices/{invoice}', [BillRunPanelController::class, 'invoice'])->whereNumber('invoice')
+            ->middleware([PrivateDomainResponse::class, 'module:fees,read'])->name('fee-invoices.show');
+
         Route::prefix('fee-plans')->name('fee-plans.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeePlanPanelController::class;
             Route::get('/', [$c, 'index'])->name('index');

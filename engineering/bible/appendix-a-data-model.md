@@ -11,6 +11,21 @@ UUID, actor, request hash and durable reference receipt). Plan configuration
 does not create invoices, balances or payment transactions. See
 [fee-plan preview](../specs/money/fee-plan-preview.md).
 
+## Phase 5: family accounts and annual invoices
+
+School-owned `fee_accounts` fixes a family reference/currency and its dedicated
+receivable. `fee_account_holders` records explicit school-year shares in basis
+points; `fee_account_learners` gives a learner one payer account per school year.
+`bill_runs` stores immutable preview totals/exceptions and a fingerprint, then
+recorded approval/posting. `invoices` finalizes only against matching learner
+`invoice_lines` and a posted receivable entry. Sealed headers/lines reject edits,
+deletes and appends. Annual learner/year uniqueness prevents rebilling through a
+new run. `billing_operations` retains actor-bound UUID/hash receipts permanently.
+New `fee_income` ledger accounts are credit-normal and belong only to fees;
+invoice posting debits each family's receivable and credits fee income. No
+wallet, payment, clearing or due-to-school collection is activated. See
+[family billing](../specs/money/family-billing.md).
+
 ## Phase 0: what was built
 
 Every table below is additive, with a tested `down()`. The new kernel tables carry a nullable `school_id` that Phase 1 fills when schools arrive; the seed's own tables get theirs in Phase 1.

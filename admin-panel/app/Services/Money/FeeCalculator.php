@@ -10,7 +10,7 @@ use App\Models\Money\FeePlan;
 use App\Models\People\Enrolment;
 use App\Models\SessionYear;
 use App\Models\User;
-use App\Policies\Money\FeePlanPolicy;
+use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -20,29 +20,39 @@ final class FeeCalculator
 {
     public function preview(User $actor, int $yearId, string $date): array
     {
-        app(FeePlanPolicy::class)->authorize($actor);
+        return $this->calculate($actor, $yearId, $date, 'fee-plans-manage', false);
+    }
+
+    public function forBilling(User $actor, int $yearId, string $date): array
+    {
+        return $this->calculate($actor, $yearId, $date, 'fee-billing-manage', true);
+    }
+
+    private function calculate(User $actor, int $yearId, string $date, string $permission, bool $locked): array
+    {
+        app(MoneyPolicy::class)->authorize($actor, $permission);
         Validator::make(['date' => $date], ['date' => ['required', 'date_format:Y-m-d']])->validate();
 
-        return DB::transaction(function () use ($actor, $yearId, $date): array {
+        return DB::transaction(function () use ($actor, $yearId, $date, $permission, $locked): array {
             DB::table('schools')->where('id', app(CurrentSchool::class)->id())->lockForUpdate()->first();
-            app(FeePlanPolicy::class)->authorize($actor, locked: true);
-            $year = SessionYear::findOrFail($yearId);
+            app(MoneyPolicy::class)->authorize($actor, $permission, locked: true);
+            $year = SessionYear::when($locked, fn ($q) => $q->lockForUpdate())->findOrFail($yearId);
             app(FeePlans::class)->year($year);
             $start = substr((string) $year->start_date, 0, 10);
             $end = substr((string) $year->end_date, 0, 10);
             abort_unless($date >= $start && $date <= $end, 422, 'Choose a preview date inside the school year.');
-            $plans = FeePlan::where('session_year_id', $yearId)->where('state', 'active')->orderBy('id')->get();
+            $plans = FeePlan::where('session_year_id', $yearId)->where('state', 'active')->orderBy('id')->when($locked, fn ($q) => $q->lockForUpdate())->get();
             $buckets = [];
             foreach ($plans as $plan) {
                 $buckets[$plan->scope.':'.($plan->target_id ?? 0)][] = $plan;
             }
-            $sections = ClassSection::get(['id', 'class_id'])->keyBy('id');
-            $classes = ClassSchool::get(['id', 'grade_level_id'])->keyBy('id');
+            $sections = ClassSection::when($locked, fn ($q) => $q->lockForUpdate())->get(['id', 'class_id'])->keyBy('id');
+            $classes = ClassSchool::when($locked, fn ($q) => $q->lockForUpdate())->get(['id', 'grade_level_id'])->keyBy('id');
             $school = app(CurrentSchool::class)->id();
-            $enrolments = Enrolment::where('session_year_id', $yearId)->onDate($date)->orderBy('learner_id')->get()->groupBy('learner_id');
+            $enrolments = Enrolment::where('session_year_id', $yearId)->onDate($date)->orderBy('learner_id')->when($locked, fn ($q) => $q->lockForUpdate())->get()->groupBy('learner_id');
             $people = DB::table('students as s')->join('users as u', 'u.id', '=', 's.user_id')
                 ->where('s.school_id', $school)->whereNull('s.deleted_at')->whereNull('u.deleted_at')
-                ->whereIn('s.id', $enrolments->keys())->get(['s.id', 'u.first_name', 'u.last_name'])->keyBy('id');
+                ->whereIn('s.id', $enrolments->keys())->when($locked, fn ($q) => $q->lockForUpdate())->get(['s.id', 'u.first_name', 'u.last_name'])->keyBy('id');
             $rows = [];
             $totals = [];
             $exceptionCounts = [];
@@ -82,13 +92,14 @@ final class FeeCalculator
                 }
                 $rows[] = ['learner_id' => (int) $learnerId, 'name' => trim($person->first_name.' '.$person->last_name),
                     'plan_names' => array_map(fn ($match) => $match->name, $matches),
+                    'plan_id' => $plan?->id, 'plan_revision' => $plan?->revision,
                     'amount_cents' => $plan?->amount_cents, 'currency' => $plan?->currency, 'issues' => $issues];
             }
-            app(FeePlanPolicy::class)->authorize($actor, locked: true);
+            app(MoneyPolicy::class)->authorize($actor, $permission, locked: true);
             ksort($totals);
             ksort($exceptionCounts);
 
-            return ['year_id' => $yearId, 'date' => $date, 'rows' => $rows, 'totals' => $totals, 'exceptions' => $exceptionCounts,
+            return ['year_id' => $yearId, 'year_start' => $start, 'year_end' => $end, 'date' => $date, 'rows' => $rows, 'totals' => $totals, 'exceptions' => $exceptionCounts,
                 'learners' => count($rows), 'matched' => count(array_filter($rows, fn ($row) => $row['issues'] === []))];
         });
     }

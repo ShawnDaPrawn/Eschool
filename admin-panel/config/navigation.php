@@ -301,6 +301,10 @@ return [
                     'items' => [
                         ['key' => 'fee-plans', 'label' => 'Fee plans', 'route' => 'fee-plans.index', 'permissions' => ['fee-plans-manage'], 'module' => 'fees', 'active' => ['fee-plans.*'],
                             'keywords' => ['annual fees', 'billing', 'enrolment preview', 'uplift']],
+                        ['key' => 'fee-accounts', 'label' => 'Family accounts', 'route' => 'fee-accounts.index', 'permissions' => ['fee-accounts-manage'], 'module' => 'fees', 'active' => ['fee-accounts.*'],
+                            'keywords' => ['family', 'payer', 'split holders', 'statement', 'invoices']],
+                        ['key' => 'fee-bill-runs', 'label' => 'Bill runs', 'route' => 'fee-bill-runs.index', 'permissions' => ['fee-billing-manage'], 'module' => 'fees', 'active' => ['fee-bill-runs.*', 'fee-invoices.*'],
+                            'keywords' => ['annual tuition', 'billing', 'preview', 'exceptions', 'approval', 'post invoices']],
                         ['key' => 'fee-types', 'label' => 'nav_fee_types', 'route' => 'fees-type.index', 'permissions' => ['fees-type'], 'module' => 'fees',
                             'keywords' => ['tuition', 'fees type']],
                         ['key' => 'grade-fees', 'label' => 'nav_grade_fees', 'route' => 'fees.class.index', 'permissions' => ['fees-classes'], 'module' => 'fees',

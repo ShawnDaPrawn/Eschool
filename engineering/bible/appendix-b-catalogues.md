@@ -5,6 +5,13 @@ module and the explicit school permission `fee-plans-manage` (Super Admin defaul
 grant explicitly to custom Finance roles). No new payment method, wallet/vendor
 entitlement or notification type is enabled by this increment.
 
+Family configuration uses `fee-accounts-manage`; annual bill preview, approval,
+posting and finance invoice history use `fee-billing-manage`, independently of
+plan editing. Super Admin defaults include both, and demo Finance has explicit
+grants. Custom Finance roles need explicit grants. All use the existing `fees`
+module, including retained read-only history. No new notification/delivery or
+payment provider is enabled.
+
 The modules and notification types NavigateEd's registries hold, phase by phase. The registries in code will be `admin-panel/config/modules.php` and `admin-panel/config/notification_types.php`, introduced in Phase 1. This page lists only what exists in the code; the planned catalogues are kept in the private Build Bible (Appendix B) and entries are added here when a phase builds them.
 
 ## Phase 1 module registry
