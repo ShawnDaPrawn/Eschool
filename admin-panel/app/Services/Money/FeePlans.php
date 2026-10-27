@@ -34,6 +34,10 @@ final class FeePlans
             abort_unless((int) ($row->revision ?? 0) === (int) $data['revision'], 409, 'This fee plan changed. Review it before saving again.');
             $before = $row->exists ? $row->only(['name', 'amount_cents', 'currency', 'scope', 'target_id', 'state', 'session_year_id', 'revision']) : [];
             $row->fill(array_intersect_key($data, array_flip(['name', 'amount_cents', 'currency', 'scope', 'target_id', 'state', 'session_year_id'])));
+            $row->applies_to = app(FeePlanRules::class)->normalize($data['applies_to'] ?? $row->applies_to ?? []);
+            $row->payment_options = app(FeePaymentSchedules::class)->normalize($data['payment_options'] ?? $row->payment_options, $year);
+            $row->default_payment_option = $data['default_payment_option'] ?? $row->default_payment_option ?? $row->payment_options[0]['key'];
+            abort_unless(in_array($row->default_payment_option, array_column($row->payment_options, 'key'), true), 422, 'Choose a configured default payment option.');
             $row->revision = (int) ($row->revision ?? 0) + 1;
             $row->save();
             Audit::record('money.fee_plan_saved', $row, $before, $row->only(['name', 'amount_cents', 'currency', 'scope', 'target_id', 'state', 'session_year_id', 'revision']));
@@ -60,7 +64,7 @@ final class FeePlans
             $amount = Money::ofCents($source->amount_cents, $source->currency);
             $next = $amount->plus($amount->percent($data['uplift_percent']));
             abort_if($next->cents > self::MAX_CENTS, 422, 'The copied plan amount is too large.');
-            $row = FeePlan::create($source->only(['scope', 'target_id', 'currency']) + ['name' => $data['name'], 'session_year_id' => $year->id, 'amount_cents' => $next->cents, 'state' => 'draft', 'revision' => 1]);
+            $row = FeePlan::create($source->only(['scope', 'target_id', 'currency', 'applies_to', 'default_payment_option']) + ['payment_options' => app(FeePaymentSchedules::class)->normalize($source->payment_options, $year)] + ['name' => $data['name'], 'session_year_id' => $year->id, 'amount_cents' => $next->cents, 'state' => 'draft', 'revision' => 1]);
             Audit::record('money.fee_plan_copied', $row, [], ['source_id' => $source->id, 'source_revision' => $source->revision, 'amount_cents' => $next->cents]);
 
             return ['id' => (int) $row->id, 'revision' => 1];
@@ -75,7 +79,7 @@ final class FeePlans
             'session_year_id' => ['required', 'integer', 'min:1'], 'name' => ['required', 'string', 'max:160'],
             'amount' => ['required', 'string', 'regex:/\A\d{1,9}(?:\.\d{1,2})?\z/D'],
             'currency' => ['required', 'string', 'regex:/\A[A-Z]{3}\z/D'], 'scope' => ['required', 'in:all,grade,class'],
-            'target_id' => ['nullable', 'integer', 'min:1', 'required_unless:scope,all', 'prohibited_if:scope,all'], 'state' => ['required', 'in:draft,active,archived']];
+            'target_id' => ['nullable', 'integer', 'min:1', 'required_unless:scope,all', 'prohibited_if:scope,all'], 'state' => ['required', 'in:draft,active,archived'], 'applies_to' => ['sometimes', 'array', 'max:20'], 'payment_options' => ['sometimes', 'array', 'min:1', 'max:6'], 'default_payment_option' => ['sometimes', 'string', 'max:32']];
     }
 
     public static function copyRules(): array

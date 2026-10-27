@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Money;
 
+use App\Models\Academics\GradeLevel;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\Money\FeePlan;
@@ -14,6 +15,7 @@ use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 /** Annual rate preview only. No guessed pro-rata, payer or financial writes. */
 final class FeeCalculator
@@ -52,7 +54,9 @@ final class FeeCalculator
             $enrolments = Enrolment::where('session_year_id', $yearId)->onDate($date)->orderBy('learner_id')->when($locked, fn ($q) => $q->lockForUpdate())->get()->groupBy('learner_id');
             $people = DB::table('students as s')->join('users as u', 'u.id', '=', 's.user_id')
                 ->where('s.school_id', $school)->whereNull('s.deleted_at')->whereNull('u.deleted_at')
-                ->whereIn('s.id', $enrolments->keys())->when($locked, fn ($q) => $q->lockForUpdate())->get(['s.id', 'u.first_name', 'u.last_name'])->keyBy('id');
+                ->whereIn('s.id', $enrolments->keys())->when($locked, fn ($q) => $q->lockForUpdate())->get(['s.id', 's.user_id', 'u.first_name', 'u.last_name'])->keyBy('id');
+            $phases = GradeLevel::pluck('phase', 'id');
+            $ruleContext = app(FeePlanRules::class)->context($plans->flatMap(fn ($p) => $p->applies_to ?? [])->all(), $people->pluck('user_id')->all(), $locked);
             $rows = [];
             $totals = [];
             $exceptionCounts = [];
@@ -78,6 +82,17 @@ final class FeeCalculator
                     $issues[] = 'Pro-rata or leaver rule required';
                 }
                 $matches = [...($buckets['all:0'] ?? []), ...($buckets['class:'.($class->id ?? 0)] ?? []), ...($buckets['grade:'.($class->grade_level_id ?? 0)] ?? [])];
+                $eligible = [];
+                foreach ($matches as $candidate) {
+                    try {
+                        if (app(FeePlanRules::class)->matches($candidate->applies_to ?? [], $phases->get($class?->grade_level_id), (int) $person->user_id, $ruleContext)) {
+                            $eligible[] = $candidate;
+                        }
+                    } catch (ValidationException) {
+                        $issues[] = 'Fee plan rule inputs need review';
+                    }
+                }
+                $matches = $eligible;
                 if ($matches === []) {
                     $issues[] = 'No active fee plan';
                 } elseif (count($matches) > 1) {

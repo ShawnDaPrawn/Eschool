@@ -11,6 +11,7 @@ use App\Models\ClassSchool;
 use App\Models\Money\FeePlan;
 use App\Models\SessionYear;
 use App\Services\Money\FeeCalculator;
+use App\Services\Money\FeePlanRules;
 use App\Services\Money\FeePlans;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -37,8 +38,9 @@ class FeePlanPanelController extends Controller
         $grades = GradeLevel::orderBy('sort_order')->get(['id', 'name']);
         $classes = ClassSchool::orderBy('name')->get(['id', 'name']);
         $canWrite = $this->canWrite();
+        $ruleFields = app(FeePlanRules::class)->fields()->orderBy('label')->get();
 
-        return response()->view('money.fee-plans.form', compact('plan', 'years', 'grades', 'classes', 'canWrite'));
+        return response()->view('money.fee-plans.form', compact('plan', 'years', 'grades', 'classes', 'canWrite', 'ruleFields'));
     }
 
     public function save(FeePlanPanelRequest $request): Response

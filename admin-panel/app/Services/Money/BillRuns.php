@@ -114,9 +114,11 @@ final class BillRuns
                 $holders[$h['user_id']] ??= $h + ['total_cents' => 0];
                 $holders[$h['user_id']]['total_cents'] += $h['amount_cents'];
             }
-            $lines[] = ['session_year_id' => $run->session_year_id, 'learner_id' => $row['learner_id'], 'fee_plan_id' => $row['plan_id'], 'plan_revision' => $row['plan_revision'],
-                'learner_name' => $row['name'], 'description' => $row['plan_names'][0], 'period_start' => $run->snapshot['year_start'], 'period_end' => $run->snapshot['year_end'],
-                'currency' => $row['currency'], 'amount_cents' => $row['amount_cents'], 'vat_cents' => 0, 'holder_shares' => $shares];
+            foreach ($row['installment_lines'] as $part) {
+                $lines[] = ['session_year_id' => $run->session_year_id, 'learner_id' => $row['learner_id'], 'fee_plan_id' => $row['plan_id'], 'plan_revision' => $row['plan_revision'],
+                    'learner_name' => $row['name'], 'description' => $row['plan_names'][0], 'period_start' => $run->snapshot['year_start'], 'period_end' => $run->snapshot['year_end'],
+                    'currency' => $row['currency'], 'amount_cents' => $part['amount_cents'], 'vat_cents' => 0, 'holder_shares' => $part['holder_shares'], 'installment_number' => $part['installment_number'], 'installment_due_on' => $part['due_on']];
+            }
         }
         foreach ($holders as &$holder) {
             unset($holder['amount_cents']);
@@ -124,7 +126,7 @@ final class BillRuns
         unset($holder);
         $invoice = Invoice::create(['fee_account_id' => $accountId, 'bill_run_id' => $run->id, 'session_year_id' => $run->session_year_id, 'ledger_entry_id' => $entry,
             'number' => 'BILL-'.$run->id.'-'.$accountId, 'account_name' => $account->name, 'currency' => $account->currency, 'total_cents' => $total,
-            'holders' => array_values($holders), 'issued_on' => $issued, 'due_on' => $run->due_on->toDateString(), 'created_by' => $actor->id, 'created_at' => now('UTC')]);
+            'holders' => array_values($holders), 'issued_on' => $issued, 'due_on' => min(array_column($lines, 'installment_due_on')), 'created_by' => $actor->id, 'created_at' => now('UTC')]);
         foreach ($lines as $line) {
             InvoiceLine::create(['invoice_id' => $invoice->id, ...$line]);
         }

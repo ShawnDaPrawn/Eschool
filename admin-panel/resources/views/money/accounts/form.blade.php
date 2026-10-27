@@ -4,6 +4,7 @@
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
     <x-page.header :title="$account?__('Review family account'):__('New family account')" />
+    @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <x-m3.button variant="text" :href="route('fee-accounts.index')">{{ __('Back to family accounts') }}</x-m3.button>
     <form method="get">
         <x-m3.select name="year_id" :label="__('School year for payer assignments')" :options="$years->pluck('name','id')" :value="$year?->id" required />
@@ -33,6 +34,32 @@
         </fieldset>
     </form>
     <template id="billing-holder-template">@include('money.accounts.holder',['index'=>'__index__','number'=>'__number__','holder'=>null])</template>
+
+@if($account && $year && count($selected)>0)
+<section aria-labelledby="payment-options-title"><h2 id="payment-options-title">{{ __('Learner payment options') }}</h2>
+<p>{{ __('Choose a payment option before tuition is posted. The matched plan and reviewed bill preview must agree. Posted invoices keep their original schedule.') }}</p>
+@foreach($selected as $learnerId)
+@php($choice=$paymentChoices->get($learnerId))
+@php($posted=in_array($learnerId,$postedLearners,true))
+<form method="post" action="{{ route('fee-accounts.payment-choice',['account'=>$account->id]) }}" data-year-safe>
+@include('money.fee-plans.hidden',['revision'=>$choice?->revision??0])
+<input type="hidden" name="learner_id" value="{{ $learnerId }}"><input type="hidden" name="session_year_id" value="{{ $year->id }}">
+<fieldset @disabled(!$canWrite || $posted)><legend>{{ $learners->get($learnerId) }}</legend>
+<x-m3.select name="fee_plan_id" :label="__('Fee plan for payment choice')" :options="$paymentPlans->pluck('name','id')" :value="$choice?->fee_plan_id" required />
+@php($keys=[])
+@foreach($paymentPlans as $paymentPlan)
+@foreach($paymentPlan->payment_options??\App\Services\Money\FeePaymentSchedules::defaults() as $option)
+@php($keys[$option['key']]=$option['label'])
+@endforeach
+@endforeach
+<x-m3.select name="option_key" :label="__('Payment option')" :options="$keys" :value="$choice?->option_key" required />
+<x-m3.button type="submit">{{ __('Save learner payment option') }}</x-m3.button>
+</fieldset>
+@if($posted)<p>{{ __('Tuition has been posted; its payment schedule is retained.') }}</p>@endif
+</form>
+@endforeach
+</section>
+@endif
 </div>
 @endsection
 @section('script')<script src="{{ asset('assets/js/custom/family-billing.js') }}?v={{ filemtime(public_path('assets/js/custom/family-billing.js')) }}" defer></script>@endsection

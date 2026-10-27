@@ -6,7 +6,7 @@
     <x-page.header :title="__('Bill run').' '.$run->id" />
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <p>{{ __('Status') }}: <strong>{{ __($run->state) }}</strong> · {{ __('Revision') }} {{ $run->revision }}</p>
-    <p>{{ __('Preview date') }}: {{ $snapshot['as_of'] }} · {{ __('Invoice due date') }}: {{ $snapshot['due_on'] }}</p>
+    <p>{{ __('Preview date') }}: {{ $snapshot['as_of'] }} · {{ __('Invoice due date') }}: {{ $snapshot['due_on'] }}</p><p>{{ __('Configured payment schedules replace the fallback due date for their installment lines.') }}</p>
     <p>{{ __('Billable learners') }}: {{ $snapshot['billable'] }} · {{ __('Excluded learners') }}: {{ $snapshot['skipped'] }}</p>
     @foreach($snapshot['totals'] as $currency=>$total)<p><strong>{{ \App\Services\Platform\Ledger\Money::ofCents($total,$currency)->format() }}</strong></p>@endforeach
     <x-m3.button variant="text" :href="route('fee-bill-runs.index')">{{ __('Back to bill runs') }}</x-m3.button>
@@ -36,6 +36,7 @@
     <div class="m3-card m3-card--outlined"><div class="page-table__scroll" role="region" aria-label="{{ __('Bill preview learners') }}" tabindex="0"><table class="page-table__table">
         <caption>{{ __('Bill preview learners') }}</caption><thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Family account') }}</th><th scope="col">{{ __('Annual amount') }}</th><th scope="col">{{ __('Result') }}</th></tr></thead>
         <tbody>@forelse($rows as $row)<tr><td>{{ $row['name'] }}</td><td>{{ $row['account_name']??__('No payer') }}</td><td>{{ $row['amount_cents']===null?'—':\App\Services\Platform\Ledger\Money::ofCents($row['amount_cents'],$row['currency'])->format() }}</td><td>
+            @if(isset($row['installment_lines']))<details><summary>{{ __('Reviewed installment schedule') }}</summary><ul>@foreach($row['installment_lines'] as $part)<li>{{ $part['due_on'] }} · {{ \App\Services\Platform\Ledger\Money::ofCents($part['amount_cents'],$row['currency'])->format() }} · {{ $part['payment_option_label'] }}<ul>@foreach($part['holder_shares'] as $share)<li>{{ $share['name'] }}: {{ \App\Services\Platform\Ledger\Money::ofCents($share['amount_cents'],$row['currency'])->format() }}</li>@endforeach</ul></li>@endforeach</ul></details>@endif
             @if($row['issues'])<ul>@foreach($row['issues'] as $issue)<li>{{ __($issue) }}</li>@endforeach</ul>
             @elseif($row['state']==='already_billed'){{ __('Already invoiced') }}
             @elseif($row['state']==='no_charge'){{ __('No charge') }}

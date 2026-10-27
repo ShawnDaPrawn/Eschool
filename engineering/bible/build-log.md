@@ -723,3 +723,14 @@ Notification retention preserves immutable cadence and rejects rebinding.
 Verification is tracked in self-tests/money/fee-reminders.md and the feature PR.
 No gateway or external transport activation is included; subsequent increments and
 external release evidence continue separately.
+
+## 2026-10-27 — expanded fee rules and payment schedules
+
+Increment3 extends the existing plan and annual invoice workflow with canonical
+phase and eligible profile rules, configured relative schedules, explicit defaults
+and Finance learner choices. Reviewed installments preserve exact annual holder
+cents, post atomically and drive real statement/allocation/ageing/reminder dates.
+SQL guards compare indexed reviewed lines and complete schedule budgets; historical
+posted invoices remain unchanged. Source qualification/integration is tracked in
+self-tests/money/fee-plan-rules-schedules.md and the feature PR. Gateway, late-charge,
+refund policy and remaining increments continue separately.

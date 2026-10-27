@@ -419,3 +419,11 @@ then explicitly enable the schedule. The existing minute scheduler invokes the
 hourly `fees:remind` command. Prompts contain no balances/names, recheck current
 access/debt at delivery and respect parent notification choices. Queued history
 means an intent was recorded; channel preferences/access still determine delivery.
+
+Fee plans can narrow grade/class/all targeting by phase and eligible learner
+profile fields, such as campus or boarding. Configure payment options using one
+month-day and percentage per line (for example `01-15 25.00`); percentages total
+100. Choose a default and use the family workbench to select another option for a
+learner before tuition posts. Review every installment and holder amount in the
+bill preview. Posted invoices preserve their schedule; statements, allocation and
+reminders follow each actual due date. Hidden/sensitive profile fields are excluded.

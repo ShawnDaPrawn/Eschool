@@ -405,6 +405,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('{payment}/allocation', [$c, 'allocate'])->whereNumber('payment')->name('allocate');
         });
         Route::prefix('fee-accounts')->name('fee-accounts.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            Route::post('/{account}/payment-choice', [FeeAccountPanelController::class, 'paymentChoice'])->whereNumber('account')->name('payment-choice');
             $c = FeeAccountPanelController::class;
             Route::get('/', [$c, 'index'])->name('index');
             Route::get('new', [$c, 'form'])->name('new');

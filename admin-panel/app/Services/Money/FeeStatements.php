@@ -50,8 +50,8 @@ final class FeeStatements
         })->join('bill_runs as b', function ($j) {
             $j->on('b.school_id', '=', 'i.school_id')->on('b.id', '=', 'i.bill_run_id');
         })->whereIn('i.fee_account_id', $accountIds)->whereNotNull('i.sealed_at')->where('b.state', 'posted')
-            ->orderBy('i.due_on')->orderBy('i.issued_on')->orderBy('invoice_lines.id')
-            ->get(['fc.scope as fee_charge_scope', 'invoice_lines.*', 'i.fee_account_id', 'i.number as invoice_number', 'i.due_on', 'i.issued_on']);
+            ->orderByRaw('COALESCE(invoice_lines.installment_due_on,i.due_on)')->orderBy('i.issued_on')->orderBy('invoice_lines.id')
+            ->get(['fc.scope as fee_charge_scope', 'invoice_lines.*', 'i.fee_account_id', 'i.number as invoice_number', DB::raw('COALESCE(invoice_lines.installment_due_on,i.due_on) AS due_on'), 'i.issued_on']);
         $rows = [];
         foreach ($lines as $line) {
             foreach ($line->holder_shares as $share) {
