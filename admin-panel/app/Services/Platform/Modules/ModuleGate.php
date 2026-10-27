@@ -12,6 +12,7 @@ use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\RequestContext;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class ModuleGate
@@ -182,6 +183,16 @@ class ModuleGate
         foreach ($module === 'fees' ? ['fees_classes', 'fees_paids', 'payment_transactions'] : [] as $table) {
             if (DB::table($table)->where('school_id', $schoolId)->exists()) {
                 return true;
+            }
+        }
+
+        // Parent agreements and reviewed reductions also remain readable before
+        // the first ledger posting. Disabling a module does not hide legal history.
+        if ($module === 'fees') {
+            foreach (['fee_item_consents', 'fee_discounts', 'fee_discount_runs'] as $table) {
+                if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
+                    return true;
+                }
             }
         }
 

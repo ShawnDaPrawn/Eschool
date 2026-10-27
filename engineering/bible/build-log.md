@@ -762,3 +762,12 @@ billing is refused even with another occurrence reference. API/SDK/shared parent
 and Finance browser coverage are included. Qualification is tracked in
 self-tests/money/fee-item-opt-ins.md and the PR. Discounts and increments5–15 remain
 next; gateway and production activation remain deferred.
+
+## 2026-10-27 — approved fee reduction workbench
+
+Increment5 implements explicit sibling, configured staff-role, receipt-backed early
+settlement, bursary and exemption rules. Finance reviews exact remaining original
+charges and payer credits; approval separation and overlap are school choices.
+Linked credits preserve invoices, original tax and restricted paid receipt credit.
+Qualification is in self-tests/money/fee-discounts.md and the feature PR. Refunds,
+pro-rata and wallet/commerce increments remain next; gateways stay deferred.

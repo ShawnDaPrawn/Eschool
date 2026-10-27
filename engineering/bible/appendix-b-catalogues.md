@@ -301,3 +301,9 @@ Existing fees/current parent guardian policies cover own optional offers and
 approval/withdrawal. Fee visibility alone does not grant approval rights. New v2
 routes use fresh authority before idempotent replay. No provider, notification type
 or spend is added. Disabled fees keep read-only offers and prior agreements.
+
+### Fee reductions
+
+Existing fees and fee-credits-manage permission cover rule preparation/approval
+and original-holder reduction credits. Private evidence has no parent route.
+Disabled fees retain read-only history. No provider, notification or spend is added.

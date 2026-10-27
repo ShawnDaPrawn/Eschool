@@ -406,6 +406,16 @@ class FeeItemConsentsTest extends TestCase
         return '/api/v2/parent/fees/accounts/'.$this->account->id.'/optional-items'.($item === null ? '' : '/'.$item->id.'/consents');
     }
 
+    public function test_parent_agreement_history_remains_readable_when_disabled_before_the_first_charge(): void
+    {
+        $item = $this->item();
+        $this->accept($this->parent(), $item);
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+        app(ModuleGate::class)->change('fees', false, $this->admin);
+        $this->api($this->parent())->getJson($this->url())->assertOk()->assertJsonPath('data.writable', false)->assertJsonPath('data.items.0.selected', true);
+        $this->refuses(fn () => app(FeeItemConsents::class)->change($this->parent(), $this->account->id, $item->id, $this->changeInput($this->offer($this->parent(), $item), false)), 403);
+    }
+
     private function api(User $actor, ?string $key = null): self
     {
         $this->app['auth']->forgetGuards();

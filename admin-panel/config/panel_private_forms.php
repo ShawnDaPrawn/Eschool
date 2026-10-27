@@ -17,6 +17,7 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['fee-discounts', 'fee-discounts/*'], 'title' => 'Fee discounts and bursaries', 'route' => 'fee-discounts.index', 'fields' => []],
     ['paths' => ['fee-reminders', 'fee-reminders/*'], 'title' => 'Fee reminder schedule', 'route' => 'fee-reminders.index', 'fields' => []],
     ['paths' => ['fee-reporting', 'fee-reporting/*'], 'title' => 'Arrears and accounting', 'route' => 'fee-reporting.index', 'fields' => []],
     ['paths' => ['bank-statements', 'bank-statements/*'], 'title' => 'Bank statement matching', 'route' => 'bank-statements.index', 'fields' => []],

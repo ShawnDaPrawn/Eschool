@@ -63,6 +63,7 @@ use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
 use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
+use App\Http\Controllers\Panel\Money\FeeDiscountPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemBatchPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemRulePanelController;
@@ -376,6 +377,20 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('fee-discounts')->name('fee-discounts.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeDiscountPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('new', [$c, 'save'])->name('create');
+            Route::get('{rule}/edit', [$c, 'form'])->whereNumber('rule')->name('edit');
+            Route::post('{rule}/save', [$c, 'save'])->whereNumber('rule')->name('save');
+            Route::post('{rule}/transition', [$c, 'transition'])->whereNumber('rule')->name('transition');
+            Route::get('apply', [$c, 'application'])->name('apply');
+            Route::post('prepare', [$c, 'prepare'])->name('prepare');
+            Route::get('runs/{run}', [$c, 'run'])->whereNumber('run')->name('run');
+            Route::post('runs/{run}/approve', [$c, 'approve'])->whereNumber('run')->name('approve');
+            Route::post('runs/{run}/post', [$c, 'post'])->whereNumber('run')->name('post');
         });
         Route::prefix('fee-credit-notes')->name('fee-credit-notes.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeCreditPanelController::class;

@@ -7,6 +7,8 @@ namespace App\Services\Money;
 use App\Models\Academics\GradeLevel;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
+use App\Models\Money\FeeAccount;
+use App\Models\Money\FeeDiscount;
 use App\Models\Money\FeePlan;
 use App\Models\People\Enrolment;
 use App\Models\SessionYear;
@@ -17,9 +19,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-/** Annual rate preview only. No guessed pro-rata, payer or financial writes. */
+/** Canonical annual rates and reviewed original-charge reductions. */
 final class FeeCalculator
 {
+    public function reduction(User $actor, FeeDiscount $rule, FeeAccount $account, int $learner, string $operation): array
+    {
+        return app(FeeDiscountCalculator::class)->snapshot($actor, $rule, $account, $learner, $operation);
+    }
+
     public function preview(User $actor, int $yearId, string $date): array
     {
         return $this->calculate($actor, $yearId, $date, 'fee-plans-manage', false);

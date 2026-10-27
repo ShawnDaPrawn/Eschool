@@ -402,3 +402,12 @@ target/actor. It retains active/withdrawn state, permanent UUID, material terms 
 and own frozen consent snapshot. Tenant FKs and SQL guards preserve targets, current
 payer insertion and immutable history. Eligibility rules add explicit opt-in billing
 frequency. No balance table or financial posting is created by an approval.
+
+### Approved fee reductions
+
+`fee_discounts` stores revisioned dated school rules and explicit amount, source,
+overlap, staff-role and independent-approval choices. `fee_discount_runs` retains
+immutable reviewed original-holder credit snapshots and encrypted private evidence.
+SQL guards require exact sealed linked credit notes, learner/year/currency identity,
+valid approval transitions and one posted rule/learner/year. No duplicate balance
+projection is created; existing fee credits supply ledger/reconciliation history.

@@ -454,3 +454,14 @@ statement, review their own price/share/VAT and frequency, and confirm. Every
 current payer must approve the current terms before Finance can bill. Changed
 prices or allocations need renewed approval. Withdrawing stops future optional
 charges; posted invoices require the existing reasoned credit process.
+
+## Approved discounts and bursaries
+
+Open Money → Discounts and bursaries. Finance drafts a dated rule for sibling,
+configured staff roles, early settlement, bursary or exemption and chooses the
+calculation, source charge, overlap policy and approval separation explicitly.
+Bursaries and exemptions require a named learner. Save and approve the rule, then
+prepare an application against an original billed family and learner. Review each
+original-holder credit, approve, and post. Original invoices remain available;
+paid reductions restore held credit to original restricted receipts. Private
+eligibility and explanations remain with Finance. No cash refund is made here.
