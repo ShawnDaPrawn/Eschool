@@ -436,3 +436,12 @@ total before posting. Posted invoices retain original legal details; credits rev
 the original tax even after settings change. Parent statements show their own VAT
 only. Configure the VAT liability chart mapping before package accounting export;
 journals already include VAT and use a zero-tax label to avoid adding it twice.
+
+## Automatic item batches
+
+Open an item and choose Configure item eligibility. Select a compulsory rule or
+a dated activity/route/teaching/subject source, then prepare an automatic batch.
+Use the same occurrence reference while resolving exceptions later. Review the
+payer exceptions and every allocation; confirm any exclusions before posting.
+Family items charge once for the family. Membership changes affect future charges;
+posted invoices require reasoned credits. This does not record parent opt-in consent.

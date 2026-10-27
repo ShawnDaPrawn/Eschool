@@ -63,7 +63,9 @@ use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
 use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
+use App\Http\Controllers\Panel\Money\FeeItemBatchPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemPanelController;
+use App\Http\Controllers\Panel\Money\FeeItemRulePanelController;
 use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
@@ -347,6 +349,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            Route::get('{item}/rules', [FeeItemRulePanelController::class, 'form'])->whereNumber('item')->name('rules');
+            Route::post('{item}/rules', [FeeItemRulePanelController::class, 'save'])->whereNumber('item')->name('rules-save');
             Route::get('tax-settings', [FeeTaxPanelController::class, 'index'])->name('tax');
             Route::post('tax-settings', [FeeTaxPanelController::class, 'save'])->name('tax-save');
             $c = FeeItemPanelController::class;
@@ -355,6 +359,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('{item}/edit', [$c, 'form'])->whereNumber('item')->name('edit');
             Route::post('new', [$c, 'save'])->name('create');
             Route::post('{item}/save', [$c, 'save'])->whereNumber('item')->name('save');
+        });
+        Route::prefix('fee-item-batches')->name('fee-item-batches.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeItemBatchPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('review', [$c, 'review'])->name('review');
+            Route::post('new', [$c, 'post'])->name('post');
+            Route::get('{batch}', [$c, 'show'])->whereNumber('batch')->name('show');
         });
         Route::prefix('fee-item-charges')->name('fee-item-charges.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeItemPanelController::class;

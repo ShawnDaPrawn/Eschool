@@ -8,6 +8,7 @@
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 <x-m3.button variant="text" :href="route('fee-items.index')">{{ __('Back to fee items') }}</x-m3.button>
 <p>{{ __('The item name appears on family invoices and statements. Editing an item never changes a posted charge.') }}</p>
+@if($item)<x-m3.button variant="outlined" :href="route('fee-items.rules',['item'=>$item->id])">{{ __('Configure item eligibility') }}</x-m3.button>@endif
 @if(!$canWrite)<p>{{ __('Fee item history is read-only while fees are disabled.') }}</p>@endif
 <form method="post" action="{{ $item?route('fee-items.save',['item'=>$item->id]):route('fee-items.create') }}" data-year-safe>
 @include('money.fee-plans.hidden',['revision'=>$item?->revision??0])

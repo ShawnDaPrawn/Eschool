@@ -20,7 +20,7 @@ return [
     ['paths' => ['fee-reminders', 'fee-reminders/*'], 'title' => 'Fee reminder schedule', 'route' => 'fee-reminders.index', 'fields' => []],
     ['paths' => ['fee-reporting', 'fee-reporting/*'], 'title' => 'Arrears and accounting', 'route' => 'fee-reporting.index', 'fields' => []],
     ['paths' => ['bank-statements', 'bank-statements/*'], 'title' => 'Bank statement matching', 'route' => 'bank-statements.index', 'fields' => []],
-    ['paths' => ['fee-items', 'fee-items/*', 'fee-item-charges', 'fee-item-charges/*'], 'title' => 'Fee items and charges', 'route' => 'fee-items.index', 'fields' => []],
+    ['paths' => ['fee-items', 'fee-items/*', 'fee-item-charges', 'fee-item-charges/*', 'fee-item-batches', 'fee-item-batches/*'], 'title' => 'Fee items and charges', 'route' => 'fee-items.index', 'fields' => []],
     ['paths' => ['fee-credit-notes', 'fee-credit-notes/*'], 'title' => 'Fee credit notes', 'route' => 'fee-credit-notes.index', 'fields' => []],
     ['paths' => ['fee-payments', 'fee-payments/*'], 'title' => 'Fee payments', 'route' => 'fee-payments.index', 'fields' => []],
     ['paths' => ['fee-plans', 'fee-plans/*'], 'title' => 'Fee plans', 'route' => 'fee-plans.index', 'fields' => []],

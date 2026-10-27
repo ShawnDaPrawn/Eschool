@@ -40,3 +40,6 @@ not post money, and unresolved bank rows are not a development freeze.
 [Item VAT verification](money/fee-item-vat.md) records explicit registration,
 original tax invoices and credits, private parent tax and accounting exports.
 Automatic eligibility and subsequent increments remain separate work.
+
+[Automatic item verification](money/automatic-fee-items.md) covers compulsory and
+membership batch charging. Parent opt-in approvals remain the next portion.

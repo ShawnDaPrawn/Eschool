@@ -743,3 +743,12 @@ credits. Parent statements disclose only own tax; accounting exports post the
 separate liability without double-taxing journals. Automatic eligibility remains
 next in increment4. Qualification is tracked in self-tests/money/fee-item-vat.md;
 no provider or production activation is included.
+
+## 2026-10-27 — automatic compulsory and membership item batches
+
+Existing items now have explicit revisioned eligibility over canonical enrolments,
+profile/grade rules and dated group/route/subject memberships. Finance reviews
+new invoices, exceptions and already-charged targets; family occurrences deduplicate,
+posting rechecks eligibility and the whole batch is atomic and permanently replayable.
+New batches retain exact sealed child invoices without raw occurrence plaintext.
+Verification is in self-tests/money/automatic-fee-items.md; opt-in consent is next.

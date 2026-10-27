@@ -288,3 +288,9 @@ installment due dates. Sensitive/hidden profile fields remain unavailable to rul
 Existing fees module and `fee-items-manage` permission cover declared registration
 and explicit item VAT. No new notification or provider is enabled. Parent fee
 statements add optional own VAT metadata; disabled fees retain history.
+
+### Automatic item eligibility
+
+Existing fees module and fee-items-manage permission cover compulsory and dated
+membership batch preparation/posting. No new notification, provider or parent
+consent is inferred. Existing guardian/payer and disabled-history checks apply.

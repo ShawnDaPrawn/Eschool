@@ -123,6 +123,7 @@ final class FeeCharges
         $learners = Students::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
         abort_unless($learners->count() === count($ids), 404);
         $people = User::whereIn('id', $learners->pluck('user_id'))->orderBy('id')->lockForUpdate()->get(['id', 'first_name', 'last_name'])->keyBy('id');
+        $eligibility = app(FeeItemEligibility::class)->forCharge($item, $ids, (int) $year->id, $data['charged_on']);
         $tax = app(FeeTaxes::class)->snapshot($item);
         $amount = $tax['gross_cents'];
         $grand = BillingPreview::shares($amount, $holders);
@@ -156,7 +157,7 @@ final class FeeCharges
         abort_unless(! FeeCharge::where('fee_item_id', $item->id)->where('session_year_id', $year->id)->where('scope', $item->scope)->where('target_id', $target)->where('reference_hash', $hash)->lockForUpdate()->exists(), 409, 'This occurrence is already charged. Open its recorded invoice instead.');
         app(FeeStatements::class)->complete($account);
 
-        return ['fee_item_id' => (int) $item->id, 'item_revision' => $item->revision, 'item_name' => $item->name, 'scope' => $item->scope, 'fee_account_id' => (int) $account->id, 'account_revision' => $account->revision, 'account_name' => $account->name, 'session_year_id' => (int) $year->id, 'year_start' => $start, 'year_end' => $end, 'learner_id' => $data['learner_id'], 'target_id' => $target, 'reference_hash' => $hash, 'charged_on' => $data['charged_on'], 'due_on' => $data['due_on'], 'issued_on' => $today, 'currency' => $item->currency, 'amount_cents' => $amount, 'learners' => $roster, 'holder_totals' => $grand, 'lines' => $lines] + $tax;
+        return ['fee_item_id' => (int) $item->id, 'item_revision' => $item->revision, 'item_name' => $item->name, 'scope' => $item->scope, 'fee_account_id' => (int) $account->id, 'account_revision' => $account->revision, 'account_name' => $account->name, 'session_year_id' => (int) $year->id, 'year_start' => $start, 'year_end' => $end, 'learner_id' => $data['learner_id'], 'target_id' => $target, 'reference_hash' => $hash, 'charged_on' => $data['charged_on'], 'due_on' => $data['due_on'], 'issued_on' => $today, 'currency' => $item->currency, 'amount_cents' => $amount, 'learners' => $roster, 'holder_totals' => $grand, 'lines' => $lines] + $tax + ($eligibility === null ? [] : ['eligibility' => $eligibility]);
     }
 
     private function validated(array $input, bool $posting = false): array
