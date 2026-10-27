@@ -333,6 +333,24 @@ class FeePaymentsTest extends TestCase
         $this->assertSame(998, app(FeeStatements::class)->finance($this->account->fresh())['credit_cents']);
     }
 
+    public function test_unallocated_receipt_cannot_restore_a_family_hidden_by_revoked_links_even_with_another_visible_child(): void
+    {
+        app(FeePayments::class)->record($this->admin, $this->receipt());
+        $farid = User::findOrFail($this->schoolA->ids['farid_user']);
+        GuardianLink::updateOrCreate(['learner_id' => $this->schoolA->ids['ben'], 'guardian_user_id' => $farid->id],
+            ['status' => 'active', 'relationship' => 'guardian', 'can_see_fees' => true, 'can_approve' => true]);
+        $this->assertSame(400, app(ParentFeeStatements::class)->show($farid, $this->account->id)['credit_cents']);
+        GuardianLink::where('guardian_user_id', $farid->id)->whereIn('learner_id', [$this->schoolA->ids['asha'], $this->schoolA->ids['cara']])->update(['can_see_fees' => false]);
+        $this->assertSame([], app(ParentFeeStatements::class)->index($farid)['items']);
+        $this->refuses(fn () => app(ParentFeeStatements::class)->show($farid, $this->account->id), 404);
+        ParentPolicyService::acceptCurrent($farid);
+        $this->api($farid)->getJson('/api/v2/parent/fees/accounts')->assertOk()->assertJsonPath('data.items', []);
+        $this->api($farid)->getJson('/api/v2/parent/fees/accounts/'.$this->account->id.'/statement')->assertNotFound()->assertHeader('Cache-Control', 'no-store, private')->assertDontSee('Synthetic split family');
+        $this->assertSame(400, app(FeeStatements::class)->finance($this->account->fresh())['credit_cents']);
+        GuardianLink::where('guardian_user_id', $farid->id)->where('learner_id', $this->schoolA->ids['asha'])->update(['can_see_fees' => true]);
+        $this->assertSame(400, app(ParentFeeStatements::class)->show($farid, $this->account->id)['credit_cents']);
+    }
+
     public function test_other_parent_staff_and_other_school_cannot_read_or_guess_the_statement(): void
     {
         $this->bill();

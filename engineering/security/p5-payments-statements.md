@@ -19,7 +19,14 @@ unavailable in this environment; no scan identity, sealed report or SARIF is cla
 | Financial retention | Credit is shown separately from debt. Currency freezes at first receipt and held credit prevents stranding relevant learner assignments. Historic obligations can be paid without restoring guardian visibility or activating learners. Disabled fees retain history read-only. |
 | Other surfaces | Blade escaping and bound SQL are retained; generated SDK derives from the additive contract. Internal outbox events contain identifiers/cents only. No webhook, file upload, live provider, notification fanout, wallet withdrawal or production activation is added. |
 
-No actionable vulnerability was established in the inspected increment. This
+Source review reproduced a revoked-family disclosure: an unallocated receipt
+kept a family summary visible when all its learner links were hidden but the
+parent retained access to another learner elsewhere. Receipt ownership no longer
+restores that family; a currently visible charge or matched learner/holder
+assignment is required before projecting its receipts. The regression failed
+before the fix and now covers the service and actual API list/detail, retained
+Finance credit and restored guardian access. No actionable finding remains after
+this correction. This
 statement applies to the reviewed changes and executed regression evidence;
 external cash/bank verification, independent live-money testing and production
 acceptance remain separate. Legacy receipts and the leadership receipt adapter

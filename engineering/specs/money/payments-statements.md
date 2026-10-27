@@ -49,7 +49,9 @@ cannot use those reads. Revocation takes effect on each request. Parent data
 never exposes another holder's names, payments, credit balance or account ledger.
 Mixed receipts involving a learner the parent can no longer view are withheld
 from the parent receipt list/held-credit total; visible invoice lines remain
-available. Statements always explain their permitted-record scope. Learner
+available. An unallocated receipt cannot restore a family whose learners are all hidden,
+even when the parent can view a learner on another account. Statements always
+explain their permitted-record scope. Learner
 access, marks and reports remain independent of debt.
 
 ## Data and interfaces

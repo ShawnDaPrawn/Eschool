@@ -65,3 +65,12 @@ history and reserved credit, scoped headers, and denial clearing private details
 The lazy list is scrolled using real gestures before inspecting later receipts.
 No binding, input helper or assertion was weakened. Hosted Android/CI must still
 qualify the final source; final run links and merge evidence are on the PR.
+
+Follow-up source review reproduced a revoked-family edge case: an unallocated
+receipt could keep that family visible while the parent had access only to a
+learner on another family account. The new regression failed before the guard
+was corrected. After the correction, all **21 receipt/statement tests / 235
+assertions** passed, covering actual parent list/detail responses, retained Finance
+credit and restored guardian visibility. This focused suite follows the broader
+711-test run above; overlapping cohorts are not summed. The unchanged full app
+flow also passed at a **390x844** browser window, in addition to desktop Chrome.

@@ -90,6 +90,11 @@ final class ParentFeeStatements
                 $rows[] = array_intersect_key($row, array_flip(['invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'description', 'period_start', 'period_end',
                     'issued_on', 'due_on', 'currency', 'charged_cents', 'allocated_cents', 'outstanding_cents']));
             }
+            // Owning a receipt does not restore guardian visibility to this
+            // family. A visible learner elsewhere cannot authorize its history.
+            if ($rows === [] && ! isset($emptyAllowed[$id])) {
+                continue;
+            }
             $receipts = [];
             foreach ($payments as $payment) {
                 if ($payment['fee_account_id'] !== $id || in_array($payment['id'], $hiddenPaymentIds, true)
@@ -97,9 +102,6 @@ final class ParentFeeStatements
                     continue;
                 }
                 $receipts[] = array_intersect_key($payment, array_flip(['id', 'number', 'pinned_learner_id', 'method', 'received_on', 'currency', 'amount_cents', 'allocated_cents', 'credit_cents']));
-            }
-            if ($rows === [] && $receipts === [] && ! isset($emptyAllowed[$id])) {
-                continue;
             }
             $byAccount[$id] = ['id' => $id, 'name' => $account->name, 'reference' => $account->reference, 'currency' => $account->currency, 'school_id' => $school, 'holder_user_id' => (int) $actor->id, 'charges' => $rows, 'payments' => $receipts];
         }
