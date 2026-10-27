@@ -155,7 +155,7 @@ final class FeeCreditNotes
     public static function rules(bool $posting = false): array
     {
         return ['operation_id' => ['required', 'uuid'], 'invoice_line_id' => ['required', 'integer', 'min:1'], 'holder_user_id' => ['required', 'integer', 'min:1'],
-            'amount' => ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/D'], 'reason_code' => ['required', 'in:'.implode(',',self::REASONS)], 'reason' => ['required', 'string', 'min:5', 'max:1200']]
+            'amount' => ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/D'], 'reason_code' => ['required', 'in:'.implode(',', self::REASONS)], 'reason' => ['required', 'string', 'min:5', 'max:1200']]
             + ($posting ? ['fingerprint' => ['required', 'string', 'regex:/\A[a-f0-9]{64}\z/D'], 'confirmed' => ['required', 'accepted']] : []);
     }
 }

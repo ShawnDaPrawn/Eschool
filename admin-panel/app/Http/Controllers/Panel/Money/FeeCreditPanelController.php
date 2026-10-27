@@ -69,6 +69,6 @@ class FeeCreditPanelController extends Controller
         app(FeeStatements::class)->complete(FeeAccount::findOrFail($note->fee_account_id));
         $releases = FeeCreditRelease::where('credit_note_id', $note->id)->orderBy('id')->get();
 
-        return response()->view('money.credits.show',compact('note','releases'));
+        return response()->view('money.credits.show', compact('note', 'releases'));
     }
 }
