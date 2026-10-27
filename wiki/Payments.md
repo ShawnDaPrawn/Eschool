@@ -412,3 +412,18 @@ currency and date format first; Xero also needs the organisation's exact zero-ta
 label. Verify the CSV against your accountant's current import template. Journal
 references are stable: choose non-overlapping periods and import each once.
 Exports do not change money. Disabled fees retain report/download access.
+
+Finance can configure private fee-statement reminders under **Money → Fee
+reminders**. Choose minimum overdue days, cadence and earliest school-local hour
+then explicitly enable the schedule. The existing minute scheduler invokes the
+hourly `fees:remind` command. Prompts contain no balances/names, recheck current
+access/debt at delivery and respect parent notification choices. Queued history
+means an intent was recorded; channel preferences/access still determine delivery.
+
+Fee plans can narrow grade/class/all targeting by phase and eligible learner
+profile fields, such as campus or boarding. Configure payment options using one
+month-day and percentage per line (for example `01-15 25.00`); percentages total
+100. Choose a default and use the family workbench to select another option for a
+learner before tuition posts. Review every installment and holder amount in the
+bill preview. Posted invoices preserve their schedule; statements, allocation and
+reminders follow each actual due date. Hidden/sensitive profile fields are excluded.

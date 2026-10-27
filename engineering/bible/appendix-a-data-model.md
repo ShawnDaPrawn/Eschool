@@ -366,3 +366,15 @@ School-owned `fee_accounting_settings` stores revisioned chart mappings, explici
 organisation currencies/date formats and Xero zero-tax label. It changes export
 presentation, never ledger values. Arrears and accounting CSVs derive from sealed
 invoices, net holder shares and posted ledger history; no duplicate balance table.
+
+School-owned `fee_reminder_policies` holds Finance's revisioned cadence, minimum
+age, school-local hour and explicit enabled flag. `fee_reminders` retains immutable
+account/recipient/date/policy intent and expiry with a one-time school/type-checked
+notification binding. Notification retention nulls its pointer without forgetting
+cadence; no amounts, names or new balance projection are stored in reminders.
+
+Expanded `fee_plans` add typed `applies_to`, relative `payment_options` and an
+explicit default. School-owned revisioned `fee_payment_choices` selects an option
+per learner/year. Immutable `invoice_lines` gain an installment number/date;
+existing posted lines keep their original date fallback. Indexed reviewed learner
+and account schedule maps support SQL line and complete-invoice seal validation.

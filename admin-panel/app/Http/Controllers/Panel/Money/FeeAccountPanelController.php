@@ -6,15 +6,20 @@ namespace App\Http\Controllers\Panel\Money;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Money\FeeAccountPanelRequest;
+use App\Http\Requests\Money\FeePaymentChoicePanelRequest;
 use App\Models\Money\FeeAccount;
 use App\Models\Money\FeeAccountHolder;
 use App\Models\Money\FeeAccountLearner;
+use App\Models\Money\FeePaymentChoice;
+use App\Models\Money\FeePlan;
 use App\Models\Money\Invoice;
+use App\Models\Money\InvoiceLine;
 use App\Models\People\Enrolment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Money\FeeAccounts;
+use App\Services\Money\FeePaymentChoices;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Modules\ModuleGate;
@@ -56,8 +61,11 @@ class FeeAccountPanelController extends Controller
             }
         }
         $canWrite = $year !== null && app(ModuleGate::class)->writable('fees');
+        $paymentChoices = FeePaymentChoice::where('session_year_id', $year->id ?? 0)->whereIn('learner_id', $selected)->get()->keyBy('learner_id');
+        $paymentPlans = FeePlan::where('session_year_id', $year->id ?? 0)->where('state', 'active')->get();
+        $postedLearners = InvoiceLine::where('session_year_id', $year->id ?? 0)->whereIn('learner_id', $selected)->whereNull('fee_charge_id')->pluck('learner_id')->all();
 
-        return response()->view('money.accounts.form', compact('account', 'years', 'year', 'holders', 'selected', 'learners', 'parents', 'canWrite'));
+        return response()->view('money.accounts.form', compact('account', 'years', 'year', 'holders', 'selected', 'learners', 'parents', 'canWrite', 'paymentChoices', 'paymentPlans', 'postedLearners'));
     }
 
     public function show(FeeAccountPanelRequest $request): Response
@@ -75,6 +83,14 @@ class FeeAccountPanelController extends Controller
         $account = app(FeeAccounts::class)->save($request->user(), $request->validated(), $request->route('account') === null ? null : (int) $request->route('account'));
 
         return redirect()->route('fee-accounts.show', ['account' => $account->id], 303)->with('success', __('Family account saved.'));
+    }
+
+    public function paymentChoice(FeePaymentChoicePanelRequest $request): Response
+    {
+        $account = (int) $request->route('account');
+        app(FeePaymentChoices::class)->save($request->user(), $account, $request->validated());
+
+        return redirect()->route('fee-accounts.edit', ['account' => $account, 'year_id' => $request->validated('session_year_id')], 303)->with('success', __('Payment option saved.'));
     }
 
     public function archive(FeeAccountPanelRequest $request): Response

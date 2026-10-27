@@ -39,6 +39,28 @@ final class ParentFeeStatements
         });
     }
 
+    /** Internal reminder projection: the same current role/guardian/holder scope as statements. */
+    public function reminderAccounts(User $actor, int $minDays): array
+    {
+        abort_unless($minDays >= 1 && $minDays <= 365, 422);
+
+        return DB::transaction(function () use ($actor, $minDays): array {
+            $today = now(app(CurrentSchool::class)->school()->timezone ?? 'UTC')->toDateString();
+            $eligible = [];
+            foreach ($this->owned($actor) as $id => $statement) {
+                foreach ($statement['charges'] as $charge) {
+                    if ($charge['outstanding_cents'] > 0 && FeeAgeing::days($charge['due_on'], $today) >= $minDays) {
+                        $eligible[] = (int) $id;
+                        break;
+                    }
+                }
+            }
+            app(ParentFeePolicy::class)->authorize($actor);
+
+            return $eligible;
+        });
+    }
+
     private function owned(User $actor): array
     {
         $policy = app(ParentFeePolicy::class);

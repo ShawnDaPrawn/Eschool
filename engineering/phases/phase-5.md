@@ -85,3 +85,9 @@ a consequence of this plan.
 Stage/real-provider replays, physical-device acceptance, cash/bank/statement
 reconciliation over the required observation window and the independent money-flow
 security review remain honest release evidence, separate from source completion.
+
+The delivery now includes current arrears/accounting CSV reporting (PR315) and
+scheduled fee-reminder implementation/qualification. See the authoritative owner
+execution inventory in [delivery through increment15](phase-5-delivery-1-15.md).
+School schedules remain disabled until explicitly saved; reminders never gate
+learning or create financial postings. Source integration is recorded per PR.

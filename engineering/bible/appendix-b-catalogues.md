@@ -271,3 +271,14 @@ No bank import notification type or provider activation is added.
 `fee-payments-manage` also controls Finance arrears and accounting exports under
 fees. No new notification type/provider is added by reporting. Disabled fees keep
 read-only financial reports while refusing accounting-mapping writes.
+
+`fees.ledger_reminder` is a parent-only, generic private statement prompt through
+Notifier. Push/in-app default on and email defaults off; central rules and parent
+choices apply. `fee-payments-manage` configures a school's explicitly enabled
+schedule. The hourly `fees:remind` command and final delivery check current own
+visible overdue shares; disabled/read-only fees suppress new reminder delivery.
+
+Existing fee planning and family permissions cover eligible learner profile rules,
+payment schedules and per-learner payment choices. No new gateway or notification
+type is added. Statements, allocations, arrears and reminders use actual immutable
+installment due dates. Sensitive/hidden profile fields remain unavailable to rules.

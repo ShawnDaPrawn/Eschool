@@ -9,6 +9,7 @@
 <x-m3.button variant="outlined" :href="route('fee-reporting.settings')">{{ __('Accounting export mapping') }}</x-m3.button>
 <x-m3.button variant="text" :href="route('fee-payments.index')">{{ __('Fee payments') }}</x-m3.button>
 <form method="get"><x-m3.select name="currency" :label="__('Report currency')" :options="$currencies" :value="$currency" required /><x-m3.select name="status" :label="__('Families shown')" :value="$status" :options="['all'=>__('All family accounts'),'overdue'=>__('Overdue balances'),'credit'=>__('Held credit balances')]" /><x-m3.button type="submit" variant="outlined">{{ __('Show balances') }}</x-m3.button></form>
+<x-m3.button variant="outlined" :href="route('fee-reminders.index')">{{ __('Fee reminder schedule') }}</x-m3.button>
 <h2>{{ __('Totals for all family accounts in this currency') }}</h2>
 <dl>@foreach(['current'=>__('Current'),'days_1_29'=>__('1–29 days overdue'),'days_30_59'=>__('30–59 days overdue'),'days_60_89'=>__('60–89 days overdue'),'days_90_plus'=>__('90+ days overdue')] as $key=>$label)<dt>{{ $label }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($report['buckets'][$key],$currency)->format() }}</dd>@endforeach
 <dt>{{ __('Total outstanding') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($report['outstanding_cents'],$currency)->format() }}</dd><dt>{{ __('Held credit') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($report['credit_cents'],$currency)->format() }}</dd></dl>
