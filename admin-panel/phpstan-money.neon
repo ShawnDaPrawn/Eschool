@@ -4,6 +4,12 @@ includes:
 parameters:
     level: 5
     paths:
+        - app/Services/Money
+        - app/Policies/Money
+        - app/Models/Money
+        - app/Http/Controllers/Panel/Money
+        - app/Http/Requests/Money
+        - database/migrations/2026_10_26_260000_create_fee_plan_catalogue.php
         - app/Services/Platform/Ledger/AccountType.php
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php

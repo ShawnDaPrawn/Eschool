@@ -55,6 +55,22 @@ Parents have the flexibility to pay pending fees for the current session year. T
 
 In the settings -> fees transaction option, parents can review all fee payment transactions, including the amount and status of each payment made.
 
+## Annual fee plans and enrolment preview
+
+Finance staff with the fee-plan permission can open **Money → Fee plans** to
+create an annual rate for all learners, a grade or a class. Enter the amount and
+currency, choose the school year and save as Draft or Active. Archived and draft
+plans do not match the preview.
+
+Choose the school year and a preview date to check dated enrolments. Missing or
+overlapping plans and enrolments that need date confirmation or a pro-rata/refund
+rule appear as exceptions. Totals remain separate for each currency. This is an
+annual-rate preview; it does not create invoices, charge families or take payments.
+
+To prepare the next year, open a plan, choose **Copy to a new school year**, enter
+the uplift percentage and create the draft copy. Review the resulting amount and
+scope before activating it.
+
 ## Overdue fee reminders
 
 School staff can enable overdue fee reminders in Fees Configuration and set the
@@ -69,4 +85,4 @@ the Fees section under the school's module and guardian permissions.
 
 ## Student Can Pay Their Own Fees
 
-Admin can enable settings from the Fees Configurations form, which allows students to pay their fees. When the Admin enables the student fee payment mode, it activates the necessary options and features to facilitate fee payments by students. 
+Admin can enable settings from the Fees Configurations form, which allows students to pay their fees. When the Admin enables the student fee payment mode, it activates the necessary options and features to facilitate fee payments by students.

@@ -1,0 +1,8 @@
+.fee-plan-workbench caption {
+    color: var(--md-sys-color-on-surface);
+}
+
+.fee-plan-workbench .table-responsive:focus-visible {
+    outline: 2px solid var(--md-sys-color-primary);
+    outline-offset: 2px;
+}

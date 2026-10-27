@@ -9,6 +9,21 @@ What each phase delivered, what it deferred and why, and which of our questions 
 | 3 AI learning and pastoral care | Retained software implemented, verified and merged; external acceptance separate | 2026-10-24 | 2026-10-26 (software) | Gateway/evals, mastery, tutor/practice/exam, teaching/insights, digests, notes/risk/discipline, My grade, cover/support/dashboard and consented transfers. [Current record](../phases/phase-3.md) | Live-provider/model/cost, human safeguarding/UX, device and deployment evidence remain unrun or separately recorded | Provider/privacy and school-specific policy/source approval; no paid activation |
 | 4 Facilitator and community | Retained software implemented, verified and merged; external acceptance separate | 2026-10-24 | 2026-10-26 (software) | Scoped facilitator/groups/chat, wellbeing, consultations, recognition, cards/offline/encoding/Foundation, admissions, Health/consent/meetings/gate, galleries/live, assistance, supervised peer and pathways. [Current record](../phases/phase-4.md) | Physical hardware/driver/key-protection, iOS/store, fluent wording, school-policy/UX and deployed-service acceptance remain separate | School/provider/source/hardware qualification; ordinary chat translation is not included in assigned-office translation |
 
+## Phase 5 start — annual fee-plan preview
+
+The owner authorized implementation on 26 October and explicitly deprioritized
+gateway-specific investment: no gateway is lined up and Peach is not preferred.
+The first billing increment adds annual all/grade/class plans and a finance
+workspace with exact cents, version checks and permanent operation receipts;
+next-year copies use an explicit uplift and remain draft. Dated-enrolment previews
+identify missing/overlapping rates, ambiguous/imported dates and partial-year
+policy requirements. They do not charge families or create invoices/payments.
+Native tests include 1,200 synthetic learners with 27 batched queries and an exact
+cents total. See [verification](../self-tests/money/fee-plan-preview.md).
+Full Phase 5 and production acceptance remain open; the cancelled pilot stays
+cancelled. Family billing/posting, remaining rules/items/discounts and commerce
+follow this first increment without waiting for a selected gateway.
+
 ## 26 October 2026 — Phase 3/4 software merged
 
 Main `990ea2a7bb22ca90091ad7bb32fd35b467831474` retains the closing reviewed

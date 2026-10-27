@@ -12,7 +12,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon $starts_on
+ * @property Carbon|null $ends_on
+ */
 class Enrolment extends Model
 {
     use Auditable, BelongsToSchool, SoftDeletes;

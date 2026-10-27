@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'fee_plans', 'fee_plan_operations',
         'ledger_accounts', 'ledger_entries', 'ledger_postings',
         'foundation_classroom_groups', 'foundation_classroom_leases',
         'peer_tutoring_sessions', 'service_hours', 'peer_tutoring_operations',

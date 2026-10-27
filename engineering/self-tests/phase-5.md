@@ -5,6 +5,10 @@ checks are recorded in [money preparation](money/preparation.md). This establish
 the internal ledger and Phase 3/4 handover; it does not qualify subsequent billing,
 gateways, wallet/vendor/ticket/card payment features or live money release.
 
+The first annual-plan catalogue and enrolment-preview implementation is recorded
+in [fee-plan preview verification](money/fee-plan-preview.md). It is separate from
+bill posting, payments and the remaining commerce capabilities.
+
 Keep future feature evidence alongside that record, with implementation,
 automated checks, staging/provider/device acceptance and production release
 tracked separately. A pending external check blocks its affected release,
