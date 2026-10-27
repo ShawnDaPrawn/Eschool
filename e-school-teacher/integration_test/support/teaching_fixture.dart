@@ -2,12 +2,19 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:eschool_core/testing.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 import 'smoke.dart' show pumpUntilFound, tapWhenReady;
+
+/// These API smoke flows inject framework text, rather than type on an IME.
+/// Keep one input transport throughout; mixing injected text with a live Android
+/// keyboard can restore its stale editing value when focus leaves the field.
+class TeachingSmokeTestBinding extends IntegrationTestWidgetsFlutterBinding {
+  @override
+  bool get registerTestTextInput => true;
+}
 
 /// Synthetic responses matching the separately contract-tested staff API.
 class TeachingSmokeFixture {
@@ -172,6 +179,7 @@ Future<void> runTeachingApproval(
   WidgetTester tester,
   TeachingSmokeFixture fixture,
 ) async {
+  expect(tester.testTextInput.isRegistered, isTrue);
   await tapWhenReady(tester, find.text('New draft'));
   await pumpUntilFound(tester, find.byKey(const ValueKey('teaching-brief')));
   await tester.enterText(
@@ -191,19 +199,9 @@ Future<void> runTeachingApproval(
     find.byKey(const ValueKey('teaching-edit-title')),
     'Teacher reviewed browser worksheet',
   );
-  // TestTextInput injects the framework value, but an integration binding
-  // leaves the real Android IME connected. Mirror that value before hiding
-  // the keyboard so its final editing event cannot restore the old title.
-  if (!kIsWeb) {
-    final title = tester.widget<TextField>(
-      find.byKey(const ValueKey('teaching-edit-title')),
-    );
-    await SystemChannels.textInput.invokeMethod<void>(
-      'TextInput.setEditingState',
-      title.controller!.value.toJSON(),
-    );
-  }
   await tester.pump();
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pump(const Duration(milliseconds: 300));
   expect(
     tester
         .widget<TextField>(find.byKey(const ValueKey('teaching-edit-title')))

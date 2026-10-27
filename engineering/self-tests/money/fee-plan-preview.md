@@ -69,16 +69,24 @@ confirmed the framework title changed while the last `TextInput.setEditingState`
 sent to the platform remained the original title; explicitly mirroring the
 editing value made both agree.
 
-The shared teaching smoke helper now mirrors the current editing value to the
-native IME before dismissing it, pumps the edited frame and asserts the edited
-controller value before Save. The existing saved-title, review-body, one-effect
-recovery and withdrawal assertions remain intact. Application code is unchanged.
-Teacher mobile/entry checks: 4 passed; shared teaching screen/repository checks:
-23 passed. Targeted analysis has no errors or warnings (one pre-existing brace
-style info), and Dart format passed. The corrected facilitator Android job then
-passed all 23 cases in hosted CI. The earlier assertion was not waived or
-classified as an infrastructure failure. The final combined revision still
-requires all hosted checks before merge.
+Mirroring the framework value to the real IME was insufficient: the facilitator
+Android job passed 23 cases, but the classic Teacher job later failed the same
+saved-title assertion after 25 passing cases. This was not treated as an
+infrastructure failure or retried unchanged.
+
+Both synthetic teaching integration tests now initialize a dedicated binding
+with Flutter's registered test keyboard, before starting the app. All injected
+text uses that one transport instead of sharing a live Android IME. The helper
+requires the registered keyboard and checks the edited title after focus leaves
+the field. The saved-title, request-body, revision, one-effect recovery and
+withdrawal assertions remain intact. Application code is unchanged.
+
+Teacher mobile/entry checks: 4 passed, including the narrow viewport/keyboard
+insets regression; the earlier shared teaching screen/repository cohort passed
+23 cases. Targeted analysis has no errors or warnings (one pre-existing brace
+style info), and Dart format passed. The final combined revision requires all
+hosted checks before merge. These synthetic API smoke tests do not claim real
+device keyboard acceptance, which remains separate.
 
 ## Documentation runner compatibility
 

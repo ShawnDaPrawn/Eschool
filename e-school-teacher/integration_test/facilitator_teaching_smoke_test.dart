@@ -6,7 +6,6 @@ import 'package:eschool_teacher/facilitator/facilitator_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:integration_test/integration_test.dart';
 
 import 'support/smoke.dart' show pumpUntilFound, tapWhenReady;
 import 'support/teaching_fixture.dart';
@@ -29,7 +28,7 @@ class _TeachingStaff extends ClinicalStaffFixture {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  TeachingSmokeTestBinding();
   testWidgets(
     'dedicated Facilitator Teacher approves its own draft and erases it on feature withdrawal',
     (tester) async {
