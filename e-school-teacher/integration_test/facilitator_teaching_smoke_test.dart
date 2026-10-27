@@ -30,6 +30,7 @@ class _TeachingStaff extends ClinicalStaffFixture {
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  useTeachingTestKeyboard();
   testWidgets(
     'dedicated Facilitator Teacher approves its own draft and erases it on feature withdrawal',
     (tester) async {

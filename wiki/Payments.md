@@ -207,6 +207,24 @@ That commit rewrote the payment path while all four gateways were still in place
 - Students and parents used to choose the amount, the fully-paid flag and which installments/optional fees were covered (paying 1.00 could mark everything paid). `FeesPaymentService` now prices the payment from the fee setup, checks every item belongs to the child and is unpaid, and charges the server total.
 - `store-fees` and `fail-payment-transaction` only work on the caller's own pending transaction (parent `store-fees` also accepts its own succeeded one).
 
+## Annual fee plans and previews
+
+Finance staff with `fee-plans-manage` use **Money → Fee plans** to save annual
+rates for all learners, a canonical grade or a school class. Draft/archived rates
+are ignored by previews. New-year copies require a later year and an explicit
+uplift; they stay draft until reviewed. Custom Finance roles need an explicit
+permission grant; the demo Finance role includes it.
+
+The preview reads dated enrolments on the selected date and lists missing or
+overlapping plans, imported dates needing confirmation, unavailable homerooms and
+partial-year enrolments needing a pro-rata/refund rule. It keeps currencies
+separate. It is an annual-rate preview, not an invoice or a family statement:
+there is no bill posting, payment attempt or ledger effect in this increment.
+
+No gateway is selected for Phase 5. The owner's 26 October decision supersedes
+the old Peach preference; provider-specific work is deprioritized. Existing
+Stripe/v1 payment history remains intact while billing and commerce progress.
+
 ## Removed gateways
 
 The Build Bible removes Razorpay, Paystack and Flutterwave in Phase 0 and keeps Stripe. What changed, and what stayed for installed apps (spec: `engineering/specs/platform/removals.md`):

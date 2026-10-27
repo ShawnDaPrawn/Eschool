@@ -7,6 +7,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'smoke.dart' show pumpUntilFound, tapWhenReady;
 
+/// These API smoke flows inject framework text, rather than type on an IME.
+/// Keep one input transport throughout; mixing injected text with a live Android
+/// keyboard can restore its stale editing value when focus leaves the field.
+void useTeachingTestKeyboard() {
+  setUp(() {
+    // Native flutter test initializes its integration binding before main().
+    // Reuse it and register only this flow's simulated input transport.
+    final input = TestWidgetsFlutterBinding.instance.testTextInput;
+    if (!input.isRegistered) {
+      input.register();
+      addTearDown(input.unregister);
+    }
+  });
+}
+
 /// Synthetic responses matching the separately contract-tested staff API.
 class TeachingSmokeFixture {
   TeachingSmokeFixture({this.reader = 31});
@@ -170,6 +185,7 @@ Future<void> runTeachingApproval(
   WidgetTester tester,
   TeachingSmokeFixture fixture,
 ) async {
+  expect(tester.testTextInput.isRegistered, isTrue);
   await tapWhenReady(tester, find.text('New draft'));
   await pumpUntilFound(tester, find.byKey(const ValueKey('teaching-brief')));
   await tester.enterText(
@@ -187,6 +203,16 @@ Future<void> runTeachingApproval(
   expect(fixture.receipts, 1);
   await tester.enterText(
     find.byKey(const ValueKey('teaching-edit-title')),
+    'Teacher reviewed browser worksheet',
+  );
+  await tester.pump();
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pump(const Duration(milliseconds: 300));
+  expect(
+    tester
+        .widget<TextField>(find.byKey(const ValueKey('teaching-edit-title')))
+        .controller!
+        .text,
     'Teacher reviewed browser worksheet',
   );
   await tapWhenReady(tester, find.byKey(const ValueKey('teaching-save-edit')));

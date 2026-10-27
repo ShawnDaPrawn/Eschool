@@ -17,6 +17,7 @@ use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 $database = (string) config('database.connections.'.config('database.default').'.database');
@@ -61,6 +62,14 @@ return app(CurrentSchool::class)->run(1, function (): array {
     }
     $topic = $topics->firstWhere('name', 'Peer tutoring browser fractions');
     $clock = CarbonImmutable::instance(now())->setTimezone(app(CurrentSchool::class)->school()->timezone)->startOfMinute();
+    // The session is created with the clock three hours back. Before 03:00
+    // school time that is yesterday, ahead of the day the demo memberships
+    // began (the day the school was seeded), so every account would count as
+    // having no role. Start the demo memberships a day earlier so this does not
+    // depend on the hour the browser run reaches it. Only this isolated test
+    // database is changed (see the guard above).
+    $began = $clock->subDay()->toDateString();
+    DB::table('school_memberships')->where('school_id', 1)->where('starts_on', '>', $began)->update(['starts_on' => $began]);
     try {
         CarbonImmutable::setTestNow($clock->subHours(3));
         Carbon::setTestNow($clock->subHours(3));

@@ -59,6 +59,7 @@ use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
+use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
@@ -336,6 +337,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
+        Route::prefix('fee-plans')->name('fee-plans.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeePlanPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::get('years/{year}/preview', [$c, 'preview'])->whereNumber('year')->name('preview');
+            Route::post('new', [$c, 'save'])->defaults('operation', 'save')->name('create');
+            Route::get('{plan}/edit', [$c, 'form'])->whereNumber('plan')->name('edit');
+            Route::post('{plan}', [$c, 'save'])->whereNumber('plan')->defaults('operation', 'save')->name('save');
+            Route::post('{plan}/copy', [$c, 'copy'])->whereNumber('plan')->defaults('operation', 'copy')->name('copy');
+        });
+
         Route::get('ai-settings', [AiControlPanelController::class, 'index'])->middleware(PrivateDomainResponse::class)->name('ai-controls.index');
         Route::post('ai-settings', [AiControlPanelController::class, 'save'])->middleware(PrivateDomainResponse::class)->name('ai-controls.save');
 

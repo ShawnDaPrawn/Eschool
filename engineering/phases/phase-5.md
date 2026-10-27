@@ -1,6 +1,8 @@
 # Phase 5 — money and commerce
 
-Status: preparation and internal ledger foundation; the full phase is not complete.
+Status: implementation started; ledger foundation merged and the first fee-plan
+catalogue/enrolment-preview increment implemented and locally verified. Hosted
+verification is tracked on its PR. The full phase is not complete.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence
 or a business-policy decision is pending. No cancelled pilot campaign is
@@ -26,13 +28,20 @@ reintroduced as a development gate.
 
 ## Subsequent implementation
 
-Fee plans/rules, family bill runs, allocations/refunds, payment adapters and bank
+The first billing increment implements annual plans for all learners, canonical
+grades or school classes, revision-safe editing/archiving, draft new-year copies
+with exact cents uplift, and a read-only dated-enrolment preview. See the
+[fee-plan specification](../specs/money/fee-plan-preview.md). This preview does
+not create invoices, choose payers, calculate policy-dependent pro-rata or post money.
+
+Remaining fee rules/items/discounts, family bill runs, allocations/refunds, payment adapters and bank
 matching, wallets/approvals/limits/withdrawals, vendors/orders/settlement,
 ticketing, online card/QR spending and the finance/app surfaces remain future
 Phase 5 slices. Clearing and due-to-school balances remain zero until Phase 6.
 
-Keep the recorded South African gateway default. The owner did not select
-provider onboarding or cash-policy discovery for this preparation pass. Decisions
+The owner authorized implementation on 26 October and superseded the Phase 0
+Peach default: no gateway is selected and Peach is not preferred. Build
+provider-neutral boundaries and deprioritize gateway adapters/onboarding. Decisions
 about split holders, allocation, refund/late-charge/discount rules, approval
 thresholds, exactly R250, ticket transfers and vendor liability block only their
 specific implementation, not the foundations. No paid or production activation is

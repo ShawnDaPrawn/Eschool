@@ -2,6 +2,15 @@
 
 The tables and columns NavigateEd has added to the seed's schema, phase by phase. It holds only what exists in the code; tables still planned are tracked in the private Build Bible (Appendix A) and are added here when a phase builds them. Engineers extend this page at the end of each phase.
 
+## Phase 5: fee-plan configuration
+
+Phase 5's first billing increment adds school-owned `fee_plans` (school year,
+annual integer cents/currency, all/grade/class scope, draft/active/archived state,
+revision and soft deletion) and `fee_plan_operations` (school-unique operation
+UUID, actor, request hash and durable reference receipt). Plan configuration
+does not create invoices, balances or payment transactions. See
+[fee-plan preview](../specs/money/fee-plan-preview.md).
+
 ## Phase 0: what was built
 
 Every table below is additive, with a tested `down()`. The new kernel tables carry a nullable `school_id` that Phase 1 fills when schools arrive; the seed's own tables get theirs in Phase 1.

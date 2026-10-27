@@ -133,3 +133,11 @@ Native flavours never grant server roles or permission to reuse teacher access.
 Preserve Phase 2 transcription and academic behavior. Continue to separate tested
 implementation from external acceptance; production, stores and paid-provider
 activation are not authorized merely by this development decision.
+
+## Phase 5 gateway decision (26 October 2026)
+
+The owner authorized Phase 5 implementation and has no payment gateways lined up.
+Peach is not a preferred provider. Keep payment boundaries provider-neutral and
+deprioritize provider-specific adapters/onboarding; continue billing, wallets and
+commerce without waiting for a gateway. This supersedes the Phase 0 Peach default.
+No live payment/provider activation or extra spend is implied.

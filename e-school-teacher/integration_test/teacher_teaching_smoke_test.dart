@@ -11,6 +11,7 @@ import 'support/teaching_fixture.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  useTeachingTestKeyboard();
   testWidgets(
     'Teacher recovers, edits and approves a private three-level draft without publishing marks',
     (tester) async {

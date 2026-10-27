@@ -8,6 +8,10 @@ import 'package:flutter_test/flutter_test.dart';
 import '../integration_test/support/teaching_fixture.dart';
 
 void main() {
+  final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  // Reproduce native runner startup: an existing binding with input unregistered.
+  setUp(binding.testTextInput.unregister);
+  useTeachingTestKeyboard();
   testWidgets(
     'saved teaching definition remains discoverable after a narrow mobile IME scroll',
     (tester) async {
