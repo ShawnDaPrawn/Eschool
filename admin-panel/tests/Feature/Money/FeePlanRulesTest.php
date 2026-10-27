@@ -300,6 +300,23 @@ class FeePlanRulesTest extends TestCase
         $this->assertSame([], app(LedgerService::class)->projectionDifferences());
     }
 
+    public function test_cleared_optional_profile_row_is_a_non_match_and_another_plan_can_bill(): void
+    {
+        $field = $this->field('campus');
+        $this->value($field, 'asha_user', 'North');
+        $this->savePlan(['name' => 'Synthetic North plan', 'applies_to' => [['field' => 'profile', 'definition_id' => $field->id, 'values' => ['North']]]]);
+        $standard = $this->savePlan(['name' => 'Synthetic standard plan']);
+        $this->families();
+        ProfileFieldValue::where('definition_id', $field->id)->where('user_id', $this->schoolA->ids['asha_user'])->update(['value' => null]);
+        $this->assertSame(1, ProfileFieldValue::where('definition_id', $field->id)->whereNull('value')->count());
+        $preview = app(FeeCalculator::class)->preview($this->admin, $this->year, '2026-06-15');
+        $this->assertSame([], $preview['exceptions']);
+        $this->assertSame(3, $preview['matched']);
+        $this->assertSame([$standard->id], array_values(array_unique(array_column($preview['rows'], 'plan_id'))));
+        $run = $this->prepare();
+        $this->assertSame('approved', app(BillRuns::class)->approve($this->admin, $run->id, $this->operation(1))->state);
+    }
+
     private function choiceInput(FeePlan $plan, string $option, array $changes = []): array
     {
         return array_replace(['operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->year, 'learner_id' => $this->schoolA->ids['asha'], 'fee_plan_id' => $plan->id, 'option_key' => $option], $changes);

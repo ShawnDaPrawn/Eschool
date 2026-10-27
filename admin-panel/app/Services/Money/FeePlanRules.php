@@ -92,7 +92,7 @@ final class FeePlanRules
                 continue;
             }
             $stored = $context['values'][$user][$rule['definition_id']] ?? null;
-            if ($stored === null) {
+            if ($stored === null || $stored->getAttribute('value') === null) {
                 return false;
             }
             try {
