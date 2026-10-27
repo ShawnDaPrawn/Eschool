@@ -30,7 +30,9 @@ jobs:
   deploy:
     name: Build, check and deploy documentation
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    # The pinned documentation browser supports 24.04; ubuntu-latest now
+    # selects 26.04, which its browser/dependency installer rejects.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'live' && 'production' || 'documentation-preview' }}
     env:

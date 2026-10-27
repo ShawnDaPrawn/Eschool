@@ -78,3 +78,12 @@ Teacher mobile/entry checks: 4 passed; shared teaching screen/repository checks:
 style info), and Dart format passed. Native qualification remains required on
 the corrected hosted head; the earlier Android assertion is not waived or
 classified as an infrastructure failure.
+
+## Documentation runner compatibility
+
+The next documentation run reached Ubuntu 26.04 through `ubuntu-latest` and
+failed at browser installation: its pinned Playwright does not support Chromium
+on that image. Pin this documentation job to supported Ubuntu 24.04. Browser,
+accessibility and documentation checks remain enabled with the same dependency
+versions; no product code or deployment credentials are changed. Hosted
+qualification is required on the corrected revision.
