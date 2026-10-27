@@ -352,6 +352,17 @@ class FeeItemVatTest extends TestCase
         $this->healthy();
     }
 
+    public function test_invalid_price_tax_combination_never_flashes_private_finance_form_text(): void
+    {
+        $response = $this->actingAs($this->admin)->post('/fee-items/new', [
+            'expected_school_id' => 1, 'expected_account_id' => $this->admin->id, 'operation_id' => (string) Str::uuid(), 'revision' => 0,
+            'name' => 'PRIVATE-FINANCE-ITEM-TEXT', 'scope' => 'family', 'amount' => '10.01', 'currency' => 'ZAR', 'tax_treatment' => 'no_vat', 'vat_rate' => '15.00', 'state' => 'active',
+        ]);
+        $response->assertSessionMissing('_old_input')->assertStatus(422)->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(0, FeeItem::count());
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+    }
+
     private function api(User $actor): self
     {
         $this->app['auth']->forgetGuards();

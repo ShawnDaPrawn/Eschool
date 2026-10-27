@@ -11,7 +11,6 @@ use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Ledger\Money;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 final class FeeItems
 {
@@ -36,7 +35,7 @@ final class FeeItems
                 $rate = array_key_exists('vat_rate', $data) ? FeeTaxAmounts::rate($data['vat_rate']) : ($item->vat_rate_bp ?? 0);
                 FeeTaxAmounts::price($data['amount_cents'], $data['tax_treatment'], $rate);
             } catch (\InvalidArgumentException $e) {
-                throw ValidationException::withMessages(['tax_treatment' => $e->getMessage()]);
+                abort(422, $e->getMessage());
             }
             $item->fill(['name' => $data['name'], 'scope' => $data['scope'], 'amount_cents' => $data['amount_cents'], 'currency' => $data['currency'], 'tax_treatment' => $data['tax_treatment'], 'vat_rate_bp' => $rate, 'state' => $data['state'], 'revision' => (int) ($item->revision ?? 0) + 1])->save();
             Audit::record('money.fee_item_saved', $item, [], ['revision' => $item->revision, 'amount_cents' => $item->amount_cents, 'scope' => $item->scope, 'state' => $item->state]);
