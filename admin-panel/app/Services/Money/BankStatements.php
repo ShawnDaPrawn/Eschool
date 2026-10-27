@@ -29,7 +29,7 @@ final class BankStatements
         return $this->locked($actor, function () use ($actor, $csv): array {
             $rows = app(BankCsv::class)->parse($csv);
             $existing = $this->checkRows($rows);
-            $payload = base64_encode(json_encode($rows, JSON_THROW_ON_ERROR));
+            $payload = base64_encode(json_encode($rows, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_LINE_TERMINATORS));
 
             return ['rows' => $rows, 'payload' => $payload, 'existing_count' => $existing,
                 'fingerprint' => $this->fingerprint($actor, ['import', $rows])];

@@ -420,6 +420,24 @@ class BankStatementsTest extends TestCase
         $this->assertSame(0, FeePayment::count());
     }
 
+    public function test_large_valid_utf8_csv_can_confirm_within_the_private_form_payload_limit(): void
+    {
+        $rows = [];
+        for ($i = 0; $i < 400; $i++) {
+            $rows[] = ['2026-06-15', 'UTF8-'.$i, '', str_repeat($i < 200 ? 'é' : "\u{2028}", 240), '0.01', '', 'ZAR'];
+        }
+        $csv = $this->csv($rows);
+        $this->assertLessThanOrEqual(262144, strlen($csv));
+        $preview = app(BankStatements::class)->previewImport($this->admin, $csv);
+        $this->assertCount(400, $preview['rows']);
+        $this->assertLessThanOrEqual(600000, strlen($preview['payload']));
+        $import = app(BankStatements::class)->import($this->admin, $this->importInput($preview));
+        $this->assertNotNull($import->sealed_at);
+        $this->assertSame(400, BankStatementLine::count());
+        $this->assertSame(0, FeePayment::count());
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+    }
+
     private function family(array $changes = []): array
     {
         return array_replace(['operation_id' => (string) Str::uuid(), 'revision' => 0, 'name' => 'Synthetic split family', 'currency' => 'ZAR', 'session_year_id' => $this->year,

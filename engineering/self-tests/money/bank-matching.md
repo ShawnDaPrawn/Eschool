@@ -28,3 +28,11 @@ horizontal overflow, duplicate IDs, no-store headers and console/HTTP errors.
 Teacher access was refused. A first run caught the wrong shared upload component;
 the final run uses the existing M3 file-field without weakening assertions.
 Baseline-free money level5 and browser TypeScript analysis passed.
+
+
+The expanded local Money/Bootstrap/parser/share cohort passed **139 tests /2,386
+assertions**. Review found that JSON Unicode escaping could expand an otherwise
+valid400-row UTF-8 file past the confirmation limit. The reproduced old payload
+was852,124 characters; compact Unicode/slash/line-terminator encoding reduces it
+to404,124 without relaxing file/form bounds. A400-row accented/Unicode-separator
+import-confirmation regression is included in final source qualification on the PR.
