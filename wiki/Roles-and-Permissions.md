@@ -342,3 +342,8 @@ school role seeding; custom Finance roles need an explicit grant. It does not
 implicitly grant receipt handling, annual billing, credit-note approval or parent
 fee visibility. The existing separate capabilities continue to govern those
 operations. Revocation is rechecked before a write or permanent replay is returned.
+
+
+`fee-payments-manage` also controls private bank CSV review/import, the unmatched
+queue, reviewed EFT linking/recording and reasoned exclusions. It does not grant
+fee catalogue/credit-note administration, live transfers or provider access.

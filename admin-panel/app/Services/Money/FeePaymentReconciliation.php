@@ -54,7 +54,7 @@ final class FeePaymentReconciliation
             }
         }
 
-        return ['incomplete_allocations' => $drafts, 'allocation_mismatches' => $badRuns, 'family_credit_differences' => $credit, 'fee_receivable_differences' => $receivable, ...app(FeeCreditReconciliation::class)->inspect($accountIds), ...app(FeeItemReconciliation::class)->inspect($accountIds)];
+        return ['incomplete_allocations' => $drafts, 'allocation_mismatches' => $badRuns, 'family_credit_differences' => $credit, 'fee_receivable_differences' => $receivable, ...app(FeeCreditReconciliation::class)->inspect($accountIds), ...app(FeeItemReconciliation::class)->inspect($accountIds), ...app(BankStatementReconciliation::class)->inspect($accountIds)];
     }
 
     public static function healthy(array $report): bool

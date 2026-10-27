@@ -303,6 +303,7 @@ return [
                             'keywords' => ['annual fees', 'billing', 'enrolment preview', 'uplift']],
                         ['key' => 'fee-items', 'label' => 'Fee items and charges', 'route' => 'fee-items.index', 'permissions' => ['fee-items-manage'], 'module' => 'fees', 'active' => ['fee-items.*', 'fee-item-charges.*'], 'keywords' => ['additional charges', 'one-off', 'excursion', 'family charge']],
                         ['key' => 'fee-credit-notes', 'label' => 'Fee credit notes', 'route' => 'fee-credit-notes.index', 'permissions' => ['fee-credits-manage'], 'module' => 'fees', 'active' => ['fee-credit-notes.*'], 'keywords' => ['corrections', 'credit', 'invoice', 'held funds']],
+                        ['key' => 'bank-statements', 'label' => 'Bank statement matching', 'route' => 'bank-statements.index', 'permissions' => ['fee-payments-manage'], 'module' => 'fees', 'active' => ['bank-statements.*'], 'keywords' => ['bank import', 'CSV', 'EFT', 'unmatched', 'reconciliation']],
                         ['key' => 'fee-payments', 'label' => 'Fee payments', 'route' => 'fee-payments.index', 'permissions' => ['fee-payments-manage'], 'module' => 'fees', 'active' => ['fee-payments.*'],
                             'keywords' => ['receipts', 'cash', 'EFT', 'allocation', 'held credit', 'statements']],
                         ['key' => 'fee-accounts', 'label' => 'Family accounts', 'route' => 'fee-accounts.index', 'permissions' => ['fee-accounts-manage'], 'module' => 'fees', 'active' => ['fee-accounts.*'],

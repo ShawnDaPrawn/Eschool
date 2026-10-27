@@ -1,8 +1,8 @@
 # Phase 5 — money and commerce
 
 Status: ledger foundation, fee plans, family accounts/annual billing, manual fee
-receipts/allocation, private parent statements and credit notes are merged.
-Fee items and reviewed one-off charges are the current implementation increment;
+receipts/allocation, private parent statements, credit notes and fee items/one-off charges are merged.
+Bank imports and reviewed EFT matching are the current implementation increment;
 qualification and integration are tracked on its feature PR.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
@@ -55,15 +55,20 @@ correction before confirming. See [credit notes](../specs/money/credit-notes.md)
 and [verification](../self-tests/money/credit-notes.md). No automatic school refund
 formula or payout is selected.
 
-The current increment adds a revisioned additional-item catalogue and reviewed
+The previous increment adds a revisioned additional-item catalogue and reviewed
 one-off learner/family invoices. Family charges are billed once and apportioned
 using exact holder totals and real learner records. Annual tuition uniqueness,
 credit-note corrections and learner pins remain intact; tuition-first allocation
 now distinguishes tuition from additional items. See [fee items](../specs/money/fee-items.md)
 and [verification](../self-tests/money/fee-items.md).
 
-Remaining automatic fee rules/taxable items/discounts, refunds, payment adapters and bank
-matching, wallets/approvals/limits/withdrawals, vendors/orders/settlement,
+The current increment retains reviewed bank CSV evidence, suggests family matches,
+links existing EFT receipts or records one verified receipt, and keeps unresolved
+rows in a private queue. See [bank matching](../specs/money/bank-matching.md) and
+[verification](../self-tests/money/bank-matching.md). Importing does not post money.
+
+Remaining automatic fee rules/taxable items/discounts, refunds, payment adapters,
+arrears, accounting exports, scheduled reminders, wallets/approvals/limits/withdrawals, vendors/orders/settlement,
 ticketing, online card/QR spending and the finance/app surfaces remain future
 Phase 5 slices. Clearing and due-to-school balances remain zero until Phase 6.
 
