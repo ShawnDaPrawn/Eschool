@@ -19,6 +19,6 @@ class ParentFeeReadRequest extends FormRequest
     public function rules(): array
     {
         return ['page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'charges_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'],
-            'receipts_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'per_page' => ['sometimes', 'integer', 'min:1', 'max:50']];
+            'receipts_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'credits_page' => ['sometimes', 'integer', 'min:1', 'max:1000000'], 'per_page' => ['sometimes', 'integer', 'min:1', 'max:50']];
     }
 }

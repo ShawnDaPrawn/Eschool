@@ -61,6 +61,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
+use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
 use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
@@ -339,6 +340,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        Route::prefix('fee-credit-notes')->name('fee-credit-notes.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeCreditPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('review', [$c, 'review'])->name('review');
+            Route::post('new', [$c, 'post'])->name('post');
+            Route::get('{note}', [$c, 'show'])->whereNumber('note')->name('show');
         });
         Route::prefix('fee-payments')->name('fee-payments.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeePaymentPanelController::class;

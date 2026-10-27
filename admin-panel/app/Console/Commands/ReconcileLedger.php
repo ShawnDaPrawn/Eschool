@@ -60,19 +60,19 @@ final class ReconcileLedger extends Command
                 // Never repair from invalid/incomplete history. This switch
                 // repairs projections only, never entries, receipts or floats.
                 $payments = app(FeePaymentReconciliation::class)->inspect();
-                $validPayments = $payments['incomplete_allocations'] === 0 && $payments['allocation_mismatches'] === 0 && $payments['family_credit_differences'] === [] && $payments['fee_receivable_differences'] === [];
+                $validPayments = FeePaymentReconciliation::healthy($payments);
                 $repair = $validPayments && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
                 return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
-                    'legacy_cents_mismatches' => $legacy, ...$payments];
+                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validPayments, ...$payments];
             }));
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
                 || $report['incomplete_invoices'] > 0
                 || $report['incomplete_allocations'] > 0 || $report['allocation_mismatches'] > 0
                 || $report['family_credit_differences'] !== [] || $report['fee_receivable_differences'] !== []
-                || $report['legacy_cents_mismatches'] !== [] || ($report['projection_differences'] !== [] && ! $report['projections_rebuilt']);
+                || ! $report['domain_history_valid'] || $report['legacy_cents_mismatches'] !== [] || ($report['projection_differences'] !== [] && ! $report['projections_rebuilt']);
             if ($bad) {
                 Log::critical('money_ledger_reconciliation_failed', $report);
             }

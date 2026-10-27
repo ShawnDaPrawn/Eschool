@@ -759,6 +759,8 @@ import 'package:eschool_api/src/model/parent_fee_account_summary.dart';
 import 'package:eschool_api/src/model/parent_fee_accounts_page.dart';
 import 'package:eschool_api/src/model/parent_fee_charge.dart';
 import 'package:eschool_api/src/model/parent_fee_charge_page.dart';
+import 'package:eschool_api/src/model/parent_fee_credit_note.dart';
+import 'package:eschool_api/src/model/parent_fee_credit_page.dart';
 import 'package:eschool_api/src/model/parent_fee_receipt.dart';
 import 'package:eschool_api/src/model/parent_fee_receipt_page.dart';
 import 'package:eschool_api/src/model/parent_fee_statement.dart';
@@ -3894,6 +3896,12 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ParentFeeChargePage':
       return ParentFeeChargePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeCreditNote':
+      return ParentFeeCreditNote.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeCreditPage':
+      return ParentFeeCreditPage.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ParentFeeReceipt':
       return ParentFeeReceipt.fromJson(value as Map<String, dynamic>)

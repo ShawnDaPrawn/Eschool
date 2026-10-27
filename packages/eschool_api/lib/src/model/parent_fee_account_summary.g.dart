@@ -60,6 +60,14 @@ ParentFeeAccountSummary _$ParentFeeAccountSummaryFromJson(
           unknownValue: ParentFeeAccountSummaryScopeEnum.unknownDefaultOpenApi,
         ),
       ),
+      grossChargedCents: $checkedConvert(
+        'gross_charged_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
+      creditedCents: $checkedConvert(
+        'credited_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
     );
     return val;
   },
@@ -72,6 +80,8 @@ ParentFeeAccountSummary _$ParentFeeAccountSummaryFromJson(
     'creditCents': 'credit_cents',
     'netCents': 'net_cents',
     'nextDueOn': 'next_due_on',
+    'grossChargedCents': 'gross_charged_cents',
+    'creditedCents': 'credited_cents',
   },
 );
 
@@ -91,6 +101,8 @@ Map<String, dynamic> _$ParentFeeAccountSummaryToJson(
   'net_cents': instance.netCents,
   'next_due_on': instance.nextDueOn,
   'scope': _$ParentFeeAccountSummaryScopeEnumEnumMap[instance.scope]!,
+  'gross_charged_cents': ?instance.grossChargedCents,
+  'credited_cents': ?instance.creditedCents,
 };
 
 const _$ParentFeeAccountSummaryScopeEnumEnumMap = {

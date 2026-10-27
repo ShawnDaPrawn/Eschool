@@ -22,7 +22,7 @@ class ParentFeeController extends Controller
 
     public function show(ParentFeeReadRequest $request): JsonResponse
     {
-        $data = app(ParentFeeStatements::class)->show($request->user(), (int) $request->route('account'), $request->integer('charges_page', 1), $request->integer('receipts_page', 1), $request->integer('per_page', 20));
+        $data = app(ParentFeeStatements::class)->show($request->user(), (int) $request->route('account'), $request->integer('charges_page', 1), $request->integer('receipts_page', 1), $request->integer('per_page', 20), $request->integer('credits_page', 1));
 
         return ResponseService::successResponse('data_fetched_successfully', new ParentFeeResource($data));
     }

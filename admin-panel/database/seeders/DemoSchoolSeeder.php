@@ -356,7 +356,7 @@ class DemoSchoolSeeder extends Seeder
         // role, made the way a school makes one on the Roles page.
         $finance = Role::query()->firstOrCreate(['name' => 'Finance', 'guard_name' => 'web']);
         $finance->forceFill(['custom_role' => 1])->save();
-        $finance->syncPermissions(['fees-type', 'fees-classes', 'fees-paid', 'fees-config', 'fee-plans-manage', 'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage']);
+        $finance->syncPermissions(['fees-type', 'fees-classes', 'fees-paid', 'fees-config', 'fee-plans-manage', 'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage', 'fee-credits-manage']);
         [$first, $last, $gender] = $school['finance'];
         $staff = $this->user("finance.$k", $first, $last, 'Finance', ['gender' => $gender, 'dob' => '1985-09-30']);
         $this->row('staffs', ['user_id' => $staff->id]);

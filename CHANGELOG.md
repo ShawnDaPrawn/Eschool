@@ -156,3 +156,11 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 - The `EmailTempalate` model is renamed `EmailTemplate` (the table name is unchanged).
 
 **Deploy:** deploy the worker (`navigateed-worker`) and the scheduler job with this release: mail and push are queued now. Run `infra/gcp/provision.sh` for the environment, which sets `LOG_CHANNEL=json`, `CACHE_DRIVER=database`, `QUEUE_CONNECTION=database`, `MAIL_MAILER=ses` and the SES settings, and creates the secrets; add the SES keys and the secrets that left the `settings` rows to Secret Manager, re-run the script, then run `php artisan secrets:audit-settings --purge` (`engineering/runbooks/release.md`, step 7). See `engineering/runbooks/environments.md`.
+
+### Phase 5 fee corrections
+
+- Finance can review and post an immutable credit note against a recorded invoice
+  share, reducing debt or restoring paid money to the original receipt's held
+  credit while retaining holder and learner restrictions.
+- Finance and private parent statements show original charges, credit notes and
+  net balances; private Finance explanations remain excluded from parent reads.

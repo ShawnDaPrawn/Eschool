@@ -321,3 +321,14 @@ are debit-normal, fees-only assets; held family/holder credit uses a family
 liability without a personal-wallet owner. Allocation reduces credit and receivable,
 leaving income unchanged. The shared permanent `billing_operations` protects UUID
 replay. See [payments and statements](../specs/money/payments-statements.md).
+
+## Fee credit notes
+
+`fee_credit_notes` records school, family account, immutable invoice line and
+original holder, currency, integer amount/unpaid/released cents, fixed reason
+category, encrypted explanation, HMAC snapshot, ledger accounts/entry, actor and
+issue/seal timestamps. `fee_credit_releases` links a note to original allocation
+and payment with positive cents. Composite tenant foreign keys and finalization
+triggers enforce original share caps, valid original payments and ledger sides.
+Sealed notes/releases are immutable; a populated schema refuses rollback. Existing
+allocations remain gross history; effective allocations subtract sealed releases.

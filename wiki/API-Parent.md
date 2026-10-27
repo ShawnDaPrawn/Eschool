@@ -832,3 +832,20 @@ is explicit. `scope=your_visible_ledger_records` distinguishes this ledger from
 legacy history. Outstanding invoice debt and held credit are separate amounts;
 `net_cents` must not be presented as automatically payable debt. Missing/foreign
 accounts return404 without disclosure; revoked authorization returns403.
+
+### Credit notes on fee statements
+
+The existing fee account/statement v2 reads add optional `gross_charged_cents` and
+`credited_cents`. `charged_cents` remains the current net charge, so installed
+clients retain `charged = allocated + outstanding`. Receipt `released_cents`
+records cumulative funds restored by credits; it is history, not another balance.
+Restored funds already contribute to `credit_cents` until reused. Repeated reuse
+can make cumulative releases larger than the original receipt.
+
+Statement `credit_notes` is an optional page with an independent `credits_page`
+query parameter (the same bounded `per_page` as other pages). Rows contain the
+visible learner/invoice, fixed reason category, issue date and amount split into
+`unpaid_cents` and `released_cents`. Private Finance explanations and other holder
+identities never appear. Existing canonical guardian and hidden-child protections
+continue to apply to summaries, history and receipts. Regenerated SDK models keep
+all additions optional for older server responses.

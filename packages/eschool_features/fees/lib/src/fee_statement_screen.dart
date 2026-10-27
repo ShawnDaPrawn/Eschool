@@ -179,11 +179,20 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
     children: [
       _scope(),
       Text(statement.name, style: Theme.of(context).textTheme.titleLarge),
-      _amount(
-        'Your recorded shares',
-        statement.chargedCents,
-        statement.currency,
-      ),
+      if (statement.grossChargedCents != null ||
+          statement.creditedCents != null) ...[
+        _amount(
+          'Your original invoice shares',
+          statement.grossChargedCents ?? statement.chargedCents,
+          statement.currency,
+        ),
+        _amount(
+          'Credits against your shares',
+          statement.creditedCents ?? 0,
+          statement.currency,
+        ),
+      ],
+      _amount('Your net charges', statement.chargedCents, statement.currency),
       _amount(
         'Payments applied to your shares',
         statement.allocatedCents,
@@ -224,11 +233,20 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                   '${charge.invoiceNumber} · ${feeDate(charge.periodStart)} – ${feeDate(charge.periodEnd)}',
                 ),
                 Text('${feeText(context, 'Due on')}: ${feeDate(charge.dueOn)}'),
-                _amount(
-                  'Your recorded share',
-                  charge.chargedCents,
-                  charge.currency,
-                ),
+                if (charge.grossChargedCents != null ||
+                    charge.creditedCents != null) ...[
+                  _amount(
+                    'Original share',
+                    charge.grossChargedCents ?? charge.chargedCents,
+                    charge.currency,
+                  ),
+                  _amount(
+                    'Credited',
+                    charge.creditedCents ?? 0,
+                    charge.currency,
+                  ),
+                ],
+                _amount('Your net share', charge.chargedCents, charge.currency),
                 _amount(
                   'Applied payments',
                   charge.allocatedCents,
@@ -248,6 +266,7 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
           statement.id,
           chargesPage: p,
           receiptsPage: statement.receipts.currentPage,
+          creditsPage: statement.creditNotes?.currentPage ?? 1,
         ),
       ),
       const SizedBox(height: 20),
@@ -293,6 +312,12 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                   receipt.currency,
                 ),
                 _amount('Held credit', receipt.creditCents, receipt.currency),
+                if ((receipt.releasedCents ?? 0) > 0)
+                  _amount(
+                    'Restored by credit notes',
+                    receipt.releasedCents!,
+                    receipt.currency,
+                  ),
               ],
             ),
           ),
@@ -306,10 +331,76 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
           statement.id,
           chargesPage: statement.charges.currentPage,
           receiptsPage: p,
+          creditsPage: statement.creditNotes?.currentPage ?? 1,
         ),
       ),
+      _credits(statement),
     ],
   );
+
+  Widget _credits(ParentFeeStatement statement) {
+    final notes = statement.creditNotes;
+    if (notes == null) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 20),
+        Semantics(
+          header: true,
+          child: _text(
+            'Your credit notes',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+        _text(
+          'Credit notes correct charges; restored amounts stay in the original receipts.',
+        ),
+        if (notes.items.isEmpty) _text('No credit notes on this page.'),
+        for (final note in notes.items)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    note.number,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(note.learnerName),
+                  Text('${note.invoiceNumber} · ${feeDate(note.issuedOn)}'),
+                  _text(switch (note.reasonCode.value) {
+                    'billing_error' => 'Billing correction',
+                    'fee_reduction' => 'Fee reduction',
+                    'leaver_credit' => 'Leaver credit',
+                    _ => 'Other fee correction',
+                  }),
+                  _amount('Credit amount', note.amountCents, note.currency),
+                  _amount('Debt reduction', note.unpaidCents, note.currency),
+                  _amount(
+                    'Restored to receipts',
+                    note.releasedCents,
+                    note.currency,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        _pager(
+          label: 'Credit notes page',
+          page: notes.currentPage,
+          perPage: notes.perPage,
+          total: notes.total,
+          change: (p) => _cubit.statement(
+            statement.id,
+            chargesPage: statement.charges.currentPage,
+            receiptsPage: statement.receipts.currentPage,
+            creditsPage: p,
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) =>

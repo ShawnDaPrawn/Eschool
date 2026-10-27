@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Repository implements FeeStatementRepository {
+  _Repository({this.withCredits = false});
+  final bool withCredits;
   bool active = true;
   Object? error;
   Completer<ParentFeeStatement>? pending;
@@ -25,7 +27,9 @@ class _Repository implements FeeStatementRepository {
     int perPage = 20,
   }) async {
     if (error != null) throw error!;
-    return ParentFeeAccountsPage.fromJson(feeAccountsFixture());
+    return ParentFeeAccountsPage.fromJson(
+      withCredits ? feeCreditedAccountsFixture() : feeAccountsFixture(),
+    );
   }
 
   @override
@@ -33,11 +37,16 @@ class _Repository implements FeeStatementRepository {
     int familyId, {
     int chargesPage = 1,
     int receiptsPage = 1,
+    int creditsPage = 1,
     int perPage = 20,
   }) async {
     if (error != null) throw error!;
     return pending?.future ??
-        Future.value(ParentFeeStatement.fromJson(feeStatementFixture()));
+        Future.value(
+          ParentFeeStatement.fromJson(
+            withCredits ? feeCreditedStatementFixture() : feeStatementFixture(),
+          ),
+        );
   }
 }
 
@@ -204,6 +213,104 @@ void main() {
       expect(cubit.isClosed, isTrue);
     },
   );
+
+  test(
+    'new credit statement retains gross, net and restored receipt arithmetic',
+    () async {
+      final api = FakeApi(
+        routes: {
+          'GET v2/parent/fees/accounts': _ok(feeCreditedAccountsFixture()),
+          'GET v2/parent/fees/accounts/7/statement': _ok(
+            feeCreditedStatementFixture(),
+          ),
+        },
+      );
+      final repo = ApiFeeStatementRepository(
+        ApiClient(
+          authToken: () => 'synthetic',
+          onUnauthorized: () {},
+          createDio: () => Dio()..httpClientAdapter = api,
+        ),
+        schoolId: 1,
+        accountId: 21,
+        contextActive: () => true,
+      );
+      expect((await repo.accounts()).items.single.creditCents, 350);
+      final statement = await repo.statement(7);
+      expect(statement.grossChargedCents, 1002);
+      expect(statement.creditedCents, 300);
+      expect(statement.chargedCents, 702);
+      expect(statement.allocatedCents, 600);
+      expect(statement.receipts.items.first.releasedCents, 300);
+      expect(statement.creditNotes!.items.single.releasedCents, 300);
+    },
+  );
+  for (final wrong in ['gross', 'note', 'page', 'released']) {
+    test('malformed $wrong correction data is rejected', () async {
+      final data = feeCreditedStatementFixture();
+      if (wrong == 'gross') data['gross_charged_cents'] = 702;
+      if (wrong == 'note') {
+        ((data['credit_notes'] as Map)['items'] as List).first['amount_cents'] =
+            301;
+      }
+      if (wrong == 'page') (data['credit_notes'] as Map)['current_page'] = 2;
+      if (wrong == 'released') {
+        ((data['receipts'] as Map)['items'] as List).first['released_cents'] =
+            -1;
+      }
+      final api = FakeApi(
+        routes: {'GET v2/parent/fees/accounts/7/statement': _ok(data)},
+      );
+      final repo = ApiFeeStatementRepository(
+        ApiClient(
+          authToken: () => 'synthetic',
+          onUnauthorized: () {},
+          createDio: () => Dio()..httpClientAdapter = api,
+        ),
+        schoolId: 1,
+        accountId: 21,
+        contextActive: () => true,
+      );
+      await expectLater(repo.statement(7), throwsA(isA<ApiException>()));
+    });
+  }
+  for (final width in [390.0, 820.0, 1280.0]) {
+    testWidgets(
+      'credit notes and restored funds remain usable and clear on denial at $width',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final repo = _Repository(withCredits: true);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(),
+            home: FeeStatementScreen(
+              repository: repo,
+              learnerNames: const {12: 'Cara Synthetic'},
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('ZAR 3.50'), findsOneWidget);
+        await tester.tap(find.text('Open statement'));
+        await tester.pumpAndSettle();
+        expect(find.text('Your original invoice shares'), findsOneWidget);
+        expect(find.text('Your net charges'), findsOneWidget);
+        await tester.scrollUntilVisible(find.text('FEE-CN-SYNTHETIC-1'), 250);
+        expect(find.text('Billing correction'), findsOneWidget);
+        expect(find.text('Restored to receipts'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        repo.error = ApiException('revoked', statusCode: 403);
+        await tester.tap(find.byTooltip('Refresh fee statements'));
+        await tester.pumpAndSettle();
+        expect(find.text('Your fee access changed'), findsOneWidget);
+        expect(find.text('FEE-CN-SYNTHETIC-1'), findsNothing);
+        expect(find.text('Synthetic family'), findsNothing);
+      },
+    );
+  }
 
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets(

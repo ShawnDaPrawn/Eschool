@@ -22,3 +22,8 @@ not independent development. The cancelled pilot campaign remains cancelled.
 [Manual payments and private statements](money/payments-statements.md) records
 verified cash/EFT, held credit, reviewed allocation and private parent API/app
 reads. It does not qualify refunds, wallets, gateways or the rest of commerce.
+
+Credit notes are the next bounded increment. See the [credit-note verification
+record](money/credit-notes.md) for executed tests and the feature PR for final
+hosted qualification. Refund policies/payouts and the rest of Phase 5 remain
+separate work. No gateway or production release is activated.

@@ -802,6 +802,8 @@ lib/src/model/parent_fee_account_summary.dart
 lib/src/model/parent_fee_accounts_page.dart
 lib/src/model/parent_fee_charge.dart
 lib/src/model/parent_fee_charge_page.dart
+lib/src/model/parent_fee_credit_note.dart
+lib/src/model/parent_fee_credit_page.dart
 lib/src/model/parent_fee_receipt.dart
 lib/src/model/parent_fee_receipt_page.dart
 lib/src/model/parent_fee_statement.dart

@@ -48,7 +48,7 @@ return [
             'fee-plans/*',
             'fee-accounts/*',
             // Receipt/allocation writes settle retained invoices without editing year records.
-            'fee-payments/*',
+            'fee-payments/*', 'fee-credit-notes/*',
             'fee-bill-runs/new',
             'fee-bill-runs/*/approve',
 

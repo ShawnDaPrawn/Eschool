@@ -641,3 +641,21 @@ holder-removal finding was reproduced and fixed without freezing holder changes
 after full allocation. The final local Money/Bootstrap cohort passed 60 tests /
 546 assertions and money level 5 analysis passed. Final hosted source qualification
 and review resolution remain tracked on the PR.
+
+## 2026-10-27 — reasoned invoice credit notes
+
+Added a reviewed, confirmed correction to one original invoice-line/holder share.
+Unpaid credits reduce receivables; paid credits restore original held funds with
+learner pins retained. Immutable note/release rows, balanced entry, encrypted
+private explanation and permanent operation receipt commit atomically. Original
+invoices, receipts and allocations are preserved. Net allocation caps allow reuse
+of restored funds without rewriting historical rows. Finance screens and parent
+statements show gross charges, credits, net charges and permitted credit history.
+Parent API fields are additive and generated models optional. Reconciliation
+checks effective shares, release links/caps and fee income as well as liabilities.
+
+Evidence is recorded in self-tests/money/credit-notes.md and the feature PR. School
+refund/pro-rata policy, live payouts, new fee rules/items, gateways, wallets and
+commerce remain separate increments. New labels have English fallback in all
+offered catalogues pending fluent review. Physical-device/staging/user acceptance
+and independent live-money review remain separate; no production activation.

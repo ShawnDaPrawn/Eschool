@@ -101,6 +101,7 @@ final class FeePayments
     {
         $school = app(CurrentSchool::class)->id();
         $used = (int) DB::table('payment_allocations')->where('school_id', $school)->where('payment_id', $payment->id)->lockForUpdate()->sum('amount_cents');
+        $used -= (int) FeeCreditHistory::releases()->where('c.payment_id', $payment->id)->sum('c.amount_cents');
         abort_unless($used >= 0 && $used <= $payment->amount_cents, 409, 'Payment allocations need reconciliation.');
 
         return $payment->amount_cents - $used;
@@ -113,6 +114,7 @@ final class FeePayments
         $used = (int) DB::table('payment_allocations as a')->join('payments as p', function ($j) {
             $j->on('p.school_id', '=', 'a.school_id')->on('p.id', '=', 'a.payment_id');
         })->where('a.school_id', $school)->where('p.credit_account_id', $payment->credit_account_id)->lockForUpdate()->sum('a.amount_cents');
+        $used -= (int) FeeCreditHistory::releases()->where('p.credit_account_id', $payment->credit_account_id)->sum('c.amount_cents');
         abort_unless($total - $used === app(LedgerService::class)->balance($payment->credit_account_id)->cents, 409, 'Held payment credits differ from the ledger. Reconcile before continuing.');
     }
 

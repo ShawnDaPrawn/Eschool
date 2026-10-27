@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/parent_fee_credit_page.dart';
 import 'package:eschool_api/src/model/parent_fee_receipt_page.dart';
 import 'package:eschool_api/src/model/parent_fee_charge_page.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -47,6 +48,12 @@ class ParentFeeStatement {
     required this.charges,
 
     required this.receipts,
+
+    this.grossChargedCents,
+
+    this.creditedCents,
+
+    this.creditNotes,
   });
 
   // minimum: 1
@@ -70,6 +77,7 @@ class ParentFeeStatement {
   @JsonKey(name: r'currency', required: true, includeIfNull: false)
   final String currency;
 
+  /// Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
   // minimum: 0
   @JsonKey(name: r'charged_cents', required: true, includeIfNull: false)
   final int chargedCents;
@@ -106,6 +114,19 @@ class ParentFeeStatement {
   @JsonKey(name: r'receipts', required: true, includeIfNull: false)
   final ParentFeeReceiptPage receipts;
 
+  /// Original recorded invoice shares before credit notes. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'gross_charged_cents', required: false, includeIfNull: false)
+  final int? grossChargedCents;
+
+  /// Posted credit notes against these original shares. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'credited_cents', required: false, includeIfNull: false)
+  final int? creditedCents;
+
+  @JsonKey(name: r'credit_notes', required: false, includeIfNull: false)
+  final ParentFeeCreditPage? creditNotes;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -124,7 +145,10 @@ class ParentFeeStatement {
           other.nextDueOn == nextDueOn &&
           other.scope == scope &&
           other.charges == charges &&
-          other.receipts == receipts;
+          other.receipts == receipts &&
+          other.grossChargedCents == grossChargedCents &&
+          other.creditedCents == creditedCents &&
+          other.creditNotes == creditNotes;
 
   @override
   int get hashCode =>
@@ -142,7 +166,10 @@ class ParentFeeStatement {
       (nextDueOn == null ? 0 : nextDueOn.hashCode) +
       scope.hashCode +
       charges.hashCode +
-      receipts.hashCode;
+      receipts.hashCode +
+      grossChargedCents.hashCode +
+      creditedCents.hashCode +
+      creditNotes.hashCode;
 
   factory ParentFeeStatement.fromJson(Map<String, dynamic> json) =>
       _$ParentFeeStatementFromJson(json);

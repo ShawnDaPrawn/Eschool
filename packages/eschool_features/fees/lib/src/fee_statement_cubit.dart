@@ -31,16 +31,21 @@ class FeeStatementCubit extends Cubit<FeeStatementState> {
     () async => FeeAccountsReady(await repository.accounts(page: page)),
   );
 
-  Future<void> statement(int id, {int chargesPage = 1, int receiptsPage = 1}) =>
-      _load(
-        () async => FeeStatementReady(
-          await repository.statement(
-            id,
-            chargesPage: chargesPage,
-            receiptsPage: receiptsPage,
-          ),
-        ),
-      );
+  Future<void> statement(
+    int id, {
+    int chargesPage = 1,
+    int receiptsPage = 1,
+    int creditsPage = 1,
+  }) => _load(
+    () async => FeeStatementReady(
+      await repository.statement(
+        id,
+        chargesPage: chargesPage,
+        receiptsPage: receiptsPage,
+        creditsPage: creditsPage,
+      ),
+    ),
+  );
 
   Future<void> _load(Future<FeeStatementState> Function() action) async {
     final generation = ++_generation;
