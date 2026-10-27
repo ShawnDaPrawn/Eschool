@@ -233,3 +233,7 @@ indexed school foreign keys; their cross-document links are composite school/ID
 foreign keys. The three Eloquent models use BelongsToSchool; the link table is
 queried with an explicit current-school predicate. Bank source uniqueness and
 receipt matching are per school, with no platform-wide financial read endpoint.
+
+`fee_accounting_settings` is required school-owned, with a unique school foreign
+key. Its Eloquent model uses BelongsToSchool. Reports and CSV exports use current-
+school predicates on every raw join, including invoice shares and ledger postings.

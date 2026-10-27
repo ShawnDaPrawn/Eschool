@@ -361,3 +361,8 @@ import/line lineage) and `bank_statement_resolutions` (one reviewed match/exclus
 optional unique EFT payment, encrypted reason, fingerprint, actor and UTC time).
 Composite tenant links and immutable SQL guards retain reconciliation history.
 Imports do not create financial postings; matching reuses existing receipts.
+
+School-owned `fee_accounting_settings` stores revisioned chart mappings, explicit
+organisation currencies/date formats and Xero zero-tax label. It changes export
+presentation, never ledger values. Arrears and accounting CSVs derive from sealed
+invoices, net holder shares and posted ledger history; no duplicate balance table.

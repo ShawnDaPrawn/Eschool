@@ -2,8 +2,10 @@
 
 Status: ledger foundation, fee plans, family accounts/annual billing, manual fee
 receipts/allocation, private parent statements, credit notes and fee items/one-off charges are merged.
-Bank imports and reviewed EFT matching are the current implementation increment;
-qualification and integration are tracked on its feature PR.
+Bank imports and reviewed EFT matching are merged in PR314.
+The owner authorized delivery through remaining increment15; see
+[the execution inventory](phase-5-delivery-1-15.md). Arrears/accounting exports
+are the current implementation increment.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence

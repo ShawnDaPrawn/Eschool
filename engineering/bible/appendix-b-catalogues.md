@@ -267,3 +267,7 @@ The fees module adds private bank CSV imports/matching under the existing
 receipt before a match. Import/exclusion audit carries identifiers/counts only;
 only newly recorded receipts emit the existing `fees.payment_recorded` event.
 No bank import notification type or provider activation is added.
+
+`fee-payments-manage` also controls Finance arrears and accounting exports under
+fees. No new notification type/provider is added by reporting. Disabled fees keep
+read-only financial reports while refusing accounting-mapping writes.
