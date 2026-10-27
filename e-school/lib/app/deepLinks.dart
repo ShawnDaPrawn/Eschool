@@ -18,6 +18,7 @@ const List<DeepLinkRoute> deepLinkRoutes = [
   DeepLinkRoute(Routes.peerTutoring, Routes.peerTutoring),
   DeepLinkRoute(Routes.tutor, Routes.tutor),
   DeepLinkRoute(Routes.tutorSummary, Routes.tutorSummary),
+  DeepLinkRoute(Routes.feeStatements, Routes.feeStatements),
   DeepLinkRoute(
     Routes.consultations,
     Routes.consultations,

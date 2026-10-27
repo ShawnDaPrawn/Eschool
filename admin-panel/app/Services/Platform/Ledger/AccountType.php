@@ -8,6 +8,7 @@ enum AccountType: string
 {
     case FeeReceivable = 'fee_receivable';
     case FeeIncome = 'fee_income';
+    case FeeBank = 'fee_bank';
     case Family = 'family';
     case Wallet = 'wallet';
     case Vendor = 'vendor';
@@ -18,7 +19,7 @@ enum AccountType: string
     public function normalDirection(): string
     {
         return match ($this) {
-            self::FeeReceivable, self::CashDesk, self::Clearing => 'debit',
+            self::FeeReceivable, self::FeeBank, self::CashDesk, self::Clearing => 'debit',
             default => 'credit',
         };
     }

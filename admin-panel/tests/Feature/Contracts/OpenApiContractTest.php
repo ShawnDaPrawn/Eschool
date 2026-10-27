@@ -50,6 +50,8 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'listParentFeeAccounts requires authentication' => [null, 'GET', 'api/v2/parent/fees/accounts', [], 401],
+            'getParentFeeStatement requires authentication' => [null, 'GET', 'api/v2/parent/fees/accounts/1/statement', [], 401],
             'getSecureEncodingPlan requires authentication' => [null, 'GET', 'api/v2/card-encoder/plans/8aef50e7-2429-4d2c-a523-668ae436c4d4', [], 401],
             'confirmSecureEncodingPlan requires authentication' => [null, 'POST', 'api/v2/card-encoder/plans/8aef50e7-2429-4d2c-a523-668ae436c4d4/confirm', [], 401],
             'getFoundationConfiguration requires authentication' => [null, 'GET', 'api/v2/foundation-classroom/configuration', [], 401],

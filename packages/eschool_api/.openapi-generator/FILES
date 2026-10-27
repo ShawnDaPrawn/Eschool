@@ -9,6 +9,7 @@ lib/src/api/discipline_api.dart
 lib/src/api/exam_coach_api.dart
 lib/src/api/family_forms_api.dart
 lib/src/api/family_visits_api.dart
+lib/src/api/fee_statements_api.dart
 lib/src/api/foundation_classroom_api.dart
 lib/src/api/gallery_api.dart
 lib/src/api/growth_api.dart
@@ -631,6 +632,7 @@ lib/src/model/get_foundation_learner_context_response.dart
 lib/src/model/get_foundation_practice_response.dart
 lib/src/model/get_identified_incident_follow_up_response.dart
 lib/src/model/get_managed_consultation_results_response.dart
+lib/src/model/get_parent_fee_statement_response.dart
 lib/src/model/get_practice_access_response.dart
 lib/src/model/get_practice_bank_choices_response.dart
 lib/src/model/get_practice_bank_response.dart
@@ -734,6 +736,7 @@ lib/src/model/list_consultation_history_response.dart
 lib/src/model/list_consultation_responses_response.dart
 lib/src/model/list_consultations_response.dart
 lib/src/model/list_managed_consultations_response.dart
+lib/src/model/list_parent_fee_accounts_response.dart
 lib/src/model/list_staff_private_notices_response.dart
 lib/src/model/list_wellbeing_appointments_response.dart
 lib/src/model/list_wellbeing_case_assignments_response.dart
@@ -795,6 +798,13 @@ lib/src/model/notification_type_preference.dart
 lib/src/model/notification_type_preference_channels.dart
 lib/src/model/open_wellbeing_case_response.dart
 lib/src/model/pagination.dart
+lib/src/model/parent_fee_account_summary.dart
+lib/src/model/parent_fee_accounts_page.dart
+lib/src/model/parent_fee_charge.dart
+lib/src/model/parent_fee_charge_page.dart
+lib/src/model/parent_fee_receipt.dart
+lib/src/model/parent_fee_receipt_page.dart
+lib/src/model/parent_fee_statement.dart
 lib/src/model/pathway_choice.dart
 lib/src/model/pathway_configuration.dart
 lib/src/model/pathway_configuration_response.dart

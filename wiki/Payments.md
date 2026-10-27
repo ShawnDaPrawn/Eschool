@@ -1,5 +1,6 @@
-The new [Ledger foundation](Ledger) is an internal preparation kernel. It has not
-replaced the historical receipt tables or enabled a new payment method. Existing
+The [Ledger foundation](Ledger) supports the new billing and manual verified
+cash/EFT workspace. Historical receipt tables remain separate, and no new payment
+gateway is activated. Existing
 academic access is independent of fee arrears: the reminder setting and its start
 date never lock a learner out of Home, marks or released reports.
 
@@ -300,3 +301,31 @@ A payment left pending on a removed gateway can no longer be confirmed by its we
 - [Security-Model](Security-Model)
 - [Database-Schema](Database-Schema)
 - [Troubleshooting-and-FAQ](Troubleshooting-and-FAQ)
+
+
+## Verified manual ledger receipts
+
+Staff with `fee-payments-manage` use **Money → Fee payments**. Choose a family
+account and the holder whose shares the payment covers; optionally reserve it for
+one learner. Record confirmed cash or EFT using a unique cash receipt/bank
+transaction ID, amount and received date. The reusable family reference is not a
+unique transaction ID. Confirm this receipt was not already entered in legacy
+history. Do not re-enter old payments here: the two histories remain separate.
+
+A new receipt is held credit until allocation is reviewed and posted. Choose the
+school allocation rule explicitly, open the receipt, review its eligible unpaid
+shares and confirm allocation. Excess money stays held for that holder/learner;
+it does not automatically settle another holder's obligation. A changed rule,
+credit or outstanding share requires a fresh review. Posted history is immutable;
+refunds and payer transfers require future reasoned workflows. Held credit can
+prevent removing learner assignments or emptying an account, and receipt currency
+cannot be changed. Finance can settle retained old-year invoices without editing
+their charges. Disabling fees retains read-only financial history.
+
+Parents open **Fee statements** from Home to view only their permitted shares,
+receipts and held credit. Invoice balance and credit appear separately. Learner
+pinning can mean held money cannot pay another displayed charge automatically.
+A receipt touching a learner they can no longer view is withheld; totals explicitly
+cover permitted ledger records. Other holders' details and raw bank references
+are never in the parent response. No Pay now/provider activation is introduced.
+Existing v1 receipt screens and the legacy leadership aggregate remain unchanged.

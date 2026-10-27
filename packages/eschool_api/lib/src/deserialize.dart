@@ -594,6 +594,7 @@ import 'package:eschool_api/src/model/get_foundation_learner_context_response.da
 import 'package:eschool_api/src/model/get_foundation_practice_response.dart';
 import 'package:eschool_api/src/model/get_identified_incident_follow_up_response.dart';
 import 'package:eschool_api/src/model/get_managed_consultation_results_response.dart';
+import 'package:eschool_api/src/model/get_parent_fee_statement_response.dart';
 import 'package:eschool_api/src/model/get_practice_access_response.dart';
 import 'package:eschool_api/src/model/get_practice_bank_choices_response.dart';
 import 'package:eschool_api/src/model/get_practice_bank_response.dart';
@@ -692,6 +693,7 @@ import 'package:eschool_api/src/model/list_consultation_history_response.dart';
 import 'package:eschool_api/src/model/list_consultation_responses_response.dart';
 import 'package:eschool_api/src/model/list_consultations_response.dart';
 import 'package:eschool_api/src/model/list_managed_consultations_response.dart';
+import 'package:eschool_api/src/model/list_parent_fee_accounts_response.dart';
 import 'package:eschool_api/src/model/list_staff_private_notices_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_appointments_response.dart';
 import 'package:eschool_api/src/model/list_wellbeing_case_assignments_response.dart';
@@ -753,6 +755,13 @@ import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/pagination.dart';
+import 'package:eschool_api/src/model/parent_fee_account_summary.dart';
+import 'package:eschool_api/src/model/parent_fee_accounts_page.dart';
+import 'package:eschool_api/src/model/parent_fee_charge.dart';
+import 'package:eschool_api/src/model/parent_fee_charge_page.dart';
+import 'package:eschool_api/src/model/parent_fee_receipt.dart';
+import 'package:eschool_api/src/model/parent_fee_receipt_page.dart';
+import 'package:eschool_api/src/model/parent_fee_statement.dart';
 import 'package:eschool_api/src/model/pathway_choice.dart';
 import 'package:eschool_api/src/model/pathway_configuration.dart';
 import 'package:eschool_api/src/model/pathway_configuration_response.dart';
@@ -3320,6 +3329,11 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'GetParentFeeStatementResponse':
+      return GetParentFeeStatementResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'GetPracticeAccessResponse':
       return GetPracticeAccessResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -3664,6 +3678,11 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'ListParentFeeAccountsResponse':
+      return ListParentFeeAccountsResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ListStaffPrivateNoticesResponse':
       return ListStaffPrivateNoticesResponse.fromJson(
             value as Map<String, dynamic>,
@@ -3864,6 +3883,27 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'Pagination':
       return Pagination.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ParentFeeAccountSummary':
+      return ParentFeeAccountSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeAccountsPage':
+      return ParentFeeAccountsPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeCharge':
+      return ParentFeeCharge.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeChargePage':
+      return ParentFeeChargePage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeReceipt':
+      return ParentFeeReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeReceiptPage':
+      return ParentFeeReceiptPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ParentFeeStatement':
+      return ParentFeeStatement.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'PathwayChoice':
       return PathwayChoice.fromJson(value as Map<String, dynamic>)
           as ReturnType;

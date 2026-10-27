@@ -14,7 +14,7 @@ final class MoneyPolicy
 {
     public function authorize(User $actor, string $permission, bool $write = false, bool $locked = false): User
     {
-        abort_unless(in_array($permission, ['fee-plans-manage', 'fee-accounts-manage', 'fee-billing-manage'], true), 403);
+        abort_unless(in_array($permission, ['fee-plans-manage', 'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage'], true), 403);
         $context = app(CurrentSchool::class);
         abort_unless($context->isSet() && ! $context->isAcrossSchools() && ! $context->isImpersonating(), 403);
         $school = DB::table('schools')->where('id', $context->id());

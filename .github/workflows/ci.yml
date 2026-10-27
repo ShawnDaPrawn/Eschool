@@ -253,7 +253,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications, packages/eschool_people, packages/eschool_features/academics]
+        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications, packages/eschool_people, packages/eschool_features/academics, packages/eschool_features/fees]
     defaults:
       run:
         working-directory: ${{ matrix.app }}
@@ -437,6 +437,8 @@ jobs:
             flow: teacher_smoke_test.dart
           - app: e-school-teacher
             flow: teacher_academic_marks_smoke_test.dart
+          - app: e-school
+            flow: family_fee_statements_smoke_test.dart
           - app: e-school
             flow: family_academic_marks_smoke_test.dart
           - app: e-school-teacher

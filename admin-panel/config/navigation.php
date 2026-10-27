@@ -301,6 +301,8 @@ return [
                     'items' => [
                         ['key' => 'fee-plans', 'label' => 'Fee plans', 'route' => 'fee-plans.index', 'permissions' => ['fee-plans-manage'], 'module' => 'fees', 'active' => ['fee-plans.*'],
                             'keywords' => ['annual fees', 'billing', 'enrolment preview', 'uplift']],
+                        ['key' => 'fee-payments', 'label' => 'Fee payments', 'route' => 'fee-payments.index', 'permissions' => ['fee-payments-manage'], 'module' => 'fees', 'active' => ['fee-payments.*'],
+                            'keywords' => ['receipts', 'cash', 'EFT', 'allocation', 'held credit', 'statements']],
                         ['key' => 'fee-accounts', 'label' => 'Family accounts', 'route' => 'fee-accounts.index', 'permissions' => ['fee-accounts-manage'], 'module' => 'fees', 'active' => ['fee-accounts.*'],
                             'keywords' => ['family', 'payer', 'split holders', 'statement', 'invoices']],
                         ['key' => 'fee-bill-runs', 'label' => 'Bill runs', 'route' => 'fee-bill-runs.index', 'permissions' => ['fee-billing-manage'], 'module' => 'fees', 'active' => ['fee-bill-runs.*', 'fee-invoices.*'],

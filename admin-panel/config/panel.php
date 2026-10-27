@@ -47,6 +47,8 @@ return [
             // money effects. Preparing a new year must work from any header year.
             'fee-plans/*',
             'fee-accounts/*',
+            // Receipt/allocation writes settle retained invoices without editing year records.
+            'fee-payments/*',
             'fee-bill-runs/new',
             'fee-bill-runs/*/approve',
 

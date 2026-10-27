@@ -8,9 +8,13 @@ parameters:
         - app/Policies/Money
         - app/Models/Money
         - app/Http/Controllers/Panel/Money
+        - app/Http/Controllers/Api/V2/Money
+        - app/Http/Resources/Money
+        - app/Events/Money
         - app/Http/Requests/Money
         - database/migrations/2026_10_26_260000_create_fee_plan_catalogue.php
         - database/migrations/2026_10_27_100000_create_family_billing.php
+        - database/migrations/2026_10_27_200000_create_fee_payments.php
         - app/Services/Platform/Ledger/AccountType.php
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php

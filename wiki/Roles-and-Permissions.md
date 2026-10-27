@@ -320,3 +320,11 @@ Each removal migration also calls `PermissionRegistrar::forgetCachedPermissions(
 - [API Teacher](API-Teacher)
 - [API Parent](API-Parent)
 - [Admin Panel Overview](Admin-Panel-Overview)
+
+
+`fee-payments-manage` independently grants the school Money → Fee payments
+workspace, verified cash/EFT recording, allocation rule and reviewed allocation,
+and Finance statements. Plan/account/bill permissions alone do not grant it.
+Super Admin and synthetic demo Finance include it. Actual custom roles must be
+assigned explicitly. Parent read-only statements use fresh Parent/guardian policy,
+not this staff permission; learners have no access to the parent endpoint.

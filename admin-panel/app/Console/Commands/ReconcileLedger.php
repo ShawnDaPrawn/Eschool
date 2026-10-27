@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Platform\School;
+use App\Services\Money\FeePaymentReconciliation;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -35,7 +36,8 @@ final class ReconcileLedger extends Command
         $reports = [];
         $failed = false;
         foreach ($schools as $school) {
-            $report = $context->run((int) $school, function () use ($school, $ledger): array {
+            $report = $context->run((int) $school, fn (): array => DB::transaction(function () use ($school, $ledger): array {
+                DB::table('schools')->where('id', $school)->lockForUpdate()->firstOrFail();
                 $unbalanced = DB::table('ledger_entries as e')->leftJoin('ledger_postings as p', function ($join) {
                     $join->on('p.entry_id', '=', 'e.id')->on('p.school_id', '=', 'e.school_id');
                 })->where('e.school_id', $school)->groupBy('e.id')->havingRaw("COUNT(p.id) < 2 OR COALESCE(SUM(CASE p.direction WHEN 'debit' THEN p.cents ELSE -p.cents END),0) <> 0")
@@ -57,15 +59,19 @@ final class ReconcileLedger extends Command
                 }
                 // Never repair from invalid/incomplete history. This switch
                 // repairs projections only, never entries, receipts or floats.
-                $repair = (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
+                $payments = app(FeePaymentReconciliation::class)->inspect();
+                $validPayments = $payments['incomplete_allocations'] === 0 && $payments['allocation_mismatches'] === 0 && $payments['family_credit_differences'] === [] && $payments['fee_receivable_differences'] === [];
+                $repair = $validPayments && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
                 return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
-                    'legacy_cents_mismatches' => $legacy];
-            });
+                    'legacy_cents_mismatches' => $legacy, ...$payments];
+            }));
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
                 || $report['incomplete_invoices'] > 0
+                || $report['incomplete_allocations'] > 0 || $report['allocation_mismatches'] > 0
+                || $report['family_credit_differences'] !== [] || $report['fee_receivable_differences'] !== []
                 || $report['legacy_cents_mismatches'] !== [] || ($report['projection_differences'] !== [] && ! $report['projections_rebuilt']);
             if ($bad) {
                 Log::critical('money_ledger_reconciliation_failed', $report);

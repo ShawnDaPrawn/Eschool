@@ -1,8 +1,9 @@
 # Phase 5 — money and commerce
 
-Status: ledger foundation and fee-plan catalogue/enrolment previews merged.
-Family accounts and annual preview/approve/post billing are implemented;
-qualification and integration are tracked on their feature PR.
+Status: ledger foundation, fee-plan catalogue/enrolment previews and family
+accounts/annual preview/approve/post billing are merged. Manual fee receipts,
+allocation and private parent statements are the current implementation increment;
+qualification and integration are tracked on its feature PR.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence
@@ -39,10 +40,15 @@ The next increment adds explicit year-specific family holders/shares, learner
 payer assignments, immutable bill previews, approval and atomic annual invoice
 posting against receivable/income accounts. It excludes already invoiced annual
 charges and exposes missing/invalid payers and unsupported policies as exceptions.
-See [family billing](../specs/money/family-billing.md). Parent-facing statements,
-credits and policy-dependent charges remain separate work.
+See [family billing](../specs/money/family-billing.md). Policy-dependent charges remain separate work.
 
-Remaining fee rules/items/discounts, allocations/refunds, payment adapters and bank
+The current increment records verified manual cash/EFT receipts, holds credit for
+an explicit holder/optional learner, reviews and posts allocation, and exposes
+private parent statements in API v2 and the parent app. No provider is selected.
+See [payments and statements](../specs/money/payments-statements.md) and its
+[verification record](../self-tests/money/payments-statements.md).
+
+Remaining fee rules/items/discounts, refunds, payment adapters and bank
 matching, wallets/approvals/limits/withdrawals, vendors/orders/settlement,
 ticketing, online card/QR spending and the finance/app surfaces remain future
 Phase 5 slices. Clearing and due-to-school balances remain zero until Phase 6.

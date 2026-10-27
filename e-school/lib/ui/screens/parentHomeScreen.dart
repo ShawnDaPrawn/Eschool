@@ -728,6 +728,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                                     const ConsultationsEntry(),
                                     const ActivityGroupsEntry(),
                                     const AcademicContentEntry(),
+                                    const FeeStatementsEntry(),
                                     _buildChildrenContainer(),
                                     SizedBox(
                                       height:
