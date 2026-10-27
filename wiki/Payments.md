@@ -372,3 +372,27 @@ a posted share through a credit note. Oldest-first allocation uses due/date/line
 order; tuition-first prioritises annual tuition, then additional items, while
 retaining holder and learner restrictions. Retained financial history is readable
 when fees are disabled. No payment gateway or payout is activated.
+
+
+## Bank imports and EFT matching
+
+Finance with `fee-payments-manage` opens **Money → Bank statement matching**.
+Download the CSV headings and convert the school's bank export explicitly: ISO
+dates, original unique bank transaction IDs, separate reusable family references,
+one decimal credit/debit per row, and a currency. Maximum500 rows/256KiB per file.
+Review and confirm the bank evidence; importing never posts money. Exact repeated
+files and overlapping rows are retained once. Changed details under an existing
+transaction ID stop the whole import for investigation.
+
+Open an unmatched credit. Exact family references suggest an account; choose and
+verify the holder and optional learner pin and enter a verification note. Review
+then confirm. An agreeing manual EFT receipt is linked without a second posting;
+otherwise one verified EFT receipt holds credit for separate reviewed allocation.
+Existing mismatching receipts and stale previews stop confirmation. Never change
+a transaction reference merely to get around a duplicate or mismatch.
+
+Leave uncertain rows unresolved. Bank debits cannot become receipts. Non-fee
+transactions can be reviewed and excluded with a reason, without posting money.
+Matched/excluded/all filters retain history. Resolutions are immutable; mistakes
+need a reasoned correction workflow rather than editing bank evidence. Disabled
+fees keep read-only history. No gateway or bank connection is required.

@@ -31,3 +31,8 @@ separate work. No gateway or production release is activated.
 Fee items and reviewed one-off charging are the next bounded slice. See
 [verification](money/fee-items.md) and the feature PR for final qualification.
 Automatic/taxable item rules and the rest of Phase 5 remain separate work.
+
+
+Bank imports and reviewed EFT matching are the current increment. See
+[verification](money/bank-matching.md) and its feature PR; importing evidence does
+not post money, and unresolved bank rows are not a development freeze.

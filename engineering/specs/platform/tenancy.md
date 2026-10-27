@@ -224,3 +224,12 @@ Foundation classroom eligibility and device/Teacher delegations (`foundation_cla
 tables. The internal service always supplies an explicit active school; composite
 foreign keys prevent cross-school account/entry postings even through raw SQL.
 There is no public ledger write API. See the [ledger contract](../money/ledger-foundation.md).
+
+
+Bank statement imports, lines, import-row links and resolutions are required
+school-owned tables (`bank_statement_imports`, `bank_statement_lines`,
+`bank_statement_import_rows`, `bank_statement_resolutions`). All carry required
+indexed school foreign keys; their cross-document links are composite school/ID
+foreign keys. The three Eloquent models use BelongsToSchool; the link table is
+queried with an explicit current-school predicate. Bank source uniqueness and
+receipt matching are per school, with no platform-wide financial read endpoint.

@@ -350,3 +350,14 @@ rule; item/learner uniqueness prevents repeated family lines. Source, reviewed
 line/share data, sealed totals and invoice links are checked by database guards.
 No financial history is rewritten by the migration. Populated item/charge history
 refuses rollback; an empty down/up is rehearsed.
+
+
+## Phase 5 bank evidence and matching
+
+School-owned `bank_statement_imports` (canonical digest, count, actor, UTC seal),
+`bank_statement_lines` (stable source/payload hashes, bank date, direction, cents,
+currency, encrypted private details), `bank_statement_import_rows` (immutable
+import/line lineage) and `bank_statement_resolutions` (one reviewed match/exclusion,
+optional unique EFT payment, encrypted reason, fingerprint, actor and UTC time).
+Composite tenant links and immutable SQL guards retain reconciliation history.
+Imports do not create financial postings; matching reuses existing receipts.

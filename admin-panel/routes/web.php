@@ -59,6 +59,7 @@ use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
+use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
 use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
@@ -366,6 +367,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('review', [$c, 'review'])->name('review');
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{note}', [$c, 'show'])->whereNumber('note')->name('show');
+        });
+        Route::prefix('bank-statements')->name('bank-statements.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = BankStatementPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::get('template', [$c, 'template'])->name('template');
+            Route::post('review-import', [$c, 'upload'])->name('upload');
+            Route::post('import', [$c, 'import'])->name('import');
+            Route::get('{line}', [$c, 'show'])->whereNumber('line')->name('show');
+            Route::post('{line}/review', [$c, 'review'])->whereNumber('line')->name('review');
+            Route::post('{line}/resolve', [$c, 'resolve'])->whereNumber('line')->name('resolve');
         });
         Route::prefix('fee-payments')->name('fee-payments.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeePaymentPanelController::class;

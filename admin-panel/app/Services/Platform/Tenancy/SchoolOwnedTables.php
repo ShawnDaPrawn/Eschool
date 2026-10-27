@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',
         'fee_accounts', 'fee_account_holders', 'fee_account_learners', 'bill_runs', 'invoices', 'invoice_lines', 'billing_operations', 'fee_items', 'fee_charges', 'fee_credit_notes', 'fee_credit_releases', 'fee_payment_policies', 'payments', 'payment_allocation_runs', 'payment_allocations',
         'fee_plans', 'fee_plan_operations',
         'ledger_accounts', 'ledger_entries', 'ledger_postings',

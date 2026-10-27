@@ -3,6 +3,7 @@
 @section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}?v={{ filemtime(public_path('assets/css/fee-plans.css')) }}">@endsection
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
+    <x-m3.button variant="outlined" :href="route('bank-statements.index')">{{ __('Bank statement matching') }}</x-m3.button>
     <x-page.header :title="__('Fee payments')" />
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <p>{{ __('These are new NavigateEd ledger receipts. Earlier fee and payment history remains separate.') }}</p>

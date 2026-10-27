@@ -679,3 +679,21 @@ commerce remain separate increments. New phrases have explicit English fallback
 in every offered catalogue pending fluent review. External staging/devices,
 real-money reconciliation and independent acceptance remain separate from source
 completion; no production or paid-provider activation.
+
+
+## 2026-10-27 — bank evidence and reviewed EFT matching
+
+Added a bank-neutral, bounded CSV contract and private import review. Immutable,
+encrypted bank evidence deduplicates exact repeats/overlaps independently of UUIDs
+and key rotation; changed transaction IDs are rejected atomically. Exact family
+references suggest accounts, while Finance explicitly reviews holder and learner
+pin. Matching links an agreeing manual EFT receipt or records one existing-ledger
+receipt as held credit. Stale/competing confirmations and late failures cannot
+create duplicate or partial money. Non-fee rows can be reasonedly excluded with
+retained history; unresolved rows remain a queue, not a failed phase gate.
+
+Evidence is in self-tests/money/bank-matching.md and the feature PR. Arrears,
+accounting exports, reminders, discounts, refunds, gateways and remaining wallets/
+commerce are separate increments. External bank qualification/reconciliation,
+fluent language, staging/devices and independent live-money review remain release
+evidence. No production, bank connection or paid-provider activation.

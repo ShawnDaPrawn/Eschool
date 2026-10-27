@@ -260,3 +260,10 @@ The fees module gains `fee-items-manage` for Finance and school-owned `fee_items
 and `fee_charges`. Internal `fees.item_charged` events carry only charge identity
 and cents. Existing parent fee statement reads add optional kind/scope metadata;
 there is no parent financial write, provider call or notification spend.
+
+
+The fees module adds private bank CSV imports/matching under the existing
+`fee-payments-manage` permission. Finance reviews each holder/pin and existing
+receipt before a match. Import/exclusion audit carries identifiers/counts only;
+only newly recorded receipts emit the existing `fees.payment_recorded` event.
+No bank import notification type or provider activation is added.
