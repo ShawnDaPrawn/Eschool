@@ -15,6 +15,12 @@ Peach investment. Existing v1 payment/history contracts remain intact.
 - Final selected regression cohort: 40 tests / 1,781 assertions passed, including
   all 17 money cases, table tenancy inventory, navigation/locales, year switching,
   permissions and routes. Future-year plan preparation works from that header year.
+- Hosted PHPUnit found Bootstrap utility classes in the new views. Reproduced
+  the actual standards-test failure locally, replaced them with existing Material
+  3 card/table/type classes, and passed the unchanged standards check plus all
+  money cases: 18 tests / 94 assertions. The Bootstrap baseline was not expanded.
+  All four real Chromium checks passed again on the final Material 3 views
+  (43.2 seconds), with the same accessibility and error assertions.
 - New money paths passed baseline-free Larastan level 5; selected Pint, browser
   TypeScript checking, whitespace and Docusaurus production build passed.
 - Real Chromium finance create/copy/preview at 390/820/1280px and ordinary Teacher

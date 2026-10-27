@@ -1,7 +1,8 @@
 @extends('layouts.master')
 @section('title', __('Fee plans'))
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
 @section('content')
-<div class="content-wrapper">
+<div class="content-wrapper m3 fee-plan-workbench">
     <x-page.header :title="$plan?__('Review fee plan'):__('New fee plan')" />
     <x-m3.button variant="text" :href="route('fee-plans.index', $plan?['year_id'=>$plan->session_year_id]:[])">{{ __('Back to fee plans') }}</x-m3.button>
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
@@ -12,7 +13,7 @@
         if($plan && !isset($targets[$plan->scope.':'.($plan->target_id??0)])) $targets[$plan->scope.':'.$plan->target_id] = __('Unavailable target');
     @endphp
     @if(!$canWrite)<p>{{ __('Fee plans are read-only while fees are disabled.') }}</p>@endif
-    <form method="post" action="{{ $plan?route('fee-plans.save',['plan'=>$plan->id]):route('fee-plans.create') }}" class="card"><div class="card-body">
+    <form method="post" action="{{ $plan?route('fee-plans.save',['plan'=>$plan->id]):route('fee-plans.create') }}" class="m3-card m3-card--outlined fee-plan-card"><div class="m3-card__content">
         @include('money.fee-plans.hidden', ['revision'=>$plan?->revision??0])
         <fieldset @disabled(!$canWrite)>
             <x-m3.text-field name="name" :label="__('Plan name')" :value="$plan?->name" maxlength="160" required />
@@ -25,8 +26,8 @@
             <x-m3.button type="submit">{{ __('Save fee plan') }}</x-m3.button>
         </fieldset>
     </div></form>
-    @if($plan && $canWrite)<form method="post" action="{{ route('fee-plans.copy',['plan'=>$plan->id]) }}" class="card mt-4"><div class="card-body">
-        <h2 class="h4">{{ __('Copy to a new school year') }}</h2>
+    @if($plan && $canWrite)<form method="post" action="{{ route('fee-plans.copy',['plan'=>$plan->id]) }}" class="m3-card m3-card--outlined fee-plan-card"><div class="m3-card__content">
+        <h2 class="m3-title-large">{{ __('Copy to a new school year') }}</h2>
         @include('money.fee-plans.hidden', ['revision'=>$plan->revision])
         <x-m3.text-field name="name" :label="__('Copied plan name')" :value="$plan->name" maxlength="160" required />
         <x-m3.select name="session_year_id" :label="__('Target school year')" :options="$years->where('id','!=',$plan->session_year_id)->pluck('name','id')" required />
