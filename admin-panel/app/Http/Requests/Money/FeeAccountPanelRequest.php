@@ -20,6 +20,9 @@ class FeeAccountPanelRequest extends MoneyPanelRequest
 
     protected function prepareForValidation(): void
     {
+        if ($this->routeIs('fee-accounts.save') && ! $this->exists('learner_ids')) {
+            $this->merge(['learner_ids' => []]);
+        }
         if (is_array($holders = $this->input('holders'))) {
             $this->merge(['holders' => array_values(array_filter($holders, fn ($h) => ! is_array($h) || ($h['user_id'] ?? '') !== '' || ($h['share_percent'] ?? '') !== ''))]);
         }
@@ -27,6 +30,6 @@ class FeeAccountPanelRequest extends MoneyPanelRequest
 
     public function rules(): array
     {
-        return $this->isMethodSafe() ? $this->readRules() : $this->bindingRules() + ($this->routeIs('fee-accounts.archive') ? FeeAccounts::operationRules() : FeeAccounts::rules());
+        return $this->isMethodSafe() ? $this->readRules() : $this->bindingRules() + ($this->routeIs('fee-accounts.archive') ? FeeAccounts::operationRules() : FeeAccounts::rules($this->routeIs('fee-accounts.save')));
     }
 }

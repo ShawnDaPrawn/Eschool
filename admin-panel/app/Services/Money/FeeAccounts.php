@@ -24,7 +24,7 @@ final class FeeAccounts
     public function save(User $actor, array $input, ?int $id = null): FeeAccount
     {
         app(MoneyPolicy::class)->authorize($actor, self::PERMISSION);
-        $data = Validator::make($input, self::rules())->validate();
+        $data = Validator::make($input, self::rules($id !== null))->validate();
         $data['name'] = trim($data['name']);
         $data['session_year_id'] = (int) $data['session_year_id'];
         $data['learner_ids'] = array_map('intval', $data['learner_ids']);
@@ -100,10 +100,10 @@ final class FeeAccounts
         return ['operation_id' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0']];
     }
 
-    public static function rules(): array
+    public static function rules(bool $allowEmpty = false): array
     {
         return self::operationRules() + ['name' => ['required', 'string', 'max:160'], 'currency' => ['required', 'string', 'regex:/\A[A-Z]{3}\z/D'],
-            'session_year_id' => ['required', 'integer', 'min:1'], 'learner_ids' => ['required', 'array', 'min:1', 'max:1200'], 'learner_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+            'session_year_id' => ['required', 'integer', 'min:1'], 'learner_ids' => [$allowEmpty ? 'present' : 'required', 'array', 'min:'.($allowEmpty ? 0 : 1), 'max:1200'], 'learner_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
             'holders' => ['required', 'array', 'min:1', 'max:20'], 'holders.*.user_id' => ['required', 'integer', 'min:1', 'distinct'],
             'holders.*.share_percent' => ['required', 'string', 'regex:/\A(?:100(?:\.0{1,2})?|\d{1,2}(?:\.\d{1,2})?)\z/D']];
     }

@@ -1,7 +1,8 @@
 # Phase 5 — money and commerce
 
 Status: ledger foundation and fee-plan catalogue/enrolment previews merged.
-Family accounts and annual preview/approve/post billing are under verification.
+Family accounts and annual preview/approve/post billing are implemented;
+qualification and integration are tracked on their feature PR.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence

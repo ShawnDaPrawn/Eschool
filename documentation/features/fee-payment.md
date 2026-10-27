@@ -73,6 +73,10 @@ scope before activating it.
 
 ## Family accounts and annual bill runs
 
+To correct an unbilled payer assignment, edit the original account and deselect
+the learner, save, then assign them to the intended account. An existing account
+may be left empty; posted charges retain their original payer and history.
+
 In **Money → Family accounts**, create an account, choose the school year and
 learners, then select the guardians responsible for it. Each guardian needs
 current fee visibility for every selected learner. Enter shares totalling 100%.

@@ -2925,5 +2925,6 @@
     "Unavailable learner": "Unavailable learner",
     "posted": "Posted",
     "fee-accounts-manage": "Manage family accounts",
-    "fee-billing-manage": "Manage bill runs"
+    "fee-billing-manage": "Manage bill runs",
+    "An existing account may be left empty to release unbilled learners. Posted charges keep their payer account.": "An existing account may be left empty to release unbilled learners. Posted charges keep their payer account."
 }

@@ -19,7 +19,8 @@
             <x-m3.text-field name="currency" :label="__('Currency code')" :value="$account?->currency??\App\Services\Platform\Ledger\Money::defaultCurrency()" maxlength="3" pattern="[A-Z]{3}" :readonly="$account?->ledger_account_id!==null" required />
             <p>{{ __('Learners and shares below apply to the selected school year. Posted invoices keep their original details.') }}</p>
             <x-m3.text-field name="learner_search" type="search" :label="__('Find a learner')" data-billing-learner-search autocomplete="off" />
-            <x-m3.select name="learner_ids[]" :label="__('Learners on this account')" :options="$learners" :value="$selected" multiple size="6" id="billing-learners" required :hint="__('Choose all learners who share these guardians and payer shares.')" />
+            <x-m3.select name="learner_ids[]" :label="__('Learners on this account')" :options="$learners" :value="$selected" multiple size="6" id="billing-learners" :required="$account===null" :hint="__('Choose all learners who share these guardians and payer shares.')" />
+            @if($account)<p>{{ __('An existing account may be left empty to release unbilled learners. Posted charges keep their payer account.') }}</p>@endif
             <p>{{ __('Each guardian must currently be allowed to see fees for every selected learner.') }}</p>
             <div id="billing-holders" data-next-index="{{ max(2,$holders->count()) }}">
                 @for($i=0;$i<max(2,$holders->count());$i++)

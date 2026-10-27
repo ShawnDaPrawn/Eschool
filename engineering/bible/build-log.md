@@ -600,9 +600,9 @@ keys and database immutability protect posting and history. Future-year planning
 is available; actual posting requires the current year. No legacy parent mapping
 or learner activation is inferred, and no provider is selected or activated.
 
-Local money/Bootstrap verification passed37 tests/285 assertions; browser checks
+Local money/Bootstrap verification passed38 tests/299 assertions; browser checks
 passed all4 Finance/Teacher cases at390/820/1280 with accessibility and error
-assertions. A real synthetic1,200-learner run posted600 invoices in14.6 seconds,
+assertions. A real synthetic1,200-learner run posted600 invoices in15.1 seconds,
 with73 preview queries and balanced ledger/projection totals. Money Larastan
 level5 passed without baseline. Hosted qualification and merge are tracked on the
 feature PR; detailed evidence is in self-tests/money/family-billing.md. Remaining

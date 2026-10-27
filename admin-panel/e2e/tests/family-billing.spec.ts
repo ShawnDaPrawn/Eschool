@@ -39,6 +39,27 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('Family account saved.');
     await check(page);
+    if (width === 390) {
+      const source = page.url();
+      await page.goto(`${source}/edit`);
+      await page.getByRole('listbox', { name: 'Learners on this account', exact: true }).selectOption([String(data.learners[0].id)]);
+      await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+      await expect(page.getByRole('status')).toContainText('Family account saved.');
+      await page.goto(`${source}/edit`);
+      await page.getByRole('listbox', { name: 'Learners on this account', exact: true }).selectOption([]);
+      await check(page);
+      await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+      await expect(page.getByRole('status')).toContainText('Family account saved.');
+      await page.goto('/fee-accounts/new');
+      await page.getByRole('textbox', { name: 'Account name', exact: true }).fill('Corrected family');
+      await page.getByRole('listbox', { name: 'Learners on this account', exact: true }).selectOption(data.learners.map(l => String(l.id)));
+      await page.getByRole('combobox', { name: 'Account holder 1', exact: true }).selectOption(String(data.parents[0]));
+      await page.getByRole('combobox', { name: 'Account holder 2', exact: true }).selectOption(String(data.parents[1]));
+      await page.getByRole('textbox', { name: 'Holder share percentage 1', exact: true }).fill('50');
+      await page.getByRole('textbox', { name: 'Holder share percentage 2', exact: true }).fill('50');
+      await page.getByRole('button', { name: 'Save active family account', exact: true }).click();
+      await expect(page.getByRole('status')).toContainText('Family account saved.');
+    }
     await page.goto('/fee-bill-runs/new');
     await page.getByRole('main').getByRole('combobox', { name: 'School year', exact: true }).selectOption(String(data.year));
     await page.getByRole('textbox', { name: 'Enrolment date for this bill run', exact: true }).fill(data.date);

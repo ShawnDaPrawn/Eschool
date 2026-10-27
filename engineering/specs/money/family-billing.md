@@ -48,3 +48,9 @@ history and 1,200 learners. Browser checks cover finance create/preview/approve/
 post and wrong-role refusal at 390/820/1280px. Hosted CI qualifies the final source
 before merge. External acceptance and independent money-flow security evidence
 remain separate from implementation.
+
+Finance may clear an existing account's final **unbilled** learner assignment in
+the selected year, then assign that learner to the intended family. Empty rosters
+retain the account and any history; new accounts still require a learner. Posting
+refuses stale approvals after reassignment. Posted learner charges cannot be
+removed this way and require the separate credit/payer-transfer workflow.

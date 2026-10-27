@@ -91,6 +91,38 @@ class FamilyBillingTest extends TestCase
         $this->assertSame(1, FeeAccount::count());
     }
 
+    public function test_finance_can_release_the_last_unbilled_learner_and_reassign_without_moving_posted_debt(): void
+    {
+        $accounts = $this->families();
+        $source = $accounts[1];
+        $run = $this->prepare();
+        app(BillRuns::class)->approve($this->admin, $run->id, $this->operation(1));
+        $input = $this->familyInput(['name' => 'Gina family', 'revision' => 1,
+            'holders' => [['user_id' => $this->schoolA->ids['gina_user'], 'share_percent' => '100']]]);
+        unset($input['learner_ids']); // HTML multi-select omits its name when cleared.
+        $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
+        $this->actingAs($this->admin)->post('/fee-accounts/'.$source->id, $input + $bind)->assertStatus(303);
+        $this->assertSame(0, FeeAccountLearner::where('fee_account_id', $source->id)->count());
+        $this->assertSame(2, $source->fresh()->revision);
+        $this->assertSame(0, DB::table('ledger_entries')->count());
+        $destination = app(FeeAccounts::class)->save($this->admin, $this->familyInput(['name' => 'Corrected payer family',
+            'learner_ids' => [$this->schoolA->ids['ben']], 'holders' => [['user_id' => $this->schoolA->ids['gina_user'], 'share_percent' => '100']]]));
+        $this->post('/fee-accounts/'.$source->id, $input + $bind)->assertStatus(303);
+        $this->assertSame($destination->id, FeeAccountLearner::where('learner_id', $this->schoolA->ids['ben'])->firstOrFail()->fee_account_id);
+        $this->refuses(fn () => app(FeeAccounts::class)->save($this->admin, $this->familyInput(['learner_ids' => []])), 422);
+        $this->refuses(fn () => app(BillRuns::class)->post($this->admin, $run->id, $this->operation(2)), 409);
+        $fresh = $this->prepare();
+        app(BillRuns::class)->approve($this->admin, $fresh->id, $this->operation(1));
+        app(BillRuns::class)->post($this->admin, $fresh->id, $this->operation(2));
+        $invoice = Invoice::where('fee_account_id', $destination->id)->firstOrFail();
+        $removePosted = [...$input, 'operation_id' => (string) Str::uuid()];
+        $this->post('/fee-accounts/'.$destination->id, $removePosted + $bind)->assertStatus(422)->assertSessionMissing('_old_input');
+        $this->assertSame($destination->id, FeeAccountLearner::where('learner_id', $this->schoolA->ids['ben'])->firstOrFail()->fee_account_id);
+        $this->assertSame(1001, $invoice->fresh()->total_cents);
+        $this->assertSame(2, Invoice::count());
+        $this->assertSame([], app(LedgerService::class)->projectionDifferences());
+    }
+
     public function test_annual_run_previews_approves_and_posts_balanced_sealed_family_invoices(): void
     {
         $this->families();

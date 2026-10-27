@@ -6,8 +6,8 @@ posting. No provider is selected and Peach-specific work remains deprioritized.
 
 Executed locally on PHP 8.3/MySQL:
 
-- Money cohort and unchanged Bootstrap standards: **37 tests / 285 assertions**.
-  This includes all 17 existing fee-plan cases plus 19 family-billing cases.
+- Money cohort and unchanged Bootstrap standards: **38 tests / 299 assertions**.
+  This includes all 17 existing fee-plan cases plus 20 family-billing cases.
 - Existing ledger/concurrency/snapshot, school-owned inventory, navigation,
   read-only year, permission, route and translation regressions: **47 tests /
   16,810 assertions**. Documentation production build passed.
@@ -20,12 +20,15 @@ Executed locally on PHP 8.3/MySQL:
   learner invoices. Database edits/deletes/appends and incomplete finalization
   were refused. A synthetic failure on the second invoice rolled back invoices,
   entries, postings, projections and receipt; the same operation then succeeded.
+- The final unbilled learner can be released through the real empty HTML form
+  and reassigned; retries preserve the destination, old approvals become stale
+  and posted charges cannot be removed. New accounts still require a learner.
 - Three-day receipt replay, duplicate submission and competing approved runs
   posted once. Already billed tuition and zero rates were excluded without
   inventing charges. UTC instants and the school calendar date were checked near
   midnight with Africa/Johannesburg selected.
 - Synthetic **1,200 learners / 600 family invoices**: **73 preview queries**,
-  **15,245 total queries**, **14.6 seconds** for server preview, approval, posting
+  **15,245 total queries**, **15.1 seconds** for server preview, approval, posting
   and exact replay; **1,201,200 cents**, 600 invoices, 1,200 lines and balanced
   income/receivable projections. This is server evidence, not the complete timed
   Finance user acceptance task.
@@ -37,7 +40,9 @@ Browser verification: **4 passed** with zero automatic retries. The Finance
 journey passed at **390/820/1280px**: create two-holder/two-learner account,
 prepare, approve, explicitly post, read invoice/history and replay the exact post
 without another invoice or ledger entry. Ordinary Teacher access was refused.
-Each page retained serious/critical accessibility, overflow, duplicate-ID and
+The phone journey also released the final unbilled learner and created the
+corrected payer account before posting. Each page retained serious/critical
+accessibility, overflow, duplicate-ID and
 console/HTTP error assertions. Each case used a fresh synthetic school and
 retained its financial records, leaving shared School A/B and their year wizard
 untouched. The first phone attempt found a date-field test locator issue; the
