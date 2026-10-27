@@ -13,6 +13,7 @@
         <dt>{{ __('Correction category') }}</dt><dd>{{ \App\Services\Money\FeeCreditNotes::reasonLabels()[$note->reason_code] }}</dd>
         <dt>{{ __('Private Finance explanation') }}</dt><dd>{{ $note->reason }}</dd>
     </dl>
+    @include('money.credits.tax-breakdown',['snapshot'=>$note->snapshot,'currency'=>$note->currency])
     <p>{{ __('This correction is posted and cannot be edited. Original invoices and receipts remain in the audit history.') }}</p>
     @if($releases->isNotEmpty())<h2 class="m3-title-large">{{ __('Funds restored to original receipts') }}</h2><ul>@foreach($releases as $release)<li>FEE-PAY-{{ $release->payment_id }} · {{ \App\Services\Platform\Ledger\Money::ofCents($release->amount_cents,$note->currency)->format() }}</li>@endforeach</ul>@endif
 </div>

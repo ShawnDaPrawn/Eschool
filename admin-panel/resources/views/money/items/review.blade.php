@@ -6,7 +6,8 @@
 
 <x-page.header :title="__('Review item charge')" />
 <p>{{ $preview['item_name'] }} · {{ $preview['account_name'] }}</p>
-<p>{{ __('Item amount') }}: <strong>{{ \App\Services\Platform\Ledger\Money::ofCents($preview['amount_cents'],$preview['currency'])->format() }}</strong> · {{ __('No VAT charged') }}</p>
+<p>{{ __('Item amount') }}: <strong>{{ \App\Services\Platform\Ledger\Money::ofCents($preview['amount_cents'],$preview['currency'])->format() }}</strong></p>
+@include('money.items.tax-breakdown',['snapshot'=>$preview])
 <p>{{ __('Unique occurrence reference') }}: {{ $input['source_reference'] }} · {{ __('Invoice due date') }}: {{ $preview['due_on'] }}</p>
 @if($preview['scope']==='family')<p>{{ __('This charges the family once. The review divides the total across its learners and preserves each holder total share.') }}</p>@endif
 <h2 class="m3-title-large">{{ __('Recorded holder totals') }}</h2><ul>@foreach($preview['holder_totals'] as $holder)<li>{{ $holder['name'] }} · {{ \App\Services\Platform\Ledger\Money::ofCents($holder['amount_cents'],$preview['currency'])->format() }}</li>@endforeach</ul>

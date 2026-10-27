@@ -68,6 +68,7 @@ use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
+use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
@@ -346,6 +347,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('settings', [$controller, 'settings'])->name('settings');
         });
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            Route::get('tax-settings', [FeeTaxPanelController::class, 'index'])->name('tax');
+            Route::post('tax-settings', [FeeTaxPanelController::class, 'save'])->name('tax-save');
             $c = FeeItemPanelController::class;
             Route::get('/', [$c, 'index'])->name('index');
             Route::get('new', [$c, 'form'])->name('new');

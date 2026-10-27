@@ -58284,7 +58284,7 @@ components:
           type: integer
           format: int64
           minimum: 0
-          description: Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
+          description: Current invoice share after posted credit notes, including applicable VAT; equals allocated plus outstanding cents.
         allocated_cents:
           type: integer
           format: int64
@@ -58382,7 +58382,7 @@ components:
           type: integer
           format: int64
           minimum: 0
-          description: Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
+          description: Current invoice share after posted credit notes, including applicable VAT; equals allocated plus outstanding cents.
         allocated_cents:
           type: integer
           format: int64
@@ -58401,6 +58401,21 @@ components:
           format: int64
           minimum: 0
           description: Posted credit notes against these original shares. Optional for older servers.
+        original_vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Original VAT allocated to this holder and learner share. Optional for older servers.
+        vat_credited_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: VAT reversed by finalized credit notes against this same share.
+        net_charged_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Current charged share after credits, excluding its remaining VAT.
     ParentFeeReceipt:
       type: object
       additionalProperties: false
@@ -58587,7 +58602,7 @@ components:
           type: integer
           format: int64
           minimum: 0
-          description: Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
+          description: Current invoice share after posted credit notes, including applicable VAT; equals allocated plus outstanding cents.
         allocated_cents:
           type: integer
           format: int64
@@ -58722,6 +58737,16 @@ components:
         issued_on:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Original VAT reversed within this holder credit amount. Optional for older servers.
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: This credit amount excluding the reversed VAT. Optional for older servers.
     ParentFeeCreditPage:
       type: object
       additionalProperties: false

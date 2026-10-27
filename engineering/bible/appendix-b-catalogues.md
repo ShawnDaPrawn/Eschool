@@ -282,3 +282,9 @@ Existing fee planning and family permissions cover eligible learner profile rule
 payment schedules and per-learner payment choices. No new gateway or notification
 type is added. Statements, allocations, arrears and reminders use actual immutable
 installment due dates. Sensitive/hidden profile fields remain unavailable to rules.
+
+### Item VAT
+
+Existing fees module and `fee-items-manage` permission cover declared registration
+and explicit item VAT. No new notification or provider is enabled. Parent fee
+statements add optional own VAT metadata; disabled fees retain history.

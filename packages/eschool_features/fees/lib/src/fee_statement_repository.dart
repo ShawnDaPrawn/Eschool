@@ -93,6 +93,28 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
       charged == allocated + outstanding &&
       net == outstanding - credit;
 
+  bool _chargeTax(ParentFeeCharge row) {
+    final original = row.originalVatCents;
+    final reversed = row.vatCreditedCents;
+    final net = row.netChargedCents;
+    final gross =
+        row.grossChargedCents ?? row.chargedCents + (row.creditedCents ?? 0);
+    if (original != null && (original < 0 || original > gross)) return false;
+    if (reversed != null &&
+        (reversed < 0 ||
+            (row.creditedCents != null && reversed > row.creditedCents!))) {
+      return false;
+    }
+    if (original != null && reversed != null && reversed > original) {
+      return false;
+    }
+    if (net != null && (net < 0 || net > row.chargedCents)) return false;
+    return original == null ||
+        reversed == null ||
+        net == null ||
+        net + original - reversed == row.chargedCents;
+  }
+
   @override
   Future<ParentFeeAccountsPage> accounts({
     int page = 1,
@@ -200,7 +222,14 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
             note.amountCents < 1 ||
             note.unpaidCents < 0 ||
             note.releasedCents < 0 ||
-            note.amountCents != note.unpaidCents + note.releasedCents) {
+            note.amountCents != note.unpaidCents + note.releasedCents ||
+            (note.vatCents != null &&
+                (note.vatCents! < 0 || note.vatCents! > note.amountCents)) ||
+            (note.netCents != null &&
+                (note.netCents! < 0 || note.netCents! > note.amountCents)) ||
+            (note.netCents != null &&
+                note.vatCents != null &&
+                note.netCents! + note.vatCents! != note.amountCents)) {
           _invalid();
         }
       }
@@ -211,6 +240,7 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
             row.creditedCents,
             row.chargedCents,
           ) ||
+          !_chargeTax(row) ||
           row.learnerId < 1 ||
           row.invoiceLineId < 1 ||
           row.currency != result.currency ||

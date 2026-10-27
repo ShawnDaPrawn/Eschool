@@ -39,6 +39,10 @@ class ParentFeeCreditNote {
     required this.reasonCode,
 
     required this.issuedOn,
+
+    this.vatCents,
+
+    this.netCents,
   });
 
   // minimum: 1
@@ -88,6 +92,16 @@ class ParentFeeCreditNote {
   @JsonKey(name: r'issued_on', required: true, includeIfNull: false)
   final String issuedOn;
 
+  /// Original VAT reversed within this holder credit amount. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'vat_cents', required: false, includeIfNull: false)
+  final int? vatCents;
+
+  /// This credit amount excluding the reversed VAT. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'net_cents', required: false, includeIfNull: false)
+  final int? netCents;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -103,7 +117,9 @@ class ParentFeeCreditNote {
           other.unpaidCents == unpaidCents &&
           other.releasedCents == releasedCents &&
           other.reasonCode == reasonCode &&
-          other.issuedOn == issuedOn;
+          other.issuedOn == issuedOn &&
+          other.vatCents == vatCents &&
+          other.netCents == netCents;
 
   @override
   int get hashCode =>
@@ -118,7 +134,9 @@ class ParentFeeCreditNote {
       unpaidCents.hashCode +
       releasedCents.hashCode +
       reasonCode.hashCode +
-      issuedOn.hashCode;
+      issuedOn.hashCode +
+      vatCents.hashCode +
+      netCents.hashCode;
 
   factory ParentFeeCreditNote.fromJson(Map<String, dynamic> json) =>
       _$ParentFeeCreditNoteFromJson(json);

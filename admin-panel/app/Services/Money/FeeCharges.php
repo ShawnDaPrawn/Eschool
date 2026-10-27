@@ -51,17 +51,25 @@ final class FeeCharges
         $receipt = app(BillingOperations::class)->once($actor, FeeItems::PERMISSION, 'fee_item_charge', $data, function () use ($actor, $data): array {
             $s = $this->snapshot($data);
             abort_unless(hash_equals($this->fingerprint($s), $data['fingerprint']), 409, 'The item, payer or learner roster changed. Review a new charge.');
-            $runSnapshot = ['year_id' => $s['session_year_id'], 'year_start' => $s['year_start'], 'year_end' => $s['year_end'], 'as_of' => $s['charged_on'], 'due_on' => $s['due_on'], 'tax_treatment' => 'no_vat', 'rows' => [], 'totals' => [$s['currency'] => $s['amount_cents']], 'exceptions' => [], 'learners' => count($s['learners']), 'billable' => count($s['lines']), 'skipped' => 0, 'account_count' => 1];
-            $run = BillRun::create(['kind' => 'fee_item', 'session_year_id' => $s['session_year_id'], 'as_of' => $s['charged_on'], 'due_on' => $s['due_on'], 'tax_treatment' => 'no_vat', 'state' => 'preview', 'revision' => 1, 'fingerprint' => $data['fingerprint'], 'snapshot' => $runSnapshot, 'prepared_by' => $actor->id]);
-            $charge = FeeCharge::create(['fee_item_id' => $s['fee_item_id'], 'fee_account_id' => $s['fee_account_id'], 'session_year_id' => $s['session_year_id'], 'learner_id' => $s['learner_id'], 'bill_run_id' => $run->id, 'item_revision' => $s['item_revision'], 'scope' => $s['scope'], 'target_id' => $s['target_id'], 'source_reference' => $data['source_reference'], 'reference_hash' => $s['reference_hash'], 'fingerprint' => $data['fingerprint'], 'currency' => $s['currency'], 'amount_cents' => $s['amount_cents'], 'snapshot' => $s, 'created_by' => $actor->id, 'created_at' => now('UTC')]);
-            $run->update(['state' => 'approved', 'revision' => 2, 'approved_by' => $actor->id, 'approved_at' => now('UTC')]);
             $account = FeeAccount::lockForUpdate()->findOrFail($s['fee_account_id']);
             $ledger = app(LedgerService::class);
             $receivable = $ledger->openAccount(AccountType::FeeReceivable, 'fees:account:'.$account->id.':receivable', $s['currency']);
             $income = $ledger->openAccount(AccountType::FeeIncome, 'fees:income:'.$s['currency'], $s['currency']);
             $account->update(['ledger_account_id' => $receivable]);
+            $vatAccount = $s['vat_cents'] > 0 ? $ledger->openAccount(AccountType::FeeVat, 'fees:vat:'.$s['currency'], $s['currency']) : null;
+            $runSnapshot = ['year_id' => $s['session_year_id'], 'year_start' => $s['year_start'], 'year_end' => $s['year_end'], 'as_of' => $s['charged_on'], 'due_on' => $s['due_on'], 'tax_treatment' => $s['tax_treatment'], 'rows' => [], 'totals' => [$s['currency'] => $s['amount_cents']], 'exceptions' => [], 'learners' => count($s['learners']), 'billable' => count($s['lines']), 'skipped' => 0, 'account_count' => 1];
+            $run = BillRun::create(['kind' => 'fee_item', 'session_year_id' => $s['session_year_id'], 'as_of' => $s['charged_on'], 'due_on' => $s['due_on'], 'tax_treatment' => $s['tax_treatment'], 'state' => 'preview', 'revision' => 1, 'fingerprint' => $data['fingerprint'], 'snapshot' => $runSnapshot, 'prepared_by' => $actor->id]);
+            $charge = FeeCharge::create(['fee_item_id' => $s['fee_item_id'], 'fee_account_id' => $s['fee_account_id'], 'session_year_id' => $s['session_year_id'], 'learner_id' => $s['learner_id'], 'bill_run_id' => $run->id, 'item_revision' => $s['item_revision'], 'scope' => $s['scope'], 'target_id' => $s['target_id'], 'source_reference' => $data['source_reference'], 'reference_hash' => $s['reference_hash'], 'fingerprint' => $data['fingerprint'], 'currency' => $s['currency'], 'amount_cents' => $s['amount_cents'], 'vat_cents' => $s['vat_cents'], 'income_account_id' => $income, 'vat_account_id' => $vatAccount, 'snapshot' => $s, 'created_by' => $actor->id, 'created_at' => now('UTC')]);
+            $run->update(['state' => 'approved', 'revision' => 2, 'approved_by' => $actor->id, 'approved_at' => now('UTC')]);
             $identity = 'fee-charge:'.$charge->id;
-            $entry = $ledger->post($identity, $identity, 'One-off fee item invoice', [Posting::debit($receivable, Money::ofCents($s['amount_cents'], $s['currency'])), Posting::credit($income, Money::ofCents($s['amount_cents'], $s['currency']))]);
+            $postings = [Posting::debit($receivable, Money::ofCents($s['amount_cents'], $s['currency']))];
+            if ($s['net_cents'] > 0) {
+                $postings[] = Posting::credit($income, Money::ofCents($s['net_cents'], $s['currency']));
+            }
+            if ($s['vat_cents'] > 0) {
+                $postings[] = Posting::credit($vatAccount, Money::ofCents($s['vat_cents'], $s['currency']));
+            }
+            $entry = $ledger->post($identity, $identity, 'Fee item invoice', $postings);
             $holders = array_map(function ($h) {
                 $h['total_cents'] = $h['amount_cents'];
                 unset($h['amount_cents']);
@@ -70,7 +78,7 @@ final class FeeCharges
             }, $s['holder_totals']);
             $invoice = Invoice::create(['fee_account_id' => $account->id, 'bill_run_id' => $run->id, 'session_year_id' => $s['session_year_id'], 'ledger_entry_id' => $entry, 'number' => 'ITEM-'.$charge->id, 'account_name' => $s['account_name'], 'currency' => $s['currency'], 'total_cents' => $s['amount_cents'], 'holders' => $holders, 'issued_on' => $s['issued_on'], 'due_on' => $s['due_on'], 'created_by' => $actor->id, 'created_at' => now('UTC')]);
             foreach ($s['lines'] as $line) {
-                InvoiceLine::create(['invoice_id' => $invoice->id, 'session_year_id' => $s['session_year_id'], 'fee_charge_id' => $charge->id, 'fee_plan_id' => null, 'plan_revision' => null, 'learner_id' => $line['learner_id'], 'learner_name' => $line['learner_name'], 'description' => $s['item_name'], 'period_start' => $s['charged_on'], 'period_end' => $s['charged_on'], 'currency' => $s['currency'], 'amount_cents' => $line['amount_cents'], 'vat_cents' => 0, 'holder_shares' => $line['holder_shares']]);
+                InvoiceLine::create(['invoice_id' => $invoice->id, 'session_year_id' => $s['session_year_id'], 'fee_charge_id' => $charge->id, 'fee_plan_id' => null, 'plan_revision' => null, 'learner_id' => $line['learner_id'], 'learner_name' => $line['learner_name'], 'description' => $s['item_name'], 'period_start' => $s['charged_on'], 'period_end' => $s['charged_on'], 'currency' => $s['currency'], 'amount_cents' => $line['amount_cents'], 'vat_cents' => $line['vat_cents'] ?? 0, 'holder_shares' => $line['holder_shares']]);
             }
             $invoice->update(['sealed_at' => now('UTC')]);
             $run->update(['state' => 'posted', 'revision' => 3, 'posted_at' => now('UTC')]);
@@ -97,7 +105,7 @@ final class FeeCharges
         $start = substr((string) $year->getRawOriginal('start_date'), 0, 10);
         $end = substr((string) $year->getRawOriginal('end_date'), 0, 10);
         abort_unless($data['charged_on'] >= $start && $data['charged_on'] <= $end && $data['charged_on'] <= $today, 422, 'Choose a charge date in the current school year that is not in the future.');
-        abort_unless($item->currency === $account->currency && $item->tax_treatment === 'no_vat', 422, 'The fee item and account must use the same supported currency and tax treatment.');
+        abort_unless($item->currency === $account->currency, 422, 'The fee item and account must use the same supported currency and tax treatment.');
         $ids = FeeAccountLearner::where('fee_account_id', $account->id)->where('session_year_id', $year->id)->orderBy('learner_id')->lockForUpdate()->pluck('learner_id')->map(fn ($id) => (int) $id)->all();
         abort_unless($ids !== [], 422, 'Choose a family account with assigned learners.');
         if ($item->scope === 'learner') {
@@ -115,9 +123,17 @@ final class FeeCharges
         $learners = Students::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
         abort_unless($learners->count() === count($ids), 404);
         $people = User::whereIn('id', $learners->pluck('user_id'))->orderBy('id')->lockForUpdate()->get(['id', 'first_name', 'last_name'])->keyBy('id');
-        $amount = $item->amount_cents;
+        $tax = app(FeeTaxes::class)->snapshot($item);
+        $amount = $tax['gross_cents'];
         $grand = BillingPreview::shares($amount, $holders);
         $shares = $item->scope === 'family' ? FeeItemShares::family($amount, $ids, $holders) : [$ids[0] => $grand];
+        $taxShares = FeeTaxes::shares($shares, $grand, $tax['vat_cents']);
+        $shares = $taxShares['lines'];
+        if ($tax['vat_cents'] > 0) {
+            foreach ($grand as &$share) {
+                $share['vat_cents'] = $taxShares['holder_vat'][$share['user_id']];
+            }unset($share);
+        }
         $lines = [];
         $roster = [];
         foreach ($learners as $learner) {
@@ -128,7 +144,11 @@ final class FeeCharges
             $roster[] = ['id' => $id, 'name' => $name];
             $cents = array_sum(array_column($shares[$id], 'amount_cents'));
             if ($cents > 0) {
-                $lines[] = ['learner_id' => $id, 'learner_name' => $name, 'amount_cents' => $cents, 'holder_shares' => $shares[$id]];
+                $line = ['learner_id' => $id, 'learner_name' => $name, 'amount_cents' => $cents, 'holder_shares' => $shares[$id]];
+                if ($tax['vat_cents'] > 0) {
+                    $line['vat_cents'] = array_sum(array_column($shares[$id], 'vat_cents'));
+                }
+                $lines[] = $line;
             }
         }
         $hash = hash('sha256', 'fee-occurrence:'.$data['source_reference']);
@@ -136,7 +156,7 @@ final class FeeCharges
         abort_unless(! FeeCharge::where('fee_item_id', $item->id)->where('session_year_id', $year->id)->where('scope', $item->scope)->where('target_id', $target)->where('reference_hash', $hash)->lockForUpdate()->exists(), 409, 'This occurrence is already charged. Open its recorded invoice instead.');
         app(FeeStatements::class)->complete($account);
 
-        return ['fee_item_id' => (int) $item->id, 'item_revision' => $item->revision, 'item_name' => $item->name, 'scope' => $item->scope, 'fee_account_id' => (int) $account->id, 'account_revision' => $account->revision, 'account_name' => $account->name, 'session_year_id' => (int) $year->id, 'year_start' => $start, 'year_end' => $end, 'learner_id' => $data['learner_id'], 'target_id' => $target, 'reference_hash' => $hash, 'charged_on' => $data['charged_on'], 'due_on' => $data['due_on'], 'issued_on' => $today, 'currency' => $item->currency, 'amount_cents' => $amount, 'learners' => $roster, 'holder_totals' => $grand, 'lines' => $lines];
+        return ['fee_item_id' => (int) $item->id, 'item_revision' => $item->revision, 'item_name' => $item->name, 'scope' => $item->scope, 'fee_account_id' => (int) $account->id, 'account_revision' => $account->revision, 'account_name' => $account->name, 'session_year_id' => (int) $year->id, 'year_start' => $start, 'year_end' => $end, 'learner_id' => $data['learner_id'], 'target_id' => $target, 'reference_hash' => $hash, 'charged_on' => $data['charged_on'], 'due_on' => $data['due_on'], 'issued_on' => $today, 'currency' => $item->currency, 'amount_cents' => $amount, 'learners' => $roster, 'holder_totals' => $grand, 'lines' => $lines] + $tax;
     }
 
     private function validated(array $input, bool $posting = false): array

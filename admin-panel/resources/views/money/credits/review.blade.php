@@ -13,6 +13,7 @@
         <dt>{{ __('Correction category') }}</dt><dd>{{ \App\Services\Money\FeeCreditNotes::reasonLabels()[$input['reason_code']] }}</dd>
         <dt>{{ __('Private Finance explanation') }}</dt><dd>{{ $input['reason'] }}</dd>
     </dl>
+    @include('money.credits.tax-breakdown',['snapshot'=>$preview,'currency'=>$preview['currency']])
     <p>{{ __('Credit notes preserve original invoices and receipts. Restored funds remain held until allocated; no cash or bank payout is made.') }}</p>
     <form method="post" action="{{ route('fee-credit-notes.post') }}" data-year-safe>
         @csrf

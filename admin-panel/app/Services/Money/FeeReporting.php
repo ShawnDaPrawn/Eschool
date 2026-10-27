@@ -46,10 +46,10 @@ final class FeeReporting
                         $rows[] = [$today, self::text($account['reference']), self::text($account['name']), $data['currency'], ...array_map(fn ($v) => self::decimal($v, $data['currency']), array_values($account['buckets'])), self::decimal($account['outstanding_cents'], $data['currency']), self::decimal($account['credit_cents'], $data['currency'])];
                     }
                 } else {
-                    $header = ['AsOf', 'FamilyReference', 'Invoice', 'Learner', 'Holder', 'Description', 'IssuedOn', 'DueOn', 'Currency', 'GrossCharge', 'CreditNotes', 'Allocated', 'Outstanding', 'DaysOverdue', 'AgeBucket'];
+                    $header = ['AsOf', 'FamilyReference', 'Invoice', 'Learner', 'Holder', 'Description', 'IssuedOn', 'DueOn', 'Currency', 'GrossCharge', 'CreditNotes', 'Allocated', 'Outstanding', 'DaysOverdue', 'AgeBucket', 'OriginalVAT', 'VATCredits', 'CurrentBeforeVAT'];
                     foreach ($snapshot['charges'] as $charge) {
                         $rows[] = [$today, self::text($charge['account_reference']), self::text($charge['invoice_number']), self::text($charge['learner_name']), self::text($charge['holder_name']), self::text($charge['description']), $charge['issued_on'], $charge['due_on'], $data['currency'],
-                            self::decimal($charge['gross_charged_cents'], $data['currency']), self::decimal($charge['credited_cents'], $data['currency']), self::decimal($charge['allocated_cents'], $data['currency']), self::decimal($charge['outstanding_cents'], $data['currency']), $charge['days_overdue'], $charge['age_bucket']];
+                            self::decimal($charge['gross_charged_cents'], $data['currency']), self::decimal($charge['credited_cents'], $data['currency']), self::decimal($charge['allocated_cents'], $data['currency']), self::decimal($charge['outstanding_cents'], $data['currency']), $charge['days_overdue'], $charge['age_bucket'], self::decimal($charge['original_vat_cents'], $data['currency']), self::decimal($charge['vat_credited_cents'], $data['currency']), self::decimal($charge['net_charged_cents'], $data['currency'])];
                     }
                 }
             } else {

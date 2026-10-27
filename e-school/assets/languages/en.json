@@ -2228,5 +2228,9 @@
   "Restored to receipts": "Restored to receipts",
   "Credit notes page": "Credit notes page",
   "Additional fee": "Additional fee",
-  "Family charge apportioned to this learner": "Family charge apportioned to this learner"
+  "Family charge apportioned to this learner": "Family charge apportioned to this learner",
+  "VAT included in your charge": "VAT included in your charge",
+  "Your charge before VAT": "Your charge before VAT",
+  "VAT included in this credit": "VAT included in this credit",
+  "Credit before VAT": "Credit before VAT"
 }

@@ -21,7 +21,9 @@ parameters:
         - database/migrations/2026_10_27_600000_create_fee_accounting_settings.php
         - database/migrations/2026_10_27_700000_create_fee_reminders.php
         - database/migrations/2026_10_27_800000_expand_fee_plan_rules_and_schedules.php
+        - database/migrations/2026_10_27_900000_add_fee_item_vat.php
         - app/Console/Commands/SendFeeReminders.php
+        - app/Services/Platform/Ledger/CentsRatio.php
         - app/Services/Platform/Ledger/AccountType.php
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php

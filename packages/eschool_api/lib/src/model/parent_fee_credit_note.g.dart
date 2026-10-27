@@ -55,6 +55,8 @@ ParentFeeCreditNote _$ParentFeeCreditNoteFromJson(
         ),
       ),
       issuedOn: $checkedConvert('issued_on', (v) => v as String),
+      vatCents: $checkedConvert('vat_cents', (v) => (v as num?)?.toInt()),
+      netCents: $checkedConvert('net_cents', (v) => (v as num?)?.toInt()),
     );
     return val;
   },
@@ -68,6 +70,8 @@ ParentFeeCreditNote _$ParentFeeCreditNoteFromJson(
     'releasedCents': 'released_cents',
     'reasonCode': 'reason_code',
     'issuedOn': 'issued_on',
+    'vatCents': 'vat_cents',
+    'netCents': 'net_cents',
   },
 );
 
@@ -87,6 +91,8 @@ Map<String, dynamic> _$ParentFeeCreditNoteToJson(
   'reason_code':
       _$ParentFeeCreditNoteReasonCodeEnumEnumMap[instance.reasonCode]!,
   'issued_on': instance.issuedOn,
+  'vat_cents': ?instance.vatCents,
+  'net_cents': ?instance.netCents,
 };
 
 const _$ParentFeeCreditNoteReasonCodeEnumEnumMap = {

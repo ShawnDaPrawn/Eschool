@@ -734,3 +734,12 @@ SQL guards compare indexed reviewed lines and complete schedule budgets; histori
 posted invoices remain unchanged. Source qualification/integration is tracked in
 self-tests/money/fee-plan-rules-schedules.md and the feature PR. Gateway, late-charge,
 refund policy and remaining increments continue separately.
+
+## 2026-10-27 — explicit item VAT and original tax corrections
+
+Increment4 VAT adds declared school registration, explicit item rates, exact cents
+and holder VAT allocation, immutable original tax invoices and cumulative VAT
+credits. Parent statements disclose only own tax; accounting exports post the
+separate liability without double-taxing journals. Automatic eligibility remains
+next in increment4. Qualification is tracked in self-tests/money/fee-item-vat.md;
+no provider or production activation is included.

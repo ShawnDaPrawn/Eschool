@@ -378,3 +378,12 @@ explicit default. School-owned revisioned `fee_payment_choices` selects an optio
 per learner/year. Immutable `invoice_lines` gain an installment number/date;
 existing posted lines keep their original date fallback. Indexed reviewed learner
 and account schedule maps support SQL line and complete-invoice seal validation.
+
+### Fee item VAT
+
+`fee_tax_settings` is school-owned and revisioned with declared registration and
+legal seller identity. Items retain rate basis points; immutable charges retain
+VAT, generated net and original income/VAT account identities. Invoice holder
+shares retain own VAT; credit notes retain reversed VAT and its original account.
+The `fee_vat` fees ledger liability is distinct from fee income. Existing no-VAT
+history remains unchanged.
