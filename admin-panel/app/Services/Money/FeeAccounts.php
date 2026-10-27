@@ -48,10 +48,13 @@ final class FeeAccounts
             abort_if($assigned->contains(fn ($r) => (int) $r->fee_account_id !== (int) ($account->id ?? 0)), 409, 'A learner already has a payer account for this school year.');
             $removed = FeeAccountLearner::where('session_year_id', $year->id)->where('fee_account_id', $account->id ?? 0)->whereNotIn('learner_id', $data['learner_ids'])->lockForUpdate()->pluck('learner_id');
             abort_if(InvoiceLine::where('session_year_id', $year->id)->whereIn('learner_id', $removed)->lockForUpdate()->first() !== null, 422, 'Posted charges need a separate credit or payer-transfer workflow.');
+            $removedHolders = FeeAccountHolder::where('session_year_id', $year->id)->where('fee_account_id', $account->id ?? 0)
+                ->whereNotIn('user_id', array_column($data['holders'], 'user_id'))->lockForUpdate()->pluck('user_id');
             $payments = FeePayment::where('fee_account_id', $account->id ?? 0)->lockForUpdate()->get();
             foreach ($payments as $payment) {
-                if ($data['learner_ids'] === [] || ($payment->pinned_learner_id !== null && $removed->contains($payment->pinned_learner_id))) {
-                    abort_if(app(FeePayments::class)->available($payment) > 0, 422, 'Held learner credits need a separate refund or payer-transfer workflow before removing this assignment.');
+                if ($data['learner_ids'] === [] || $removedHolders->contains($payment->holder_user_id)
+                    || ($payment->pinned_learner_id !== null && $removed->contains($payment->pinned_learner_id))) {
+                    abort_if(app(FeePayments::class)->available($payment) > 0, 422, 'Held credits need a separate refund or payer-transfer workflow before removing a learner or holder assignment.');
                 }
             }
             $this->holders($data['holders'], $data['learner_ids']);

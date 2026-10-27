@@ -604,7 +604,7 @@ Local money/Bootstrap verification passed38 tests/299 assertions; browser checks
 passed all 4 Finance/Teacher cases at390/820/1280 with accessibility and error
 assertions. A real synthetic1,200-learner run posted600 invoices in15.1 seconds,
 with73 preview queries and balanced ledger/projection totals. Money Larastan
-level5 passed without baseline. Hosted qualification and merge are tracked on the
+level 5 passed without baseline. Hosted qualification and merge are tracked on the
 feature PR; detailed evidence is in self-tests/money/family-billing.md. Remaining
 fee policies, allocations/parent statements, wallets and commerce, external
 acceptance and independent live-money review remain separate Phase5 work.
@@ -634,3 +634,10 @@ package tests, 41 affected app routing/entry tests, 182 SDK tests, all 4 Finance
 browser cases and the full learner/parent Chrome flow. Money level 5 and configured
 whole-panel analysis passed. Hosted/native qualification is recorded on the PR;
 no external or production acceptance is inferred from these software checks.
+
+Follow-up qualification retained all ten existing app languages with the 36 new
+fee phrases; the complete app suite passed 126 tests. Automated review's prepaid
+holder-removal finding was reproduced and fixed without freezing holder changes
+after full allocation. The final local Money/Bootstrap cohort passed 60 tests /
+546 assertions and money level 5 analysis passed. Final hosted source qualification
+and review resolution remain tracked on the PR.

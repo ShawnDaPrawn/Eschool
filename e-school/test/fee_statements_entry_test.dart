@@ -140,15 +140,9 @@ void main() {
     expect(find.byType(Card), findsNothing);
   });
   test('fee statement entry labels exist in every offered catalogue', () {
-    for (final file
-        in Directory('assets/languages').listSync().whereType<File>().where(
-          (f) => [
-            'en',
-            'af',
-            'zu',
-            'ar',
-          ].contains(f.uri.pathSegments.last.split('.').first),
-        )) {
+    for (final file in Directory(
+      'assets/languages',
+    ).listSync().whereType<File>().where((f) => f.path.endsWith('.json'))) {
       final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
       for (final key in [
         'Fee statements',

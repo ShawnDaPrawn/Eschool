@@ -29,7 +29,7 @@ responses, forward-compatible receipt methods and usable two-child statements at
 390/820/1280px. Denied refresh clears financial data. Mounted-boundary tests also prove that
 logout/account/school changes remove the view and invalidate outstanding work. Parent shell entry checks:
 **6 passed**, including explicit Parent/module availability, learner exclusion,
-disabled direct links, exact deep link and all four offered phrase catalogues.
+disabled direct links, exact deep link and all offered phrase catalogues.
 SDK generation succeeded with pinned tooling. Non-English new keys use English
 fallback pending fluent review. Hosted Android outcomes remain required; unrun checks are not claimed passed.
 
@@ -74,3 +74,15 @@ assertions** passed, covering actual parent list/detail responses, retained Fina
 credit and restored guardian visibility. This focused suite follows the broader
 711-test run above; overlapping cohorts are not summed. The unchanged full app
 flow also passed at a **390x844** browser window, in addition to desktop Chrome.
+
+Hosted qualification found missing fallback keys in six retained app languages.
+All ten offered catalogues now include the 36 new fee phrases; the new entry
+label test checks every JSON catalogue. The full e-school unit/widget suite
+passed **126 tests** after correction, with all translation assertions retained.
+Automated review also reproduced holder removal stranding a prepayment before
+billing. That guard now refuses removing a holder with available credit, while
+allowing replacement after full allocation and retaining the old invoice shares.
+The new regression failed before correction; the complete Money/Bootstrap cohort
+then passed **60 tests / 546 assertions** and baseline-free money level 5 analysis
+passed. Service/private panel refusal and the later successful holder change are
+both exercised. Final hosted checks must qualify these corrections before merge.

@@ -25,8 +25,12 @@ parent retained access to another learner elsewhere. Receipt ownership no longer
 restores that family; a currently visible charge or matched learner/holder
 assignment is required before projecting its receipts. The regression failed
 before the fix and now covers the service and actual API list/detail, retained
-Finance credit and restored guardian access. No actionable finding remains after
-this correction. This
+Finance credit and restored guardian access. Automated review also identified a holder-removal path that could strand
+prepayment before invoices existed. The account save now checks removed holders
+against available credit, alongside learner assignment retention. The regression
+reproduced the issue before the fix and covers private panel refusal, retained
+parent credit and successful holder replacement after full allocation. No
+actionable finding remains after these corrections. This
 statement applies to the reviewed changes and executed regression evidence;
 external cash/bank verification, independent live-money testing and production
 acceptance remain separate. Legacy receipts and the leadership receipt adapter

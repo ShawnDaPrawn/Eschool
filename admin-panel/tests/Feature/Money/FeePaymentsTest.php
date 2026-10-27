@@ -264,6 +264,27 @@ class FeePaymentsTest extends TestCase
         $this->assertSame(1, FeePayment::count());
     }
 
+    public function test_holder_replacement_cannot_strand_prepaid_credit_but_can_follow_full_allocation(): void
+    {
+        $payment = app(FeePayments::class)->record($this->admin, $this->receipt());
+        $replacement = $this->family(['revision' => 1, 'holders' => [['user_id' => $this->schoolA->ids['mona_user'], 'share_percent' => '100']]]);
+        $this->refuses(fn () => app(FeeAccounts::class)->save($this->admin, $replacement, $this->account->id), 422);
+        $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
+        $this->actingAs($this->admin)->post('/fee-accounts/'.$this->account->id, $replacement + $bind)->assertStatus(422)->assertSessionMissing('_old_input')->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(1, $this->account->fresh()->revision);
+        $this->assertSame(2, DB::table('fee_account_holders')->where('school_id', 1)->where('fee_account_id', $this->account->id)->where('session_year_id', $this->year)->count());
+        $farid = User::findOrFail($this->schoolA->ids['farid_user']);
+        $this->assertSame(400, app(ParentFeeStatements::class)->show($farid, $this->account->id)['credit_cents']);
+        $this->bill();
+        $this->policy();
+        app(FeeAllocations::class)->post($this->admin, $payment->id, $this->allocate(app(FeeAllocations::class)->preview($this->admin, $payment->id)));
+        $this->assertSame(0, app(FeePayments::class)->available($payment));
+        $updated = app(FeeAccounts::class)->save($this->admin, $replacement, $this->account->id);
+        $this->assertSame(2, $updated->revision);
+        $this->assertSame([$this->schoolA->ids['mona_user']], DB::table('fee_account_holders')->where('school_id', 1)->where('fee_account_id', $this->account->id)->where('session_year_id', $this->year)->pluck('user_id')->map(fn ($id) => (int) $id)->all());
+        $this->assertSame(602, app(ParentFeeStatements::class)->show($farid, $this->account->id)['outstanding_cents']);
+    }
+
     public function test_wrong_roles_other_school_revoked_finance_and_disabled_module_cannot_write_or_recover(): void
     {
         foreach (['farid', 'tara', 'asha'] as $name) {

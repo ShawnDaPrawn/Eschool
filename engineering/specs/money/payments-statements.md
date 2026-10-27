@@ -88,7 +88,10 @@ External cash/bank reconciliation, language/device/staging acceptance and the
 independent live-money assessment remain separately recorded release evidence.
 
 Unspent learner-pinned credit prevents removing that payer assignment; any held
-credit prevents emptying the family roster. Currency freezes at the first receipt,
+credit prevents emptying the family roster. A holder with available credit also
+cannot be removed from that year's payer configuration until the credit is
+allocated or handled by a reasoned refund/transfer workflow. Fully allocated
+receipts do not freeze future holder configuration. Currency freezes at the first receipt,
 including a prepayment before invoices. Unbilled assignments without held money
 remain correctable. Reasoned refunds/transfers must precede stranded-credit changes.
 
