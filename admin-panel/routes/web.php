@@ -76,6 +76,7 @@ use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
+use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
@@ -381,6 +382,12 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('wallet-funding')->name('wallet-funding.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            Route::get('/', [WalletFundingPanelController::class, 'index'])->name('index');
+            Route::post('policy', [WalletFundingPanelController::class, 'policy'])->name('policy');
+            Route::post('receipts', [WalletFundingPanelController::class, 'record'])->name('record');
+            Route::get('{funding}/receipt', [WalletFundingPanelController::class, 'receipt'])->whereNumber('funding')->name('receipt');
         });
         Route::prefix('wallet-settings')->name('wallet-finance.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
             $c = WalletFinancePanelController::class;

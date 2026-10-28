@@ -445,6 +445,7 @@ jobs:
             flow: teacher_wallet_smoke_test.dart
           - app: e-school-teacher
             flow: facilitator_wallet_smoke_test.dart
+            flavor: facilitator
           - app: e-school
             flow: family_academic_marks_smoke_test.dart
           - app: e-school-teacher

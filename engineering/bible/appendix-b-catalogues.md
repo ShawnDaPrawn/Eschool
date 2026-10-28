@@ -337,3 +337,10 @@ standard financial packages include the entitlement; activation remains explicit
 Separate wallet-finance-manage authorizes Finance settings and private statements.
 Personal routes use current own/verified guardian approval authority. Facilitator
 profiles add an optional wallet capability. No transport/provider is activated.
+
+### School master funding
+
+Existing wallet module and separate wallet-finance-manage permission cover explicit
+manual-method policy, verified school-owned funding and private printable receipts.
+No parent payment, top-up grant, notification transport or gateway is enabled.
+Ledger reconciliation includes receipt attribution and external-source identity.

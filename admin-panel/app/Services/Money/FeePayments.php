@@ -46,6 +46,7 @@ final class FeePayments
             if ($data['pinned_learner_id'] !== null) {
                 abort_unless(in_array($data['pinned_learner_id'], $this->eligibleLearners($account, $data['holder_user_id']), true), 422, 'The learner must belong to this holder and family account.');
             }
+            app(ExternalReceipts::class)->assertAvailable($data['method'], $data['source_reference']);
             abort_if(FeePayment::where('method', $data['method'])->where('source_reference', $data['source_reference'])->lockForUpdate()->first() !== null, 409, 'This cash receipt or bank transaction is already recorded.');
             $ledger = app(LedgerService::class);
             $asset = $ledger->openAccount($data['method'] === 'eft' ? AccountType::FeeBank : AccountType::CashDesk, 'fees:'.$data['method'].':'.$account->currency, $account->currency);

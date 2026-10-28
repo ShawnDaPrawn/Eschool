@@ -197,7 +197,7 @@ class ModuleGate
         }
 
         if ($module === 'wallet') {
-            foreach (['wallet_settings', 'wallet_limits', 'wallet_operations'] as $table) {
+            foreach (['wallet_settings', 'wallet_limits', 'wallet_operations', 'wallet_funding_policies', 'wallet_fundings'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
                     return true;
                 }

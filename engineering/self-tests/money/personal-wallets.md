@@ -39,3 +39,10 @@ review, full CI and merge evidence remain required before main integration.
 Final OpenAPI contract rerun passed 616 tests / 2,711 assertions; wallet route
 tenancy checks passed 4 tests / 32 assertions. The earlier mixed-suite failures
 were fixed, including all four wallet ledger cases and real parallel execution.
+
+Hosted source1908da9 passed Android family parts, Teacher and Facilitator smoke
+groups and the wallet package job. Its facilitator Chrome entry lacked the required
+flavour; the following master-funding branch corrects that CI entry, asserts the
+build identity and passed the actual facilitator wallet Chromium journey locally.
+No blanket waiver of the failed source's CI is used. Final-source full qualification
+and main integration remain tracked on the following PR.

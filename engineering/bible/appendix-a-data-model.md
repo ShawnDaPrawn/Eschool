@@ -446,3 +446,11 @@ child-control policy. `wallet_accounts` binds immutable school/person/currency t
 one existing wallet ledger account. `wallet_limits` stores revisioned daily/category
 controls. Immutable `wallet_operations` retains actor-bound UUID receipts. No new
 balance projection or money posting is created by issuance.
+
+### School master funding and external receipt identity
+
+`wallet_funding_policies` retains explicit revisioned manual-method choices.
+`wallet_fundings` retains immutable school-owned receipts, exact posted master/asset
+accounts, collection metadata and encrypted evidence. `financial_receipts` reserves
+one canonical outside source across fee and wallet receipts without reposting old
+entries. `wallet_bank` is a wallet-only debit asset. New history prevents rollback.

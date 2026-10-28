@@ -810,3 +810,12 @@ explicit school currency/caps, current guardian controls and independent wallet
 entries in family, teacher and dedicated facilitator apps. Disabled history stays
 readable. See self-tests/money/personal-wallets.md for executed qualification.
 Funding/spending and6D payer corrections remain next; gateways stay deferred.
+
+## 2026-10-28 — verified school-owned master wallet funding
+
+Increment 8A adds explicit manual funding methods, school-owned cash/EFT receipts,
+master backing and private printable Finance receipts. Shared outside receipt
+identity prevents recording the same source through fees and wallets. New history
+and encrypted evidence are retained. See self-tests/money/wallet-master-funding.md.
+Desk approval/grants, parent funding/transfers and later increments remain separate;
+no provider or production activation is implied.

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Panel\Money;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Money\WalletSettingsPanelRequest;
 use App\Models\Money\WalletAccount;
+use App\Models\Money\WalletFunding;
 use App\Models\Money\WalletSetting;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
@@ -18,7 +19,7 @@ class WalletFinancePanelController extends Controller
     public function index(WalletSettingsPanelRequest $request): Response
     {
         $settings = WalletSetting::first();
-        $issued = WalletAccount::exists();
+        $issued = WalletAccount::exists() || WalletFunding::exists();
         $wallets = WalletAccount::join('users as u', 'u.id', '=', 'wallet_accounts.user_id')->orderBy('wallet_accounts.id')->paginate(30, ['wallet_accounts.*', 'u.first_name', 'u.last_name']);
         $summaries = [];
         foreach ($wallets as $wallet) {

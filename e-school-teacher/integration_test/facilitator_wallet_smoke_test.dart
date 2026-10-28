@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_teacher/app/app.dart';
+import 'package:eschool_teacher/app/staffBuildIdentity.dart';
 import 'package:eschool_teacher/facilitator/facilitator_repository.dart';
 import 'package:eschool_wallet/testing.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ void main() {
   testWidgets(
     'dedicated facilitator uses only own wallet and clears it on refresh',
     (tester) async {
+      expect(StaffBuildIdentity.current.canStartFacilitator, isTrue);
       final fixture = _Staff();
       fixture.api.routes.addAll({
         'GET v2/wallets': {
