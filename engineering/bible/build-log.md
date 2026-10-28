@@ -915,3 +915,14 @@ shortages cap usable cash; surpluses never create funds. Qualification is tracke
 in self-tests/money/cash-custody-handovers.md. Remaining fee corrections/late
 charges6D, tickets14 and online wallet/card spending15 continue. Gateway integration
 and production activation remain deferred.
+
+## 2026-10-28 — wallet event ticketing
+
+Increment14 implements explicit event windows, general/named capacity and transfer
+rules, original wallet/vendor purchase and digital fulfilment, immutable ticket
+lineage, private holder QR/typed credentials, rotation on transfer and single-use
+admission. Finance, shared personal wallets and dedicated Vendor panel/scanner
+surfaces use the same current authority. Verification is recorded in
+self-tests/money/event-tickets.md; hosted review/CI and main integration remain
+separate. Remaining payer corrections/late charges6D and online wallet QR/card
+spending15 continue. Payment gateway integration remains deferred.

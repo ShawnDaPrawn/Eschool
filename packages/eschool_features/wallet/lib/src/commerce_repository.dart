@@ -1,16 +1,24 @@
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'wallet_repository.dart';
+import 'ticket_repository.dart';
 
 abstract interface class CommerceRepository {
   int get schoolId;
   int get accountId;
   bool get isActive;
+  TicketRepository get tickets;
+  bool get ticketsAvailable;
   Future<PersonalWalletIndex> walletChoices();
   Future<CommerceVendorPage> vendors({int page = 1});
   Future<CommerceCatalogue> catalogue(int vendor, {int page = 1});
   Future<CommerceOrderPage> orders({int page = 1});
-  Future<CommerceQuote> quote(int vendor, int wallet, Map<int, int> quantities);
+  Future<CommerceQuote> quote(
+    int vendor,
+    int wallet,
+    Map<int, int> quantities, {
+    int? learner,
+  });
   Future<CommerceOrderReceipt> purchase(CommerceQuote quote, String operation);
   Future<CommerceOrderReceipt> cancel(
     int order,
@@ -24,6 +32,15 @@ class ApiCommerceRepository implements CommerceRepository {
   ApiCommerceRepository(this.client, {required this.wallets});
   final ApiClient client;
   final WalletRepository wallets;
+  @override
+  late final TicketRepository tickets = ApiTicketRepository(
+    client,
+    wallets: wallets,
+  );
+  final Set<int> _learners = {};
+  bool _ticketsAvailable = false;
+  @override
+  bool get ticketsAvailable => _ticketsAvailable;
   final Map<int, int> _owners = {};
   final Set<int> _orders = {};
   String? _currency;
@@ -138,10 +155,12 @@ class ApiCommerceRepository implements CommerceRepository {
   Future<PersonalWalletIndex> walletChoices() async {
     _guard();
     _owners.clear();
+    _learners.clear();
     final out = await wallets.index();
     _guard();
     _currency = out.currency;
     for (final owner in out.owners) {
+      if (owner.learnerId != null) _learners.add(owner.learnerId!);
       for (final wallet in owner.wallets) {
         _owners[wallet.id] = owner.ownerUserId;
       }
@@ -151,9 +170,9 @@ class ApiCommerceRepository implements CommerceRepository {
 
   @override
   Future<CommerceVendorPage> vendors({int page = 1}) async {
-    final out = CommerceVendorPage.fromJson(
-      await _send('GET', '/vendors', query: {'page': page}),
-    );
+    final data = await _send('GET', '/vendors', query: {'page': page});
+    _ticketsAvailable = data['tickets_available'] == true;
+    final out = CommerceVendorPage.fromJson(data);
     _page(page, out.page, out.lastPage, out.items.length);
     if (out.items.map((v) => v.id).toSet().length != out.items.length) {
       _invalid();
@@ -282,9 +301,11 @@ class ApiCommerceRepository implements CommerceRepository {
   Future<CommerceQuote> quote(
     int vendor,
     int wallet,
-    Map<int, int> quantities,
-  ) async {
-    if (vendor < 1 ||
+    Map<int, int> quantities, {
+    int? learner,
+  }) async {
+    if ((learner != null && !_learners.contains(learner)) ||
+        vendor < 1 ||
         !_owners.containsKey(wallet) ||
         quantities.isEmpty ||
         quantities.length > 20 ||
@@ -302,6 +323,7 @@ class ApiCommerceRepository implements CommerceRepository {
         data: {
           'vendor_id': vendor,
           'wallet_id': wallet,
+          'learner_id': ?learner,
           'lines': [
             for (final line in quantities.entries)
               {'product_id': line.key, 'quantity': line.value},

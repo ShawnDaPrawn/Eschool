@@ -196,6 +196,14 @@ class ModuleGate
             }
         }
 
+        if ($module === 'ticketing') {
+            foreach (['ticket_events', 'ticket_types', 'tickets', 'ticket_actions', 'ticket_catalogue_revisions'] as $table) {
+                if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
+                    return true;
+                }
+            }
+        }
+
         if ($module === 'vendors') {
             foreach (['vendor_settlements', 'vendor_settlement_lines', 'vendor_settlement_approvals', 'vendor_settlement_outcomes', 'vendor_operators', 'vendor_operator_actions', 'vendor_order_counters', 'vendor_orders', 'vendor_order_lines', 'vendor_order_actions', 'vendor_stock_events', 'vendor_categories', 'vendors', 'vendor_products', 'vendor_stock_balances', 'vendor_stock_movements', 'vendor_operations'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {

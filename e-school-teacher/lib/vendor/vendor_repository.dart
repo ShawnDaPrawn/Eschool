@@ -70,8 +70,11 @@ class VendorCounter {
 }
 
 class VendorProfile {
+  bool get ticketingAvailable => _ticketingAvailable;
+  final bool _ticketingAvailable;
   VendorProfile(Map<String, dynamic> data)
-    : schoolId = _integer(data['school_id']),
+    : _ticketingAvailable = _boolean(data['ticketing_available'] ?? false),
+      schoolId = _integer(data['school_id']),
       userId = _integer(data['user_id']),
       schoolName = _text(data['school_name']),
       schoolSlug = _text(data['school_slug'], max: 191),
@@ -204,8 +207,9 @@ class VendorSettlementLine {
       salesNetCents = _integer(data['sales_net_cents'], min: 0),
       vatCents = _integer(data['vat_cents'], min: 0) {
     if (!RegExp(r'^VO-[0-9]{6,20}$').hasMatch(number) ||
-        grossCents != salesNetCents + vatCents)
+        grossCents != salesNetCents + vatCents) {
       throw const FormatException('Invalid original settlement line');
+    }
   }
   final String number;
   final int grossCents, salesNetCents, vatCents;
@@ -248,8 +252,9 @@ class VendorSettlement {
         collectorFeeCents != 0 ||
         payoutCents != grossCents ||
         (status == 'settled') != (settledAt != null && paidOn != null) ||
-        (status != 'settled' && (settledAt != null || paidOn != null)))
+        (status != 'settled' && (settledAt != null || paidOn != null))) {
       throw const FormatException('Invalid settlement totals or state');
+    }
     if (detail &&
         (lines.length != orderCount ||
             lines.map((l) => l.number).toSet().length != lines.length ||
@@ -257,8 +262,9 @@ class VendorSettlement {
                 grossCents ||
             lines.fold<int>(0, (total, l) => total + l.salesNetCents) !=
                 salesNetCents ||
-            lines.fold<int>(0, (total, l) => total + l.vatCents) != vatCents))
+            lines.fold<int>(0, (total, l) => total + l.vatCents) != vatCents)) {
       throw const FormatException('Invalid original settlement orders');
+    }
   }
   final int id,
       orderCount,
@@ -272,6 +278,57 @@ class VendorSettlement {
   final DateTime createdAt;
   final DateTime? settledAt;
   final List<VendorSettlementLine> lines;
+}
+
+class VendorAdmission {
+  VendorAdmission(
+    Map<String, dynamic> data,
+    VendorProfile profile,
+    VendorCounter counter,
+  ) : id = _integer(data['id']),
+      revision = _integer(data['revision'], min: 0),
+      eventName = _text(data['event_name'], max: 191),
+      productName = _text(data['product_name'], max: 160),
+      kind = _text(data['kind'], max: 8),
+      status = _text(data['status'], max: 12),
+      canRedeem = _boolean(data['can_redeem']),
+      namedLearner = data['named_learner_name'] == null
+          ? null
+          : _text(data['named_learner_name'], max: 400),
+      startsAt = _instant(data['starts_at']),
+      endsAt = _instant(data['ends_at']),
+      redeemedAt = data['redeemed_at'] == null
+          ? null
+          : _instant(data['redeemed_at']),
+      redeemedBy = data['redeemed_by'] == null
+          ? null
+          : _integer(data['redeemed_by']) {
+    if (_integer(data['school_id']) != profile.schoolId ||
+        _integer(data['actor_user_id']) != profile.userId ||
+        _integer(data['vendor_id']) != counter.id ||
+        !['general', 'named'].contains(kind) ||
+        !['valid', 'redeemed'].contains(status) ||
+        !endsAt.isAfter(startsAt) ||
+        (kind == 'named') != (namedLearner != null) ||
+        (status == 'redeemed') != (redeemedAt != null && redeemedBy != null) ||
+        (status == 'redeemed' && canRedeem) ||
+        [
+          'holder_user_id',
+          'wallet_owner_id',
+          'wallet_id',
+          'private_qr_token',
+          'qr',
+        ].any(data.containsKey)) {
+      throw const FormatException('Invalid scoped original admission');
+    }
+  }
+  final int id, revision;
+  final String eventName, productName, kind, status;
+  final String? namedLearner;
+  final bool canRedeem;
+  final DateTime startsAt, endsAt;
+  final DateTime? redeemedAt;
+  final int? redeemedBy;
 }
 
 /// Private vendor session: no teacher repository, token, Hive box or notification initialization.
@@ -288,6 +345,11 @@ class VendorRepository extends ChangeNotifier {
   VendorSetup? setup;
   VendorCounter? counter;
   VendorReceipt? receipt;
+  VendorAdmission? admission;
+  String _admissionCredential = '';
+  final Map<int, String> _pendingAdmissions = {};
+  bool get hasPendingAdmission =>
+      counter != null && _pendingAdmissions.containsKey(counter!.id);
   List<VendorReceipt> orders = [];
   List<VendorSettlement> settlements = [];
   VendorSettlement? settlement;
@@ -299,7 +361,10 @@ class VendorRepository extends ChangeNotifier {
   bool busy = false;
   String? error, message;
   bool get signedIn => profile != null;
-  bool get hasPending => counter != null && _pending.containsKey(counter!.id);
+  bool get hasPending =>
+      counter != null &&
+      (_pending.containsKey(counter!.id) ||
+          _pendingAdmissions.containsKey(counter!.id));
   int get generation => _generation;
   Completer<void>? _completion;
   Future<void> get idle => _completion?.future ?? Future<void>.value();
@@ -340,15 +405,16 @@ class VendorRepository extends ChangeNotifier {
                       'X-School-Id': '${profile!.schoolId}',
                     if (!anonymous && profile != null)
                       'X-Account-Id': '${profile!.userId}',
-                    if (operation != null) 'Idempotency-Key': operation,
+                    'Idempotency-Key': ?operation,
                   },
                 ),
               );
       final body = _map(response.data);
       if (response.statusCode == 409 &&
           body['code'] == 'VENDOR_SETUP_REQUIRED') {
-        if (path == 'sign-out' && body['data'] == null)
+        if (path == 'sign-out' && body['data'] == null) {
           return <String, dynamic>{};
+        }
         return _map(body['data']);
       }
       if (response.statusCode != 200 || body['error'] != false) {
@@ -360,8 +426,9 @@ class VendorRepository extends ChangeNotifier {
           statusCode: response.statusCode,
         );
       }
-      if (path == 'sign-out' && body['data'] == null)
+      if (path == 'sign-out' && body['data'] == null) {
         return <String, dynamic>{};
+      }
       return _map(body['data']);
     } on DioException catch (error) {
       throw ApiException(
@@ -376,6 +443,8 @@ class VendorRepository extends ChangeNotifier {
   }
 
   void _clearViews() {
+    admission = null;
+    _admissionCredential = '';
     settlements = [];
     settlement = null;
     settlementView = false;
@@ -393,6 +462,7 @@ class VendorRepository extends ChangeNotifier {
     setup = null;
     counter = null;
     _pending.clear();
+    _pendingAdmissions.clear();
     _clearViews();
     page = 1;
     lastPage = 1;
@@ -456,7 +526,14 @@ class VendorRepository extends ChangeNotifier {
   Future<void> _save(VendorProfile p) async {
     final snapshot = [for (final e in _pending.entries) '${e.key}:${e.value}'];
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_pendingKey(p), snapshot);
+    final first = await prefs.setStringList(_pendingKey(p), snapshot);
+    final second = await prefs.setStringList(
+      'vendor-admission-pending:${p.schoolId}:${p.userId}',
+      [for (final e in _pendingAdmissions.entries) '${e.key}:${e.value}'],
+    );
+    if (!first || !second) {
+      throw StateError('Original request identity could not be retained');
+    }
   }
 
   Future<void> _readPending(VendorProfile p, int generation) async {
@@ -475,6 +552,24 @@ class VendorRepository extends ChangeNotifier {
     _pending
       ..clear()
       ..addAll(parsed);
+    final admissions = <int, String>{};
+    for (final value
+        in prefs.getStringList(
+              'vendor-admission-pending:${p.schoolId}:${p.userId}',
+            ) ??
+            <String>[]) {
+      final match = RegExp(
+        r'^(\d+):([a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$',
+      ).firstMatch(value);
+      if (match == null) {
+        throw const FormatException('Invalid retained admission identity');
+      }
+      admissions[int.parse(match[1]!)] = match[2]!;
+    }
+    _check(generation, p);
+    _pendingAdmissions
+      ..clear()
+      ..addAll(admissions);
   }
 
   Future<bool> signIn(Map<String, dynamic> input) async {
@@ -652,6 +747,7 @@ class VendorRepository extends ChangeNotifier {
   }
 
   Future<bool> recover() async {
+    if (hasPendingAdmission) return recoverAdmission();
     final pinned = profile, selected = counter;
     if (pinned == null || selected == null) return false;
     final key = _pending[selected.id];
@@ -693,6 +789,123 @@ class VendorRepository extends ChangeNotifier {
     });
   }
 
+  Future<bool> lookupAdmission(String value) async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null || !pinned.ticketingAvailable) {
+      return false;
+    }
+    final generation = _generation;
+    final raw = value.trim();
+    return _run(() async {
+      final data = await _request(
+        'POST',
+        'counters/${selected.id}/tickets/lookup',
+        data: raw.startsWith('navigateed:ticket:')
+            ? {'qr_token': raw.substring(18)}
+            : {'ticket_number': raw.toUpperCase()},
+      );
+      _check(generation, pinned);
+      admission = VendorAdmission(data, pinned, selected);
+      _admissionCredential = raw;
+    });
+  }
+
+  Future<bool> admit() async {
+    final pinned = profile, selected = counter, original = admission;
+    final credential = _admissionCredential;
+    if (pinned == null ||
+        selected == null ||
+        original?.canRedeem != true ||
+        hasPending ||
+        credential.isEmpty ||
+        !pinned.ticketingAvailable) {
+      return false;
+    }
+    final generation = _generation;
+    return _run(() async {
+      final key = const Uuid().v4();
+      _pendingAdmissions[selected.id] = key;
+      await _save(pinned);
+      _check(generation, pinned);
+      final data = await _request(
+        'POST',
+        'counters/${selected.id}/tickets/redeem',
+        operation: key,
+        data: {
+          'operation_id': key,
+          'revision': original!.revision,
+          'confirmed': true,
+          ...(credential.startsWith('navigateed:ticket:')
+              ? {'qr_token': credential.substring(18)}
+              : {'ticket_number': credential.toUpperCase()}),
+        },
+      );
+      _check(generation, pinned);
+      _settlementScope(data, pinned, selected);
+      final result = VendorAdmission(_map(data['receipt']), pinned, selected);
+      if (result.id != original.id ||
+          result.revision != original.revision + 1 ||
+          result.status != 'redeemed' ||
+          result.redeemedBy != pinned.userId) {
+        throw const FormatException('Different original admission outcome');
+      }
+      final replayed = _boolean(data['replayed']);
+      _pendingAdmissions.remove(selected.id);
+      try {
+        await _save(pinned);
+      } catch (_) {
+        if (generation == _generation) _pendingAdmissions[selected.id] = key;
+        rethrow;
+      }
+      _check(generation, pinned);
+      admission = result;
+      message = replayed
+          ? 'Admission was already recorded. Check the original record; do not admit this ticket again.'
+          : 'One admission recorded. Admit this ticket once.';
+    });
+  }
+
+  Future<bool> recoverAdmission() async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null) return false;
+    final key = _pendingAdmissions[selected.id];
+    if (key == null) return false;
+    final generation = _generation;
+    return _run(() async {
+      final data = await _request(
+        'POST',
+        'counters/${selected.id}/ticket-operations/$key/resolve',
+      );
+      _check(generation, pinned);
+      _settlementScope(data, pinned, selected);
+      if (data['operation_id'] != key ||
+          !['committed', 'abandoned'].contains(data['status'])) {
+        throw const FormatException('Different original admission request');
+      }
+      VendorAdmission? result;
+      if (data['status'] == 'committed') {
+        result = VendorAdmission(_map(data['receipt']), pinned, selected);
+        if (result.status != 'redeemed') {
+          throw const FormatException('Original admission is incomplete');
+        }
+      } else if (data['receipt'] != null) {
+        throw const FormatException('Unexpected abandoned admission receipt');
+      }
+      _pendingAdmissions.remove(selected.id);
+      try {
+        await _save(pinned);
+      } catch (_) {
+        if (generation == _generation) _pendingAdmissions[selected.id] = key;
+        rethrow;
+      }
+      _check(generation, pinned);
+      admission = result;
+      message = data['status'] == 'committed'
+          ? 'Admission was already recorded. Check the original record; do not admit this ticket again.'
+          : 'No admission was recorded by that request. Review the original ticket again.';
+    });
+  }
+
   void _settlementScope(
     Map<String, dynamic> data,
     VendorProfile pinned,
@@ -700,8 +913,9 @@ class VendorRepository extends ChangeNotifier {
   ) {
     if (_integer(data['school_id']) != pinned.schoolId ||
         _integer(data['actor_user_id']) != pinned.userId ||
-        _integer(data['vendor_id']) != selected.id)
+        _integer(data['vendor_id']) != selected.id) {
       throw const FormatException('Different settlement scope');
+    }
   }
 
   Future<bool> loadSettlements({int pageNumber = 1}) async {
@@ -717,14 +931,16 @@ class VendorRepository extends ChangeNotifier {
       _settlementScope(data, pinned, selected);
       final current = _integer(data['page'], max: 1000000),
           last = _integer(data['last_page'], max: 1000000);
-      if (current != pageNumber || current > last)
+      if (current != pageNumber || current > last) {
         throw const FormatException('Invalid settlement page');
+      }
       final rows = [
         for (final row in _list(data['items'], max: 20))
           VendorSettlement(_map(row), selected),
       ];
-      if (rows.map((row) => row.id).toSet().length != rows.length)
+      if (rows.map((row) => row.id).toSet().length != rows.length) {
         throw const FormatException('Duplicate settlement rows');
+      }
       settlements = rows;
       settlementPage = current;
       lastSettlementPage = last;
@@ -744,8 +960,9 @@ class VendorRepository extends ChangeNotifier {
       _check(epoch, pinned);
       _settlementScope(data, pinned, selected);
       final row = VendorSettlement(data, selected, detail: true);
-      if (row.id != id)
+      if (row.id != id) {
         throw const FormatException('Different original settlement');
+      }
       settlement = row;
       settlementView = true;
     });
@@ -781,6 +998,7 @@ class VendorRepository extends ChangeNotifier {
     setup = null;
     counter = null;
     _pending.clear();
+    _pendingAdmissions.clear();
     _clearViews();
     super.dispose();
   }

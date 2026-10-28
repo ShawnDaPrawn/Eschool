@@ -70,3 +70,8 @@ freeze catalogue development.
 checkout, original receipts, counted stock, Finance collection, cancellation,
 recovery and affected app verification. Dedicated vendor identities/scanner and
 settlement/ticket/card increments remain separate work.
+
+[Event admission tickets](money/event-tickets.md) records increment14: capacity,
+named authority, credential rotation, single-use redemption and private app/counter
+surfaces. It does not qualify online wallet QR/card spending15 or the remaining
+fee payer corrections/late charges6D.

@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/admission_product.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'commerce_product.g.dart';
@@ -37,6 +38,8 @@ class CommerceProduct {
     required this.vatRateBps,
 
     required this.inStock,
+
+    this.ticket,
   });
 
   // minimum: 1
@@ -83,6 +86,9 @@ class CommerceProduct {
   @JsonKey(name: r'in_stock', required: true, includeIfNull: false)
   final bool inStock;
 
+  @JsonKey(name: r'ticket', required: false, includeIfNull: false)
+  final AdmissionProduct? ticket;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -97,7 +103,8 @@ class CommerceProduct {
           other.priceCents == priceCents &&
           other.vatKind == vatKind &&
           other.vatRateBps == vatRateBps &&
-          other.inStock == inStock;
+          other.inStock == inStock &&
+          other.ticket == ticket;
 
   @override
   int get hashCode =>
@@ -111,7 +118,8 @@ class CommerceProduct {
       priceCents.hashCode +
       vatKind.hashCode +
       vatRateBps.hashCode +
-      inStock.hashCode;
+      inStock.hashCode +
+      ticket.hashCode;
 
   factory CommerceProduct.fromJson(Map<String, dynamic> json) =>
       _$CommerceProductFromJson(json);

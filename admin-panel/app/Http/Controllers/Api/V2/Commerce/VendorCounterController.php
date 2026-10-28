@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V2\Commerce;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Commerce\VendorCounterRequest;
+use App\Services\Commerce\TicketCounters;
 use App\Services\Commerce\VendorCounterOrders;
 use App\Services\Commerce\VendorSettlements;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,15 @@ class VendorCounterController extends Controller
             $service = app(VendorCounterOrders::class);
             $actor = $request->user();
             $vendor = (int) $request->route('vendor');
+            if ($request->routeIs('api.v2.vendor.tickets.resolve')) {
+                return app(TicketCounters::class)->resolve($actor, $vendor, (string) $request->route('operation'));
+            }
+            if ($request->routeIs('api.v2.vendor.tickets.lookup')) {
+                return app(TicketCounters::class)->lookup($actor, $vendor, $request->validated());
+            }
+            if ($request->routeIs('api.v2.vendor.tickets.redeem')) {
+                return app(TicketCounters::class)->redeem($actor, $vendor, $request->validated());
+            }
             if ($request->routeIs('api.v2.vendor.collect')) {
                 return $service->collect($actor, $vendor, $request->validated());
             }

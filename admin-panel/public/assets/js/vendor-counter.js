@@ -34,10 +34,11 @@
         if (epoch !== generation) return;
         const codes = await detector.detect(video);
         if (epoch !== generation) return;
-        const code = codes.find(item => /^navigateed:order:[a-f0-9]{64}$/.test(item.rawValue ?? ''));
+        const pattern = field.dataset.vendorQrPurpose === 'ticket' ? /^navigateed:ticket:[a-f0-9]{64}$/ : /^navigateed:order:[a-f0-9]{64}$/;
+        const code = codes.find(item => pattern.test(item.rawValue ?? ''));
         if (code) {
           field.value = code.rawValue;
-          const number = root.querySelector('[name="order_number"]'); if (number) number.value = '';
+          const number = root.querySelector(field.dataset.vendorQrPurpose === 'ticket' ? '[name="ticket_number"]' : '[name="order_number"]'); if (number) number.value = '';
           stop(); status.textContent = status.dataset.ready; field.focus();
           return;
         }

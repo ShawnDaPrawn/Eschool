@@ -102,9 +102,15 @@ final class VendorOrders
             abort_unless($total <= 100000000000 && $gross <= 100000000000 - $total, 422, 'This order exceeds the supported amount.');
             $tax = $p->vat_kind === 'standard' ? Money::ofFraction($total * $p->vat_rate_bps, 10000 + $p->vat_rate_bps, $p->currency)->cents : 0;
             $lines[] = ['product_id' => (int) $p->id, 'product_revision' => $p->revision, 'product_name' => $p->name, 'sku' => $p->sku, 'unit_label' => $p->unit_label, 'category_key' => $category->key, 'quantity' => $quantity, 'unit_price_cents' => $p->price_cents, 'gross_cents' => $total, 'net_cents' => $total - $tax, 'vat_cents' => $tax, 'vat_kind' => $p->vat_kind, 'vat_rate_bps' => $p->vat_rate_bps, 'tracks_stock' => $p->tracks_stock];
+            $admission = app(TicketSales::class)->pricedLine($p, $quantity, $learner);
+            if ($admission !== null) {
+                $lines[array_key_last($lines)]['ticket'] = $admission;
+            }
             $gross += $total;
             $vat += $tax;
         }
+        $admissions = count(array_filter($lines, fn ($line) => isset($line['ticket'])));
+        abort_if($admissions > 0 && $admissions !== count($lines), 422, 'Buy digital admissions and physical goods in separate checkouts.');
         $this->capacity($wallet, $gross, $summary);
 
         return ['school_id' => app(CurrentSchool::class)->id(), 'actor_user_id' => (int) $actor->id, 'wallet_id' => (int) $wallet->id, 'wallet_owner_id' => $wallet->user_id, 'learner_id' => $learner, 'vendor_id' => (int) $vendor->id, 'currency' => $vendor->currency, 'amount_cents' => $gross, 'vat_cents' => $vat, 'net_cents' => $gross - $vat, 'seller' => ['id' => (int) $vendor->id, 'revision' => $vendor->revision, 'name' => $vendor->name, 'legal_name' => $vendor->legal_name, 'legal_address' => $vendor->legal_address, 'kind' => $vendor->kind, 'vat_registered' => $vendor->vat_registered, 'vat_number' => $vendor->vat_number, 'refund_bearer' => $vendor->refund_bearer, 'chargeback_bearer' => $vendor->chargeback_bearer, 'settlement_method' => $vendor->settlement_method, 'settlement_cycle' => $vendor->settlement_cycle, 'settlement_delay_days' => $vendor->settlement_delay_days, 'settlement_terms' => $vendor->settlement_terms], 'lines' => $lines];
@@ -182,11 +188,12 @@ final class VendorOrders
             $token = bin2hex(random_bytes(32));
             $order = VendorOrder::create(['operation_id' => $data['operation_id'], 'order_number' => 'VO-'.str_pad((string) $number, 6, '0', STR_PAD_LEFT), 'vendor_id' => $vendor->id, 'wallet_account_id' => $wallet->id, 'wallet_owner_id' => $wallet->user_id, 'actor_id' => $actor->id, 'learner_id' => $priced['learner_id'], 'ledger_entry_id' => $entry, 'currency' => $priced['currency'], 'amount_cents' => $priced['amount_cents'], 'net_cents' => $priced['net_cents'], 'vat_cents' => $priced['vat_cents'], 'seller_snapshot' => $priced['seller'], 'quote_fingerprint' => $quoted['fingerprint'], 'private_qr_token' => $token, 'qr_hash' => hash('sha256', $token), 'created_at' => now('UTC')]);
             foreach ($priced['lines'] as $line) {
-                $root = VendorOrderLine::create($line + ['order_id' => $order->id]);
+                $root = VendorOrderLine::create(array_diff_key($line, ['ticket' => true]) + ['order_id' => $order->id]);
                 app(VendorInventory::class)->order($root);
             }
             $order->sealed_at = CarbonImmutable::now('UTC');
             $order->save();
+            app(TicketSales::class)->issue($actor, $order, $priced['lines']);
             Audit::record('vendors.order_purchased', $order, [], ['vendor_id' => $vendor->id, 'amount_cents' => $order->amount_cents]);
 
             return ['id' => (int) $order->id];

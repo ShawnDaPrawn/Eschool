@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/admission_quote_details.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'commerce_quote_line.g.dart';
@@ -43,6 +44,8 @@ class CommerceQuoteLine {
     required this.vatRateBps,
 
     required this.tracksStock,
+
+    this.ticket,
   });
 
   // minimum: 1
@@ -108,6 +111,9 @@ class CommerceQuoteLine {
   @JsonKey(name: r'tracks_stock', required: true, includeIfNull: false)
   final bool tracksStock;
 
+  @JsonKey(name: r'ticket', required: false, includeIfNull: false)
+  final AdmissionQuoteDetails? ticket;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -125,7 +131,8 @@ class CommerceQuoteLine {
           other.vatCents == vatCents &&
           other.vatKind == vatKind &&
           other.vatRateBps == vatRateBps &&
-          other.tracksStock == tracksStock;
+          other.tracksStock == tracksStock &&
+          other.ticket == ticket;
 
   @override
   int get hashCode =>
@@ -142,7 +149,8 @@ class CommerceQuoteLine {
       vatCents.hashCode +
       vatKind.hashCode +
       vatRateBps.hashCode +
-      tracksStock.hashCode;
+      tracksStock.hashCode +
+      ticket.hashCode;
 
   factory CommerceQuoteLine.fromJson(Map<String, dynamic> json) =>
       _$CommerceQuoteLineFromJson(json);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Commerce;
 
+use App\Models\Commerce\TicketEvent;
+use App\Models\Commerce\TicketType;
 use App\Models\Commerce\Vendor;
 use App\Models\Commerce\VendorCategory;
 use App\Models\Commerce\VendorProduct;
@@ -17,6 +19,7 @@ use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Ledger\AccountType;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -217,9 +220,16 @@ final class VendorCatalogues
             $fresh = app(VendorPolicy::class)->actor($actor);
             app(WalletPolicy::class)->activePerson($fresh);
             $vendor = Vendor::where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->findOrFail($vendorId);
-            $products = VendorProduct::where('vendor_id', $vendor->id)->where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->orderBy('id')->paginate(30, ['*'], 'page', $page);
+            $products = VendorProduct::where('vendor_id', $vendor->id)->where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->where(function ($q): void {
+                $q->whereNotIn('id', TicketType::select('product_id'));
+                if (app(ModuleGate::class)->allows('ticketing')) {
+                    $q->orWhereIn('id', TicketType::where('status', 'active')->whereIn('event_id', TicketEvent::where('status', 'active')->where('ends_at', '>', now('UTC'))->select('id'))->select('product_id'));
+                }
+            })->orderBy('id')->paginate(30, ['*'], 'page', $page);
             $items = $products->map(function (VendorProduct $p): array {
-                return ['id' => (int) $p->id, 'name' => $p->name, 'description' => $p->description, 'sku' => $p->sku, 'unit_label' => $p->unit_label, 'category_key' => VendorCategory::findOrFail($p->category_id)->key, 'currency' => $p->currency, 'price_cents' => $p->price_cents, 'vat_kind' => $p->vat_kind, 'vat_rate_bps' => $p->vat_rate_bps, 'in_stock' => ! $p->tracks_stock || VendorStockBalance::where('product_id', $p->id)->where('on_hand', '>', 0)->exists()];
+                $ticket = app(TicketSales::class)->catalogue($p);
+
+                return ['id' => (int) $p->id, 'name' => $p->name, 'description' => $p->description, 'sku' => $p->sku, 'unit_label' => $p->unit_label, 'category_key' => VendorCategory::findOrFail($p->category_id)->key, 'currency' => $p->currency, 'price_cents' => $p->price_cents, 'vat_kind' => $p->vat_kind, 'vat_rate_bps' => $p->vat_rate_bps, 'in_stock' => $ticket === null ? (! $p->tracks_stock || VendorStockBalance::where('product_id', $p->id)->where('on_hand', '>', 0)->exists()) : $ticket['can_purchase']] + ($ticket === null ? [] : ['ticket' => $ticket]);
             })->all();
 
             return ['school_id' => app(CurrentSchool::class)->id(), 'vendor' => ['id' => (int) $vendor->id, 'name' => $vendor->name, 'description' => $vendor->description, 'kind' => $vendor->kind], 'items' => $items, 'page' => $products->currentPage(), 'last_page' => $products->lastPage()];

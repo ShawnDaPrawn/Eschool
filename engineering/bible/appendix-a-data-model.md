@@ -549,3 +549,16 @@ original actor, actual confirmation date, permanent request UUID/hash and encryp
 evidence. SQL checks/FKs and immutable triggers retain original actor/school and
 history; retained rollback is refused. Accepted rows project equal opposite custody
 events without money postings. No legacy float records are imported.
+
+## Phase5: event admission tickets
+
+School-owned `ticket_events` stores explicit sale/admission windows and current
+revision; `ticket_types` binds a new uncounted vendor product to general/named
+admission, capacity and the school's explicit transfer rule. Immutable encrypted
+`ticket_catalogue_revisions` retains each policy revision and original actor.
+`tickets` retains original fulfilled order-line/ordinal, holder, named learner and
+price/event snapshot with encrypted QR/typed credentials. Immutable sequential
+`ticket_actions` records transfers with rotated credentials and one redemption
+with original actor/time. Composite tenant FKs, SQL retention/shape/sequence guards,
+school locks and existing order ledger roots protect these records. No ticket
+transfer/redemption posts money. See specs/money/tickets.md.

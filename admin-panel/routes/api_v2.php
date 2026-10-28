@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
 use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
+use App\Http\Controllers\Api\V2\Commerce\TicketController;
 use App\Http\Controllers\Api\V2\Commerce\VendorCounterController;
 use App\Http\Controllers\Api\V2\Commerce\VendorSessionController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
@@ -95,6 +96,7 @@ use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Http\Middleware\RequireCommerceAuthority;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
+use App\Http\Middleware\RequireTicketAuthority;
 use App\Http\Middleware\RequireVendorCounter;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
@@ -183,6 +185,9 @@ Route::prefix('vendor')->name('api.v2.vendor.')->middleware([PrivateDomainRespon
         Route::get('orders', [$counter, 'handle'])->name('orders');
         Route::get('orders/{order}', [$counter, 'handle'])->whereNumber('order')->name('receipt');
         Route::post('lookup', [$counter, 'handle'])->name('lookup');
+        Route::post('tickets/lookup', [$counter, 'handle'])->name('tickets.lookup');
+        Route::post('ticket-operations/{operation}/resolve', [$counter, 'handle'])->whereUuid('operation')->name('tickets.resolve');
+        Route::post('tickets/redeem', [$counter, 'handle'])->middleware('idempotent:required')->name('tickets.redeem');
         Route::post('collect', [$counter, 'handle'])->middleware('idempotent:required')->name('collect');
         Route::post('operations/{operation}/resolve', [$counter, 'handle'])->whereUuid('operation')->name('resolve');
     });
@@ -424,6 +429,12 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
 
 Route::prefix('commerce')->name('api.v2.commerce.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:vendors,read'])->group(function () {
     $c = StorefrontController::class;
+    $t = TicketController::class;
+    Route::get('tickets', [$t, 'handle'])->name('tickets.index');
+    Route::post('tickets/receive-code', [$t, 'handle'])->middleware('throttle:money')->name('tickets.receive-code');
+    Route::get('tickets/{ticket}', [$t, 'handle'])->whereNumber('ticket')->name('tickets.show');
+    Route::post('tickets/{ticket}/transfer-preview', [$t, 'handle'])->whereNumber('ticket')->middleware('throttle:money')->name('tickets.transfer-preview');
+    Route::post('tickets/{ticket}/transfer', [$t, 'handle'])->whereNumber('ticket')->middleware([RequireTicketAuthority::class, 'throttle:money', 'idempotent:required'])->name('tickets.transfer');
     Route::get('vendors', [$c, 'index'])->name('index');
     Route::get('vendors/{vendor}', [$c, 'catalogue'])->whereNumber('vendor')->name('catalogue');
     Route::get('orders', [$c, 'orders'])->name('orders');

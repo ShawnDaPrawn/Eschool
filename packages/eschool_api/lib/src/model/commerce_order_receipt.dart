@@ -57,6 +57,10 @@ class CommerceOrderReceipt {
     required this.seller,
 
     required this.lines,
+
+    this.fulfilmentKind,
+
+    this.ticketCount,
   });
 
   // minimum: 1
@@ -144,6 +148,20 @@ class CommerceOrderReceipt {
   @JsonKey(name: r'lines', required: true, includeIfNull: false)
   final List<CommerceReceiptLine> lines;
 
+  @JsonKey(
+    name: r'fulfilment_kind',
+    required: false,
+    includeIfNull: false,
+    unknownEnumValue:
+        CommerceOrderReceiptFulfilmentKindEnum.unknownDefaultOpenApi,
+  )
+  final CommerceOrderReceiptFulfilmentKindEnum? fulfilmentKind;
+
+  // minimum: 0
+  // maximum: 2000
+  @JsonKey(name: r'ticket_count', required: false, includeIfNull: false)
+  final int? ticketCount;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -167,7 +185,9 @@ class CommerceOrderReceipt {
           other.createdAt == createdAt &&
           other.processedAt == processedAt &&
           other.seller == seller &&
-          other.lines == lines;
+          other.lines == lines &&
+          other.fulfilmentKind == fulfilmentKind &&
+          other.ticketCount == ticketCount;
 
   @override
   int get hashCode =>
@@ -190,7 +210,9 @@ class CommerceOrderReceipt {
       createdAt.hashCode +
       (processedAt == null ? 0 : processedAt.hashCode) +
       seller.hashCode +
-      lines.hashCode;
+      lines.hashCode +
+      fulfilmentKind.hashCode +
+      ticketCount.hashCode;
 
   factory CommerceOrderReceipt.fromJson(Map<String, dynamic> json) =>
       _$CommerceOrderReceiptFromJson(json);
@@ -214,6 +236,22 @@ enum CommerceOrderReceiptStatusEnum {
   unknownDefaultOpenApi(r'unknown_default_open_api');
 
   const CommerceOrderReceiptStatusEnum(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+enum CommerceOrderReceiptFulfilmentKindEnum {
+  @JsonValue(r'physical_goods')
+  physicalGoods(r'physical_goods'),
+  @JsonValue(r'digital_tickets')
+  digitalTickets(r'digital_tickets'),
+  @JsonValue(r'unknown_default_open_api')
+  unknownDefaultOpenApi(r'unknown_default_open_api');
+
+  const CommerceOrderReceiptFulfilmentKindEnum(this.value);
 
   final String value;
 

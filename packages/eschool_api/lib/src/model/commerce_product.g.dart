@@ -49,6 +49,12 @@ CommerceProduct _$CommerceProductFromJson(Map<String, dynamic> json) =>
             (v) => (v as num).toInt(),
           ),
           inStock: $checkedConvert('in_stock', (v) => v as bool),
+          ticket: $checkedConvert(
+            'ticket',
+            (v) => v == null
+                ? null
+                : AdmissionProduct.fromJson(v as Map<String, dynamic>),
+          ),
         );
         return val;
       },
@@ -75,6 +81,7 @@ Map<String, dynamic> _$CommerceProductToJson(CommerceProduct instance) =>
       'vat_kind': _$CommerceProductVatKindEnumEnumMap[instance.vatKind]!,
       'vat_rate_bps': instance.vatRateBps,
       'in_stock': instance.inStock,
+      'ticket': ?instance.ticket?.toJson(),
     };
 
 const _$CommerceProductVatKindEnumEnumMap = {

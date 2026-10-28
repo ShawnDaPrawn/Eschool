@@ -35,6 +35,7 @@ CommerceVendorPage _$CommerceVendorPageFromJson(
       ),
       page: $checkedConvert('page', (v) => (v as num).toInt()),
       lastPage: $checkedConvert('last_page', (v) => (v as num).toInt()),
+      ticketsAvailable: $checkedConvert('tickets_available', (v) => v as bool?),
     );
     return val;
   },
@@ -43,6 +44,7 @@ CommerceVendorPage _$CommerceVendorPageFromJson(
     'actorUserId': 'actor_user_id',
     'canPurchase': 'can_purchase',
     'lastPage': 'last_page',
+    'ticketsAvailable': 'tickets_available',
   },
 );
 
@@ -54,4 +56,5 @@ Map<String, dynamic> _$CommerceVendorPageToJson(CommerceVendorPage instance) =>
       'items': instance.items.map((e) => e.toJson()).toList(),
       'page': instance.page,
       'last_page': instance.lastPage,
+      'tickets_available': ?instance.ticketsAvailable,
     };

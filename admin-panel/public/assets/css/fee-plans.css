@@ -10,3 +10,5 @@
     height: auto;
     min-block-size: 8rem;
 }
+
+.ticket-workbench a { text-decoration: underline; text-underline-offset: .15em; }

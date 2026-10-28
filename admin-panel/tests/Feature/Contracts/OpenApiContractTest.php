@@ -50,6 +50,14 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'ticket authentication GET commerce/tickets' => [null, 'GET', 'api/v2/commerce/tickets', [], 401],
+            'ticket authentication POST commerce/tickets/receive-code' => [null, 'POST', 'api/v2/commerce/tickets/receive-code', [], 401],
+            'ticket authentication GET commerce/tickets/1' => [null, 'GET', 'api/v2/commerce/tickets/1', [], 401],
+            'ticket authentication POST commerce/tickets/1/transfer-preview' => [null, 'POST', 'api/v2/commerce/tickets/1/transfer-preview', [], 401],
+            'ticket authentication POST commerce/tickets/1/transfer' => [null, 'POST', 'api/v2/commerce/tickets/1/transfer', [], 401],
+            'ticket authentication POST vendor/counters/1/tickets/lookup' => [null, 'POST', 'api/v2/vendor/counters/1/tickets/lookup', [], 401],
+            'ticket authentication POST vendor/counters/1/tickets/redeem' => [null, 'POST', 'api/v2/vendor/counters/1/tickets/redeem', [], 401],
+            'ticket authentication POST vendor/counters/1/ticket-operations/00000000-0000-4000-8000-000000000001/resolve' => [null, 'POST', 'api/v2/vendor/counters/1/ticket-operations/00000000-0000-4000-8000-000000000001/resolve', [], 401],
             'vendor operator sign in validation' => [null, 'POST', 'api/v2/vendor/sign-in', [], 422],
             'vendor operator session auth' => [null, 'GET', 'api/v2/vendor/session', [], 401],
             'vendor operator sign out auth' => [null, 'POST', 'api/v2/vendor/sign-out', [], 401],

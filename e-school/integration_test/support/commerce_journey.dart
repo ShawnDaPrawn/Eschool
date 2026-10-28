@@ -12,7 +12,8 @@ Future<void> exerciseCommerce(
   bool learner = false,
 }) async {
   final original = Map<String, Object>.of(api.routes);
-  final server = CommerceFakeServer(api: api, actor: actor, learner: learner);
+  final admissions = TicketFakeServer(api: api, actor: actor, learner: learner);
+  final server = admissions.commerce;
   await tester.tap(find.byTooltip('Refresh wallets'));
   await tester.pumpAndSettle();
   await tester.scrollUntilVisible(
@@ -49,7 +50,10 @@ Future<void> exerciseCommerce(
   );
   await tapWhenReady(tester, find.text('Confirm quoted purchase'));
   await tapWhenReady(tester, find.text('VO-000001'));
-  await pumpUntilFound(tester, find.byKey(const ValueKey('order-collection-qr-901')));
+  await pumpUntilFound(
+    tester,
+    find.byKey(const ValueKey('order-collection-qr-901')),
+  );
   expect(server.writes, 1);
   final reason = find.byWidgetPredicate(
     (w) =>
@@ -69,6 +73,47 @@ Future<void> exerciseCommerce(
   expect(server.cancellations, 1);
   expect(server.balances[learner ? 7 : 6], 5000);
   expect(find.byKey(const ValueKey('order-collection-qr-901')), findsNothing);
+  await tapWhenReady(tester, find.text('Admission tickets'));
+  await pumpUntilFound(tester, find.text('Synthetic school admission'));
+  expect(find.byKey(const ValueKey('ticket-screen-scroll')), findsOneWidget);
+  await tapWhenReady(tester, find.text('Show my receiving code'));
+  await pumpUntilFound(tester, find.text('SYNTHETIC-RECEIVE-$actor'));
+  final code = find.byWidgetPredicate(
+    (w) =>
+        w is TextField &&
+        w.decoration?.labelText == 'Intended recipient receiving code',
+  );
+  await tester.scrollUntilVisible(
+    code,
+    200,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const ValueKey('ticket-screen-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.enterText(code, 'SYNTHETIC-RECEIVE-99');
+  await tapWhenReady(tester, find.text('Review intended ticket recipient'));
+  await tapWhenReady(
+    tester,
+    find.text(
+      'I checked the original ticket and intended recipient. Transfer once.',
+    ),
+  );
+  await tapWhenReady(tester, find.text('Confirm original ticket transfer'));
+  await tester.pumpAndSettle();
+  expect(admissions.writes, 1);
+  expect(server.balances[learner ? 7 : 6], 5000);
+  admissions.allowed = false;
+  await tester.tap(find.byTooltip('Refresh tickets'));
+  await pumpUntilFound(
+    tester,
+    find.text('Your ticket access changed. Reopen Wallets.'),
+  );
+  expect(find.text('SYNTHETIC-RECEIVE-$actor'), findsNothing);
+  await tester.pageBack();
+  await tester.pumpAndSettle();
   server.allowed = false;
   await tester.tap(find.byTooltip('Refresh shop and orders'));
   await pumpUntilFound(

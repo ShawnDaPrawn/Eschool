@@ -14,7 +14,7 @@ final class VendorOrderReconciliation
     {
         $report = ['vendor_order_mismatches' => 0, 'vendor_order_stock_mismatches' => 0, 'unattributed_vendor_order_entries' => 0, 'vendor_payable_differences' => []];
         if (! Schema::hasTable('vendor_orders')) {
-            return $report + app(VendorSettlementReconciliation::class)->inspect();
+            return $report + app(VendorSettlementReconciliation::class)->inspect() + app(TicketReconciliation::class)->inspect();
         }
         $school = app(CurrentSchool::class)->id();
         foreach (DB::table('vendor_orders')->where('school_id', $school)->orderBy('id')->get() as $order) {
@@ -63,7 +63,7 @@ final class VendorOrderReconciliation
             }
         }
 
-        return $report + app(VendorSettlementReconciliation::class)->inspect();
+        return $report + app(VendorSettlementReconciliation::class)->inspect() + app(TicketReconciliation::class)->inspect();
     }
 
     private function entry(?int $id, int $debit, int $credit, int $cents, string $currency, string $source): bool
@@ -82,6 +82,6 @@ final class VendorOrderReconciliation
 
     public static function healthy(array $report): bool
     {
-        return VendorSettlementReconciliation::healthy($report) && $report['vendor_order_mismatches'] === 0 && $report['vendor_order_stock_mismatches'] === 0 && $report['unattributed_vendor_order_entries'] === 0 && $report['vendor_payable_differences'] === [];
+        return TicketReconciliation::healthy($report) && VendorSettlementReconciliation::healthy($report) && $report['vendor_order_mismatches'] === 0 && $report['vendor_order_stock_mismatches'] === 0 && $report['unattributed_vendor_order_entries'] === 0 && $report['vendor_payable_differences'] === [];
     }
 }

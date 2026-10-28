@@ -82,6 +82,16 @@ CommerceOrderReceipt _$CommerceOrderReceiptFromJson(
             .map((e) => CommerceReceiptLine.fromJson(e as Map<String, dynamic>))
             .toList(),
       ),
+      fulfilmentKind: $checkedConvert(
+        'fulfilment_kind',
+        (v) => $enumDecodeNullable(
+          _$CommerceOrderReceiptFulfilmentKindEnumEnumMap,
+          v,
+          unknownValue:
+              CommerceOrderReceiptFulfilmentKindEnum.unknownDefaultOpenApi,
+        ),
+      ),
+      ticketCount: $checkedConvert('ticket_count', (v) => (v as num?)?.toInt()),
     );
     return val;
   },
@@ -100,6 +110,8 @@ CommerceOrderReceipt _$CommerceOrderReceiptFromJson(
     'canCancel': 'can_cancel',
     'createdAt': 'created_at',
     'processedAt': 'processed_at',
+    'fulfilmentKind': 'fulfilment_kind',
+    'ticketCount': 'ticket_count',
   },
 );
 
@@ -126,6 +138,9 @@ Map<String, dynamic> _$CommerceOrderReceiptToJson(
   'processed_at': instance.processedAt?.toIso8601String(),
   'seller': instance.seller.toJson(),
   'lines': instance.lines.map((e) => e.toJson()).toList(),
+  'fulfilment_kind':
+      ?_$CommerceOrderReceiptFulfilmentKindEnumEnumMap[instance.fulfilmentKind],
+  'ticket_count': ?instance.ticketCount,
 };
 
 const _$CommerceOrderReceiptStatusEnumEnumMap = {
@@ -133,5 +148,12 @@ const _$CommerceOrderReceiptStatusEnumEnumMap = {
   CommerceOrderReceiptStatusEnum.collected: 'collected',
   CommerceOrderReceiptStatusEnum.cancelled: 'cancelled',
   CommerceOrderReceiptStatusEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
+};
+
+const _$CommerceOrderReceiptFulfilmentKindEnumEnumMap = {
+  CommerceOrderReceiptFulfilmentKindEnum.physicalGoods: 'physical_goods',
+  CommerceOrderReceiptFulfilmentKindEnum.digitalTickets: 'digital_tickets',
+  CommerceOrderReceiptFulfilmentKindEnum.unknownDefaultOpenApi:
       'unknown_default_open_api',
 };

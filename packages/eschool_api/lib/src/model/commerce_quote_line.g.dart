@@ -61,6 +61,12 @@ CommerceQuoteLine _$CommerceQuoteLineFromJson(Map<String, dynamic> json) =>
             (v) => (v as num).toInt(),
           ),
           tracksStock: $checkedConvert('tracks_stock', (v) => v as bool),
+          ticket: $checkedConvert(
+            'ticket',
+            (v) => v == null
+                ? null
+                : AdmissionQuoteDetails.fromJson(v as Map<String, dynamic>),
+          ),
         );
         return val;
       },
@@ -96,6 +102,7 @@ Map<String, dynamic> _$CommerceQuoteLineToJson(CommerceQuoteLine instance) =>
       'vat_kind': _$CommerceQuoteLineVatKindEnumEnumMap[instance.vatKind]!,
       'vat_rate_bps': instance.vatRateBps,
       'tracks_stock': instance.tracksStock,
+      'ticket': ?instance.ticket?.toJson(),
     };
 
 const _$CommerceQuoteLineVatKindEnumEnumMap = {

@@ -106,7 +106,12 @@ class CommerceCubit extends Cubit<CommerceState> {
     );
   });
 
-  Future<bool> review(int vendor, int wallet, Map<int, int> quantities) {
+  Future<bool> review(
+    int vendor,
+    int wallet,
+    Map<int, int> quantities, {
+    int? learner,
+  }) {
     if (hasPendingMoney ||
         state.vendors?.canPurchase != true ||
         state.catalogue?.canPurchase != true) {
@@ -116,7 +121,12 @@ class CommerceCubit extends Cubit<CommerceState> {
     return _run(() async {
       final fresh = await _fresh();
       final catalogue = await repository.catalogue(vendor);
-      final quote = await repository.quote(vendor, wallet, cart);
+      final quote = await repository.quote(
+        vendor,
+        wallet,
+        cart,
+        learner: learner,
+      );
       return CommerceState(
         wallets: fresh.wallets,
         vendors: fresh.vendors,

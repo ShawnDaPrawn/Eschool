@@ -5,7 +5,6 @@ parameters:
     level: 5
     paths:
         - app/Exceptions/CashupExceptionRenderer.php
-        - database/migrations/2026_10_28_210000_add_daily_operator_cashup_counts.php
         - database/migrations/2026_10_28_200000_add_vendor_settlements.php
         - database/migrations/2026_10_28_190000_add_dedicated_vendor_operators.php
         - app/Http/Middleware/RequireVendorCounter.php
@@ -13,6 +12,7 @@ parameters:
         - app/Http/Controllers/Api/V2/Commerce
         - database/migrations/2026_10_28_180000_add_wallet_vendor_orders.php
         - app/Http/Middleware/RequireCommerceAuthority.php
+        - app/Http/Middleware/RequireTicketAuthority.php
         - app/Services/Commerce
         - app/Policies/Commerce
         - app/Models/Commerce
@@ -20,6 +20,7 @@ parameters:
         - database/migrations/2026_10_28_170000_create_vendor_catalogues_and_stock.php
         - database/migrations/2026_10_28_220000_add_confirmed_cash_custody_handovers.php
         - database/migrations/2026_10_28_210000_add_daily_operator_cashup_counts.php
+        - database/migrations/2026_10_28_230000_add_wallet_event_tickets.php
         - app/Services/Money
         - app/Policies/Money
         - app/Models/Money

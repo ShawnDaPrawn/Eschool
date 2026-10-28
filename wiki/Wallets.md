@@ -45,3 +45,14 @@ units; collected returns are a separate process. Lost responses retain only an
 opaque operation UUID and require an outcome check before another money intent.
 Scope or approval changes clear displayed private data. Paused commerce retains
 history but prevents new financial and handover writes.
+
+## Event admission tickets
+
+When the school enables Ticketing, open **Shop and orders → Admission tickets**.
+The current holder sees private QR/typed admission credentials and original event,
+named learner and redemption details. The school's explicit transfer rule and
+current guardian checks apply. Ask the recipient for their short-lived receiving
+code and review the named recipient before confirming. Transfers rotate both
+credentials and move admission only; wallet balances do not move. The original
+Vendor counter admits each ticket once. See the Events and admission tickets
+Finance guide for configuration and paused-history behavior.

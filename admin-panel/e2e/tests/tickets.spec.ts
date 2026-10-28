@@ -1,0 +1,21 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { expect, test, type Page } from '@playwright/test';
+import { signIn } from '../support/accounts';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+function fixture(action='prepare',school=0){return JSON.parse(execFileSync('php',['artisan','tinker','--execute',"echo json_encode(require base_path('e2e/support/tickets-fixture.php'));"],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8',env:{...process.env,BILLING_FIXTURE_ACTION:action,BILLING_FIXTURE_SCHOOL:String(school)}}).trim());}
+async function check(page:Page){expect(await seriousViolations(page)).toEqual([]);expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);expect(await page.locator('[id]').evaluateAll(nodes=>nodes.map(n=>n.id).filter((id,i,all)=>all.indexOf(id)!==i))).toEqual([]);}
+test.describe.configure({mode:'serial',retries:0});test.use({storageState:{cookies:[],origins:[]}});
+for(const width of [390,820,1280]){
+ test(`Vendor admits original general and named tickets once at ${width}px`,async({page,baseURL})=>{
+  test.setTimeout(180_000);const data=fixture();await page.setViewportSize({width,height:1000});
+  expect((await page.goto('/vendor-counter/sign-in'))?.status()).toBe(200);await page.getByRole('textbox',{name:'School code',exact:true}).fill(data.school_slug);await page.getByRole('textbox',{name:'Email or handle',exact:true}).fill(data.operator_email);await page.locator('#vendor-login-password').fill(data.operator_password);await page.getByRole('button',{name:'Sign in to vendor counter',exact:true}).click();await expect(page).toHaveURL(/\/vendor-counter$/);
+  const errors=collectErrors(page,baseURL!);const url=`/vendor-counter/counters/${data.vendor}/tickets`;expect((await page.goto(url))?.status()).toBe(200);await check(page);const before=fixture('stats',data.school);
+  for(const [index,ticket] of data.tickets.entries()){
+   if(index>0)await page.goto(url);const form=page.getByRole('form',{name:'Review admission before entry',exact:true});await form.getByRole('textbox',{name:index===0?'Current ticket number':'Scanned admission QR',exact:true}).fill(index===0?ticket.ticket_number:ticket.qr);await form.getByRole('button',{name:'Review admission before entry',exact:true}).click();await expect(page.getByRole('heading',{name:'Synthetic original school event',exact:true})).toBeVisible();await check(page);
+   const confirm=page.getByRole('form',{name:'Confirm one actual admission',exact:true});await confirm.getByRole('checkbox').check();const replay=await confirm.evaluate(f=>({url:(f as HTMLFormElement).action,form:Object.fromEntries(new FormData(f as HTMLFormElement).entries())}));await confirm.getByRole('button',{name:'Confirm one actual admission',exact:true}).click();await expect(page.getByText('One admission recorded. Admit this ticket once.',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Confirm one actual admission',exact:true})).toHaveCount(0);const reply=await page.request.post(replay.url,{form:replay.form as Record<string,string>});expect(reply.status()).toBe(200);expect(await reply.text()).toContain('do not admit this ticket again');
+  }
+  expect(fixture('stats',data.school)).toMatchObject({tickets:2,redeemed:2,transferred:0,types:2,entries:before.entries,healthy:true});await check(page);expect(errors).toEqual([]);fixture('revoke',data.school);expect((await page.goto(url))?.status()).toBe(403);expect(await page.locator('body').textContent()).not.toContain(data.tickets[0].ticket_number);
+ });
+}
+test('Finance reviews original capacity and retained read-only event policy',async({page})=>{const data=fixture();await signIn(page,data.finance);expect((await page.goto('/ticket-events?event_id='+data.event))?.status()).toBe(200);await expect(page.getByRole('form',{name:'Retain event sale and admission windows',exact:true})).toBeVisible();await check(page);fixture('pause',data.school);await page.reload();await expect(page.getByText('Ticketing is read-only. Keep original event, ticket and redemption history.',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Retain event sale and admission windows',exact:true})).toBeDisabled();});

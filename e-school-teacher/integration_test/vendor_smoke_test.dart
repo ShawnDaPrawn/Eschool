@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/smoke.dart' show pumpUntilFound, tapWhenReady;
-import 'support/vendor_fixture.dart';
+import 'support/vendor_ticket_fixture.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +18,8 @@ void main() {
       (tester) async {
         tester.testTextInput.register();
         expect(StaffBuildIdentity.current.canStartVendor, isTrue);
-        final fixture = VendorFixture();
+        var admissionScan = false;
+        final fixture = VendorTicketFixture();
         final repo = VendorRepository(
           mode: AuthMode.bearer,
           createDio: () => Dio()..httpClientAdapter = fixture.api,
@@ -26,7 +27,9 @@ void main() {
         addTearDown(repo.dispose);
         await initializeApp(
           vendorRepository: repo,
-          vendorScanQr: (_) async => 'navigateed:order:${'b' * 64}',
+          vendorScanQr: (_) async => admissionScan
+              ? 'navigateed:ticket:${'a' * 64}'
+              : 'navigateed:order:${'b' * 64}',
         );
         Finder field(String label) => find.byWidgetPredicate(
           (w) => w is TextField && w.decoration?.labelText == label,
@@ -77,6 +80,37 @@ void main() {
           find.text('Vendor settlement amount: ZAR 12.50'),
         );
         expect(find.text('Collector fee: ZAR 0.00'), findsOneWidget);
+        admissionScan = true;
+        await tapWhenReady(tester, find.text('Event admissions'));
+        if (mode == 'typed') {
+          await tester.enterText(
+            field('Current ticket number or admission QR'),
+            'TK-${'A' * 20}',
+          );
+          await tapWhenReady(
+            tester,
+            find.text('Review admission before entry'),
+          );
+        } else {
+          await tapWhenReady(
+            tester,
+            find.text('Scan admission QR with camera'),
+          );
+        }
+        await pumpUntilFound(tester, find.textContaining('Asha Synthetic'));
+        await tapWhenReady(
+          tester,
+          find.text(
+            'I verified this original admission and will admit it once.',
+          ),
+        );
+        await tapWhenReady(tester, find.text('Confirm one actual admission'));
+        await pumpUntilFound(
+          tester,
+          find.text('One admission recorded. Admit this ticket once.'),
+        );
+        expect(fixture.admissionWrites, 1);
+        expect(fixture.writes, 1);
         fixture.allowed = false;
         await tester.runAsync(repo.refresh);
         await tester.pumpAndSettle();

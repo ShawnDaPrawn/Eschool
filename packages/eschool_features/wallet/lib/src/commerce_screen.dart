@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import 'commerce_cubit.dart';
 import 'commerce_repository.dart';
+import 'ticket_screen.dart';
 import 'wallet_text.dart';
 
 class CommerceScreen extends StatelessWidget {
@@ -28,10 +29,12 @@ class _CommerceView extends StatefulWidget {
 class _CommerceViewState extends State<_CommerceView> {
   final Map<int, int> _cart = {};
   int? _wallet;
+  int? _namedLearner;
   bool _orders = false, _confirmed = false;
   void _clear() {
     _cart.clear();
     _wallet = null;
+    _namedLearner = null;
 
     _confirmed = false;
   }
@@ -121,6 +124,19 @@ class _CommerceViewState extends State<_CommerceView> {
                     },
                     child: Text(tr('Shop')),
                   ),
+                  if (cubit.repository.ticketsAvailable)
+                    TextButton(
+                      onPressed: state.busy
+                          ? null
+                          : () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => TicketScreen(
+                                  repository: cubit.repository.tickets,
+                                ),
+                              ),
+                            ),
+                      child: Text(tr('Admission tickets')),
+                    ),
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -253,7 +269,36 @@ class _CommerceViewState extends State<_CommerceView> {
                     ],
                     onChanged: cubit.hasPendingMoney
                         ? null
-                        : (v) => setState(() => _wallet = v),
+                        : (v) => setState(() {
+                            _wallet = v;
+                            _namedLearner = null;
+                          }),
+                  ),
+                if (state.wallets!.owners.any(
+                  (o) => o.learnerId != null && o.canOpen,
+                ))
+                  DropdownButtonFormField<int>(
+                    key: ValueKey('commerce-named-learner-$_namedLearner'),
+                    initialValue: _namedLearner,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: tr('Original learner for named admissions'),
+                    ),
+                    items: [
+                      for (final o in state.wallets!.owners)
+                        if (o.learnerId != null && o.canOpen)
+                          DropdownMenuItem(
+                            value: o.learnerId,
+                            child: Text(
+                              o.ownerName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                    ],
+                    onChanged: cubit.hasPendingMoney
+                        ? null
+                        : (v) => setState(() => _namedLearner = v),
                   ),
                 if (state.catalogue!.items.isEmpty)
                   Text(tr('No products are currently available.')),
@@ -268,6 +313,17 @@ class _CommerceViewState extends State<_CommerceView> {
                             product.name,
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
+                          if (product.ticket != null)
+                            Text(
+                              '${tr('Event admission')}: ${product.ticket!.eventName} · ${tr('Admissions remaining')}: ${product.ticket!.remainingCapacity}',
+                            ),
+                          if (product.ticket?.kind ==
+                              AdmissionProductKindEnum.named)
+                            Text(
+                              tr(
+                                'Choose the original authorised learner before reviewing this named admission.',
+                              ),
+                            ),
                           if (product.description?.isNotEmpty ?? false)
                             Text(product.description!),
                           Text(
@@ -326,6 +382,7 @@ class _CommerceViewState extends State<_CommerceView> {
                             state.catalogue!.vendor.id,
                             selected,
                             _cart,
+                            learner: _namedLearner,
                           );
                         },
                   child: Text(tr('Review cart')),

@@ -423,3 +423,12 @@ at02:40 after `ledger:reconcile`, with no rebuild or automatic count adjustment.
 Financial failures emit `money_cash_control_reconciliation_failed`; missing/stale
 counts and physical shortages remain explicit human-review fields. No message or
 payment is sent and no provider is activated.
+
+### Optional ticketing module
+
+`ticketing` starts disabled and depends on `vendors` and its wallet dependency.
+Legacy/standard package entitlement permits explicit school enablement; core
+packages do not silently receive commerce. Finance uses existing
+`vendors-manage`; assigned Vendor operators use their own counter scope.
+Pausing retains event/type/revision/ticket/action history with private reads and
+refuses writes. No notification, gateway or Phase6 collection is enabled.

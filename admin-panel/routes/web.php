@@ -77,6 +77,8 @@ use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
+use App\Http\Controllers\Panel\Money\TicketCataloguePanelController;
+use App\Http\Controllers\Panel\Money\TicketCounterPortalController;
 use App\Http\Controllers\Panel\Money\VendorCataloguePanelController;
 use App\Http\Controllers\Panel\Money\VendorOperatorPanelController;
 use App\Http\Controllers\Panel\Money\VendorOrderPanelController;
@@ -208,6 +210,10 @@ Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainRespo
     Route::post('sign-out', [$c, 'signOut'])->middleware('auth')->name('sign-out');
     Route::middleware(['auth', 'school.context', 'role:Vendor', 'module:vendors,read'])->group(function () use ($c): void {
         Route::get('/', [$c, 'index'])->name('index');
+        $t = TicketCounterPortalController::class;
+        Route::get('counters/{vendor}/tickets', [$t, 'handle'])->whereNumber('vendor')->name('tickets.index');
+        Route::post('counters/{vendor}/tickets/lookup', [$t, 'handle'])->whereNumber('vendor')->name('tickets.lookup');
+        Route::post('counters/{vendor}/tickets/redeem', [$t, 'handle'])->whereNumber('vendor')->name('tickets.redeem');
         Route::get('counters/{vendor}/settlements', [$c, 'settlements'])->whereNumber('vendor')->name('settlements');
         Route::get('counters/{vendor}/settlements/{settlement}', [$c, 'settlements'])->whereNumber(['vendor', 'settlement'])->name('settlement');
         Route::post('counters/{vendor}/lookup', [$c, 'lookup'])->whereNumber('vendor')->name('lookup');
@@ -407,6 +413,12 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('ticket-events')->name('ticket-events.')->middleware([PrivateDomainResponse::class, 'module:ticketing,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
+            $c = TicketCataloguePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('events', [$c, 'event'])->name('event');
+            Route::post('types', [$c, 'type'])->name('type');
         });
         Route::prefix('cashups')->name('cashups.')->middleware([PrivateDomainResponse::class])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
             $c = CashupPanelController::class;

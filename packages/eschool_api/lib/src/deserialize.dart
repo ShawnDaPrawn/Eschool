@@ -217,6 +217,29 @@ import 'package:eschool_api/src/model/activity_session_roster_learner.dart';
 import 'package:eschool_api/src/model/activity_session_write.dart';
 import 'package:eschool_api/src/model/activity_staff_write.dart';
 import 'package:eschool_api/src/model/add_wellbeing_case_entry_response.dart';
+import 'package:eschool_api/src/model/admission_counter_outcome.dart';
+import 'package:eschool_api/src/model/admission_counter_outcome_response.dart';
+import 'package:eschool_api/src/model/admission_counter_resolution.dart';
+import 'package:eschool_api/src/model/admission_counter_resolution_response.dart';
+import 'package:eschool_api/src/model/admission_counter_ticket.dart';
+import 'package:eschool_api/src/model/admission_counter_ticket_response.dart';
+import 'package:eschool_api/src/model/admission_event.dart';
+import 'package:eschool_api/src/model/admission_lookup_write.dart';
+import 'package:eschool_api/src/model/admission_product.dart';
+import 'package:eschool_api/src/model/admission_quote_details.dart';
+import 'package:eschool_api/src/model/admission_receive_code.dart';
+import 'package:eschool_api/src/model/admission_receive_code_response.dart';
+import 'package:eschool_api/src/model/admission_redeem_write.dart';
+import 'package:eschool_api/src/model/admission_ticket.dart';
+import 'package:eschool_api/src/model/admission_ticket_page.dart';
+import 'package:eschool_api/src/model/admission_ticket_page_response.dart';
+import 'package:eschool_api/src/model/admission_ticket_response.dart';
+import 'package:eschool_api/src/model/admission_transfer_ack.dart';
+import 'package:eschool_api/src/model/admission_transfer_ack_response.dart';
+import 'package:eschool_api/src/model/admission_transfer_preview.dart';
+import 'package:eschool_api/src/model/admission_transfer_preview_response.dart';
+import 'package:eschool_api/src/model/admission_transfer_preview_write.dart';
+import 'package:eschool_api/src/model/admission_transfer_write.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
@@ -2137,6 +2160,89 @@ ReturnType deserialize<ReturnType, BaseType>(
       return AddWellbeingCaseEntryResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'AdmissionCounterOutcome':
+      return AdmissionCounterOutcome.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionCounterOutcomeResponse':
+      return AdmissionCounterOutcomeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionCounterResolution':
+      return AdmissionCounterResolution.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionCounterResolutionResponse':
+      return AdmissionCounterResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionCounterTicket':
+      return AdmissionCounterTicket.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionCounterTicketResponse':
+      return AdmissionCounterTicketResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionEvent':
+      return AdmissionEvent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionLookupWrite':
+      return AdmissionLookupWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionProduct':
+      return AdmissionProduct.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionQuoteDetails':
+      return AdmissionQuoteDetails.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionReceiveCode':
+      return AdmissionReceiveCode.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionReceiveCodeResponse':
+      return AdmissionReceiveCodeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionRedeemWrite':
+      return AdmissionRedeemWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicket':
+      return AdmissionTicket.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicketPage':
+      return AdmissionTicketPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicketPageResponse':
+      return AdmissionTicketPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicketResponse':
+      return AdmissionTicketResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTransferAck':
+      return AdmissionTransferAck.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTransferAckResponse':
+      return AdmissionTransferAckResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionTransferPreview':
+      return AdmissionTransferPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTransferPreviewResponse':
+      return AdmissionTransferPreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionTransferPreviewWrite':
+      return AdmissionTransferPreviewWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionTransferWrite':
+      return AdmissionTransferWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ApprovalLearner':
       return ApprovalLearner.fromJson(value as Map<String, dynamic>)

@@ -37,6 +37,10 @@ VendorOperatorProfile _$VendorOperatorProfileFromJson(
             )
             .toList(),
       ),
+      ticketingAvailable: $checkedConvert(
+        'ticketing_available',
+        (v) => v as bool?,
+      ),
     );
     return val;
   },
@@ -45,6 +49,7 @@ VendorOperatorProfile _$VendorOperatorProfileFromJson(
     'schoolName': 'school_name',
     'schoolSlug': 'school_slug',
     'userId': 'user_id',
+    'ticketingAvailable': 'ticketing_available',
   },
 );
 
@@ -57,4 +62,5 @@ Map<String, dynamic> _$VendorOperatorProfileToJson(
   'user_id': instance.userId,
   'name': instance.name,
   'counters': instance.counters.map((e) => e.toJson()).toList(),
+  'ticketing_available': ?instance.ticketingAvailable,
 };

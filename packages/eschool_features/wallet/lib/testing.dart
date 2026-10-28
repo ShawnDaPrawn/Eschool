@@ -1,3 +1,4 @@
+export 'src/testing/ticket_fixtures.dart';
 export 'src/testing/commerce_fixtures.dart';
 
 Map<String, dynamic> walletSummaryFixture({

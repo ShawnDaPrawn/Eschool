@@ -28,6 +28,8 @@ class VendorOperatorProfile {
     required this.name,
 
     required this.counters,
+
+    this.ticketingAvailable,
   });
 
   // minimum: 1
@@ -52,6 +54,10 @@ class VendorOperatorProfile {
   @JsonKey(name: r'counters', required: true, includeIfNull: false)
   final List<VendorOperatorCounter> counters;
 
+  /// Whether the ticketing module currently permits retained private ticket views.
+  @JsonKey(name: r'ticketing_available', required: false, includeIfNull: false)
+  final bool? ticketingAvailable;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -61,7 +67,8 @@ class VendorOperatorProfile {
           other.schoolSlug == schoolSlug &&
           other.userId == userId &&
           other.name == name &&
-          other.counters == counters;
+          other.counters == counters &&
+          other.ticketingAvailable == ticketingAvailable;
 
   @override
   int get hashCode =>
@@ -70,7 +77,8 @@ class VendorOperatorProfile {
       schoolSlug.hashCode +
       userId.hashCode +
       name.hashCode +
-      counters.hashCode;
+      counters.hashCode +
+      ticketingAvailable.hashCode;
 
   factory VendorOperatorProfile.fromJson(Map<String, dynamic> json) =>
       _$VendorOperatorProfileFromJson(json);

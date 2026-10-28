@@ -277,6 +277,7 @@ class _VendorCounterView extends StatefulWidget {
 class _VendorCounterViewState extends State<_VendorCounterView> {
   final code = TextEditingController();
   bool confirmed = false;
+  bool admissionMode = false;
   @override
   void dispose() {
     code.clear();
@@ -287,27 +288,39 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
   Future<void> lookup(String value) async {
     code.clear();
     setState(() => confirmed = false);
-    await widget.repository.lookup(value);
+    if (admissionMode) {
+      await widget.repository.lookupAdmission(value);
+    } else {
+      await widget.repository.lookup(value);
+    }
   }
 
   Future<void> camera() async {
     code.clear();
     setState(() => confirmed = false);
     final repo = widget.repository;
+    final mode = admissionMode;
     final school = repo.profile?.schoolId,
         actor = repo.profile?.userId,
         counter = repo.counter?.id;
     final value =
         await (widget.scanQr?.call(context) ??
             Navigator.of(context).push<String>(
-              MaterialPageRoute(builder: (_) => const VendorOrderCamera()),
+              MaterialPageRoute(
+                builder: (_) => VendorOrderCamera(admission: mode),
+              ),
             ));
     await repo.idle;
     if (value != null &&
         repo.profile?.schoolId == school &&
         repo.profile?.userId == actor &&
-        repo.counter?.id == counter) {
-      await repo.lookup(value);
+        repo.counter?.id == counter &&
+        admissionMode == mode) {
+      if (mode) {
+        await repo.lookupAdmission(value);
+      } else {
+        await repo.lookup(value);
+      }
     }
   }
 
@@ -411,17 +424,61 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
           ),
           FilledButton(
             onPressed: repo.busy ? null : () => repo.recover(),
-            child: Text(_tr(context, 'Check handover outcome')),
+            child: Text(
+              _tr(
+                context,
+                repo.hasPendingAdmission
+                    ? 'Check admission outcome'
+                    : 'Check handover outcome',
+              ),
+            ),
           ),
         ],
+        if (profile.ticketingAvailable)
+          Wrap(
+            spacing: 12,
+            children: [
+              TextButton(
+                onPressed: repo.busy
+                    ? null
+                    : () {
+                        code.clear();
+                        setState(() {
+                          admissionMode = false;
+                          confirmed = false;
+                        });
+                        repo.refresh();
+                      },
+                child: Text(_tr(context, 'Physical order handovers')),
+              ),
+              TextButton(
+                onPressed: repo.busy
+                    ? null
+                    : () {
+                        code.clear();
+                        setState(() {
+                          admissionMode = true;
+                          confirmed = false;
+                        });
+                        repo.refresh();
+                      },
+                child: Text(_tr(context, 'Event admissions')),
+              ),
+            ],
+          ),
         TextField(
           controller: code,
           enabled: !repo.busy,
-          maxLength: 81,
+          maxLength: admissionMode ? 82 : 81,
           autocorrect: false,
           enableSuggestions: false,
           decoration: InputDecoration(
-            labelText: _tr(context, 'Order number or wallet order QR'),
+            labelText: _tr(
+              context,
+              admissionMode
+                  ? 'Current ticket number or admission QR'
+                  : 'Order number or wallet order QR',
+            ),
           ),
         ),
         Wrap(
@@ -429,16 +486,30 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
           children: [
             FilledButton(
               onPressed: repo.busy ? null : () => lookup(code.text),
-              child: Text(_tr(context, 'Review order before handover')),
+              child: Text(
+                _tr(
+                  context,
+                  admissionMode
+                      ? 'Review admission before entry'
+                      : 'Review order before handover',
+                ),
+              ),
             ),
             OutlinedButton.icon(
               onPressed: repo.busy ? null : camera,
               icon: const Icon(Icons.qr_code_scanner),
-              label: Text(_tr(context, 'Scan order QR with camera')),
+              label: Text(
+                _tr(
+                  context,
+                  admissionMode
+                      ? 'Scan admission QR with camera'
+                      : 'Scan order QR with camera',
+                ),
+              ),
             ),
           ],
         ),
-        if (receipt != null)
+        if (repo.admission case final admission? when admissionMode)
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -446,107 +517,54 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    receipt.number,
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    admission.eventName,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  Text(
-                    _tr(
-                      context,
-                      {
-                        'ready': 'Ready for collection',
-                        'collected': 'Collected',
-                        'cancelled': 'Cancelled',
-                      }[receipt.status]!,
-                    ),
-                  ),
-                  Text(_money(receipt.currency, receipt.amountCents)),
-                  for (final line in receipt.lines)
+                  Text(admission.productName),
+                  if (admission.namedLearner != null)
                     Text(
-                      '${line.name} · ${line.quantity} ${line.unit} · ${_money(receipt.currency, line.grossCents)}',
+                      '${_tr(context, 'Original named learner')}: ${admission.namedLearner}',
                     ),
-                  Text(
-                    '${_tr(context, 'VAT included')}: ${_money(receipt.currency, receipt.vatCents)}',
-                  ),
-                  if (receipt.processedAt != null)
+                  if (admission.status == 'redeemed')
                     Text(
-                      '${_tr(context, 'Processed at')}: ${receipt.processedAt!.toIso8601String()}',
+                      '${_tr(context, 'Original admission recorded at')}: ${admission.redeemedAt!.toLocal()} · ${_tr(context, 'Operator')}: ${admission.redeemedBy}',
                     ),
-                  if (receipt.canCollect && !repo.hasPending) ...[
+                  if (admission.canRedeem) ...[
                     CheckboxListTile(
                       value: confirmed,
-                      onChanged: repo.busy
+                      onChanged: repo.busy || repo.hasPending
                           ? null
                           : (v) => setState(() => confirmed = v == true),
                       title: Text(
                         _tr(
                           context,
-                          'I reviewed these exact goods and will hand them over once after successful validation.',
+                          'I verified this original admission and will admit it once.',
                         ),
                       ),
                     ),
                     FilledButton(
-                      onPressed: repo.busy || !confirmed
+                      onPressed: !confirmed || repo.busy || repo.hasPending
                           ? null
                           : () {
+                              code.clear();
                               setState(() => confirmed = false);
-                              repo.collect();
+                              repo.admit();
                             },
-                      child: Text(_tr(context, 'Validate one handover')),
+                      child: Text(_tr(context, 'Confirm one actual admission')),
                     ),
-                  ] else
+                  ] else if (admission.status != 'redeemed')
                     Text(
                       _tr(
                         context,
-                        'This order cannot be handed over again. Check its recorded status before supplying goods.',
+                        'This admission is unavailable under the current event window, holder or school rules. Keep its original record.',
                       ),
                     ),
                 ],
               ),
             ),
           ),
-        OutlinedButton(
-          onPressed: repo.busy ? null : () => repo.loadSettlements(),
-          child: Text(_tr(context, 'View this counter settlement history')),
-        ),
-        if (repo.settlementView) ...[
-          Text(
-            _tr(context, 'Your counter settlements'),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          if (repo.settlements.isEmpty && repo.settlement == null)
-            Text(
-              _tr(context, 'No vendor settlement batches have been prepared.'),
-            ),
-          for (final row in repo.settlements)
-            ListTile(
-              title: Text(
-                '${_tr(context, 'Settlement')} ${row.id} · ${row.periodFrom}–${row.periodTo}',
-              ),
-              subtitle: Text(
-                '${_money(row.currency, row.payoutCents)} · ${_tr(context, {'prepared': 'Prepared', 'approved': 'Approved', 'settled': 'Settled'}[row.status]!)}',
-              ),
-              onTap: repo.busy ? null : () => repo.openSettlement(row.id),
-            ),
-          if (repo.settlementPage > 1 && repo.settlements.isNotEmpty)
-            TextButton(
-              onPressed: repo.busy
-                  ? null
-                  : () => repo.loadSettlements(
-                      pageNumber: repo.settlementPage - 1,
-                    ),
-              child: Text(_tr(context, 'Previous settlements')),
-            ),
-          if (repo.settlementPage < repo.lastSettlementPage &&
-              repo.settlements.isNotEmpty)
-            TextButton(
-              onPressed: repo.busy
-                  ? null
-                  : () => repo.loadSettlements(
-                      pageNumber: repo.settlementPage + 1,
-                    ),
-              child: Text(_tr(context, 'More settlements')),
-            ),
-          if (repo.settlement case final row?)
+        if (!admissionMode) ...[
+          if (receipt != null)
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -554,89 +572,202 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      '${_tr(context, 'Settlement')} ${row.id}',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      receipt.number,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     Text(
-                      '${row.periodFrom}–${row.periodTo} · ${_tr(context, {'prepared': 'Prepared', 'approved': 'Approved', 'settled': 'Settled'}[row.status]!)}',
-                    ),
-                    Text(
-                      '${_tr(context, 'Original gross')}: ${_money(row.currency, row.grossCents)}',
-                    ),
-                    Text(
-                      '${_tr(context, 'VAT-exclusive sales net')}: ${_money(row.currency, row.salesNetCents)}',
-                    ),
-                    Text(
-                      '${_tr(context, 'VAT included')}: ${_money(row.currency, row.vatCents)}',
-                    ),
-                    Text(
-                      '${_tr(context, 'Collector fee')}: ${_money(row.currency, row.collectorFeeCents)}',
-                    ),
-                    Text(
-                      '${_tr(context, 'Vendor settlement amount')}: ${_money(row.currency, row.payoutCents)}',
-                    ),
-                    if (row.paidOn != null)
-                      Text(
-                        '${_tr(context, 'Actual settlement date')}: ${row.paidOn}',
+                      _tr(
+                        context,
+                        {
+                          'ready': 'Ready for collection',
+                          'collected': 'Collected',
+                          'cancelled': 'Cancelled',
+                        }[receipt.status]!,
                       ),
-                    for (final line in row.lines)
+                    ),
+                    Text(_money(receipt.currency, receipt.amountCents)),
+                    for (final line in receipt.lines)
                       Text(
-                        '${line.number} · ${_money(row.currency, line.grossCents)}',
+                        '${line.name} · ${line.quantity} ${line.unit} · ${_money(receipt.currency, line.grossCents)}',
+                      ),
+                    Text(
+                      '${_tr(context, 'VAT included')}: ${_money(receipt.currency, receipt.vatCents)}',
+                    ),
+                    if (receipt.processedAt != null)
+                      Text(
+                        '${_tr(context, 'Processed at')}: ${receipt.processedAt!.toIso8601String()}',
+                      ),
+                    if (receipt.canCollect && !repo.hasPending) ...[
+                      CheckboxListTile(
+                        value: confirmed,
+                        onChanged: repo.busy
+                            ? null
+                            : (v) => setState(() => confirmed = v == true),
+                        title: Text(
+                          _tr(
+                            context,
+                            'I reviewed these exact goods and will hand them over once after successful validation.',
+                          ),
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: repo.busy || !confirmed
+                            ? null
+                            : () {
+                                setState(() => confirmed = false);
+                                repo.collect();
+                              },
+                        child: Text(_tr(context, 'Validate one handover')),
+                      ),
+                    ] else
+                      Text(
+                        _tr(
+                          context,
+                          'This order cannot be handed over again. Check its recorded status before supplying goods.',
+                        ),
                       ),
                   ],
                 ),
               ),
             ),
-        ],
-        Text(
-          _tr(context, 'Orders at this counter'),
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        for (final order in repo.orders)
-          ListTile(
-            title: Text(order.number),
-            subtitle: Text(
-              '${_money(order.currency, order.amountCents)} · ${_tr(context, {'ready': 'Ready for collection', 'collected': 'Collected', 'cancelled': 'Cancelled'}[order.status]!)}',
-            ),
-            onTap: repo.busy
-                ? null
-                : () {
-                    setState(() => confirmed = false);
-                    repo.openOrder(order.id);
-                  },
+          OutlinedButton(
+            onPressed: repo.busy ? null : () => repo.loadSettlements(),
+            child: Text(_tr(context, 'View this counter settlement history')),
           ),
-        Wrap(
-          spacing: 12,
-          children: [
-            if (repo.page > 1)
-              OutlinedButton(
-                onPressed: repo.busy
-                    ? null
-                    : () => repo.refresh(
-                        nextPage: repo.page - 1,
-                        status: repo.filter,
-                      ),
-                child: Text(_tr(context, 'Previous orders')),
+          if (repo.settlementView) ...[
+            Text(
+              _tr(context, 'Your counter settlements'),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            if (repo.settlements.isEmpty && repo.settlement == null)
+              Text(
+                _tr(
+                  context,
+                  'No vendor settlement batches have been prepared.',
+                ),
               ),
-            if (repo.page < repo.lastPage)
-              OutlinedButton(
+            for (final row in repo.settlements)
+              ListTile(
+                title: Text(
+                  '${_tr(context, 'Settlement')} ${row.id} · ${row.periodFrom}–${row.periodTo}',
+                ),
+                subtitle: Text(
+                  '${_money(row.currency, row.payoutCents)} · ${_tr(context, {'prepared': 'Prepared', 'approved': 'Approved', 'settled': 'Settled'}[row.status]!)}',
+                ),
+                onTap: repo.busy ? null : () => repo.openSettlement(row.id),
+              ),
+            if (repo.settlementPage > 1 && repo.settlements.isNotEmpty)
+              TextButton(
                 onPressed: repo.busy
                     ? null
-                    : () => repo.refresh(
-                        nextPage: repo.page + 1,
-                        status: repo.filter,
+                    : () => repo.loadSettlements(
+                        pageNumber: repo.settlementPage - 1,
                       ),
-                child: Text(_tr(context, 'More orders')),
+                child: Text(_tr(context, 'Previous settlements')),
+              ),
+            if (repo.settlementPage < repo.lastSettlementPage &&
+                repo.settlements.isNotEmpty)
+              TextButton(
+                onPressed: repo.busy
+                    ? null
+                    : () => repo.loadSettlements(
+                        pageNumber: repo.settlementPage + 1,
+                      ),
+                child: Text(_tr(context, 'More settlements')),
+              ),
+            if (repo.settlement case final row?)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${_tr(context, 'Settlement')} ${row.id}',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      Text(
+                        '${row.periodFrom}–${row.periodTo} · ${_tr(context, {'prepared': 'Prepared', 'approved': 'Approved', 'settled': 'Settled'}[row.status]!)}',
+                      ),
+                      Text(
+                        '${_tr(context, 'Original gross')}: ${_money(row.currency, row.grossCents)}',
+                      ),
+                      Text(
+                        '${_tr(context, 'VAT-exclusive sales net')}: ${_money(row.currency, row.salesNetCents)}',
+                      ),
+                      Text(
+                        '${_tr(context, 'VAT included')}: ${_money(row.currency, row.vatCents)}',
+                      ),
+                      Text(
+                        '${_tr(context, 'Collector fee')}: ${_money(row.currency, row.collectorFeeCents)}',
+                      ),
+                      Text(
+                        '${_tr(context, 'Vendor settlement amount')}: ${_money(row.currency, row.payoutCents)}',
+                      ),
+                      if (row.paidOn != null)
+                        Text(
+                          '${_tr(context, 'Actual settlement date')}: ${row.paidOn}',
+                        ),
+                      for (final line in row.lines)
+                        Text(
+                          '${line.number} · ${_money(row.currency, line.grossCents)}',
+                        ),
+                    ],
+                  ),
+                ),
               ),
           ],
-        ),
+          Text(
+            _tr(context, 'Orders at this counter'),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          for (final order in repo.orders)
+            ListTile(
+              title: Text(order.number),
+              subtitle: Text(
+                '${_money(order.currency, order.amountCents)} · ${_tr(context, {'ready': 'Ready for collection', 'collected': 'Collected', 'cancelled': 'Cancelled'}[order.status]!)}',
+              ),
+              onTap: repo.busy
+                  ? null
+                  : () {
+                      setState(() => confirmed = false);
+                      repo.openOrder(order.id);
+                    },
+            ),
+          Wrap(
+            spacing: 12,
+            children: [
+              if (repo.page > 1)
+                OutlinedButton(
+                  onPressed: repo.busy
+                      ? null
+                      : () => repo.refresh(
+                          nextPage: repo.page - 1,
+                          status: repo.filter,
+                        ),
+                  child: Text(_tr(context, 'Previous orders')),
+                ),
+              if (repo.page < repo.lastPage)
+                OutlinedButton(
+                  onPressed: repo.busy
+                      ? null
+                      : () => repo.refresh(
+                          nextPage: repo.page + 1,
+                          status: repo.filter,
+                        ),
+                  child: Text(_tr(context, 'More orders')),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
 }
 
 class VendorOrderCamera extends StatefulWidget {
-  const VendorOrderCamera({super.key});
+  const VendorOrderCamera({this.admission = false, super.key});
+  final bool admission;
   @override
   State<VendorOrderCamera> createState() => _VendorOrderCameraState();
 }
@@ -655,14 +786,26 @@ class _VendorOrderCameraState extends State<VendorOrderCamera> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(_tr(context, 'Scan order QR with camera'))),
+    appBar: AppBar(
+      title: Text(
+        _tr(
+          context,
+          widget.admission
+              ? 'Scan admission QR with camera'
+              : 'Scan order QR with camera',
+        ),
+      ),
+    ),
     body: MobileScanner(
       onDetect: (capture) {
         if (received) return;
         for (final barcode in capture.barcodes) {
           final value = barcode.rawValue;
           if (value != null &&
-              RegExp(r'^navigateed:order:[a-f0-9]{64}$').hasMatch(value)) {
+              (widget.admission
+                      ? RegExp(r'^navigateed:ticket:[a-f0-9]{64}$')
+                      : RegExp(r'^navigateed:order:[a-f0-9]{64}$'))
+                  .hasMatch(value)) {
             received = true;
             Navigator.of(context).pop(value);
             break;

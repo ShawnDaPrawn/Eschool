@@ -28,6 +28,8 @@ class CommerceVendorPage {
     required this.page,
 
     required this.lastPage,
+
+    this.ticketsAvailable,
   });
 
   // minimum: 1
@@ -56,6 +58,10 @@ class CommerceVendorPage {
   @JsonKey(name: r'last_page', required: true, includeIfNull: false)
   final int lastPage;
 
+  /// Whether the ticketing module currently permits retained private ticket views.
+  @JsonKey(name: r'tickets_available', required: false, includeIfNull: false)
+  final bool? ticketsAvailable;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -65,7 +71,8 @@ class CommerceVendorPage {
           other.canPurchase == canPurchase &&
           other.items == items &&
           other.page == page &&
-          other.lastPage == lastPage;
+          other.lastPage == lastPage &&
+          other.ticketsAvailable == ticketsAvailable;
 
   @override
   int get hashCode =>
@@ -74,7 +81,8 @@ class CommerceVendorPage {
       canPurchase.hashCode +
       items.hashCode +
       page.hashCode +
-      lastPage.hashCode;
+      lastPage.hashCode +
+      ticketsAvailable.hashCode;
 
   factory CommerceVendorPage.fromJson(Map<String, dynamic> json) =>
       _$CommerceVendorPageFromJson(json);
