@@ -276,3 +276,40 @@ Map<String, dynamic> feeRefundedAccountsFixture() {
   row['net_cents'] = (row['net_cents'] as int) + 30;
   return data;
 }
+
+/// Compatible statement view of an explicitly corrected unpaid payer share.
+Map<String, dynamic> feePayerCorrectionStatementFixture() {
+  final statement = feeStatementFixture();
+  statement.addAll({
+    'charged_cents': 1102,
+    'allocated_cents': 900,
+    'outstanding_cents': 202,
+    'credit_cents': 50,
+    'net_cents': 152,
+  });
+  final charges = statement['charges'] as Map<String, dynamic>;
+  (charges['items'] as List).add({
+    'invoice_line_id': 101,
+    'invoice_number': 'CORR-101',
+    'learner_id': 12,
+    'learner_name': 'Cara Synthetic',
+    'description': 'Payer correction — original unpaid charge',
+    'charge_kind': 'fee_item',
+    'charge_scope': 'learner',
+    'period_start': '2026-01-01',
+    'period_end': '2026-12-31',
+    'issued_on': '2026-06-15',
+    'due_on': '2026-07-01',
+    'currency': 'ZAR',
+    'gross_charged_cents': 100,
+    'credited_cents': 0,
+    'charged_cents': 100,
+    'allocated_cents': 0,
+    'outstanding_cents': 100,
+    'original_vat_cents': 0,
+    'vat_credited_cents': 0,
+    'net_charged_cents': 100,
+  });
+  charges['total'] = 3;
+  return statement;
+}

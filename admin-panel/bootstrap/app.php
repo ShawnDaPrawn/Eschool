@@ -3,6 +3,7 @@
 use App\Exceptions\AdmissionsExceptionRenderer;
 use App\Exceptions\ApiV2ExceptionRenderer;
 use App\Exceptions\CashupExceptionRenderer;
+use App\Exceptions\FeePayerCorrectionExceptionRenderer;
 use App\Exceptions\PublicReportingExceptionRenderer;
 use App\Exceptions\VendorExceptionRenderer;
 use App\Http\Middleware\AssignRequestId;
@@ -226,6 +227,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // API v2 answers every error in the {error, message, data, code} envelope
         // with its real HTTP status (v1 keeps Laravel's own error bodies).
         $exceptions->render(fn (Throwable $e, Request $request) => CashupExceptionRenderer::render($e, $request));
+        $exceptions->render(fn (Throwable $e, Request $request) => FeePayerCorrectionExceptionRenderer::render($e, $request));
         $exceptions->render(fn (Throwable $e, Request $request) => VendorExceptionRenderer::render($e, $request));
         $exceptions->render(fn (Throwable $e, Request $request) => AdmissionsExceptionRenderer::render($e, $request));
         $exceptions->render(fn (Throwable $e, Request $request) => PublicReportingExceptionRenderer::render($e, $request));

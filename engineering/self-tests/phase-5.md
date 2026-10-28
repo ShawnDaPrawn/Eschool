@@ -75,3 +75,8 @@ settlement/ticket/card increments remain separate work.
 named authority, credential rotation, single-use redemption and private app/counter
 surfaces. It does not qualify online wallet QR/card spending15 or the remaining
 fee payer corrections/late charges6D.
+
+[Unpaid payer debt corrections](money/payer-debt-corrections.md) records the
+remaining6D payer correction service, Finance workflow, original VAT preservation,
+private Parent statement compatibility, races and retained upgrade evidence. Late
+charges and online spending remain separate.

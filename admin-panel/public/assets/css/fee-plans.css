@@ -11,4 +11,5 @@
     min-block-size: 8rem;
 }
 
-.ticket-workbench a { text-decoration: underline; text-underline-offset: .15em; }
+.ticket-workbench a,
+.payer-correction-workbench a { text-decoration: underline; text-underline-offset: .15em; }

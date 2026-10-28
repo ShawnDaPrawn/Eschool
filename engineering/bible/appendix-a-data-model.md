@@ -562,3 +562,13 @@ price/event snapshot with encrypted QR/typed credentials. Immutable sequential
 with original actor/time. Composite tenant FKs, SQL retention/shape/sequence guards,
 school locks and existing order ledger roots protect these records. No ticket
 transfer/redemption posts money. See specs/money/tickets.md.
+
+## Phase5: unpaid payer corrections
+
+`fee_payer_corrections` is immutable school-owned lineage binding an original
+sealed unpaid-only credit to an equal replacement charge and current configured
+payer. It fixes original invoice line/holder, new holder, currency, exact cents/VAT
+and actor. `fee_charges.kind` and bill-run kinds distinguish `payer_correction`
+from `fee_item`; correction sources have no fake fee item. Original SQL invoice/
+charge/tax sealing remains active, and correction lineage is required before the
+replacement seals. Existing item kinds are retained by default during upgrade.

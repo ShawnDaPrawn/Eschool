@@ -926,3 +926,12 @@ surfaces use the same current authority. Verification is recorded in
 self-tests/money/event-tickets.md; hosted review/CI and main integration remain
 separate. Remaining payer corrections/late charges6D and online wallet QR/card
 spending15 continue. Payment gateway integration remains deferred.
+
+## 2026-10-28 — explicit unpaid payer debt corrections
+
+The remaining fee lifecycle work adds an explicitly reviewed unpaid-only credit
+and equal replacement payer invoice in the original family account. Original
+paid receipts, allocations, VAT and invoice history remain frozen. Finance forms
+and compatible private Parent statements are verified in
+self-tests/money/payer-debt-corrections.md. Late charges and online wallet QR/card
+spending remain; hosted/main integration is separate from local qualification.
