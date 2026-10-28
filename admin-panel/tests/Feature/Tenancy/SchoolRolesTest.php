@@ -37,7 +37,7 @@ class SchoolRolesTest extends TestCase
     public function test_a_new_school_gets_its_own_system_roles_with_their_permissions(): void
     {
         $roles = Role::acrossSchoolsQuery()->where('school_id', 2)->orderBy('name')->pluck('name')->all();
-        $this->assertSame(['Counsellor', 'Facilitator', 'Parent', 'Safeguarding', 'Student', 'Super Admin', 'Teacher'], $roles);
+        $this->assertSame(['Counsellor', 'Facilitator', 'Parent', 'Safeguarding', 'Student', 'Super Admin', 'Teacher', 'Vendor'], $roles);
 
         $schoolOne = Role::query()->where('name', 'Super Admin')->sole();
         $schoolTwo = $this->current->run(2, fn () => Role::query()->where('name', 'Super Admin')->sole());
@@ -45,9 +45,11 @@ class SchoolRolesTest extends TestCase
         $this->assertSame($schoolOne->permissions->pluck('name')->sort()->values()->all(), $schoolTwo->permissions->pluck('name')->sort()->values()->all());
         $this->assertSame(count(SchoolRoles::PERMISSIONS['Teacher']), $this->current->run(2, fn () => Role::findByName('Teacher')->permissions()->count()));
 
+        $this->assertSame(0, $this->current->run(2, fn () => Role::findByName('Vendor')->permissions()->count()));
+
         // Seeding again changes nothing.
         app(SchoolRoles::class)->seedEverySchool();
-        $this->assertSame(14, Role::acrossSchoolsQuery()->whereIn('school_id', [1, 2])->count());
+        $this->assertSame(16, Role::acrossSchoolsQuery()->whereIn('school_id', [1, 2])->count());
     }
 
     public function test_a_role_is_granted_at_one_school(): void
