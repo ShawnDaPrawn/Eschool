@@ -10,10 +10,12 @@ use App\Models\Commerce\Vendor;
 use App\Models\Commerce\VendorOrder;
 use App\Models\Commerce\VendorOrderAction;
 use App\Models\Commerce\VendorOrderLine;
+use App\Models\Platform\School;
 use App\Policies\Commerce\VendorPolicy;
 use App\Policies\Money\WalletPolicy;
 use App\Services\Commerce\VendorOrders;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -58,9 +60,14 @@ class VendorOrderPanelController extends Controller
 
     public function collect(VendorOrderPanelRequest $request): Response
     {
-        $order = app(VendorOrders::class)->collect($request->user(), (int) $request->route('vendor'), $request->safe()->except(['expected_account_id', 'expected_school_id']));
+        return DB::transaction(function () use ($request): Response {
+            School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
+            $alreadyCollected = VendorOrderAction::where('operation_id', $request->validated('operation_id'))->where('action', 'collected')->exists();
+            $order = app(VendorOrders::class)->collect($request->user(), (int) $request->route('vendor'), $request->safe()->except(['expected_account_id', 'expected_school_id']));
+            $message = $alreadyCollected ? __('Collection was already recorded. Check the counter record; do not hand over goods again.') : __('Order validated for one collection. Hand over the listed items once.');
 
-        return redirect()->route('vendor-orders.show', ['order' => $order->id])->with('success', __('Order validated for one collection. Hand over the listed items once.'));
+            return redirect()->route('vendor-orders.show', ['order' => $order->id])->with('success', $message);
+        }, 3);
     }
 
     public function cancel(VendorOrderPanelRequest $request): Response

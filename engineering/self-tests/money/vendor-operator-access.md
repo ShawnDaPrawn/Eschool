@@ -58,3 +58,10 @@ e2e TypeScript, canonical contract lint and documentation production build passe
 The documentation check initially found a relative-link error; the file link was
 corrected and the production build rerun successfully. Physical camera, Android/iOS
 devices and independent release acceptance remain unrun.
+
+Hosted review found that the older Finance counter repeated its first handover
+instruction on form replay. Finance confirmation now holds the school lock while
+distinguishing the original collection from replay, then shows the same explicit
+do-not-hand-over-again warning as the dedicated Vendor counter. The targeted
+Finance form regression passed1/12 and fresh Pint passed. The underlying immutable
+collection and stock records still occur once.

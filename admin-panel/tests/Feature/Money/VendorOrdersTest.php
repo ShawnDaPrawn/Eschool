@@ -331,8 +331,11 @@ class VendorOrdersTest extends TestCase
     {
         $order = $this->buy();
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
-        $this->actingAs($this->admin, 'web')->post('/vendor-orders/vendors/'.$this->vendor->id.'/collect', ['operation_id' => (string) Str::uuid(), 'qr_token' => 'navigateed:order:'.$order->private_qr_token, 'confirmed' => true] + $bind)->assertRedirect('/vendor-orders/'.$order->id);
+        $collect = ['operation_id' => (string) Str::uuid(), 'qr_token' => 'navigateed:order:'.$order->private_qr_token, 'confirmed' => true] + $bind;
+        $this->actingAs($this->admin, 'web')->post('/vendor-orders/vendors/'.$this->vendor->id.'/collect', $collect)->assertRedirect('/vendor-orders/'.$order->id);
         $this->get('/vendor-orders/'.$order->id)->assertOk()->assertSee('Hand over the listed items once.')->assertDontSee('Validate this order collection');
+        $this->post('/vendor-orders/vendors/'.$this->vendor->id.'/collect', $collect)->assertRedirect('/vendor-orders/'.$order->id);
+        $this->get('/vendor-orders/'.$order->id)->assertOk()->assertSee('do not hand over goods again.')->assertDontSee('Hand over the listed items once.');
         $this->assertSame('collected', $this->orders->state($order));
         $this->assertSame(8, VendorStockBalance::sole()->on_hand);
     }
