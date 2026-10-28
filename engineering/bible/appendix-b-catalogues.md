@@ -320,3 +320,12 @@ Existing fees/fee-credits-manage permission covers the reviewed departure workbe
 Independent approval is an explicit school choice for this workflow. Parents reuse
 generic own leaver-credit history. No new notification, provider or transport is
 activated. Disabled fees keep read-only policy and departure history.
+
+### Manual fee refunds
+
+Existing fees/fee-payments-manage authority covers policy, review, reservation,
+verified outside payout and cancellation. Fresh actor/approver permissions apply.
+Own parent receipt projections add reserved/paid cents without Finance evidence.
+Internal `fees.refund_changed` outbox events contain refund ID, amount and action;
+no new notification transport, provider, bank transfer or spend is activated.
+Disabled fees retain policy, private Finance history and own parent statements.

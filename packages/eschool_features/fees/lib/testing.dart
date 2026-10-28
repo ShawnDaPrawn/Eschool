@@ -254,3 +254,25 @@ Map<String, dynamic> feeOptionalItemsFixture({
     },
   ],
 };
+
+/// Original receipt credit reserved and partly refunded, without changing charges.
+Map<String, dynamic> feeRefundedStatementFixture() {
+  final data = feeVatStatementFixture();
+  final row =
+      ((data['receipts'] as Map<String, dynamic>)['items'] as List).first
+          as Map<String, dynamic>;
+  row['pending_refund_cents'] = 20;
+  row['refunded_cents'] = 10;
+  row['credit_cents'] = (row['credit_cents'] as int) - 30;
+  data['credit_cents'] = (data['credit_cents'] as int) - 30;
+  data['net_cents'] = (data['net_cents'] as int) + 30;
+  return data;
+}
+
+Map<String, dynamic> feeRefundedAccountsFixture() {
+  final data = feeCreditedAccountsFixture();
+  final row = (data['items'] as List).first as Map<String, dynamic>;
+  row['credit_cents'] = (row['credit_cents'] as int) - 30;
+  row['net_cents'] = (row['net_cents'] as int) + 30;
+  return data;
+}

@@ -124,7 +124,7 @@ final class ParentFeeStatements
                     || ($payment['pinned_learner_id'] !== null && ! in_array($payment['pinned_learner_id'], $visible, true))) {
                     continue;
                 }
-                $receipts[] = array_intersect_key($payment, array_flip(['id', 'number', 'pinned_learner_id', 'method', 'received_on', 'currency', 'amount_cents', 'released_cents', 'allocated_cents', 'credit_cents']));
+                $receipts[] = array_intersect_key($payment, array_flip(['id', 'number', 'pinned_learner_id', 'method', 'received_on', 'currency', 'amount_cents', 'released_cents', 'allocated_cents', 'credit_cents', 'pending_refund_cents', 'refunded_cents']));
             }
             $byAccount[$id] = ['id' => $id, 'name' => $account->name, 'reference' => $account->reference, 'currency' => $account->currency, 'school_id' => $school, 'holder_user_id' => (int) $actor->id, 'charges' => $rows, 'payments' => $receipts, 'credit_notes' => array_values(array_map(fn ($n) => array_intersect_key($n, array_flip(['id', 'number', 'invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'currency', 'amount_cents', 'vat_cents', 'net_cents', 'unpaid_cents', 'released_cents', 'reason_code', 'issued_on'])), array_filter($credits, fn ($n) => $n['fee_account_id'] === $id && in_array($n['learner_id'], $visible, true))))];
         }

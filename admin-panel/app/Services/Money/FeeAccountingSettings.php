@@ -12,14 +12,14 @@ use Illuminate\Support\Facades\Validator;
 
 final class FeeAccountingSettings
 {
-    public const TYPES = ['fee_receivable', 'fee_income', 'fee_bank', 'family', 'cash_desk', 'fee_vat'];
+    public const TYPES = ['fee_receivable', 'fee_income', 'fee_bank', 'family', 'cash_desk', 'fee_vat', 'fee_refund'];
 
     public function save(User $actor, array $input): FeeAccountingSetting
     {
         app(MoneyPolicy::class)->authorize($actor, FeePayments::PERMISSION);
         $data = Validator::make($input, self::rules())->validate();
         foreach (self::TYPES as $type) {
-            if ($type === 'fee_vat' && ! array_key_exists($type, $data['mappings'])) {
+            if (in_array($type, ['fee_vat', 'fee_refund'], true) && ! array_key_exists($type, $data['mappings'])) {
                 continue;
             }
             foreach (['xero', 'quickbooks'] as $layout) {
@@ -44,7 +44,7 @@ final class FeeAccountingSettings
 
     public static function labels(): array
     {
-        return ['fee_receivable' => 'Fee receivables', 'fee_income' => 'Fee income', 'fee_bank' => 'Fee bank', 'family' => 'Held family credit', 'cash_desk' => 'Fee cash desk', 'fee_vat' => 'Fee VAT liability'];
+        return ['fee_receivable' => 'Fee receivables', 'fee_income' => 'Fee income', 'fee_bank' => 'Fee bank', 'family' => 'Held family credit', 'cash_desk' => 'Fee cash desk', 'fee_vat' => 'Fee VAT liability', 'fee_refund' => 'Reserved fee refunds'];
     }
 
     public static function rules(): array
@@ -55,7 +55,7 @@ final class FeeAccountingSettings
             'xero_tax_label' => ['nullable', 'string', 'max:80', 'not_regex:/[\x00-\x1F\x7F]/u'],
             'mappings' => ['required', 'array:'.implode(',', self::TYPES)]];
         foreach (self::TYPES as $type) {
-            $rules['mappings.'.$type] = [$type === 'fee_vat' ? 'sometimes' : 'required', 'array:xero,quickbooks'];
+            $rules['mappings.'.$type] = [in_array($type, ['fee_vat', 'fee_refund'], true) ? 'sometimes' : 'required', 'array:xero,quickbooks'];
             foreach (['xero', 'quickbooks'] as $layout) {
                 $rules['mappings.'.$type.'.'.$layout] = ['nullable', 'string', 'max:100', 'not_regex:/[\x00-\x1F\x7F]/u'];
             }

@@ -791,3 +791,14 @@ corrected departure credits only the remaining legitimate difference. Paid credi
 restore restricted original receipts. Qualification is tracked in
 self-tests/money/leaver-credits.md and the PR. Verified cash/bank fee refunds and
 payer-debt corrections are next; wallets/commerce7–15 continue separately.
+
+## 2026-10-28 — reserved manual receipt refunds
+
+Increment6 adds reviewed original-holder cash/EFT refunds. Approval reserves the
+original unallocated receipt credit before an outside payout; verified payment
+clears that liability and cancellation restores its original learner restriction.
+Append-only actions, private evidence, payout identity, original-credit budgets,
+accounting and domain reconciliation are retained. Shared fee app/SDK statements
+show reserved/paid amounts. Qualification is recorded in
+self-tests/money/fee-refunds.md and the feature PR. No external payment is executed.
+Payer corrections/explicit late-charge policy and increments7–15 continue next.

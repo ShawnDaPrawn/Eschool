@@ -104,7 +104,7 @@ final class FeePayments
         $used -= (int) FeeCreditHistory::releases()->where('c.payment_id', $payment->id)->sum('c.amount_cents');
         abort_unless($used >= 0 && $used <= $payment->amount_cents, 409, 'Payment allocations need reconciliation.');
 
-        return $payment->amount_cents - $used;
+        return $payment->amount_cents - $used - app(FeeRefundHistory::class)->heldForPayment((int) $payment->id);
     }
 
     public function verifyCredit(FeePayment $payment): void
@@ -115,7 +115,8 @@ final class FeePayments
             $j->on('p.school_id', '=', 'a.school_id')->on('p.id', '=', 'a.payment_id');
         })->where('a.school_id', $school)->where('p.credit_account_id', $payment->credit_account_id)->lockForUpdate()->sum('a.amount_cents');
         $used -= (int) FeeCreditHistory::releases()->where('p.credit_account_id', $payment->credit_account_id)->sum('c.amount_cents');
-        abort_unless($total - $used === app(LedgerService::class)->balance($payment->credit_account_id)->cents, 409, 'Held payment credits differ from the ledger. Reconcile before continuing.');
+        $heldRefunds = app(FeeRefundHistory::class)->heldForCredit((int) $payment->credit_account_id);
+        abort_unless($total - $used - $heldRefunds === app(LedgerService::class)->balance($payment->credit_account_id)->cents, 409, 'Held payment credits differ from the ledger. Reconcile before continuing.');
     }
 
     private function today(): string

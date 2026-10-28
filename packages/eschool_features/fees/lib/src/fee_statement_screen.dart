@@ -2,6 +2,7 @@ import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'fee_statement_cubit.dart';
 import 'fee_statement_repository.dart';
 import 'fee_text.dart';
@@ -348,6 +349,18 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                   receipt.currency,
                 ),
                 _amount('Held credit', receipt.creditCents, receipt.currency),
+                if ((receipt.pendingRefundCents ?? 0) > 0)
+                  _amount(
+                    'Reserved for refund',
+                    receipt.pendingRefundCents!,
+                    receipt.currency,
+                  ),
+                if ((receipt.refundedCents ?? 0) > 0)
+                  _amount(
+                    'Refunded to you',
+                    receipt.refundedCents!,
+                    receipt.currency,
+                  ),
                 if ((receipt.releasedCents ?? 0) > 0)
                   _amount(
                     'Restored by credit notes',

@@ -91,14 +91,16 @@ final class FeeStatements
 
         $released = FeeCreditHistory::releases()->whereIn('c.payment_id', $payments->pluck('id'))->selectRaw('c.payment_id, SUM(c.amount_cents) AS cents')->groupBy('c.payment_id')->pluck('cents', 'payment_id');
 
-        return $payments->map(function ($p) use ($used, $released): array {
+        $refunds = app(FeeRefundHistory::class)->forPayments($payments->pluck('id')->map(fn ($id) => (int) $id)->all());
+
+        return $payments->map(function ($p) use ($used, $released, $refunds): array {
             $restored = (int) ($released[$p->id] ?? 0);
             $applied = (int) ($used[$p->id] ?? 0) - $restored;
             abort_unless($applied >= 0 && $applied <= $p->amount_cents, 409, 'Payment history needs reconciliation.');
 
             return ['id' => (int) $p->id, 'fee_account_id' => $p->fee_account_id, 'number' => 'FEE-PAY-'.$p->id, 'holder_user_id' => $p->holder_user_id, 'pinned_learner_id' => $p->pinned_learner_id,
                 'method' => $p->method, 'received_on' => $p->received_on->toDateString(), 'currency' => $p->currency,
-                'amount_cents' => $p->amount_cents, 'released_cents' => $restored, 'allocated_cents' => $applied, 'credit_cents' => $p->amount_cents - $applied];
+                'amount_cents' => $p->amount_cents, 'released_cents' => $restored, 'allocated_cents' => $applied, 'pending_refund_cents' => $refunds[$p->id]['pending_refund_cents'] ?? 0, 'refunded_cents' => $refunds[$p->id]['refunded_cents'] ?? 0, 'credit_cents' => $p->amount_cents - $applied - ($refunds[$p->id]['held_cents'] ?? 0)];
         })->all();
     }
 

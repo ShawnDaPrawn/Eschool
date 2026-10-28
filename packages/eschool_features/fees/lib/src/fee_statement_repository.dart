@@ -169,14 +169,25 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
     _paging(chargesPage, perPage);
     _paging(receiptsPage, perPage);
     _paging(creditsPage, perPage);
-    final result = ParentFeeStatement.fromJson(
-      await _send('/$familyId/statement', {
-        'charges_page': chargesPage,
-        'receipts_page': receiptsPage,
-        'credits_page': creditsPage,
-        'per_page': perPage,
-      }),
-    );
+    final payload = await _send('/$familyId/statement', {
+      'charges_page': chargesPage,
+      'receipts_page': receiptsPage,
+      'credits_page': creditsPage,
+      'per_page': perPage,
+    });
+    final receiptPage = payload['receipts'];
+    if (receiptPage is! Map || receiptPage['items'] is! List) _invalid();
+    for (final raw in receiptPage['items'] as List) {
+      if (raw is! Map) _invalid();
+      for (final entry in raw.entries) {
+        if (entry.key is String &&
+            (entry.key as String).endsWith('_cents') &&
+            entry.value is! int) {
+          _invalid();
+        }
+      }
+    }
+    final result = ParentFeeStatement.fromJson(payload);
     if (result.id != familyId ||
         result.schoolId != schoolId ||
         result.holderUserId != accountId ||
@@ -253,12 +264,18 @@ class ApiFeeStatementRepository implements FeeStatementRepository {
     }
     for (final row in result.receipts.items) {
       if ((row.releasedCents ?? 0) < 0 ||
+          (row.pendingRefundCents ?? 0) < 0 ||
+          (row.refundedCents ?? 0) < 0 ||
           row.id < 1 ||
           row.currency != result.currency ||
           row.amountCents < 1 ||
           row.allocatedCents < 0 ||
           row.creditCents < 0 ||
-          row.amountCents != row.allocatedCents + row.creditCents) {
+          row.amountCents !=
+              row.allocatedCents +
+                  row.creditCents +
+                  (row.pendingRefundCents ?? 0) +
+                  (row.refundedCents ?? 0)) {
         _invalid();
       }
     }

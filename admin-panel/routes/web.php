@@ -71,6 +71,7 @@ use App\Http\Controllers\Panel\Money\FeeLeaverPanelController;
 use App\Http\Controllers\Panel\Money\FeeLifecyclePanelController;
 use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
+use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
@@ -379,6 +380,17 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('fee-refunds')->name('fee-refunds.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeRefundPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('prepare', [$c, 'prepare'])->name('prepare');
+            Route::get('{refund}', [$c, 'show'])->whereNumber('refund')->name('show');
+            Route::post('{refund}/reserve', [$c, 'reserve'])->whereNumber('refund')->name('reserve');
+            Route::post('{refund}/payout', [$c, 'payout'])->whereNumber('refund')->name('payout');
+            Route::post('{refund}/cancel', [$c, 'cancel'])->whereNumber('refund')->name('cancel');
         });
         Route::prefix('fee-leavers')->name('fee-leavers.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeLeaverPanelController::class;

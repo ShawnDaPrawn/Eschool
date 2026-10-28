@@ -58596,6 +58596,16 @@ components:
           minimum: 0
           description: Cumulative money restored to this receipt by posted credit notes; current held money remains
             credit_cents.
+        pending_refund_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Original receipt credit reserved for an approved manual refund; unavailable for allocation.
+        refunded_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Original receipt amount already paid back to its holder by verified manual refund.
     ParentFeeOptionalItem:
       type: object
       additionalProperties: false

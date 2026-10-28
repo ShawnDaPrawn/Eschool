@@ -73,9 +73,9 @@ void main() {
               ],
           }),
           'GET v2/parent/fees/accounts': (RequestOptions _) =>
-              privateRead(feeCreditedAccountsFixture()),
+              privateRead(feeRefundedAccountsFixture()),
           'GET v2/parent/fees/accounts/7/statement': (RequestOptions _) =>
-              privateRead(feeVatStatementFixture()),
+              privateRead(feeRefundedStatementFixture()),
           'GET v2/parent/fees/accounts/7/optional-items': (RequestOptions _) =>
               privateRead(optional),
           'POST v2/parent/fees/accounts/7/optional-items/91/consents':
@@ -165,6 +165,13 @@ void main() {
           scrollable: find.byType(Scrollable).last,
         );
         expect(find.text('FEE-PAY-SYNTHETIC-1'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Reserved for refund'),
+          150,
+          scrollable: find.byType(Scrollable).last,
+        );
+        expect(find.text('Reserved for refund'), findsOneWidget);
+        expect(find.text('Refunded to you'), findsOneWidget);
         await tester.scrollUntilVisible(
           find.text('Reserved for learner: Cara Synthetic'),
           200,

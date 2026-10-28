@@ -492,3 +492,15 @@ Paid reductions restore original restricted receipt credit. This operation makes
 no cash refund. An unchanged departure cannot generate another credit; changed
 original rates/policies do not rewrite the saved contract. Private evidence stays
 with Finance, and parents see only their own generic leaver-credit history.
+
+### Manual receipt refunds
+
+Finance opens **Fee refunds**, explicitly configures permitted cash/EFT methods
+and whether another operator must approve, then selects the original receipt.
+Only currently available original-holder credit can be reserved. A paid invoice
+first needs a reasoned credit note that restores its original restricted receipt.
+Approval removes the refund amount from allocatable credit. Finance records a
+verified outside payout to the original holder with a unique reference and private
+evidence, or cancels an unpaid reservation. Supported cash/bank books must cover
+the payout. The application makes no bank/provider call. Parents see their own
+reserved/paid receipt amounts; Finance evidence stays private.
