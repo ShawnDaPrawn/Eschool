@@ -92,13 +92,32 @@ Runs from the repository root.
 
 ### `playwright`: Admin panel (Playwright)
 
-Runs from `admin-panel/` with its own MariaDB 10.11 service (database `eschool_e2e`) and `APP_URL`/`E2E_BASE_URL` `http://127.0.0.1:8000`.
+The required `playwright` check aggregates five `playwright-parts` jobs. Four
+bulk shards each run against their own seeded MariaDB 10.11 database; the wizard
+runs alone against a fifth database. Flow writes stay serial within a shard. The
+wizard cannot change the other shards' current years. A failed, cancelled or
+missing part fails the existing required check.
+
+Each part runs from `admin-panel/` with database `eschool_e2e` and
+`APP_URL`/`E2E_BASE_URL` `http://127.0.0.1:8000`.
 
 1. PHP 8.3 with the same extensions, `composer install`, `.env` from `.env.example` and `key:generate`.
 2. `migrate`, `db:seed --class=InstallationSeeder`, `db:seed --class=DemoSchoolSeeder`, `storage:link`.
 3. Starts the panel with `PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array php artisan serve` and waits for `/login`. The array cache keeps the per-account request limits from throttling the sweep; four workers serve the parallel browsers.
 4. Node 22, `npm ci` and `npx playwright install --with-deps chromium` in `admin-panel/e2e`.
-5. `npx playwright test`. On failure the HTML report, traces and `storage/logs` are uploaded as the `playwright-report` artifact (kept 14 days).
+5. `python3 ../tool/ci/playwright_partition.py --part 1` (or `2`, `3`, `4`,
+   `wizard`). Bulk jobs select all non-wizard projects with Playwright's native
+   sharding; serial groups are preserved. The isolated wizard selects only its
+   own project with `--no-deps`, avoiding a duplicate run of the entire suite.
+6. Part 1 also runs `--verify`: full discovery must exactly equal the disjoint
+   union of all five selections. New tests or projects cannot silently disappear.
+   On failure, each job uploads its own `playwright-report-PART` artifact,
+   including HTML, traces and server logs (kept 14 days).
+
+The full local `npx playwright test` command and its project dependencies remain
+available. Partition discovery on the parent-transfer source verified all 255
+cases exactly once: 66/64/61/63 bulk cases and one isolated wizard case. Browser
+execution of all five parts remains a hosted qualification requirement.
 
 See [Playwright (admin panel)](#playwright-admin-panel) for what it checks.
 
