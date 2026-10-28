@@ -26,9 +26,13 @@ history, with accessibility/overflow/duplicate-ID/browser-error assertions.
 Money PHPStan5 and changed staff smoke-source analysis passed after restoration.
 The regenerated2627-file SDK is byte identical to the recorded snapshot.
 
-Full family/Teacher/dedicated Facilitator native Chrome journeys, final style,
-configured static/docs, migration rehearsal and exact-source hosted CI/review/main
-are being qualified. Unrun checks are not claimed. Gateway execution, physical
+Full Learner/Parent/Teacher/dedicated Facilitator native Chrome journeys passed.
+The SDK suite passed all 182 tests, configured panel static analysis and the
+documentation build passed, and fresh Pint passed. A populated upgrade preserved
+original financial rows byte for byte, backfilled an already-paid fee refund once
+and completed a new original-holder bank withdrawal with healthy reconciliation.
+Empty rollback/reapply passed and retained rollback was refused. Exact-source
+hosted CI/review/main integration remains pending. Gateway execution, physical
 devices/staging, fluent language review and independent financial acceptance remain
 separate evidence. New language entries use explicit English fallbacks where draft
 core translations are not supplied.
@@ -36,5 +40,6 @@ core translations are not supplied.
 The expanded full-app Parent flow exposed an ambiguous generic statement button
 when the additional section pushed a child wallet below the visible list. Wallet
 statement buttons now have stable wallet keys and the smoke journey scrolls to the
-intended child, retaining its exact balance and privacy assertions. Full native
-qualification is still pending; the initial failed Parent run is not a pass.
+intended child, retaining its exact balance and privacy assertions. The list now has an explicit scroll target, including sections below expanded
+deposit history. Final native qualification passed all four profiles; the initial
+failed Parent runs are retained as failures, followed by the corrected run.

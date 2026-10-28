@@ -75,6 +75,7 @@ use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
+use App\Http\Controllers\Panel\Money\VendorCataloguePanelController;
 use App\Http\Controllers\Panel\Money\WalletDepositPanelController;
 use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
@@ -385,6 +386,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('vendor-catalogues')->name('vendor-catalogues.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = VendorCataloguePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('{kind}', [$c, 'save'])->whereIn('kind', ['category', 'vendor', 'product', 'stock'])->name('save');
         });
         Route::prefix('wallet-topups')->name('wallet-desk.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
             Route::get('/', [WalletDeskPanelController::class, 'index'])->name('index');

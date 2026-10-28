@@ -4,6 +4,11 @@ includes:
 parameters:
     level: 5
     paths:
+        - app/Services/Commerce
+        - app/Policies/Commerce
+        - app/Models/Commerce
+        - app/Http/Requests/Commerce
+        - database/migrations/2026_10_28_170000_create_vendor_catalogues_and_stock.php
         - app/Services/Money
         - app/Policies/Money
         - app/Models/Money

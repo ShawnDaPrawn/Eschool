@@ -490,3 +490,13 @@ binds original holder/wallet, pending liability, exact reservation, pickup or
 encrypted bank instructions. Append-only wallet_withdrawal_actions records approval,
 release or verified payout, actual date and cash custodian. financial_disbursements
 shares immutable outside identity across original fee refunds and wallet payouts.
+
+## Phase5: vendor catalogues and counted stock
+
+School-owned vendor_categories retain canonical category keys. vendors retain
+original operation, immutable ownership kind/currency and dedicated vendor ledger
+identity, encrypted bank instructions and explicit VAT/liability/settlement choices.
+vendor_products retain vendor, SKU and stock mode, integer gross cents, tax and
+revision. vendor_stock_movements are immutable actor-bound counted adjustments;
+vendor_stock_balances is a checked projection, not opening money. vendor_operations
+retain permanent actor-bound UUID receipts. Archive/disable preserves all history.

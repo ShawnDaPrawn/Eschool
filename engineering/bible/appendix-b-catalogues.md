@@ -369,3 +369,12 @@ Adult withdrawals reuse wallet and wallet-finance-manage. Own requests require
 current Parent/Teacher/Facilitator authority; a current Student is always refused.
 Finance alone configures policy/slots, approves and verifies outside payment.
 No provider or notification transport is activated.
+
+### Vendor catalogue preparation
+
+The vendors money module is off by default and depends on people, independently
+of wallet availability. Legacy and standard packages include its entitlement.
+Finance requires vendors-manage; only the system Super Admin starts with it.
+Custom Finance roles need an explicit grant. Current Students and Vendor operators
+are excluded from catalogue Finance even if a permission was accidentally granted.
+No vendor login or general staff authority is introduced by catalogue creation.

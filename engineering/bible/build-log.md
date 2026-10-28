@@ -854,3 +854,12 @@ release, shared fee-refund/wallet disbursement identity and private app receipts
 Qualification is tracked in self-tests/money/adult-wallet-withdrawals.md. Vendor
 setup/catalogues/stock proceed while native and hosted qualification runs.
 Gateway execution remains deferred.
+
+## 2026-10-28 — vendor catalogues and counted stock
+
+Increment11A adds vendor/category preparation, explicit activation and settlement
+liability, product tax/price configuration and immutable counted stock history.
+The Finance workbench works while wallet transactions are paused. No money is
+created by setup. Backend/concurrency13/95 and four responsive browser cases passed;
+remaining evidence is tracked in self-tests/money/vendor-catalogues-stock.md.
+Orders/fulfilment11B and dedicated vendor operators/scanner12 follow.

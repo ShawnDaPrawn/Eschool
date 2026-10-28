@@ -17,6 +17,7 @@ use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
 use App\Services\Money\WalletTransfers;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -28,7 +29,7 @@ class WalletFinancePanelController extends Controller
         return DB::transaction(function () use ($request): Response {
             app(WalletPolicy::class)->finance($request->user());
             $settings = WalletSetting::first();
-            $issued = WalletAccount::exists() || WalletFunding::exists() || WalletDeskPolicy::exists() || WalletWithdrawalPolicy::exists();
+            $issued = WalletAccount::exists() || WalletFunding::exists() || WalletDeskPolicy::exists() || WalletWithdrawalPolicy::exists() || DB::table('ledger_accounts')->where('school_id', app(CurrentSchool::class)->id())->where('module', 'vendors')->exists();
             $wallets = WalletAccount::join('users as u', 'u.id', '=', 'wallet_accounts.user_id')->orderBy('wallet_accounts.id')->paginate(30, ['wallet_accounts.*', 'u.first_name', 'u.last_name']);
             $summaries = [];
             foreach ($wallets as $wallet) {
