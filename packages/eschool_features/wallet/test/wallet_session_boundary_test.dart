@@ -1,4 +1,7 @@
 import 'package:eschool_wallet/eschool_wallet.dart';
+import 'package:eschool_wallet/testing.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +15,8 @@ MeContext _context({
   bool readOnly = false,
   bool vendors = false,
   bool vendorReadOnly = false,
+  bool tickets = false,
+  bool child = true,
 }) => MeContext.fromJson({
   'user': {
     'id': actor,
@@ -33,9 +38,29 @@ MeContext _context({
     'session_year': null,
   },
   'feature_flags': {'module_switches': true},
+  'children': [
+    if (child)
+      {
+        'id': 101,
+        'user_id': 31,
+        'first_name': 'Asha',
+        'last_name': 'Synthetic',
+        'name': 'Asha Synthetic',
+        'image': null,
+        'homeroom': null,
+        'student_number': null,
+        'school': {
+          'id': school,
+          'name': 'Synthetic School',
+          'short_name': null,
+          'crest_url': null,
+        },
+      },
+  ],
   'modules': [
     if (enabled) {'key': 'wallet', 'read_only': readOnly},
     if (vendors) {'key': 'vendors', 'read_only': vendorReadOnly},
+    if (tickets) {'key': 'ticketing', 'read_only': false},
   ],
 });
 
@@ -123,5 +148,65 @@ void main() {
         expect(originalActive(), isFalse);
       },
     );
+  }
+  for (final change in ['school', 'guardian child', 'role', 'ticket module']) {
+    testWidgets('$change erases credentials on a pushed admission route', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final repository = _Context()
+        ..current = _context(vendors: true, tickets: true);
+      final session = MeContextCubit(
+        repository: repository,
+        cache: InMemoryMeContextCache(),
+      );
+      await session.load();
+      addTearDown(session.close);
+      final pinned = session.context!;
+      final server = TicketFakeServer();
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: session,
+          child: MaterialApp(
+            home: WalletSessionBoundary(
+              pinned: pinned,
+              builder: (_, active) => CommerceScreen(
+                repository: server.commerce.repository(),
+                privateRouteBuilder: (child) => BlocProvider.value(
+                  value: session,
+                  child: WalletSessionBoundary(
+                    pinned: pinned,
+                    builder: (_, active) => child,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Admission tickets'));
+      await tester.tap(find.text('Admission tickets'));
+      await tester.pumpAndSettle();
+      expect(find.text('Synthetic school admission'), findsWidgets);
+      expect(find.byType(QrImageView), findsOneWidget);
+      repository.current = _context(
+        vendors: true,
+        tickets: change != 'ticket module',
+        school: change == 'school' ? 2 : 1,
+        role: change == 'role' ? 'Teacher' : 'Parent',
+        child: change != 'guardian child',
+      );
+      await session.load();
+      await tester.pumpAndSettle();
+      expect(find.byType(QrImageView), findsNothing);
+      expect(find.text('Synthetic school admission'), findsNothing);
+      expect(
+        find.text('Your wallet access changed. Reopen Wallets.'),
+        findsWidgets,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
   }
 }

@@ -60,3 +60,12 @@ pending intent. Read-authorised historical learner owners retain their learner I
 after Student membership ends, while purchase/control authority remains refused.
 The full wallet package passed105 tests with no analyzer issues; two focused
 retained learner/history tests passed8 assertions. No API/SDK shape changes.
+
+Live-authority review follow-up: Commerce requires the host to bind every pushed
+private admission route to its live session boundary. Learner/Parent/Teacher use
+the current pinned context; Facilitator uses its revocable authority epoch. School,
+role, guardian-child and ticket-module changes immediately dispose cached ticket
+credentials without waiting for an API call or app suspension. Four pushed-route
+regressions and all109 shared wallet tests passed. Both actual apps analyzed with
+no errors/warnings (existing style infos remain). Compiled profile requalification
+is running; no unrun evidence is claimed.

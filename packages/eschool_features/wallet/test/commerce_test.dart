@@ -292,7 +292,12 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
         final server = CommerceFakeServer();
         await tester.pumpWidget(
-          MaterialApp(home: CommerceScreen(repository: server.repository())),
+          MaterialApp(
+            home: CommerceScreen(
+              repository: server.repository(),
+              privateRouteBuilder: (child) => child,
+            ),
+          ),
         );
         await tester.pumpAndSettle();
         Future<void> tap(String text) async {

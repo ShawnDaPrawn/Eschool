@@ -2097,6 +2097,13 @@ Route<dynamic> personalWalletsRoute() => AdaptivePageRoute(
                 ? (_) => WalletSessionBoundary(
                     pinned: pinned,
                     builder: (_, shopActive) => CommerceScreen(
+                      privateRouteBuilder: (child) => BlocProvider.value(
+                        value: session,
+                        child: WalletSessionBoundary(
+                          pinned: pinned,
+                          builder: (_, ticketActive) => child,
+                        ),
+                      ),
                       repository: ApiCommerceRepository(
                         Api.client,
                         wallets: ApiWalletRepository(

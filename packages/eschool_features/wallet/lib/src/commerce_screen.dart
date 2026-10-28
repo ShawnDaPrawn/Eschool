@@ -11,17 +11,23 @@ import 'ticket_screen.dart';
 import 'wallet_text.dart';
 
 class CommerceScreen extends StatelessWidget {
-  const CommerceScreen({required this.repository, super.key});
+  const CommerceScreen({
+    required this.repository,
+    required this.privateRouteBuilder,
+    super.key,
+  });
+  final Widget Function(Widget child) privateRouteBuilder;
   final CommerceRepository repository;
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => CommerceCubit(repository)..load(),
-    child: const _CommerceView(),
+    child: _CommerceView(privateRouteBuilder: privateRouteBuilder),
   );
 }
 
 class _CommerceView extends StatefulWidget {
-  const _CommerceView();
+  const _CommerceView({required this.privateRouteBuilder});
+  final Widget Function(Widget child) privateRouteBuilder;
   @override
   State<_CommerceView> createState() => _CommerceViewState();
 }
@@ -130,8 +136,10 @@ class _CommerceViewState extends State<_CommerceView> {
                           ? null
                           : () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
-                                builder: (_) => TicketScreen(
-                                  repository: cubit.repository.tickets,
+                                builder: (_) => widget.privateRouteBuilder(
+                                  TicketScreen(
+                                    repository: cubit.repository.tickets,
+                                  ),
                                 ),
                               ),
                             ),

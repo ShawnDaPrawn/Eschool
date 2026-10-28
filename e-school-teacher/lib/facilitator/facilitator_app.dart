@@ -605,6 +605,26 @@ class _StaffHome extends StatelessWidget {
                                     repository.profile?.features['vendors'] ==
                                         true
                                 ? CommerceScreen(
+                                    privateRouteBuilder: (child) =>
+                                        AnimatedBuilder(
+                                          animation: repository,
+                                          builder: (_, __) =>
+                                              repository.matches(
+                                                    generation,
+                                                    school,
+                                                    user,
+                                                  ) &&
+                                                  repository
+                                                          .profile
+                                                          ?.features['wallet'] ==
+                                                      true &&
+                                                  repository
+                                                          .profile
+                                                          ?.features['vendors'] ==
+                                                      true
+                                              ? child
+                                              : const SizedBox.shrink(),
+                                        ),
                                     repository: ApiCommerceRepository(
                                       repository.client,
                                       wallets: ApiWalletRepository(
