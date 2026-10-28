@@ -572,3 +572,13 @@ and actor. `fee_charges.kind` and bill-run kinds distinguish `payer_correction`
 from `fee_item`; correction sources have no fake fee item. Original SQL invoice/
 charge/tax sealing remains active, and correction lineage is required before the
 replacement seals. Existing item kinds are retained by default during upgrade.
+
+## Phase5: explicit one-off late charges
+
+`fee_late_charge_policies` stores the current explicit year/currency rule and
+revision. Immutable encrypted `fee_late_policy_revisions` retains its exact
+snapshot, reason and actor. Immutable `fee_late_charges` binds the canonical
+original learner invoice-line/payer, source basis, policy revision and new sealed
+late invoice. Composite tenant FKs, one-off uniqueness and SQL invoice/tax/lineage
+checks retain the original financial history. Correction descendants resolve to
+their original source; late roots cannot compound. No dummy fee item is created.

@@ -432,3 +432,12 @@ packages do not silently receive commerce. Finance uses existing
 `vendors-manage`; assigned Vendor operators use their own counter scope.
 Pausing retains event/type/revision/ticket/action history with private reads and
 refuses writes. No notification, gateway or Phase6 collection is enabled.
+
+### Explicit late-charge rules
+
+The existing fees module includes private Finance policy, review and history
+screens. Rule configuration requires `fee-plans-manage`; posting requires
+`fee-billing-manage`. Policies remain disabled until explicitly configured per
+school year/currency. Paused fees retain policy/invoice history without allowing
+new writes. Existing Parent statements carry each payer's own late invoice using
+the compatible adjustment description; no new payment provider or notification.

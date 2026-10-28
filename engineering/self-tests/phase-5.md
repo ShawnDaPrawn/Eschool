@@ -80,3 +80,8 @@ fee payer corrections/late charges6D.
 remaining6D payer correction service, Finance workflow, original VAT preservation,
 private Parent statement compatibility, races and retained upgrade evidence. Late
 charges and online spending remain separate.
+
+Remaining fee lifecycle6D: explicit one-off late charges now have Finance rule,
+review/post and compatible Parent statement surfaces. See
+[money/late-charges.md](money/late-charges.md) for actual local evidence and pending
+hosted/integration/external acceptance. Online QR/card spending15 remains next.

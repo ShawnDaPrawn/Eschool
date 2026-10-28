@@ -12,4 +12,5 @@
 }
 
 .ticket-workbench a,
-.payer-correction-workbench a { text-decoration: underline; text-underline-offset: .15em; }
+.payer-correction-workbench a,
+.late-charge-workbench a { text-decoration: underline; text-underline-offset: .15em; }

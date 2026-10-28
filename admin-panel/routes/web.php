@@ -69,6 +69,7 @@ use App\Http\Controllers\Panel\Money\FeeDiscountPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemBatchPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemRulePanelController;
+use App\Http\Controllers\Panel\Money\FeeLateChargePanelController;
 use App\Http\Controllers\Panel\Money\FeeLeaverPanelController;
 use App\Http\Controllers\Panel\Money\FeeLifecyclePanelController;
 use App\Http\Controllers\Panel\Money\FeePayerCorrectionPanelController;
@@ -541,6 +542,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('runs/{run}', [$c, 'run'])->whereNumber('run')->name('run');
             Route::post('runs/{run}/approve', [$c, 'approve'])->whereNumber('run')->name('approve');
             Route::post('runs/{run}/post', [$c, 'post'])->whereNumber('run')->name('post');
+        });
+        Route::prefix('fee-late-charges')->name('fee-late-charges.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeLateChargePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('policy', [$c, 'policy'])->name('policy');
+            Route::post('policy', [$c, 'savePolicy'])->name('save-policy');
+            Route::post('review', [$c, 'review'])->name('review');
+            Route::post('post', [$c, 'post'])->name('post');
         });
         Route::prefix('fee-payer-corrections')->name('fee-payer-corrections.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeePayerCorrectionPanelController::class;

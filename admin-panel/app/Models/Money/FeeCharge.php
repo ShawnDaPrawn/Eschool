@@ -9,6 +9,7 @@ use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @property string $kind
  * @property array<string,mixed> $snapshot
  * @property int $vat_cents
  * @property int $net_cents

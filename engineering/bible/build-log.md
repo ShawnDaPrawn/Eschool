@@ -935,3 +935,13 @@ paid receipts, allocations, VAT and invoice history remain frozen. Finance forms
 and compatible private Parent statements are verified in
 self-tests/money/payer-debt-corrections.md. Late charges and online wallet QR/card
 spending remain; hosted/main integration is separate from local qualification.
+
+## 2026-10-28 — explicit one-off late charges
+
+The remaining6D work adds disabled-by-default school-year/currency rules, private
+Finance review/posting and original Parent statement views. Canonical original
+debt/payer uniqueness prevents repeated charges after payer corrections, and late
+invoices cannot compound. Gross caps, separate held credit, VAT, fresh rule/debt
+checks and immutable policy/occurrence lineage reuse existing ledger semantics.
+Verification is recorded in self-tests/money/late-charges.md. Online QR/card
+spending15 continues; hosted/main integration and external acceptance are separate.

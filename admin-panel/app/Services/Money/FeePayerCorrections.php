@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Money;
 
-use App\Models\Money\BillRun;
 use App\Models\Money\FeeAccount;
 use App\Models\Money\FeeAccountHolder;
 use App\Models\Money\FeeCharge;
@@ -14,9 +13,7 @@ use App\Models\Money\InvoiceLine;
 use App\Models\User;
 use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Audit\Audit;
-use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
-use App\Services\Platform\Ledger\Posting;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -56,33 +53,11 @@ final class FeePayerCorrections
             abort_unless(hash_equals($data['fingerprint'], $this->fingerprint($s)), 409, 'The unpaid debt or intended payer changed. Review a fresh correction.');
             $credit = app(FeeCreditNotes::class)->post($actor, $this->creditInput($data) + ['fingerprint' => $s['credit']['fingerprint'], 'confirmed' => true]);
             abort_unless($credit->unpaid_cents === $s['amount_cents'] && $credit->released_cents === 0, 409, 'A payer correction cannot move paid receipt credit.');
-            $account = FeeAccount::lockForUpdate()->findOrFail($s['fee_account_id']);
-            $money = fn (int $cents) => Money::ofCents($cents, $s['currency']);
-            $postings = [Posting::debit($s['credit']['receivable_account_id'], $money($s['amount_cents']))];
-            if ($s['net_cents'] > 0) {
-                $postings[] = Posting::credit($s['credit']['income_account_id'], $money($s['net_cents']));
-            }
-            if ($s['vat_cents'] > 0) {
-                $postings[] = Posting::credit($s['credit']['vat_account_id'], $money($s['vat_cents']));
-            }
-            $source = 'fee-payer-correction:'.$data['operation_id'];
-            $entry = app(LedgerService::class)->post($source, $source, 'Unpaid payer debt correction', $postings);
-            $runSnapshot = ['year_id' => $s['session_year_id'], 'as_of' => $s['issued_on'], 'due_on' => $s['due_on'], 'tax_treatment' => $s['tax_treatment'], 'rows' => [], 'totals' => [$s['currency'] => $s['amount_cents']], 'exceptions' => [], 'learners' => 1, 'billable' => 1, 'skipped' => 0, 'account_count' => 1];
-            $run = BillRun::create(['kind' => 'payer_correction', 'session_year_id' => $s['session_year_id'], 'as_of' => $s['issued_on'], 'due_on' => $s['due_on'], 'tax_treatment' => $s['tax_treatment'], 'state' => 'preview', 'revision' => 1, 'fingerprint' => $data['fingerprint'], 'snapshot' => $runSnapshot, 'prepared_by' => $actor->id]);
-            $line = ['learner_id' => $s['learner_id'], 'learner_name' => $s['learner_name'], 'amount_cents' => $s['amount_cents'], 'vat_cents' => $s['vat_cents'], 'holder_shares' => [$s['new_holder']]];
-            $snapshot = $s + ['lines' => [$line], 'credit_note_id' => (int) $credit->id];
-            $charge = FeeCharge::create(['kind' => 'payer_correction', 'fee_item_id' => null, 'fee_account_id' => $account->id, 'session_year_id' => $s['session_year_id'], 'learner_id' => $s['learner_id'], 'bill_run_id' => $run->id, 'item_revision' => 1, 'scope' => 'learner', 'target_id' => $s['learner_id'], 'source_reference' => $source, 'reference_hash' => hash_hmac('sha256', $source, (string) config('app.key')), 'fingerprint' => $data['fingerprint'], 'currency' => $s['currency'], 'amount_cents' => $s['amount_cents'], 'vat_cents' => $s['vat_cents'], 'income_account_id' => $s['credit']['income_account_id'], 'vat_account_id' => $s['credit']['vat_account_id'], 'snapshot' => $snapshot, 'created_by' => $actor->id, 'created_at' => now('UTC')]);
-            $run->update(['state' => 'approved', 'revision' => 2, 'approved_by' => $actor->id, 'approved_at' => now('UTC')]);
-            $holder = $s['new_holder'];
-            $holder['total_cents'] = $holder['amount_cents'];
-            unset($holder['amount_cents']);
-            $invoice = Invoice::create(['fee_account_id' => $account->id, 'bill_run_id' => $run->id, 'session_year_id' => $s['session_year_id'], 'ledger_entry_id' => $entry, 'number' => 'CORR-'.$charge->id, 'account_name' => $account->name, 'currency' => $s['currency'], 'total_cents' => $s['amount_cents'], 'holders' => [$holder], 'issued_on' => $s['issued_on'], 'due_on' => $s['due_on'], 'created_by' => $actor->id, 'created_at' => now('UTC')]);
-            InvoiceLine::create(['invoice_id' => $invoice->id, 'session_year_id' => $s['session_year_id'], 'fee_charge_id' => $charge->id, 'fee_plan_id' => null, 'plan_revision' => null, 'learner_id' => $s['learner_id'], 'learner_name' => $s['learner_name'], 'description' => 'Payer correction — original unpaid charge', 'period_start' => $s['period_start'], 'period_end' => $s['period_end'], 'currency' => $s['currency'], 'amount_cents' => $s['amount_cents'], 'vat_cents' => $s['vat_cents'], 'holder_shares' => [$s['new_holder']]]);
-            $invoice->update(['sealed_at' => now('UTC')]);
-            $run->update(['state' => 'posted', 'revision' => 3, 'posted_at' => now('UTC')]);
-            $correction = FeePayerCorrection::create(['fee_account_id' => $account->id, 'original_invoice_line_id' => $s['invoice_line_id'], 'original_holder_id' => $data['holder_user_id'], 'new_holder_id' => $data['new_holder_user_id'], 'credit_note_id' => $credit->id, 'replacement_charge_id' => $charge->id, 'currency' => $s['currency'], 'amount_cents' => $s['amount_cents'], 'vat_cents' => $s['vat_cents'], 'actor_id' => $actor->id, 'created_at' => now('UTC')]);
-            $charge->update(['sealed_at' => now('UTC')]);
-            app(FeeStatements::class)->complete($account);
+            $invoiceSnapshot = $s + ['holder' => $s['new_holder'], 'credit_note_id' => (int) $credit->id, 'description' => 'Payer correction — original unpaid charge', 'receivable_account_id' => $s['credit']['receivable_account_id'], 'income_account_id' => $s['credit']['income_account_id'], 'vat_account_id' => $s['credit']['vat_account_id']];
+            $charge = app(FeeAdjustmentInvoices::class)->post($actor, 'payer_correction', $invoiceSnapshot, $data['operation_id'], $data['fingerprint'], function (FeeCharge $charge) use ($s, $data, $credit, $actor): void {
+                FeePayerCorrection::create(['fee_account_id' => $s['fee_account_id'], 'original_invoice_line_id' => $s['invoice_line_id'], 'original_holder_id' => $data['holder_user_id'], 'new_holder_id' => $data['new_holder_user_id'], 'credit_note_id' => $credit->id, 'replacement_charge_id' => $charge->id, 'currency' => $s['currency'], 'amount_cents' => $s['amount_cents'], 'vat_cents' => $s['vat_cents'], 'actor_id' => $actor->id, 'created_at' => now('UTC')]);
+            });
+            $correction = FeePayerCorrection::where('replacement_charge_id', $charge->id)->sole();
             Audit::record('money.payer_debt_corrected', $correction, [], ['amount_cents' => $s['amount_cents'], 'credit_note_id' => $credit->id, 'replacement_charge_id' => $charge->id]);
 
             return ['id' => (int) $correction->id];

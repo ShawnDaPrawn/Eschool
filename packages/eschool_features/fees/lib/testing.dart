@@ -288,7 +288,7 @@ Map<String, dynamic> feePayerCorrectionStatementFixture() {
     'net_cents': 152,
   });
   final charges = statement['charges'] as Map<String, dynamic>;
-  (charges['items'] as List).add({
+  (charges['items'] as List).add(<String, dynamic>{
     'invoice_line_id': 101,
     'invoice_number': 'CORR-101',
     'learner_id': 12,
@@ -311,5 +311,27 @@ Map<String, dynamic> feePayerCorrectionStatementFixture() {
     'net_charged_cents': 100,
   });
   charges['total'] = 3;
+  return statement;
+}
+
+/// The original contract also carries an explicitly posted one-off late invoice.
+Map<String, dynamic> feeLateChargeStatementFixture() {
+  final statement = feePayerCorrectionStatementFixture();
+  statement.addAll({
+    'charged_cents': 1152,
+    'outstanding_cents': 252,
+    'net_cents': 202,
+  });
+  final rows = (statement['charges'] as Map<String, dynamic>)['items'] as List;
+  final late = rows.last as Map<String, dynamic>;
+  late.addAll({
+    'invoice_line_id': 102,
+    'invoice_number': 'LATE-102',
+    'description': 'One-off late charge for original overdue debt',
+    'gross_charged_cents': 150,
+    'charged_cents': 150,
+    'outstanding_cents': 150,
+    'net_charged_cents': 150,
+  });
   return statement;
 }

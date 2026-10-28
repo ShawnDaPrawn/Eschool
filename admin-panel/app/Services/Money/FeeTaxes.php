@@ -14,13 +14,19 @@ final class FeeTaxes
     /** Current configuration is used only for a new reviewed charge, never a credit. */
     public function snapshot(FeeItem $item): array
     {
+        return $this->forPrice($item->amount_cents, $item->tax_treatment, $item->vat_rate_bp);
+    }
+
+    /** A reviewed charge can use explicit policy prices without creating a catalogue item. */
+    public function forPrice(int $cents, string $treatment, int $rateBp): array
+    {
         try {
-            $amounts = FeeTaxAmounts::price($item->amount_cents, $item->tax_treatment, $item->vat_rate_bp);
+            $amounts = FeeTaxAmounts::price($cents, $treatment, $rateBp);
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages(['tax_treatment' => $e->getMessage()]);
         }
         $details = null;
-        if (in_array($item->tax_treatment, ['vat_zero', 'vat_inclusive', 'vat_exclusive'], true)) {
+        if (in_array($treatment, ['vat_zero', 'vat_inclusive', 'vat_exclusive'], true)) {
             $setting = FeeTaxSetting::lockForUpdate()->first();
             abort_unless($setting !== null && $setting->enabled, 422, 'Configure and enable registered school VAT details before charging VAT.');
             $details = $setting->only(['country_code', 'tax_registration', 'seller_name', 'seller_address', 'revision']);
