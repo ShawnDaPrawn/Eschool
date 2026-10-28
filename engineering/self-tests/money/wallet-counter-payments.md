@@ -79,3 +79,9 @@ Dart flavour definitions. This static check does not compile Android/iOS code.
 
 Published delivery and current hosted/main status:
 [PR346](https://github.com/ShawnDaPrawn/Eschool/pull/346).
+
+App catalogue follow-up: every offered locale now has the new English keys with
+explicit fallback text where translation is pending. Existing translations are
+preserved. The complete Learner/Parent app suite passed126 tests; the complete
+Teacher app suite passed176 tests. Payment application code, API and previously
+compiled English-profile journeys are unchanged by this catalogue-only fix.
