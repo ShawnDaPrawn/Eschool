@@ -288,4 +288,38 @@ class CashCustodyTest extends TestCase
         $this->assertSame(1, CashHandoverOutcome::count());
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']))->get('/cashups/handovers')->assertForbidden();
     }
+
+    public function test_backdated_payout_cannot_unfund_an_intervening_confirmed_handover(): void
+    {
+        $s = app(CashCustody::class);
+        $other = $this->cashier();
+        $paidOn = now()->toDateString();
+        $this->travelTo(now()->addDay());
+        $row = $s->propose($this->finance, $this->proposal($other, '20.00'));
+        $s->finish($other, $row->id, 'accepted', $this->outcome());
+        $this->travelTo(now()->addDay());
+        $this->deposit('cash', '20.00');
+        $this->assertSame(2000, $s->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(2000, $s->available($this->finance->id, 'ZAR', $paidOn)['available_cents']);
+        $this->refuses(fn () => $s->requirePayout($this->finance, 'ZAR', 1, $paidOn), 422);
+        $s->requirePayout($this->finance, 'ZAR', 2000);
+        $this->assertSame(2000, $s->available($other->id, 'ZAR')['available_cents']);
+    }
+
+    public function test_backdated_payout_uses_minimum_custody_without_reserving_future_proposals_on_past_days(): void
+    {
+        $s = app(CashCustody::class);
+        $other = $this->cashier();
+        $paidOn = now()->toDateString();
+        $this->travelTo(now()->addDay());
+        $row = $s->propose($this->finance, $this->proposal($other, '12.00'));
+        $s->finish($other, $row->id, 'accepted', $this->outcome());
+        $this->travelTo(now()->addDay());
+        $this->deposit('cash', '20.00');
+        $s->propose($this->finance, $this->proposal($other, '20.00'));
+        $this->assertSame(800, $s->available($this->finance->id, 'ZAR')['available_cents']);
+        $s->requirePayout($this->finance, 'ZAR', 800, $paidOn);
+        $this->refuses(fn () => $s->requirePayout($this->finance, 'ZAR', 801, $paidOn), 422);
+        $this->assertSame(2000,$s->available($this->finance->id,'ZAR')['reserved_cents']);
+    }
 }

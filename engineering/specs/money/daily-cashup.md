@@ -39,8 +39,8 @@ and vendor payout operations. Pending outgoing amounts reduce availability; a
 recorded shortage caps usable custody and a surplus cannot create usable funds.
 Fee refunds, adult wallet cash withdrawals and independent vendor cash settlements
 require the paying actor's own available custody as well as the existing funded,
-reconciled payout asset. Backdated wallet/vendor payouts also require custody on
-the recorded actual payout date. EFT and internal sales recognition keep their
+reconciled payout asset. Backdated wallet/vendor payouts also require minimum custody throughout
+the interval from the recorded actual payout date through today. EFT and internal sales recognition keep their
 existing independent rules. Cash payout permission remains the affected financial
 domain's permission; handover access never grants refund/withdrawal/settlement
 permission. Exact original payout replays return the original outcome before

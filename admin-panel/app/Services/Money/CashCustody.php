@@ -50,10 +50,37 @@ final class CashCustody
     public function requirePayout(User $actor, string $currency, int $cents, ?string $paidOn = null): void
     {
         School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
-        $today = $this->available((int) $actor->id, $currency);
-        $historical = $paidOn === null ? $today : $this->available((int) $actor->id, $currency, $paidOn);
-        abort_unless($today['healthy'] && $historical['healthy'], 409, 'Reconcile original cash receipts, payouts and projections before paying cash.');
-        abort_unless($cents > 0 && min($today['available_cents'], $historical['available_cents']) >= $cents, 422, 'Your recorded available cash does not cover this payout. Receive a confirmed handover or review your actual cash count first.');
+        $today = now(app(CurrentSchool::class)->school()->timezone ?? 'UTC')->toDateString();
+        $paidOn ??= $today;
+        Validator::make(['paid_on' => $paidOn], ['paid_on' => ['required', 'date_format:Y-m-d']])->validate();
+        abort_if($paidOn > $today, 422, 'Record an actual completed cash payout date.');
+        $current = $this->available((int) $actor->id, $currency);
+        abort_unless($current['healthy'], 409, 'Reconcile original cash receipts, payouts and projections before paying cash.');
+        $minimum = $current['available_cents'];
+        if ($paidOn < $today) {
+            $daily = [];
+            foreach (app(CashFlows::class)->inspect($currency)['events'] as $event) {
+                if ($event['operator_id'] === (int) $actor->id && $event['effective_on'] <= $today) {
+                    $date = $event['effective_on'];
+                    $daily[$date] = ($daily[$date] ?? 0) + $event['amount_cents'];
+                }
+            }
+            $counts = [];
+            foreach (CashupCount::where('operator_id', $actor->id)->where('currency', $currency)->where('counted_on', '<=', $today)->orderBy('counted_on')->orderBy('revision')->get() as $count) {
+                $counts[$count->counted_on] = min(0, $count->getAttribute('variance_cents'));
+            }
+            $dates = array_unique([...array_keys($daily), ...array_keys($counts), $paidOn, $today]);
+            sort($dates);
+            $book = $shortage = 0;
+            foreach ($dates as $date) {
+                $book += $daily[$date] ?? 0;
+                $shortage = $counts[$date] ?? $shortage;
+                if ($date >= $paidOn) {
+                    $minimum = min($minimum, max(0, $book + $shortage));
+                }
+            }
+        }
+        abort_unless($cents > 0 && $minimum >= $cents, 422, 'Your recorded available cash does not cover this payout throughout its actual date interval. Receive a confirmed handover or review your actual cash count first.');
     }
 
     public function propose(User $actor, array $input): CashHandover

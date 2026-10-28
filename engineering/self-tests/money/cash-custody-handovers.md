@@ -61,3 +61,10 @@ and retained custody rollback was refused. No API,
 SDK or native app contract changes are introduced by10B. Exact-source hosted CI,
 review, main integration and external physical/staging evidence remain separate.
 Gateways and production activation remain deferred.
+
+Review follow-up: backdated payouts validate the minimum custody on every affected
+source/count date through today, including intervening confirmed handovers and
+known shortages. Current pending proposals are reserved against current funds;
+they are not falsely subtracted from earlier dates before those proposals existed.
+Full-interval regressions and existing cash controls passed21 tests /155
+assertions, with fresh money PHPStan and Pint checks before publication. No original financial or custody history is rewritten.
