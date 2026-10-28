@@ -50,6 +50,13 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'commerce listCommerceVendors requires authentication' => [null, 'GET', 'api/v2/commerce/vendors', [], 401],
+            'commerce getCommerceVendorCatalogue requires authentication' => [null, 'GET', 'api/v2/commerce/vendors/1', [], 401],
+            'commerce listOwnCommerceOrders requires authentication' => [null, 'GET', 'api/v2/commerce/orders', [], 401],
+            'commerce getOwnCommerceOrder requires authentication' => [null, 'GET', 'api/v2/commerce/orders/1', [], 401],
+            'commerce quoteCommerceOrder requires authentication' => [null, 'POST', 'api/v2/commerce/quotes', [], 401],
+            'commerce purchaseCommerceOrder requires authentication' => [null, 'POST', 'api/v2/commerce/orders', [], 401],
+            'commerce cancelOwnCommerceOrder requires authentication' => [null, 'POST', 'api/v2/commerce/orders/1/cancel', [], 401],
             'listPersonalWalletWithdrawals requires authentication' => [null, 'GET', 'api/v2/wallets/withdrawals', [], 401],
             'requestPersonalWalletWithdrawal requires authentication' => [null, 'POST', 'api/v2/wallets/withdrawals', [], 401],
             'cancelPersonalWalletWithdrawal requires authentication' => [null, 'POST', 'api/v2/wallets/withdrawals/1/cancel', [], 401],
