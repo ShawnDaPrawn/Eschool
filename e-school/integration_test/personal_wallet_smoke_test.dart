@@ -156,6 +156,7 @@ void main() {
           find.byType(parent ? ParentHomeScreen : HomeScreen),
         );
         await tapWhenReady(tester, find.text('Wallets'));
+        await pumpUntilFound(tester, find.text('Open wallet statement'));
         await tapWhenReady(tester, find.text('Open wallet statement').last);
         await pumpUntilFound(tester, find.text('Wallet balance'));
         expect(find.text('Asha Synthetic'), findsWidgets);
@@ -191,6 +192,7 @@ void main() {
             ),
             hasLength(1),
           );
+          await pumpUntilFound(tester, find.text('Open wallet statement'));
           await tapWhenReady(tester, find.text('Open wallet statement').last);
           await pumpUntilFound(tester, find.text('ZAR 60.00'));
           await tapWhenReady(tester, find.text('Parent wallet deposits'));
