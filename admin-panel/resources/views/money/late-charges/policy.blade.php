@@ -9,7 +9,7 @@
 <form method="get" action="{{ route('fee-late-charges.policy') }}">
 <x-page.field id="late-select-year" type="select" name="year_id" :restore-old-input="false" :label="__('School year')" :options="$years->pluck('name','id')->all()" :value="$year?->id" required />
 <x-page.field id="late-select-currency" name="currency" :restore-old-input="false" :label="__('Currency')" :value="$currency" pattern="[A-Z]{3}" maxlength="3" required />
-<button type="submit" class="btn btn-outline-primary">{{ __('Open this school-year currency rule') }}</button>
+<x-m3.button type="submit" variant="outlined">{{ __('Open this school-year currency rule') }}</x-m3.button>
 </form>
 @if($year!==null)
 <form method="post" action="{{ route('fee-late-charges.save-policy') }}" autocomplete="off">
@@ -33,7 +33,7 @@
 <x-page.field id="late-vat-rate" name="vat_rate" :restore-old-input="false" :label="__('VAT rate percentage; zero for untaxed or zero-rated charges')" :value="$decimal($policy?->vat_rate_bp)" inputmode="decimal" />
 <p>{{ __('Leave the unused flat amount or rate empty. VAT registrations must be configured before taxable charging. Review separate held credit before posting; this rule does not allocate receipts.') }}</p>
 <x-page.field id="late-policy-reason" name="private_reason" type="textarea" :restore-old-input="false" :label="__('Private reason for this school rule revision')" minlength="10" maxlength="2000" required />
-<button type="submit" class="btn btn-primary">{{ __('Retain this late-charge rule revision') }}</button>
+<x-m3.button type="submit">{{ __('Retain this late-charge rule revision') }}</x-m3.button>
 </fieldset>
 </form>
 @endif

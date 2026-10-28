@@ -36,7 +36,7 @@
 <x-page.field id="payer-recipient" name="new_holder_user_id" type="select" :restore-old-input="false" :label="__('Intended configured payer')" :options="$holderOptions" required />
 <x-page.field id="payer-amount" name="amount" :restore-old-input="false" :label="__('Original unpaid amount to correct')" inputmode="decimal" pattern="[0-9]+([.][0-9]{1,2})?" required />
 <x-page.field id="payer-reason" name="reason" type="textarea" :restore-old-input="false" :label="__('Private Finance correction reason')" minlength="10" maxlength="1200" required />
-<button type="submit" class="btn btn-primary">{{ __('Review original unpaid correction') }}</button>
+<x-m3.button type="submit">{{ __('Review original unpaid correction') }}</x-m3.button>
 </fieldset>
 </form>
 @endif

@@ -41,7 +41,7 @@
 <fieldset @disabled($readOnly)><legend>{{ __('Review the original debt and school rule') }}</legend>
 <p>{{ $source['invoice_number'] }} · {{ $source['learner_name'] }} · {{ $source['holder_name'] }}</p>
 <x-page.field id="late-reason" name="reason" type="textarea" :restore-old-input="false" :label="__('Private Finance late-charge reason')" minlength="10" maxlength="2000" required />
-<button type="submit" class="btn btn-primary">{{ __('Review configured one-off late charge') }}</button>
+<x-m3.button type="submit">{{ __('Review configured one-off late charge') }}</x-m3.button>
 </fieldset>
 </form>
 @endif

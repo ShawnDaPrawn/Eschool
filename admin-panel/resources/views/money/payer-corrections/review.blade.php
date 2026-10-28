@@ -23,7 +23,7 @@
 @endforeach
 <input type="hidden" name="fingerprint" value="{{ $preview['fingerprint'] }}">
 <label for="payer-confirm"><input id="payer-confirm" type="checkbox" name="confirmed" value="1" required> {{ __('I reviewed the original unpaid debt, intended payer and exact preserved tax. Record this correction once.') }}</label>
-<button type="submit" class="btn btn-primary">{{ __('Post original unpaid payer correction') }}</button>
+<x-m3.button type="submit">{{ __('Post original unpaid payer correction') }}</x-m3.button>
 </form>
 <p><a href="{{ route('fee-payer-corrections.index',['account_id'=>$preview['fee_account_id']]) }}">{{ __('Cancel and review the family account') }}</a></p>
 </div>

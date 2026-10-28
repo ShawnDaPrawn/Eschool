@@ -27,7 +27,7 @@
 @endforeach
 <input type="hidden" name="fingerprint" value="{{ $preview['fingerprint'] }}">
 <label for="late-confirm"><input id="late-confirm" type="checkbox" name="confirmed" value="1" required> {{ __('I reviewed the original overdue debt, separate credit and exact school rule. Record this one-off invoice once.') }}</label>
-<button type="submit" class="btn btn-primary">{{ __('Post reviewed one-off late charge') }}</button>
+<x-m3.button type="submit">{{ __('Post reviewed one-off late charge') }}</x-m3.button>
 </form>
 <p><a href="{{ route('fee-late-charges.index',['account_id'=>$preview['fee_account_id']]) }}">{{ __('Cancel and review the family account') }}</a></p>
 </div>

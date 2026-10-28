@@ -57,6 +57,6 @@ class FeePayerCorrectionPanelController extends Controller
     {
         $row = app(FeePayerCorrections::class)->post($request->user(), $request->safe()->except(['expected_school_id', 'expected_account_id']));
 
-        return redirect()->route('fee-payer-corrections.index', ['account_id' => $row->fee_account_id], 303)->with('success',__('Original unpaid credit and equal replacement payer invoice recorded once.'));
+        return redirect()->route('fee-payer-corrections.index', ['account_id' => $row->fee_account_id], 303)->with('success', __('Original unpaid credit and equal replacement payer invoice recorded once.'));
     }
 }
