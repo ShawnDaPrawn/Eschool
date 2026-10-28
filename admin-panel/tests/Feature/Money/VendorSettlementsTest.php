@@ -24,11 +24,13 @@ use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
 use App\Services\Money\WalletTransfers;
 use App\Services\Platform\Identity\MembershipService;
+use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -288,6 +290,10 @@ class VendorSettlementsTest extends TestCase
         $this->assertSame(1087, (int) DB::table('ledger_accounts')->where('reference', 'vendor:sales:ZAR')->value('balance_cents'));
         $this->assertSame(163, (int) DB::table('ledger_accounts')->where('reference', 'vendor:vat:ZAR')->value('balance_cents'));
         $this->healthy();
+        // The demo builder writes legacy fixtures outside the cents-aware models.
+        CentsColumns::backfill();
+        $exit = Artisan::call('ledger:reconcile', ['--school' => 1, '--json' => true]);
+        $this->assertSame(0, $exit, Artisan::output());
     }
 
     public function test_cash_vendor_payout_requires_actual_cash_and_records_its_custodian(): void

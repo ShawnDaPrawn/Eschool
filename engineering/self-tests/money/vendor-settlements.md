@@ -59,3 +59,11 @@ documentation production build passed. The initial documentation file-write path
 was corrected before the successful build. New panel49 and app13 labels use
 explicit English fallbacks across14 catalogues; fluent review remains pending.
 Hosted exact-source CI/review and main integration are pending publication.
+
+Hosted review caught fee-only reconciliation summing the newly shared vendor
+sales/VAT account types. Both income/VAT queries now require module=fees. The
+regression first demonstrated the vendor contamination; after fixing the scope
+and aligning the isolated demo fixture's raw legacy cents through its existing
+helper, the full global ledger command passed1/9 after an internal VAT settlement.
+Existing fee credit and VAT suites passed31/282. Fresh Pint and Money PHPStan
+passed for the update. No original financial history was changed by the fix.
