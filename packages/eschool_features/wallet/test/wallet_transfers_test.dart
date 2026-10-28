@@ -188,6 +188,37 @@ void main() {
   );
 
   test(
+    'a changed owner index followed by a failed request cannot restore the old child view',
+    () async {
+      final server = Server();
+      server.api.routes['GET v2/wallets/7/statement'] = ok(
+        walletStatementFixture(),
+      );
+      final cubit = WalletCubit(
+        repository(server.api),
+        pendingStore: PendingStore(),
+      );
+      expect(await cubit.load(), isTrue);
+      expect(await cubit.show(7), isTrue);
+      expect(cubit.state.statement!.ownerUserId, 31);
+      final reduced = walletIndexFixture();
+      (reduced['owners'] as List).removeLast();
+      server.api.routes['GET v2/wallets'] = ok(reduced);
+      server.api.routes['GET v2/wallets/transfers'] = const FakeResponse({
+        'error': true,
+        'message': 'Unavailable',
+        'code': 503,
+      }, status: 503);
+      expect(await cubit.load(), isFalse);
+      expect(cubit.state.index, isNull);
+      expect(cubit.state.statement, isNull);
+      expect(cubit.state.deskReceipts, isNull);
+      expect(cubit.transfers, isNull);
+      await cubit.close();
+    },
+  );
+
+  test(
     'persistent storage keeps independent opaque keys and no financial payload',
     () async {
       final store = SharedPreferencesWalletPendingStore();

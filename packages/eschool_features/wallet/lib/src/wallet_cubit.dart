@@ -40,9 +40,13 @@ class WalletCubit extends Cubit<WalletState> {
   String? get resolutionMessage => _resolutionMessage;
   Future<WalletState> Function()? _retry;
   bool get canRetry => _retry != null && !hasPendingMoney;
-  Future<bool> _run(Future<WalletState> Function() work) async {
+  Future<bool> _run(
+    Future<WalletState> Function() work, {
+    bool clearView = false,
+  }) async {
     if (isClosed || state.busy) return false;
-    final before = state;
+    final before = clearView ? const WalletState() : state;
+    if (clearView) _clearPrivateMoney();
     _retry = work;
     emit(
       WalletState(
@@ -109,7 +113,7 @@ class WalletCubit extends Cubit<WalletState> {
     final index = await repository.index();
     if (_money != null) _transfers = await _money!.transfers();
     return WalletState(index: index);
-  });
+  }, clearView: true);
 
   Future<bool> transfer(int from, int to, int amountCents) {
     if (hasPendingMoney || _money == null || _transfers?.canTransfer != true) {
@@ -143,7 +147,7 @@ class WalletCubit extends Cubit<WalletState> {
       _transfers = history;
       _resolutionMessage = null;
       return WalletState(index: index);
-    });
+    }, clearView: true);
   }
 
   Future<bool> resolvePending() {
@@ -165,7 +169,7 @@ class WalletCubit extends Cubit<WalletState> {
           ? 'The previous wallet request was recorded. Review your balances and transfer history.'
           : 'No money moved for the interrupted request. You can start again.';
       return WalletState(index: index);
-    });
+    }, clearView: true);
   }
 
   Future<bool> transferHistory({int page = 1}) {
