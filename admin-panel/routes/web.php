@@ -61,6 +61,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
+use App\Http\Controllers\Panel\Money\CashupPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
 use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
 use App\Http\Controllers\Panel\Money\FeeDiscountPanelController;
@@ -405,6 +406,12 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('cashups')->name('cashups.')->middleware([PrivateDomainResponse::class])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
+            $c = CashupPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('export', [$c, 'export'])->name('export');
+            Route::post('/', [$c, 'record'])->name('record');
         });
         Route::prefix('vendor-settlements')->name('vendor-settlements.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
             $c = VendorSettlementPanelController::class;

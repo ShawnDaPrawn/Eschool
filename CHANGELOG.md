@@ -1,5 +1,9 @@
 # Changelog
 
+- Phase5: actual daily cash custody reports, retained physical count revisions,
+  explained differences and private exports without automatic ledger adjustments.
+
+
 - Phase5: original vendor settlement batches, separate Finance approval, exact
   school sales/VAT recognition, verified manual payouts and private vendor reports.
 

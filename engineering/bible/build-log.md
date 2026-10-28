@@ -896,3 +896,12 @@ disbursement identity, private Finance reporting and Vendor panel/native history
 Qualification is recorded in self-tests/money/vendor-settlements.md. Cash-up10,
 remaining fee correction/late-charge6D, tickets14 and online card spending15 continue.
 Gateway execution and Phase6 collection remain deferred.
+
+## 2026-10-28 — actual operator cash reports and retained counts
+
+Increment10A adds custody derived from actual posted cash sources, daily opening/
+receipt/payout/closing reports, physical counts, explained differences, immutable
+corrections and private CSV. Cash/EFT and internal wallet movements are distinguished
+without inventing opening funds or adjusting the ledger. Qualification is in
+self-tests/money/daily-cashup.md. Recipient-confirmed handovers/payout custody10B,
+remaining fee correction/late charges6D, tickets14 and online spending15 continue.

@@ -530,3 +530,12 @@ collected order count and gross/sales-net/VAT/collector-fee/payout cents. Unique
 date, cash custodian and encrypted verification. Outside payouts share the existing
 financial_disbursements identity with fee refunds and wallet withdrawals. SQL guards
 retain original totals, identities, school keys and lifecycle; retained down refuses.
+
+### Daily physical cash counts
+
+`cashup_counts` retains school/operator/currency/day, ordered revision, permanent
+operation/request/source hashes, original opening/receipt/payout/closing cents,
+actual counted cents, difference and encrypted private evidence/reason. SQL retains
+ordered revisions and exact arithmetic; updates/deletes and retained down refuse.
+Counts are not ledger adjustments. Source custody comes from actual immutable
+cash receipt/payout roots and their original postings.

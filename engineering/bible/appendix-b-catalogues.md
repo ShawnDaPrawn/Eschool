@@ -406,3 +406,11 @@ History remains readable while paused. Outside payouts also require writable wal
 backing; school-internal sales/VAT recognition remains independent of fee access.
 No new notification/provider is enabled. Clearing/due-to-school accounts remain
 zero and the posting kernel continues to reject Phase6 collection.
+
+### Daily cash control permission
+
+`money-cashup-manage` authorises private cross-domain cash-control reports and the
+operator's own physical count records. It is independent of fee/wallet/vendor
+module pause because it cannot move money. System School Admins start with it;
+custom Finance roles need explicit school grants. Vendor/learner/platform
+impersonation authority is refused. No notification/provider is activated by10A.
