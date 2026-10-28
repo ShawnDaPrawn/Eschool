@@ -113,6 +113,51 @@ class FeeLeaverCreditsTest extends TestCase
         $this->assertSame(0, FeeCreditNote::count());
     }
 
+    public function test_calendar_edits_do_not_change_original_contract_or_pending_departure_approval(): void
+    {
+        $this->families();
+        app(FeeLifecyclePolicies::class)->save($this->admin, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->year, 'join_basis' => 'daily', 'leaver_basis' => 'daily', 'installments' => 'preserve_dates']);
+        $invoice = $this->billed(false);
+        $this->policy();
+        $this->depart('2026-05-31');
+        $run = $this->review($invoice);
+        SessionYear::whereKey($this->year)->update(['start_date' => '2025-12-01', 'end_date' => '2027-01-31']);
+        $after = $this->review($invoice);
+        $this->assertSame(587, $after->amount_cents);
+        $this->assertSame(414, $after->snapshot['served_cents']);
+        $this->assertSame('2026-01-01', $after->snapshot['quote']['proration']['year_start']);
+        $this->assertSame('2026-12-31', $after->snapshot['quote']['proration']['year_end']);
+        $this->apply($run);
+        $this->healthy();
+    }
+
+    public function test_older_policyless_bill_uses_original_year_for_missing_joining_date_and_proration(): void
+    {
+        $dispatcher = BillRun::getEventDispatcher();
+        BillRun::setEventDispatcher(clone $dispatcher);
+        BillRun::creating(function (BillRun $run): void {
+            $snapshot = $run->snapshot;
+            foreach ($snapshot['rows'] as &$row) {
+                unset($row['enrolment_start'],$row['enrolment_end'],$row['enrolment_id'],$row['enrolment_segments']);
+            }unset($row);
+            $run->snapshot = $snapshot;
+        });
+        try {
+            $invoice = $this->billed();
+        } finally {
+            BillRun::setEventDispatcher($dispatcher);
+        }
+        $this->policy();
+        $this->depart('2026-05-31');
+        SessionYear::whereKey($this->year)->update(['start_date' => '2025-12-01', 'end_date' => '2027-01-31']);
+        $run = $this->review($invoice);
+        $this->assertSame('explicit_prior_policyless_rule', $run->snapshot['policy_origin']);
+        $this->assertSame(587, $run->amount_cents);
+        $this->assertSame(414, $run->snapshot['served_cents']);
+        $this->apply($run);
+        $this->healthy();
+    }
+
     public function test_later_earlier_departure_credits_only_remaining_cumulative_difference(): void
     {
         $invoice = $this->billed();

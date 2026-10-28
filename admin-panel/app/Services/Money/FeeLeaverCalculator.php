@@ -29,7 +29,9 @@ final class FeeLeaverCalculator
         $invoice = Invoice::whereNotNull('sealed_at')->lockForUpdate()->findOrFail($invoiceId);
         $bill = BillRun::where('kind', 'annual')->where('state', 'posted')->lockForUpdate()->findOrFail($invoice->bill_run_id);
         $year = SessionYear::lockForUpdate()->findOrFail($invoice->session_year_id);
-        app(FeePlans::class)->year($year);
+        $yearStart = $bill->snapshot['year_start'] ?? null;
+        $yearEnd = $bill->snapshot['year_end'] ?? null;
+        abort_unless(is_string($yearStart) && is_string($yearEnd) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/D', $yearStart) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/D', $yearEnd) && $yearStart <= $yearEnd, 409, 'The original billed school-year dates need reconciliation.');
         $account = FeeAccount::lockForUpdate()->findOrFail($invoice->fee_account_id);
         $lines = InvoiceLine::where('invoice_id', $invoiceId)->where('learner_id', $learner)->whereNull('fee_charge_id')->orderBy('id')->lockForUpdate()->get();
         abort_unless($lines->isNotEmpty(), 404);
@@ -39,7 +41,7 @@ final class FeeLeaverCalculator
         abort_unless($attendance['issues'] === [], 422, 'Confirm a single continuous school attendance period before reviewing leaver credit.');
         $today = now(app(CurrentSchool::class)->school()->timezone ?? 'UTC')->toDateString();
         abort_unless($attendance['ends_on'] !== null && $attendance['ends_on'] <= $today, 422, 'The learner must have a confirmed departure dated today or earlier.');
-        $originalStart = $source['enrolment_start'] ?? substr((string) $year->start_date, 0, 10);
+        $originalStart = $source['enrolment_start'] ?? $yearStart;
         abort_unless($attendance['starts_on'] === $originalStart || (! isset($source['enrolment_start']) && $attendance['starts_on'] <= $originalStart), 409, 'The original joining dates changed. Review a billing correction separately.');
         if (isset($source['enrolment_id'])) {
             abort_unless(in_array($source['enrolment_id'], array_column($attendance['segments'], 'id'), true), 409, 'The original enrolment identity changed.');
@@ -51,7 +53,7 @@ final class FeeLeaverCalculator
         }
         $originalGross = (int) $lines->sum('amount_cents');
         $annual = $source['annual_cents'] ?? $originalGross;
-        $quote = app(FeeProration::class)->charge($annual, substr((string) $year->start_date, 0, 10), substr((string) $year->end_date, 0, 10), $originalStart, $attendance['ends_on'], new FeeLifecyclePolicy(array_intersect_key($contract, array_flip(['join_basis', 'leaver_basis', 'revision']))));
+        $quote = app(FeeProration::class)->charge($annual, $yearStart, $yearEnd, $originalStart, $attendance['ends_on'], new FeeLifecyclePolicy(array_intersect_key($contract, array_flip(['join_basis', 'leaver_basis', 'revision']))));
         $served = min($originalGross, $quote['amount_cents']);
         $rows = array_values(array_filter(app(FeeStatements::class)->finance($account)['charges'], fn ($row) => $row['invoice_id'] === $invoiceId && $row['learner_id'] === $learner && $row['charge_kind'] === 'annual_tuition'));
         $originalByHolder = [];

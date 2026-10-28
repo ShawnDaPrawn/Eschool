@@ -30,3 +30,9 @@ all4 cases, zero retries. Empty and posted-history up/down/up preserved1 origina
 invoice,1 ledger entry and1 encrypted discount review byte-for-byte. Baseline-free
 Money5, configured panel analysis, fresh-cache Pint, TypeScript, actual CI flows
 discovery and docs passed; final hosted source review/integration remain on the PR.
+
+Source review identified mutable school-year dates affecting an original contract.
+Departure proration and older policyless joining-date fallback now use the sealed
+bill year_start/year_end. The full leaver matrix passed14 tests/91 assertions,
+including changed calendar boundaries after review and an older snapshot without
+joining metadata. The original review still approves/posts unchanged cents.
