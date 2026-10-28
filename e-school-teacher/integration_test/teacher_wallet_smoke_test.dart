@@ -49,6 +49,8 @@ void main() {
       }),
       'GET v2/wallets': (RequestOptions _) =>
           response(walletIndexFixture(viewer: 12)),
+      'GET v2/wallets/transfers': (RequestOptions _) =>
+          response(walletTransferPageFixture(viewer: 12)),
       'GET v2/wallets/6/statement': (RequestOptions _) =>
           response(walletStatementFixture(owner: 12, viewer: 12)),
       'GET v2/wallets/6/desk-topups': (RequestOptions _) =>

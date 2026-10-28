@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
 use App\Http\Controllers\Api\V2\Money\WalletController;
+use App\Http\Controllers\Api\V2\Money\WalletTransferController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -398,6 +399,9 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
 Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {
     $c = WalletController::class;
     Route::get('/', [$c, 'index'])->name('index');
+    Route::get('transfers', [WalletTransferController::class, 'index'])->name('transfers');
+    Route::post('transfers', [WalletTransferController::class, 'transfer'])->middleware([RequireWalletAuthority::class.':transfer', 'throttle:money', 'idempotent:required'])->name('transfer');
+    Route::post('operations/{operation}/resolve', [WalletTransferController::class, 'resolve'])->whereUuid('operation')->middleware('throttle:money')->name('resolve');
     Route::get('{wallet}/desk-topups', [$c, 'deskReceipts'])->whereNumber('wallet')->name('desk-receipts');
     Route::get('{wallet}/statement', [$c, 'statement'])->whereNumber('wallet')->name('statement');
     Route::post('/', [$c, 'open'])->middleware([RequireWalletAuthority::class.':open', 'throttle:money', 'idempotent:required'])->name('open');

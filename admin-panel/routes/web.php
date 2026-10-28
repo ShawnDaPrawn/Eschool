@@ -402,6 +402,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             $c = WalletFinancePanelController::class;
             Route::get('/', [$c, 'index'])->name('index');
             Route::post('/', [$c, 'save'])->name('save');
+            Route::post('child-return-policy', [$c, 'returnPolicy'])->name('return-policy');
             Route::get('{wallet}/statement', [$c, 'show'])->whereNumber('wallet')->name('show');
         });
         Route::prefix('fee-refunds')->name('fee-refunds.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {

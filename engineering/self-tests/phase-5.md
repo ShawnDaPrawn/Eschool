@@ -53,3 +53,7 @@ receipts; it does not qualify the remaining desk/parent/withdrawal flows.
 Desk master-to-person grants, independent approval, private receipts and cancellation
 are tracked in money/desk-wallet-topups.md. Parent funding/transfers and increments
 9–15 remain under active delivery; this does not close increment 8 or Phase 5.
+
+Parent transfer and interrupted-request recovery evidence is tracked in
+money/parent-wallet-transfers.md. Parent deposit verification remains 8C2, and
+6D payer corrections/late charges plus increments9–15 remain required.

@@ -8,6 +8,7 @@ use App\Models\Platform\School;
 use App\Services\Money\FeePaymentReconciliation;
 use App\Services\Money\WalletDeskReconciliation;
 use App\Services\Money\WalletFundingReconciliation;
+use App\Services\Money\WalletTransferReconciliation;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -64,13 +65,14 @@ final class ReconcileLedger extends Command
                 $payments = app(FeePaymentReconciliation::class)->inspect();
                 $walletFunding = app(WalletFundingReconciliation::class)->inspect();
                 $desk = app(WalletDeskReconciliation::class)->inspect();
-                $validDomain = FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding) && WalletDeskReconciliation::healthy($desk);
+                $transfers = app(WalletTransferReconciliation::class)->inspect();
+                $validDomain = FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding) && WalletDeskReconciliation::healthy($desk) && WalletTransferReconciliation::healthy($transfers);
                 $repair = $validDomain && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
                 return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
-                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding, ...$desk];
+                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding, ...$desk, ...$transfers];
             }));
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
                 || $report['incomplete_invoices'] > 0

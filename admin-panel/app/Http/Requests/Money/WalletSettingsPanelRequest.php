@@ -6,6 +6,7 @@ namespace App\Http\Requests\Money;
 
 use App\Policies\Money\WalletPolicy;
 use App\Services\Money\WalletSettings;
+use App\Services\Money\WalletTransfers;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Contracts\Validation\Validator;
@@ -25,7 +26,7 @@ class WalletSettingsPanelRequest extends MoneyPanelRequest
 
     public function authorize(): bool
     {
-        $actor = app(WalletPolicy::class)->finance($this->user(), ! $this->isMethodSafe());
+        $actor = $this->routeIs('wallet-finance.return-policy') ? app(WalletPolicy::class)->transferPolicy($this->user(), true) : app(WalletPolicy::class)->finance($this->user(), ! $this->isMethodSafe());
         if (! $this->isMethodSafe()) {
             abort_unless((int) $this->input('expected_account_id') === (int) $actor->id && (int) $this->input('expected_school_id') === app(CurrentSchool::class)->id(), 403);
             abort_unless($this->query->count() === 0, 422);
@@ -44,6 +45,10 @@ class WalletSettingsPanelRequest extends MoneyPanelRequest
 
     public function rules(): array
     {
+        if ($this->routeIs('wallet-finance.return-policy')) {
+            return $this->bindingRules() + WalletTransfers::policyRules();
+        }
+
         return $this->isMethodSafe() ? $this->readRules() : $this->bindingRules() + WalletSettings::rules() + ['daily_spend_amount' => ['required', 'string', 'regex:/\A\d{1,10}(?:\.\d{1,2})?\z/D']];
     }
 

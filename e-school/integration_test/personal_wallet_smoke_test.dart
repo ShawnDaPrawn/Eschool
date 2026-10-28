@@ -6,6 +6,7 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:eschool_wallet/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
@@ -19,6 +20,7 @@ void main() {
       (tester) async {
         final actor = parent ? 21 : 11;
         var allowed = true;
+        final transfers = <Map<String, dynamic>>[];
         final statement = walletStatementFixture();
         statement['owner_user_id'] = 11;
         statement['can_manage_limits'] = parent;
@@ -84,6 +86,32 @@ void main() {
               ],
           }),
           'GET v2/wallets': (RequestOptions _) => response(index),
+          'GET v2/wallets/transfers': (RequestOptions _) => response(
+            walletTransferPageFixture(
+              viewer: actor,
+              canTransfer: parent,
+              items: transfers,
+            ),
+          ),
+          'POST v2/wallets/transfers': (RequestOptions q) {
+            final body = q.data as Map;
+            final receipt = walletTransferReceiptFixture(
+              operation: body['operation_id'] as String,
+              childOwner: 11,
+            );
+            transfers.add(receipt);
+            (child['wallets'] as List).first['balance_cents'] = 6000;
+            statement['balance_cents'] = 6000;
+            (statement['entries']['items'] as List).first['change_cents'] =
+                6000;
+            (statement['entries']['items'] as List)
+                    .first['balance_after_cents'] =
+                6000;
+            ((index['owners'] as List).first['wallets'] as List)
+                    .first['balance_cents'] =
+                1000;
+            return response(receipt);
+          },
           'GET v2/wallets/7/statement': (RequestOptions _) =>
               response(statement),
           'GET v2/wallets/7/desk-topups': (RequestOptions _) =>
@@ -112,7 +140,7 @@ void main() {
         await tapWhenReady(tester, find.text('Wallets'));
         await tapWhenReady(tester, find.text('Open wallet statement').last);
         await pumpUntilFound(tester, find.text('Wallet balance'));
-        expect(find.text('Asha Synthetic'), findsOneWidget);
+        expect(find.text('Asha Synthetic'), findsWidgets);
         expect(
           find.text('Edit spending controls'),
           parent ? findsOneWidget : findsNothing,
@@ -121,6 +149,33 @@ void main() {
         await tapWhenReady(tester, find.text('View desk top-up receipts'));
         await pumpUntilFound(tester, find.text('WT-201'));
         expect(find.text('Awaiting independent approval'), findsOneWidget);
+        if (parent) {
+          final amount = find.byWidgetPredicate(
+            (w) =>
+                w is TextField &&
+                w.decoration?.labelText == 'Wallet transfer amount',
+          );
+          await tester.ensureVisible(amount);
+          await tester.enterText(amount, '10.00');
+          await tapWhenReady(
+            tester,
+            find.text(
+              'I reviewed the source, recipient and amount for this wallet transfer.',
+            ),
+          );
+          await tapWhenReady(tester, find.text('Move wallet money'));
+          await pumpUntilFound(tester, find.text('WX-301'));
+          expect(
+            api.requests.where(
+              (q) =>
+                  q.method == 'POST' &&
+                  q.uri.path.endsWith('/wallets/transfers'),
+            ),
+            hasLength(1),
+          );
+          await tapWhenReady(tester, find.text('Open wallet statement').last);
+          await pumpUntilFound(tester, find.text('ZAR 60.00'));
+        }
         allowed = false;
         await tester.tap(find.byTooltip('Refresh wallets'));
         await pumpUntilFound(
@@ -129,6 +184,7 @@ void main() {
         );
         expect(find.text('Asha Synthetic'), findsNothing);
         expect(find.text('WT-201'), findsNothing);
+        expect(find.text('WX-301'), findsNothing);
         final reads = api.requests.where(
           (q) => q.uri.path.contains('/v2/wallets'),
         );

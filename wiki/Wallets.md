@@ -20,3 +20,11 @@ explicit threshold require another current desk operator. Recipients and approvi
 guardians see pending, credited and cancelled receipts in their wallets. Desk-only
 permission does not grant bank funding or policy changes. See the Money desk guide
 and engineering/specs/money/desk-wallet-topups.md for attribution and retention rules.
+
+## Parent transfers and interrupted requests
+
+Verified parents can move funds between their own and an approved child's wallet.
+Child returns require the explicit school policy in Money → Wallets. An interrupted
+request retains its original operation until recovery confirms the posted result
+or safely closes it; a new money intent cannot silently replace an unknown outcome.
+Parent deposits are a separate verified-receipt flow, not school master funding.

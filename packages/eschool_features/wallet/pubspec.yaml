@@ -15,6 +15,7 @@ dependencies:
     path: ../../eschool_session
   flutter_bloc: ^9.1.1
   uuid: ^4.6.0
+  shared_preferences: ^2.5.4
 dev_dependencies:
   dio: ^5.9.2
   flutter_test:

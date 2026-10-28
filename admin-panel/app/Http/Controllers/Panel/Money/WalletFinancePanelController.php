@@ -9,12 +9,15 @@ use App\Http\Requests\Money\WalletSettingsPanelRequest;
 use App\Models\Money\WalletAccount;
 use App\Models\Money\WalletFunding;
 use App\Models\Money\WalletSetting;
+use App\Models\Money\WalletTransferPolicy;
 use App\Policies\Money\WalletPolicy;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
+use App\Services\Money\WalletTransfers;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class WalletFinancePanelController extends Controller
 {
@@ -30,8 +33,26 @@ class WalletFinancePanelController extends Controller
                 $summaries[(int) $wallet->id] = app(Wallets::class)->summary($wallet);
             }$canWrite = app(ModuleGate::class)->writable('wallet');
 
-            return response()->view('money.wallets.index', compact('settings', 'issued', 'wallets', 'summaries', 'canWrite'));
+            $transferPolicy = WalletTransferPolicy::first();
+            $canConfigureReturns = false;
+            try {
+                app(WalletPolicy::class)->transferPolicy($request->user());
+                $canConfigureReturns = true;
+            } catch (HttpExceptionInterface $e) {
+                if ($e->getStatusCode() !== 403) {
+                    throw $e;
+                }
+            }
+
+            return response()->view('money.wallets.index', compact('settings', 'issued', 'wallets', 'summaries', 'canWrite', 'transferPolicy', 'canConfigureReturns'));
         });
+    }
+
+    public function returnPolicy(WalletSettingsPanelRequest $request): Response
+    {
+        app(WalletTransfers::class)->policy($request->user(), $request->validated());
+
+        return redirect()->route('wallet-finance.index', status: 303)->with('success', __('Child wallet return policy saved.'));
     }
 
     public function save(WalletSettingsPanelRequest $request): Response

@@ -351,3 +351,10 @@ Wallet desk operations use `wallet-desk-process`; threshold management additiona
 requires `wallet-desk-policy-manage` and wallet Finance access. These capabilities
 remain in the wallet module, independent of fee access. Personal receipt reads use
 current own/approving-guardian authority. No external notification/provider is added.
+
+### Parent wallet transfers
+
+Wallet Finance together with `wallet-transfer-policy-manage` configures child
+returns. Actual movements require a verified Parent and current approving guardian
+authority; learners never initiate transfers. Recovery retains actor-scoped opaque
+operation keys and does not require fee access or enable an outside provider.

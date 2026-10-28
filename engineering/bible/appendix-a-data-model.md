@@ -462,3 +462,11 @@ entries. `wallet_bank` is a wallet-only debit asset. New history prevents rollba
 policy and exact reservation entry. `wallet_desk_actions` records one released or
 cancelled outcome, current policy, independent actor and terminal entry. Private
 reasons are encrypted; retained domain history prevents destructive rollback.
+
+### Parent wallet transfers
+
+`wallet_transfer_policies` retains the school's explicit revisioned child-return
+choice. Immutable `wallet_transfers` binds actor/operation, both personal wallets
+and owners, direction, cents/currency, exact source entry and policy revision.
+`wallet_operations` also retains abandoned keys for durable interrupted-request
+recovery without changing any earlier operation or posted money.

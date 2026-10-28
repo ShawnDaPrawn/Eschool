@@ -3604,5 +3604,15 @@
     "Verified school grant to an active approved person": "Verified school grant to an active approved person",
     "Wallet recipient": "Wallet recipient",
     "wallet-desk-process": "Process desk wallet top-ups",
-    "wallet-desk-policy-manage": "Manage desk approval policy"
+    "wallet-desk-policy-manage": "Manage desk approval policy",
+    "Parents can move their own funds to an approved child. Returning a child balance requires an explicit school decision, including the effect on separated families.": "Parents can move their own funds to an approved child. Returning a child balance requires an explicit school decision, including the effect on separated families.",
+    "Save child return policy": "Save child return policy",
+    "I understand that enabling returns lets any currently approving guardian return available child funds, regardless of who funded them.": "I understand that enabling returns lets any currently approving guardian return available child funds, regardless of who funded them.",
+    "Allow any current approving guardian to return funds to their own wallet": "Allow any current approving guardian to return funds to their own wallet",
+    "Do not allow child wallet returns": "Do not allow child wallet returns",
+    "Child wallet returns": "Child wallet returns",
+    "Child return rule": "Child return rule",
+    "Choose the child return policy": "Choose the child return policy",
+    "Child wallet return policy saved.": "Child wallet return policy saved.",
+    "wallet-transfer-policy-manage": "Manage child wallet return policy"
 }

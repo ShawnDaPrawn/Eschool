@@ -127,3 +127,39 @@ Map<String, dynamic> walletDeskReceiptsFixture({
       },
   ],
 };
+
+Map<String, dynamic> walletTransferReceiptFixture({
+  String operation = '00000000-0000-4000-8000-000000000301',
+  int childOwner = 31,
+  int cents = 1000,
+}) => {
+  'id': 301,
+  'reference': 'WX-301',
+  'school_id': 1,
+  'actor_user_id': 21,
+  'operation_id': operation,
+  'from_wallet_id': 6,
+  'to_wallet_id': 7,
+  'from_owner_id': 21,
+  'to_owner_id': childOwner,
+  'kind': 'to_child',
+  'currency': 'ZAR',
+  'amount_cents': cents,
+  'created_at': '2026-06-15T09:00:00.000000Z',
+};
+
+Map<String, dynamic> walletTransferPageFixture({
+  int viewer = 21,
+  bool? canTransfer,
+  List<Map<String, dynamic>> items = const [],
+}) => {
+  'school_id': 1,
+  'actor_user_id': viewer,
+  'can_transfer': canTransfer ?? viewer == 21,
+  'child_returns': 'current_approving_guardian',
+  'policy_revision': 1,
+  'current_page': 1,
+  'per_page': 30,
+  'total': items.length,
+  'items': items,
+};

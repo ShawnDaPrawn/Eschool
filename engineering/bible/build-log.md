@@ -827,3 +827,11 @@ independent desk permission, cancellation and private printable/personal receipt
 Shared family, teacher and dedicated facilitator wallets display pending and final
 outcomes. Qualification is in self-tests/money/desk-wallet-topups.md. Parent-owned
 deposits/transfers remain 8C; gateway integration remains deferred.
+
+## 2026-10-28 — parent wallet transfers and recovery
+
+Increment 8C1 adds parent/child wallet movements, explicit child-return policy,
+private transfer receipts and durable recovery of interrupted money requests.
+Concurrency and app recovery checks are recorded in self-tests/money/parent-wallet-
+transfers.md. Parent outside deposits and Finance verification remain 8C2; gateways
+remain deferred. This does not close increment 8 or Phase 5.

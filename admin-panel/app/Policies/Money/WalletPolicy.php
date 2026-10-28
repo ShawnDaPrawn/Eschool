@@ -22,6 +22,8 @@ final class WalletPolicy
 
     public const DESK_PROCESS = 'wallet-desk-process';
 
+    public const TRANSFER_POLICY = 'wallet-transfer-policy-manage';
+
     public const PERSONAL_ROLES = ['Parent', 'Student', 'Teacher', 'Facilitator', 'Super Admin'];
 
     public function actor(User $actor, bool $write = false): User
@@ -59,6 +61,14 @@ final class WalletPolicy
     {
         $fresh = $this->finance($actor, $write);
         abort_unless($this->permission($fresh, self::DESK_POLICY), 403);
+
+        return $fresh;
+    }
+
+    public function transferPolicy(User $actor, bool $write = false): User
+    {
+        $fresh = $this->finance($actor, $write);
+        abort_unless($this->permission($fresh, self::TRANSFER_POLICY), 403);
 
         return $fresh;
     }

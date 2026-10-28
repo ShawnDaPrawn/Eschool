@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'wallet_cubit.dart';
 import 'wallet_repository.dart';
 import 'wallet_text.dart';
+import 'wallet_transfer_section.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({required this.repository, super.key});
@@ -74,6 +75,10 @@ class _WalletViewState extends State<_WalletView> {
                         ),
                       ),
                     ),
+                  if (cubit.hasPendingMoney ||
+                      cubit.transfers?.canTransfer == true ||
+                      (cubit.transfers?.total ?? 0) > 0)
+                    WalletTransferSection(cubit: cubit),
                   if (statement == null) ...[
                     Text(
                       tr('Your own and authorised child wallets'),

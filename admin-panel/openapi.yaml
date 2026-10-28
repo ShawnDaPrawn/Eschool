@@ -26146,6 +26146,117 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SecureEncodingConfirmation'
+  /wallets/transfers:
+    get:
+      operationId: listPersonalWalletTransfers
+      tags:
+      - Wallets
+      summary: Read your parent wallet transfers and current transfer authority
+      description: Current school, account and wallet authority apply. Integer cents and immutable actor-bound operation
+        receipts preserve money. Child returns require explicit school policy. Recovery permanently closes an uncommitted
+        operation so a late original request cannot post.
+      parameters:
+      - &id001
+        $ref: '#/components/parameters/SchoolId'
+      - &id002
+        $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Read your parent wallet transfers and current transfer authority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletTransferPageResponse'
+        '401': &id003
+          $ref: '#/components/responses/Unauthenticated'
+        '403': &id004
+          $ref: '#/components/responses/Forbidden'
+        '404': &id005
+          $ref: '#/components/responses/NotFound'
+        '409': &id006
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422': &id007
+          $ref: '#/components/responses/ValidationFailed'
+        '429': &id008
+          $ref: '#/components/responses/TooManyRequests'
+        '500': &id009
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: transferPersonalWalletMoney
+      tags:
+      - Wallets
+      summary: Move money between your own and an approved child wallet
+      description: Current school, account and wallet authority apply. Integer cents and immutable actor-bound operation
+        receipts preserve money. Child returns require explicit school policy. Recovery permanently closes an uncommitted
+        operation so a late original request cannot post.
+      parameters:
+      - *id001
+      - *id002
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Move money between your own and an approved child wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletTransferReceiptResponse'
+        '401': *id003
+        '403': *id004
+        '404': *id005
+        '409': *id006
+        '422': *id007
+        '429': *id008
+        '500': *id009
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletTransferWrite'
+  /wallets/operations/{operation}/resolve:
+    post:
+      operationId: resolvePersonalWalletOperation
+      tags:
+      - Wallets
+      summary: Resolve and close an interrupted wallet operation
+      description: Current school, account and wallet authority apply. Integer cents and immutable actor-bound operation
+        receipts preserve money. Child returns require explicit school policy. Recovery permanently closes an uncommitted
+        operation so a late original request cannot post.
+      parameters:
+      - *id001
+      - *id002
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Resolve and close an interrupted wallet operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletOperationResolutionResponse'
+        '401': *id003
+        '403': *id004
+        '404': *id005
+        '409': *id006
+        '422': *id007
+        '429': *id008
+        '500': *id009
   /wallets:
     get:
       operationId: listPersonalWallets
@@ -59857,5 +59968,241 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/WalletDeskReceiptPage'
+        code:
+          type: integer
+
+    WalletTransferReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - actor_user_id
+      - from_wallet_id
+      - to_wallet_id
+      - from_owner_id
+      - to_owner_id
+      - reference
+      - operation_id
+      - kind
+      - currency
+      - amount_cents
+      - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        from_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        to_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        from_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        to_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: ^WX-[0-9]+$
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - to_child
+          - to_parent
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        created_at:
+          type: string
+          format: date-time
+    WalletTransferWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - from_wallet_id
+      - to_wallet_id
+      - amount
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        from_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        to_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        amount:
+          type: string
+          pattern: ^\d{1,10}(?:\.\d{1,2})?$
+        confirmed:
+          type: boolean
+          description: Must be true to confirm the reviewed source, recipient and amount.
+    WalletTransferPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - can_transfer
+      - child_returns
+      - policy_revision
+      - current_page
+      - per_page
+      - total
+      - items
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        can_transfer:
+          type: boolean
+        child_returns:
+          type: string
+          enum:
+          - unconfigured
+          - disabled
+          - current_approving_guardian
+        policy_revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletTransferReceipt'
+    WalletOperationResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - operation_id
+      - status
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+    WalletTransferReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletTransferReceipt'
+        code:
+          type: integer
+    WalletTransferPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletTransferPage'
+        code:
+          type: integer
+    WalletOperationResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletOperationResolution'
         code:
           type: integer

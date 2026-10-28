@@ -1205,10 +1205,17 @@ import 'package:eschool_api/src/model/wallet_desk_receipt.dart';
 import 'package:eschool_api/src/model/wallet_desk_receipt_page.dart';
 import 'package:eschool_api/src/model/wallet_desk_receipt_page_response.dart';
 import 'package:eschool_api/src/model/wallet_entry_page.dart';
+import 'package:eschool_api/src/model/wallet_operation_resolution.dart';
+import 'package:eschool_api/src/model/wallet_operation_resolution_response.dart';
 import 'package:eschool_api/src/model/wallet_owner.dart';
 import 'package:eschool_api/src/model/wallet_statement.dart';
 import 'package:eschool_api/src/model/wallet_statement_entry.dart';
 import 'package:eschool_api/src/model/wallet_summary.dart';
+import 'package:eschool_api/src/model/wallet_transfer_page.dart';
+import 'package:eschool_api/src/model/wallet_transfer_page_response.dart';
+import 'package:eschool_api/src/model/wallet_transfer_receipt.dart';
+import 'package:eschool_api/src/model/wallet_transfer_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_transfer_write.dart';
 import 'package:eschool_api/src/model/weekly_digest_access.dart';
 import 'package:eschool_api/src/model/weekly_digest_access_response.dart';
 import 'package:eschool_api/src/model/weekly_digest_action_templates.dart';
@@ -5431,6 +5438,14 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'WalletEntryPage':
       return WalletEntryPage.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'WalletOperationResolution':
+      return WalletOperationResolution.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletOperationResolutionResponse':
+      return WalletOperationResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'WalletOwner':
       return WalletOwner.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'WalletStatement':
@@ -5441,6 +5456,23 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'WalletSummary':
       return WalletSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferPage':
+      return WalletTransferPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferPageResponse':
+      return WalletTransferPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferReceipt':
+      return WalletTransferReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferReceiptResponse':
+      return WalletTransferReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletTransferWrite':
+      return WalletTransferWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WeeklyDigestAccess':
       return WeeklyDigestAccess.fromJson(value as Map<String, dynamic>)

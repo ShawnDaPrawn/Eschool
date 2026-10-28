@@ -2344,5 +2344,22 @@
   "Recorded on": "Recorded on",
   "Processed on": "Processed on",
   "Previous receipts": "Previous receipts",
-  "Next receipts": "Next receipts"
+  "Next receipts": "Next receipts",
+  "Child wallet": "Child wallet",
+  "To": "To",
+  "To my wallet": "To my wallet",
+  "The school has not enabled child wallet returns.": "The school has not enabled child wallet returns.",
+  "To child wallet": "To child wallet",
+  "More transfer receipts": "More transfer receipts",
+  "No money moved for the interrupted request. You can start again.": "No money moved for the interrupted request. You can start again.",
+  "From": "From",
+  "Your transfer receipts": "Your transfer receipts",
+  "Return child funds to my wallet": "Return child funds to my wallet",
+  "The previous wallet request was recorded. Review your balances and transfer history.": "The previous wallet request was recorded. Review your balances and transfer history.",
+  "Wallet transfer amount": "Wallet transfer amount",
+  "Move wallet money": "Move wallet money",
+  "Previous transfer receipts": "Previous transfer receipts",
+  "Resolve interrupted wallet request": "Resolve interrupted wallet request",
+  "Parent wallet transfers": "Parent wallet transfers",
+  "Transfer receipt": "Transfer receipt"
 }

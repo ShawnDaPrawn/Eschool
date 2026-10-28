@@ -27,7 +27,18 @@ abstract interface class WalletRepository {
   });
 }
 
-class ApiWalletRepository implements WalletRepository {
+abstract interface class WalletMoneyRepository {
+  Future<WalletTransferPage> transfers({int page = 1, int perPage = 30});
+  Future<WalletTransferReceipt> transfer(
+    int from,
+    int to,
+    int amountCents,
+    String operation,
+  );
+  Future<WalletOperationResolution> resolve(String operation);
+}
+
+class ApiWalletRepository implements WalletRepository, WalletMoneyRepository {
   ApiWalletRepository(
     this.client, {
     required this.schoolId,
@@ -66,7 +77,7 @@ class ApiWalletRepository implements WalletRepository {
           final k = e.key as String;
           if ((k.endsWith('_cents') ||
                   k == 'id' ||
-                  k.endsWith('_id') ||
+                  (k.endsWith('_id') && k != 'operation_id') ||
                   [
                     'revision',
                     'current_page',
@@ -112,6 +123,126 @@ class ApiWalletRepository implements WalletRepository {
     _integers(out);
     return out;
   }
+
+  void _transferReceipt(WalletTransferReceipt row) {
+    if (row.id < 1 ||
+        !_uuid(row.operationId) ||
+        row.schoolId != schoolId ||
+        row.actorUserId != accountId ||
+        row.reference != 'WX-${row.id}' ||
+        row.fromWalletId < 1 ||
+        row.toWalletId < 1 ||
+        row.fromWalletId == row.toWalletId ||
+        row.fromOwnerId < 1 ||
+        row.toOwnerId < 1 ||
+        row.fromOwnerId == row.toOwnerId ||
+        (row.fromOwnerId == accountId) == (row.toOwnerId == accountId) ||
+        row.amountCents < 1 ||
+        row.amountCents > 100000000000 ||
+        row.currency != _currency ||
+        row.kind == WalletTransferReceiptKindEnum.unknownDefaultOpenApi ||
+        (row.kind == WalletTransferReceiptKindEnum.toChild) !=
+            (row.fromOwnerId == accountId)) {
+      _invalid();
+    }
+  }
+
+  @override
+  Future<WalletTransferPage> transfers({int page = 1, int perPage = 30}) async {
+    if (page < 1 || page > 1000000 || perPage < 1 || perPage > 50) {
+      throw ArgumentError('Use a supported transfer page.');
+    }
+    final out = WalletTransferPage.fromJson(
+      await _send(
+        'GET',
+        '/transfers',
+        query: {'page': page, 'per_page': perPage},
+      ),
+    );
+    if (out.schoolId != schoolId ||
+        out.actorUserId != accountId ||
+        out.currentPage != page ||
+        out.perPage != perPage ||
+        out.total < 0 ||
+        out.items.length > perPage ||
+        out.items.length > out.total ||
+        out.items.map((r) => r.id).toSet().length != out.items.length ||
+        out.childReturns ==
+            WalletTransferPageChildReturnsEnum.unknownDefaultOpenApi ||
+        (out.childReturns == WalletTransferPageChildReturnsEnum.unconfigured) !=
+            (out.policyRevision == null) ||
+        (out.policyRevision != null && out.policyRevision! < 1)) {
+      _invalid();
+    }
+    for (final row in out.items) {
+      _transferReceipt(row);
+    }
+    return out;
+  }
+
+  @override
+  Future<WalletTransferReceipt> transfer(
+    int from,
+    int to,
+    int amountCents,
+    String operation,
+  ) async {
+    if (!_wallets.contains(from) ||
+        !_wallets.contains(to) ||
+        from == to ||
+        amountCents < 1 ||
+        amountCents > 100000000000) {
+      throw ArgumentError('Choose valid wallet transfer details.');
+    }
+    final amount =
+        '${amountCents ~/ 100}.${(amountCents % 100).toString().padLeft(2, '0')}';
+    final out = WalletTransferReceipt.fromJson(
+      await _send(
+        'POST',
+        '/transfers',
+        data: {
+          'operation_id': operation,
+          'from_wallet_id': from,
+          'to_wallet_id': to,
+          'amount': amount,
+          'confirmed': true,
+        },
+        operation: operation,
+      ),
+    );
+    _transferReceipt(out);
+    if (out.operationId != operation ||
+        out.fromWalletId != from ||
+        out.toWalletId != to ||
+        out.fromOwnerId != _walletOwners[from] ||
+        out.toOwnerId != _walletOwners[to] ||
+        out.amountCents != amountCents) {
+      _invalid();
+    }
+    return out;
+  }
+
+  @override
+  Future<WalletOperationResolution> resolve(String operation) async {
+    if (!_uuid(operation)) {
+      throw ArgumentError('Use a valid wallet operation.');
+    }
+    final out = WalletOperationResolution.fromJson(
+      await _send('POST', '/operations/$operation/resolve', data: {}),
+    );
+    if (out.schoolId != schoolId ||
+        out.actorUserId != accountId ||
+        out.operationId != operation ||
+        out.status ==
+            WalletOperationResolutionStatusEnum.unknownDefaultOpenApi) {
+      _invalid();
+    }
+    return out;
+  }
+
+  bool _uuid(String value) => RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  ).hasMatch(value);
 
   void _summary({
     required int id,
