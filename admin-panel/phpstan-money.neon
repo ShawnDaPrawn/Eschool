@@ -24,6 +24,7 @@ parameters:
         - database/migrations/2026_10_28_230000_add_wallet_event_tickets.php
         - database/migrations/2026_10_28_240000_add_unpaid_fee_payer_corrections.php
         - database/migrations/2026_10_28_260000_add_online_wallet_counter_payments.php
+        - database/migrations/2026_10_28_270000_retain_cash_count_source_boundaries.php
         - database/migrations/2026_10_28_250000_add_explicit_one_off_late_charges.php
         - app/Services/Money
         - app/Policies/Money

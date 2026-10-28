@@ -71,15 +71,17 @@ class ModuleGate
         $entitled = $inPackage && ($row?->in_package ?? true);
         $default = $school?->package_key === null ? ($definition['legacy'] ?? $definition['default'] ?? false) : ($definition['default'] ?? false);
         $enabled = $entitled && ($row?->enabled ?? $default);
-        $readOnly = $row?->read_only ?? false;
+        $retainedReadOnly = $row?->read_only ?? false;
+        $readOnly = $retainedReadOnly;
         foreach ($definition['dependencies'] ?? [] as $dependency) {
             $state = $this->state($dependency, [...$visited, $key], $locked);
             $enabled = $enabled && $state['enabled'];
             $readOnly = $readOnly || $state['read_only'];
         }
 
-        // Retained financial data stays readable even after entitlement ends.
-        return ['enabled' => $enabled || ($readOnly && ($definition['money'] ?? false)), 'read_only' => $readOnly || ! $entitled, 'in_package' => $entitled];
+        // Only this module's retained history can keep it readable. A paused
+        // dependency must never activate an unused optional money module.
+        return ['enabled' => $enabled || ($retainedReadOnly && ($definition['money'] ?? false)), 'read_only' => $readOnly || ! $entitled, 'in_package' => $entitled];
     }
 
     public function allows(string $key): bool

@@ -90,3 +90,17 @@ An inherited cash-custody review finding is corrected in this cumulative source.
 See [cash-count boundary qualification](cash-count-boundaries.md) for the retained
 source proof, repeated payout/confirmation races and populated upgrade checks.
 This backend correction does not change the counter API or app implementation.
+
+Hosted integration follow-up: a paused dependency used to make an unused optional
+money module appear enabled through inherited read-only state. Only the module's
+own retained history can now keep it readable; dependency pauses still prevent
+writes. A regression covers default-off payments/ticketing, context omission,
+other-school state and retained history after entitlement ends. Eight affected
+route tenancy checks passed64 assertions using valid payment/operation UUIDs.
+The Vendor session check permits the capability flag while still refusing wallet
+identities, balances, private credentials and bank instructions. Nine responsive
+catalogue/payment/reader browser cases passed, including retained catalogue
+history and Teacher refusal. The new count-boundary migration is also included
+in the configured money static-analysis inventory; both analyses and Pint passed.
+The final combined module-controls, vendor catalogue, Vendor operator access and
+wallet counter-payment regression run passed56 tests /742 assertions.

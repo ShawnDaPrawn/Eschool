@@ -152,7 +152,10 @@ class VendorOperatorAccessTest extends TestCase
         $order = $this->buy();
         $this->authenticateVendor();
         $base = '/api/v2/vendor/counters/'.$this->vendor->id;
-        $this->getJson('/api/v2/vendor/session')->assertOk()->assertJsonPath('data.counters.0.id', $this->vendor->id)->assertDontSee('wallet');
+        $session = $this->getJson('/api/v2/vendor/session')->assertOk()->assertJsonPath('data.counters.0.id', $this->vendor->id)->assertJsonPath('data.wallet_payments_available', false);
+        foreach (['wallets', 'wallet_account_id', 'wallet_owner_id', 'balance_cents', 'private_qr_token', 'bank_instructions'] as $field) {
+            $this->assertStringNotContainsString('"'.$field.'"', $session->getContent());
+        }
         $response = $this->getJson($base.'/orders')->assertOk()->assertJsonPath('data.items.0.order_number', $order->order_number)->assertJsonPath('data.items.0.amount_cents', 2500);
         foreach (['wallet_account_id', 'wallet_owner_id', 'actor_id', 'private_qr_token', 'qr_hash', 'seller_snapshot', 'bank_instructions'] as $field) {
             $this->assertStringNotContainsString('"'.$field.'"', $response->getContent());

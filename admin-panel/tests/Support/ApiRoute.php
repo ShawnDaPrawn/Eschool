@@ -99,6 +99,10 @@ final readonly class ApiRoute
 
     public function sampleParameter(string $name): string
     {
+        if (($name === 'payment' && (str_starts_with($this->uri, 'api/v2/vendor/counters/') || str_starts_with($this->uri, 'api/v2/commerce/wallet-payments/'))) || ($name === 'operation' && str_starts_with($this->uri, 'api/v2/commerce/wallet-payment-operations/'))) {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if ((str_starts_with($this->uri, 'api/v2/wallets/') || str_starts_with($this->uri, 'api/v2/vendor/')) && $name === 'operation') {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }
