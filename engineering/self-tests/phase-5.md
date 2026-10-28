@@ -61,3 +61,7 @@ money/parent-wallet-transfers.md. Parent deposit verification remains 8C2, and
 Parent deposit evidence is tracked in money/parent-wallet-deposits.md: independently
 verified original-parent receipts, no-money claims, private proof, safe recovery,
 Finance browser and app qualification. This does not close Phase5 or increments9–15.
+
+Adult withdrawal qualification is tracked in money/adult-wallet-withdrawals.md.
+Vendor implementation proceeds independently; pending external evidence does not
+freeze catalogue development.

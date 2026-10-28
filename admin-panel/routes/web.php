@@ -79,6 +79,7 @@ use App\Http\Controllers\Panel\Money\WalletDepositPanelController;
 use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
+use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
@@ -392,6 +393,20 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('{topup}/receipt', [WalletDeskPanelController::class, 'receipt'])->whereNumber('topup')->name('receipt');
             Route::post('{topup}/release', [WalletDeskPanelController::class, 'release'])->whereNumber('topup')->name('release');
             Route::post('{topup}/cancel', [WalletDeskPanelController::class, 'cancel'])->whereNumber('topup')->name('cancel');
+        });
+        Route::prefix('wallet-withdrawals')->name('wallet-withdrawals.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = WalletWithdrawalPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::post('slots', [$c, 'publishSlot'])->name('slots.publish');
+            Route::post('slots/{slot}/close', [$c, 'closeSlot'])->whereNumber('slot')->name('slots.close');
+            Route::post('offboarding', [$c, 'offboarding'])->name('offboarding');
+            Route::get('{withdrawal}', [$c, 'show'])->whereNumber('withdrawal')->name('show');
+            Route::post('{withdrawal}/approve', [$c, 'approve'])->whereNumber('withdrawal')->name('approve');
+            Route::post('{withdrawal}/paid', [$c, 'finish'])->whereNumber('withdrawal')->name('paid');
+            Route::post('{withdrawal}/reject', [$c, 'finish'])->whereNumber('withdrawal')->name('reject');
+            Route::post('{withdrawal}/cancel', [$c, 'finish'])->whereNumber('withdrawal')->name('cancel');
+            Route::get('{withdrawal}/receipt', [$c, 'receipt'])->whereNumber('withdrawal')->name('receipt');
         });
         Route::prefix('wallet-deposits')->name('wallet-deposits.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
             $c = WalletDepositPanelController::class;

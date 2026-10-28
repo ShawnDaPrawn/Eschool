@@ -364,3 +364,8 @@ Wallet Finance together with `wallet-transfer-policy-manage` configures child
 returns. Actual movements require a verified Parent and current approving guardian
 authority; learners never initiate transfers. Recovery retains actor-scoped opaque
 operation keys and does not require fee access or enable an outside provider.
+
+Adult withdrawals reuse wallet and wallet-finance-manage. Own requests require
+current Parent/Teacher/Facilitator authority; a current Student is always refused.
+Finance alone configures policy/slots, approves and verifies outside payment.
+No provider or notification transport is activated.

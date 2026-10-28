@@ -43,4 +43,6 @@ parameters:
         - database/migrations/2026_10_28_130000_add_parent_wallet_transfers.php
         - database/migrations/2026_10_28_140000_add_verified_parent_wallet_deposits.php
         - app/Http/Middleware/RequireWalletDepositAuthority.php
+        - database/migrations/2026_10_28_150000_add_reserved_adult_wallet_withdrawals.php
+        - app/Http/Middleware/RequireWalletWithdrawalAuthority.php
     noUnnecessaryCollectionCall: false

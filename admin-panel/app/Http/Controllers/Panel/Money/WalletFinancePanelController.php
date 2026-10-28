@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Panel\Money;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Money\WalletSettingsPanelRequest;
 use App\Models\Money\WalletAccount;
+use App\Models\Money\WalletDeskPolicy;
 use App\Models\Money\WalletFunding;
 use App\Models\Money\WalletSetting;
 use App\Models\Money\WalletTransferPolicy;
+use App\Models\Money\WalletWithdrawalPolicy;
 use App\Policies\Money\WalletPolicy;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
@@ -26,7 +28,7 @@ class WalletFinancePanelController extends Controller
         return DB::transaction(function () use ($request): Response {
             app(WalletPolicy::class)->finance($request->user());
             $settings = WalletSetting::first();
-            $issued = WalletAccount::exists() || WalletFunding::exists();
+            $issued = WalletAccount::exists() || WalletFunding::exists() || WalletDeskPolicy::exists() || WalletWithdrawalPolicy::exists();
             $wallets = WalletAccount::join('users as u', 'u.id', '=', 'wallet_accounts.user_id')->orderBy('wallet_accounts.id')->paginate(30, ['wallet_accounts.*', 'u.first_name', 'u.last_name']);
             $summaries = [];
             foreach ($wallets as $wallet) {

@@ -61,6 +61,7 @@ class Server {
         }
         return ok(data);
       },
+      'GET v2/wallets/withdrawals': ok(walletWithdrawalPageFixture()),
       'GET v2/wallets/transfers': (RequestOptions _) => ok(
         walletTransferPageFixture(
           items: committed

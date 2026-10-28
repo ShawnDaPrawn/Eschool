@@ -481,3 +481,12 @@ choice. Immutable `wallet_transfers` binds actor/operation, both personal wallet
 and owners, direction, cents/currency, exact source entry and policy revision.
 `wallet_operations` also retains abandoned keys for durable interrupted-request
 recovery without changing any earlier operation or posted money.
+
+## Phase5: adult withdrawal reservations
+
+School-owned wallet_withdrawal_policies, wallet_withdrawal_slots and immutable
+slot closures configure explicit currency thresholds and capacity. wallet_withdrawals
+binds original holder/wallet, pending liability, exact reservation, pickup or
+encrypted bank instructions. Append-only wallet_withdrawal_actions records approval,
+release or verified payout, actual date and cash custodian. financial_disbursements
+shares immutable outside identity across original fee refunds and wallet payouts.

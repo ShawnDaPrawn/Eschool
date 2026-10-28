@@ -28,6 +28,7 @@ class DepositServer {
         }
         return ok(row);
       },
+      'GET v2/wallets/withdrawals': ok(walletWithdrawalPageFixture()),
       'GET v2/wallets/transfers': ok(walletTransferPageFixture()),
       'GET v2/wallets/deposits': (RequestOptions _) => ok(
         walletDepositPageFixture(
@@ -258,8 +259,10 @@ void main() {
         await tester.tap(submitButton);
         await tester.pumpAndSettle();
         expect(server.writes, 1);
-        await tester.tap(find.text('Parent wallet deposits'));
-        await tester.pumpAndSettle();
+        if (find.text('WD-401').evaluate().isEmpty) {
+          await tester.tap(find.text('Parent wallet deposits'));
+          await tester.pumpAndSettle();
+        }
         expect(find.text('WD-401'), findsOneWidget);
         expect(find.text('Awaiting Finance verification'), findsOneWidget);
         expect(find.text('Requested amount: ZAR 20.00'), findsOneWidget);
@@ -270,8 +273,10 @@ void main() {
         server.status = 'verified';
         await tester.tap(find.byTooltip('Refresh wallets'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Parent wallet deposits'));
-        await tester.pumpAndSettle();
+        if (find.text('WP-501').evaluate().isEmpty) {
+          await tester.tap(find.text('Parent wallet deposits'));
+          await tester.pumpAndSettle();
+        }
         expect(find.text('WP-501'), findsOneWidget);
         expect(find.text('Actual verified amount: ZAR 19.50'), findsOneWidget);
         expect(tester.takeException(), isNull);

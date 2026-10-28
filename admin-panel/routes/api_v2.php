@@ -43,6 +43,7 @@ use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
 use App\Http\Controllers\Api\V2\Money\WalletController;
 use App\Http\Controllers\Api\V2\Money\WalletDepositController;
 use App\Http\Controllers\Api\V2\Money\WalletTransferController;
+use App\Http\Controllers\Api\V2\Money\WalletWithdrawalController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -92,6 +93,7 @@ use App\Http\Middleware\PublicReportingBoundary;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
+use App\Http\Middleware\RequireWalletWithdrawalAuthority;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -401,6 +403,9 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
 Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {
     $c = WalletController::class;
     Route::get('/', [$c, 'index'])->name('index');
+    Route::get('withdrawals', [WalletWithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('withdrawals', [WalletWithdrawalController::class, 'request'])->middleware([RequireWalletWithdrawalAuthority::class, 'throttle:money', 'idempotent:required'])->name('withdrawals.request');
+    Route::post('withdrawals/{withdrawal}/cancel', [WalletWithdrawalController::class, 'cancel'])->whereNumber('withdrawal')->middleware([RequireWalletWithdrawalAuthority::class, 'throttle:money', 'idempotent:required'])->name('withdrawals.cancel');
     Route::get('deposits', [WalletDepositController::class, 'index'])->name('deposits.index');
     Route::post('deposits', [WalletDepositController::class, 'claim'])->middleware([RequireWalletDepositAuthority::class, 'throttle:money', 'idempotent:required'])->name('deposits.claim');
     Route::post('deposits/{claim}/cancel', [WalletDepositController::class, 'cancel'])->whereNumber('claim')->middleware([RequireWalletDepositAuthority::class, 'throttle:money', 'idempotent:required'])->name('deposits.cancel');

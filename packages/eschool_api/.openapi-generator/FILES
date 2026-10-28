@@ -1267,6 +1267,13 @@ lib/src/model/wallet_transfer_page_response.dart
 lib/src/model/wallet_transfer_receipt.dart
 lib/src/model/wallet_transfer_receipt_response.dart
 lib/src/model/wallet_transfer_write.dart
+lib/src/model/wallet_withdrawal_cancel_write.dart
+lib/src/model/wallet_withdrawal_page.dart
+lib/src/model/wallet_withdrawal_page_response.dart
+lib/src/model/wallet_withdrawal_receipt.dart
+lib/src/model/wallet_withdrawal_receipt_response.dart
+lib/src/model/wallet_withdrawal_slot.dart
+lib/src/model/wallet_withdrawal_write.dart
 lib/src/model/weekly_digest_access.dart
 lib/src/model/weekly_digest_access_response.dart
 lib/src/model/weekly_digest_action_templates.dart

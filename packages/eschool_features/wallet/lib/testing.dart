@@ -229,3 +229,68 @@ Map<String, dynamic> walletDepositPageFixture({
   'total': items.length,
   'items': items,
 };
+
+Map<String, dynamic> walletWithdrawalReceiptFixture({
+  String operation = '00000000-0000-4000-8000-000000000601',
+  int viewer = 21,
+  int wallet = 6,
+  String method = 'eft',
+  String status = 'requested',
+  int cents = 30000,
+}) => {
+  'id': 601,
+  'reference': 'WW-601',
+  'school_id': 1,
+  'holder_user_id': viewer,
+  'operation_id': operation,
+  'wallet_id': wallet,
+  'currency': 'ZAR',
+  'amount_cents': cents,
+  'method': method,
+  'status': status,
+  'created_at': '2026-06-15T09:00:00.000000Z',
+  'processed_at': status == 'requested' ? null : '2026-06-15T09:01:00.000000Z',
+  'pickup_starts_at': method == 'cash' ? '2026-11-01T08:00:00.000000Z' : null,
+  'pickup_ends_at': method == 'cash' ? '2026-11-01T09:00:00.000000Z' : null,
+  'pickup_label': method == 'cash'
+      ? '2026-11-01 10:00 – 2026-11-01 11:00 Africa/Johannesburg'
+      : null,
+  'paid_on': status == 'paid' ? '2026-06-15' : null,
+  'payout_reference': status == 'paid' ? 'WW-PAY-801' : null,
+};
+Map<String, dynamic> walletWithdrawalPageFixture({
+  int viewer = 21,
+  bool configured = false,
+  bool readOnly = false,
+  List<Map<String, dynamic>> items = const [],
+}) {
+  final adult = ![11, 31].contains(viewer);
+  return {
+    'school_id': 1,
+    'actor_user_id': viewer,
+    'currency': 'ZAR',
+    'is_adult': adult,
+    'read_only': readOnly,
+    'can_request': adult && configured && !readOnly,
+    'policy_revision': configured ? 1 : null,
+    'cash_threshold_cents': configured ? 25000 : null,
+    'cash_at_boundary': configured ? false : null,
+    'timezone': 'Africa/Johannesburg',
+    'slots': adult && configured && !readOnly
+        ? [
+            {
+              'id': 701,
+              'starts_at': '2026-11-01T08:00:00.000000Z',
+              'ends_at': '2026-11-01T09:00:00.000000Z',
+              'label':
+                  '2026-11-01 10:00 – 2026-11-01 11:00 Africa/Johannesburg',
+              'available_places': 2,
+            },
+          ]
+        : [],
+    'current_page': 1,
+    'per_page': 30,
+    'total': items.length,
+    'items': items,
+  };
+}

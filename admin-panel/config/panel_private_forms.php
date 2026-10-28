@@ -18,6 +18,7 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // but must never be copied into Laravel's plain session old-input flash.
 return [
     ['paths' => ['wallet-topups', 'wallet-topups/*'], 'title' => 'Desk wallet top-ups', 'route' => 'wallet-desk.index', 'fields' => []],
+    ['paths' => ['wallet-withdrawals', 'wallet-withdrawals/*'], 'title' => 'Adult wallet withdrawals', 'route' => 'wallet-withdrawals.index', 'fields' => []],
     ['paths' => ['wallet-deposits', 'wallet-deposits/*'], 'title' => 'Parent wallet deposits', 'route' => 'wallet-deposits.index', 'fields' => []],
     ['paths' => ['wallet-funding', 'wallet-funding/*'], 'title' => 'School wallet funding', 'route' => 'wallet-funding.index', 'fields' => []],
     ['paths' => ['wallet-settings', 'wallet-settings/*'], 'title' => 'Wallets', 'route' => 'wallet-finance.index', 'fields' => []],

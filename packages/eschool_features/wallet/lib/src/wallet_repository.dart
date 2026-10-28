@@ -51,11 +51,26 @@ abstract interface class WalletDepositRepository {
   Future<WalletDepositReceipt> cancelDeposit(int claim, String operation);
 }
 
+abstract interface class WalletWithdrawalRepository {
+  Future<WalletWithdrawalPage> withdrawals({int page = 1, int perPage = 30});
+  Future<WalletWithdrawalReceipt> requestWithdrawal({
+    required int amountCents,
+    int? slotId,
+    String? bankInstructions,
+    required String operation,
+  });
+  Future<WalletWithdrawalReceipt> cancelWithdrawal(
+    int withdrawal,
+    String operation,
+  );
+}
+
 class ApiWalletRepository
     implements
         WalletRepository,
         WalletMoneyRepository,
-        WalletDepositRepository {
+        WalletDepositRepository,
+        WalletWithdrawalRepository {
   ApiWalletRepository(
     this.client, {
     required this.schoolId,
@@ -72,6 +87,8 @@ class ApiWalletRepository
   String? _currency;
   WalletDepositPage? _depositCapabilities;
   final Set<int> _depositClaims = {};
+  WalletWithdrawalPage? _withdrawalCapabilities;
+  final Set<int> _withdrawalClaims = {};
   @override
   bool get isActive =>
       schoolId > 0 &&
@@ -99,6 +116,8 @@ class ApiWalletRepository
                   (k.endsWith('_id') && k != 'operation_id') ||
                   [
                     'revision',
+                    'policy_revision',
+                    'available_places',
                     'current_page',
                     'per_page',
                     'total',
@@ -456,6 +475,206 @@ class ApiWalletRepository
       _invalid();
     }
     return out;
+  }
+
+  void _withdrawalReceipt(WalletWithdrawalReceipt row) {
+    final cash = row.method == WalletWithdrawalReceiptMethodEnum.cash;
+    final paid = row.status == WalletWithdrawalReceiptStatusEnum.paid;
+    if (row.id < 1 ||
+        row.reference != 'WW-${row.id}' ||
+        row.schoolId != schoolId ||
+        row.holderUserId != accountId ||
+        !_uuid(row.operationId) ||
+        _walletOwners[row.walletId] != accountId ||
+        row.currency != _currency ||
+        row.amountCents < 1 ||
+        row.amountCents > 100000000000 ||
+        row.method == WalletWithdrawalReceiptMethodEnum.unknownDefaultOpenApi ||
+        row.status == WalletWithdrawalReceiptStatusEnum.unknownDefaultOpenApi ||
+        (row.status == WalletWithdrawalReceiptStatusEnum.requested) !=
+            (row.processedAt == null) ||
+        cash != (row.pickupStartsAt != null) ||
+        cash != (row.pickupEndsAt != null) ||
+        cash != (row.pickupLabel != null) ||
+        (cash &&
+            (!row.pickupEndsAt!.isAfter(row.pickupStartsAt!) ||
+                row.pickupLabel!.trim().isEmpty ||
+                row.pickupLabel!.length > 160)) ||
+        paid != (row.paidOn != null) ||
+        paid != (row.payoutReference != null) ||
+        (paid &&
+            !RegExp(r'^WW-PAY-[1-9][0-9]*$').hasMatch(row.payoutReference!))) {
+      _invalid();
+    }
+  }
+
+  @override
+  Future<WalletWithdrawalPage> withdrawals({
+    int page = 1,
+    int perPage = 30,
+  }) async {
+    if (page < 1 || page > 1000000 || perPage < 1 || perPage > 50) {
+      throw ArgumentError('Use a supported withdrawal page.');
+    }
+    final out = WalletWithdrawalPage.fromJson(
+      await _send(
+        'GET',
+        '/withdrawals',
+        query: {'page': page, 'per_page': perPage},
+      ),
+    );
+    final configured = out.policyRevision != null;
+    if (out.schoolId != schoolId ||
+        out.actorUserId != accountId ||
+        out.currency != _currency ||
+        out.currentPage != page ||
+        out.perPage != perPage ||
+        out.total < 0 ||
+        out.items.length > perPage ||
+        out.items.length > out.total ||
+        out.items.map((r) => r.id).toSet().length != out.items.length ||
+        configured != (out.cashThresholdCents != null) ||
+        configured != (out.cashAtBoundary != null) ||
+        (configured &&
+            (out.policyRevision! < 1 ||
+                out.cashThresholdCents! < 1 ||
+                out.cashThresholdCents! > 100000000000 ||
+                out.currency == null ||
+                (out.currency == 'ZAR' && out.cashThresholdCents != 25000))) ||
+        (out.canRequest &&
+            (!out.isAdult ||
+                out.readOnly ||
+                !configured ||
+                !_walletOwners.containsValue(accountId))) ||
+        out.timezone.trim().isEmpty ||
+        out.timezone.length > 100 ||
+        out.slots.length > 100 ||
+        out.slots.map((r) => r.id).toSet().length != out.slots.length ||
+        (out.slots.isNotEmpty &&
+            (!out.isAdult || out.readOnly || !configured))) {
+      _invalid();
+    }
+    for (final slot in out.slots) {
+      if (slot.id < 1 ||
+          !slot.endsAt.isAfter(slot.startsAt) ||
+          slot.availablePlaces < 1 ||
+          slot.availablePlaces > 1000 ||
+          slot.label.trim().isEmpty ||
+          slot.label.length > 160) {
+        _invalid();
+      }
+    }
+    for (final row in out.items) {
+      _withdrawalReceipt(row);
+    }
+    _withdrawalCapabilities = out;
+    _withdrawalClaims
+      ..clear()
+      ..addAll(out.items.map((r) => r.id));
+    return out;
+  }
+
+  @override
+  Future<WalletWithdrawalReceipt> requestWithdrawal({
+    required int amountCents,
+    int? slotId,
+    String? bankInstructions,
+    required String operation,
+  }) async {
+    final allowed = _withdrawalCapabilities;
+    if (allowed == null || !allowed.canRequest) {
+      throw ApiException(
+        'Your withdrawal access changed. Refresh Wallets.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+    if (amountCents < 1 || amountCents > 100000000000 || !_uuid(operation)) {
+      throw ArgumentError('Use a supported withdrawal amount.');
+    }
+    final cash =
+        amountCents < allowed.cashThresholdCents! ||
+        (amountCents == allowed.cashThresholdCents && allowed.cashAtBoundary!);
+    if (cash
+        ? (slotId == null ||
+              !allowed.slots.any((s) => s.id == slotId) ||
+              bankInstructions != null)
+        : (slotId != null ||
+              bankInstructions == null ||
+              bankInstructions.trim().length < 10 ||
+              bankInstructions.length > 2000)) {
+      throw ArgumentError(
+        'Review the current cash pickup or original-holder bank instructions.',
+      );
+    }
+    final row = WalletWithdrawalReceipt.fromJson(
+      await _send(
+        'POST',
+        '/withdrawals',
+        data: {
+          'operation_id': operation,
+          'amount':
+              '${amountCents ~/ 100}.${(amountCents % 100).toString().padLeft(2, '0')}',
+          'slot_id': slotId,
+          'private_bank_instructions': bankInstructions?.trim(),
+          'confirmed': true,
+        },
+        operation: operation,
+      ),
+    );
+    _withdrawalReceipt(row);
+    if (row.operationId != operation ||
+        row.amountCents != amountCents ||
+        (row.method == WalletWithdrawalReceiptMethodEnum.cash) != cash) {
+      _invalid();
+    }
+    if (cash) {
+      final slot = allowed.slots.singleWhere((s) => s.id == slotId);
+      if (row.pickupStartsAt != slot.startsAt ||
+          row.pickupEndsAt != slot.endsAt) {
+        _invalid();
+      }
+    }
+    _withdrawalClaims.add(row.id);
+    return row;
+  }
+
+  @override
+  Future<WalletWithdrawalReceipt> cancelWithdrawal(
+    int withdrawal,
+    String operation,
+  ) async {
+    final allowed = _withdrawalCapabilities;
+    if (allowed == null ||
+        !allowed.isAdult ||
+        allowed.readOnly ||
+        !_withdrawalClaims.contains(withdrawal) ||
+        !_uuid(operation)) {
+      throw ApiException(
+        'Your withdrawal access changed. Refresh Wallets.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+    final row = WalletWithdrawalReceipt.fromJson(
+      await _send(
+        'POST',
+        '/withdrawals/$withdrawal/cancel',
+        data: {
+          'operation_id': operation,
+          'private_reason':
+              'Cancelled by the original adult holder before outside payment',
+          'confirmed': true,
+        },
+        operation: operation,
+      ),
+    );
+    _withdrawalReceipt(row);
+    if (row.id != withdrawal ||
+        row.status != WalletWithdrawalReceiptStatusEnum.cancelled) {
+      _invalid();
+    }
+    return row;
   }
 
   void _summary({

@@ -18,9 +18,9 @@ or reconciling abandoned seed money into the new financial source.
 | 6 | Pro-rata joins/leavers, refunds and payer corrections | Proration PR322 in hosted qualification; later leaver credits PR323 in hosted qualification; reserved manual refunds implemented with qualification in progress; payer corrections/late charges remain |
 | 7 | Personal wallets, statements and spending limits | Implemented; local and hosted qualification in progress |
 | 8 | Master funding, desk/parent top-ups, approvals and transfers | Master funding PR327 and desk grants PR328 published; parent transfers/recovery implemented in qualification; parent deposits8C2 published as PR332 with local qualification passed; exact-source hosted CI/review/main remain pending |
-| 9 | Adult withdrawals, Finance approval and cash/bank policy | Pending |
+| 9 | Adult withdrawals, Finance approval and cash/bank policy | Implemented with local qualification in progress; final native/hosted/main pending |
 | 10 | Daily cash-up by operator and explained differences | Pending |
-| 11 | Vendors, storefronts, products/stock, orders and fulfilment | Pending |
+| 11 | Vendors, storefronts, products/stock, orders and fulfilment | Vendor setup, catalogue and stock implementation starting while withdrawal qualification runs |
 | 12 | Vendor-owned panel/API and native scanner flavour | Pending |
 | 13 | Vendor settlements, collection metadata and reports | Pending |
 | 14 | Ticket sales, capacity, ownership, redemption and transfers | Pending |

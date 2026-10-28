@@ -22,6 +22,7 @@ void main() {
         var allowed = true;
         final transfers = <Map<String, dynamic>>[];
         final deposits = <Map<String, dynamic>>[];
+        final withdrawals = <Map<String, dynamic>>[];
         final statement = walletStatementFixture();
         statement['owner_user_id'] = 11;
         statement['can_manage_limits'] = parent;
@@ -113,6 +114,27 @@ void main() {
                 1000;
             return response(receipt);
           },
+          'GET v2/wallets/withdrawals': (RequestOptions _) => response(
+            walletWithdrawalPageFixture(
+              viewer: actor,
+              configured: parent,
+              items: withdrawals,
+            ),
+          ),
+          'POST v2/wallets/withdrawals': (RequestOptions q) {
+            withdrawals.add(
+              walletWithdrawalReceiptFixture(
+                operation: (q.data as Map)['operation_id'] as String,
+                viewer: actor,
+                method: 'cash',
+                cents: 1000,
+              ),
+            );
+            ((index['owners'] as List).first['wallets'] as List)
+                    .first['balance_cents'] =
+                1950;
+            return response(withdrawals.single);
+          },
           'GET v2/wallets/deposits': (RequestOptions _) => response(
             walletDepositPageFixture(
               viewer: actor,
@@ -156,8 +178,7 @@ void main() {
           find.byType(parent ? ParentHomeScreen : HomeScreen),
         );
         await tapWhenReady(tester, find.text('Wallets'));
-        await pumpUntilFound(tester, find.text('Open wallet statement'));
-        await tapWhenReady(tester, find.text('Open wallet statement').last);
+        await openWalletStatement(tester, 7);
         await pumpUntilFound(tester, find.text('Wallet balance'));
         expect(find.text('Asha Synthetic'), findsWidgets);
         expect(
@@ -192,8 +213,7 @@ void main() {
             ),
             hasLength(1),
           );
-          await pumpUntilFound(tester, find.text('Open wallet statement'));
-          await tapWhenReady(tester, find.text('Open wallet statement').last);
+          await openWalletStatement(tester, 7);
           await pumpUntilFound(tester, find.text('ZAR 60.00'));
           await tapWhenReady(tester, find.text('Parent wallet deposits'));
           await pumpUntilFound(
@@ -236,7 +256,9 @@ void main() {
             find.text('Submit deposit for verification'),
           );
           await tester.pumpAndSettle();
-          await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          if (find.text('WD-401').evaluate().isEmpty) {
+            await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          }
           await pumpUntilFound(tester, find.text('WD-401'));
           expect(find.text('Awaiting Finance verification'), findsOneWidget);
           expect(
@@ -259,11 +281,22 @@ void main() {
               2950;
           await tester.tap(find.byTooltip('Refresh wallets'));
           await tester.pumpAndSettle();
-          await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          if (find.text('WP-501').evaluate().isEmpty) {
+            await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          }
           await pumpUntilFound(tester, find.text('WP-501'));
           expect(
             find.text('Actual verified amount: ZAR 19.50'),
             findsOneWidget,
+          );
+          await exerciseWithdrawal(tester, withdrawals);
+          expect(
+            api.requests.where(
+              (r) =>
+                  r.method == 'POST' &&
+                  r.uri.path.endsWith('/wallets/withdrawals'),
+            ),
+            hasLength(1),
           );
         }
         allowed = false;
@@ -277,6 +310,8 @@ void main() {
         expect(find.text('WX-301'), findsNothing);
         expect(find.text('WD-401'), findsNothing);
         expect(find.text('WP-501'), findsNothing);
+        expect(find.text('WW-601'), findsNothing);
+        expect(find.text('WW-PAY-801'), findsNothing);
         final reads = api.requests.where(
           (q) => q.uri.path.contains('/v2/wallets'),
         );
@@ -289,4 +324,82 @@ void main() {
       },
     );
   }
+}
+
+Future<void> exerciseWithdrawal(
+  WidgetTester tester,
+  List<Map<String, dynamic>> requests,
+) async {
+  await tester.scrollUntilVisible(
+    find.text('Adult wallet withdrawals'),
+    160,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const ValueKey('wallet-screen-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tapWhenReady(tester, find.text('Adult wallet withdrawals'));
+  final amount = find.byWidgetPredicate(
+    (w) => w is TextField && w.decoration?.labelText == 'Withdrawal amount',
+  );
+  await pumpUntilFound(tester, amount);
+  await tester.ensureVisible(amount);
+  await tester.enterText(amount, '10.00');
+  await pumpUntilFound(tester, find.text('Cash pickup slot'));
+  final selector = find.byType(DropdownButtonFormField<int>).last;
+  await tester.ensureVisible(selector);
+  await tester.tap(selector);
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.text('2026-11-01 10:00 – 2026-11-01 11:00 Africa/Johannesburg').last,
+  );
+  await tester.pumpAndSettle();
+  await tapWhenReady(
+    tester,
+    find.text(
+      'I reviewed the amount and my own pickup or bank details. Reserve these funds for Finance approval; this does not send a payment.',
+    ),
+  );
+  await tapWhenReady(tester, find.text('Request wallet withdrawal'));
+  await tester.pumpAndSettle();
+  Future<void> expanded(String text) async {
+    if (find.text(text).evaluate().isEmpty) {
+      await tapWhenReady(tester, find.text('Adult wallet withdrawals'));
+    }
+    await pumpUntilFound(tester, find.text(text));
+  }
+
+  await expanded('WW-601');
+  expect(find.text('Awaiting Finance approval'), findsOneWidget);
+  requests.single['status'] = 'approved';
+  requests.single['processed_at'] = '2026-06-15T09:01:00.000000Z';
+  await tester.tap(find.byTooltip('Refresh wallets'));
+  await tester.pumpAndSettle();
+  await expanded('Approved, awaiting actual payment');
+  expect(find.text('Cancel unpaid withdrawal'), findsNothing);
+  requests.single['status'] = 'paid';
+  requests.single['paid_on'] = '2026-06-15';
+  requests.single['payout_reference'] = 'WW-PAY-801';
+  await tester.tap(find.byTooltip('Refresh wallets'));
+  await tester.pumpAndSettle();
+  await expanded('WW-PAY-801');
+  expect(find.text('Paid'), findsOneWidget);
+}
+
+Future<void> openWalletStatement(WidgetTester tester, int wallet) async {
+  await pumpUntilFound(tester, find.text('Open wallet statement'));
+  final target = find.byKey(ValueKey('wallet-statement-$wallet'));
+  await tester.scrollUntilVisible(
+    target,
+    160,
+    scrollable: find
+        .descendant(
+          of: find.byKey(const ValueKey('wallet-screen-scroll')),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tapWhenReady(tester, target);
 }

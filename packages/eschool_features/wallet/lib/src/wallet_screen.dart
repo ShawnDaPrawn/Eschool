@@ -7,6 +7,7 @@ import 'wallet_repository.dart';
 import 'wallet_text.dart';
 import 'wallet_transfer_section.dart';
 import 'wallet_deposit_section.dart';
+import 'wallet_withdrawal_section.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({required this.repository, super.key});
@@ -49,6 +50,7 @@ class _WalletViewState extends State<_WalletView> {
                 child: Text(tr('Your wallet access changed. Reopen Wallets.')),
               )
             : ListView(
+                key: const ValueKey('wallet-screen-scroll'),
                 padding: const EdgeInsets.all(16),
                 children: [
                   if (state.busy)
@@ -83,6 +85,9 @@ class _WalletViewState extends State<_WalletView> {
                   if (cubit.deposits?.isParent == true ||
                       (cubit.deposits?.total ?? 0) > 0)
                     WalletDepositSection(cubit: cubit),
+                  if (cubit.withdrawals?.isAdult == true ||
+                      (cubit.withdrawals?.total ?? 0) > 0)
+                    WalletWithdrawalSection(cubit: cubit),
                   if (statement == null) ...[
                     Text(
                       tr('Your own and authorised child wallets'),
@@ -129,6 +134,9 @@ class _WalletViewState extends State<_WalletView> {
                                 if (wallet.readOnly)
                                   Text(tr('Wallet history is read-only.')),
                                 OutlinedButton(
+                                  key: ValueKey(
+                                    'wallet-statement-${wallet.id}',
+                                  ),
                                   onPressed: state.busy
                                       ? null
                                       : () => cubit.show(wallet.id),

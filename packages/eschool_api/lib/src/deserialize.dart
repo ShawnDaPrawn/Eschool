@@ -1223,6 +1223,13 @@ import 'package:eschool_api/src/model/wallet_transfer_page_response.dart';
 import 'package:eschool_api/src/model/wallet_transfer_receipt.dart';
 import 'package:eschool_api/src/model/wallet_transfer_receipt_response.dart';
 import 'package:eschool_api/src/model/wallet_transfer_write.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_cancel_write.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_page.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_page_response.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_receipt.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_slot.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_write.dart';
 import 'package:eschool_api/src/model/weekly_digest_access.dart';
 import 'package:eschool_api/src/model/weekly_digest_access_response.dart';
 import 'package:eschool_api/src/model/weekly_digest_action_templates.dart';
@@ -5505,6 +5512,31 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'WalletTransferWrite':
       return WalletTransferWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalCancelWrite':
+      return WalletWithdrawalCancelWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalPage':
+      return WalletWithdrawalPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalPageResponse':
+      return WalletWithdrawalPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletWithdrawalReceipt':
+      return WalletWithdrawalReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalReceiptResponse':
+      return WalletWithdrawalReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletWithdrawalSlot':
+      return WalletWithdrawalSlot.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalWrite':
+      return WalletWithdrawalWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WeeklyDigestAccess':
       return WeeklyDigestAccess.fromJson(value as Map<String, dynamic>)

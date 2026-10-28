@@ -23,6 +23,10 @@ import 'package:eschool_api/src/model/wallet_operation_resolution_response.dart'
 import 'package:eschool_api/src/model/wallet_transfer_page_response.dart';
 import 'package:eschool_api/src/model/wallet_transfer_receipt_response.dart';
 import 'package:eschool_api/src/model/wallet_transfer_write.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_cancel_write.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_page_response.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_write.dart';
 
 class WalletsApi {
   final Dio _dio;
@@ -133,6 +137,122 @@ class WalletsApi {
     }
 
     return Response<WalletDepositReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Cancel an unpaid own withdrawal and restore its original wallet
+  /// Fresh school, adult role, original owner and module authority apply before permanent replay. Requests reserve own available funds; Finance approval and verified outside payout are separate. Current learners never withdraw. Private bank instructions and proof are excluded from history. No payment is executed.
+  ///
+  /// Parameters:
+  /// * [withdrawal]
+  /// * [walletWithdrawalCancelWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletWithdrawalReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletWithdrawalReceiptResponse>>
+  cancelPersonalWalletWithdrawal({
+    required int withdrawal,
+    required WalletWithdrawalCancelWrite walletWithdrawalCancelWrite,
+    int? xSchoolId,
+    int? xAccountId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wallets/withdrawals/{withdrawal}/cancel'.replaceAll(
+      '{'
+      r'withdrawal'
+      '}',
+      withdrawal.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(walletWithdrawalCancelWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletWithdrawalReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletWithdrawalReceiptResponse,
+              WalletWithdrawalReceiptResponse
+            >(rawData, 'WalletWithdrawalReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletWithdrawalReceiptResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -553,6 +673,104 @@ class WalletsApi {
     );
   }
 
+  /// Read own withdrawal policy, pickup availability and history
+  /// Fresh school, adult role, original owner and module authority apply before permanent replay. Requests reserve own available funds; Finance approval and verified outside payout are separate. Current learners never withdraw. Private bank instructions and proof are excluded from history. No payment is executed.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [perPage]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletWithdrawalPageResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletWithdrawalPageResponse>> listPersonalWalletWithdrawals({
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    int? perPage,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wallets/withdrawals';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{
+      if (page != null) r'page': page,
+      if (perPage != null) r'per_page': perPage,
+    };
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletWithdrawalPageResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletWithdrawalPageResponse,
+              WalletWithdrawalPageResponse
+            >(rawData, 'WalletWithdrawalPageResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletWithdrawalPageResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// List your own and authorised child wallet choices
   /// Fresh active school/person roles and verified guardian approval authority apply independently of fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer cents.
   ///
@@ -846,6 +1064,115 @@ class WalletsApi {
     }
 
     return Response<WalletDepositReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Reserve original adult wallet money for Finance approval
+  /// Fresh school, adult role, original owner and module authority apply before permanent replay. Requests reserve own available funds; Finance approval and verified outside payout are separate. Current learners never withdraw. Private bank instructions and proof are excluded from history. No payment is executed.
+  ///
+  /// Parameters:
+  /// * [walletWithdrawalWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletWithdrawalReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletWithdrawalReceiptResponse>>
+  requestPersonalWalletWithdrawal({
+    required WalletWithdrawalWrite walletWithdrawalWrite,
+    int? xSchoolId,
+    int? xAccountId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/wallets/withdrawals';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(walletWithdrawalWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletWithdrawalReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletWithdrawalReceiptResponse,
+              WalletWithdrawalReceiptResponse
+            >(rawData, 'WalletWithdrawalReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletWithdrawalReceiptResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

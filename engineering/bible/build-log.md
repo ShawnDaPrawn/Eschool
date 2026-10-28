@@ -845,3 +845,12 @@ claims/outcomes, private proof, shared external identity, cash custodian, person
 receipts, recovery and reconciliation are retained. See self-tests/money/parent-
 wallet-deposits.md for executed qualification. Withdrawals, cash-up, commerce and
 6D payer/late-charge work remain; gateways stay deferred.
+
+## 2026-10-28 — reserved adult wallet withdrawals
+
+Increment9 adds original-holder reservations, explicit cash/bank boundary and
+pickup capacity, independent Finance approval, verified outside payout, safe
+release, shared fee-refund/wallet disbursement identity and private app receipts.
+Qualification is tracked in self-tests/money/adult-wallet-withdrawals.md. Vendor
+setup/catalogues/stock proceed while native and hosted qualification runs.
+Gateway execution remains deferred.
