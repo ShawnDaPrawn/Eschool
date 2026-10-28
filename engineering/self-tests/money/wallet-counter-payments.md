@@ -68,3 +68,14 @@ actual app profiles with controlled transport, not physical NFC/camera proof. Ex
 and main integration remain separate. Staging, physical NFC/camera, iOS signing/
 build/device, fluent-language and independent money/security acceptance are
 external release records; none is represented as run by a controlled fixture.
+
+Native configuration preflight now checks the Vendor camera/storage/NFC branch
+separately from the Facilitator URL handler and Teacher-only generated plugins.
+Signed identities, all eighteen named configurations, three schemes, nine Pod
+mappings, Vendor-only NFC entitlement/permission and fourteen Crashlytics shell
+cases passed. Five injected unsafe plugin/identity changes were refused. Dedicated
+Vendor and Facilitator identity tests also passed9 cases each with their actual
+Dart flavour definitions. This static check does not compile Android/iOS code.
+
+Published delivery and current hosted/main status:
+[PR346](https://github.com/ShawnDaPrawn/Eschool/pull/346).

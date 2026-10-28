@@ -24,7 +24,7 @@ or reconciling abandoned seed money into the new financial source.
 | 12 | Vendor-owned panel/API and native scanner flavour | PR339 published; local qualification passed; review Finance replay finding fixed, targeted regression passed and updated exact-source review has no findings; hosted/main pending |
 | 13 | Vendor settlements, collection metadata and reports | PR340 published; local qualification passed; fee-only reconciliation review finding fixed, global/fee regressions passed; exact-source hosted CI/main pending |
 | 14 | Ticket sales, capacity, ownership, redemption and transfers | PR343 published; backend/API/races, responsive browser, SDK repeat and compiled five-profile local qualification passed; hosted/main pending |
-| 15 | Online wallet QR/card spending, SUN, photo and freeze checks | Implemented and locally qualified across backend/races, browser, migration, API/SDK and five compiled app profiles; evidence in self-tests/money/wallet-counter-payments.md; publication/hosted/main pending |
+| 15 | Online wallet QR/card spending, SUN, photo and freeze checks | Published [PR346](https://github.com/ShawnDaPrawn/Eschool/pull/346); backend/races, browser, migration, API/SDK and five compiled profiles locally qualified; evidence in self-tests/money/wallet-counter-payments.md; current hosted/main status is recorded on the PR |
 
 Every feature includes its applicable panel/app surfaces, contracts, fresh tenant/
 role/owner/guardian checks, balanced cents postings, durable idempotency, immutable
