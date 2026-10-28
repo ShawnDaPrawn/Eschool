@@ -80,9 +80,23 @@ void main() {
           find.text('Vendor settlement amount: ZAR 12.50'),
         );
         expect(find.text('Collector fee: ZAR 0.00'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Event admissions'),
+          -250,
+          scrollable: find
+              .descendant(
+                of: find.byKey(const ValueKey('vendor-counter-scroll')),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         admissionScan = true;
         await tapWhenReady(tester, find.text('Event admissions'));
         if (mode == 'typed') {
+          await pumpUntilFound(
+            tester,
+            field('Current ticket number or admission QR'),
+          );
           await tester.enterText(
             field('Current ticket number or admission QR'),
             'TK-${'A' * 20}',

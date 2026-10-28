@@ -24,8 +24,21 @@ Executed local checks:
   Parent, Teacher and Facilitator, authority changes, original receiving/transfer
   confirmation, loss/recovery and opaque UUID persistence. Dedicated Vendor ticket
   repository/scanner confirmation: four tests passed.
-- Money and panel PHPStan passed. Final formatting, contract/SDK repeat, upgraded
-  migration rehearsal and compiled client checks are still being completed.
+- Money and panel PHPStan, fresh Pint, OpenAPI lint, e2e TypeScript and the
+  documentation production build passed. The generated SDK repeat preserved all
+  2,759 files byte for byte (2,758 Dart files plus its file inventory); all182 SDK
+  tests passed. SDK analysis reported generated naming-style infos only.
+- Compiled actual Learner, Parent, Teacher and Facilitator journeys passed: storefront
+  entry, private ticket/receiving code, recipient review, one transfer, unchanged
+  wallet balances and clearing after revoked access. Compiled dedicated Vendor
+  typed and QR journeys passed one actual admission and revoked-session clearing.
+  Native QR input uses a controlled scanner fixture; real camera/device checks
+  remain external evidence.
+- Empty up/down/up and populated23-migration rehearsal passed. Original ledger,
+  wallet and merchant financial rows stayed byte for byte identical on upgrade;
+  original immutable rows survived purchase, and all financial rows stayed identical
+  through transfer/admission including original-operation replay. Global ledger and
+  ticket reconciliation passed and retained rollback was refused.
 
 New UI keys retain all existing translations and use approved af/zu glossary
 entries where available, with explicit English fallbacks pending fluent review.
@@ -33,3 +46,9 @@ No payment provider, bank execution, external message or production release is
 activated. Hosted exact-source CI/review/main integration, real camera/device and
 staging acceptance remain separate evidence. These do not freeze independent
 payer-correction or online-spending development.
+
+The compiled Vendor harness scrolls back from settlement history and waits for the
+admission input to mount before typing. Failed integration runs now retain their
+response details. The cash-up navigation entry explicitly declares `module: null`,
+retaining cross-domain cash controls during individual module pause while satisfying
+the navigation registry contract. These are qualification fixes, not new authority.

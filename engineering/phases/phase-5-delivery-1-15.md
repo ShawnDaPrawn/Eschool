@@ -23,7 +23,7 @@ or reconciling abandoned seed money into the new financial source.
 | 11 | Vendors, storefronts, products/stock, orders and fulfilment | Catalogue/stock11A merged through PR337; storefront/orders11B PR338 in exact-source hosted qualification after global contract registry correction |
 | 12 | Vendor-owned panel/API and native scanner flavour | PR339 published; local qualification passed; review Finance replay finding fixed, targeted regression passed and updated exact-source review has no findings; hosted/main pending |
 | 13 | Vendor settlements, collection metadata and reports | PR340 published; local qualification passed; fee-only reconciliation review finding fixed, global/fee regressions passed; exact-source hosted CI/main pending |
-| 14 | Ticket sales, capacity, ownership, redemption and transfers | Implemented; local ticket/API/concurrency, browser and native qualification in progress; hosted/main pending |
+| 14 | Ticket sales, capacity, ownership, redemption and transfers | PR343 published; backend/API/races, responsive browser, SDK repeat and compiled five-profile local qualification passed; hosted/main pending |
 | 15 | Online wallet QR/card spending, SUN, photo and freeze checks | Pending |
 
 Every feature includes its applicable panel/app surfaces, contracts, fresh tenant/
