@@ -15,7 +15,7 @@ or reconciling abandoned seed money into the new financial source.
 | 3 | Expanded fee-plan rules and payment schedules | Merged PR317; final CI108/108 and review passed |
 | 4 | Automatic/rule/membership fee items and VAT | VAT PR318 and compulsory/membership PR319 merged via108/108 qualified source; opt-ins PR320 and discounts PR321 in hosted qualification |
 | 5 | Discounts, bursaries, exemptions and approval | Rule/calculator/Finance workbench locally qualified; PR321 in hosted qualification |
-| 6 | Pro-rata joins/leavers, refunds and payer corrections | Join/known-leaver charge and installment policy locally qualified; later leaver credits in progress, refunds/corrections remain |
+| 6 | Pro-rata joins/leavers, refunds and payer corrections | Proration PR322 in hosted qualification; later leaver-credit workbench locally qualified and publishing; refunds/corrections remain |
 | 7 | Personal wallets, statements and spending limits | Pending |
 | 8 | Master funding, desk/parent top-ups, approvals and transfers | Pending |
 | 9 | Adult withdrawals, Finance approval and cash/bank policy | Pending |

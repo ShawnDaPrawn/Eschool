@@ -67,6 +67,7 @@ use App\Http\Controllers\Panel\Money\FeeDiscountPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemBatchPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemRulePanelController;
+use App\Http\Controllers\Panel\Money\FeeLeaverPanelController;
 use App\Http\Controllers\Panel\Money\FeeLifecyclePanelController;
 use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
@@ -378,6 +379,16 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('fee-leavers')->name('fee-leavers.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeLeaverPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::get('new', [$c, 'form'])->name('new');
+            Route::post('prepare', [$c, 'prepare'])->name('prepare');
+            Route::get('{run}', [$c, 'show'])->whereNumber('run')->name('show');
+            Route::post('{run}/approve', [$c, 'approve'])->whereNumber('run')->name('approve');
+            Route::post('{run}/post', [$c, 'post'])->whereNumber('run')->name('post');
         });
         Route::prefix('fee-lifecycle')->name('fee-lifecycle.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeLifecyclePanelController::class;

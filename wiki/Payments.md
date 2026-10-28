@@ -480,3 +480,15 @@ no charge. A later leaver credit or cash refund requires its own reviewed workfl
 Adjacent dated class moves retain continuous school attendance for charging. Gaps
 and overlapping or unconfirmed records require review. They are not inferred as
 school departures or discounted joining dates.
+
+## Later departure credits
+
+Money → Leaver credits retains original tuition contracts and each original payer's
+credits. Finance explicitly chooses treatment of existing reductions and prior
+policyless invoices, then selects the original invoice and learner. Confirmed
+continuous school attendance must have ended; a class move does not qualify.
+Review original/served tuition and each payer credit, approve, then post once.
+Paid reductions restore original restricted receipt credit. This operation makes
+no cash refund. An unchanged departure cannot generate another credit; changed
+original rates/policies do not rewrite the saved contract. Private evidence stays
+with Finance, and parents see only their own generic leaver-credit history.

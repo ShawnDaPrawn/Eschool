@@ -781,3 +781,13 @@ A policy/enrolment change invalidates a pending review; posted history is retain
 Qualification is tracked in self-tests/money/fee-lifecycle-proration.md and the PR.
 Later leaver adjustments, refunds, payer corrections and late-charge policy remain
 next in increment6; wallet/commerce7–15 and gateway deferral continue separately.
+
+## 2026-10-28 — reviewed later leaver credits
+
+Increment6 adds reasoned later departures using original annual rates/contracts,
+continuous school attendance, explicit previous-reduction handling and original
+payer credits. Repeated unchanged departures cannot refund twice; an earlier
+corrected departure credits only the remaining legitimate difference. Paid credits
+restore restricted original receipts. Qualification is tracked in
+self-tests/money/leaver-credits.md and the PR. Verified cash/bank fee refunds and
+payer-debt corrections are next; wallets/commerce7–15 continue separately.

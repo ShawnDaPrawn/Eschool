@@ -419,3 +419,12 @@ and installment choices feed canonical rate/bill previews. Immutable bill snapsh
 retain original annual cents, actual enrolment, exact policy/units, charged period
 and installment budgets. Existing invoice line/seal checks bind those original
 reviewed amounts and periods; no original financial row is rewritten.
+
+### Later leaver credits
+
+`fee_leaver_policies` stores explicit handling for prior policyless ledger invoices,
+existing reductions and independent approval. `fee_leaver_runs` retains immutable
+reviewed original contract/attendance/payer-credit snapshots and encrypted Finance
+evidence. Tenant FKs and SQL guards bind exact sealed original tuition credits,
+learner/year/currency, states and approval. Existing invoices remain unchanged;
+prior leaver credits are counted separately from permanent own payer reductions.

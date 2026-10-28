@@ -7,9 +7,11 @@ namespace App\Models\Money;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
-/** @property array $snapshot
- * @property array $credit_note_ids
- * @property int $amount_cents
+/** @property int $session_year_id
+ * @property int|null $learner_id
+ * @property int $amount_value
+ * @property bool $independent_approval
+ * @property array|null $staff_roles
  */
 class FeeDiscount extends Model
 {

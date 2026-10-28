@@ -313,3 +313,10 @@ Disabled fees retain read-only history. No provider, notification or spend is ad
 Existing fees and fee-plans-manage permission cover explicit school proration and
 new-bill installment policy. History remains readable when fees are disabled,
 including policies saved before the first posting. No notification/provider is added.
+
+### Later leaver credits
+
+Existing fees/fee-credits-manage permission covers the reviewed departure workbench.
+Independent approval is an explicit school choice for this workflow. Parents reuse
+generic own leaver-credit history. No new notification, provider or transport is
+activated. Disabled fees keep read-only policy and departure history.
