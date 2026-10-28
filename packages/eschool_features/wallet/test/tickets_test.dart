@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_wallet/eschool_wallet.dart';
@@ -24,6 +25,66 @@ void main() {
     server.forgedOwner = 999;
     await expectLater(repository.tickets(), throwsA(isA<ApiException>()));
   });
+  test(
+    'a transfer from page two keeps its selected ticket authorised',
+    () async {
+      final server = TicketFakeServer();
+      server.api.routes['GET v2/commerce/tickets'] = (RequestOptions q) {
+        final selected = int.parse(q.queryParameters['page'].toString()) == 2;
+        return server.answer({
+          ...server.scope,
+          'items': selected
+              ? (server.held ? [server.ticket()] : <Object>[])
+              : [
+                  {...server.ticket(), 'id': 1700},
+                ],
+          'page': selected ? 2 : 1,
+          'last_page': 2,
+        });
+      };
+      final cubit = TicketCubit(server.repository());
+      expect(await cubit.load(page: 2), isTrue);
+      expect(await cubit.preview(1701, 'SYNTHETIC-RECEIVE-99'), isTrue);
+      expect(cubit.state.page!.page, 2);
+      expect(await cubit.transfer(), isTrue);
+      expect(server.writes, 1);
+      expect(cubit.hasPending, isFalse);
+      expect(
+        server.api.requests
+            .where(
+              (q) =>
+                  q.uri.path.endsWith('/commerce/tickets') &&
+                  q.queryParameters['page'] == 2,
+            )
+            .length,
+        2,
+      );
+      await cubit.close();
+    },
+  );
+
+  test(
+    'a selected ticket moved off the current page never starts a transfer intent',
+    () async {
+      final server = TicketFakeServer();
+      final cubit = TicketCubit(server.repository());
+      await cubit.load();
+      server.api.routes['GET v2/commerce/tickets'] = (RequestOptions _) =>
+          server.answer({
+            ...server.page(),
+            'items': [
+              {...server.ticket(), 'id': 1700},
+            ],
+          });
+      expect(await cubit.preview(1701, 'SYNTHETIC-RECEIVE-99'), isTrue);
+      expect(cubit.state.preview, isNull);
+      expect(await cubit.transfer(), isFalse);
+      expect(cubit.hasPending, isFalse);
+      expect(server.writes, 0);
+      await cubit.close();
+    },
+  );
+
   test(
     'transfer returns a safe original acknowledgement and moves no wallet money',
     () async {

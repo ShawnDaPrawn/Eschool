@@ -111,7 +111,7 @@ final class Wallets
                 }
                 $policy->owner($fresh, (int) $subject->id);
                 $wallet = WalletAccount::where('user_id', $subject->id)->first();
-                $learner = in_array('Student', $policy->roles($subject), true) ? Students::where('user_id', $subject->id)->value('id') : null;
+                $learner = $policy->learnerWalletOwner($subject) ? Students::where('user_id', $subject->id)->value('id') : null;
                 $rows[] = ['owner_user_id' => (int) $subject->id, 'learner_id' => $learner === null ? null : (int) $learner, 'owner_name' => trim($subject->first_name.' '.$subject->last_name), 'is_self' => (int) $subject->id === (int) $fresh->id, 'can_open' => $settings !== null && app(ModuleGate::class)->writable('wallet') && $this->canOpen($subject), 'wallets' => $wallet ? [$this->summary($wallet) + ['can_manage_limits' => $this->canManage($fresh, $wallet)]] : []];
             }
 

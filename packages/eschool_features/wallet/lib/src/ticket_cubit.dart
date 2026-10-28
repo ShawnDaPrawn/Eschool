@@ -94,9 +94,23 @@ class TicketCubit extends Cubit<TicketState> {
         state.page?.items.any((t) => t.id == ticket && t.canTransfer) != true) {
       return Future.value(false);
     }
+    final pageNumber = state.page!.page;
     return _run(() async {
+      _receiveCode = '';
       final preview = await repository.preview(ticket, code);
-      final page = await repository.tickets();
+      final page = await repository.tickets(page: pageNumber);
+      if (!page.items.any(
+        (row) =>
+            row.id == ticket &&
+            row.revision == preview.revision &&
+            row.canTransfer,
+      )) {
+        return TicketState(
+          page: page,
+          error:
+              'Tickets could not be updated. Refresh or check the original request outcome.',
+        );
+      }
       _receiveCode = code;
       return TicketState(page: page, preview: preview);
     });

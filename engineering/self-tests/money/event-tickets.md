@@ -52,3 +52,11 @@ admission input to mount before typing. Failed integration runs now retain their
 response details. The cash-up navigation entry explicitly declares `module: null`,
 retaining cross-domain cash controls during individual module pause while satisfying
 the navigation registry contract. These are qualification fixes, not new authority.
+
+Review follow-up: transfer preview refreshes the selected ticket page and verifies
+that the original selected ticket/revision is still present before enabling a
+transfer intent. A page-two transfer succeeds; a ticket moved off-page starts no
+pending intent. Read-authorised historical learner owners retain their learner ID
+after Student membership ends, while purchase/control authority remains refused.
+The full wallet package passed105 tests with no analyzer issues; two focused
+retained learner/history tests passed8 assertions. No API/SDK shape changes.

@@ -14,6 +14,7 @@ use App\Models\Commerce\VendorProduct;
 use App\Models\Money\WalletAccount;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
+use App\Models\Platform\SchoolMembership;
 use App\Models\User;
 use App\Services\Commerce\TicketCatalogues;
 use App\Services\Commerce\TicketCounters;
@@ -383,6 +384,24 @@ class TicketsTest extends TestCase
         $this->refuses(fn () => $service->previewTransfer($this->parent, $ticket->id, $code['receive_code']), 409);
         $this->assertSame(0, TicketAction::count());
         $this->assertSame((int) $this->parent->id, $service->receipt($this->parent, $ticket->id)['holder_user_id']);
+    }
+
+    public function test_guardian_named_history_keeps_learner_identity_after_student_membership_ends(): void
+    {
+        $type = $this->type('named');
+        $this->admission($type, 1, $this->schoolA->ids['asha']);
+        $ticket = Ticket::sole();
+        $this->child->forceFill(['status' => 0])->save();
+        SchoolMembership::where('school_id', 1)->where('user_id', $this->child->id)->where('role', 'Student')->update(['status' => 'ended', 'ends_on' => now()->subDay()->toDateString()]);
+        $owners = app(Wallets::class)->accessible($this->parent);
+        $child = collect($owners['owners'])->firstWhere('owner_user_id', (int) $this->child->id);
+        $this->assertSame($this->schoolA->ids['asha'], $child['learner_id']);
+        $this->assertFalse($child['can_open']);
+        $rows = app(TicketHolders::class)->listing($this->parent);
+        $this->assertCount(1, $rows['items']);
+        $this->assertSame($ticket->id, $rows['items'][0]['id']);
+        $this->assertSame($this->schoolA->ids['asha'], $rows['items'][0]['named_learner_id']);
+        $this->refuses(fn () => $this->admission($type, 1, $this->schoolA->ids['asha']), 403);
     }
 
     public function test_other_counter_cannot_look_up_ticket_and_original_lineage_reconciles(): void
