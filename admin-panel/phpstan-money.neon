@@ -13,6 +13,7 @@ parameters:
         - app/Events/Money
         - app/Http/Requests/Money
         - app/Http/Middleware/RequireFeeItemConsentAuthority.php
+        - app/Http/Middleware/RequireWalletAuthority.php
         - database/migrations/2026_10_26_260000_create_fee_plan_catalogue.php
         - database/migrations/2026_10_27_100000_create_family_billing.php
         - database/migrations/2026_10_27_200000_create_fee_payments.php
@@ -36,4 +37,5 @@ parameters:
         - app/Services/Platform/Ledger/LedgerService.php
         - app/Console/Commands/ReconcileLedger.php
         - database/migrations/2026_10_26_250000_create_immutable_ledger.php
+        - database/migrations/2026_10_28_100000_create_personal_wallets.php
     noUnnecessaryCollectionCall: false

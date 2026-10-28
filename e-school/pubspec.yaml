@@ -12,6 +12,8 @@ environment:
 
 
 dependencies:
+  eschool_wallet:
+    path: ../packages/eschool_features/wallet
   eschool_fees:
     path: ../packages/eschool_features/fees
   eschool_academics:

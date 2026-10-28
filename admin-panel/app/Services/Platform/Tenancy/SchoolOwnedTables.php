@@ -24,7 +24,7 @@ final class SchoolOwnedTables
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',
-        'fee_accounts', 'fee_account_holders', 'fee_account_learners', 'bill_runs', 'invoices', 'invoice_lines', 'billing_operations', 'fee_items', 'fee_charges', 'fee_item_eligibility_rules', 'fee_item_batches', 'fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies', 'fee_leaver_policies', 'fee_leaver_runs', 'fee_refund_policies', 'fee_refunds', 'fee_refund_actions', 'fee_credit_notes', 'fee_credit_releases', 'fee_payment_policies', 'payments', 'payment_allocation_runs', 'payment_allocations',
+        'fee_accounts', 'fee_account_holders', 'fee_account_learners', 'bill_runs', 'invoices', 'invoice_lines', 'billing_operations', 'fee_items', 'fee_charges', 'fee_item_eligibility_rules', 'fee_item_batches', 'fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies', 'fee_leaver_policies', 'fee_leaver_runs', 'wallet_settings', 'wallet_accounts', 'wallet_limits', 'wallet_operations', 'fee_refund_policies', 'fee_refunds', 'fee_refund_actions', 'fee_credit_notes', 'fee_credit_releases', 'fee_payment_policies', 'payments', 'payment_allocation_runs', 'payment_allocations',
         'fee_plans', 'fee_plan_operations',
         'ledger_accounts', 'ledger_entries', 'ledger_postings',
         'foundation_classroom_groups', 'foundation_classroom_leases',

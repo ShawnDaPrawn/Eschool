@@ -43,3 +43,6 @@ Automatic eligibility and subsequent increments remain separate work.
 
 [Automatic item verification](money/automatic-fee-items.md) covers compulsory and
 membership batch charging. Parent opt-in approvals remain the next portion.
+
+[Personal wallets](money/personal-wallets.md) records zero-balance issuance, private
+statements and controls. Funding, withdrawals and commerce remain separate work.

@@ -33,6 +33,7 @@ import 'package:eschool_api/src/api/school_transfers_api.dart';
 import 'package:eschool_api/src/api/secure_cards_api.dart';
 import 'package:eschool_api/src/api/teaching_assistant_api.dart';
 import 'package:eschool_api/src/api/tutor_api.dart';
+import 'package:eschool_api/src/api/wallets_api.dart';
 import 'package:eschool_api/src/api/weekly_digests_api.dart';
 import 'package:eschool_api/src/api/wellbeing_api.dart';
 
@@ -313,6 +314,12 @@ class EschoolApi {
   /// by doing that all interceptors will not be executed
   TutorApi getTutorApi() {
     return TutorApi(dio);
+  }
+
+  /// Get WalletsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  WalletsApi getWalletsApi() {
+    return WalletsApi(dio);
   }
 
   /// Get WeeklyDigestsApi instance, base route and serializer can be overridden by a given but be careful,

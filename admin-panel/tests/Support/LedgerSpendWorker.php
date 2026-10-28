@@ -15,8 +15,6 @@ $app->make(Kernel::class)->bootstrap();
 if (! app()->environment('testing') || ! str_ends_with((string) config('database.connections.mysql.database'), '_test')) {
     throw new RuntimeException('Ledger worker is restricted to test databases.');
 }
-config(['modules.wallet' => ['name' => 'Wallet', 'money' => true, 'default' => true],
-    'school_packages.legacy' => [...config('school_packages.legacy'), 'wallet']]);
 [$script, $wallet, $cash, $key, $barrier, $slot] = $argv;
 app(CurrentSchool::class)->set(1);
 file_put_contents($barrier.'.ready.'.$slot, 'ready');

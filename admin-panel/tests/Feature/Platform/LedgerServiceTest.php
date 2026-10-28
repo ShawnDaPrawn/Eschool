@@ -37,8 +37,7 @@ class LedgerServiceTest extends TestCase
         $this->ledger = app(LedgerService::class);
         $this->cash = $this->ledger->openAccount(AccountType::CashDesk, 'cash:desk', 'ZAR');
         $this->family = $this->ledger->openAccount(AccountType::Family, 'family:1', 'ZAR', $this->schoolA->ids['farid_user']);
-        config(['modules.wallet' => ['name' => 'Wallet', 'money' => true, 'default' => true],
-            'school_packages.legacy' => [...config('school_packages.legacy'), 'wallet']]);
+        app(ModuleGate::class)->change('wallet', true, $this->superAdmin());
         app(ModuleGate::class)->forget();
     }
 

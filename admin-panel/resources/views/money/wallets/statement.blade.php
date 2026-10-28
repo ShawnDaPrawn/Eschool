@@ -1,0 +1,10 @@
+@extends('layouts.master')
+@section('title', __('Wallets'))
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('Wallets')" />
+@if(session('success'))<p role="status">{{ session('success') }}</p>@endif
+<x-m3.button variant="text" :href="route('wallet-finance.index')">{{ __('Back to wallet balances') }}</x-m3.button><h2>{{ $statement['owner_name'] }}</h2><p>{{ __('Wallet balance') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($statement['balance_cents'],$statement['currency'])->format() }}</p>
+@if($statement['read_only'])<p>{{ __('Wallet history is read-only while wallets are disabled.') }}</p>@endif
+<div class="page-table__scroll" role="region" aria-label="{{ __('Wallet statement') }}" tabindex="0"><table class="page-table__table"><caption>{{ __('Wallet statement') }}</caption><thead><tr><th scope="col">{{ __('Posted on') }}</th><th scope="col">{{ __('Movement') }}</th><th scope="col">{{ __('Amount') }}</th><th scope="col">{{ __('Balance afterwards') }}</th></tr></thead><tbody>
+@foreach($statement['entries']['items'] as $entry)<tr><td>{{ $entry['posted_at'] }}</td><td>{{ __($entry['description']) }}</td><td>{{ \App\Services\Platform\Ledger\Money::ofCents($entry['change_cents'],$statement['currency'])->format() }}</td><td>{{ \App\Services\Platform\Ledger\Money::ofCents($entry['balance_after_cents'],$statement['currency'])->format() }}</td></tr>@endforeach
+</tbody></table></div><nav aria-label="{{ __('Wallet statement pages') }}">@if($statement['entries']['current_page']>1)<a href="{{ route('wallet-finance.show',['wallet'=>$statement['id'],'page'=>$statement['entries']['current_page']-1]) }}">{{ __('Previous') }}</a>@endif @if($statement['entries']['current_page']*$statement['entries']['per_page']<$statement['entries']['total'])<a href="{{ route('wallet-finance.show',['wallet'=>$statement['id'],'page'=>$statement['entries']['current_page']+1]) }}">{{ __('Next') }}</a>@endif</nav></div>@endsection

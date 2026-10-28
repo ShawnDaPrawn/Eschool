@@ -755,6 +755,7 @@ import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
+import 'package:eschool_api/src/model/open_personal_wallet_request.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/pagination.dart';
 import 'package:eschool_api/src/model/parent_fee_account_summary.dart';
@@ -810,6 +811,9 @@ import 'package:eschool_api/src/model/peer_session_page.dart';
 import 'package:eschool_api/src/model/peer_session_page_response.dart';
 import 'package:eschool_api/src/model/peer_session_result.dart';
 import 'package:eschool_api/src/model/peer_session_result_response.dart';
+import 'package:eschool_api/src/model/personal_wallet_index.dart';
+import 'package:eschool_api/src/model/personal_wallet_index_response.dart';
+import 'package:eschool_api/src/model/personal_wallet_statement_response.dart';
 import 'package:eschool_api/src/model/practice_access.dart';
 import 'package:eschool_api/src/model/practice_approval.dart';
 import 'package:eschool_api/src/model/practice_approve_input.dart';
@@ -1195,6 +1199,13 @@ import 'package:eschool_api/src/model/update_profile_field_request.dart';
 import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
 import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
+import 'package:eschool_api/src/model/wallet_controls.dart';
+import 'package:eschool_api/src/model/wallet_controls_change.dart';
+import 'package:eschool_api/src/model/wallet_entry_page.dart';
+import 'package:eschool_api/src/model/wallet_owner.dart';
+import 'package:eschool_api/src/model/wallet_statement.dart';
+import 'package:eschool_api/src/model/wallet_statement_entry.dart';
+import 'package:eschool_api/src/model/wallet_summary.dart';
 import 'package:eschool_api/src/model/weekly_digest_access.dart';
 import 'package:eschool_api/src/model/weekly_digest_access_response.dart';
 import 'package:eschool_api/src/model/weekly_digest_action_templates.dart';
@@ -3896,6 +3907,9 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'OpenPersonalWalletRequest':
+      return OpenPersonalWalletRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'OpenWellbeingCaseResponse':
       return OpenWellbeingCaseResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -4057,6 +4071,17 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'PeerSessionResultResponse':
       return PeerSessionResultResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PersonalWalletIndex':
+      return PersonalWalletIndex.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PersonalWalletIndexResponse':
+      return PersonalWalletIndexResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PersonalWalletStatementResponse':
+      return PersonalWalletStatementResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'PracticeAccess':
       return PracticeAccess.fromJson(value as Map<String, dynamic>)
@@ -5382,6 +5407,26 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletControls':
+      return WalletControls.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletControlsChange':
+      return WalletControlsChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletEntryPage':
+      return WalletEntryPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletOwner':
+      return WalletOwner.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'WalletStatement':
+      return WalletStatement.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletStatementEntry':
+      return WalletStatementEntry.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletSummary':
+      return WalletSummary.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WeeklyDigestAccess':
       return WeeklyDigestAccess.fromJson(value as Map<String, dynamic>)

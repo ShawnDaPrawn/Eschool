@@ -802,3 +802,11 @@ accounting and domain reconciliation are retained. Shared fee app/SDK statements
 show reserved/paid amounts. Qualification is recorded in
 self-tests/money/fee-refunds.md and the feature PR. No external payment is executed.
 Payer corrections/explicit late-charge policy and increments7–15 continue next.
+
+## 2026-10-28 — personal wallets and guardian controls
+
+Increment7 adds zero-balance personal ledger wallets, private paginated statements,
+explicit school currency/caps, current guardian controls and independent wallet
+entries in family, teacher and dedicated facilitator apps. Disabled history stays
+readable. See self-tests/money/personal-wallets.md for executed qualification.
+Funding/spending and6D payer corrections remain next; gateways stay deferred.

@@ -329,3 +329,11 @@ Own parent receipt projections add reserved/paid cents without Finance evidence.
 Internal `fees.refund_changed` outbox events contain refund ID, amount and action;
 no new notification transport, provider, bank transfer or spend is activated.
 Disabled fees retain policy, private Finance history and own parent statements.
+
+### Personal wallet controls
+
+Wallet is a money module depending on people, independently of fees. Legacy and
+standard financial packages include the entitlement; activation remains explicit.
+Separate wallet-finance-manage authorizes Finance settings and private statements.
+Personal routes use current own/verified guardian approval authority. Facilitator
+profiles add an optional wallet capability. No transport/provider is activated.

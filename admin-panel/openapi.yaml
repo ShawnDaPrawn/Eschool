@@ -158,6 +158,8 @@ security:
 - bearerAuth: []
 - cookieAuth: []
 tags:
+- name: Wallets
+  description: Private personal wallets and guardian spending controls.
 - name: Gallery
   description: Private family photo history and consent.
 - name: Consultations
@@ -26144,6 +26146,185 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SecureEncodingConfirmation'
+  /wallets:
+    get:
+      operationId: listPersonalWallets
+      tags:
+      - Wallets
+      summary: List your own and authorised child wallet choices
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: List your own and authorised child wallet choices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletIndexResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: openPersonalWallet
+      tags:
+      - Wallets
+      summary: Open a zero-balance personal wallet
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Open a zero-balance personal wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenPersonalWalletRequest'
+  /wallets/{wallet}/statement:
+    get:
+      operationId: getPersonalWalletStatement
+      tags:
+      - Wallets
+      summary: Read your own permitted wallet statement
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: wallet
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 30
+      responses:
+        '200':
+          description: Read your own permitted wallet statement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /wallets/{wallet}/limits:
+    put:
+      operationId: setPersonalWalletControls
+      tags:
+      - Wallets
+      summary: Set your own adult or authorised child spending controls
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: wallet
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Set your own adult or authorised child spending controls
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletControlsChange'
   /parent/fees/accounts:
     get:
       operationId: listParentFeeAccounts
@@ -30465,6 +30646,9 @@ components:
       - messages
       - counselling
       properties:
+        wallet:
+          type: boolean
+          description: Optional personal-wallet capability, independently of fee access. Absence means unavailable.
         school_assistance:
           type: boolean
           description: Optional current school-office support capability; exact thread assignment is checked before every
@@ -59168,3 +59352,352 @@ components:
         total:
           type: integer
           minimum: 0
+
+    WalletControls:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - daily_spend_cents
+      - effective_daily_spend_cents
+      - all_categories
+      - categories
+      - configured
+      properties:
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        daily_spend_cents:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        effective_daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        all_categories:
+          type: boolean
+        categories:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_-]{0,39}$
+        configured:
+          type: boolean
+    WalletSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - owner_user_id
+      - owner_name
+      - currency
+      - balance_cents
+      - is_child
+      - read_only
+      - can_manage_limits
+      - school_daily_spend_cents
+      - child_limits_required
+      - limits
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_name:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        balance_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        is_child:
+          type: boolean
+        read_only:
+          type: boolean
+        can_manage_limits:
+          type: boolean
+        school_daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        child_limits_required:
+          type: boolean
+        limits:
+          $ref: '#/components/schemas/WalletControls'
+    WalletStatementEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - entry_id
+      - posted_at
+      - change_cents
+      - balance_after_cents
+      - description
+      properties:
+        entry_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        posted_at:
+          type: string
+          format: date-time
+        change_cents:
+          type: integer
+          format: int64
+          minimum: -9000000000000000
+          maximum: 9000000000000000
+        balance_after_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        description:
+          type: string
+    WalletEntryPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - current_page
+      - per_page
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletStatementEntry'
+        current_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+    WalletStatement:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - owner_user_id
+      - owner_name
+      - currency
+      - balance_cents
+      - is_child
+      - read_only
+      - can_manage_limits
+      - school_daily_spend_cents
+      - child_limits_required
+      - limits
+      - entries
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_name:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        balance_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        is_child:
+          type: boolean
+        read_only:
+          type: boolean
+        can_manage_limits:
+          type: boolean
+        school_daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        child_limits_required:
+          type: boolean
+        limits:
+          $ref: '#/components/schemas/WalletControls'
+        entries:
+          $ref: '#/components/schemas/WalletEntryPage'
+    WalletOwner:
+      type: object
+      additionalProperties: false
+      required:
+      - owner_user_id
+      - owner_name
+      - is_self
+      - can_open
+      - wallets
+      properties:
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_name:
+          type: string
+        is_self:
+          type: boolean
+        can_open:
+          type: boolean
+        wallets:
+          type: array
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/WalletSummary'
+    PersonalWalletIndex:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - currency
+      - owners
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Z]{3}$
+        owners:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletOwner'
+    OpenPersonalWalletRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - owner_user_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+    WalletControlsChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - daily_spend_cents
+      - all_categories
+      - categories
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        all_categories:
+          type: boolean
+        categories:
+          type: array
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_-]{0,39}$
+    PersonalWalletIndexResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PersonalWalletIndex'
+        code:
+          type: integer
+    PersonalWalletStatementResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletStatement'
+        code:
+          type: integer

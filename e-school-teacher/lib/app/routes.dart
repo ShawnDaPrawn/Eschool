@@ -49,6 +49,7 @@ import 'package:flutter/material.dart';
 
 // ignore: avoid_classes_with_only_static_members
 class Routes {
+  static const String personalWallets = '/wallets';
   static const String splash = 'splash';
   static const String policies = 'policies';
   static const String home = '/';
@@ -174,6 +175,7 @@ class Routes {
       familyVisits => 'family_visits',
       peerTutoring => 'peer_tutoring',
       schoolAssistance => 'ask_school',
+      personalWallets => 'wallet',
       schoolCards => 'cards',
       examCoach => 'exam_coach',
       dailyPractice => 'daily_practice',
@@ -202,6 +204,8 @@ class Routes {
     debugPrint('Route: $currentRoute');
 
     switch (routeSettings.name) {
+      case personalWallets:
+        return personalWalletsRoute();
       case splash:
         {
           return SplashScreen.route(routeSettings);

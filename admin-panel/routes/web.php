@@ -75,6 +75,7 @@ use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
+use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
@@ -380,6 +381,12 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('wallet-settings')->name('wallet-finance.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = WalletFinancePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'save'])->name('save');
+            Route::get('{wallet}/statement', [$c, 'show'])->whereNumber('wallet')->name('show');
         });
         Route::prefix('fee-refunds')->name('fee-refunds.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeRefundPanelController::class;

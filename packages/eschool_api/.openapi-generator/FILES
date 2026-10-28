@@ -27,6 +27,7 @@ lib/src/api/school_transfers_api.dart
 lib/src/api/secure_cards_api.dart
 lib/src/api/teaching_assistant_api.dart
 lib/src/api/tutor_api.dart
+lib/src/api/wallets_api.dart
 lib/src/api/weekly_digests_api.dart
 lib/src/api/wellbeing_api.dart
 lib/src/auth/api_key_auth.dart
@@ -798,6 +799,7 @@ lib/src/model/notification_preferences_response.dart
 lib/src/model/notification_rule.dart
 lib/src/model/notification_type_preference.dart
 lib/src/model/notification_type_preference_channels.dart
+lib/src/model/open_personal_wallet_request.dart
 lib/src/model/open_wellbeing_case_response.dart
 lib/src/model/pagination.dart
 lib/src/model/parent_fee_account_summary.dart
@@ -853,6 +855,9 @@ lib/src/model/peer_session_page.dart
 lib/src/model/peer_session_page_response.dart
 lib/src/model/peer_session_result.dart
 lib/src/model/peer_session_result_response.dart
+lib/src/model/personal_wallet_index.dart
+lib/src/model/personal_wallet_index_response.dart
+lib/src/model/personal_wallet_statement_response.dart
 lib/src/model/practice_access.dart
 lib/src/model/practice_approval.dart
 lib/src/model/practice_approve_input.dart
@@ -1238,6 +1243,13 @@ lib/src/model/update_profile_field_request.dart
 lib/src/model/upload_anonymous_incident_photo_response.dart
 lib/src/model/upload_identified_incident_photo_response.dart
 lib/src/model/validation_errors.dart
+lib/src/model/wallet_controls.dart
+lib/src/model/wallet_controls_change.dart
+lib/src/model/wallet_entry_page.dart
+lib/src/model/wallet_owner.dart
+lib/src/model/wallet_statement.dart
+lib/src/model/wallet_statement_entry.dart
+lib/src/model/wallet_summary.dart
 lib/src/model/weekly_digest_access.dart
 lib/src/model/weekly_digest_access_response.dart
 lib/src/model/weekly_digest_action_templates.dart

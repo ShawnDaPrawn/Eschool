@@ -438,3 +438,11 @@ reservation, verified payout or cancellation with exact two-sided ledger entries
 and unique payout-reference hashes. `fee_refund` is a nonnegative fees liability;
 held/paid amounts reduce only the original receipt credit. No receipt, original
 invoice or allocation is rewritten.
+
+### Personal wallets
+
+`wallet_settings` stores explicit revisioned school currency, daily maximum and
+child-control policy. `wallet_accounts` binds immutable school/person/currency to
+one existing wallet ledger account. `wallet_limits` stores revisioned daily/category
+controls. Immutable `wallet_operations` retains actor-bound UUID receipts. No new
+balance projection or money posting is created by issuance.

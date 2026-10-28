@@ -27,7 +27,7 @@ class InstallationSeeder extends Seeder
 
         // Add Permissions
         $permissions = [
-            ['name' => 'fee-accounts-manage'], ['name' => 'fee-billing-manage'], ['name' => 'fee-payments-manage'], ['name' => 'fee-credits-manage'], ['name' => 'fee-items-manage'],
+            ['name' => 'wallet-finance-manage'], ['name' => 'fee-accounts-manage'], ['name' => 'fee-billing-manage'], ['name' => 'fee-payments-manage'], ['name' => 'fee-credits-manage'], ['name' => 'fee-items-manage'],
             ['name' => 'fee-plans-manage'],
             ['name' => 'pathways-manage'],            ['name' => 'family-visits-manage'], ['name' => 'family-forms-manage'], ['name' => 'family-health-read'], ['name' => 'family-health-manage'],
             ['name' => 'ai-settings-manage'],

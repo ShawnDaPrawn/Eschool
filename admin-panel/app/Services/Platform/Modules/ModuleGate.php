@@ -196,6 +196,14 @@ class ModuleGate
             }
         }
 
+        if ($module === 'wallet') {
+            foreach (['wallet_settings', 'wallet_limits', 'wallet_operations'] as $table) {
+                if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
+                    return true;
+                }
+            }
+        }
+
         // Canonical history remains readable even after a wallet is emptied.
         // Opening an unused zero account alone does not retain a module.
         return DB::table('ledger_accounts as a')->where('a.school_id', $schoolId)->where('a.module', $module)

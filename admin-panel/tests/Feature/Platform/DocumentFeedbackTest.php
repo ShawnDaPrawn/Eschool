@@ -69,6 +69,6 @@ class DocumentFeedbackTest extends TestCase
         $request = Request::create('http://localhost/api/feedback');
         $response = (new PreserveDocumentFeedback)->handle($request, fn () => response()->json(['ok' => true]));
         $this->assertFalse($request->hasSession());
-        $this->assertSame(200,$response->getStatusCode());
+        $this->assertSame(200, $response->getStatusCode());
     }
 }

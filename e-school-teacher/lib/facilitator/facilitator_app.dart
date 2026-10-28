@@ -1,3 +1,4 @@
+import 'package:eschool_wallet/eschool_wallet.dart';
 import 'package:eschool_teacher/utils/teachingCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -585,6 +586,27 @@ class _StaffHome extends StatelessWidget {
               ),
             ),
           ),
+          if (profile.features['wallet'] == true)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.account_balance_wallet_outlined),
+                title: Text(l('Wallets')),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => open(
+                  'wallet',
+                  WalletScreen(
+                    repository: ApiWalletRepository(
+                      repository.client,
+                      schoolId: school,
+                      accountId: user,
+                      contextActive: () =>
+                          repository.matches(generation, school, user) &&
+                          repository.profile?.features['wallet'] == true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (profile.features['cards'] == true)
             Card(
               child: ListTile(
