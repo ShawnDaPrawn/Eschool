@@ -76,7 +76,9 @@ use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
 use App\Http\Controllers\Panel\Money\VendorCataloguePanelController;
+use App\Http\Controllers\Panel\Money\VendorOperatorPanelController;
 use App\Http\Controllers\Panel\Money\VendorOrderPanelController;
+use App\Http\Controllers\Panel\Money\VendorPortalController;
 use App\Http\Controllers\Panel\Money\WalletDepositPanelController;
 use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
@@ -193,6 +195,19 @@ Route::middleware('school.context:public')->group(function () {
         Route::get('registration', [WebController::class, 'registrationIndex'])->name('student-registration.index');
         Route::post('student-register', [WebController::class, 'studentRegistration'])->middleware('throttle:10,1')->name('student-registration-store');
         Route::get('error-page', [WebController::class, 'errorPage'])->name('error-page');
+    });
+});
+
+Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainResponse::class])->group(function (): void {
+    $c = VendorPortalController::class;
+    Route::get('sign-in', [$c, 'signInForm'])->name('sign-in-form');
+    Route::post('sign-in', [$c, 'signIn'])->middleware('throttle:login')->name('sign-in');
+    Route::post('sign-out', [$c, 'signOut'])->middleware('auth')->name('sign-out');
+    Route::middleware(['auth', 'school.context', 'role:Vendor', 'module:vendors,read'])->group(function () use ($c): void {
+        Route::get('/', [$c, 'index'])->name('index');
+        Route::post('counters/{vendor}/lookup', [$c, 'lookup'])->whereNumber('vendor')->name('lookup');
+        Route::get('counters/{vendor}/orders/{order}', [$c, 'show'])->whereNumber(['vendor', 'order'])->name('order');
+        Route::post('counters/{vendor}/collect', [$c, 'collect'])->whereNumber('vendor')->name('collect');
     });
 });
 
@@ -387,6 +402,12 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('vendor-operators')->name('vendor-operators.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
+            $c = VendorOperatorPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('provision', [$c, 'provision'])->name('provision');
+            Route::post('bind', [$c, 'bind'])->name('bind');
         });
         Route::prefix('vendor-orders')->name('vendor-orders.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
             $c = VendorOrderPanelController::class;

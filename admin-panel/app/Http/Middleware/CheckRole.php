@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Commerce\VendorOperatorAccess;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,8 +23,9 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next)
     {
+        abort_if(app(VendorOperatorAccess::class)->ownsSession($request), 403);
         $user = Auth::user();
-        $isStaff = $user && $user->roles()->whereNotIn('name', ['Parent', 'Student'])->exists();
+        $isStaff = $user && $user->roles()->whereNotIn('name', ['Parent', 'Student', 'Vendor'])->exists();
         $deactivatedTeacher = $isStaff && $user->hasRole('Teacher') && ! EnsureTeacherActive::isActive($user);
         if ($isStaff && ! $deactivatedTeacher) {
             return $next($request);

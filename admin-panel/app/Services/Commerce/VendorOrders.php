@@ -250,10 +250,11 @@ final class VendorOrders
     }
 
     /** Finance counter boundary; dedicated vendor operator ownership is added in increment 12. */
-    public function collect(User $actor, int $vendor, array $input): VendorOrder
+    public function collect(User $actor, int $vendor, array $input, bool $operator = false): VendorOrder
     {
         $data = Validator::make($input, ['operation_id' => ['required', 'uuid'], 'order_number' => ['nullable', 'string', 'regex:/\AVO-\d{6,20}\z/D', 'required_without:qr_token'], 'qr_token' => ['nullable', 'string', 'regex:/\A[a-f0-9]{64}\z/D', 'required_without:order_number'], 'confirmed' => ['required', 'accepted']])->validate() + ['vendor_id' => $vendor];
         abort_if(! empty($data['order_number']) && ! empty($data['qr_token']), 422, 'Scan the QR or enter the order number.');
+        $authorize = $operator ? fn () => app(VendorOperatorAccess::class)->counter($actor, $vendor, true) : fn () => app(VendorPolicy::class)->finance($actor, true);
         $receipt = app(VendorOperations::class)->once($actor, 'order_collect', $data, function () use ($actor, $vendor, $data): array {
             Vendor::findOrFail($vendor);
             $order = VendorOrder::where('vendor_id', $vendor)->when(! empty($data['order_number']), fn ($q) => $q->where('order_number', $data['order_number']), fn ($q) => $q->where('qr_hash', hash('sha256', $data['qr_token'])))->lockForUpdate()->firstOrFail();
@@ -262,7 +263,7 @@ final class VendorOrders
             Audit::record('vendors.order_collected', $order);
 
             return ['id' => (int) $order->id];
-        });
+        }, $authorize);
 
         return VendorOrder::findOrFail($receipt['id']);
     }

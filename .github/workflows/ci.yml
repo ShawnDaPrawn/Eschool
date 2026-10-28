@@ -331,7 +331,10 @@ jobs:
             command: flutter test $(cat "$RUNNER_TEMP/family-android-2.targets")
           - app: e-school-teacher
             flavor: teacher
-            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' | sort)
+            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' ! -name 'vendor*_test.dart' | sort)
+          - app: e-school-teacher
+            flavor: vendor
+            command: flutter test --flavor vendor --dart-define=FLAVOR=vendor integration_test/vendor_smoke_test.dart
           - app: e-school-teacher
             flavor: facilitator
             command: flutter test --flavor facilitator --dart-define=FLAVOR=facilitator $(find integration_test -maxdepth 1 -name 'facilitator*_test.dart' ! -name 'facilitator_live_smoke_test.dart' | sort)
@@ -446,6 +449,9 @@ jobs:
           - app: e-school-teacher
             flow: facilitator_wallet_smoke_test.dart
             flavor: facilitator
+          - app: e-school-teacher
+            flow: vendor_smoke_test.dart
+            flavor: vendor
           - app: e-school
             flow: family_academic_marks_smoke_test.dart
           - app: e-school-teacher

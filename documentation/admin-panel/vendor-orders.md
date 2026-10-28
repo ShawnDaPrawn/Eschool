@@ -25,5 +25,5 @@ request to guess whether the first succeeded.
 
 When commerce is paused, authorised history remains readable and purchases,
 collection and cancellation stop. These are internal wallet purchases; no external
-payment gateway is involved. Dedicated vendor login and native scanner access are
-tracked in the following increment.
+payment gateway is involved. Dedicated vendor login and native scanner access are described in
+[Vendor operators and counter access](vendor-access.md).

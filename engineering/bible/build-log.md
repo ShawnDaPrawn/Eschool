@@ -874,3 +874,16 @@ manual stock is indexed without rewriting original history. Qualification is
 tracked in self-tests/money/vendor-wallet-orders.md. Dedicated vendor identities,
 panel/native scanner12, settlements13, tickets14 and card spending15 remain;
 gateways and production activation stay deferred.
+
+## 2026-10-28 — dedicated vendor identities and counter flavour
+
+Increment12 adds explicit Finance provisioning/assignment/revocation, private
+vendor-only sign-in/panel/API, redacted counter receipts and the dedicated native
+Vendor scanner flavour. Durable interrupted collection recovery never instructs
+a second handover; assignment checks precede cached replies. Qualification is in
+self-tests/money/vendor-operator-access.md. Settlements, tickets, online card
+spending and remaining fee/cash-up work continue; gateways stay deferred.
+
+Wallets, funding/transfers/deposits, withdrawals and catalogue preparation through
+PR337 are confirmed on main at28405f10a586213270974bccb038f6c7051f9767, matching
+the qualified source tree. Storefront/order PR338 remains in hosted qualification.

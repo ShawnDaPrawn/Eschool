@@ -34,6 +34,8 @@ class StaffBuildIdentity {
   /// Reserved shells cannot initialize teacher auth, routes or repositories.
   bool get canStartTeacher => valid && name == 'teacher';
 
+  bool get canStartVendor => valid && name == 'vendor';
+
   bool get canStartFacilitator => valid && name == 'facilitator';
 
   String get displayName => valid
@@ -49,12 +51,15 @@ Future<void> startStaffBuild({
   required StaffBuildIdentity identity,
   required Future<void> Function() startTeacher,
   Future<void> Function()? startFacilitator,
+  Future<void> Function()? startVendor,
   required void Function(StaffBuildIdentity) startUnavailable,
 }) async {
   if (identity.canStartTeacher) {
     await startTeacher();
   } else if (identity.canStartFacilitator && startFacilitator != null) {
     await startFacilitator();
+  } else if (identity.canStartVendor && startVendor != null) {
+    await startVendor();
   } else {
     startUnavailable(identity);
   }

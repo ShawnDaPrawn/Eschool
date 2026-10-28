@@ -48,6 +48,7 @@ class RoleMatrixTest extends TestCase
     public static function profiles(): array
     {
         return [
+            'vendor' => ['Vendor'],
             'student' => ['Student'],
             'parent' => ['Parent'],
             'teacher' => ['Teacher'],

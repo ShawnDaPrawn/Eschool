@@ -27308,6 +27308,375 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CommerceCancelWrite'
+  /vendor/sign-in:
+    post:
+      operationId: signInVendorOperator
+      tags:
+      - Commerce
+      summary: Sign in with a dedicated bound vendor identity
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Sign in with a dedicated bound vendor identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorSignInDataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: Password/current policy setup required. No token or private profile is issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorSignInDataResponse'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorOperatorSignInInput'
+  /vendor/session:
+    get:
+      operationId: getVendorOperatorSession
+      tags:
+      - Commerce
+      summary: Refresh the current assigned vendor counters
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Refresh the current assigned vendor counters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /vendor/sign-out:
+    post:
+      operationId: signOutVendorOperator
+      tags:
+      - Commerce
+      summary: Revoke only the current owned vendor session
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Revoke only the current owned vendor session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorSignOutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+  /vendor/counters/{vendor}/orders:
+    get:
+      operationId: listVendorCounterOrders
+      tags:
+      - Commerce
+      summary: Read original order goods at an explicitly assigned counter
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Read original order goods at an explicitly assigned counter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+  /vendor/counters/{vendor}/orders/{order}:
+    get:
+      operationId: getVendorCounterOrder
+      tags:
+      - Commerce
+      summary: Read one assigned counter receipt without buyer identity
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Read one assigned counter receipt without buyer identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: order
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+  /vendor/counters/{vendor}/lookup:
+    post:
+      operationId: lookupVendorCounterOrder
+      tags:
+      - Commerce
+      summary: Review typed or scanned order goods before handover
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Review typed or scanned order goods before handover
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorCounterLookup'
+  /vendor/counters/{vendor}/collect:
+    post:
+      operationId: collectVendorCounterOrder
+      tags:
+      - Commerce
+      summary: Validate one reviewed counter handover
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Validate one reviewed counter handover
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorCounterCollect'
+  /vendor/counters/{vendor}/operations/{operation}/resolve:
+    post:
+      operationId: resolveVendorCounterCollection
+      tags:
+      - Commerce
+      summary: Recover or abandon the original operator handover intent
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Recover or abandon the original operator handover intent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterResolutionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
 components:
   securitySchemes:
     bearerAuth:
@@ -62137,3 +62506,497 @@ components:
           $ref: '#/components/schemas/CommerceOrderPage'
         code:
           type: integer
+    VendorOperatorCounter:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - currency
+      - can_collect
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 160
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        can_collect:
+          type: boolean
+    VendorOperatorProfile:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - school_name
+      - school_slug
+      - user_id
+      - name
+      - counters
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_name:
+          type: string
+          maxLength: 2000
+        school_slug:
+          type: string
+          maxLength: 191
+        user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 2000
+        counters:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorOperatorCounter'
+          minItems: 1
+          maxItems: 100
+    VendorOperatorSignInInput:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - email
+      - password
+      properties:
+        school:
+          type: string
+          maxLength: 191
+        email:
+          type: string
+          maxLength: 191
+        password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password_confirmation:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        acceptances:
+          type: object
+          additionalProperties:
+            type: string
+            pattern: ^[a-f0-9]{64}$
+    VendorOperatorSignInData:
+      type: object
+      additionalProperties: false
+      required:
+      - authenticated
+      - token
+      - profile
+      - password_change_required
+      - documents
+      properties:
+        authenticated:
+          type: boolean
+        token:
+          type:
+          - string
+          - 'null'
+        profile:
+          anyOf:
+          - $ref: '#/components/schemas/VendorOperatorProfile'
+          - type: 'null'
+        password_change_required:
+          type: boolean
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacilitatorPolicy'
+          minItems: 0
+          maxItems: 2
+    VendorCounterLine:
+      type: object
+      additionalProperties: false
+      required:
+      - product_name
+      - sku
+      - unit_label
+      - quantity
+      - gross_cents
+      - net_cents
+      - vat_cents
+      properties:
+        product_name:
+          type: string
+          maxLength: 160
+        sku:
+          type: string
+          maxLength: 64
+        unit_label:
+          type: string
+          maxLength: 40
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 999
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+    VendorCounterReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - id
+      - order_number
+      - status
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - created_at
+      - processed_at
+      - can_collect
+      - lines
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        order_number:
+          type: string
+          pattern: ^VO-[0-9]{6,20}$
+          maxLength: 32
+        status:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        can_collect:
+          type: boolean
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorCounterLine'
+          minItems: 1
+          maxItems: 20
+        newly_collected:
+          type: boolean
+      description: Original goods/tax receipt with no buyer identity, wallet balance, bank details or private QR.
+        newly_collected is supplied on collection and is false for every replay. A recovered or previously recorded
+        handover never instructs a second physical supply.
+    VendorCounterPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - status
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        status:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorCounterReceipt'
+          minItems: 0
+          maxItems: 20
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+    VendorCounterLookup:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        order_number:
+          type:
+          - string
+          - 'null'
+          pattern: ^[Vv][Oo]-[0-9]{6,20}$
+          maxLength: 32
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^(navigateed:order:)?[a-f0-9]{64}$
+          maxLength: 81
+      description: 'Supply exactly one order number or private QR in the POST body. The complete navigateed:order:
+        prefix or its raw token is accepted.'
+    VendorCounterCollect:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        order_number:
+          type:
+          - string
+          - 'null'
+          pattern: ^[Vv][Oo]-[0-9]{6,20}$
+          maxLength: 32
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^(navigateed:order:)?[a-f0-9]{64}$
+          maxLength: 81
+        confirmed:
+          type: boolean
+          description: Must be true. The server refuses unconfirmed handovers.
+    VendorCounterResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - operation_id
+      - status
+      - order
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+        order:
+          anyOf:
+          - $ref: '#/components/schemas/VendorCounterReceipt'
+          - type: 'null'
+    VendorOperatorSignInDataResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorOperatorSignInData'
+        code:
+          type:
+          - string
+          - 'null'
+    VendorOperatorProfileResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorOperatorProfile'
+        code:
+          type:
+          - string
+          - 'null'
+    VendorCounterReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorCounterReceipt'
+        code:
+          type: integer
+    VendorCounterPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorCounterPage'
+        code:
+          type: integer
+    VendorCounterResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorCounterResolution'
+        code:
+          type: integer
+    VendorOperatorSignOutResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+          - type: 'null'
+        code:
+          type:
+          - string
+          - 'null'

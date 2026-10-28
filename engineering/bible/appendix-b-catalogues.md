@@ -388,3 +388,11 @@ vendors-manage; Finance cancellation also requires wallet Finance. Dedicated
 vendor identity is separate. Facilitator profiles advertise optional vendors
 capability only when the actor has its own allowed wallet and commerce access.
 No external provider, notification transport or Phase6 collection is activated.
+
+### Dedicated vendor operators
+
+The system Vendor role grants no staff/Finance permissions. Finance uses
+vendors-manage to create dedicated people and append explicit counter assignment
+revisions. Vendor-owned panel/API/native credentials are limited to that profile.
+The vendors module preserves authorised order history when paused; handover stops
+and Finance can still revoke access. No new notification or gateway is enabled.

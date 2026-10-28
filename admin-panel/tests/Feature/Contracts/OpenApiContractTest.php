@@ -50,6 +50,14 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'vendor operator sign in validation' => [null, 'POST', 'api/v2/vendor/sign-in', [], 422],
+            'vendor operator session auth' => [null, 'GET', 'api/v2/vendor/session', [], 401],
+            'vendor operator sign out auth' => [null, 'POST', 'api/v2/vendor/sign-out', [], 401],
+            'vendor operator list orders' => [null, 'GET', 'api/v2/vendor/counters/1/orders', [], 401],
+            'vendor operator read receipt' => [null, 'GET', 'api/v2/vendor/counters/1/orders/1', [], 401],
+            'vendor operator lookup' => [null, 'POST', 'api/v2/vendor/counters/1/lookup', [], 401],
+            'vendor operator collect' => [null, 'POST', 'api/v2/vendor/counters/1/collect', [], 401],
+            'vendor operator resolve' => [null, 'POST', 'api/v2/vendor/counters/1/operations/00000000-0000-4000-8000-000000000001/resolve', [], 401],
             'commerce listCommerceVendors requires authentication' => [null, 'GET', 'api/v2/commerce/vendors', [], 401],
             'commerce getCommerceVendorCatalogue requires authentication' => [null, 'GET', 'api/v2/commerce/vendors/1', [], 401],
             'commerce listOwnCommerceOrders requires authentication' => [null, 'GET', 'api/v2/commerce/orders', [], 401],

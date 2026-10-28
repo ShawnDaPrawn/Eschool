@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
 use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
+use App\Http\Controllers\Api\V2\Commerce\VendorCounterController;
+use App\Http\Controllers\Api\V2\Commerce\VendorSessionController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
@@ -93,6 +95,7 @@ use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Http\Middleware\RequireCommerceAuthority;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
+use App\Http\Middleware\RequireVendorCounter;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
 use App\Http\Middleware\RequireWalletWithdrawalAuthority;
@@ -166,6 +169,21 @@ Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbe
         }
         Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'assignment', 'report', 'appointment'])->middleware($middleware)->name($action);
     }
+});
+
+Route::prefix('vendor')->name('api.v2.vendor.')->middleware([PrivateDomainResponse::class])->group(function (): void {
+    $session = VendorSessionController::class;
+    Route::post('sign-in', [$session, 'signIn'])->middleware(['throttle:login', 'portal.sign-in'])->name('sign-in');
+    Route::get('session', [$session, 'show'])->middleware(['auth:sanctum', 'school.context', 'role:Vendor'])->name('session');
+    Route::post('sign-out', [$session, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
+    Route::prefix('counters/{vendor}')->whereNumber('vendor')->middleware(['auth:sanctum', 'school.context', 'role:Vendor', 'module:vendors,read', RequireVendorCounter::class])->group(function (): void {
+        $counter = VendorCounterController::class;
+        Route::get('orders', [$counter, 'handle'])->name('orders');
+        Route::get('orders/{order}', [$counter, 'handle'])->whereNumber('order')->name('receipt');
+        Route::post('lookup', [$counter, 'handle'])->name('lookup');
+        Route::post('collect', [$counter, 'handle'])->middleware('idempotent:required')->name('collect');
+        Route::post('operations/{operation}/resolve', [$counter, 'handle'])->whereUuid('operation')->name('resolve');
+    });
 });
 
 Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {

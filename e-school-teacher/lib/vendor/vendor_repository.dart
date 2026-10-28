@@ -1,0 +1,632 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
+import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/eschool_session.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+
+int _integer(Object? value, {int min = 1, int max = 100000000000}) {
+  if (value is! int || value < min || value > max) {
+    throw const FormatException('Invalid vendor integer');
+  }
+  return value;
+}
+
+String _text(Object? value, {int max = 2000}) {
+  if (value is! String || value.isEmpty || value.length > max) {
+    throw const FormatException('Invalid vendor text');
+  }
+  return value;
+}
+
+bool _boolean(Object? value) {
+  if (value is! bool) throw const FormatException('Invalid vendor flag');
+  return value;
+}
+
+Map<String, dynamic> _map(Object? value) {
+  if (value is! Map) throw const FormatException('Invalid vendor response');
+  return Map<String, dynamic>.from(value);
+}
+
+List<dynamic> _list(Object? value, {int max = 100}) {
+  if (value is! List || value.length > max) {
+    throw const FormatException('Invalid vendor list');
+  }
+  return value;
+}
+
+String _currency(Object? value) {
+  final text = _text(value, max: 3);
+  if (!RegExp(r'^[A-Z]{3}$').hasMatch(text)) {
+    throw const FormatException('Invalid currency');
+  }
+  return text;
+}
+
+DateTime _instant(Object? value) {
+  final text = _text(value, max: 30);
+  if (!RegExp(r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$').hasMatch(text)) {
+    throw const FormatException('Invalid UTC time');
+  }
+  final time = DateTime.parse(text);
+  if (!time.isUtc || time.toIso8601String() != text) {
+    throw const FormatException('Invalid UTC time');
+  }
+  return time;
+}
+
+class VendorCounter {
+  VendorCounter(Map<String, dynamic> data)
+    : id = _integer(data['id']),
+      name = _text(data['name'], max: 160),
+      currency = _currency(data['currency']),
+      canCollect = _boolean(data['can_collect']);
+  final int id;
+  final String name, currency;
+  final bool canCollect;
+}
+
+class VendorProfile {
+  VendorProfile(Map<String, dynamic> data)
+    : schoolId = _integer(data['school_id']),
+      userId = _integer(data['user_id']),
+      schoolName = _text(data['school_name']),
+      schoolSlug = _text(data['school_slug'], max: 191),
+      name = _text(data['name']),
+      counters = [
+        for (final row in _list(data['counters'])) VendorCounter(_map(row)),
+      ] {
+    if (counters.isEmpty ||
+        counters.map((c) => c.id).toSet().length != counters.length) {
+      throw const FormatException('Invalid assigned counters');
+    }
+  }
+  final int schoolId, userId;
+  final String schoolName, schoolSlug, name;
+  final List<VendorCounter> counters;
+}
+
+class VendorPolicyDocument {
+  VendorPolicyDocument(Map<String, dynamic> data)
+    : document = _text(data['document'], max: 20),
+      version = _text(data['version'], max: 64),
+      title = _text(data['title']),
+      text = _text(data['text'], max: 200000) {
+    if (!['navigateed', 'school'].contains(document) ||
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(version)) {
+      throw const FormatException('Invalid policy version');
+    }
+  }
+  final String document, version, title, text;
+}
+
+class VendorSetup {
+  VendorSetup(Map<String, dynamic> data)
+    : passwordRequired = _boolean(data['password_change_required']),
+      documents = [
+        for (final row in _list(data['documents'], max: 2))
+          VendorPolicyDocument(_map(row)),
+      ] {
+    if (data['authenticated'] != false ||
+        data['token'] != null ||
+        data['profile'] != null) {
+      throw const FormatException('Unexpected vendor setup credential');
+    }
+  }
+  final bool passwordRequired;
+  final List<VendorPolicyDocument> documents;
+}
+
+class VendorReceiptLine {
+  VendorReceiptLine(Map<String, dynamic> data)
+    : name = _text(data['product_name'], max: 160),
+      sku = _text(data['sku'], max: 64),
+      unit = _text(data['unit_label'], max: 40),
+      quantity = _integer(data['quantity'], max: 999),
+      grossCents = _integer(data['gross_cents'], min: 0),
+      netCents = _integer(data['net_cents'], min: 0),
+      vatCents = _integer(data['vat_cents'], min: 0) {
+    if (grossCents != netCents + vatCents) {
+      throw const FormatException('Invalid original line total');
+    }
+  }
+  final String name, sku, unit;
+  final int quantity, grossCents, netCents, vatCents;
+}
+
+class VendorReceipt {
+  VendorReceipt(
+    Map<String, dynamic> data,
+    VendorProfile profile,
+    VendorCounter counter,
+  ) : id = _integer(data['id']),
+      number = _text(data['order_number'], max: 32),
+      status = _text(data['status'], max: 12),
+      currency = _currency(data['currency']),
+      amountCents = _integer(data['amount_cents'], min: 0),
+      netCents = _integer(data['net_cents'], min: 0),
+      vatCents = _integer(data['vat_cents'], min: 0),
+      createdAt = _instant(data['created_at']),
+      processedAt = data['processed_at'] == null
+          ? null
+          : _instant(data['processed_at']),
+      canCollect = _boolean(data['can_collect']),
+      newlyCollected = data['newly_collected'] == null
+          ? false
+          : _boolean(data['newly_collected']),
+      lines = [
+        for (final row in _list(data['lines'], max: 20))
+          VendorReceiptLine(_map(row)),
+      ] {
+    if (_integer(data['school_id']) != profile.schoolId ||
+        _integer(data['actor_user_id']) != profile.userId ||
+        _integer(data['vendor_id']) != counter.id ||
+        currency != counter.currency ||
+        !RegExp(r'^VO-\d{6,20}$').hasMatch(number) ||
+        !['ready', 'collected', 'cancelled'].contains(status) ||
+        amountCents != netCents + vatCents ||
+        lines.isEmpty ||
+        lines.fold(0, (n, l) => n + l.grossCents) != amountCents ||
+        lines.fold(0, (n, l) => n + l.netCents) != netCents ||
+        lines.fold(0, (n, l) => n + l.vatCents) != vatCents ||
+        (status == 'ready') != (processedAt == null) ||
+        (canCollect && (!counter.canCollect || status != 'ready')) ||
+        (newlyCollected && status != 'collected')) {
+      throw const FormatException('Vendor receipt context changed');
+    }
+  }
+  final int id, amountCents, netCents, vatCents;
+  final String number, status, currency;
+  final DateTime createdAt;
+  final DateTime? processedAt;
+  final bool canCollect, newlyCollected;
+  final List<VendorReceiptLine> lines;
+}
+
+/// Private vendor session: no teacher repository, token, Hive box or notification initialization.
+class VendorRepository extends ChangeNotifier {
+  VendorRepository({AuthMode? mode, this.createDio})
+    : mode = mode ?? AuthMode.current;
+  final AuthMode mode;
+  final Dio Function()? createDio;
+  String _token = '', _preferredSchool = '';
+  int _generation = 0;
+  bool _disposed = false;
+  bool _suspended = false;
+  VendorProfile? profile;
+  VendorSetup? setup;
+  VendorCounter? counter;
+  VendorReceipt? receipt;
+  List<VendorReceipt> orders = [];
+  int page = 1, lastPage = 1;
+  String filter = 'ready';
+  final Map<int, String> _pending = {};
+  bool busy = false;
+  String? error, message;
+  bool get signedIn => profile != null;
+  bool get hasPending => counter != null && _pending.containsKey(counter!.id);
+  int get generation => _generation;
+  Completer<void>? _completion;
+  Future<void> get idle => _completion?.future ?? Future<void>.value();
+  Future<Map<String, dynamic>> _request(
+    String method,
+    String path, {
+    Map<String, dynamic>? data,
+    String? operation,
+    bool anonymous = false,
+  }) async {
+    final cancellation = CancelToken();
+    final timer = Timer(
+      const Duration(seconds: 30),
+      () => cancellation.cancel('Deadline elapsed'),
+    );
+    try {
+      final response =
+          await (createDio?.call() ??
+                  createSessionDio(
+                    mode: mode,
+                    apiBaseUrl: AppConfig.apiBaseUrl,
+                  ))
+              .request<Object?>(
+                '${AppConfig.apiV2Url}vendor/$path',
+                data: data,
+                cancelToken: cancellation,
+                options: Options(
+                  method: method,
+                  contentType: Headers.jsonContentType,
+                  validateStatus: (code) => code != null && code < 500,
+                  headers: {
+                    'Accept': 'application/json',
+                    if (!anonymous &&
+                        mode == AuthMode.bearer &&
+                        _token.isNotEmpty)
+                      'Authorization': 'Bearer $_token',
+                    if (!anonymous && profile != null)
+                      'X-School-Id': '${profile!.schoolId}',
+                    if (!anonymous && profile != null)
+                      'X-Account-Id': '${profile!.userId}',
+                    if (operation != null) 'Idempotency-Key': operation,
+                  },
+                ),
+              );
+      final body = _map(response.data);
+      if (response.statusCode == 409 &&
+          body['code'] == 'VENDOR_SETUP_REQUIRED') {
+        if (path == 'sign-out' && body['data'] == null)
+          return <String, dynamic>{};
+        return _map(body['data']);
+      }
+      if (response.statusCode != 200 || body['error'] != false) {
+        throw ApiException(
+          body['message'] is String
+              ? body['message'] as String
+              : 'Vendor request failed.',
+          isApiMessage: true,
+          statusCode: response.statusCode,
+        );
+      }
+      if (path == 'sign-out' && body['data'] == null)
+        return <String, dynamic>{};
+      return _map(body['data']);
+    } on DioException catch (error) {
+      throw ApiException(
+        'Connect to the school and check the handover outcome.',
+        isApiMessage: true,
+        statusCode: error.response?.statusCode,
+        isTransportFailure: error.response == null,
+      );
+    } finally {
+      timer.cancel();
+    }
+  }
+
+  void _clearViews() {
+    orders = [];
+    receipt = null;
+    message = null;
+  }
+
+  void clear() {
+    if (_disposed) return;
+    _generation++;
+    _suspended = false;
+    _token = '';
+    profile = null;
+    setup = null;
+    counter = null;
+    _pending.clear();
+    _clearViews();
+    page = 1;
+    lastPage = 1;
+    filter = 'ready';
+    busy = false;
+    error = null;
+    notifyListeners();
+  }
+
+  void _check(int generation, VendorProfile pinned) {
+    if (_disposed ||
+        generation != _generation ||
+        profile?.schoolId != pinned.schoolId ||
+        profile?.userId != pinned.userId) {
+      throw ApiException(
+        'Your vendor session changed. Sign in again.',
+        statusCode: 403,
+      );
+    }
+  }
+
+  Future<bool> _run(Future<void> Function() work) async {
+    if (_disposed || busy || _suspended) return false;
+    final epoch = _generation;
+    final completion = Completer<void>();
+    _completion = completion;
+    busy = true;
+    error = null;
+    _clearViews();
+    notifyListeners();
+    try {
+      await work();
+      if (_disposed) return false;
+      return true;
+    } catch (error) {
+      if (_disposed || epoch != _generation) return false;
+      _clearViews();
+      if (error is ApiException && [401, 403, 404].contains(error.statusCode)) {
+        clear();
+        this.error = 'Vendor access changed. Sign in again.';
+      } else {
+        this.error = error is ApiException && error.isApiMessage
+            ? error.errorMessage
+            : 'Vendor request could not be checked. Refresh or check its outcome.';
+      }
+      return false;
+    } finally {
+      if (!completion.isCompleted) completion.complete();
+      if (identical(_completion, completion)) _completion = null;
+      if (!_disposed && epoch == _generation) {
+        busy = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  String _pendingKey(VendorProfile p) =>
+      'vendor-collection-pending:${p.schoolId}:${p.userId}';
+  Future<void> _save(VendorProfile p) async {
+    final snapshot = [for (final e in _pending.entries) '${e.key}:${e.value}'];
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_pendingKey(p), snapshot);
+  }
+
+  Future<void> _readPending(VendorProfile p, int generation) async {
+    final parsed = <int, String>{};
+    final prefs = await SharedPreferences.getInstance();
+    for (final value in prefs.getStringList(_pendingKey(p)) ?? <String>[]) {
+      final match = RegExp(
+        r'^(\d+):([a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$',
+      ).firstMatch(value);
+      if (match == null) {
+        throw const FormatException('Invalid saved vendor outcome');
+      }
+      parsed[int.parse(match[1]!)] = match[2]!;
+    }
+    _check(generation, p);
+    _pending
+      ..clear()
+      ..addAll(parsed);
+  }
+
+  Future<bool> signIn(Map<String, dynamic> input) async {
+    clear();
+    final generation = _generation;
+    _preferredSchool = _text(input['school'], max: 191);
+    return _run(() async {
+      final data = await _request(
+        'POST',
+        'sign-in',
+        data: input,
+        anonymous: true,
+      );
+      if (generation != _generation) {
+        throw ApiException('Vendor session changed.', statusCode: 403);
+      }
+      if (data['authenticated'] == false) {
+        setup = VendorSetup(data);
+        return;
+      }
+      if (data['authenticated'] != true ||
+          data['password_change_required'] != false) {
+        throw const FormatException('Invalid vendor sign-in');
+      }
+      final value = VendorProfile(_map(data['profile']));
+      if (value.schoolSlug != _preferredSchool ||
+          (mode == AuthMode.bearer &&
+              (data['token'] is! String ||
+                  (data['token'] as String).isEmpty))) {
+        throw ApiException('Vendor school changed.', statusCode: 403);
+      }
+      profile = value;
+      _token = data['token'] is String ? data['token'] as String : '';
+      counter = value.counters.first;
+      setup = null;
+      await _readPending(value, generation);
+      _check(generation, value);
+      await _load(generation, value, counter!);
+    });
+  }
+
+  Future<void> _load(
+    int generation,
+    VendorProfile pinned,
+    VendorCounter selected,
+  ) async {
+    final data = await _request(
+      'GET',
+      'counters/${selected.id}/orders?page=$page&status=$filter',
+    );
+    _check(generation, pinned);
+    if (_integer(data['school_id']) != pinned.schoolId ||
+        _integer(data['actor_user_id']) != pinned.userId ||
+        _integer(data['vendor_id']) != selected.id ||
+        data['status'] != filter) {
+      throw ApiException('Vendor counter changed.', statusCode: 403);
+    }
+    page = _integer(data['page'], max: 1000000);
+    lastPage = _integer(data['last_page'], max: 1000000);
+    if (page > lastPage) throw const FormatException('Invalid order page');
+    orders = [
+      for (final row in _list(data['items'], max: 20))
+        VendorReceipt(_map(row), pinned, selected),
+    ];
+  }
+
+  Future<bool> refresh({
+    int? vendor,
+    int nextPage = 1,
+    String status = 'ready',
+  }) async {
+    final pinned = profile;
+    if (pinned == null) return false;
+    final generation = _generation;
+    return _run(() async {
+      final data = await _request('GET', 'session');
+      _check(generation, pinned);
+      final current = VendorProfile(data);
+      if (current.schoolId != pinned.schoolId ||
+          current.userId != pinned.userId ||
+          current.schoolSlug != pinned.schoolSlug) {
+        throw ApiException('Vendor identity changed.', statusCode: 403);
+      }
+      final selected =
+          current.counters
+              .where((c) => c.id == (vendor ?? counter?.id))
+              .firstOrNull ??
+          current.counters.first;
+      profile = current;
+      counter = selected;
+      page = nextPage;
+      filter = status;
+      await _load(generation, current, selected);
+    });
+  }
+
+  Future<bool> lookup(String value) async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null) return false;
+    final generation = _generation;
+    return _run(() async {
+      final raw = value.trim();
+      final qr = raw.startsWith('navigateed:order:');
+      final data = await _request(
+        'POST',
+        'counters/${selected.id}/lookup',
+        data: {qr ? 'qr_token' : 'order_number': raw},
+      );
+      _check(generation, pinned);
+      receipt = VendorReceipt(data, pinned, selected);
+    });
+  }
+
+  Future<bool> openOrder(int id) async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null) return false;
+    final generation = _generation;
+    return _run(() async {
+      final data = await _request('GET', 'counters/${selected.id}/orders/$id');
+      _check(generation, pinned);
+      final value = VendorReceipt(data, pinned, selected);
+      if (value.id != id) {
+        throw const FormatException('Different original receipt');
+      }
+      receipt = value;
+    });
+  }
+
+  Future<bool> collect() async {
+    final pinned = profile, selected = counter, original = receipt;
+    if (pinned == null ||
+        selected == null ||
+        original?.canCollect != true ||
+        !selected.canCollect ||
+        hasPending) {
+      return false;
+    }
+    final generation = _generation;
+    return _run(() async {
+      final key = const Uuid().v4();
+      _pending[selected.id] = key;
+      await _save(pinned);
+      _check(generation, pinned);
+      final data = await _request(
+        'POST',
+        'counters/${selected.id}/collect',
+        operation: key,
+        data: {
+          'operation_id': key,
+          'order_number': original!.number,
+          'confirmed': true,
+        },
+      );
+      _check(generation, pinned);
+      final value = VendorReceipt(data, pinned, selected);
+      if (value.id != original.id ||
+          value.number != original.number ||
+          value.status != 'collected' ||
+          value.amountCents != original.amountCents) {
+        throw const FormatException('Different collection outcome');
+      }
+      _pending.remove(selected.id);
+      try {
+        await _save(pinned);
+      } catch (_) {
+        if (generation == _generation) _pending[selected.id] = key;
+        rethrow;
+      }
+      _check(generation, pinned);
+      receipt = value;
+      message = value.newlyCollected
+          ? 'Collection recorded. Hand over the listed goods once.'
+          : 'Collection was already recorded. Do not hand over goods again.';
+    });
+  }
+
+  Future<bool> recover() async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null) return false;
+    final key = _pending[selected.id];
+    if (key == null) return false;
+    final generation = _generation;
+    return _run(() async {
+      final data = await _request(
+        'POST',
+        'counters/${selected.id}/operations/$key/resolve',
+      );
+      _check(generation, pinned);
+      if (data['operation_id'] != key ||
+          _integer(data['school_id']) != pinned.schoolId ||
+          _integer(data['actor_user_id']) != pinned.userId ||
+          _integer(data['vendor_id']) != selected.id ||
+          !['committed', 'abandoned'].contains(data['status'])) {
+        throw const FormatException('Different saved handover');
+      }
+      if (data['status'] == 'committed') {
+        final value = VendorReceipt(_map(data['order']), pinned, selected);
+        if (value.status != 'collected') {
+          throw const FormatException('Invalid recorded collection');
+        }
+        receipt = value;
+      } else if (data['order'] != null) {
+        throw const FormatException('Unexpected abandoned receipt');
+      }
+      _pending.remove(selected.id);
+      try {
+        await _save(pinned);
+      } catch (_) {
+        if (generation == _generation) _pending[selected.id] = key;
+        rethrow;
+      }
+      _check(generation, pinned);
+      message = data['status'] == 'committed'
+          ? 'Collection was already recorded. Check the counter record; do not hand over goods again.'
+          : 'No handover was recorded by that request. Review the original order again.';
+    });
+  }
+
+  void suspend() {
+    if (_disposed) return;
+    _suspended = true;
+    _generation++;
+    _clearViews();
+    busy = false;
+    notifyListeners();
+  }
+
+  Future<bool> resume() async {
+    if (_disposed) return false;
+    _suspended = false;
+    return profile == null ? false : refresh();
+  }
+
+  Future<void> signOut() async {
+    final request = profile == null ? null : _request('POST', 'sign-out');
+    clear();
+    if (request != null) await request;
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _generation++;
+    _token = '';
+    profile = null;
+    setup = null;
+    counter = null;
+    _pending.clear();
+    _clearViews();
+    super.dispose();
+  }
+}

@@ -60,6 +60,7 @@ class ApiRouteTenancyTest extends TestCase
         'POST api/v2/wellbeing/public/{schoolSlug}/follow-up/replies' => 'school-scoped private code and immutable reply request in body',
         'POST api/v2/wellbeing/public/{schoolSlug}/photos' => 'school-scoped private code and bounded scanned anonymous photo',
         'POST api/v2/wellbeing/public/{schoolSlug}/photos/download' => 'school-scoped code and photo authority in POST body, no public file URL',
+        'POST api/v2/vendor/sign-in' => 'credentials and bound Vendor identity verified before selecting school',
         'POST api/v2/facilitator/sign-in' => 'credentials verified before a fresh eligible membership school is selected',
         'GET api/v2/guardian/invitations/{token}' => 'private expiring invitation token, no unscoped list',
         'POST api/v2/guardian/invitations/{token}/accept' => 'one-use emailed token verifies the guardian mailbox',
@@ -87,6 +88,7 @@ class ApiRouteTenancyTest extends TestCase
      * v2 data routes use role.any; current-token logout is account scoped.
      */
     public const ANY_PROFILE = [
+        'POST api/v2/vendor/sign-out' => 'owned vendor app token only, including after role or counter revocation',
         'POST api/v2/facilitator/sign-out' => 'self current-profile token revocation, including after role/membership withdrawal; no tenant records returned',
         'POST api/logout' => 'every app signs out (v1)',
         'POST api/change-password' => 'every app changes its own password (v1)',
@@ -167,7 +169,7 @@ class ApiRouteTenancyTest extends TestCase
 
         if (array_key_exists($label, self::PUBLIC)) {
             $this->assertFalse($route->requiresAuthentication(), "$label is on the public list but needs a token: take it off the list");
-            if ($label === 'POST api/v2/facilitator/sign-in') {
+            if (in_array($label, ['POST api/v2/facilitator/sign-in', 'POST api/v2/vendor/sign-in'], true)) {
                 // This credential entry point chooses school only after proof;
                 // its owned sign-in tests cover actual membership selection.
                 $this->assertContains('portal.sign-in', $route->middleware);
@@ -189,7 +191,7 @@ class ApiRouteTenancyTest extends TestCase
         } else {
             $this->assertTrue($route->hasRoleGroup(), "$label is in no role group: put it in role:<Role>, staff or role.any");
         }
-        if ($label === 'POST api/v2/facilitator/sign-out') {
+        if (in_array($label, ['POST api/v2/facilitator/sign-out', 'POST api/v2/vendor/sign-out'], true)) {
             // Logout must remain usable after school access is revoked. The
             // controller verifies ownership and revokes only the current token.
             $this->assertIsolated($route);

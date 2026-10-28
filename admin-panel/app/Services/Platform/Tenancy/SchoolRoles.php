@@ -26,6 +26,8 @@ class SchoolRoles
 
     public const FACILITATOR = 'Facilitator';
 
+    public const VENDOR = 'Vendor';
+
     public const COUNSELLOR = 'Counsellor';
 
     public const SAFEGUARDING = 'Safeguarding';
@@ -37,6 +39,7 @@ class SchoolRoles
         self::PARENT => [],
         self::STUDENT => [],
         self::FACILITATOR => [],
+        self::VENDOR => [],
         self::COUNSELLOR => ['pastoral-sensitive-access'],
         self::SAFEGUARDING => ['pastoral-sensitive-access', 'ai-flags-review'],
     ];

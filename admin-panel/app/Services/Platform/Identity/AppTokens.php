@@ -34,12 +34,15 @@ final class AppTokens
 
     public const FACILITATOR = 'facilitator-app';
 
+    public const VENDOR = 'vendor-app';
+
     /** The role each app is for. */
     public const APPS = [
         self::STUDENT => 'Student',
         self::PARENT => 'Parent',
         self::TEACHER => 'Teacher',
         self::FACILITATOR => 'Facilitator',
+        self::VENDOR => 'Vendor',
     ];
 
     /** Revokes the account's earlier tokens for this app and issues a new one. */
@@ -59,8 +62,8 @@ final class AppTokens
     {
         // This new profile has no legacy tokens; never revoke another app's
         // pre-profile tokens, and allow its logout after school-role revocation.
-        if ($app === self::FACILITATOR) {
-            return $user->tokens()->where('name', self::FACILITATOR)->delete();
+        if (in_array($app, [self::FACILITATOR, self::VENDOR], true)) {
+            return $user->tokens()->where('name', $app)->delete();
         }
         $legacyAreThisApps = ! self::usesAnotherApp($user, $app);
 
@@ -81,7 +84,7 @@ final class AppTokens
             return;
         }
 
-        if ($token->name === self::FACILITATOR) {
+        if (in_array($token->name, [self::FACILITATOR, self::VENDOR], true)) {
             $token->delete();
 
             return;

@@ -1,5 +1,9 @@
 # Changelog
 
+- Phase5: dedicated vendor operators, explicit counter assignments, private panel
+  and native scanner access, single-use collection and interrupted handover recovery.
+
+
 What changed in NavigateEd, newest first. Each phase release gets a section when it reaches production; work merged since the last release sits under **Unreleased**. Entries are grouped by who notices them (Admin panel, Apps, API, Platform, Security, Operations, Removed, Developers), and say in plain words what changed for the people who use or run the platform. Deployers' actions are marked **Deploy:**.
 
 Earlier history is kept where it was written and is not repeated here:

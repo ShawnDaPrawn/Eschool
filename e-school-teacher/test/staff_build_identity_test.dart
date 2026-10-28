@@ -1,3 +1,5 @@
+import 'package:eschool_teacher/vendor/vendor_app.dart';
+
 import 'dart:io';
 
 import 'package:eschool_teacher/facilitator/facilitator_app.dart';
@@ -54,6 +56,36 @@ void main() {
         ),
         startTeacher: () async => fail('mismatch startedteacher'),
         startFacilitator: () async => fail('mismatch startedfacilitator'),
+        startUnavailable: (_) {},
+      );
+    }
+  });
+
+  test('vendor starts only its dedicated bootstrap and refuses mismatched identities', () async {
+    var starts = 0;
+    await startStaffBuild(
+      identity: StaffBuildIdentity.resolve(
+        nativeFlavor: 'vendor',
+        dartFlavor: 'vendor',
+      ),
+      startTeacher: () async => fail('Vendor initialized Teacher'),
+      startFacilitator: () async => fail('Vendor initialized Facilitator'),
+      startVendor: () async {
+        starts++;
+      },
+      startUnavailable: (_) => fail('Vendor refused'),
+    );
+    expect(starts, 1);
+    for (final native in ['teacher', 'facilitator', 'unknown']) {
+      await startStaffBuild(
+        identity: StaffBuildIdentity.resolve(
+          nativeFlavor: native,
+          dartFlavor: 'vendor',
+        ),
+        startTeacher: () async => fail('Mismatched vendor initialized Teacher'),
+        startFacilitator: () async =>
+            fail('Mismatched vendor initialized Facilitator'),
+        startVendor: () async => fail('Mismatched identity initialized Vendor'),
         startUnavailable: (_) {},
       );
     }
@@ -151,7 +183,8 @@ void main() {
     testWidgets('real entrypoint refuses teacher initialization', (
       tester,
     ) async {
-      if (StaffBuildIdentity.current.canStartFacilitator) {
+      if (StaffBuildIdentity.current.canStartFacilitator ||
+          StaffBuildIdentity.current.canStartVendor) {
         staffTestLabels(tester);
         final directory = await tester.runAsync(
           () => Directory.systemTemp.createTemp('staff-entry-storage-'),
@@ -184,6 +217,8 @@ void main() {
         find.byType(
           StaffBuildIdentity.current.canStartFacilitator
               ? FacilitatorApp
+              : StaffBuildIdentity.current.canStartVendor
+              ? VendorApp
               : StaffBuildUnavailable,
         ),
         findsOneWidget,

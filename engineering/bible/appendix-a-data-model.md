@@ -511,3 +511,11 @@ records collection or verified original cancellation. `vendor_order_counters`
 advances school numbers without reuse. `vendor_stock_events` indexes original
 manual movements and exact purchase/cancellation lines in checked per-product
 sequence; original manual roots and stock projections survive the upgrade.
+
+### Dedicated vendor operators
+
+`vendor_operators` binds one explicit school/vendor/user identity, creator and UTC
+creation. Immutable `vendor_operator_actions` retain ordered active/revoked
+revisions, actor, permanent operation UUID and encrypted private reason. Composite
+school keys and SQL sequence/update/delete guards retain the assignment history.
+Current authority uses the latest action; no staff permission is inferred.

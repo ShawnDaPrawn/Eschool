@@ -1219,6 +1219,22 @@ import 'package:eschool_api/src/model/update_profile_field_request.dart';
 import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
 import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
+import 'package:eschool_api/src/model/vendor_counter_collect.dart';
+import 'package:eschool_api/src/model/vendor_counter_line.dart';
+import 'package:eschool_api/src/model/vendor_counter_lookup.dart';
+import 'package:eschool_api/src/model/vendor_counter_page.dart';
+import 'package:eschool_api/src/model/vendor_counter_page_response.dart';
+import 'package:eschool_api/src/model/vendor_counter_receipt.dart';
+import 'package:eschool_api/src/model/vendor_counter_receipt_response.dart';
+import 'package:eschool_api/src/model/vendor_counter_resolution.dart';
+import 'package:eschool_api/src/model/vendor_counter_resolution_response.dart';
+import 'package:eschool_api/src/model/vendor_operator_counter.dart';
+import 'package:eschool_api/src/model/vendor_operator_profile.dart';
+import 'package:eschool_api/src/model/vendor_operator_profile_response.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_in_data.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_in_data_response.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_in_input.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_out_response.dart';
 import 'package:eschool_api/src/model/wallet_controls.dart';
 import 'package:eschool_api/src/model/wallet_controls_change.dart';
 import 'package:eschool_api/src/model/wallet_deposit_cancel_write.dart';
@@ -5513,6 +5529,64 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterCollect':
+      return VendorCounterCollect.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterLine':
+      return VendorCounterLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterLookup':
+      return VendorCounterLookup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterPage':
+      return VendorCounterPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterPageResponse':
+      return VendorCounterPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterReceipt':
+      return VendorCounterReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterReceiptResponse':
+      return VendorCounterReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorCounterResolution':
+      return VendorCounterResolution.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterResolutionResponse':
+      return VendorCounterResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorOperatorCounter':
+      return VendorOperatorCounter.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorProfile':
+      return VendorOperatorProfile.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorProfileResponse':
+      return VendorOperatorProfileResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorOperatorSignInData':
+      return VendorOperatorSignInData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorSignInDataResponse':
+      return VendorOperatorSignInDataResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorOperatorSignInInput':
+      return VendorOperatorSignInInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorSignOutResponse':
+      return VendorOperatorSignOutResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'WalletControls':
       return WalletControls.fromJson(value as Map<String, dynamic>)
