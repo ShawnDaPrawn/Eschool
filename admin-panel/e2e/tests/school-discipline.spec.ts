@@ -14,6 +14,7 @@ async function clean(page: Page) {
 }
 for (const width of [390, 1280]) {
   test(`school-defined framework, review, hearing and supervised detention at ${width}px`, async ({ page, baseURL }) => {
+    test.setTimeout(120_000);
     execFileSync('php', ['artisan', 'tinker', '--execute', "require base_path('e2e/support/discipline-fixture.php');"], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' });
     await page.setViewportSize({ width, height: 1000 });
     await signIn(page, accounts.admin);

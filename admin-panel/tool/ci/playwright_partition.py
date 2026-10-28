@@ -14,14 +14,15 @@ import sys
 PANEL = Path(__file__).resolve().parents[2]
 E2E = PANEL / "e2e"
 CLI = E2E / "node_modules/.bin/playwright"
+PREPARED = "--config=playwright.partition.config.ts"
 BULK = ("pages-1280", "pages-1024", "flows", "teacher", "removed")
 PARTS = ("1", "2", "3", "4", "wizard")
 
 
 def command(part):
     if part == "wizard":
-        return [str(CLI), "test", "--project=wizard", "--no-deps"]
-    return [str(CLI), "test", *["--project=" + p for p in BULK], "--shard=" + part + "/4"]
+        return [str(CLI), "test", PREPARED, "--project=wizard", "--no-deps"]
+    return [str(CLI), "test", PREPARED, *["--project=" + p for p in BULK], "--shard=" + part + "/4"]
 
 
 def inventory(cmd):
@@ -48,8 +49,15 @@ def inventory(cmd):
     return set(found)
 
 
+def require_prepared():
+    pages = json.loads((E2E / ".cache/panel-pages.json").read_text())
+    if len(pages) <= 50 or not {"/home", "/search", "/new-year"}.issubset(pages):
+        raise RuntimeError("Prepare the real seeded page manifest before partitioning")
+
+
 def verify():
-    expected = inventory([str(CLI), "test"])
+    require_prepared()
+    expected = inventory([str(CLI), "test", PREPARED])
     seen = set()
     sizes = {}
     for part in PARTS:
@@ -68,14 +76,19 @@ def verify():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--prepare", action="store_true")
     parser.add_argument("--verify", action="store_true")
     parser.add_argument("--part", choices=PARTS)
     args = parser.parse_args()
-    if not args.verify and not args.part:
-        parser.error("Choose --verify or --part")
+    if not args.prepare and not args.verify and not args.part:
+        parser.error("Choose --prepare, --verify or --part")
+    if args.prepare:
+        subprocess.run([str(CLI), "test", "--config=playwright.prepare.config.ts"], cwd=E2E, check=True)
+        require_prepared()
     if args.verify:
         verify()
     if args.part:
+        require_prepared()
         return subprocess.run(command(args.part), cwd=E2E).returncode
     return 0
 

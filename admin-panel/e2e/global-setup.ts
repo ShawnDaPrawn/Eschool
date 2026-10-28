@@ -19,7 +19,7 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   mkdirSync(path.join(root, '.auth'), { recursive: true });
   mkdirSync(path.join(root, '.cache'), { recursive: true });
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(config.projects[0].use.launchOptions);
   for (const [file, email] of [
     ['admin-pages', accounts.admin],
     ['admin-flows', accounts.admin],

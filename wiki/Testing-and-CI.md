@@ -105,7 +105,10 @@ Each part runs from `admin-panel/` with database `eschool_e2e` and
 2. `migrate`, `db:seed --class=InstallationSeeder`, `db:seed --class=DemoSchoolSeeder`, `storage:link`.
 3. Starts the panel with `PHP_CLI_SERVER_WORKERS=4 CACHE_DRIVER=array php artisan serve` and waits for `/login`. The array cache keeps the per-account request limits from throttling the sweep; four workers serve the parallel browsers.
 4. Node 22, `npm ci` and `npx playwright install --with-deps chromium` in `admin-panel/e2e`.
-5. `python3 ../tool/ci/playwright_partition.py --part 1` (or `2`, `3`, `4`,
+5. `python3 ../tool/ci/playwright_partition.py --prepare` first signs in and
+   builds the real seeded page manifest. Verification and execution reuse that
+   exact manifest without rerunning global setup. Then
+   `python3 ../tool/ci/playwright_partition.py --part 1` (or `2`, `3`, `4`,
    `wizard`). Bulk jobs select all non-wizard projects with Playwright's native
    sharding; serial groups are preserved. The isolated wizard selects only its
    own project with `--no-deps`, avoiding a duplicate run of the entire suite.
@@ -115,8 +118,11 @@ Each part runs from `admin-panel/` with database `eschool_e2e` and
    including HTML, traces and server logs (kept 14 days).
 
 The full local `npx playwright test` command and its project dependencies remain
-available. Partition discovery on the parent-transfer source verified all 255
-cases exactly once: 66/64/61/63 bulk cases and one isolated wizard case. Browser
+available. Initial discovery without a prepared page manifest found only 255 cases; that
+was insufficient evidence for dynamic page coverage. The runner now requires
+real preparation before proving complete, disjoint runtime selections. The
+full discipline workflow has a bounded two-minute total budget, retaining every
+assertion after the old one-minute budget expired during its final checks. Browser
 execution of all five parts remains a hosted qualification requirement.
 
 See [Playwright (admin panel)](#playwright-admin-panel) for what it checks.
