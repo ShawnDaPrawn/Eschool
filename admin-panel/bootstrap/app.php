@@ -25,6 +25,7 @@ use App\Http\Middleware\HandleIdempotencyKey;
 use App\Http\Middleware\LanguageManager;
 use App\Http\Middleware\LimitRequestInput;
 use App\Http\Middleware\ObserveLearnerActivity;
+use App\Http\Middleware\PreserveDocumentFeedback;
 use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RejectDangerousUploads;
@@ -129,6 +130,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(replace: [
             BaseEncryptCookies::class => EncryptCookies::class,
         ], append: [
+            PreserveDocumentFeedback::class,
             LanguageManager::class,
             // Signs out other sessions when the password changes.
             AuthenticateSession::class,
@@ -148,6 +150,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SubstituteBindings::class,
         ]);
         $middleware->api(append: [
+            PreserveDocumentFeedback::class,
             ObserveLearnerActivity::class,
             RejectDangerousUploads::class,
         ]);
