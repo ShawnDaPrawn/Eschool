@@ -36,3 +36,10 @@ Automatic/taxable item rules and the rest of Phase 5 remain separate work.
 Bank imports and reviewed EFT matching are the current increment. See
 [verification](money/bank-matching.md) and its feature PR; importing evidence does
 not post money, and unresolved bank rows are not a development freeze.
+
+[Item VAT verification](money/fee-item-vat.md) records explicit registration,
+original tax invoices and credits, private parent tax and accounting exports.
+Automatic eligibility and subsequent increments remain separate work.
+
+[Automatic item verification](money/automatic-fee-items.md) covers compulsory and
+membership batch charging. Parent opt-in approvals remain the next portion.

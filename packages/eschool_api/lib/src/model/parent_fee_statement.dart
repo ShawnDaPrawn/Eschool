@@ -77,7 +77,7 @@ class ParentFeeStatement {
   @JsonKey(name: r'currency', required: true, includeIfNull: false)
   final String currency;
 
-  /// Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
+  /// Current invoice share after posted credit notes, including applicable VAT; equals allocated plus outstanding cents.
   // minimum: 0
   @JsonKey(name: r'charged_cents', required: true, includeIfNull: false)
   final int chargedCents;

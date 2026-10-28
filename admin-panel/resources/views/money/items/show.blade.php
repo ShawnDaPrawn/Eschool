@@ -12,6 +12,7 @@
 <p>{{ $charge->snapshot['item_name'] }} · {{ $charge->snapshot['account_name'] }} · <strong>{{ \App\Services\Platform\Ledger\Money::ofCents($charge->amount_cents,$charge->currency)->format() }}</strong></p>
 <p>{{ __('Unique occurrence reference') }}: {{ $charge->source_reference }}</p><p>{{ __('This charge is posted. Corrections use a credit note; the original invoice is retained.') }}</p>
 @if($charge->scope==='family')<p>{{ __('This charges the family once. The review divides the total across its learners and preserves each holder total share.') }}</p>@endif
+@include('money.items.tax-breakdown',['snapshot'=>$charge->snapshot])
 @include('money.items.review-lines',['snapshot'=>$charge->snapshot])
 
 </div>

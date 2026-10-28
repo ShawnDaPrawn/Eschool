@@ -110,7 +110,7 @@ Map<String, dynamic> feeCreditedStatementFixture({
     'net_cents': -248,
     'credit_notes': {
       'items': [
-        {
+        <String, dynamic>{
           'id': 31,
           'number': 'FEE-CN-SYNTHETIC-1',
           'invoice_line_id': 11,
@@ -170,5 +170,32 @@ Map<String, dynamic> feeItemStatementFixture({
   (((data['credit_notes'] as Map)['items'] as List).single
           as Map<String, dynamic>)['invoice_number'] =
       'ITEM-SYNTHETIC';
+  return data;
+}
+
+/// This holder's private share; original VAT130, reversed39, current VAT91.
+Map<String, dynamic> feeVatStatementFixture({
+  int schoolId = 1,
+  int holderId = 21,
+}) {
+  final data = feeCreditedStatementFixture(
+    schoolId: schoolId,
+    holderId: holderId,
+  );
+  final rows = ((data['charges'] as Map)['items'] as List)
+      .cast<Map<String, dynamic>>();
+  for (var i = 0; i < rows.length; i++) {
+    rows[i].addAll({
+      'description': 'Synthetic taxed family item',
+      'charge_kind': 'fee_item',
+      'charge_scope': 'family',
+      'original_vat_cents': 65,
+      'vat_credited_cents': i == 0 ? 39 : 0,
+      'net_charged_cents': i == 0 ? 175 : 436,
+    });
+  }
+  (((data['credit_notes'] as Map)['items'] as List).single
+          as Map<String, dynamic>)
+      .addAll({'vat_cents': 39, 'net_cents': 261});
   return data;
 }

@@ -8,6 +8,7 @@ use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property int $vat_rate_bp */
 class FeeItem extends Model
 {
     use BelongsToSchool;
@@ -16,6 +17,6 @@ class FeeItem extends Model
 
     protected function casts(): array
     {
-        return ['created_at' => UtcInstant::class, 'updated_at' => UtcInstant::class, 'amount_cents' => 'integer', 'revision' => 'integer'];
+        return ['created_at' => UtcInstant::class, 'updated_at' => UtcInstant::class, 'vat_rate_bp' => 'integer', 'amount_cents' => 'integer', 'revision' => 'integer'];
     }
 }

@@ -7,6 +7,8 @@
 <x-page.header :title="__('Fee items')" />
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 <p>{{ __('Fee items are additional charges. Each occurrence is reviewed before it creates an invoice.') }}</p>
+<x-m3.button variant="text" :href="route('fee-items.tax')">{{ __('School VAT details') }}</x-m3.button>
+<x-m3.button variant="text" :href="route('fee-item-batches.index')">{{ __('Automatic item batches') }}</x-m3.button>
 <x-m3.button variant="outlined" :href="route('fee-item-charges.index')">{{ __('Posted item charges') }}</x-m3.button>
 @if($canWrite)<x-m3.button :href="route('fee-items.new')">{{ __('New fee item') }}</x-m3.button>@else<p>{{ __('Fee item history is read-only while fees are disabled.') }}</p>@endif
 @if($items->isEmpty())<x-page.empty-state :title="__('No fee items yet')" :message="__('Create an item for a learner or a family, then review its first charge.')" />@else

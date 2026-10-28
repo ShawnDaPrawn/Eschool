@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Panel\Money;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Money\BillRunPanelRequest;
 use App\Models\Money\BillRun;
+use App\Models\Money\FeeCharge;
 use App\Models\Money\Invoice;
 use App\Models\Money\InvoiceLine;
 use App\Models\SessionYear;
@@ -75,6 +76,8 @@ class BillRunPanelController extends Controller
 
         $backUrl = BillRun::findOrFail($invoice->bill_run_id)->kind === 'annual' ? route('fee-bill-runs.show', ['run' => $invoice->bill_run_id]) : route('fee-bill-runs.index');
 
-        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines', 'backUrl'));
+        $tax = FeeCharge::where('bill_run_id', $invoice->bill_run_id)->whereNotNull('sealed_at')->first()?->snapshot;
+
+        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines', 'backUrl', 'tax'));
     }
 }

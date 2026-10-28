@@ -2212,5 +2212,9 @@
   "This reason stays private to authorized moderation records.": "This reason stays private to authorized moderation records.",
   "Visible to this audience": "Visible to this audience",
   "Your conversation access changed. Reopen Activity groups.": "Your conversation access changed. Reopen Activity groups.",
-  "unread": "Unread"
+  "unread": "Unread",
+  "VAT included in your charge": "VAT included in your charge",
+  "Your charge before VAT": "Your charge before VAT",
+  "VAT included in this credit": "VAT included in this credit",
+  "Credit before VAT": "Credit before VAT"
 }

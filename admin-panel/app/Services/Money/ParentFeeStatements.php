@@ -111,7 +111,7 @@ final class ParentFeeStatements
                 // Explicit whitelist: another holder's identity, shares, ledger
                 // and source references never enter the parent's resource.
                 $rows[] = array_intersect_key($row, array_flip(['invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'charge_kind', 'charge_scope', 'description', 'period_start', 'period_end',
-                    'issued_on', 'due_on', 'currency', 'gross_charged_cents', 'credited_cents', 'charged_cents', 'allocated_cents', 'outstanding_cents']));
+                    'issued_on', 'due_on', 'currency', 'gross_charged_cents', 'credited_cents', 'charged_cents', 'allocated_cents', 'outstanding_cents', 'original_vat_cents', 'vat_credited_cents', 'net_charged_cents']));
             }
             // Owning a receipt does not restore guardian visibility to this
             // family. A visible learner elsewhere cannot authorize its history.
@@ -126,7 +126,7 @@ final class ParentFeeStatements
                 }
                 $receipts[] = array_intersect_key($payment, array_flip(['id', 'number', 'pinned_learner_id', 'method', 'received_on', 'currency', 'amount_cents', 'released_cents', 'allocated_cents', 'credit_cents']));
             }
-            $byAccount[$id] = ['id' => $id, 'name' => $account->name, 'reference' => $account->reference, 'currency' => $account->currency, 'school_id' => $school, 'holder_user_id' => (int) $actor->id, 'charges' => $rows, 'payments' => $receipts, 'credit_notes' => array_values(array_map(fn ($n) => array_intersect_key($n, array_flip(['id', 'number', 'invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'currency', 'amount_cents', 'unpaid_cents', 'released_cents', 'reason_code', 'issued_on'])), array_filter($credits, fn ($n) => $n['fee_account_id'] === $id && in_array($n['learner_id'], $visible, true))))];
+            $byAccount[$id] = ['id' => $id, 'name' => $account->name, 'reference' => $account->reference, 'currency' => $account->currency, 'school_id' => $school, 'holder_user_id' => (int) $actor->id, 'charges' => $rows, 'payments' => $receipts, 'credit_notes' => array_values(array_map(fn ($n) => array_intersect_key($n, array_flip(['id', 'number', 'invoice_line_id', 'invoice_number', 'learner_id', 'learner_name', 'currency', 'amount_cents', 'vat_cents', 'net_cents', 'unpaid_cents', 'released_cents', 'reason_code', 'issued_on'])), array_filter($credits, fn ($n) => $n['fee_account_id'] === $id && in_array($n['learner_id'], $visible, true))))];
         }
 
         return $byAccount;

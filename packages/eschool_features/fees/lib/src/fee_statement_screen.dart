@@ -251,6 +251,21 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                   ),
                 ],
                 _amount('Your net share', charge.chargedCents, charge.currency),
+                if (charge.originalVatCents != null &&
+                    charge.vatCreditedCents != null &&
+                    charge.netChargedCents != null &&
+                    charge.originalVatCents! > 0) ...[
+                  _amount(
+                    'VAT included in your charge',
+                    charge.originalVatCents! - charge.vatCreditedCents!,
+                    charge.currency,
+                  ),
+                  _amount(
+                    'Your charge before VAT',
+                    charge.netChargedCents!,
+                    charge.currency,
+                  ),
+                ],
                 _amount(
                   'Applied payments',
                   charge.allocatedCents,
@@ -380,6 +395,18 @@ class _FeeStatementScreenState extends State<FeeStatementScreen>
                     _ => 'Other fee correction',
                   }),
                   _amount('Credit amount', note.amountCents, note.currency),
+                  if ((note.vatCents ?? 0) > 0) ...[
+                    _amount(
+                      'VAT included in this credit',
+                      note.vatCents!,
+                      note.currency,
+                    ),
+                    _amount(
+                      'Credit before VAT',
+                      note.netCents ?? note.amountCents - note.vatCents!,
+                      note.currency,
+                    ),
+                  ],
                   _amount('Debt reduction', note.unpaidCents, note.currency),
                   _amount(
                     'Restored to receipts',

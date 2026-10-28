@@ -6,6 +6,7 @@ namespace App\Services\Money;
 
 use App\Events\Money\FeeCreditPosted;
 use App\Models\Money\FeeAccount;
+use App\Models\Money\FeeCharge;
 use App\Models\Money\FeeCreditNote;
 use App\Models\Money\FeeCreditRelease;
 use App\Models\Money\Invoice;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Ledger\CentsRatio;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
 use App\Services\Platform\Ledger\Posting;
@@ -49,7 +51,13 @@ final class FeeCreditNotes
             $snapshot = $this->snapshot($data);
             abort_unless(hash_equals($this->fingerprint($snapshot), $data['fingerprint']), 409, 'Charges or allocations changed. Review a new credit note.');
             $money = fn (int $cents) => Money::ofCents($cents, $snapshot['currency']);
-            $postings = [Posting::debit($snapshot['income_account_id'], $money($snapshot['amount_cents']))];
+            $postings = [];
+            if ($snapshot['net_cents'] > 0) {
+                $postings[] = Posting::debit($snapshot['income_account_id'], $money($snapshot['net_cents']));
+            }
+            if ($snapshot['vat_cents'] > 0) {
+                $postings[] = Posting::debit($snapshot['vat_account_id'], $money($snapshot['vat_cents']));
+            }
             if ($snapshot['unpaid_cents'] > 0) {
                 $postings[] = Posting::credit($snapshot['receivable_account_id'], $money($snapshot['unpaid_cents']));
             }
@@ -59,7 +67,7 @@ final class FeeCreditNotes
             $source = 'fee-credit:'.$data['operation_id'];
             $entry = app(LedgerService::class)->post($source, $source, 'Posted fee credit note', $postings);
             $note = FeeCreditNote::create(['fee_account_id' => $snapshot['fee_account_id'], 'invoice_line_id' => $snapshot['invoice_line_id'], 'holder_user_id' => $snapshot['holder_user_id'],
-                'currency' => $snapshot['currency'], 'amount_cents' => $snapshot['amount_cents'], 'unpaid_cents' => $snapshot['unpaid_cents'], 'released_cents' => $snapshot['released_cents'],
+                'currency' => $snapshot['currency'], 'amount_cents' => $snapshot['amount_cents'], 'vat_cents' => $snapshot['vat_cents'], 'vat_account_id' => $snapshot['vat_account_id'], 'unpaid_cents' => $snapshot['unpaid_cents'], 'released_cents' => $snapshot['released_cents'],
                 'income_account_id' => $snapshot['income_account_id'], 'receivable_account_id' => $snapshot['receivable_account_id'], 'credit_account_id' => $snapshot['credit_account_id'],
                 'reason_code' => $data['reason_code'], 'reason' => $data['reason'], 'fingerprint' => $data['fingerprint'], 'snapshot' => $snapshot, 'ledger_entry_id' => $entry, 'created_by' => $actor->id, 'issued_on' => $snapshot['issued_on'], 'created_at' => now('UTC')]);
             foreach ($snapshot['releases'] as $release) {
@@ -113,14 +121,23 @@ final class FeeCreditNotes
             $left -= $cents;
         }
         abort_unless($left === 0, 409, 'Paid invoice shares need reconciliation.');
+        $originalShare = collect($line->holder_shares)->firstWhere('user_id', $data['holder_user_id']);
+        $originalVat = $originalShare['vat_cents'] ?? 0;
+        $priorVat = (int) FeeCreditHistory::notes()->where('n.invoice_line_id', $line->id)->where('n.holder_user_id', $data['holder_user_id'])->sum('n.vat_cents');
+        $vat = CentsRatio::portion($originalVat, $charge['credited_cents'] + $amount, $charge['gross_charged_cents']) - $priorVat;
+        abort_unless($vat >= 0 && $vat <= $amount, 409, 'Original VAT credits need reconciliation.');
+        $sourceCharge = $line->fee_charge_id === null ? null : FeeCharge::whereNotNull('sealed_at')->findOrFail($line->fee_charge_id);
+        $vatAccount = $sourceCharge?->vat_account_id;
+        abort_unless($vat === 0 || $vatAccount !== null, 409, 'Original VAT account needs reconciliation.');
         $income = DB::table('ledger_postings as p')->join('ledger_accounts as a', fn ($j) => $j->on('a.school_id', '=', 'p.school_id')->on('a.id', '=', 'p.account_id'))
             ->where('p.school_id', $school)->where('p.entry_id', $invoice->ledger_entry_id)->where('p.direction', 'credit')->where('a.type', 'fee_income')->value('a.id');
+        $income ??= $sourceCharge?->income_account_id;
         abort_unless($income !== null && $account->ledger_account_id !== null, 409, 'Invoice accounts need reconciliation.');
 
         return ['fee_account_id' => (int) $account->id, 'invoice_line_id' => (int) $line->id, 'invoice_number' => $invoice->number, 'learner_id' => (int) $line->learner_id, 'learner_name' => $line->learner_name,
             'holder_user_id' => $data['holder_user_id'], 'holder_name' => $charge['holder_name'], 'currency' => $line->currency, 'gross_charged_cents' => $charge['gross_charged_cents'],
             'credited_before_cents' => $charge['credited_cents'], 'charged_before_cents' => $charge['charged_cents'], 'allocated_before_cents' => $charge['allocated_cents'], 'outstanding_before_cents' => $charge['outstanding_cents'],
-            'amount_cents' => $amount, 'unpaid_cents' => $unpaid, 'released_cents' => $amount - $unpaid, 'charged_after_cents' => $charge['charged_cents'] - $amount,
+            'amount_cents' => $amount, 'net_cents' => $amount - $vat, 'vat_cents' => $vat, 'original_vat_cents' => $originalVat, 'vat_credited_before_cents' => $priorVat, 'vat_account_id' => $vatAccount, 'tax_details' => $sourceCharge?->snapshot['tax_details'] ?? null, 'unpaid_cents' => $unpaid, 'released_cents' => $amount - $unpaid, 'charged_after_cents' => $charge['charged_cents'] - $amount,
             'allocated_after_cents' => $charge['allocated_cents'] - ($amount - $unpaid), 'outstanding_after_cents' => $charge['outstanding_cents'] - $unpaid,
             'income_account_id' => (int) $income, 'receivable_account_id' => (int) $account->ledger_account_id, 'credit_account_id' => $creditAccount, 'releases' => $releases,
             'reason_code' => $data['reason_code'], 'reason_hash' => hash_hmac('sha256', 'fee-credit-reason:'.$data['reason'], (string) config('app.key')),

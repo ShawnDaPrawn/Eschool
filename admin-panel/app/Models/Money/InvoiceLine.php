@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * @property list<array{user_id: int, name: string, share_bp: int, amount_cents: int}> $holder_shares
+ * @property list<array{user_id: int, name: string, share_bp: int, amount_cents: int, vat_cents?: int}> $holder_shares
  * @property Carbon $period_start
  * @property Carbon $period_end
  */

@@ -74,7 +74,7 @@ void main() {
           'GET v2/parent/fees/accounts': (RequestOptions _) =>
               privateRead(feeCreditedAccountsFixture()),
           'GET v2/parent/fees/accounts/7/statement': (RequestOptions _) =>
-              privateRead(feeItemStatementFixture()),
+              privateRead(feeVatStatementFixture()),
         });
         await tapWhenReady(
           tester,
@@ -115,6 +115,8 @@ void main() {
           scrollable: find.byType(Scrollable).last,
         );
         expect(find.text('Asha Synthetic'), findsOneWidget);
+        expect(find.text('VAT included in your charge'), findsWidgets);
+        expect(find.text('Your charge before VAT'), findsWidgets);
         expect(find.text('Additional fee'), findsWidgets);
         expect(
           find.text('Family charge apportioned to this learner'),
@@ -152,6 +154,8 @@ void main() {
         );
         expect(find.text('Billing correction'), findsOneWidget);
         expect(find.text('Restored to receipts'), findsOneWidget);
+        expect(find.text('VAT included in this credit'), findsOneWidget);
+        expect(find.text('Credit before VAT'), findsOneWidget);
         allowed = false;
         await tapWhenReady(tester, find.byTooltip('Refresh fee statements'));
         await pumpUntilFound(tester, find.text('Your fee access changed'));

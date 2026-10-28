@@ -77,6 +77,18 @@ ParentFeeCharge _$ParentFeeChargeFromJson(
         'credited_cents',
         (v) => (v as num?)?.toInt(),
       ),
+      originalVatCents: $checkedConvert(
+        'original_vat_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
+      vatCreditedCents: $checkedConvert(
+        'vat_credited_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
+      netChargedCents: $checkedConvert(
+        'net_charged_cents',
+        (v) => (v as num?)?.toInt(),
+      ),
     );
     return val;
   },
@@ -96,6 +108,9 @@ ParentFeeCharge _$ParentFeeChargeFromJson(
     'outstandingCents': 'outstanding_cents',
     'grossChargedCents': 'gross_charged_cents',
     'creditedCents': 'credited_cents',
+    'originalVatCents': 'original_vat_cents',
+    'vatCreditedCents': 'vat_credited_cents',
+    'netChargedCents': 'net_charged_cents',
   },
 );
 
@@ -120,6 +135,9 @@ Map<String, dynamic> _$ParentFeeChargeToJson(
   'outstanding_cents': instance.outstandingCents,
   'gross_charged_cents': ?instance.grossChargedCents,
   'credited_cents': ?instance.creditedCents,
+  'original_vat_cents': ?instance.originalVatCents,
+  'vat_credited_cents': ?instance.vatCreditedCents,
+  'net_charged_cents': ?instance.netChargedCents,
 };
 
 const _$ParentFeeChargeChargeKindEnumEnumMap = {

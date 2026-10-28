@@ -104,7 +104,8 @@ class FeeItemPanelController extends Controller
         $lines = InvoiceLine::where('invoice_id', $invoice->id)->orderBy('id')->paginate(50);
         $backUrl = route('fee-item-charges.show', ['charge' => $charge->id]);
         $backLabel = __('Back to fee charge');
+        $tax = $charge->snapshot;
 
-        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines', 'backUrl', 'backLabel'));
+        return response()->view('money.bill-runs.invoice', compact('invoice', 'lines', 'backUrl', 'backLabel', 'tax'));
     }
 }

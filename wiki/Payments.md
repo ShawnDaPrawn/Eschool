@@ -427,3 +427,21 @@ month-day and percentage per line (for example `01-15 25.00`); percentages total
 learner before tuition posts. Review every installment and holder amount in the
 bill preview. Posted invoices preserve their schedule; statements, allocation and
 reminders follow each actual due date. Hidden/sensitive profile fields are excluded.
+
+## Explicit fee item VAT
+
+Finance declares school VAT registration under Fee items → School VAT details,
+then chooses each item's tax treatment and rate. Review shows before-VAT, VAT and
+total before posting. Posted invoices retain original legal details; credits reverse
+the original tax even after settings change. Parent statements show their own VAT
+only. Configure the VAT liability chart mapping before package accounting export;
+journals already include VAT and use a zero-tax label to avoid adding it twice.
+
+## Automatic item batches
+
+Open an item and choose Configure item eligibility. Select a compulsory rule or
+a dated activity/route/teaching/subject source, then prepare an automatic batch.
+Use the same occurrence reference while resolving exceptions later. Review the
+payer exceptions and every allocation; confirm any exclusions before posting.
+Family items charge once for the family. Membership changes affect future charges;
+posted invoices require reasoned credits. This does not record parent opt-in consent.

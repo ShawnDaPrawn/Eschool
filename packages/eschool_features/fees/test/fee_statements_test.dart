@@ -10,7 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Repository implements FeeStatementRepository {
-  _Repository({this.withCredits = false, this.withItems = false});
+  _Repository({
+    this.withCredits = false,
+    this.withItems = false,
+    this.withVat = false,
+  });
+  final bool withVat;
   final bool withItems;
   final bool withCredits;
   bool active = true;
@@ -29,7 +34,7 @@ class _Repository implements FeeStatementRepository {
   }) async {
     if (error != null) throw error!;
     return ParentFeeAccountsPage.fromJson(
-      (withCredits || withItems)
+      (withCredits || withItems || withVat)
           ? feeCreditedAccountsFixture()
           : feeAccountsFixture(),
     );
@@ -47,7 +52,9 @@ class _Repository implements FeeStatementRepository {
     return pending?.future ??
         Future.value(
           ParentFeeStatement.fromJson(
-            withItems
+            withVat
+                ? feeVatStatementFixture()
+                : withItems
                 ? feeItemStatementFixture()
                 : withCredits
                 ? feeCreditedStatementFixture()
@@ -309,6 +316,68 @@ void main() {
       expect(result.chargedCents, 702);
     },
   );
+  for (final defect in ['original', 'reversed', 'net', 'credit']) {
+    test('private VAT response rejects inconsistent $defect amounts', () async {
+      final data = feeVatStatementFixture();
+      final row =
+          ((data['charges'] as Map)['items'] as List).first
+              as Map<String, dynamic>;
+      if (defect == 'original') row['original_vat_cents'] = 502;
+      if (defect == 'reversed') row['vat_credited_cents'] = 66;
+      if (defect == 'net') row['net_charged_cents'] = 200;
+      if (defect == 'credit') {
+        (((data['credit_notes'] as Map)['items'] as List).single
+                as Map)['net_cents'] =
+            300;
+      }
+      final api = FakeApi(
+        routes: {'GET v2/parent/fees/accounts/7/statement': _ok(data)},
+      );
+      final repository = ApiFeeStatementRepository(
+        ApiClient(
+          authToken: () => 'synthetic',
+          onUnauthorized: () {},
+          createDio: () => Dio()..httpClientAdapter = api,
+        ),
+        schoolId: 1,
+        accountId: 21,
+        contextActive: () => true,
+      );
+      await expectLater(repository.statement(7), throwsA(isA<ApiException>()));
+    });
+  }
+  for (final width in [390.0, 820.0, 1280.0]) {
+    testWidgets('own VAT and credited VAT remain clear at $width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: FeeStatementScreen(repository: _Repository(withVat: true)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open statement'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('VAT included in your charge').first,
+        200,
+      );
+      expect(find.text('ZAR 0.26'), findsOneWidget);
+      expect(find.text('Your charge before VAT'), findsWidgets);
+      await tester.scrollUntilVisible(
+        find.text('VAT included in this credit'),
+        250,
+      );
+      expect(find.text('ZAR 0.39'), findsOneWidget);
+      expect(find.text('Credit before VAT'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
   for (final width in [390.0, 820.0, 1280.0]) {
     testWidgets(
       'family item scope and credited shares remain clear at $width',

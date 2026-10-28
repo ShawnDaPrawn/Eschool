@@ -49,6 +49,12 @@ class ParentFeeCharge {
     this.grossChargedCents,
 
     this.creditedCents,
+
+    this.originalVatCents,
+
+    this.vatCreditedCents,
+
+    this.netChargedCents,
   });
 
   // minimum: 1
@@ -101,7 +107,7 @@ class ParentFeeCharge {
   @JsonKey(name: r'currency', required: true, includeIfNull: false)
   final String currency;
 
-  /// Current net invoice share after posted credit notes; equals allocated plus outstanding cents.
+  /// Current invoice share after posted credit notes, including applicable VAT; equals allocated plus outstanding cents.
   // minimum: 0
   @JsonKey(name: r'charged_cents', required: true, includeIfNull: false)
   final int chargedCents;
@@ -124,6 +130,21 @@ class ParentFeeCharge {
   @JsonKey(name: r'credited_cents', required: false, includeIfNull: false)
   final int? creditedCents;
 
+  /// Original VAT allocated to this holder and learner share. Optional for older servers.
+  // minimum: 0
+  @JsonKey(name: r'original_vat_cents', required: false, includeIfNull: false)
+  final int? originalVatCents;
+
+  /// VAT reversed by finalized credit notes against this same share.
+  // minimum: 0
+  @JsonKey(name: r'vat_credited_cents', required: false, includeIfNull: false)
+  final int? vatCreditedCents;
+
+  /// Current charged share after credits, excluding its remaining VAT.
+  // minimum: 0
+  @JsonKey(name: r'net_charged_cents', required: false, includeIfNull: false)
+  final int? netChargedCents;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -144,7 +165,10 @@ class ParentFeeCharge {
           other.allocatedCents == allocatedCents &&
           other.outstandingCents == outstandingCents &&
           other.grossChargedCents == grossChargedCents &&
-          other.creditedCents == creditedCents;
+          other.creditedCents == creditedCents &&
+          other.originalVatCents == originalVatCents &&
+          other.vatCreditedCents == vatCreditedCents &&
+          other.netChargedCents == netChargedCents;
 
   @override
   int get hashCode =>
@@ -164,7 +188,10 @@ class ParentFeeCharge {
       allocatedCents.hashCode +
       outstandingCents.hashCode +
       grossChargedCents.hashCode +
-      creditedCents.hashCode;
+      creditedCents.hashCode +
+      originalVatCents.hashCode +
+      vatCreditedCents.hashCode +
+      netChargedCents.hashCode;
 
   factory ParentFeeCharge.fromJson(Map<String, dynamic> json) =>
       _$ParentFeeChargeFromJson(json);

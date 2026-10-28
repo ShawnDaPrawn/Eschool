@@ -39,9 +39,11 @@ final class FeeStatements
             $byShare[(int) $release->invoice_line_id][(int) $release->holder_user_id] = ($byShare[(int) $release->invoice_line_id][(int) $release->holder_user_id] ?? 0) - (int) $release->cents;
         }
         $credited = [];
+        $vatCredited = [];
         foreach (FeeCreditHistory::notes()->whereIn('n.fee_account_id', $accountIds)->when($holder !== null, fn ($q) => $q->where('n.holder_user_id', $holder))
-            ->selectRaw('n.invoice_line_id, n.holder_user_id, SUM(n.amount_cents) AS cents')->groupBy('n.invoice_line_id', 'n.holder_user_id')->get() as $credit) {
+            ->selectRaw('n.invoice_line_id, n.holder_user_id, SUM(n.amount_cents) AS cents,SUM(n.vat_cents) AS vat')->groupBy('n.invoice_line_id', 'n.holder_user_id')->get() as $credit) {
             $credited[(int) $credit->invoice_line_id][(int) $credit->holder_user_id] = (int) $credit->cents;
+            $vatCredited[(int) $credit->invoice_line_id][(int) $credit->holder_user_id] = (int) $credit->vat;
         }
         $lines = InvoiceLine::leftJoin('fee_charges as fc', function ($j) {
             $j->on('fc.school_id', '=', 'invoice_lines.school_id')->on('fc.id', '=', 'invoice_lines.fee_charge_id');
@@ -66,7 +68,7 @@ final class FeeStatements
                     'learner_id' => (int) $line->learner_id, 'learner_name' => $line->learner_name, 'holder_user_id' => $share['user_id'], 'holder_name' => $share['name'],
                     'charge_kind' => $line->fee_charge_id === null ? 'annual_tuition' : 'fee_item', 'charge_scope' => $line->getAttribute('fee_charge_scope') ?? 'learner', 'description' => $line->description, 'period_start' => $line->period_start->toDateString(), 'period_end' => $line->period_end->toDateString(),
                     'issued_on' => (string) $line->getAttribute('issued_on'), 'due_on' => (string) $line->getAttribute('due_on'), 'currency' => $line->currency, 'gross_charged_cents' => $share['amount_cents'], 'credited_cents' => $credit, 'charged_cents' => $net,
-                    'allocated_cents' => $used, 'outstanding_cents' => $net - $used];
+                    'allocated_cents' => $used, 'outstanding_cents' => $net - $used, 'original_vat_cents' => $share['vat_cents'] ?? 0, 'vat_credited_cents' => $vatCredited[(int) $line->id][$share['user_id']] ?? 0, 'net_charged_cents' => $net - (($share['vat_cents'] ?? 0) - ($vatCredited[(int) $line->id][$share['user_id']] ?? 0))];
             }
         }
 
@@ -120,9 +122,9 @@ final class FeeStatements
         return FeeCreditHistory::notes()->join('invoice_lines as l', fn ($j) => $j->on('l.school_id', '=', 'n.school_id')->on('l.id', '=', 'n.invoice_line_id'))
             ->join('invoices as i', fn ($j) => $j->on('i.school_id', '=', 'l.school_id')->on('i.id', '=', 'l.invoice_id'))
             ->whereIn('n.fee_account_id', $accountIds)->when($holder !== null, fn ($q) => $q->where('n.holder_user_id', $holder))->orderByDesc('n.id')
-            ->get(['n.id', 'n.fee_account_id', 'n.invoice_line_id', 'n.holder_user_id', 'n.amount_cents', 'n.unpaid_cents', 'n.released_cents', 'n.reason_code', 'n.issued_on', 'n.currency', 'l.learner_id', 'l.learner_name', 'i.number as invoice_number'])
+            ->get(['n.id', 'n.fee_account_id', 'n.invoice_line_id', 'n.holder_user_id', 'n.amount_cents', 'n.vat_cents', 'n.unpaid_cents', 'n.released_cents', 'n.reason_code', 'n.issued_on', 'n.currency', 'l.learner_id', 'l.learner_name', 'i.number as invoice_number'])
             ->map(fn ($n) => ['id' => (int) $n->id, 'number' => 'FEE-CN-'.$n->id, 'fee_account_id' => (int) $n->fee_account_id, 'invoice_line_id' => (int) $n->invoice_line_id, 'holder_user_id' => (int) $n->holder_user_id,
-                'learner_id' => (int) $n->learner_id, 'learner_name' => $n->learner_name, 'invoice_number' => $n->invoice_number, 'amount_cents' => (int) $n->amount_cents, 'unpaid_cents' => (int) $n->unpaid_cents,
+                'learner_id' => (int) $n->learner_id, 'learner_name' => $n->learner_name, 'invoice_number' => $n->invoice_number, 'amount_cents' => (int) $n->amount_cents, 'vat_cents' => (int) $n->vat_cents, 'net_cents' => (int) $n->amount_cents - (int) $n->vat_cents, 'unpaid_cents' => (int) $n->unpaid_cents,
                 'released_cents' => (int) $n->released_cents, 'reason_code' => $n->reason_code, 'issued_on' => $n->issued_on, 'currency' => $n->currency])->all();
     }
 
