@@ -34,6 +34,21 @@ class VendorFixture {
             'documents': [],
           });
         },
+        'GET v2/vendor/counters/81/settlements': (RequestOptions _) => answer({
+          'school_id': 1,
+          'actor_user_id': actor,
+          'vendor_id': 81,
+          'items': [settlement()],
+          'page': 1,
+          'last_page': 1,
+        }),
+        'GET v2/vendor/counters/81/settlements/501': (RequestOptions _) =>
+            answer({
+              'school_id': 1,
+              'actor_user_id': actor,
+              'vendor_id': 81,
+              ...settlement(detail: true),
+            }),
         'GET v2/vendor/session': (RequestOptions _) => answer(profile()),
         'POST v2/vendor/sign-out': (RequestOptions _) => ok(null),
         'GET v2/vendor/counters/81/orders': (RequestOptions q) => answer({
@@ -135,6 +150,33 @@ class VendorFixture {
         'vat_cents': 0,
       },
     ],
+  };
+  Map<String, dynamic> settlement({bool detail = false}) => {
+    'id': 501,
+    'method': 'eft',
+    'currency': 'ZAR',
+    'period_from': '2026-10-28',
+    'period_to': '2026-10-28',
+    'order_count': 1,
+    'gross_cents': 1250,
+    'sales_net_cents': 1250,
+    'vat_cents': 0,
+    'collected_by': 'school',
+    'collector_fee_cents': 0,
+    'payout_cents': 1250,
+    'status': 'settled',
+    'created_at': '2026-10-28T09:02:00.000Z',
+    'settled_at': '2026-10-28T09:03:00.000Z',
+    'paid_on': '2026-10-28',
+    if (detail)
+      'lines': [
+        {
+          'order_number': 'VO-000001',
+          'gross_cents': 1250,
+          'sales_net_cents': 1250,
+          'vat_cents': 0,
+        },
+      ],
   };
   void resolve(String key, {required bool committed}) {
     api.routes['POST v2/vendor/counters/81/operations/$key/resolve'] =

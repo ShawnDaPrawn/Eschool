@@ -64,6 +64,19 @@ void main() {
         );
         expect(fixture.writes, 1);
         expect(find.text('Validate one handover'), findsNothing);
+        await tapWhenReady(
+          tester,
+          find.text('View this counter settlement history'),
+        );
+        await tapWhenReady(
+          tester,
+          find.text('Settlement 501 · 2026-10-28–2026-10-28'),
+        );
+        await pumpUntilFound(
+          tester,
+          find.text('Vendor settlement amount: ZAR 12.50'),
+        );
+        expect(find.text('Collector fee: ZAR 0.00'), findsOneWidget);
         fixture.allowed = false;
         await tester.runAsync(repo.refresh);
         await tester.pumpAndSettle();

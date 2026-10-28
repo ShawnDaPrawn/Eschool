@@ -186,6 +186,94 @@ class VendorReceipt {
   final List<VendorReceiptLine> lines;
 }
 
+String _civilDate(Object? value) {
+  final text = _text(value, max: 10);
+  final parsed = DateTime.tryParse(text);
+  if (!RegExp(r'^\d{4}-\d\d-\d\d$').hasMatch(text) ||
+      parsed == null ||
+      parsed.toIso8601String().substring(0, 10) != text) {
+    throw const FormatException('Invalid reporting date');
+  }
+  return text;
+}
+
+class VendorSettlementLine {
+  VendorSettlementLine(Map<String, dynamic> data)
+    : number = _text(data['order_number'], max: 32),
+      grossCents = _integer(data['gross_cents'], min: 0),
+      salesNetCents = _integer(data['sales_net_cents'], min: 0),
+      vatCents = _integer(data['vat_cents'], min: 0) {
+    if (!RegExp(r'^VO-[0-9]{6,20}$').hasMatch(number) ||
+        grossCents != salesNetCents + vatCents)
+      throw const FormatException('Invalid original settlement line');
+  }
+  final String number;
+  final int grossCents, salesNetCents, vatCents;
+}
+
+class VendorSettlement {
+  VendorSettlement(
+    Map<String, dynamic> data,
+    VendorCounter counter, {
+    bool detail = false,
+  }) : id = _integer(data['id']),
+       method = _text(data['method'], max: 20),
+       currency = _currency(data['currency']),
+       periodFrom = _civilDate(data['period_from']),
+       periodTo = _civilDate(data['period_to']),
+       orderCount = _integer(data['order_count'], max: 500),
+       grossCents = _integer(data['gross_cents'], min: 0),
+       salesNetCents = _integer(data['sales_net_cents'], min: 0),
+       vatCents = _integer(data['vat_cents'], min: 0),
+       collectorFeeCents = _integer(data['collector_fee_cents'], min: 0),
+       payoutCents = _integer(data['payout_cents'], min: 0),
+       status = _text(data['status'], max: 12),
+       createdAt = _instant(data['created_at']),
+       settledAt = data['settled_at'] == null
+           ? null
+           : _instant(data['settled_at']),
+       paidOn = data['paid_on'] == null ? null : _civilDate(data['paid_on']),
+       lines = detail
+           ? [
+               for (final line in _list(data['lines'], max: 500))
+                 VendorSettlementLine(_map(line)),
+             ]
+           : [] {
+    if (currency != counter.currency ||
+        !['school_internal', 'cash', 'eft'].contains(method) ||
+        !['prepared', 'approved', 'settled'].contains(status) ||
+        periodFrom.compareTo(periodTo) > 0 ||
+        grossCents != salesNetCents + vatCents ||
+        data['collected_by'] != 'school' ||
+        collectorFeeCents != 0 ||
+        payoutCents != grossCents ||
+        (status == 'settled') != (settledAt != null && paidOn != null) ||
+        (status != 'settled' && (settledAt != null || paidOn != null)))
+      throw const FormatException('Invalid settlement totals or state');
+    if (detail &&
+        (lines.length != orderCount ||
+            lines.map((l) => l.number).toSet().length != lines.length ||
+            lines.fold<int>(0, (total, l) => total + l.grossCents) !=
+                grossCents ||
+            lines.fold<int>(0, (total, l) => total + l.salesNetCents) !=
+                salesNetCents ||
+            lines.fold<int>(0, (total, l) => total + l.vatCents) != vatCents))
+      throw const FormatException('Invalid original settlement orders');
+  }
+  final int id,
+      orderCount,
+      grossCents,
+      salesNetCents,
+      vatCents,
+      collectorFeeCents,
+      payoutCents;
+  final String method, currency, periodFrom, periodTo, status;
+  final String? paidOn;
+  final DateTime createdAt;
+  final DateTime? settledAt;
+  final List<VendorSettlementLine> lines;
+}
+
 /// Private vendor session: no teacher repository, token, Hive box or notification initialization.
 class VendorRepository extends ChangeNotifier {
   VendorRepository({AuthMode? mode, this.createDio})
@@ -201,6 +289,10 @@ class VendorRepository extends ChangeNotifier {
   VendorCounter? counter;
   VendorReceipt? receipt;
   List<VendorReceipt> orders = [];
+  List<VendorSettlement> settlements = [];
+  VendorSettlement? settlement;
+  bool settlementView = false;
+  int settlementPage = 1, lastSettlementPage = 1;
   int page = 1, lastPage = 1;
   String filter = 'ready';
   final Map<int, String> _pending = {};
@@ -284,6 +376,9 @@ class VendorRepository extends ChangeNotifier {
   }
 
   void _clearViews() {
+    settlements = [];
+    settlement = null;
+    settlementView = false;
     orders = [];
     receipt = null;
     message = null;
@@ -301,6 +396,8 @@ class VendorRepository extends ChangeNotifier {
     _clearViews();
     page = 1;
     lastPage = 1;
+    settlementPage = 1;
+    lastSettlementPage = 1;
     filter = 'ready';
     busy = false;
     error = null;
@@ -593,6 +690,64 @@ class VendorRepository extends ChangeNotifier {
       message = data['status'] == 'committed'
           ? 'Collection was already recorded. Check the counter record; do not hand over goods again.'
           : 'No handover was recorded by that request. Review the original order again.';
+    });
+  }
+
+  void _settlementScope(
+    Map<String, dynamic> data,
+    VendorProfile pinned,
+    VendorCounter selected,
+  ) {
+    if (_integer(data['school_id']) != pinned.schoolId ||
+        _integer(data['actor_user_id']) != pinned.userId ||
+        _integer(data['vendor_id']) != selected.id)
+      throw const FormatException('Different settlement scope');
+  }
+
+  Future<bool> loadSettlements({int pageNumber = 1}) async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null) return false;
+    final epoch = _generation;
+    return _run(() async {
+      final data = await _request(
+        'GET',
+        'counters/${selected.id}/settlements?page=$pageNumber',
+      );
+      _check(epoch, pinned);
+      _settlementScope(data, pinned, selected);
+      final current = _integer(data['page'], max: 1000000),
+          last = _integer(data['last_page'], max: 1000000);
+      if (current != pageNumber || current > last)
+        throw const FormatException('Invalid settlement page');
+      final rows = [
+        for (final row in _list(data['items'], max: 20))
+          VendorSettlement(_map(row), selected),
+      ];
+      if (rows.map((row) => row.id).toSet().length != rows.length)
+        throw const FormatException('Duplicate settlement rows');
+      settlements = rows;
+      settlementPage = current;
+      lastSettlementPage = last;
+      settlementView = true;
+    });
+  }
+
+  Future<bool> openSettlement(int id) async {
+    final pinned = profile, selected = counter;
+    if (pinned == null || selected == null || id < 1) return false;
+    final epoch = _generation;
+    return _run(() async {
+      final data = await _request(
+        'GET',
+        'counters/${selected.id}/settlements/$id',
+      );
+      _check(epoch, pinned);
+      _settlementScope(data, pinned, selected);
+      final row = VendorSettlement(data, selected, detail: true);
+      if (row.id != id)
+        throw const FormatException('Different original settlement');
+      settlement = row;
+      settlementView = true;
     });
   }
 

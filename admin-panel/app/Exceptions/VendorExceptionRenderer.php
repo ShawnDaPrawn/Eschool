@@ -17,7 +17,7 @@ final class VendorExceptionRenderer
         if (! $error instanceof ValidationException) {
             return null;
         }
-        if ($request->expectsJson() || ! $request->routeIs('vendor.*', 'vendor-operators.*')) {
+        if ($request->expectsJson() || ! $request->routeIs('vendor.*', 'vendor-operators.*', 'vendor-settlements.*')) {
             return null;
         }
         if ($request->routeIs('vendor.*')) {
@@ -25,10 +25,10 @@ final class VendorExceptionRenderer
 
             return response()->view('vendor.error', compact('messages'), 422);
         }
-        $title = __('Vendor operators');
+        $title = $request->routeIs('vendor-settlements.*') ? __('Vendor settlements') : __('Vendor operators');
         $message = implode(' ', $error->validator->errors()->all());
         $draft = [];
-        $returnUrl = route('vendor-operators.index');
+        $returnUrl = route($request->routeIs('vendor-settlements.*') ? 'vendor-settlements.index' : 'vendor-operators.index');
 
         return response()->view('errors.private-year-refusal', compact('title', 'message', 'draft', 'returnUrl'), 422);
     }

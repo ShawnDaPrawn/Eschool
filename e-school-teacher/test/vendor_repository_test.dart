@@ -301,4 +301,92 @@ void main() {
       );
     });
   }
+  test(
+    'settlement reads preserve exact cents and clear private history on denial',
+    () async {
+      final fixture = VendorFixture();
+      final repo = repository(fixture);
+      addTearDown(repo.dispose);
+      expect(await repo.signIn(input()), isTrue);
+      expect(await repo.loadSettlements(), isTrue);
+      expect(repo.settlements.single.payoutCents, 1250);
+      expect(await repo.openSettlement(501), isTrue);
+      expect(repo.settlement!.lines.single.number, 'VO-000001');
+      expect(repo.settlement!.collectorFeeCents, 0);
+      fixture.allowed = false;
+      expect(await repo.loadSettlements(), isFalse);
+      expect(repo.profile, isNull);
+      expect(repo.settlement, isNull);
+      expect(repo.settlements, isEmpty);
+      expect(fixture.writes, 0);
+    },
+  );
+  for (final field in ['school_id', 'actor_user_id', 'vendor_id']) {
+    test(
+      'settlement list refuses changed $field before exposing totals',
+      () async {
+        final fixture = VendorFixture();
+        fixture.api.routes['GET v2/vendor/counters/81/settlements'] = fixture
+            .ok({
+              'school_id': 1,
+              'actor_user_id': 71,
+              'vendor_id': 81,
+              'items': [fixture.settlement()],
+              'page': 1,
+              'last_page': 1,
+              field: 999,
+            });
+        final repo = repository(fixture);
+        addTearDown(repo.dispose);
+        expect(await repo.signIn(input()), isTrue);
+        expect(await repo.loadSettlements(), isFalse);
+        expect(repo.settlements, isEmpty);
+        expect(repo.settlement, isNull);
+      },
+    );
+  }
+  for (final field in [
+    'gross_cents',
+    'sales_net_cents',
+    'vat_cents',
+    'collector_fee_cents',
+    'payout_cents',
+    'currency',
+    'collected_by',
+    'status',
+    'period_from',
+    'order_count',
+    'settled_at',
+    'paid_on',
+    'lines',
+  ]) {
+    test('malformed settlement $field is refused', () {
+      final fixture = VendorFixture();
+      final data = fixture.settlement(detail: true);
+      data[field] = switch (field) {
+        'gross_cents' => 1250.5,
+        'sales_net_cents' => 1250.5,
+        'vat_cents' => 1,
+        'collector_fee_cents' => 10,
+        'payout_cents' => 1240,
+        'currency' => 'USD',
+        'collected_by' => 'navigateed',
+        'status' => 'unknown',
+        'period_from' => '2026-02-30',
+        'order_count' => 2,
+        'settled_at' => null,
+        'paid_on' => null,
+        'lines' => <Object>[],
+        _ => null,
+      };
+      expect(
+        () => VendorSettlement(
+          data,
+          VendorProfile(fixture.profile()).counters.single,
+          detail: true,
+        ),
+        throwsFormatException,
+      );
+    });
+  }
 }

@@ -14,7 +14,7 @@ final class VendorOrderReconciliation
     {
         $report = ['vendor_order_mismatches' => 0, 'vendor_order_stock_mismatches' => 0, 'unattributed_vendor_order_entries' => 0, 'vendor_payable_differences' => []];
         if (! Schema::hasTable('vendor_orders')) {
-            return $report;
+            return $report + app(VendorSettlementReconciliation::class)->inspect();
         }
         $school = app(CurrentSchool::class)->id();
         foreach (DB::table('vendor_orders')->where('school_id', $school)->orderBy('id')->get() as $order) {
@@ -54,13 +54,16 @@ final class VendorOrderReconciliation
         })->count();
         foreach (DB::table('vendors')->where('school_id', $school)->get() as $vendor) {
             $expected = (int) DB::table('vendor_orders as o')->where('o.school_id', $school)->where('o.vendor_id', $vendor->id)->whereNotNull('o.sealed_at')->whereNotExists(fn ($q) => $q->selectRaw('1')->from('vendor_order_actions as a')->whereColumn('a.school_id', 'o.school_id')->whereColumn('a.order_id', 'o.id')->where('a.action', 'cancelled'))->sum('o.amount_cents');
+            if (Schema::hasTable('vendor_settlements')) {
+                $expected -= (int) DB::table('vendor_settlements as s')->where('s.school_id', $school)->where('s.vendor_id', $vendor->id)->whereExists(fn ($q) => $q->selectRaw('1')->from('vendor_settlement_outcomes as o')->whereColumn('o.school_id', 's.school_id')->whereColumn('o.settlement_id', 's.id'))->sum('s.gross_cents');
+            }
             $actual = (int) DB::table('ledger_postings as p')->join('ledger_entries as e', fn ($j) => $j->on('e.school_id', '=', 'p.school_id')->on('e.id', '=', 'p.entry_id'))->where('p.school_id', $school)->where('p.account_id', $vendor->ledger_account_id)->whereNotNull('e.posted_at')->selectRaw("COALESCE(SUM(CASE p.direction WHEN 'credit' THEN p.cents ELSE -p.cents END),0) AS total")->value('total');
             if ($expected !== $actual) {
                 $report['vendor_payable_differences'][(int) $vendor->id] = ['expected_cents' => $expected, 'actual_cents' => $actual];
             }
         }
 
-        return $report;
+        return $report + app(VendorSettlementReconciliation::class)->inspect();
     }
 
     private function entry(?int $id, int $debit, int $credit, int $cents, string $currency, string $source): bool
@@ -79,6 +82,6 @@ final class VendorOrderReconciliation
 
     public static function healthy(array $report): bool
     {
-        return $report['vendor_order_mismatches'] === 0 && $report['vendor_order_stock_mismatches'] === 0 && $report['unattributed_vendor_order_entries'] === 0 && $report['vendor_payable_differences'] === [];
+        return VendorSettlementReconciliation::healthy($report) && $report['vendor_order_mismatches'] === 0 && $report['vendor_order_stock_mismatches'] === 0 && $report['unattributed_vendor_order_entries'] === 0 && $report['vendor_payable_differences'] === [];
     }
 }

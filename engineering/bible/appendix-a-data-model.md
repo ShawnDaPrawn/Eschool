@@ -519,3 +519,14 @@ creation. Immutable `vendor_operator_actions` retain ordered active/revoked
 revisions, actor, permanent operation UUID and encrypted private reason. Composite
 school keys and SQL sequence/update/delete guards retain the assignment history.
 Current authority uses the latest action; no staff permission is inferred.
+
+### Vendor settlements
+
+`vendor_settlements` seals original vendor/instruction revisions, reporting period,
+collected order count and gross/sales-net/VAT/collector-fee/payout cents. Unique
+`vendor_settlement_lines` reserve each original collected order once. Immutable
+`vendor_settlement_approvals` require a different Finance actor; one immutable
+`vendor_settlement_outcomes` records exact original ledger posting, actual payment
+date, cash custodian and encrypted verification. Outside payouts share the existing
+financial_disbursements identity with fee refunds and wallet withdrawals. SQL guards
+retain original totals, identities, school keys and lifecycle; retained down refuses.

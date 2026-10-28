@@ -6,6 +6,7 @@
     <x-page.header :title="$order->order_number" :subtitle="__('Original vendor order')" />
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     <p>{{ $order->seller_snapshot['legal_name'] }} · {{ __($state) }}</p>
+    <details><summary>{{ __('Original seller settlement and liability terms') }}</summary><p>{{ $order->seller_snapshot['settlement_terms'] }}</p><p>{{ __('Refund responsibility') }}: {{ __($order->seller_snapshot['refund_bearer']) }} · {{ __('Chargeback responsibility') }}: {{ __($order->seller_snapshot['chargeback_bearer']) }}</p></details>
     <p>{{ __('Original wallet amount') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($order->amount_cents,$order->currency)->format() }}</p>
     <p>{{ __('VAT included') }}: {{ \App\Services\Platform\Ledger\Money::ofCents($order->vat_cents,$order->currency)->format() }}</p>
     <ul>@foreach($lines as $line)<li>{{ $line->product_name }} · {{ $line->quantity }} {{ $line->unit_label }} · {{ \App\Services\Platform\Ledger\Money::ofCents($line->gross_cents,$order->currency)->format() }}</li>@endforeach</ul>

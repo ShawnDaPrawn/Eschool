@@ -504,6 +504,90 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
               ),
             ),
           ),
+        OutlinedButton(
+          onPressed: repo.busy ? null : () => repo.loadSettlements(),
+          child: Text(_tr(context, 'View this counter settlement history')),
+        ),
+        if (repo.settlementView) ...[
+          Text(
+            _tr(context, 'Your counter settlements'),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          if (repo.settlements.isEmpty && repo.settlement == null)
+            Text(
+              _tr(context, 'No vendor settlement batches have been prepared.'),
+            ),
+          for (final row in repo.settlements)
+            ListTile(
+              title: Text(
+                '${_tr(context, 'Settlement')} ${row.id} · ${row.periodFrom}–${row.periodTo}',
+              ),
+              subtitle: Text(
+                '${_money(row.currency, row.payoutCents)} · ${_tr(context, {'prepared': 'Prepared', 'approved': 'Approved', 'settled': 'Settled'}[row.status]!)}',
+              ),
+              onTap: repo.busy ? null : () => repo.openSettlement(row.id),
+            ),
+          if (repo.settlementPage > 1 && repo.settlements.isNotEmpty)
+            TextButton(
+              onPressed: repo.busy
+                  ? null
+                  : () => repo.loadSettlements(
+                      pageNumber: repo.settlementPage - 1,
+                    ),
+              child: Text(_tr(context, 'Previous settlements')),
+            ),
+          if (repo.settlementPage < repo.lastSettlementPage &&
+              repo.settlements.isNotEmpty)
+            TextButton(
+              onPressed: repo.busy
+                  ? null
+                  : () => repo.loadSettlements(
+                      pageNumber: repo.settlementPage + 1,
+                    ),
+              child: Text(_tr(context, 'More settlements')),
+            ),
+          if (repo.settlement case final row?)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '${_tr(context, 'Settlement')} ${row.id}',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      '${row.periodFrom}–${row.periodTo} · ${_tr(context, {'prepared': 'Prepared', 'approved': 'Approved', 'settled': 'Settled'}[row.status]!)}',
+                    ),
+                    Text(
+                      '${_tr(context, 'Original gross')}: ${_money(row.currency, row.grossCents)}',
+                    ),
+                    Text(
+                      '${_tr(context, 'VAT-exclusive sales net')}: ${_money(row.currency, row.salesNetCents)}',
+                    ),
+                    Text(
+                      '${_tr(context, 'VAT included')}: ${_money(row.currency, row.vatCents)}',
+                    ),
+                    Text(
+                      '${_tr(context, 'Collector fee')}: ${_money(row.currency, row.collectorFeeCents)}',
+                    ),
+                    Text(
+                      '${_tr(context, 'Vendor settlement amount')}: ${_money(row.currency, row.payoutCents)}',
+                    ),
+                    if (row.paidOn != null)
+                      Text(
+                        '${_tr(context, 'Actual settlement date')}: ${row.paidOn}',
+                      ),
+                    for (final line in row.lines)
+                      Text(
+                        '${line.number} · ${_money(row.currency, line.grossCents)}',
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
         Text(
           _tr(context, 'Orders at this counter'),
           style: Theme.of(context).textTheme.titleLarge,

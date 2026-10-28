@@ -79,6 +79,7 @@ use App\Http\Controllers\Panel\Money\VendorCataloguePanelController;
 use App\Http\Controllers\Panel\Money\VendorOperatorPanelController;
 use App\Http\Controllers\Panel\Money\VendorOrderPanelController;
 use App\Http\Controllers\Panel\Money\VendorPortalController;
+use App\Http\Controllers\Panel\Money\VendorSettlementPanelController;
 use App\Http\Controllers\Panel\Money\WalletDepositPanelController;
 use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
@@ -205,6 +206,8 @@ Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainRespo
     Route::post('sign-out', [$c, 'signOut'])->middleware('auth')->name('sign-out');
     Route::middleware(['auth', 'school.context', 'role:Vendor', 'module:vendors,read'])->group(function () use ($c): void {
         Route::get('/', [$c, 'index'])->name('index');
+        Route::get('counters/{vendor}/settlements', [$c, 'settlements'])->whereNumber('vendor')->name('settlements');
+        Route::get('counters/{vendor}/settlements/{settlement}', [$c, 'settlements'])->whereNumber(['vendor', 'settlement'])->name('settlement');
         Route::post('counters/{vendor}/lookup', [$c, 'lookup'])->whereNumber('vendor')->name('lookup');
         Route::get('counters/{vendor}/orders/{order}', [$c, 'show'])->whereNumber(['vendor', 'order'])->name('order');
         Route::post('counters/{vendor}/collect', [$c, 'collect'])->whereNumber('vendor')->name('collect');
@@ -402,6 +405,15 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('vendor-settlements')->name('vendor-settlements.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
+            $c = VendorSettlementPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::get('export', [$c, 'export'])->name('export');
+            Route::post('/', [$c, 'prepare'])->name('prepare');
+            Route::get('{settlement}', [$c, 'show'])->whereNumber('settlement')->name('show');
+            Route::post('{settlement}/approve', [$c, 'approve'])->whereNumber('settlement')->name('approve');
+            Route::post('{settlement}/finish', [$c, 'finish'])->whereNumber('settlement')->name('finish');
         });
         Route::prefix('vendor-operators')->name('vendor-operators.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
             $c = VendorOperatorPanelController::class;

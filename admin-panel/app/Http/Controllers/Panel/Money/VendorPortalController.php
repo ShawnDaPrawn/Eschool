@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Commerce\VendorPortalRequest;
 use App\Services\Commerce\VendorCounterOrders;
 use App\Services\Commerce\VendorOperatorAccess;
+use App\Services\Commerce\VendorSettlements;
 use App\Services\Commerce\VendorSignIn;
 use App\Services\Platform\Identity\PortalSession;
 use Illuminate\Support\Facades\Auth;
@@ -71,6 +72,19 @@ class VendorPortalController extends Controller
             $profile = app(VendorOperatorAccess::class)->profile($request->user());
 
             return response()->view('vendor.order', compact('profile', 'vendor', 'order'));
+        });
+    }
+
+    public function settlements(VendorPortalRequest $request): Response
+    {
+        return DB::transaction(function () use ($request): Response {
+            $profile = app(VendorOperatorAccess::class)->profile($request->user());
+            $vendor = (int) $request->route('vendor');
+            $service = app(VendorSettlements::class);
+            $listing = $service->listingForOperator($request->user(), $vendor, $request->validated());
+            $receipt = $request->route('settlement') === null ? null : $service->receiptForOperator($request->user(), $vendor, (int) $request->route('settlement'));
+
+            return response()->view('vendor.settlements', compact('profile', 'vendor', 'listing', 'receipt'));
         });
     }
 

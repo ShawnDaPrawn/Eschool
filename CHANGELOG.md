@@ -1,5 +1,9 @@
 # Changelog
 
+- Phase5: original vendor settlement batches, separate Finance approval, exact
+  school sales/VAT recognition, verified manual payouts and private vendor reports.
+
+
 - Phase5: dedicated vendor operators, explicit counter assignments, private panel
   and native scanner access, single-use collection and interrupted handover recovery.
 

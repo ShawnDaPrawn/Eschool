@@ -1235,6 +1235,12 @@ import 'package:eschool_api/src/model/vendor_operator_sign_in_data.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_in_data_response.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_in_input.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_out_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_line.dart';
+import 'package:eschool_api/src/model/vendor_settlement_page.dart';
+import 'package:eschool_api/src/model/vendor_settlement_page_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_receipt.dart';
+import 'package:eschool_api/src/model/vendor_settlement_receipt_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_summary.dart';
 import 'package:eschool_api/src/model/wallet_controls.dart';
 import 'package:eschool_api/src/model/wallet_controls_change.dart';
 import 'package:eschool_api/src/model/wallet_deposit_cancel_write.dart';
@@ -5587,6 +5593,28 @@ ReturnType deserialize<ReturnType, BaseType>(
       return VendorOperatorSignOutResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'VendorSettlementLine':
+      return VendorSettlementLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorSettlementPage':
+      return VendorSettlementPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorSettlementPageResponse':
+      return VendorSettlementPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorSettlementReceipt':
+      return VendorSettlementReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorSettlementReceiptResponse':
+      return VendorSettlementReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorSettlementSummary':
+      return VendorSettlementSummary.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WalletControls':
       return WalletControls.fromJson(value as Map<String, dynamic>)

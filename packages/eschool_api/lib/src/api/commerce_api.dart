@@ -27,6 +27,8 @@ import 'package:eschool_api/src/model/vendor_operator_profile_response.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_in_data_response.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_in_input.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_out_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_page_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_receipt_response.dart';
 
 class CommerceApi {
   final Dio _dio;
@@ -563,6 +565,110 @@ class CommerceApi {
     );
   }
 
+  /// Read original assigned counter settlement and collected order totals
+  /// Private read under fresh dedicated Vendor credentials and explicit current counter assignment, including while commerce is read-only. No buyer identity, bank instructions, private verification or external payment execution.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [settlement]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [VendorSettlementReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<VendorSettlementReceiptResponse>> getVendorCounterSettlement({
+    required int vendor,
+    required int settlement,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/settlements/{settlement}'
+        .replaceAll(
+          '{'
+          r'vendor'
+          '}',
+          vendor.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'settlement'
+          '}',
+          settlement.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    VendorSettlementReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              VendorSettlementReceiptResponse,
+              VendorSettlementReceiptResponse
+            >(rawData, 'VendorSettlementReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<VendorSettlementReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Refresh the current assigned vendor counters
   /// Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised history. No gateway is used.
   ///
@@ -934,6 +1040,106 @@ class CommerceApi {
     }
 
     return Response<VendorCounterPageResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Read assigned counter settlement batches
+  /// Private read under fresh dedicated Vendor credentials and explicit current counter assignment, including while commerce is read-only. No buyer identity, bank instructions, private verification or external payment execution.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [VendorSettlementPageResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<VendorSettlementPageResponse>> listVendorCounterSettlements({
+    required int vendor,
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/settlements'.replaceAll(
+      '{'
+      r'vendor'
+      '}',
+      vendor.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    VendorSettlementPageResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              VendorSettlementPageResponse,
+              VendorSettlementPageResponse
+            >(rawData, 'VendorSettlementPageResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<VendorSettlementPageResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

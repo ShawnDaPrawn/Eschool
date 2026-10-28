@@ -2648,5 +2648,18 @@
   "Vendor school changed.": "Vendor school changed.",
   "Vendor session changed.": "Vendor session changed.",
   "Vendor sign-in": "Vendor sign-in",
-  "Your vendor session changed. Sign in again.": "Your vendor session changed. Sign in again."
+  "Your vendor session changed. Sign in again.": "Your vendor session changed. Sign in again.",
+  "Actual settlement date": "Actual settlement date",
+  "Collector fee": "Collector fee",
+  "More settlements": "More settlements",
+  "No vendor settlement batches have been prepared.": "No vendor settlement batches have been prepared.",
+  "Original gross": "Original gross",
+  "Prepared": "Prepared",
+  "Previous settlements": "Previous settlements",
+  "Settled": "Settled",
+  "Settlement": "Settlement",
+  "VAT-exclusive sales net": "VAT-exclusive sales net",
+  "Vendor settlement amount": "Vendor settlement amount",
+  "View this counter settlement history": "View this counter settlement history",
+  "Your counter settlements": "Your counter settlements"
 }

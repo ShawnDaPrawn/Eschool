@@ -20,6 +20,7 @@ use App\Policies\Money\WalletPolicy;
 use App\Services\Commerce\VendorCatalogues;
 use App\Services\Commerce\VendorOperators;
 use App\Services\Commerce\VendorOrders;
+use App\Services\Commerce\VendorSettlements;
 use App\Services\Money\WalletDeposits;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
@@ -327,5 +328,34 @@ class VendorOperatorAccessTest extends TestCase
         $index = app(Wallets::class)->accessible($this->parent);
         $this->assertNotContains((int) $this->child->id, array_column($index['owners'], 'owner_user_id'));
         $this->assertSame(5000, app(LedgerService::class)->balance($this->childWallet->ledger_account_id)->cents);
+    }
+
+    public function test_vendor_settlements_are_current_counter_scoped_and_omit_private_finance_and_buyer_data(): void
+    {
+        $order = $this->buy();
+        $this->orders->collect($this->admin, $this->vendor->id, ['operation_id' => (string) Str::uuid(), 'order_number' => $order->order_number, 'confirmed' => true]);
+        $row = app(VendorSettlements::class)->prepare($this->admin, ['operation_id' => (string) Str::uuid(), 'vendor_id' => $this->vendor->id, 'vendor_revision' => $this->vendor->revision, 'period_from' => now()->toDateString(), 'period_to' => now()->toDateString(), 'order_ids' => [$order->id], 'confirmed_original_terms' => true]);
+        $this->authenticateVendor();
+        $base = '/api/v2/vendor/counters/'.$this->vendor->id.'/settlements';
+        $this->getJson($base)->assertOk()->assertJsonPath('data.items.0.id', $row->id)->assertJsonPath('data.items.0.payout_cents', 2500);
+        $reply = $this->getJson($base.'/'.$row->id)->assertOk()->assertJsonPath('data.lines.0.order_number', $order->order_number)->assertJsonPath('data.collector_fee_cents', 0);
+        foreach (['wallet_account_id', 'wallet_owner_id', 'private_vendor_snapshot', 'private_bank_instructions', 'private_evidence', 'prepared_by', 'reference_hash'] as $key) {
+            $reply->assertDontSee('"'.$key.'"', false);
+        }
+        $this->getJson('/api/v2/vendor/counters/999999/settlements/'.$row->id)->assertNotFound();
+        foreach ([$base, $base.'/'.$row->id] as $url) {
+            $this->withHeader('X-School-Id', '2')->getJson($url)->assertForbidden();
+        }
+        $this->withHeader('X-School-Id', '1');
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->parent->createToken('parent-app')->plainTextToken)->withHeader('X-Account-Id', (string) $this->parent->id);
+        foreach ([$base, $base.'/'.$row->id] as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
+        $this->authenticateVendor();
+        app(ModuleGate::class)->change('vendors', false, $this->admin);
+        $this->getJson($base.'/'.$row->id)->assertOk();
+        app(VendorOperators::class)->bind($this->admin, $this->binding(['operation_id' => (string) Str::uuid(), 'revision' => 1, 'status' => 'revoked']));
+        $this->getJson($base.'/'.$row->id)->assertForbidden();
     }
 }

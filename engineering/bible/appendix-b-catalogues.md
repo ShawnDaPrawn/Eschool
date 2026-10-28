@@ -396,3 +396,13 @@ vendors-manage to create dedicated people and append explicit counter assignment
 revisions. Vendor-owned panel/API/native credentials are limited to that profile.
 The vendors module preserves authorised order history when paused; handover stops
 and Finance can still revoke access. No new notification or gateway is enabled.
+
+### Vendor settlement authority
+
+Existing vendors-manage controls explicit Finance preparation, separate approval
+and original settlement recording. Assigned Vendor credentials can read only
+redacted counter batches and original totals through the existing vendors module.
+History remains readable while paused. Outside payouts also require writable wallet
+backing; school-internal sales/VAT recognition remains independent of fee access.
+No new notification/provider is enabled. Clearing/due-to-school accounts remain
+zero and the posting kernel continues to reject Phase6 collection.

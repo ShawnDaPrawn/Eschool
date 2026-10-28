@@ -53,6 +53,8 @@ class OpenApiContractTest extends TestCase
             'vendor operator sign in validation' => [null, 'POST', 'api/v2/vendor/sign-in', [], 422],
             'vendor operator session auth' => [null, 'GET', 'api/v2/vendor/session', [], 401],
             'vendor operator sign out auth' => [null, 'POST', 'api/v2/vendor/sign-out', [], 401],
+            'vendor operator list settlements' => [null, 'GET', 'api/v2/vendor/counters/1/settlements', [], 401],
+            'vendor operator read settlement' => [null, 'GET', 'api/v2/vendor/counters/1/settlements/1', [], 401],
             'vendor operator list orders' => [null, 'GET', 'api/v2/vendor/counters/1/orders', [], 401],
             'vendor operator read receipt' => [null, 'GET', 'api/v2/vendor/counters/1/orders/1', [], 401],
             'vendor operator lookup' => [null, 'POST', 'api/v2/vendor/counters/1/lookup', [], 401],

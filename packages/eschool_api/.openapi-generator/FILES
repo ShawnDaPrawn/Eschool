@@ -1280,6 +1280,12 @@ lib/src/model/vendor_operator_sign_in_data.dart
 lib/src/model/vendor_operator_sign_in_data_response.dart
 lib/src/model/vendor_operator_sign_in_input.dart
 lib/src/model/vendor_operator_sign_out_response.dart
+lib/src/model/vendor_settlement_line.dart
+lib/src/model/vendor_settlement_page.dart
+lib/src/model/vendor_settlement_page_response.dart
+lib/src/model/vendor_settlement_receipt.dart
+lib/src/model/vendor_settlement_receipt_response.dart
+lib/src/model/vendor_settlement_summary.dart
 lib/src/model/wallet_controls.dart
 lib/src/model/wallet_controls_change.dart
 lib/src/model/wallet_deposit_cancel_write.dart

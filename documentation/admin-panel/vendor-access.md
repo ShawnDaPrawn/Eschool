@@ -25,5 +25,5 @@ cancelled orders cannot be collected again. Read-only counters retain receipts
 but cannot validate handovers. Sign out when leaving the counter.
 
 Vendor accounts show assigned order information only. Finance controls refunds,
-operator assignments and financial records. Settlement reporting follows in the
-next increment; no external payment gateway is involved.
+operator assignments and financial records. See [Vendor settlements](vendor-settlements.md) for private batch history. No
+external payment gateway is involved.

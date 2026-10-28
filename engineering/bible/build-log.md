@@ -887,3 +887,12 @@ spending and remaining fee/cash-up work continue; gateways stay deferred.
 Wallets, funding/transfers/deposits, withdrawals and catalogue preparation through
 PR337 are confirmed on main at28405f10a586213270974bccb038f6c7051f9767, matching
 the qualified source tree. Storefront/order PR338 remains in hosted qualification.
+
+## 2026-10-28 — vendor settlements and original merchant reports
+
+Increment13 adds collected-order batching, independent approval, retained merchant
+instructions, exact sales/VAT recognition, verified outside payouts with shared
+disbursement identity, private Finance reporting and Vendor panel/native history.
+Qualification is recorded in self-tests/money/vendor-settlements.md. Cash-up10,
+remaining fee correction/late-charge6D, tickets14 and online card spending15 continue.
+Gateway execution and Phase6 collection remain deferred.

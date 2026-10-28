@@ -149,4 +149,38 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  for (final width in [390.0, 820.0, 1280.0]) {
+    testWidgets(
+      'vendor settlement review has exact original totals at ${width.toInt()}px',
+      (tester) async {
+        await tester.binding.setSurfaceSize(Size(width, 1000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        vendorLabels(tester);
+        final fixture = VendorFixture();
+        final repo = VendorRepository(
+          mode: AuthMode.bearer,
+          createDio: () => Dio()..httpClientAdapter = fixture.api,
+        );
+        addTearDown(repo.dispose);
+        await tester.pumpWidget(VendorApp(repository: repo));
+        await tester.pumpAndSettle();
+        await login(tester);
+        await tap(tester, 'View this counter settlement history');
+        await tap(tester, 'Settlement 501 · 2026-10-28–2026-10-28');
+        expect(
+          find.text('Vendor settlement amount: ZAR 12.50'),
+          findsOneWidget,
+        );
+        expect(find.text('Collector fee: ZAR 0.00'), findsOneWidget);
+        expect(find.text('VAT-exclusive sales net: ZAR 12.50'), findsOneWidget);
+        expect(fixture.writes, 0);
+        fixture.allowed = false;
+        await tester.runAsync(repo.refresh);
+        await tester.pumpAndSettle();
+        expect(find.text('Vendor sign-in'), findsOneWidget);
+        expect(find.text('Settlement 501'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

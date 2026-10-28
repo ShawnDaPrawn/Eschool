@@ -178,6 +178,8 @@ Route::prefix('vendor')->name('api.v2.vendor.')->middleware([PrivateDomainRespon
     Route::post('sign-out', [$session, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
     Route::prefix('counters/{vendor}')->whereNumber('vendor')->middleware(['auth:sanctum', 'school.context', 'role:Vendor', 'module:vendors,read', RequireVendorCounter::class])->group(function (): void {
         $counter = VendorCounterController::class;
+        Route::get('settlements', [$counter, 'handle'])->name('settlements');
+        Route::get('settlements/{settlement}', [$counter, 'handle'])->whereNumber('settlement')->name('settlement');
         Route::get('orders', [$counter, 'handle'])->name('orders');
         Route::get('orders/{order}', [$counter, 'handle'])->whereNumber('order')->name('receipt');
         Route::post('lookup', [$counter, 'handle'])->name('lookup');

@@ -21,8 +21,8 @@ or reconciling abandoned seed money into the new financial source.
 | 9 | Adult withdrawals, Finance approval and cash/bank policy | Merged through PR337; compiled Learner refusal and Parent/Teacher/Facilitator journeys, migration, exact source CI/review passed |
 | 10 | Daily cash-up by operator and explained differences | Pending |
 | 11 | Vendors, storefronts, products/stock, orders and fulfilment | Catalogue/stock11A merged through PR337; storefront/orders11B PR338 in exact-source hosted qualification after global contract registry correction |
-| 12 | Vendor-owned panel/API and native scanner flavour | Implemented with local backend/contracts, browser, compiled Vendor flavour and retained-history migration qualification; publication/hosted/main follow |
-| 13 | Vendor settlements, collection metadata and reports | Pending |
+| 12 | Vendor-owned panel/API and native scanner flavour | PR339 published; local qualification passed; review Finance replay finding fixed, targeted regression passed and updated exact-source review has no findings; hosted/main pending |
+| 13 | Vendor settlements, collection metadata and reports | Implemented with local qualification; Finance/Vendor browser, compiled Vendor app, raw reconciliation and retained-history upgrade passed; final checks/publication/hosted/main follow |
 | 14 | Ticket sales, capacity, ownership, redemption and transfers | Pending |
 | 15 | Online wallet QR/card spending, SUN, photo and freeze checks | Pending |
 
