@@ -83,6 +83,9 @@ final class FeeRefunds
             $ledger = app(LedgerService::class);
             $asset = $ledger->openAccount($request->method === 'cash' ? AccountType::CashDesk : AccountType::FeeBank, 'fees:'.$request->method.':'.$request->currency, $request->currency);
             abort_unless($ledger->balance($asset)->cents >= $request->amount_cents, 422, 'Reconcile and fund the recorded payout asset before making an outside refund.');
+            if ($request->method === 'cash') {
+                app(CashCustody::class)->requirePayout($actor, $request->currency, $request->amount_cents);
+            }
             $amount = Money::ofCents($request->amount_cents, $request->currency);
             $identity = 'fee-refund:paid:'.$id;
             $entry = $ledger->post($identity, $identity, 'Verified manual original-holder refund', [Posting::debit((int) $reserve->pending_account_id, $amount), Posting::credit($asset, $amount)]);

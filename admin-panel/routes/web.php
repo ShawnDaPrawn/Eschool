@@ -61,6 +61,7 @@ use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
+use App\Http\Controllers\Panel\Money\CashHandoverPanelController;
 use App\Http\Controllers\Panel\Money\CashupPanelController;
 use App\Http\Controllers\Panel\Money\FeeAccountPanelController;
 use App\Http\Controllers\Panel\Money\FeeCreditPanelController;
@@ -412,6 +413,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('/', [$c, 'index'])->name('index');
             Route::get('export', [$c, 'export'])->name('export');
             Route::post('/', [$c, 'record'])->name('record');
+            $h = CashHandoverPanelController::class;
+            Route::get('handovers', [$h, 'index'])->name('handovers.index');
+            Route::post('handovers', [$h, 'propose'])->name('handovers.propose');
+            Route::post('handovers/{handover}/{status}', [$h, 'finish'])->whereNumber('handover')->whereIn('status', ['accepted', 'cancelled', 'rejected'])->name('handovers.finish');
         });
         Route::prefix('vendor-settlements')->name('vendor-settlements.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function (): void {
             $c = VendorSettlementPanelController::class;

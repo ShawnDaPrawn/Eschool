@@ -12,6 +12,7 @@ use App\Models\Commerce\VendorSettlementLine;
 use App\Models\Commerce\VendorSettlementOutcome;
 use App\Models\User;
 use App\Policies\Commerce\VendorPolicy;
+use App\Services\Money\CashCustody;
 use App\Services\Money\ExternalDisbursements;
 use App\Services\Platform\Ledger\AccountType;
 use App\Services\Platform\Ledger\LedgerService;
@@ -161,6 +162,9 @@ final class VendorSettlements
                     $hash = app(ExternalDisbursements::class)->available($row->method, $row->currency, $data['payout_reference']);
                     $counter = $ledger->openAccount($row->method === 'cash' ? AccountType::CashDesk : AccountType::WalletBank, 'wallet:'.$row->method.':'.$row->currency, $row->currency, module: 'wallet');
                     abort_unless($this->soundBalance($counter) >= $row->payout_cents, 422, 'Reconcile and fund the actual payout asset before recording payment.');
+                    if ($row->method === 'cash') {
+                        app(CashCustody::class)->requirePayout($actor, $row->currency, $row->payout_cents, $data['paid_on']);
+                    }
                     $custodian = $row->method === 'cash' ? (int) $actor->id : null;
                     $postings[] = Posting::credit($counter, Money::ofCents($row->payout_cents, $row->currency));
                 }

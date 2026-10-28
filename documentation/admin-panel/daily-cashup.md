@@ -29,5 +29,27 @@ before another count can be recorded.
 Counts and private history remain available while the money modules are paused.
 Only the signed-in operator can record their own count; authorised Finance can
 review other recorded custodians. The CSV contains totals and original record IDs,
-with private count evidence and explanations excluded. Recipient-confirmed custody
-handovers and cash-payout availability controls follow in the next increment10B.
+with private count evidence and explanations excluded.
+
+Use **Cash custody handovers** to give existing school cash to another authorised
+operator. Choose the recipient and currency, enter the actual amount and retain
+private evidence. A proposal reserves your cash until the recipient independently
+confirms the notes and coins received. Finish physical handovers before counting
+at the end of the day. Cancellation or rejection is appropriate only when no cash
+changed hands, or after it has actually been returned. Keep the original evidence;
+never cancel a completed handover to make a report balance.
+
+Accepted handovers appear in both operators' reports and leave the school's ledger
+balance unchanged. Pending outgoing handovers and recorded shortages reduce cash
+available for payouts. A counted surplus cannot create funds. A shortage affecting
+a proposal needs actual cash review before confirmation. Fee cash refunds, adult
+wallet cash payouts and vendor cash settlements must be covered by the paying
+operator's available custody and the original funded payout asset. Receive and
+confirm a real handover before paying from another operator's cash. Backdated
+payouts cannot borrow from later receipts. The original payout reference still
+prevents paying twice.
+
+The nightly cash check compares original posted receipts/payouts and custody with
+the cash assets. Missing or stale physical counts and shortages remain separate
+review items. A difference never creates an automatic adjustment. This check does
+not execute outside payments or change the school's financial policies.

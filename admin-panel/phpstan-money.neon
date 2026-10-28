@@ -18,6 +18,8 @@ parameters:
         - app/Models/Commerce
         - app/Http/Requests/Commerce
         - database/migrations/2026_10_28_170000_create_vendor_catalogues_and_stock.php
+        - database/migrations/2026_10_28_220000_add_confirmed_cash_custody_handovers.php
+        - database/migrations/2026_10_28_210000_add_daily_operator_cashup_counts.php
         - app/Services/Money
         - app/Policies/Money
         - app/Models/Money
@@ -50,6 +52,7 @@ parameters:
         - app/Services/Platform/Ledger/Posting.php
         - app/Services/Platform/Ledger/LedgerService.php
         - app/Console/Commands/ReconcileLedger.php
+        - app/Console/Commands/ReconcileCash.php
         - database/migrations/2026_10_26_250000_create_immutable_ledger.php
         - database/migrations/2026_10_28_100000_create_personal_wallets.php
         - database/migrations/2026_10_28_110000_add_wallet_master_funding.php

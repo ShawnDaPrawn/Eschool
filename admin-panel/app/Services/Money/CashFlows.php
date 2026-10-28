@@ -61,6 +61,11 @@ final class CashFlows
         foreach (DB::table('vendor_settlement_outcomes as a')->join('vendor_settlements as s', fn ($j) => $j->on('s.school_id', '=', 'a.school_id')->on('s.id', '=', 'a.settlement_id'))->where('a.school_id', $school)->where('s.currency', $currency)->where('s.method', 'cash')->where('s.payout_cents', '>', 0)->get(['a.id', 'a.cash_operator_id as operator_id', 'a.paid_on as effective_on', 's.payout_cents as amount_cents', 'a.ledger_entry_id', 'a.counter_account_id as asset_account_id', 'a.created_at']) as $r) {
             $include('vendor_payout', $r, -1);
         }
+        foreach (DB::table('cash_handover_outcomes as o')->join('cash_handovers as h', fn ($j) => $j->on('h.school_id', '=', 'o.school_id')->on('h.id', '=', 'o.handover_id'))->where('o.school_id', $school)->where('h.currency', $currency)->where('o.status', 'accepted')->get(['h.id', 'h.sender_id', 'h.recipient_id', 'h.amount_cents', 'o.effective_on']) as $h) {
+            foreach (['handover_out' => [(int) $h->sender_id, -1], 'handover_in' => [(int) $h->recipient_id, 1]] as $kind => [$operator, $sign]) {
+                $events[] = ['kind' => $kind, 'record_id' => (int) $h->id, 'operator_id' => $operator, 'effective_on' => $h->effective_on, 'date_basis' => 'actual', 'amount_cents' => $sign * (int) $h->amount_cents, 'ledger_entry_id' => 0, 'asset_account_id' => 0];
+            }
+        }
         $differences = [];
         foreach ($accounts as $a) {
             $actual = $balances[(int) $a->id] ?? 0;

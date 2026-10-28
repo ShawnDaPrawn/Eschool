@@ -4,6 +4,7 @@
 @section('content')
 <div class="content-wrapper m3 fee-plan-workbench">
 <x-page.header :title="__('Daily cash-up')" :subtitle="__('Compare actual posted cash receipts and payouts with the notes and coins counted at your desk.')" />
+<p><a href="{{ route('cashups.handovers.index') }}">{{ __('Cash custody handovers') }}</a></p>
 @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
 @if($currencies===[])<p>{{ __('No financial currency has been recorded for this school yet.') }}</p>@else
 <form method="get" action="{{ route('cashups.index') }}" aria-label="{{ __('Choose cash-up report') }}">
@@ -17,7 +18,7 @@
 <dl>@foreach(['opening_cents'=>'Opening cash carried forward','receipts_cents'=>'Actual cash receipts','payouts_cents'=>'Actual cash payouts','closing_cents'=>'Expected cash in custody'] as $key=>$label)<dt>{{ __($label) }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($report[$key],$currency)->format() }}</dd>@endforeach</dl>
 <p>{{ __('Wallet grants, transfers, purchases and EFT receipts are not physical cash and are excluded.') }}</p>
 <h2>{{ __('Original cash records for this day') }}</h2>
-<ul>@forelse($report['events'] as $event)<li>{{ __(['fee_receipt'=>'Fee cash receipt','school_wallet_funding'=>'School-owned wallet cash receipt','parent_wallet_receipt'=>'Verified parent cash receipt','fee_refund'=>'Fee cash refund','adult_wallet_payout'=>'Adult wallet cash payout','vendor_payout'=>'Vendor cash payout'][$event['kind']]) }} {{ $event['record_id'] }} · {{ \App\Services\Platform\Ledger\Money::ofCents($event['amount_cents'],$currency)->format() }} · {{ $event['effective_on'] }} ({{ __($event['date_basis']==='actual'?'Actual receipt or payout date':'Payout recording date') }})</li>@empty<li>{{ __('No cash receipts or payouts are recorded for this operator on this day.') }}</li>@endforelse</ul>
+<ul>@forelse($report['events'] as $event)<li>{{ __(['fee_receipt'=>'Fee cash receipt','school_wallet_funding'=>'School-owned wallet cash receipt','parent_wallet_receipt'=>'Verified parent cash receipt','fee_refund'=>'Fee cash refund','adult_wallet_payout'=>'Adult wallet cash payout','vendor_payout'=>'Vendor cash payout','handover_in'=>'Confirmed cash handover received','handover_out'=>'Confirmed cash handover given'][$event['kind']]) }} {{ $event['record_id'] }} · {{ \App\Services\Platform\Ledger\Money::ofCents($event['amount_cents'],$currency)->format() }} · {{ $event['effective_on'] }} ({{ __($event['date_basis']==='actual'?'Actual receipt or payout date':'Payout recording date') }})</li>@empty<li>{{ __('No cash receipts or payouts are recorded for this operator on this day.') }}</li>@endforelse</ul>
 @if($operator===(int)auth()->id())
 <form method="post" action="{{ route('cashups.record') }}" aria-label="{{ __('Record actual physical cash count') }}" data-year-safe autocomplete="off">
 @include('money.fee-plans.hidden',['revision'=>$report['latest']?->revision??0])

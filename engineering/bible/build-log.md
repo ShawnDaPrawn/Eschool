@@ -905,3 +905,13 @@ corrections and private CSV. Cash/EFT and internal wallet movements are distingu
 without inventing opening funds or adjusting the ledger. Qualification is in
 self-tests/money/daily-cashup.md. Recipient-confirmed handovers/payout custody10B,
 remaining fee correction/late charges6D, tickets14 and online spending15 continue.
+
+## 2026-10-28 — recipient-confirmed cash custody and payout availability
+
+Increment10B adds immutable proposals/reservations and independently confirmed
+cash handovers, private Finance screens, actual custodian checks on fee/wallet/
+vendor cash payouts and nightly cash source/custody reconciliation. Physical
+shortages cap usable cash; surpluses never create funds. Qualification is tracked
+in self-tests/money/cash-custody-handovers.md. Remaining fee corrections/late
+charges6D, tickets14 and online wallet/card spending15 continue. Gateway integration
+and production activation remain deferred.

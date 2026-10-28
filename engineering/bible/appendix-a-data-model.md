@@ -539,3 +539,13 @@ actual counted cents, difference and encrypted private evidence/reason. SQL reta
 ordered revisions and exact arithmetic; updates/deletes and retained down refuse.
 Counts are not ledger adjustments. Source custody comes from actual immutable
 cash receipt/payout roots and their original postings.
+
+### Confirmed cash custody
+
+`cash_handovers` retains school, original sender/recipient, currency/integer amount,
+original available custody, permanent request UUID/hash and encrypted evidence.
+`cash_handover_outcomes` retains exactly one accepted/cancelled/rejected outcome,
+original actor, actual confirmation date, permanent request UUID/hash and encrypted
+evidence. SQL checks/FKs and immutable triggers retain original actor/school and
+history; retained rollback is refused. Accepted rows project equal opposite custody
+events without money postings. No legacy float records are imported.

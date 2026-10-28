@@ -414,3 +414,12 @@ operator's own physical count records. It is independent of fee/wallet/vendor
 module pause because it cannot move money. System School Admins start with it;
 custom Finance roles need explicit school grants. Vendor/learner/platform
 impersonation authority is refused. No notification/provider is activated by10A.
+
+### Cash custody control
+
+The existing `money-cashup-manage` permission covers private Finance handovers and
+cash-up. It grants no payment-domain authority. `cash:reconcile --json` runs nightly
+at02:40 after `ledger:reconcile`, with no rebuild or automatic count adjustment.
+Financial failures emit `money_cash_control_reconciliation_failed`; missing/stale
+counts and physical shortages remain explicit human-review fields. No message or
+payment is sent and no provider is activated.

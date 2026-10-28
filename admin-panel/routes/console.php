@@ -42,6 +42,7 @@ Schedule::command('fees:remind')->hourly()->withoutOverlapping();
 // Read-only by default: discrepancies remain visible and generate a critical
 // operations log; historical receipts are never automatically reposted.
 Schedule::command('ledger:reconcile --json')->dailyAt('02:20')->withoutOverlapping();
+Schedule::command('cash:reconcile --json')->dailyAt('02:40')->withoutOverlapping();
 
 // Learners whose password is still their date of birth are flagged once,
 // on the worker, the first night after the release that added the check
