@@ -50,7 +50,12 @@ class CardReaders
         abort_unless(strlen($credential) < 160 && preg_match('/^NED1\.([1-9][0-9]*)\.([a-f0-9-]{36})\.([a-f0-9]{64})$/D', $credential, $parts) === 1, 401);
         $scope = app(CurrentSchool::class);
         abort_unless($scope->isSet() && ! $scope->isAcrossSchools() && ! $scope->isImpersonating() && (int) $parts[1] === $scope->id(), 401);
-        $device = CardReaderDevice::find($parts[2]);
+        $query = CardReaderDevice::query();
+        if ($kind === 'vendor') {
+            // Online debit and device revocation share the same current reader row.
+            $query->lockForUpdate();
+        }
+        $device = $query->find($parts[2]);
         abort_unless($device !== null && hash_equals($device->secret_hash, hash('sha256', $parts[3])), 401);
         abort_unless($device->kind === $kind && $device->status === 'active' && $device->revoked_at === null && $device->expires_at->isFuture(), 403);
         // Registration is a delegated, revocable authority, not a permanent grant.

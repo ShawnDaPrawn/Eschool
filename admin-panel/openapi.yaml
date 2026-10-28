@@ -28137,6 +28137,592 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdmissionCounterResolutionResponse'
+  /commerce/wallet-payments:
+    get:
+      operationId: listWalletPaymentInstructions
+      tags:
+      - Commerce
+      summary: listWalletPaymentInstructions
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalPageResponse'
+    post:
+      operationId: issueWalletPaymentQr
+      tags:
+      - Commerce
+      summary: issueWalletPaymentQr
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletPaymentIssueWrite'
+  /commerce/wallet-payment-operations/{operation}:
+    get:
+      operationId: getOriginalWalletPaymentInstruction
+      tags:
+      - Commerce
+      summary: getOriginalWalletPaymentInstruction
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+  /commerce/wallet-payments/{payment}:
+    get:
+      operationId: getWalletPaymentInstruction
+      tags:
+      - Commerce
+      summary: getWalletPaymentInstruction
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+  /commerce/wallet-payments/{payment}/cancel:
+    post:
+      operationId: cancelWalletPaymentInstruction
+      tags:
+      - Commerce
+      summary: cancelWalletPaymentInstruction
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+  /vendor/counters/{vendor}/payments/catalogue:
+    get:
+      operationId: getCounterPaymentCatalogue
+      tags:
+      - Commerce
+      summary: getCounterPaymentCatalogue
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterCatalogueResponse'
+  /vendor/counters/{vendor}/payments/receipts/{payment}:
+    get:
+      operationId: getCounterWalletPaymentReceipt
+      tags:
+      - Commerce
+      summary: getCounterWalletPaymentReceipt
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterPaymentReceiptResponse'
+  /vendor/counters/{vendor}/payments/card/{payment}/portrait:
+    get:
+      operationId: getCounterPaymentPortrait
+      tags:
+      - Commerce
+      summary: getCounterPaymentPortrait
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Payment-Reader
+        in: header
+        required: true
+        description: Private purpose-bound Vendor reader credential. Never put it in a URL or persist it in plaintext.
+        schema:
+          type: string
+          maxLength: 159
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current card-payment portrait, no-store.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+  /vendor/counters/{vendor}/payments/lookup:
+    post:
+      operationId: lookupCounterWalletPayment
+      tags:
+      - Commerce
+      summary: lookupCounterWalletPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentInstructionResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletPaymentLookupWrite'
+  /vendor/counters/{vendor}/payments/card:
+    post:
+      operationId: prepareCounterCardPayment
+      tags:
+      - Commerce
+      summary: prepareCounterCardPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: X-Payment-Reader
+        in: header
+        required: true
+        description: Private purpose-bound Vendor reader credential. Never put it in a URL or persist it in plaintext.
+        schema:
+          type: string
+          maxLength: 159
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCardPaymentReviewResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletCardPrepareWrite'
+  /vendor/counters/{vendor}/payments/pay:
+    post:
+      operationId: confirmCounterWalletPayment
+      tags:
+      - Commerce
+      summary: confirmCounterWalletPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: X-Payment-Reader
+        in: header
+        required: false
+        description: Required for a SUN instruction; must be its original purpose-bound device.
+        schema:
+          type: string
+          maxLength: 159
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterPaymentReceiptResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletCounterPayWrite'
+  /vendor/counters/{vendor}/payments/operations/{operation}/resolve:
+    post:
+      operationId: resolveCounterWalletPayment
+      tags:
+      - Commerce
+      summary: resolveCounterWalletPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterPaymentResolutionResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -62512,6 +63098,12 @@ components:
       - page
       - last_page
       properties:
+        wallet_payments_writable:
+          type: boolean
+          description: Optional write capability. Retained payment history can remain available when new QR issue is paused.
+        wallet_payments_available:
+          type: boolean
+          description: Optional online closed-loop wallet payment availability under the current school modules.
         school_id:
           type: integer
           format: int64
@@ -63024,6 +63616,9 @@ components:
       - name
       - counters
       properties:
+        wallet_payments_available:
+          type: boolean
+          description: Optional online closed-loop wallet payment availability under the current school modules.
         school_id:
           type: integer
           format: int64
@@ -64637,5 +65232,708 @@ components:
           maxLength: 4000
         data:
           $ref: '#/components/schemas/AdmissionCounterResolution'
+        code:
+          type: integer
+    WalletPaymentInstruction:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - vendor_id
+      - kind
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - expires_at
+      - seller
+      - lines
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - qr
+          - sun
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        expires_at:
+          type: string
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+    WalletPaymentPersonal:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - vendor_id
+      - kind
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - expires_at
+      - seller
+      - lines
+      - status
+      - qr
+      - order_id
+      - wallet_id
+      - wallet_owner_id
+      - wallet_owner_name
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - qr
+          - sun
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        expires_at:
+          type: string
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+        status:
+          type: string
+          enum:
+          - awaiting_counter
+          - paid
+          - expired
+          - cancelled
+        qr:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_owner_name:
+          type: string
+          maxLength: 255
+    WalletCardPaymentReview:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - vendor_id
+      - kind
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - expires_at
+      - seller
+      - lines
+      - holder_name
+      - portrait_revision
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - qr
+          - sun
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        expires_at:
+          type: string
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+        holder_name:
+          type: string
+          maxLength: 255
+        portrait_revision:
+          type: integer
+          minimum: 1
+    WalletCounterPaymentReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - id
+      - intent_id
+      - operation_id
+      - status
+      - paid_at
+      - order
+      properties:
+        replayed:
+          type: boolean
+          description: True on a repeated confirmation. Inspect the original receipt and do not hand over goods again.
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        intent_id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - paid
+        paid_at:
+          type: string
+          format: date-time
+        order:
+          $ref: '#/components/schemas/VendorCounterReceipt'
+    WalletCounterPaymentResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - operation_id
+      - status
+      - payment
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+        payment:
+          anyOf:
+          - $ref: '#/components/schemas/WalletCounterPaymentReceipt'
+          - type: 'null'
+    WalletPaymentPersonalPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletPaymentPersonal'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    WalletCounterProduct:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - unit_label
+      - revision
+      - unit_price_cents
+      - vat_kind
+      - vat_rate_bps
+      - available_quantity
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 191
+        unit_label:
+          type: string
+          maxLength: 40
+        revision:
+          type: integer
+          minimum: 1
+        unit_price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_kind:
+          type: string
+          enum:
+          - none
+          - exempt
+          - zero
+          - standard
+        vat_rate_bps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        available_quantity:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+    WalletCounterCatalogue:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - currency
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletCounterProduct'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    WalletPaymentIssueWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - quote
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        quote:
+          type: string
+          maxLength: 32768
+        confirmed:
+          type: boolean
+          description: Must be true after reviewing the quoted original wallet, products, quantities, tax and total.
+    WalletPaymentLookupWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - qr_token
+      properties:
+        qr_token:
+          type: string
+          pattern: ^(navigateed:wallet-pay:)?[a-f0-9]{64}$
+          maxLength: 86
+    WalletCounterPayWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - intent_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        intent_id:
+          type: string
+          format: uuid
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^(navigateed:wallet-pay:)?[a-f0-9]{64}$
+          maxLength: 86
+        portrait_revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        portrait_confirmed:
+          type:
+          - boolean
+          - 'null'
+        confirmed:
+          type: boolean
+    WalletCardPrepareWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - card_id
+      - picc
+      - mac
+      - lines
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        picc:
+          type: string
+          pattern: ^[a-fA-F0-9]{32}$
+        mac:
+          type: string
+          pattern: ^[a-fA-F0-9]{16}$
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - product_id
+            - quantity
+            properties:
+              product_id:
+                type: integer
+                format: int64
+                minimum: 1
+                maximum: 9000000000000000
+              quantity:
+                type: integer
+                minimum: 1
+                maximum: 999
+    WalletPaymentInstructionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletPaymentInstruction'
+        code:
+          type: integer
+    WalletPaymentPersonalResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletPaymentPersonal'
+        code:
+          type: integer
+    WalletCardPaymentReviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCardPaymentReview'
+        code:
+          type: integer
+    WalletCounterPaymentReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterPaymentReceipt'
+        code:
+          type: integer
+    WalletCounterPaymentResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterPaymentResolution'
+        code:
+          type: integer
+    WalletPaymentPersonalPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletPaymentPersonalPage'
+        code:
+          type: integer
+    WalletCounterProductResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterProduct'
+        code:
+          type: integer
+    WalletCounterCatalogueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterCatalogue'
         code:
           type: integer

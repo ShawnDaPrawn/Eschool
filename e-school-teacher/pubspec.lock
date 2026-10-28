@@ -281,7 +281,7 @@ packages:
     source: path
     version: "0.1.0"
   eschool_api:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../packages/eschool_api"
       relative: true

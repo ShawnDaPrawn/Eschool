@@ -1,5 +1,6 @@
 import 'package:eschool_teacher/vendor/vendor_app.dart';
 import 'package:eschool_teacher/vendor/vendor_repository.dart';
+import 'package:eschool_teacher/vendor/vendor_nfc.dart';
 import 'package:eschool_teacher/facilitator/facilitator_app.dart';
 import 'package:eschool_teacher/facilitator/facilitator_repository.dart';
 import 'package:eschool_teacher/app/staffBuildIdentity.dart';
@@ -41,6 +42,7 @@ Future<void> initializeApp({
   FacilitatorRepository? facilitatorRepository,
   VendorRepository? vendorRepository,
   Future<String?> Function(BuildContext)? vendorScanQr,
+  Future<VendorSunTap?> Function(int school)? vendorReadCard,
 }) => startStaffBuild(
   identity: StaffBuildIdentity.current,
   startTeacher: () async {
@@ -63,6 +65,7 @@ Future<void> initializeApp({
       VendorApp(
         repository: vendorRepository ?? VendorRepository(),
         scanQr: vendorScanQr,
+        readCard: vendorReadCard,
       ),
     );
   },

@@ -86,6 +86,6 @@ final class VendorOperatorAccess
         abort_if($counters === [], 403, 'No current vendor counters are assigned.');
         $school = app(CurrentSchool::class)->school();
 
-        return ['school_id' => (int) $school->id, 'ticketing_available' => app(ModuleGate::class)->allows('ticketing'), 'school_name' => $school->name, 'school_slug' => $school->slug, 'user_id' => (int) $fresh->id, 'name' => trim($fresh->first_name.' '.$fresh->last_name), 'counters' => $counters];
+        return ['school_id' => (int) $school->id, 'ticketing_available' => app(ModuleGate::class)->allows('ticketing'), 'wallet_payments_available' => app(ModuleGate::class)->writable('wallet_payments'), 'school_name' => $school->name, 'school_slug' => $school->slug, 'user_id' => (int) $fresh->id, 'name' => trim($fresh->first_name.' '.$fresh->last_name), 'counters' => $counters];
     }
 }

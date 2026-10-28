@@ -945,3 +945,20 @@ invoices cannot compound. Gross caps, separate held credit, VAT, fresh rule/debt
 checks and immutable policy/occurrence lineage reuse existing ledger semantics.
 Verification is recorded in self-tests/money/late-charges.md. Online QR/card
 spending15 continues; hosted/main integration and external acceptance are separate.
+
+## 2026-10-28 — online wallet QR and card spending
+
+Increment15 adds exact short-lived personal QR instructions and purpose-bound
+online SUN/card spending with current private portrait review. The financial
+wallet authorizer remains distinct from the actual assigned Vendor operator.
+Existing pricing, integer-cents ledger, stock, limits and digital ticket issuance
+are committed together with an immutable final receipt. Cancellation, permanent
+operation recovery and independent reconciliation protect the original outcome.
+Finance reader management, personal wallet views and dedicated Vendor browser/
+scanner surfaces share these rules. Verification and remaining external evidence
+are recorded in self-tests/money/wallet-counter-payments.md. Hosted qualification
+and main integration remain separate; payment gateways remain deferred.
+
+Hosted-check maintenance also patches Symfony Mime to7.4.22 for CVE-2026-45070,
+uses existing Material3 fee buttons and waits for the saved asynchronous Teacher
+support conversation. The locked dependency audit and targeted checks passed.

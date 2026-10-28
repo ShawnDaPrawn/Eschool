@@ -17,6 +17,8 @@ part 'vendor_operator_profile.g.dart';
 class VendorOperatorProfile {
   /// Returns a new [VendorOperatorProfile] instance.
   VendorOperatorProfile({
+    this.walletPaymentsAvailable,
+
     required this.schoolId,
 
     required this.schoolName,
@@ -31,6 +33,14 @@ class VendorOperatorProfile {
 
     this.ticketingAvailable,
   });
+
+  /// Optional online closed-loop wallet payment availability under the current school modules.
+  @JsonKey(
+    name: r'wallet_payments_available',
+    required: false,
+    includeIfNull: false,
+  )
+  final bool? walletPaymentsAvailable;
 
   // minimum: 1
   // maximum: 9000000000000000
@@ -62,6 +72,7 @@ class VendorOperatorProfile {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is VendorOperatorProfile &&
+          other.walletPaymentsAvailable == walletPaymentsAvailable &&
           other.schoolId == schoolId &&
           other.schoolName == schoolName &&
           other.schoolSlug == schoolSlug &&
@@ -72,6 +83,7 @@ class VendorOperatorProfile {
 
   @override
   int get hashCode =>
+      walletPaymentsAvailable.hashCode +
       schoolId.hashCode +
       schoolName.hashCode +
       schoolSlug.hashCode +

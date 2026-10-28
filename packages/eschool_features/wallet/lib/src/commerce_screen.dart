@@ -8,6 +8,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'commerce_cubit.dart';
 import 'commerce_repository.dart';
 import 'ticket_screen.dart';
+import 'wallet_payment_screen.dart';
 import 'wallet_text.dart';
 
 class CommerceScreen extends StatelessWidget {
@@ -43,6 +44,25 @@ class _CommerceViewState extends State<_CommerceView> {
     _namedLearner = null;
 
     _confirmed = false;
+  }
+
+  Future<void> _openPayments(
+    BuildContext context,
+    CommerceCubit cubit, {
+    CommerceQuote? quote,
+  }) async {
+    setState(_clear);
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => widget.privateRouteBuilder(
+          WalletPaymentScreen(
+            repository: cubit.repository.payments,
+            quote: quote,
+          ),
+        ),
+      ),
+    );
+    if (mounted) await cubit.load();
   }
 
   @override
@@ -145,6 +165,13 @@ class _CommerceViewState extends State<_CommerceView> {
                             ),
                       child: Text(tr('Admission tickets')),
                     ),
+                  if (cubit.repository.paymentsAvailable)
+                    TextButton(
+                      onPressed: state.busy
+                          ? null
+                          : () => _openPayments(context, cubit),
+                      child: Text(tr('Wallet payments')),
+                    ),
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -231,6 +258,14 @@ class _CommerceViewState extends State<_CommerceView> {
                         },
                   child: Text(tr('Confirm quoted purchase')),
                 ),
+                if (cubit.repository.paymentsWritable)
+                  OutlinedButton(
+                    onPressed: !_confirmed || cubit.hasPendingMoney
+                        ? null
+                        : () =>
+                              _openPayments(context, cubit, quote: state.quote),
+                    child: Text(tr('Pay at the counter by wallet QR')),
+                  ),
                 TextButton(
                   onPressed: () {
                     _confirmed = false;

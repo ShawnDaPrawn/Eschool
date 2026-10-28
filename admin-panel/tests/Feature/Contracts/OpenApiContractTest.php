@@ -50,6 +50,18 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'wallet payment authentication GET /commerce/wallet-payments' => [null, 'GET', 'api/v2/commerce/wallet-payments', [], 401],
+            'wallet payment authentication POST /commerce/wallet-payments' => [null, 'POST', 'api/v2/commerce/wallet-payments', [], 401],
+            'wallet payment authentication GET /commerce/wallet-payment-operations/{operation}' => [null, 'GET', 'api/v2/commerce/wallet-payment-operations/00000000-0000-4000-8000-000000000001', [], 401],
+            'wallet payment authentication GET /commerce/wallet-payments/{payment}' => [null, 'GET', 'api/v2/commerce/wallet-payments/00000000-0000-4000-8000-000000000001', [], 401],
+            'wallet payment authentication POST /commerce/wallet-payments/{payment}/cancel' => [null, 'POST', 'api/v2/commerce/wallet-payments/00000000-0000-4000-8000-000000000001/cancel', [], 401],
+            'wallet payment authentication GET /vendor/counters/{vendor}/payments/catalogue' => [null, 'GET', 'api/v2/vendor/counters/1/payments/catalogue', [], 401],
+            'wallet payment authentication GET /vendor/counters/{vendor}/payments/receipts/{payment}' => [null, 'GET', 'api/v2/vendor/counters/1/payments/receipts/00000000-0000-4000-8000-000000000001', [], 401],
+            'wallet payment authentication GET /vendor/counters/{vendor}/payments/card/{payment}/portrait' => [null, 'GET', 'api/v2/vendor/counters/1/payments/card/00000000-0000-4000-8000-000000000001/portrait', [], 401],
+            'wallet payment authentication POST /vendor/counters/{vendor}/payments/lookup' => [null, 'POST', 'api/v2/vendor/counters/1/payments/lookup', [], 401],
+            'wallet payment authentication POST /vendor/counters/{vendor}/payments/card' => [null, 'POST', 'api/v2/vendor/counters/1/payments/card', [], 401],
+            'wallet payment authentication POST /vendor/counters/{vendor}/payments/pay' => [null, 'POST', 'api/v2/vendor/counters/1/payments/pay', [], 401],
+            'wallet payment authentication POST /vendor/counters/{vendor}/payments/operations/{operation}/resolve' => [null, 'POST', 'api/v2/vendor/counters/1/payments/operations/00000000-0000-4000-8000-000000000001/resolve', [], 401],
             'ticket authentication GET commerce/tickets' => [null, 'GET', 'api/v2/commerce/tickets', [], 401],
             'ticket authentication POST commerce/tickets/receive-code' => [null, 'POST', 'api/v2/commerce/tickets/receive-code', [], 401],
             'ticket authentication GET commerce/tickets/1' => [null, 'GET', 'api/v2/commerce/tickets/1', [], 401],

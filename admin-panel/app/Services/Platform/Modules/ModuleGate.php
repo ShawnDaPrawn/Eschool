@@ -196,6 +196,11 @@ class ModuleGate
             }
         }
 
+        if ($module === 'wallet_payments') {
+            return (Schema::hasTable('wallet_payment_intents') && DB::table('wallet_payment_intents')->where('school_id', $schoolId)->exists())
+                || (Schema::hasTable('vendor_card_readers') && DB::table('vendor_card_readers')->where('school_id', $schoolId)->exists());
+        }
+
         if ($module === 'ticketing') {
             foreach (['ticket_events', 'ticket_types', 'tickets', 'ticket_actions', 'ticket_catalogue_revisions'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {

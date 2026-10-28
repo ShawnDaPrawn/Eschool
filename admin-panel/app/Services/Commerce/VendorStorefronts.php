@@ -33,7 +33,7 @@ final class VendorStorefronts
             $this->actor($actor);
             $rows = Vendor::where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->orderBy('name')->paginate(30, ['id', 'name', 'description', 'kind', 'currency'], 'page', $page);
 
-            return ['school_id' => app(CurrentSchool::class)->id(), 'actor_user_id' => (int) $actor->id, 'tickets_available' => app(ModuleGate::class)->allows('ticketing'), 'can_purchase' => app(ModuleGate::class)->writable('vendors') && app(ModuleGate::class)->writable('wallet'), 'items' => $rows->map(fn ($v) => ['id' => (int) $v->id, 'name' => $v->name, 'description' => $v->description, 'kind' => $v->kind, 'currency' => $v->currency])->all(), 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage()];
+            return ['school_id' => app(CurrentSchool::class)->id(), 'actor_user_id' => (int) $actor->id, 'tickets_available' => app(ModuleGate::class)->allows('ticketing'), 'wallet_payments_available' => app(ModuleGate::class)->allows('wallet_payments'), 'wallet_payments_writable' => app(ModuleGate::class)->writable('wallet_payments'), 'can_purchase' => app(ModuleGate::class)->writable('vendors') && app(ModuleGate::class)->writable('wallet'), 'items' => $rows->map(fn ($v) => ['id' => (int) $v->id, 'name' => $v->name, 'description' => $v->description, 'kind' => $v->kind, 'currency' => $v->currency])->all(), 'page' => $rows->currentPage(), 'last_page' => $rows->lastPage()];
         });
     }
 

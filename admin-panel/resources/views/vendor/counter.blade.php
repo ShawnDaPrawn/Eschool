@@ -21,6 +21,7 @@
 </fieldset></form>
 <p><a href="{{ route('vendor.settlements',['vendor'=>$vendor]) }}">{{ __('View this counter settlement history') }}</a></p>
 @if(app(\App\Services\Platform\Modules\ModuleGate::class)->allows('ticketing'))<p><a href="{{ route('vendor.tickets.index',['vendor'=>$vendor]) }}">{{ __('Open this counter event admissions') }}</a></p>@endif
+@if($profile['wallet_payments_available']??false)<p><a href="{{ route('vendor.payments.index',['vendor'=>$vendor]) }}">{{ __('Wallet payments') }}</a></p>@endif
 <h2>{{ __('Orders at this counter') }}</h2>
 @if(!$profile['counters'][array_search($vendor,array_column($profile['counters'],'id'))]['can_collect'])<p role="status">{{ __('This counter is read-only. Keep history; do not hand over goods.') }}</p>@endif
 <ul>@forelse($listing['items'] as $order)<li><a href="{{ route('vendor.order',['vendor'=>$vendor,'order'=>$order['id']]) }}">{{ $order['order_number'] }}</a> · {{ \App\Services\Platform\Ledger\Money::ofCents($order['amount_cents'],$order['currency'])->format() }}</li>@empty<li>{{ __('No orders are waiting at this counter.') }}</li>@endforelse</ul>

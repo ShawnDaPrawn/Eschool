@@ -22,6 +22,7 @@ class _Staff extends ClinicalStaffFixture {
     'features': {
       'wallet': permitted,
       'vendors': permitted,
+      'wallet_payments': permitted,
       'groups': false,
       'messages': false,
       'counselling': false,

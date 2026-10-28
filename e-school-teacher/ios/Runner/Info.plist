@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NFCReaderUsageDescription</key>
+	<string>Read a school identity card for an online Vendor payment and show its photo before confirmation.</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

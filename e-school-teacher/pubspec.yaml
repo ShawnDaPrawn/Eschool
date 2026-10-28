@@ -21,6 +21,8 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
 
+  eschool_api:
+    path: ../packages/eschool_api
   eschool_core:
     path: ../packages/eschool_core
   eschool_notifications:

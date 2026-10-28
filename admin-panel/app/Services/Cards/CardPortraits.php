@@ -8,6 +8,7 @@ use App\Models\Cards\Card;
 use App\Models\Cards\CardPortrait;
 use App\Models\Cards\CardScanLog;
 use App\Models\User;
+use App\Services\Commerce\CounterSpendAuthority;
 use App\Services\Platform\Files\SafeImages;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -131,6 +132,18 @@ class CardPortraits
         abort_unless((int) $portrait->revision === (int) CardPortrait::whereKey($portrait->id)->value('revision'), 409);
 
         return ['bytes' => $small, 'revision' => (int) $portrait->revision];
+    }
+
+    /** Only the freshly verified Vendor card-payment instruction authorizes this portrait. */
+    public function counter(CounterSpendAuthority $authority): array
+    {
+        $authority->assertCurrent();
+        abort_unless($authority->intent->kind === 'sun', 403);
+        $portrait = CardPortrait::where('user_id', $authority->intent->actor_id)->firstOrFail();
+        $bytes = $this->bytes($portrait);
+        $authority->assertCurrent();
+
+        return ['bytes' => $bytes, 'mime' => 'image/jpeg', 'revision' => (int) $portrait->revision];
     }
 
     /** The scanner may display only its own freshly accepted scan's portrait. */

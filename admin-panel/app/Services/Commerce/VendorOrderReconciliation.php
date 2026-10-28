@@ -12,7 +12,7 @@ final class VendorOrderReconciliation
 {
     public function inspect(): array
     {
-        $report = ['vendor_order_mismatches' => 0, 'vendor_order_stock_mismatches' => 0, 'unattributed_vendor_order_entries' => 0, 'vendor_payable_differences' => []];
+        $report = ['vendor_order_mismatches' => 0, 'vendor_order_stock_mismatches' => 0, 'unattributed_vendor_order_entries' => 0, 'vendor_payable_differences' => []] + app(WalletCounterReconciliation::class)->inspect();
         if (! Schema::hasTable('vendor_orders')) {
             return $report + app(VendorSettlementReconciliation::class)->inspect() + app(TicketReconciliation::class)->inspect();
         }
@@ -82,6 +82,6 @@ final class VendorOrderReconciliation
 
     public static function healthy(array $report): bool
     {
-        return TicketReconciliation::healthy($report) && VendorSettlementReconciliation::healthy($report) && $report['vendor_order_mismatches'] === 0 && $report['vendor_order_stock_mismatches'] === 0 && $report['unattributed_vendor_order_entries'] === 0 && $report['vendor_payable_differences'] === [];
+        return WalletCounterReconciliation::healthy($report) && TicketReconciliation::healthy($report) && VendorSettlementReconciliation::healthy($report) && $report['vendor_order_mismatches'] === 0 && $report['vendor_order_stock_mismatches'] === 0 && $report['unattributed_vendor_order_entries'] === 0 && $report['vendor_payable_differences'] === [];
     }
 }

@@ -24,6 +24,10 @@ VendorOperatorProfile _$VendorOperatorProfileFromJson(
       ],
     );
     final val = VendorOperatorProfile(
+      walletPaymentsAvailable: $checkedConvert(
+        'wallet_payments_available',
+        (v) => v as bool?,
+      ),
       schoolId: $checkedConvert('school_id', (v) => (v as num).toInt()),
       schoolName: $checkedConvert('school_name', (v) => v as String),
       schoolSlug: $checkedConvert('school_slug', (v) => v as String),
@@ -45,6 +49,7 @@ VendorOperatorProfile _$VendorOperatorProfileFromJson(
     return val;
   },
   fieldKeyMap: const {
+    'walletPaymentsAvailable': 'wallet_payments_available',
     'schoolId': 'school_id',
     'schoolName': 'school_name',
     'schoolSlug': 'school_slug',
@@ -56,6 +61,7 @@ VendorOperatorProfile _$VendorOperatorProfileFromJson(
 Map<String, dynamic> _$VendorOperatorProfileToJson(
   VendorOperatorProfile instance,
 ) => <String, dynamic>{
+  'wallet_payments_available': ?instance.walletPaymentsAvailable,
   'school_id': instance.schoolId,
   'school_name': instance.schoolName,
   'school_slug': instance.schoolSlug,

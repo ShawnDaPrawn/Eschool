@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $vat_cents
  * @property array $seller_snapshot
  * @property string $private_qr_token
+ * @property string $purchase_channel
+ * @property string|null $wallet_intent_id
  * @property CarbonImmutable $created_at
  * @property CarbonImmutable|null $sealed_at
  */

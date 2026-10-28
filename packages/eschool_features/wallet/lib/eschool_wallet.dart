@@ -10,3 +10,7 @@ export 'src/commerce_screen.dart';
 export 'src/ticket_repository.dart';
 export 'src/ticket_cubit.dart';
 export 'src/ticket_screen.dart';
+
+export 'src/wallet_payment_repository.dart';
+export 'src/wallet_payment_cubit.dart';
+export 'src/wallet_payment_screen.dart';

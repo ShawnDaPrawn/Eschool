@@ -24,6 +24,14 @@ CommerceVendorPage _$CommerceVendorPageFromJson(
       ],
     );
     final val = CommerceVendorPage(
+      walletPaymentsWritable: $checkedConvert(
+        'wallet_payments_writable',
+        (v) => v as bool?,
+      ),
+      walletPaymentsAvailable: $checkedConvert(
+        'wallet_payments_available',
+        (v) => v as bool?,
+      ),
       schoolId: $checkedConvert('school_id', (v) => (v as num).toInt()),
       actorUserId: $checkedConvert('actor_user_id', (v) => (v as num).toInt()),
       canPurchase: $checkedConvert('can_purchase', (v) => v as bool),
@@ -40,6 +48,8 @@ CommerceVendorPage _$CommerceVendorPageFromJson(
     return val;
   },
   fieldKeyMap: const {
+    'walletPaymentsWritable': 'wallet_payments_writable',
+    'walletPaymentsAvailable': 'wallet_payments_available',
     'schoolId': 'school_id',
     'actorUserId': 'actor_user_id',
     'canPurchase': 'can_purchase',
@@ -50,6 +60,8 @@ CommerceVendorPage _$CommerceVendorPageFromJson(
 
 Map<String, dynamic> _$CommerceVendorPageToJson(CommerceVendorPage instance) =>
     <String, dynamic>{
+      'wallet_payments_writable': ?instance.walletPaymentsWritable,
+      'wallet_payments_available': ?instance.walletPaymentsAvailable,
       'school_id': instance.schoolId,
       'actor_user_id': instance.actorUserId,
       'can_purchase': instance.canPurchase,

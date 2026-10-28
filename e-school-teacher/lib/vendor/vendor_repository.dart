@@ -1,11 +1,17 @@
 import 'dart:async';
 
+import 'package:eschool_api/eschool_api.dart' as contract;
+
+import 'vendor_nfc.dart';
+
 import 'package:dio/dio.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
+part 'vendor_payments.dart';
 
 int _integer(Object? value, {int min = 1, int max = 100000000000}) {
   if (value is! int || value < min || value > max) {
@@ -71,9 +77,13 @@ class VendorCounter {
 
 class VendorProfile {
   bool get ticketingAvailable => _ticketingAvailable;
+  final bool walletPaymentsAvailable;
   final bool _ticketingAvailable;
   VendorProfile(Map<String, dynamic> data)
-    : _ticketingAvailable = _boolean(data['ticketing_available'] ?? false),
+    : walletPaymentsAvailable = _boolean(
+        data['wallet_payments_available'] ?? false,
+      ),
+      _ticketingAvailable = _boolean(data['ticketing_available'] ?? false),
       schoolId = _integer(data['school_id']),
       userId = _integer(data['user_id']),
       schoolName = _text(data['school_name']),
@@ -358,12 +368,18 @@ class VendorRepository extends ChangeNotifier {
   int page = 1, lastPage = 1;
   String filter = 'ready';
   final Map<int, String> _pending = {};
+  final Map<int, String> _pendingPayments = {};
+  late final VendorPayments payments = VendorPayments(this);
+  bool get hasPendingPayment =>
+      counter != null && _pendingPayments.containsKey(counter!.id);
   bool busy = false;
   String? error, message;
   bool get signedIn => profile != null;
+  void _notifyPayments() => notifyListeners();
   bool get hasPending =>
       counter != null &&
       (_pending.containsKey(counter!.id) ||
+          _pendingPayments.containsKey(counter!.id) ||
           _pendingAdmissions.containsKey(counter!.id));
   int get generation => _generation;
   Completer<void>? _completion;
@@ -374,6 +390,7 @@ class VendorRepository extends ChangeNotifier {
     Map<String, dynamic>? data,
     String? operation,
     bool anonymous = false,
+    String? paymentReader,
   }) async {
     final cancellation = CancelToken();
     final timer = Timer(
@@ -406,6 +423,7 @@ class VendorRepository extends ChangeNotifier {
                     if (!anonymous && profile != null)
                       'X-Account-Id': '${profile!.userId}',
                     'Idempotency-Key': ?operation,
+                    'X-Payment-Reader': ?paymentReader,
                   },
                 ),
               );
@@ -443,6 +461,7 @@ class VendorRepository extends ChangeNotifier {
   }
 
   void _clearViews() {
+    payments.clearViews();
     admission = null;
     _admissionCredential = '';
     settlements = [];
@@ -463,6 +482,8 @@ class VendorRepository extends ChangeNotifier {
     counter = null;
     _pending.clear();
     _pendingAdmissions.clear();
+    _pendingPayments.clear();
+    payments.eraseReader();
     _clearViews();
     page = 1;
     lastPage = 1;
@@ -531,7 +552,11 @@ class VendorRepository extends ChangeNotifier {
       'vendor-admission-pending:${p.schoolId}:${p.userId}',
       [for (final e in _pendingAdmissions.entries) '${e.key}:${e.value}'],
     );
-    if (!first || !second) {
+    final third = await prefs.setStringList(
+      'vendor-payment-pending:${p.schoolId}:${p.userId}',
+      [for (final e in _pendingPayments.entries) '${e.key}:${e.value}'],
+    );
+    if (!first || !second || !third) {
       throw StateError('Original request identity could not be retained');
     }
   }
@@ -570,6 +595,24 @@ class VendorRepository extends ChangeNotifier {
     _pendingAdmissions
       ..clear()
       ..addAll(admissions);
+    final paymentIds = <int, String>{};
+    for (final value
+        in prefs.getStringList(
+              'vendor-payment-pending:${p.schoolId}:${p.userId}',
+            ) ??
+            <String>[]) {
+      final match = RegExp(
+        r'^(\d+):([a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12})$',
+      ).firstMatch(value);
+      if (match == null) {
+        throw const FormatException('Invalid retained wallet payment identity');
+      }
+      paymentIds[int.parse(match[1]!)] = match[2]!;
+    }
+    _check(generation, p);
+    _pendingPayments
+      ..clear()
+      ..addAll(paymentIds);
   }
 
   Future<bool> signIn(Map<String, dynamic> input) async {
@@ -658,6 +701,11 @@ class VendorRepository extends ChangeNotifier {
               .where((c) => c.id == (vendor ?? counter?.id))
               .firstOrNull ??
           current.counters.first;
+      if (current.walletPaymentsAvailable != pinned.walletPaymentsAvailable ||
+          counter?.id != selected.id ||
+          counter?.canCollect != selected.canCollect) {
+        payments.eraseReader();
+      }
       profile = current;
       counter = selected;
       page = nextPage;
@@ -747,6 +795,7 @@ class VendorRepository extends ChangeNotifier {
   }
 
   Future<bool> recover() async {
+    if (hasPendingPayment) return payments.recover();
     if (hasPendingAdmission) return recoverAdmission();
     final pinned = profile, selected = counter;
     if (pinned == null || selected == null) return false;
@@ -971,6 +1020,7 @@ class VendorRepository extends ChangeNotifier {
   void suspend() {
     if (_disposed) return;
     _suspended = true;
+    payments.eraseReader();
     _generation++;
     _clearViews();
     busy = false;
@@ -999,6 +1049,8 @@ class VendorRepository extends ChangeNotifier {
     counter = null;
     _pending.clear();
     _pendingAdmissions.clear();
+    _pendingPayments.clear();
+    payments.eraseReader();
     _clearViews();
     super.dispose();
   }

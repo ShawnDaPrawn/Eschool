@@ -8,7 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/smoke.dart' show pumpUntilFound, tapWhenReady;
-import 'support/vendor_ticket_fixture.dart';
+import 'support/vendor_payment_fixture.dart';
+
+import 'package:eschool_teacher/vendor/vendor_nfc.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -18,18 +20,26 @@ void main() {
       (tester) async {
         tester.testTextInput.register();
         expect(StaffBuildIdentity.current.canStartVendor, isTrue);
-        var admissionScan = false;
-        final fixture = VendorTicketFixture();
+        var admissionScan = false, paymentScan = false;
+        final fixture = VendorPaymentFixture();
         final repo = VendorRepository(
           mode: AuthMode.bearer,
-          createDio: () => Dio()..httpClientAdapter = fixture.api,
+          createDio: () =>
+              Dio()..httpClientAdapter = VendorPaymentAdapter(fixture),
         );
         addTearDown(repo.dispose);
         await initializeApp(
           vendorRepository: repo,
-          vendorScanQr: (_) async => admissionScan
+          vendorScanQr: (_) async => paymentScan
+              ? 'navigateed:wallet-pay:${'a' * 64}'
+              : admissionScan
               ? 'navigateed:ticket:${'a' * 64}'
               : 'navigateed:order:${'b' * 64}',
+          vendorReadCard: (_) async => const VendorSunTap(
+            cardId: '00000000-0000-4000-8000-000000001904',
+            picc: 'EF963FF7828658A599F3041510671E88',
+            mac: '94EED9EE65337086',
+          ),
         );
         Finder field(String label) => find.byWidgetPredicate(
           (w) => w is TextField && w.decoration?.labelText == label,
@@ -125,6 +135,72 @@ void main() {
         );
         expect(fixture.admissionWrites, 1);
         expect(fixture.writes, 1);
+        Future<void> paymentFind(Finder finder) async {
+          if (finder.evaluate().isEmpty) {
+            await tester.scrollUntilVisible(
+              finder,
+              200,
+              scrollable: find.byType(Scrollable).last,
+            );
+          }
+          await pumpUntilFound(tester, finder);
+          await Scrollable.ensureVisible(
+            tester.element(finder.first),
+            alignment: 0.5,
+          );
+          await tester.pump(const Duration(milliseconds: 300));
+        }
+
+        paymentScan = true;
+        await tester.scrollUntilVisible(
+          find.text('Wallet payments'),
+          -250,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tapWhenReady(tester, find.text('Wallet payments'));
+        if (mode == 'typed') {
+          await tapWhenReady(tester, find.text('Scan wallet payment QR'));
+        } else {
+          final reader = field('Private reader pairing credential');
+          await paymentFind(reader);
+          await tester.enterText(reader, VendorPaymentFixture.readerCredential);
+          await tapWhenReady(tester, find.text('Pair payment reader'));
+          final quantity = find.byType(DropdownButtonFormField<int>);
+          await paymentFind(quantity);
+          await tester.tap(quantity);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('1').last);
+          await tester.pumpAndSettle();
+          await tapWhenReady(
+            tester,
+            find.text('Tap school card for these goods'),
+          );
+          await pumpUntilFound(tester, find.text('Asha Synthetic'));
+          expect(find.byType(Image), findsOneWidget);
+        }
+        await pumpUntilFound(tester, find.text('Review this counter payment'));
+        expect(fixture.paymentWrites, 0);
+        await tapWhenReady(
+          tester,
+          find.text(
+            mode == 'typed'
+                ? 'I checked the exact items and total and will hand over these goods once.'
+                : 'I checked this current photo, the exact items and total, and will hand over these goods once.',
+          ),
+        );
+        await tapWhenReady(
+          tester,
+          find.text('Confirm wallet payment and handover'),
+        );
+        await pumpUntilFound(
+          tester,
+          find.text('Payment recorded. Hand over the listed goods once.'),
+        );
+        expect(fixture.paymentWrites, 1);
+        expect(fixture.writes, 1);
+        expect(fixture.admissionWrites, 1);
+        await tester.pageBack();
+        await tester.pumpAndSettle();
         fixture.allowed = false;
         await tester.runAsync(repo.refresh);
         await tester.pumpAndSettle();

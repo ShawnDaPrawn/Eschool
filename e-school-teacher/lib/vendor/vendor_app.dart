@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'vendor_repository.dart';
+import 'vendor_nfc.dart';
+import 'vendor_payment_screen.dart';
 
 String _tr(BuildContext context, String text) =>
     AppLocalization.of(context)?.getTranslatedValues(text) ?? text;
@@ -12,7 +14,13 @@ String _money(String currency, int cents) =>
     '$currency ${cents ~/ 100}.${(cents % 100).toString().padLeft(2, '0')}';
 
 class VendorApp extends StatefulWidget {
-  const VendorApp({required this.repository, this.scanQr, super.key});
+  const VendorApp({
+    required this.repository,
+    this.scanQr,
+    this.readCard,
+    super.key,
+  });
+  final Future<VendorSunTap?> Function(int school)? readCard;
   final VendorRepository repository;
   final Future<String?> Function(BuildContext)? scanQr;
   @override
@@ -114,6 +122,7 @@ class _VendorAppState extends State<VendorApp> with WidgetsBindingObserver {
                       ? _VendorCounterView(
                           repository: repo,
                           scanQr: widget.scanQr,
+                          readCard: widget.readCard,
                         )
                       : _VendorSignIn(repository: repo),
                 ),
@@ -267,7 +276,12 @@ class _VendorSignInState extends State<_VendorSignIn> {
 }
 
 class _VendorCounterView extends StatefulWidget {
-  const _VendorCounterView({required this.repository, this.scanQr});
+  const _VendorCounterView({
+    required this.repository,
+    this.scanQr,
+    this.readCard,
+  });
+  final Future<VendorSunTap?> Function(int school)? readCard;
   final VendorRepository repository;
   final Future<String?> Function(BuildContext)? scanQr;
   @override
@@ -336,6 +350,33 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
       children: [
         Text(profile.schoolName, style: Theme.of(context).textTheme.titleLarge),
         Text(profile.name),
+        if (profile.walletPaymentsAvailable)
+          TextButton.icon(
+            onPressed: repo.busy
+                ? null
+                : () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => VendorWalletPaymentScreen(
+                          repository: repo,
+                          readCard: widget.readCard,
+                          scanQr: (screenContext) =>
+                              widget.scanQr?.call(screenContext) ??
+                              Navigator.of(screenContext).push<String>(
+                                MaterialPageRoute(
+                                  builder: (_) => const VendorOrderCamera(
+                                    walletPayment: true,
+                                  ),
+                                ),
+                              ),
+                        ),
+                      ),
+                    );
+                    if (mounted && repo.signedIn) await repo.refresh();
+                  },
+            icon: const Icon(Icons.qr_code),
+            label: Text(_tr(context, 'Wallet payments')),
+          ),
         DropdownButtonFormField<int>(
           initialValue: counter.id,
           key: ValueKey(counter.id),
@@ -766,8 +807,12 @@ class _VendorCounterViewState extends State<_VendorCounterView> {
 }
 
 class VendorOrderCamera extends StatefulWidget {
-  const VendorOrderCamera({this.admission = false, super.key});
-  final bool admission;
+  const VendorOrderCamera({
+    this.admission = false,
+    this.walletPayment = false,
+    super.key,
+  });
+  final bool admission, walletPayment;
   @override
   State<VendorOrderCamera> createState() => _VendorOrderCameraState();
 }
@@ -790,7 +835,9 @@ class _VendorOrderCameraState extends State<VendorOrderCamera> {
       title: Text(
         _tr(
           context,
-          widget.admission
+          widget.walletPayment
+              ? 'Scan wallet payment QR'
+              : widget.admission
               ? 'Scan admission QR with camera'
               : 'Scan order QR with camera',
         ),
@@ -802,7 +849,9 @@ class _VendorOrderCameraState extends State<VendorOrderCamera> {
         for (final barcode in capture.barcodes) {
           final value = barcode.rawValue;
           if (value != null &&
-              (widget.admission
+              (widget.walletPayment
+                      ? RegExp(r'^navigateed:wallet-pay:[a-f0-9]{64}$')
+                      : widget.admission
                       ? RegExp(r'^navigateed:ticket:[a-f0-9]{64}$')
                       : RegExp(r'^navigateed:order:[a-f0-9]{64}$'))
                   .hasMatch(value)) {

@@ -65,6 +65,7 @@ void main() {
                 'academics',
                 'wallet',
                 'vendors',
+                'wallet_payments',
                 'web_parent',
                 'web_learner',
               ])

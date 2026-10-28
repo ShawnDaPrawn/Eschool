@@ -1,3 +1,4 @@
+export 'src/testing/wallet_payment_fixtures.dart';
 export 'src/testing/ticket_fixtures.dart';
 export 'src/testing/commerce_fixtures.dart';
 

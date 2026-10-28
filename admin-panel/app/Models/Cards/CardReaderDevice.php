@@ -6,9 +6,14 @@ namespace App\Models\Cards;
 
 use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property CarbonImmutable $expires_at
+ * @property CarbonImmutable|null $revoked_at
+ */
 class CardReaderDevice extends Model
 {
     use BelongsToSchool, HasUuids;

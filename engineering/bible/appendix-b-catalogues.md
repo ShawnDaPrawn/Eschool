@@ -441,3 +441,14 @@ screens. Rule configuration requires `fee-plans-manage`; posting requires
 school year/currency. Paused fees retain policy/invoice history without allowing
 new writes. Existing Parent statements carry each payer's own late invoice using
 the compatible adjustment description; no new payment provider or notification.
+
+### Optional wallet-payments module
+
+`wallet_payments` starts disabled and requires `wallet` and `vendors`. Existing
+legacy/standard entitlements permit explicit enablement; core does not silently
+receive it. Finance uses `vendors-manage` plus `cards-readers-manage` to register
+and revoke purpose-bound readers. SUN also requires current cards authority.
+Personal profiles use their current wallet/guardian scope; dedicated operators
+use only assigned counters. Pausing retains private original history and allows
+reader revocation and uncertain-request recovery while refusing new debits.
+No provider, notification, offline payment or Phase6 collection is activated.

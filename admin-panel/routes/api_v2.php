@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V2\Classroom\FoundationController;
 use App\Http\Controllers\Api\V2\Commerce\TicketController;
 use App\Http\Controllers\Api\V2\Commerce\VendorCounterController;
 use App\Http\Controllers\Api\V2\Commerce\VendorSessionController;
+use App\Http\Controllers\Api\V2\Commerce\WalletPaymentController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
@@ -180,6 +181,14 @@ Route::prefix('vendor')->name('api.v2.vendor.')->middleware([PrivateDomainRespon
     Route::post('sign-out', [$session, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
     Route::prefix('counters/{vendor}')->whereNumber('vendor')->middleware(['auth:sanctum', 'school.context', 'role:Vendor', 'module:vendors,read', RequireVendorCounter::class])->group(function (): void {
         $counter = VendorCounterController::class;
+        $payments = WalletPaymentController::class;
+        Route::get('payments/catalogue', [$payments, 'handle'])->name('payments.catalogue');
+        Route::get('payments/receipts/{payment}', [$payments, 'handle'])->whereUuid('payment')->name('payments.receipt');
+        Route::get('payments/card/{payment}/portrait', [$payments, 'handle'])->whereUuid('payment')->name('payments.portrait');
+        Route::post('payments/lookup', [$payments, 'handle'])->middleware('throttle:money')->name('payments.lookup');
+        Route::post('payments/card', [$payments, 'handle'])->middleware('throttle:money')->name('payments.card');
+        Route::post('payments/pay', [$payments, 'handle'])->middleware('throttle:money')->name('payments.pay');
+        Route::post('payments/operations/{operation}/resolve', [$payments, 'handle'])->whereUuid('operation')->middleware('throttle:money')->name('payments.resolve');
         Route::get('settlements', [$counter, 'handle'])->name('settlements');
         Route::get('settlements/{settlement}', [$counter, 'handle'])->whereNumber('settlement')->name('settlement');
         Route::get('orders', [$counter, 'handle'])->name('orders');
@@ -430,6 +439,12 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
 Route::prefix('commerce')->name('api.v2.commerce.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:vendors,read'])->group(function () {
     $c = StorefrontController::class;
     $t = TicketController::class;
+    $payments = WalletPaymentController::class;
+    Route::get('wallet-payments', [$payments, 'handle'])->name('wallet-payments.index');
+    Route::get('wallet-payment-operations/{operation}', [$payments, 'handle'])->whereUuid('operation')->name('wallet-payments.outcome');
+    Route::get('wallet-payments/{payment}', [$payments, 'handle'])->whereUuid('payment')->name('wallet-payments.show');
+    Route::post('wallet-payments', [$payments, 'handle'])->middleware('throttle:money')->name('wallet-payments.issue');
+    Route::post('wallet-payments/{payment}/cancel', [$payments, 'handle'])->whereUuid('payment')->middleware('throttle:money')->name('wallet-payments.cancel');
     Route::get('tickets', [$t, 'handle'])->name('tickets.index');
     Route::post('tickets/receive-code', [$t, 'handle'])->middleware('throttle:money')->name('tickets.receive-code');
     Route::get('tickets/{ticket}', [$t, 'handle'])->whereNumber('ticket')->name('tickets.show');

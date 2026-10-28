@@ -582,3 +582,17 @@ original learner invoice-line/payer, source basis, policy revision and new seale
 late invoice. Composite tenant FKs, one-off uniqueness and SQL invoice/tax/lineage
 checks retain the original financial history. Correction descendants resolve to
 their original source; late roots cannot compound. No dummy fee item is created.
+
+## Phase5: online wallet counter payments
+
+School-owned immutable `vendor_card_readers` binds an existing dedicated Vendor
+reader device to one counter. `wallet_payment_intents` retains the original
+financial authorizer, wallet/vendor/exact cents, encrypted quote and short-lived
+QR or verified SUN/card/portrait revisions. `wallet_payment_closures` retains
+original-holder cancellation without money movement. `wallet_counter_payments`
+binds a single live instruction to its original collected order and actual
+Vendor operator. Original `vendor_orders` gain immutable authorization-channel
+and intent lineage; old orders retain their original fields and app channel.
+SQL guards, school-locked posting and counter reconciliation prevent missing or
+duplicate final receipts. Existing ledger, stock and ticket issuance remain the
+financial roots. No amount or balance is stored on a card.

@@ -17,6 +17,10 @@ part 'commerce_vendor_page.g.dart';
 class CommerceVendorPage {
   /// Returns a new [CommerceVendorPage] instance.
   CommerceVendorPage({
+    this.walletPaymentsWritable,
+
+    this.walletPaymentsAvailable,
+
     required this.schoolId,
 
     required this.actorUserId,
@@ -31,6 +35,22 @@ class CommerceVendorPage {
 
     this.ticketsAvailable,
   });
+
+  /// Optional write capability. Retained payment history can remain available when new QR issue is paused.
+  @JsonKey(
+    name: r'wallet_payments_writable',
+    required: false,
+    includeIfNull: false,
+  )
+  final bool? walletPaymentsWritable;
+
+  /// Optional online closed-loop wallet payment availability under the current school modules.
+  @JsonKey(
+    name: r'wallet_payments_available',
+    required: false,
+    includeIfNull: false,
+  )
+  final bool? walletPaymentsAvailable;
 
   // minimum: 1
   // maximum: 9000000000000000
@@ -66,6 +86,8 @@ class CommerceVendorPage {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is CommerceVendorPage &&
+          other.walletPaymentsWritable == walletPaymentsWritable &&
+          other.walletPaymentsAvailable == walletPaymentsAvailable &&
           other.schoolId == schoolId &&
           other.actorUserId == actorUserId &&
           other.canPurchase == canPurchase &&
@@ -76,6 +98,8 @@ class CommerceVendorPage {
 
   @override
   int get hashCode =>
+      walletPaymentsWritable.hashCode +
+      walletPaymentsAvailable.hashCode +
       schoolId.hashCode +
       actorUserId.hashCode +
       canPurchase.hashCode +

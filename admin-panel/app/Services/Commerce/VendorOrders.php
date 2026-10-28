@@ -74,10 +74,10 @@ final class VendorOrders
     }
 
     /** Resolves current authoritative prices; caller totals, tax and stock are never accepted. */
-    private function priced(User $actor, array $cart): array
+    private function priced(User $actor, array $cart, ?CounterSpendAuthority $authority = null): array
     {
-        $wallet = $this->buyer($actor, $cart['wallet_id'], true);
-        $learner = $this->recipient($actor, $wallet, $cart['learner_id']);
+        $wallet = $authority === null ? $this->buyer($actor, $cart['wallet_id'], true) : $authority->wallet($cart);
+        $learner = $authority === null ? $this->recipient($actor, $wallet, $cart['learner_id']) : $authority->recipient($cart, $wallet);
         $vendor = Vendor::where('status', 'active')->lockForUpdate()->findOrFail($cart['vendor_id']);
         abort_unless(VendorCategory::whereKey($vendor->category_id)->where('status', 'active')->lockForUpdate()->exists(), 409, 'This vendor category is unavailable.');
         abort_unless($vendor->currency === $wallet->currency, 409, 'The buyer and vendor must use the configured school currency.');
@@ -174,32 +174,71 @@ final class VendorOrders
             abort_unless($quoted['expires_at'] >= now('UTC')->getTimestamp(), 409, 'This quote expired. Review a fresh checkout.');
             $priced = $this->priced($actor, $cart);
             abort_unless(hash_equals($quoted['fingerprint'], hash('sha256', json_encode($priced, JSON_THROW_ON_ERROR))), 409, 'The vendor, price or tax changed. Review a fresh checkout.');
-            $wallet = WalletAccount::findOrFail($cart['wallet_id']);
-            $vendor = Vendor::findOrFail($cart['vendor_id']);
-            $entry = null;
-            if ($priced['amount_cents'] > 0) {
-                $money = Money::ofCents($priced['amount_cents'], $priced['currency']);
-                $entry = app(LedgerService::class)->post('vendor:order:'.$data['operation_id'], 'vendor:order:'.$data['operation_id'], 'Original wallet vendor order', [Posting::debit($wallet->ledger_account_id, $money), Posting::credit($vendor->ledger_account_id, $money)]);
-            }
-            $school = app(CurrentSchool::class)->id();
-            DB::table('vendor_order_counters')->insertOrIgnore(['school_id' => $school, 'next_number' => 1]);
-            $number = DB::table('vendor_order_counters')->where('school_id', $school)->lockForUpdate()->firstOrFail()->next_number;
-            DB::table('vendor_order_counters')->where('school_id', $school)->update(['next_number' => (int) $number + 1]);
-            $token = bin2hex(random_bytes(32));
-            $order = VendorOrder::create(['operation_id' => $data['operation_id'], 'order_number' => 'VO-'.str_pad((string) $number, 6, '0', STR_PAD_LEFT), 'vendor_id' => $vendor->id, 'wallet_account_id' => $wallet->id, 'wallet_owner_id' => $wallet->user_id, 'actor_id' => $actor->id, 'learner_id' => $priced['learner_id'], 'ledger_entry_id' => $entry, 'currency' => $priced['currency'], 'amount_cents' => $priced['amount_cents'], 'net_cents' => $priced['net_cents'], 'vat_cents' => $priced['vat_cents'], 'seller_snapshot' => $priced['seller'], 'quote_fingerprint' => $quoted['fingerprint'], 'private_qr_token' => $token, 'qr_hash' => hash('sha256', $token), 'created_at' => now('UTC')]);
-            foreach ($priced['lines'] as $line) {
-                $root = VendorOrderLine::create(array_diff_key($line, ['ticket' => true]) + ['order_id' => $order->id]);
-                app(VendorInventory::class)->order($root);
-            }
-            $order->sealed_at = CarbonImmutable::now('UTC');
-            $order->save();
-            app(TicketSales::class)->issue($actor, $order, $priced['lines']);
-            Audit::record('vendors.order_purchased', $order, [], ['vendor_id' => $vendor->id, 'amount_cents' => $order->amount_cents]);
+            $order = $this->createOrder($actor, $cart, $priced, $data['operation_id'], $quoted['fingerprint']);
 
             return ['id' => (int) $order->id];
         });
 
         return VendorOrder::findOrFail($receipt['id']);
+    }
+
+    public function counterQuote(CounterSpendAuthority $authority): array
+    {
+        abort_unless(DB::transactionLevel() > 0, 500);
+        $authority->assertCurrent();
+
+        return $this->priced(User::findOrFail($authority->intent->actor_id), $this->cart($authority->intent->private_quote['cart']), $authority);
+    }
+
+    /** The financial identity and actual counter operator are supplied by a verified instruction. */
+    public function counterPurchase(CounterSpendAuthority $authority, string $operation): VendorOrder
+    {
+        abort_unless(DB::transactionLevel() > 0, 500);
+        $authority->assertCurrent();
+        $intent = $authority->intent;
+        $cart = $this->cart($intent->private_quote['cart']);
+        $subject = User::findOrFail($intent->actor_id);
+        $priced = $this->priced($subject, $cart, $authority);
+        abort_unless(hash_equals($intent->fingerprint, hash('sha256', json_encode($priced, JSON_THROW_ON_ERROR))), 409, 'The original price, tax or counter changed. Review a new payment instruction.');
+
+        return $this->createOrder($subject, $cart, $priced, $operation, $intent->fingerprint, $authority->operator, $intent->id);
+    }
+
+    private function createOrder(User $actor, array $cart, array $priced, string $operation, string $fingerprint, ?User $collector = null, ?string $intent = null): VendorOrder
+    {
+        $wallet = WalletAccount::findOrFail($cart['wallet_id']);
+        $vendor = Vendor::findOrFail($cart['vendor_id']);
+        $entry = null;
+        if ($priced['amount_cents'] > 0) {
+            $money = Money::ofCents($priced['amount_cents'], $priced['currency']);
+            $entry = app(LedgerService::class)->post('vendor:order:'.$operation, 'vendor:order:'.$operation, 'Original wallet vendor order', [Posting::debit($wallet->ledger_account_id, $money), Posting::credit($vendor->ledger_account_id, $money)]);
+        }
+        $school = app(CurrentSchool::class)->id();
+        DB::table('vendor_order_counters')->insertOrIgnore(['school_id' => $school, 'next_number' => 1]);
+        $number = DB::table('vendor_order_counters')->where('school_id', $school)->lockForUpdate()->firstOrFail()->next_number;
+        DB::table('vendor_order_counters')->where('school_id', $school)->update(['next_number' => (int) $number + 1]);
+        $token = bin2hex(random_bytes(32));
+        $order = new VendorOrder(['operation_id' => $operation, 'order_number' => 'VO-'.str_pad((string) $number, 6, '0', STR_PAD_LEFT), 'vendor_id' => $vendor->id, 'wallet_account_id' => $wallet->id, 'wallet_owner_id' => $wallet->user_id, 'actor_id' => $actor->id, 'learner_id' => $priced['learner_id'], 'ledger_entry_id' => $entry, 'currency' => $priced['currency'], 'amount_cents' => $priced['amount_cents'], 'net_cents' => $priced['net_cents'], 'vat_cents' => $priced['vat_cents'], 'seller_snapshot' => $priced['seller'], 'quote_fingerprint' => $fingerprint, 'private_qr_token' => $token, 'qr_hash' => hash('sha256', $token), 'created_at' => now('UTC')]);
+        if ($intent !== null) {
+            // Set trusted channel metadata explicitly: an upgraded long-lived
+            // worker may still cache the pre-migration mass-assignment columns.
+            $order->purchase_channel = 'counter';
+            $order->wallet_intent_id = $intent;
+        }
+        $order->save();
+        foreach ($priced['lines'] as $line) {
+            $root = VendorOrderLine::create(array_diff_key($line, ['ticket' => true]) + ['order_id' => $order->id]);
+            app(VendorInventory::class)->order($root);
+        }
+        $order->sealed_at = CarbonImmutable::now('UTC');
+        $order->save();
+        app(TicketSales::class)->issue($collector ?? $actor, $order, $priced['lines']);
+        if ($collector !== null && ! VendorOrderAction::where('order_id', $order->id)->exists()) {
+            VendorOrderAction::create(['order_id' => $order->id, 'operation_id' => $operation, 'actor_id' => $collector->id, 'action' => 'collected', 'created_at' => now('UTC')]);
+        }
+        Audit::record('vendors.order_purchased', $order, [], ['vendor_id' => $vendor->id, 'amount_cents' => $order->amount_cents]);
+
+        return $order;
     }
 
     public function state(VendorOrder $order): string

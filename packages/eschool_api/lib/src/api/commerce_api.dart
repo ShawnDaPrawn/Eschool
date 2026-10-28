@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:eschool_api/src/deserialize.dart';
 import 'package:dio/dio.dart';
 
+import 'dart:typed_data';
 import 'package:eschool_api/src/model/admission_counter_outcome_response.dart';
 import 'package:eschool_api/src/model/admission_counter_resolution_response.dart';
 import 'package:eschool_api/src/model/admission_counter_ticket_response.dart';
@@ -41,6 +42,17 @@ import 'package:eschool_api/src/model/vendor_operator_sign_in_input.dart';
 import 'package:eschool_api/src/model/vendor_operator_sign_out_response.dart';
 import 'package:eschool_api/src/model/vendor_settlement_page_response.dart';
 import 'package:eschool_api/src/model/vendor_settlement_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_card_payment_review_response.dart';
+import 'package:eschool_api/src/model/wallet_card_prepare_write.dart';
+import 'package:eschool_api/src/model/wallet_counter_catalogue_response.dart';
+import 'package:eschool_api/src/model/wallet_counter_pay_write.dart';
+import 'package:eschool_api/src/model/wallet_counter_payment_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_counter_payment_resolution_response.dart';
+import 'package:eschool_api/src/model/wallet_payment_instruction_response.dart';
+import 'package:eschool_api/src/model/wallet_payment_issue_write.dart';
+import 'package:eschool_api/src/model/wallet_payment_lookup_write.dart';
+import 'package:eschool_api/src/model/wallet_payment_personal_page_response.dart';
+import 'package:eschool_api/src/model/wallet_payment_personal_response.dart';
 
 class CommerceApi {
   final Dio _dio;
@@ -162,6 +174,102 @@ class CommerceApi {
     );
   }
 
+  /// cancelWalletPaymentInstruction
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [payment]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletPaymentPersonalResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletPaymentPersonalResponse>>
+  cancelWalletPaymentInstruction({
+    required String payment,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/commerce/wallet-payments/{payment}/cancel'.replaceAll(
+      '{'
+      r'payment'
+      '}',
+      payment.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletPaymentPersonalResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletPaymentPersonalResponse,
+              WalletPaymentPersonalResponse
+            >(rawData, 'WalletPaymentPersonalResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletPaymentPersonalResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Validate one reviewed counter handover
   /// Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised history. No gateway is used.
   ///
@@ -266,6 +374,125 @@ class CommerceApi {
     }
 
     return Response<VendorCounterReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// confirmCounterWalletPayment
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [walletCounterPayWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [xPaymentReader] - Required for a SUN instruction; must be its original purpose-bound device.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletCounterPaymentReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletCounterPaymentReceiptResponse>>
+  confirmCounterWalletPayment({
+    required int vendor,
+    required WalletCounterPayWrite walletCounterPayWrite,
+    int? xSchoolId,
+    int? xAccountId,
+    String? idempotencyKey,
+    String? xPaymentReader,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/payments/pay'.replaceAll(
+      '{'
+      r'vendor'
+      '}',
+      vendor.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        if (xPaymentReader != null) r'X-Payment-Reader': xPaymentReader,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(walletCounterPayWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletCounterPaymentReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletCounterPaymentReceiptResponse,
+              WalletCounterPaymentReceiptResponse
+            >(rawData, 'WalletCounterPaymentReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletCounterPaymentReceiptResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -463,6 +690,410 @@ class CommerceApi {
     }
 
     return Response<CommerceCatalogueResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getCounterPaymentCatalogue
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletCounterCatalogueResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletCounterCatalogueResponse>> getCounterPaymentCatalogue({
+    required int vendor,
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/payments/catalogue'.replaceAll(
+      '{'
+      r'vendor'
+      '}',
+      vendor.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletCounterCatalogueResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletCounterCatalogueResponse,
+              WalletCounterCatalogueResponse
+            >(rawData, 'WalletCounterCatalogueResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletCounterCatalogueResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getCounterPaymentPortrait
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [payment]
+  /// * [xPaymentReader] - Private purpose-bound Vendor reader credential. Never put it in a URL or persist it in plaintext.
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [Uint8List] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<Uint8List>> getCounterPaymentPortrait({
+    required int vendor,
+    required String payment,
+    required String xPaymentReader,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/payments/card/{payment}/portrait'
+        .replaceAll(
+          '{'
+          r'vendor'
+          '}',
+          vendor.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'payment'
+          '}',
+          payment.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      responseType: ResponseType.bytes,
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        r'X-Payment-Reader': xPaymentReader,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    Uint8List? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null ? null : rawData as Uint8List;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<Uint8List>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getCounterWalletPaymentReceipt
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [payment]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletCounterPaymentReceiptResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletCounterPaymentReceiptResponse>>
+  getCounterWalletPaymentReceipt({
+    required int vendor,
+    required String payment,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/payments/receipts/{payment}'
+        .replaceAll(
+          '{'
+          r'vendor'
+          '}',
+          vendor.toString(),
+        )
+        .replaceAll(
+          '{'
+          r'payment'
+          '}',
+          payment.toString(),
+        );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletCounterPaymentReceiptResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletCounterPaymentReceiptResponse,
+              WalletCounterPaymentReceiptResponse
+            >(rawData, 'WalletCounterPaymentReceiptResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletCounterPaymentReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// getOriginalWalletPaymentInstruction
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [operation]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletPaymentPersonalResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletPaymentPersonalResponse>>
+  getOriginalWalletPaymentInstruction({
+    required String operation,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/commerce/wallet-payment-operations/{operation}'.replaceAll(
+      '{'
+      r'operation'
+      '}',
+      operation.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletPaymentPersonalResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletPaymentPersonalResponse,
+              WalletPaymentPersonalResponse
+            >(rawData, 'WalletPaymentPersonalResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletPaymentPersonalResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -865,6 +1496,101 @@ class CommerceApi {
     );
   }
 
+  /// getWalletPaymentInstruction
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [payment]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletPaymentPersonalResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletPaymentPersonalResponse>> getWalletPaymentInstruction({
+    required String payment,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/commerce/wallet-payments/{payment}'.replaceAll(
+      '{'
+      r'payment'
+      '}',
+      payment.toString(),
+    );
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletPaymentPersonalResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletPaymentPersonalResponse,
+              WalletPaymentPersonalResponse
+            >(rawData, 'WalletPaymentPersonalResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletPaymentPersonalResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// issueAdmissionReceivingCode
   /// Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider execution.
   ///
@@ -942,6 +1668,114 @@ class CommerceApi {
     }
 
     return Response<AdmissionReceiveCodeResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// issueWalletPaymentQr
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [walletPaymentIssueWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletPaymentPersonalResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletPaymentPersonalResponse>> issueWalletPaymentQr({
+    required WalletPaymentIssueWrite walletPaymentIssueWrite,
+    int? xSchoolId,
+    int? xAccountId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/commerce/wallet-payments';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(walletPaymentIssueWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletPaymentPersonalResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletPaymentPersonalResponse,
+              WalletPaymentPersonalResponse
+            >(rawData, 'WalletPaymentPersonalResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletPaymentPersonalResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -1440,6 +2274,100 @@ class CommerceApi {
     );
   }
 
+  /// listWalletPaymentInstructions
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [page]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletPaymentPersonalPageResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletPaymentPersonalPageResponse>>
+  listWalletPaymentInstructions({
+    int? xSchoolId,
+    int? xAccountId,
+    int? page,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/commerce/wallet-payments';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _queryParameters = <String, dynamic>{if (page != null) r'page': page};
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      queryParameters: _queryParameters,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletPaymentPersonalPageResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletPaymentPersonalPageResponse,
+              WalletPaymentPersonalPageResponse
+            >(rawData, 'WalletPaymentPersonalPageResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletPaymentPersonalPageResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// lookupCounterAdmissionTicket
   /// Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider execution.
   ///
@@ -1553,6 +2481,119 @@ class CommerceApi {
     );
   }
 
+  /// lookupCounterWalletPayment
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [walletPaymentLookupWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletPaymentInstructionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletPaymentInstructionResponse>>
+  lookupCounterWalletPayment({
+    required int vendor,
+    required WalletPaymentLookupWrite walletPaymentLookupWrite,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/payments/lookup'.replaceAll(
+      '{'
+      r'vendor'
+      '}',
+      vendor.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(walletPaymentLookupWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletPaymentInstructionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletPaymentInstructionResponse,
+              WalletPaymentInstructionResponse
+            >(rawData, 'WalletPaymentInstructionResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletPaymentInstructionResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Review typed or scanned order goods before handover
   /// Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised history. No gateway is used.
   ///
@@ -1654,6 +2695,124 @@ class CommerceApi {
     }
 
     return Response<VendorCounterReceiptResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// prepareCounterCardPayment
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [xPaymentReader] - Private purpose-bound Vendor reader credential. Never put it in a URL or persist it in plaintext.
+  /// * [walletCardPrepareWrite]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [idempotencyKey] - Makes a write safe to retry. Any unique string of 1 to 255 visible ASCII characters (a UUID is best), kept 24 hours per user. Required on money writes.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletCardPaymentReviewResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletCardPaymentReviewResponse>> prepareCounterCardPayment({
+    required int vendor,
+    required String xPaymentReader,
+    required WalletCardPrepareWrite walletCardPrepareWrite,
+    int? xSchoolId,
+    int? xAccountId,
+    String? idempotencyKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/vendor/counters/{vendor}/payments/card'.replaceAll(
+      '{'
+      r'vendor'
+      '}',
+      vendor.toString(),
+    );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        if (idempotencyKey != null) r'Idempotency-Key': idempotencyKey,
+        r'X-Payment-Reader': xPaymentReader,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      _bodyData = jsonEncode(walletCardPrepareWrite);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletCardPaymentReviewResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletCardPaymentReviewResponse,
+              WalletCardPaymentReviewResponse
+            >(rawData, 'WalletCardPaymentReviewResponse', growable: true);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletCardPaymentReviewResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,
@@ -2203,6 +3362,116 @@ class CommerceApi {
     }
 
     return Response<AdmissionCounterResolutionResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// resolveCounterWalletPayment
+  /// Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment gateway. Responses are private and never cached.
+  ///
+  /// Parameters:
+  /// * [vendor]
+  /// * [operation]
+  /// * [xSchoolId] - The school to work in, one of the signed-in user's schools (`schools` in `/me/context`). Without it the request works in the user's first school. A school the user is not an active member of is refused with 403. Apps send it on every call once a school is chosen.
+  /// * [xAccountId] - Expected authenticated account for a pinned private view. A mismatch is refused before school data is read or an operation is replayed. This header never grants authority. Older clients may omit it.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [WalletCounterPaymentResolutionResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<WalletCounterPaymentResolutionResponse>>
+  resolveCounterWalletPayment({
+    required int vendor,
+    required String operation,
+    int? xSchoolId,
+    int? xAccountId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path =
+        r'/vendor/counters/{vendor}/payments/operations/{operation}/resolve'
+            .replaceAll(
+              '{'
+              r'vendor'
+              '}',
+              vendor.toString(),
+            )
+            .replaceAll(
+              '{'
+              r'operation'
+              '}',
+              operation.toString(),
+            );
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        if (xSchoolId != null) r'X-School-Id': xSchoolId,
+        if (xAccountId != null) r'X-Account-Id': xAccountId,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'cookieAuth',
+            'keyName': 'e_school_session',
+            'where': '',
+          },
+          {'type': 'http', 'scheme': 'bearer', 'name': 'bearerAuth'},
+        ],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    WalletCounterPaymentResolutionResponse? _responseData;
+
+    try {
+      final rawData = _response.data;
+      _responseData = rawData == null
+          ? null
+          : deserialize<
+              WalletCounterPaymentResolutionResponse,
+              WalletCounterPaymentResolutionResponse
+            >(
+              rawData,
+              'WalletCounterPaymentResolutionResponse',
+              growable: true,
+            );
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<WalletCounterPaymentResolutionResponse>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

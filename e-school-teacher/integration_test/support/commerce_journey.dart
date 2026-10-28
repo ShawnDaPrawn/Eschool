@@ -14,6 +14,10 @@ Future<void> exerciseCommerce(
   final original = Map<String, Object>.of(api.routes);
   final admissions = TicketFakeServer(api: api, actor: actor, learner: learner);
   final server = admissions.commerce;
+  final payments = WalletPaymentFakeServer(
+    sharedCommerce: server,
+    ticketsAvailable: true,
+  );
   await tester.tap(find.byTooltip('Refresh wallets'));
   await tester.pumpAndSettle();
   await tester.scrollUntilVisible(
@@ -73,6 +77,36 @@ Future<void> exerciseCommerce(
   expect(server.cancellations, 1);
   expect(server.balances[learner ? 7 : 6], 5000);
   expect(find.byKey(const ValueKey('order-collection-qr-901')), findsNothing);
+  await tapWhenReady(tester, find.text('Shop'));
+  await tapWhenReady(tester, find.text('Synthetic tuckshop'));
+  await pumpUntilFound(
+    tester,
+    find.byKey(const ValueKey('commerce-quantity-51')),
+  );
+  await tester.enterText(
+    find.byKey(const ValueKey('commerce-quantity-51')),
+    '1',
+  );
+  await tapWhenReady(tester, find.text('Review cart'));
+  await tapWhenReady(
+    tester,
+    find.text(
+      'I reviewed the original wallet, items, quantities and total. Purchase once.',
+    ),
+  );
+  await tapWhenReady(tester, find.text('Pay at the counter by wallet QR'));
+  await tapWhenReady(tester, find.text('Create payment QR for these items'));
+  await pumpUntilFound(
+    tester,
+    find.text('Payment status: Awaiting counter confirmation'),
+  );
+  expect(server.balances[learner ? 7 : 6], 5000);
+  expect(payments.writes, 1);
+  await tapWhenReady(tester, find.text('Cancel this unpaid payment QR'));
+  await pumpUntilFound(tester, find.text('Payment status: Cancelled'));
+  expect(server.balances[learner ? 7 : 6], 5000);
+  await tester.pageBack();
+  await tester.pumpAndSettle();
   await tapWhenReady(tester, find.text('Admission tickets'));
   await pumpUntilFound(tester, find.text('Synthetic school admission'));
   expect(find.byKey(const ValueKey('ticket-screen-scroll')), findsOneWidget);

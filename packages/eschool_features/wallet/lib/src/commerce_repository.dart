@@ -2,6 +2,7 @@ import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'wallet_repository.dart';
 import 'ticket_repository.dart';
+import 'wallet_payment_repository.dart';
 
 abstract interface class CommerceRepository {
   int get schoolId;
@@ -9,6 +10,9 @@ abstract interface class CommerceRepository {
   bool get isActive;
   TicketRepository get tickets;
   bool get ticketsAvailable;
+  WalletPaymentRepository get payments;
+  bool get paymentsAvailable;
+  bool get paymentsWritable;
   Future<PersonalWalletIndex> walletChoices();
   Future<CommerceVendorPage> vendors({int page = 1});
   Future<CommerceCatalogue> catalogue(int vendor, {int page = 1});
@@ -37,6 +41,17 @@ class ApiCommerceRepository implements CommerceRepository {
     client,
     wallets: wallets,
   );
+  @override
+  late final WalletPaymentRepository payments = ApiWalletPaymentRepository(
+    client,
+    wallets: wallets,
+  );
+  bool _paymentsAvailable = false;
+  bool _paymentsWritable = false;
+  @override
+  bool get paymentsWritable => _paymentsWritable;
+  @override
+  bool get paymentsAvailable => _paymentsAvailable;
   final Set<int> _learners = {};
   bool _ticketsAvailable = false;
   @override
@@ -172,6 +187,8 @@ class ApiCommerceRepository implements CommerceRepository {
   Future<CommerceVendorPage> vendors({int page = 1}) async {
     final data = await _send('GET', '/vendors', query: {'page': page});
     _ticketsAvailable = data['tickets_available'] == true;
+    _paymentsAvailable = data['wallet_payments_available'] == true;
+    _paymentsWritable = data['wallet_payments_writable'] == true;
     final out = CommerceVendorPage.fromJson(data);
     _page(page, out.page, out.lastPage, out.items.length);
     if (out.items.map((v) => v.id).toSet().length != out.items.length) {

@@ -34,7 +34,7 @@
         if (epoch !== generation) return;
         const codes = await detector.detect(video);
         if (epoch !== generation) return;
-        const pattern = field.dataset.vendorQrPurpose === 'ticket' ? /^navigateed:ticket:[a-f0-9]{64}$/ : /^navigateed:order:[a-f0-9]{64}$/;
+        const pattern = field.dataset.vendorQrPurpose === 'wallet' ? /^navigateed:wallet-pay:[a-f0-9]{64}$/ : field.dataset.vendorQrPurpose === 'ticket' ? /^navigateed:ticket:[a-f0-9]{64}$/ : /^navigateed:order:[a-f0-9]{64}$/;
         const code = codes.find(item => pattern.test(item.rawValue ?? ''));
         if (code) {
           field.value = code.rawValue;

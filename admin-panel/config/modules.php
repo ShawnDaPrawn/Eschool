@@ -35,6 +35,7 @@ return [
     'groups' => ['name' => 'Activity groups and sessions', 'default' => false],
     'chat' => ['name' => 'Direct messages', 'default' => true],
     'online_exams' => ['name' => 'Online exams', 'default' => true],
+    'wallet_payments' => ['name' => 'Online wallet counter payments', 'default' => false, 'money' => true, 'dependencies' => ['wallet', 'vendors']],
     'ticketing' => ['name' => 'Events and admission tickets', 'default' => false, 'money' => true, 'dependencies' => ['vendors']],
     'vendors' => ['name' => 'Vendors and storefronts', 'default' => false, 'money' => true, 'dependencies' => ['people']],
     'wallet' => ['name' => 'Personal wallets', 'default' => false, 'money' => true, 'dependencies' => ['people']],

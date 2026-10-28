@@ -47,6 +47,7 @@ void main() {
             'academics',
             'wallet',
             'vendors',
+            'wallet_payments',
             'web_teacher',
           ])
             {'key': key, 'read_only': false},

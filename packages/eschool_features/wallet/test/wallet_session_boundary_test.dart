@@ -16,6 +16,8 @@ MeContext _context({
   bool vendors = false,
   bool vendorReadOnly = false,
   bool tickets = false,
+  bool payments = false,
+  bool paymentsReadOnly = false,
   bool child = true,
 }) => MeContext.fromJson({
   'user': {
@@ -61,6 +63,7 @@ MeContext _context({
     if (enabled) {'key': 'wallet', 'read_only': readOnly},
     if (vendors) {'key': 'vendors', 'read_only': vendorReadOnly},
     if (tickets) {'key': 'ticketing', 'read_only': false},
+    if (payments) {'key': 'wallet_payments', 'read_only': paymentsReadOnly},
   ],
 });
 
@@ -201,6 +204,80 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(QrImageView), findsNothing);
       expect(find.text('Synthetic school admission'), findsNothing);
+      expect(
+        find.text('Your wallet access changed. Reopen Wallets.'),
+        findsWidgets,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+  for (final change in [
+    'school',
+    'guardian child',
+    'payment pause',
+    'payment disabled',
+  ]) {
+    testWidgets('$change erases credentials on a pushed wallet payment route', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final repository = _Context()
+        ..current = _context(vendors: true, payments: true);
+      final session = MeContextCubit(
+        repository: repository,
+        cache: InMemoryMeContextCache(),
+      );
+      await session.load();
+      addTearDown(session.close);
+      final pinned = session.context!;
+      final server = WalletPaymentFakeServer()..issued = true;
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: session,
+          child: MaterialApp(
+            home: WalletSessionBoundary(
+              pinned: pinned,
+              builder: (_, active) => CommerceScreen(
+                repository: server.commerce.repository(),
+                privateRouteBuilder: (child) => BlocProvider.value(
+                  value: session,
+                  child: WalletSessionBoundary(
+                    pinned: pinned,
+                    builder: (_, active) => child,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Wallet payments'));
+      await tester.tap(find.text('Wallet payments'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ListTile));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Payment status: Awaiting counter confirmation'),
+        findsOneWidget,
+      );
+      expect(find.byType(QrImageView), findsOneWidget);
+      repository.current = _context(
+        vendors: true,
+        payments: change != 'payment disabled',
+        paymentsReadOnly: change == 'payment pause',
+        school: change == 'school' ? 2 : 1,
+        role: change == 'role' ? 'Teacher' : 'Parent',
+        child: change != 'guardian child',
+      );
+      await session.load();
+      await tester.pumpAndSettle();
+      expect(find.byType(QrImageView), findsNothing);
+      expect(
+        find.text('Payment status: Awaiting counter confirmation'),
+        findsNothing,
+      );
       expect(
         find.text('Your wallet access changed. Reopen Wallets.'),
         findsWidgets,
