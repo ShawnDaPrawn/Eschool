@@ -4261,5 +4261,6 @@
     "Vendor payment readers": "Vendor payment readers",
     "Wallet QR camera preview": "Wallet QR camera preview",
     "Wallet payments": "Wallet payments",
-    "Wallet payments are paused. Original order receipts remain available in the counter queue.": "Wallet payments are paused. Original order receipts remain available in the counter queue."
+    "Wallet payments are paused. Original order receipts remain available in the counter queue.": "Wallet payments are paused. Original order receipts remain available in the counter queue.",
+    "Record a fresh physical cash count before paying or handing over this cash.": "Record a fresh physical cash count before paying or handing over this cash."
 }

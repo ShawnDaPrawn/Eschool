@@ -31,6 +31,11 @@ final class CashCustody
     /** Internal only: caller holds the school lock and authorizes the affected domain. */
     public function available(int $operator, string $currency, ?string $date = null): array
     {
+        return $this->availability($operator, $currency, $date, false);
+    }
+
+    private function availability(int $operator, string $currency, ?string $date, bool $retain): array
+    {
         $date ??= now(app(CurrentSchool::class)->school()->timezone ?? 'UTC')->toDateString();
         $flows = app(CashFlows::class)->inspect($currency);
         $book = 0;
@@ -40,21 +45,11 @@ final class CashCustody
             }
         }
         $count = CashupCount::where('operator_id', $operator)->where('currency', $currency)->where('counted_on', '<=', $date)->orderByDesc('counted_on')->orderByDesc('revision')->first();
-        // A recorded surplus does not create money; an observed shortage reduces usable custody.
-        $throughCount = 0;
-        if ($count !== null) {
-            foreach ($flows['events'] as $event) {
-                if ($event['operator_id'] === $operator && $event['effective_on'] <= $count->counted_on) {
-                    $throughCount += $event['amount_cents'];
-                }
-            }
-        }
-        // Historical source corrections do not deliver cash after a physical count.
-        // Preserve the actual counted amount while rebasing against current history.
-        $shortage = $count === null ? 0 : min(0, $count->getAttribute('counted_cents') - $throughCount);
+        $shortage = $count === null ? 0 : app(CashCountSources::class)->shortage($count, $flows, $retain);
+        $needsRecount = $shortage === null;
         $reserved = (int) CashHandover::where('sender_id', $operator)->where('currency', $currency)->whereNotIn('id', CashHandoverOutcome::select('handover_id'))->sum('amount_cents');
 
-        return ['book_cents' => $book, 'shortage_cents' => $shortage, 'reserved_cents' => $reserved, 'available_cents' => max(0, $book + $shortage - $reserved), 'healthy' => CashFlows::healthy($flows)];
+        return ['book_cents' => $book, 'shortage_cents' => $shortage ?? 0, 'reserved_cents' => $reserved, 'available_cents' => $needsRecount ? 0 : max(0, $book + $shortage - $reserved), 'needs_recount' => $needsRecount, 'healthy' => CashFlows::healthy($flows)];
     }
 
     public function requirePayout(User $actor, string $currency, int $cents, ?string $paidOn = null): void
@@ -64,12 +59,14 @@ final class CashCustody
         $paidOn ??= $today;
         Validator::make(['paid_on' => $paidOn], ['paid_on' => ['required', 'date_format:Y-m-d']])->validate();
         abort_if($paidOn > $today, 422, 'Record an actual completed cash payout date.');
-        $current = $this->available((int) $actor->id, $currency);
+        $current = $this->availability((int) $actor->id, $currency, null, true);
+        abort_if($current['needs_recount'], 409, 'Record a fresh physical cash count before paying or handing over this cash.');
         abort_unless($current['healthy'], 409, 'Reconcile original cash receipts, payouts and projections before paying cash.');
         $minimum = $current['available_cents'];
         if ($paidOn < $today) {
             $daily = [];
-            foreach (app(CashFlows::class)->inspect($currency)['events'] as $event) {
+            $flows = app(CashFlows::class)->inspect($currency);
+            foreach ($flows['events'] as $event) {
                 if ($event['operator_id'] === (int) $actor->id && $event['effective_on'] <= $today) {
                     $date = $event['effective_on'];
                     $daily[$date] = ($daily[$date] ?? 0) + $event['amount_cents'];
@@ -77,16 +74,16 @@ final class CashCustody
             }
             $counts = [];
             foreach (CashupCount::where('operator_id', $actor->id)->where('currency', $currency)->where('counted_on', '<=', $today)->orderBy('counted_on')->orderBy('revision')->get() as $count) {
-                $counts[$count->counted_on] = $count->getAttribute('counted_cents');
+                $difference = app(CashCountSources::class)->shortage($count, $flows, true);
+                abort_if($difference === null, 409, 'Record a fresh physical cash count before paying or handing over this cash.');
+                $counts[$count->counted_on] = $difference;
             }
             $dates = array_unique([...array_keys($daily), ...array_keys($counts), $paidOn, $today]);
             sort($dates);
             $book = $shortage = 0;
             foreach ($dates as $date) {
                 $book += $daily[$date] ?? 0;
-                if (array_key_exists($date, $counts)) {
-                    $shortage = min(0, $counts[$date] - $book);
-                }
+                $shortage = $counts[$date] ?? $shortage;
                 if ($date >= $paidOn) {
                     $minimum = min($minimum, max(0, $book + $shortage));
                 }
@@ -145,7 +142,8 @@ final class CashCustody
             abort_if(CashHandover::where('operation_id', $data['operation_id'])->exists(), 409);
             abort_if(CashHandoverOutcome::where('handover_id', $id)->exists(), 409, 'This handover already has a final outcome.');
             if ($status === 'accepted') {
-                $available = $this->available($row->sender_id, $row->currency);
+                $available = $this->availability($row->sender_id, $row->currency, null, true);
+                abort_if($available['needs_recount'], 409, 'Record a fresh physical cash count before paying or handing over this cash.');
                 abort_unless($available['healthy'], 409, 'Reconcile original cash records before confirming this handover.');
                 abort_unless($row->amount_cents <= $available['book_cents'] + $available['shortage_cents'] - $available['reserved_cents'] + $row->amount_cents, 409, 'The sender recorded a cash shortage. Reject or cancel this proposal and review the actual cash first.');
             }

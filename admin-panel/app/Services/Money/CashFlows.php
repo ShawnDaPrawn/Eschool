@@ -25,8 +25,9 @@ final class CashFlows
         }
         $remaining = $raw->pluck('id')->mapWithKeys(fn ($id) => [(int) $id => true])->all();
         $events = [];
+        $sequences = [];
         $bad = 0;
-        $include = function (string $kind, object $row, int $sign) use (&$events, &$remaining, &$bad, $postings, $tz): void {
+        $include = function (string $kind, object $row, int $sign) use (&$events, &$sequences, &$remaining, &$bad, $postings, $tz): void {
             $key = (int) $row->ledger_entry_id.':'.(int) $row->asset_account_id;
             $matches = $postings[$key] ?? [];
             if (count($matches) !== 1) {
@@ -40,7 +41,9 @@ final class CashFlows
                 return;
             }
             unset($remaining[(int) $p->id]);
-            $date = $row->effective_on ?? CarbonImmutable::parse($row->created_at, 'UTC')->setTimezone($tz)->toDateString();
+            $recorded = CarbonImmutable::parse($row->created_at, 'UTC')->setTimezone($tz)->toDateString();
+            $date = $row->effective_on ?? $recorded;
+            $sequences[$kind.':'.$row->id] = (int) $row->id;
             $events[] = ['kind' => $kind, 'record_id' => (int) $row->id, 'operator_id' => (int) $row->operator_id, 'effective_on' => $date, 'date_basis' => $row->effective_on === null ? 'recorded' : 'actual', 'amount_cents' => $sign * (int) $row->amount_cents, 'ledger_entry_id' => (int) $row->ledger_entry_id, 'asset_account_id' => (int) $row->asset_account_id];
         };
         foreach (DB::table('payments')->where('school_id', $school)->where('currency', $currency)->where('method', 'cash')->where('status', 'settled')->get(['id', 'created_by as operator_id', 'received_on as effective_on', 'amount_cents', 'ledger_entry_id', 'debit_account_id as asset_account_id', 'created_at']) as $r) {
@@ -61,8 +64,9 @@ final class CashFlows
         foreach (DB::table('vendor_settlement_outcomes as a')->join('vendor_settlements as s', fn ($j) => $j->on('s.school_id', '=', 'a.school_id')->on('s.id', '=', 'a.settlement_id'))->where('a.school_id', $school)->where('s.currency', $currency)->where('s.method', 'cash')->where('s.payout_cents', '>', 0)->get(['a.id', 'a.cash_operator_id as operator_id', 'a.paid_on as effective_on', 's.payout_cents as amount_cents', 'a.ledger_entry_id', 'a.counter_account_id as asset_account_id', 'a.created_at']) as $r) {
             $include('vendor_payout', $r, -1);
         }
-        foreach (DB::table('cash_handover_outcomes as o')->join('cash_handovers as h', fn ($j) => $j->on('h.school_id', '=', 'o.school_id')->on('h.id', '=', 'o.handover_id'))->where('o.school_id', $school)->where('h.currency', $currency)->where('o.status', 'accepted')->get(['h.id', 'h.sender_id', 'h.recipient_id', 'h.amount_cents', 'o.effective_on']) as $h) {
+        foreach (DB::table('cash_handover_outcomes as o')->join('cash_handovers as h', fn ($j) => $j->on('h.school_id', '=', 'o.school_id')->on('h.id', '=', 'o.handover_id'))->where('o.school_id', $school)->where('h.currency', $currency)->where('o.status', 'accepted')->get(['h.id', 'h.sender_id', 'h.recipient_id', 'h.amount_cents', 'o.effective_on', 'o.id as outcome_id']) as $h) {
             foreach (['handover_out' => [(int) $h->sender_id, -1], 'handover_in' => [(int) $h->recipient_id, 1]] as $kind => [$operator, $sign]) {
+                $sequences[$kind.':'.$h->id] = (int) $h->outcome_id;
                 $events[] = ['kind' => $kind, 'record_id' => (int) $h->id, 'operator_id' => $operator, 'effective_on' => $h->effective_on, 'date_basis' => 'actual', 'amount_cents' => $sign * (int) $h->amount_cents, 'ledger_entry_id' => 0, 'asset_account_id' => 0];
             }
         }
@@ -75,7 +79,7 @@ final class CashFlows
         }
         usort($events, fn ($a, $b) => [$a['effective_on'], $a['kind'], $a['record_id']] <=> [$b['effective_on'], $b['kind'], $b['record_id']]);
 
-        return ['events' => $events, 'cash_asset_cents' => array_sum($balances), 'unattributed_cash_postings' => count($remaining), 'cash_record_mismatches' => $bad, 'cash_projection_differences' => $differences];
+        return ['events' => $events, 'event_sequence' => $sequences, 'cash_asset_cents' => array_sum($balances), 'unattributed_cash_postings' => count($remaining), 'cash_record_mismatches' => $bad, 'cash_projection_differences' => $differences];
     }
 
     public static function healthy(array $r): bool

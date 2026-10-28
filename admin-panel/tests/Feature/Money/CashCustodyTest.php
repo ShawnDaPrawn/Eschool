@@ -6,16 +6,22 @@ namespace Tests\Feature\Money;
 
 use App\Models\Money\CashHandover;
 use App\Models\Money\CashHandoverOutcome;
+use App\Models\Money\CashupCount;
+use App\Models\Money\CashupCountSource;
 use App\Models\Money\WalletParentDeposit;
+use App\Models\Money\WalletWithdrawal;
+use App\Models\Money\WalletWithdrawalPolicy;
 use App\Models\User;
 use App\Services\Money\CashControlReconciliation;
 use App\Services\Money\CashCustody;
 use App\Services\Money\Cashups;
 use App\Services\Money\WalletDeposits;
 use App\Services\Money\WalletSettings;
+use App\Services\Money\WalletWithdrawals;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +43,7 @@ class CashCustodyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->travelTo(CarbonImmutable::parse('2026-10-28 10:00:00', 'UTC'));
         $this->setUpTwoSchools();
         $this->finance = $this->superAdmin();
         $this->parent = User::findOrFail($this->schoolA->ids['farid_user']);
@@ -99,6 +106,169 @@ class CashCustodyTest extends TestCase
     private function outcome(): array
     {
         return ['operation_id' => (string) Str::uuid(), 'private_evidence' => 'Independently counted actual synthetic cash received at this desk', 'confirmed' => true];
+    }
+
+    public function test_same_day_handover_cannot_erase_the_counted_shortage_and_new_cash_remains_spendable(): void
+    {
+        $service = app(CashCustody::class);
+        $recipient = $this->cashier();
+        $financeCount = app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'Actual one rand shortage remains under investigation']));
+        $report = app(Cashups::class)->report($recipient, $recipient->id, 'ZAR', now()->toDateString());
+        app(Cashups::class)->record($recipient, array_replace($this->input(), ['source_hash' => $report['source_hash'], 'revision' => 0, 'counted_amount' => '0.00']));
+        $row = $service->propose($this->finance, $this->proposal($recipient, '19.00'));
+        $service->finish($recipient, $row->id, 'accepted', $this->outcome());
+        $after = $service->available($this->finance->id, 'ZAR');
+        $this->assertSame(100, $after['book_cents']);
+        $this->assertSame(-100, $after['shortage_cents']);
+        $this->assertSame(0, $after['available_cents']);
+        $this->refuses(fn () => $service->requirePayout($this->finance, 'ZAR', 1), 422);
+        $this->refuses(fn () => $service->propose($this->finance, $this->proposal($recipient, '0.01')), 422);
+        $this->assertSame(1900, $service->available($recipient->id, 'ZAR')['available_cents']);
+        $back = $service->propose($recipient, $this->proposal($this->finance, '5.00'));
+        $service->finish($this->finance, $back->id, 'accepted', $this->outcome());
+        $this->assertSame(500, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(1400, $service->available($recipient->id, 'ZAR')['available_cents']);
+        $this->deposit('cash', '3.00');
+        $this->assertSame(500, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '8.00', 'private_reason' => 'Actual cash including the newly recorded receipt independently recounted']));
+        $this->assertSame(800, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(-100, $financeCount->fresh()->variance_cents);
+        $this->assertTrue(app(CashControlReconciliation::class)->inspect()['cash_control_healthy']);
+    }
+
+    public function test_equal_timestamp_historical_receipt_is_distinct_from_real_post_count_cash(): void
+    {
+        $count = app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'Actual one rand shortage before any new cash movement']));
+        $this->deposit('cash', '5.00', now()->subDay()->toDateString());
+        $service = app(CashCustody::class);
+        $this->assertSame(1900, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->deposit('cash', '3.00');
+        $this->assertSame(1900, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '22.00', 'private_reason' => 'Actual new cash independently recounted after resolving receipt timing']));
+        $this->assertSame(2200, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(-100, $count->fresh()->variance_cents);
+        $this->assertCount(2, CashupCountSource::all());
+    }
+
+    public function test_pending_handover_uses_acceptance_sequence_after_a_count(): void
+    {
+        $recipient = $this->cashier();
+        $service = app(CashCustody::class);
+        $proposal = $service->propose($this->finance, $this->proposal($recipient, '12.00'));
+        app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'Actual shortage while the earlier handover is pending']));
+        $service->finish($recipient, $proposal->id, 'accepted', $this->outcome());
+        $this->assertSame(700, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->refuses(fn () => $service->requirePayout($this->finance, 'ZAR', 701), 422);
+    }
+
+    public function test_original_count_without_boundary_is_adopted_only_with_exact_source_proof(): void
+    {
+        $legacy = $this->legacyCount();
+        $service = app(CashCustody::class);
+        $this->assertSame(1900, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(0, CashupCountSource::count());
+        DB::transaction(fn () => $service->requirePayout($this->finance, 'ZAR', 1900));
+        $this->assertSame(1, CashupCountSource::count());
+        $this->assertSame(-100, $legacy->fresh()->variance_cents);
+        $other = $this->cashier();
+        $row = $service->propose($this->finance, $this->proposal($other, '19.00'));
+        $service->finish($other, $row->id, 'accepted', $this->outcome());
+        $this->assertSame(0, $service->available($this->finance->id, 'ZAR')['available_cents']);
+    }
+
+    private function withdrawal(string $amount): WalletWithdrawal
+    {
+        $service = app(WalletWithdrawals::class);
+        if (! WalletWithdrawalPolicy::exists()) {
+            $service->policy($this->finance, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'cash_threshold_amount' => '250.00', 'cash_at_boundary' => false, 'accepting_requests' => true]);
+        }
+        $start = now('Africa/Johannesburg')->addDay()->startOfDay()->addHours(10);
+        $slot = $service->publishSlot($this->finance, ['operation_id' => (string) Str::uuid(), 'starts_at' => $start->format('Y-m-d\TH:i'), 'ends_at' => $start->copy()->addHour()->format('Y-m-d\TH:i'), 'capacity' => 2]);
+        $row = $service->request($this->parent, ['operation_id' => (string) Str::uuid(), 'amount' => $amount, 'slot_id' => $slot->id, 'confirmed' => true]);
+        $service->approve($this->finance, $row->id, ['operation_id' => (string) Str::uuid(), 'verified_original_holder' => true]);
+
+        return $row;
+    }
+
+    private function payWithdrawal(WalletWithdrawal $row, string $date): void
+    {
+        app(WalletWithdrawals::class)->finish($this->finance, $row->id, 'paid', ['operation_id' => (string) Str::uuid(), 'payout_reference' => 'SYNTHETIC-COUNTED-PAYOUT-'.Str::uuid(), 'paid_on' => $date, 'private_evidence' => 'Actual original cash independently handed to the verified wallet holder', 'verified_actual_payout' => true, 'verified_original_holder' => true]);
+    }
+
+    public function test_cash_withdrawal_after_count_preserves_loss_and_refuses_a_second_unfunded_payout(): void
+    {
+        $count = app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'Actual one rand shortage remains after cash payout']));
+        $this->payWithdrawal($this->withdrawal('19.00'), now()->toDateString());
+        $service = app(CashCustody::class);
+        $this->assertSame(0, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(-100, $service->available($this->finance->id, 'ZAR')['shortage_cents']);
+        $other = $this->withdrawal('0.01');
+        $this->refuses(fn () => $this->payWithdrawal($other, now()->toDateString()), 422);
+        $this->assertSame(-100, $count->fresh()->variance_cents);
+    }
+
+    public function test_later_recording_of_a_payout_on_the_count_day_cannot_erase_shortage(): void
+    {
+        $count = app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'Original actual shortage before a later recorded same-day payout']));
+        $row = $this->withdrawal('19.00');
+        $paidOn = now()->toDateString();
+        $this->travel(2)->days();
+        $this->payWithdrawal($row, $paidOn);
+        $service = app(CashCustody::class);
+        $this->assertSame(0, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->refuses(fn () => $service->requirePayout($this->finance, 'ZAR', 1), 422);
+        $this->assertSame(-100, $count->fresh()->variance_cents);
+    }
+
+    private function legacyCount(): CashupCount
+    {
+        $r = $this->report();
+
+        return CashupCount::create(['operator_id' => $this->finance->id, 'currency' => 'ZAR', 'counted_on' => now()->toDateString(), 'revision' => 1, 'operation_id' => (string) Str::uuid(), 'request_hash' => str_repeat('b', 64), 'source_hash' => $r['source_hash'], 'opening_cents' => $r['opening_cents'], 'receipts_cents' => $r['receipts_cents'], 'payouts_cents' => $r['payouts_cents'], 'closing_cents' => $r['closing_cents'], 'counted_cents' => 1900, 'variance_cents' => -100, 'private_evidence' => 'Retained original pre-upgrade physical count evidence', 'private_reason' => 'One original rand physically missing', 'created_at' => now('UTC')]);
+    }
+
+    public function test_unproven_legacy_boundary_requires_a_physical_revision_without_deleting_history(): void
+    {
+        $legacy = $this->legacyCount();
+        $this->deposit('cash', '3.00');
+        $service = app(CashCustody::class);
+        $this->assertTrue($service->available($this->finance->id, 'ZAR')['needs_recount']);
+        $this->assertSame(0, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->refuses(fn () => $service->requirePayout($this->finance, 'ZAR', 1), 409);
+        app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '22.00', 'private_reason' => 'Fresh actual cash independently reviewed after the retained count upgrade']));
+        $this->assertSame(2200, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(-100, $legacy->fresh()->variance_cents);
+        $this->assertSame(2, CashupCount::count());
+    }
+
+    public function test_count_source_scope_immutability_and_retained_rollback(): void
+    {
+        $count = app(Cashups::class)->record($this->finance, $this->input());
+        $source = CashupCountSource::where('count_id', $count->id)->sole();
+        $original = DB::table('cashup_count_sources')->where('id', $source->id)->first();
+        app(CurrentSchool::class)->run(2, function () use ($source): void {
+            $this->refuses(fn () => CashupCountSource::findOrFail($source->id), 404);
+        });
+        foreach (['update', 'delete'] as $action) {
+            try {
+                $q = DB::table('cashup_count_sources')->where('id', $source->id);
+                if ($action === 'update') {
+                    $q->update(['watermarks' => '{}']);
+                } else {
+                    $q->delete();
+                }
+                $this->fail('Original cash source proof changed');
+            } catch (QueryException) {
+                $this->assertEquals($original, DB::table('cashup_count_sources')->where('id', $source->id)->first());
+            }
+        }
+        $migration = require database_path('migrations/2026_10_28_270000_retain_cash_count_source_boundaries.php');
+        try {
+            $migration->down();
+            $this->fail('Retained cash source proof was dropped');
+        } catch (\RuntimeException) {
+            $this->assertSame(1, CashupCountSource::count());
+        }
     }
 
     public function test_proposal_reserves_actual_cash_and_acceptance_moves_custody_once_without_posting(): void

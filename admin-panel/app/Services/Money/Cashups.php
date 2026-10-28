@@ -88,7 +88,10 @@ final class Cashups
             $reason = $data['private_reason'] ?? null;
             abort_if(($variance !== 0 || $data['revision'] > 0) && trim((string) $reason) === '', 422, 'Explain this difference or correction. The original ledger will not be adjusted.');
 
-            return CashupCount::create(['operator_id' => $actor->id, 'currency' => $data['currency'], 'counted_on' => $data['counted_on'], 'revision' => $data['revision'] + 1, 'operation_id' => $data['operation_id'], 'request_hash' => $hash, 'source_hash' => $data['source_hash'], 'opening_cents' => $report['opening_cents'], 'receipts_cents' => $report['receipts_cents'], 'payouts_cents' => $report['payouts_cents'], 'closing_cents' => $report['closing_cents'], 'counted_cents' => $cents, 'variance_cents' => $variance, 'private_evidence' => $data['private_evidence'], 'private_reason' => $reason, 'created_at' => now('UTC')]);
+            $count = CashupCount::create(['operator_id' => $actor->id, 'currency' => $data['currency'], 'counted_on' => $data['counted_on'], 'revision' => $data['revision'] + 1, 'operation_id' => $data['operation_id'], 'request_hash' => $hash, 'source_hash' => $data['source_hash'], 'opening_cents' => $report['opening_cents'], 'receipts_cents' => $report['receipts_cents'], 'payouts_cents' => $report['payouts_cents'], 'closing_cents' => $report['closing_cents'], 'counted_cents' => $cents, 'variance_cents' => $variance, 'private_evidence' => $data['private_evidence'], 'private_reason' => $reason, 'created_at' => now('UTC')]);
+            abort_unless(app(CashCountSources::class)->known($count, app(CashFlows::class)->inspect($data['currency']), true) !== null, 409);
+
+            return $count;
         }, 3);
     }
 }

@@ -85,3 +85,8 @@ explicit fallback text where translation is pending. Existing translations are
 preserved. The complete Learner/Parent app suite passed126 tests; the complete
 Teacher app suite passed176 tests. Payment application code, API and previously
 compiled English-profile journeys are unchanged by this catalogue-only fix.
+
+An inherited cash-custody review finding is corrected in this cumulative source.
+See [cash-count boundary qualification](cash-count-boundaries.md) for the retained
+source proof, repeated payout/confirmation races and populated upgrade checks.
+This backend correction does not change the counter API or app implementation.

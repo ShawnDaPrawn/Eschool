@@ -540,6 +540,15 @@ ordered revisions and exact arithmetic; updates/deletes and retained down refuse
 Counts are not ledger adjustments. Source custody comes from actual immutable
 cash receipt/payout roots and their original postings.
 
+`cashup_count_sources` retains one immutable school/count/source fingerprint and
+per-source final-row ID watermarks. Handovers use the confirmation outcome ID,
+not the earlier proposal ID. These boundaries distinguish sources already counted
+from later movements without changing old report fingerprints or financial rows.
+An old count can acquire a boundary only when its exact original source set is
+still provable; otherwise a fresh physical revision is required for cash outflows.
+SQL tenant FKs, fingerprint checks and retention triggers protect the boundary.
+See self-tests/money/cash-count-boundaries.md.
+
 ### Confirmed cash custody
 
 `cash_handovers` retains school, original sender/recipient, currency/integer amount,

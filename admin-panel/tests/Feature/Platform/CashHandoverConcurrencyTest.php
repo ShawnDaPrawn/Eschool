@@ -8,6 +8,7 @@ use App\Models\Money\CashHandover;
 use App\Models\Money\CashHandoverOutcome;
 use App\Models\User;
 use App\Services\Money\CashCustody;
+use App\Services\Money\Cashups;
 use App\Services\Money\WalletWithdrawals;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -118,6 +119,27 @@ class CashHandoverConcurrencyTest extends TestCase
         $a = app(CashCustody::class)->available($this->finance->id, 'ZAR');
         $this->assertGreaterThanOrEqual(0, $a['available_cents']);
         $this->assertSame([], app(LedgerService::class)->projectionDifferences());
+    }
+
+    public function test_acceptance_after_a_short_count_cannot_fund_a_competing_second_handover(): void
+    {
+        $service = app(CashCustody::class);
+        $row = $service->propose($this->finance, array_replace($this->proposal(), ['amount' => '19.00']));
+        $date = now('Africa/Johannesburg')->toDateString();
+        $counts = app(Cashups::class);
+        $report = $counts->report($this->finance, $this->finance->id, 'ZAR', $date);
+        $counts->record($this->finance, ['operation_id' => (string) Str::uuid(), 'currency' => 'ZAR', 'counted_on' => $date, 'revision' => 0, 'source_hash' => $report['source_hash'], 'counted_amount' => '19.00', 'private_evidence' => 'Actual original synthetic notes independently counted', 'private_reason' => 'One original rand is physically missing and being investigated', 'confirmed_actual_count' => true]);
+        $result = $this->parallel([
+            ['actor_id' => $this->recipient->id, 'mode' => 'finish', 'data' => $this->outcome($row->id)],
+            ['mode' => 'propose', 'data' => array_replace($this->proposal(), ['amount' => '0.01'])],
+        ], 'propose');
+        $this->assertArrayHasKey('id', $result[0]);
+        $this->assertSame(422, $result[1]['refused']);
+        $this->assertSame(1, CashHandover::count());
+        $this->assertSame(1, CashHandoverOutcome::count());
+        $this->assertSame(0, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->assertSame(1900, $service->available($this->recipient->id, 'ZAR')['available_cents']);
+        $this->healthy();
     }
 
     private function parallel(array $payloads, string $mode): array

@@ -962,3 +962,16 @@ and main integration remain separate; payment gateways remain deferred.
 Hosted-check maintenance also patches Symfony Mime to7.4.22 for CVE-2026-45070,
 uses existing Material3 fee buttons and waits for the saved asynchronous Teacher
 support conversation. The locked dependency audit and targeted checks passed.
+
+## 2026-10-28 — retain physical cash-count source boundaries
+
+A review found that a later same-day payout could erase an observed shortage and
+allow further cash to leave. Immutable per-count source boundaries now preserve
+the original shortage through payouts and handovers. Confirmed incoming handovers
+remain usable; later date-only receipts on the count day require a fresh physical
+revision before increasing the counted cash bound. Old exact fingerprints can be
+adopted before a cash movement; changed, unprovable old source sets require a fresh
+count. Original financial history and counts remain unchanged. Qualification is
+recorded in self-tests/money/cash-count-boundaries.md. This correction belongs to
+cumulative PR346; PR345 is held as a draft and must not merge independently.
+Hosted source checks, review and main integration remain pending.

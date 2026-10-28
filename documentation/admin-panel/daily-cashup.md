@@ -49,6 +49,18 @@ confirm a real handover before paying from another operator's cash. Backdated
 payouts cannot borrow from later receipts. The original payout reference still
 prevents paying twice.
 
+A later payout or confirmed handover does not erase an earlier counted shortage.
+For example, if the records show R100 and you count R80, paying out R80 leaves
+nothing available. A confirmed incoming handover adds the cash actually received.
+A receipt entered later for the count date has no recorded time proving whether
+it was already counted. Record a fresh physical count revision to make any
+additional cash available. Keep the original count and explain the correction.
+
+After upgrading, an older count is reused only when its original source records
+can still be verified exactly. Otherwise the handover page asks for a fresh
+physical count before another payout or handover. This retains the old evidence;
+it does not adjust money or block unrelated school work.
+
 The nightly cash check compares original posted receipts/payouts and custody with
 the cash assets. Missing or stale physical counts and shortages remain separate
 review items. A difference never creates an automatic adjustment. This check does

@@ -10,6 +10,7 @@
 <section><h2>{{ $currency }}</h2>
 <dl>@foreach(['book_cents'=>'Expected cash in custody','shortage_cents'=>'Recorded physical shortage','reserved_cents'=>'Pending outgoing handovers','available_cents'=>'Available cash in your custody'] as $key => $label)<dt>{{ __($label) }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($a[$key],$currency)->format() }}</dd>@endforeach</dl>
 @if(!$a['healthy'])<p role="alert">{{ __('Reconcile original cash receipts, payouts and projections before paying cash.') }}</p>@endif
+@if($a['needs_recount'])<p role="status">{{ __('Record a fresh physical cash count before paying or handing over this cash.') }}</p>@endif
 </section>
 @endforeach
 <p>{{ __('A proposal reserves the sender’s cash. Acceptance moves custody once without changing the school ledger. Reject or cancel only when no cash was handed over.') }}</p>
