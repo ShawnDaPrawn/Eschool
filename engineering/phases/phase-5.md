@@ -5,7 +5,7 @@ receipts/allocation, private parent statements, credit notes and fee items/one-o
 Bank imports and reviewed EFT matching are merged in PR314.
 The owner authorized delivery through remaining increment15; see
 [the execution inventory](phase-5-delivery-1-15.md). Arrears/accounting exports
-are the current implementation increment.
+record current source delivery and hosted integration status.
 The full phase is not complete; hosted qualification is tracked on each PR.
 The owner accepted the bounded handover pass on 26 October 2026. Phase checkpoints
 remain progress records: unrelated development continues while external evidence
@@ -69,10 +69,12 @@ links existing EFT receipts or records one verified receipt, and keeps unresolve
 rows in a private queue. See [bank matching](../specs/money/bank-matching.md) and
 [verification](../self-tests/money/bank-matching.md). Importing does not post money.
 
-Remaining automatic fee rules/taxable items/discounts, refunds, payment adapters,
-arrears, accounting exports, scheduled reminders, wallets/approvals/limits/withdrawals, vendors/orders/settlement,
-ticketing, online card/QR spending and the finance/app surfaces remain future
-Phase 5 slices. Clearing and due-to-school balances remain zero until Phase 6.
+Automatic fee rules/VAT/discounts, join/leaver adjustments, manual refunds and
+personal wallet controls have been implemented in dependent feature PRs; consult
+the delivery inventory for what is actually on main. Payer corrections/late-charge
+policy, wallet funding/approvals/transfers/withdrawals, cash-up, vendors/orders/
+settlement, ticketing and online QR/card spending remain to finish through15.
+External payment-provider integration remains deferred. Clearing and due-to-school balances remain zero until Phase 6.
 
 The owner authorized implementation on 26 October and superseded the Phase 0
 Peach default: no gateway is selected and Peach is not preferred. Build

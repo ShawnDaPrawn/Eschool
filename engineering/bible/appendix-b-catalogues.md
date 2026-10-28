@@ -1,5 +1,11 @@
 # Appendix B: module and notification catalogues
 
+Parent deposits reuse the wallet module and wallet-finance-manage for independent
+Finance review. Verified Parent own-wallet claims require no fee authority.
+Manual parent-method settings are separate from school master funding. Existing
+actor-scoped operation recovery handles interrupted claims/cancellations. No
+notification transport, gateway, payment execution or provider spend is activated.
+
 Phase 5 fee-plan configuration and annual-rate preview use the existing `fees`
 module and the explicit school permission `fee-plans-manage` (Super Admin default;
 grant explicitly to custom Finance roles). No new payment method, wallet/vendor
@@ -329,3 +335,46 @@ Own parent receipt projections add reserved/paid cents without Finance evidence.
 Internal `fees.refund_changed` outbox events contain refund ID, amount and action;
 no new notification transport, provider, bank transfer or spend is activated.
 Disabled fees retain policy, private Finance history and own parent statements.
+
+### Personal wallet controls
+
+Wallet is a money module depending on people, independently of fees. Legacy and
+standard financial packages include the entitlement; activation remains explicit.
+Separate wallet-finance-manage authorizes Finance settings and private statements.
+Personal routes use current own/verified guardian approval authority. Facilitator
+profiles add an optional wallet capability. No transport/provider is activated.
+
+### School master funding
+
+Existing wallet module and separate wallet-finance-manage permission cover explicit
+manual-method policy, verified school-owned funding and private printable receipts.
+No parent payment, top-up grant, notification transport or gateway is enabled.
+Ledger reconciliation includes receipt attribution and external-source identity.
+
+### Desk wallet top-ups
+
+Wallet desk operations use `wallet-desk-process`; threshold management additionally
+requires `wallet-desk-policy-manage` and wallet Finance access. These capabilities
+remain in the wallet module, independent of fee access. Personal receipt reads use
+current own/approving-guardian authority. No external notification/provider is added.
+
+### Parent wallet transfers
+
+Wallet Finance together with `wallet-transfer-policy-manage` configures child
+returns. Actual movements require a verified Parent and current approving guardian
+authority; learners never initiate transfers. Recovery retains actor-scoped opaque
+operation keys and does not require fee access or enable an outside provider.
+
+Adult withdrawals reuse wallet and wallet-finance-manage. Own requests require
+current Parent/Teacher/Facilitator authority; a current Student is always refused.
+Finance alone configures policy/slots, approves and verifies outside payment.
+No provider or notification transport is activated.
+
+### Vendor catalogue preparation
+
+The vendors money module is off by default and depends on people, independently
+of wallet availability. Legacy and standard packages include its entitlement.
+Finance requires vendors-manage; only the system Super Admin starts with it.
+Custom Finance roles need an explicit grant. Current Students and Vendor operators
+are excluded from catalogue Finance even if a permission was accidentally granted.
+No vendor login or general staff authority is introduced by catalogue creation.

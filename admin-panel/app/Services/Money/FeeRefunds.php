@@ -78,7 +78,7 @@ final class FeeRefunds
             $policy = $this->policy($request->method);
             abort_unless(! $policy->independent_approval || (int) $reserve->actor_id !== (int) $request->prepared_by, 409, 'Refund approval policy changed. Cancel and review this refund again.');
             $this->complete($request);
-            $hash = hash('sha256', json_encode([$request->method, $request->currency, $data['payout_reference']], JSON_THROW_ON_ERROR));
+            $hash = app(ExternalDisbursements::class)->available($request->method, $request->currency, $data['payout_reference']);
             abort_if(FeeRefundAction::where('reference_hash', $hash)->lockForUpdate()->exists(), 409, 'This verified payout reference is already recorded.');
             $ledger = app(LedgerService::class);
             $asset = $ledger->openAccount($request->method === 'cash' ? AccountType::CashDesk : AccountType::FeeBank, 'fees:'.$request->method.':'.$request->currency, $request->currency);

@@ -99,6 +99,10 @@ final readonly class ApiRoute
 
     public function sampleParameter(string $name): string
     {
+        if (str_starts_with($this->uri, 'api/v2/wallets/') && $name === 'operation') {
+            return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
+        }
+
         if (str_starts_with($this->uri, 'api/v2/card-encoder/') && $name === 'plan') {
             return '8aef50e7-2429-4d2c-a523-668ae436c4d4';
         }

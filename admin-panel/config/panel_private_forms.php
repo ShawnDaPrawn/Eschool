@@ -17,6 +17,12 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['wallet-topups', 'wallet-topups/*'], 'title' => 'Desk wallet top-ups', 'route' => 'wallet-desk.index', 'fields' => []],
+    ['paths' => ['vendor-catalogues', 'vendor-catalogues/*'], 'title' => 'Vendors and stock', 'route' => 'vendor-catalogues.index', 'fields' => []],
+    ['paths' => ['wallet-withdrawals', 'wallet-withdrawals/*'], 'title' => 'Adult wallet withdrawals', 'route' => 'wallet-withdrawals.index', 'fields' => []],
+    ['paths' => ['wallet-deposits', 'wallet-deposits/*'], 'title' => 'Parent wallet deposits', 'route' => 'wallet-deposits.index', 'fields' => []],
+    ['paths' => ['wallet-funding', 'wallet-funding/*'], 'title' => 'School wallet funding', 'route' => 'wallet-funding.index', 'fields' => []],
+    ['paths' => ['wallet-settings', 'wallet-settings/*'], 'title' => 'Wallets', 'route' => 'wallet-finance.index', 'fields' => []],
     ['paths' => ['fee-refunds', 'fee-refunds/*'], 'title' => 'Fee refunds', 'route' => 'fee-refunds.index', 'fields' => []],
     ['paths' => ['fee-leavers', 'fee-leavers/*'], 'title' => 'Leaver credits', 'route' => 'fee-leavers.index', 'fields' => []],
     ['paths' => ['fee-lifecycle', 'fee-lifecycle/*'], 'title' => 'Enrolment fee policy', 'route' => 'fee-lifecycle.index', 'fields' => []],

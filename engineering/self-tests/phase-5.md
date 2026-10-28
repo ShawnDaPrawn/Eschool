@@ -43,3 +43,25 @@ Automatic eligibility and subsequent increments remain separate work.
 
 [Automatic item verification](money/automatic-fee-items.md) covers compulsory and
 membership batch charging. Parent opt-in approvals remain the next portion.
+
+[Personal wallets](money/personal-wallets.md) records zero-balance issuance, private
+statements and controls. Funding, withdrawals and commerce remain separate work.
+
+[Master funding](money/wallet-master-funding.md) records verified school-owned
+receipts; it does not qualify the remaining desk/parent/withdrawal flows.
+
+Desk master-to-person grants, independent approval, private receipts and cancellation
+are tracked in money/desk-wallet-topups.md. Parent funding/transfers and increments
+9–15 remain under active delivery; this does not close increment 8 or Phase 5.
+
+Parent transfer and interrupted-request recovery evidence is tracked in
+money/parent-wallet-transfers.md. Parent deposit verification remains 8C2, and
+6D payer corrections/late charges plus increments9–15 remain required.
+
+Parent deposit evidence is tracked in money/parent-wallet-deposits.md: independently
+verified original-parent receipts, no-money claims, private proof, safe recovery,
+Finance browser and app qualification. This does not close Phase5 or increments9–15.
+
+Adult withdrawal qualification is tracked in money/adult-wallet-withdrawals.md.
+Vendor implementation proceeds independently; pending external evidence does not
+freeze catalogue development.

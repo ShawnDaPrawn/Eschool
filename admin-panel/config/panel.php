@@ -48,7 +48,7 @@ return [
             'fee-plans/*',
             'fee-accounts/*',
             // Receipt/allocation writes settle retained invoices without editing year records.
-            'fee-reminders', 'fee-reminders/*', 'fee-reporting/*', 'bank-statements/*', 'fee-payments/*', 'fee-credit-notes/*', 'fee-discounts/*', 'fee-lifecycle', 'fee-lifecycle/*', 'fee-leavers', 'fee-leavers/*', 'fee-refunds', 'fee-refunds/*', 'fee-items/*', 'fee-item-charges/*', 'fee-item-batches/*',
+            'fee-reminders', 'fee-reminders/*', 'fee-reporting/*', 'bank-statements/*', 'fee-payments/*', 'fee-credit-notes/*', 'fee-discounts/*', 'fee-lifecycle', 'fee-lifecycle/*', 'fee-leavers', 'fee-leavers/*', 'fee-refunds', 'fee-refunds/*', 'wallet-settings', 'wallet-settings/*', 'wallet-funding', 'wallet-funding/*', 'wallet-topups', 'wallet-topups/*', 'wallet-deposits', 'wallet-deposits/*', 'wallet-withdrawals', 'wallet-withdrawals/*', 'vendor-catalogues', 'vendor-catalogues/*', 'fee-items/*', 'fee-item-charges/*', 'fee-item-batches/*',
             'fee-bill-runs/new',
             'fee-bill-runs/*/approve',
 

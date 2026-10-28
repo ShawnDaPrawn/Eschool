@@ -38,7 +38,13 @@ for (const width of [390, 820, 1280]) {
     expect(response!.status()).toBe(200);
     expect(response!.headers()['cache-control']).toContain('no-store');
     expect(response!.headers()['referrer-policy']).toBe('no-referrer');
+    let releaseEditor!: () => void;
+    const editorReady = new Promise<void>(resolve => { releaseEditor = resolve; });
+    await page.route('**/assets/js/pathways.js', async route => { await editorReady; await route.continue(); }, { times: 1 });
     await page.getByRole('link', { name: 'Add a programme source', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Add subject rule', exact: true })).toBeDisabled();
+    releaseEditor();
+    await expect(page.getByRole('button', { name: 'Add subject rule', exact: true })).toBeEnabled();
     await source(page, data, title);
     await page.getByLabel('Institution').fill('Synthetic institution');
     await page.locator('#pathway-subject-0-id').selectOption(String(data.subjects[0]));

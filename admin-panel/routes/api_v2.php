@@ -40,6 +40,10 @@ use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
+use App\Http\Controllers\Api\V2\Money\WalletController;
+use App\Http\Controllers\Api\V2\Money\WalletDepositController;
+use App\Http\Controllers\Api\V2\Money\WalletTransferController;
+use App\Http\Controllers\Api\V2\Money\WalletWithdrawalController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -87,6 +91,9 @@ use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
+use App\Http\Middleware\RequireWalletAuthority;
+use App\Http\Middleware\RequireWalletDepositAuthority;
+use App\Http\Middleware\RequireWalletWithdrawalAuthority;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -391,6 +398,24 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
     Route::middleware($money)->group(function () {
         //
     });
+});
+
+Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {
+    $c = WalletController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::get('withdrawals', [WalletWithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('withdrawals', [WalletWithdrawalController::class, 'request'])->middleware([RequireWalletWithdrawalAuthority::class, 'throttle:money', 'idempotent:required'])->name('withdrawals.request');
+    Route::post('withdrawals/{withdrawal}/cancel', [WalletWithdrawalController::class, 'cancel'])->whereNumber('withdrawal')->middleware([RequireWalletWithdrawalAuthority::class, 'throttle:money', 'idempotent:required'])->name('withdrawals.cancel');
+    Route::get('deposits', [WalletDepositController::class, 'index'])->name('deposits.index');
+    Route::post('deposits', [WalletDepositController::class, 'claim'])->middleware([RequireWalletDepositAuthority::class, 'throttle:money', 'idempotent:required'])->name('deposits.claim');
+    Route::post('deposits/{claim}/cancel', [WalletDepositController::class, 'cancel'])->whereNumber('claim')->middleware([RequireWalletDepositAuthority::class, 'throttle:money', 'idempotent:required'])->name('deposits.cancel');
+    Route::get('transfers', [WalletTransferController::class, 'index'])->name('transfers');
+    Route::post('transfers', [WalletTransferController::class, 'transfer'])->middleware([RequireWalletAuthority::class.':transfer', 'throttle:money', 'idempotent:required'])->name('transfer');
+    Route::post('operations/{operation}/resolve', [WalletTransferController::class, 'resolve'])->whereUuid('operation')->middleware('throttle:money')->name('resolve');
+    Route::get('{wallet}/desk-topups', [$c, 'deskReceipts'])->whereNumber('wallet')->name('desk-receipts');
+    Route::get('{wallet}/statement', [$c, 'statement'])->whereNumber('wallet')->name('statement');
+    Route::post('/', [$c, 'open'])->middleware([RequireWalletAuthority::class.':open', 'throttle:money', 'idempotent:required'])->name('open');
+    Route::put('{wallet}/limits', [$c, 'limits'])->whereNumber('wallet')->middleware([RequireWalletAuthority::class.':limits', 'throttle:money', 'idempotent:required'])->name('limits');
 });
 
 Route::prefix('parent/fees')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role:Parent', 'parent.policy', 'module:fees,read'])->name('api.v2.parent.fees.')->group(function () {

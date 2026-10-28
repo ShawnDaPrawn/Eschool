@@ -30,6 +30,7 @@
             const template = root.querySelector(`[data-pathway-template="${kind}"]`);
             if (!template) return;
             container.append(template.content.cloneNode(true));
+            container.lastElementChild?.querySelectorAll('[data-pathway-remove]').forEach(button => { button.disabled = false; });
             refresh(kind);
             container.lastElementChild?.querySelector('select,input:not([type="hidden"])')?.focus();
         }
@@ -43,5 +44,6 @@
             root.querySelector(`[data-pathway-add="${kind}"]`)?.focus();
         }
     });
+    root.querySelectorAll('[data-pathway-remove]').forEach(button => { button.disabled = false; });
     Object.keys(limits).forEach(refresh);
 })();

@@ -172,3 +172,9 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 - Family charges bill once, retain real learner visibility and work with existing
   credit notes, held payments and learner pins. Tuition-first allocation now
   distinguishes annual tuition from additional items.
+
+- Phase5: personal wallets, private statements and guardian controls independently
+  of fees, with explicit Finance settings and family/teacher/facilitator app access.
+
+- Phase 5: verified school-owned master wallet funding, private printable receipts
+  and shared outside receipt identity across fee and wallet collections.

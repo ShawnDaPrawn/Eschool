@@ -802,3 +802,64 @@ accounting and domain reconciliation are retained. Shared fee app/SDK statements
 show reserved/paid amounts. Qualification is recorded in
 self-tests/money/fee-refunds.md and the feature PR. No external payment is executed.
 Payer corrections/explicit late-charge policy and increments7–15 continue next.
+
+## 2026-10-28 — personal wallets and guardian controls
+
+Increment7 adds zero-balance personal ledger wallets, private paginated statements,
+explicit school currency/caps, current guardian controls and independent wallet
+entries in family, teacher and dedicated facilitator apps. Disabled history stays
+readable. See self-tests/money/personal-wallets.md for executed qualification.
+Funding/spending and6D payer corrections remain next; gateways stay deferred.
+
+## 2026-10-28 — verified school-owned master wallet funding
+
+Increment 8A adds explicit manual funding methods, school-owned cash/EFT receipts,
+master backing and private printable Finance receipts. Shared outside receipt
+identity prevents recording the same source through fees and wallets. New history
+and encrypted evidence are retained. See self-tests/money/wallet-master-funding.md.
+Desk approval/grants, parent funding/transfers and later increments remain separate;
+no provider or production activation is implied.
+
+## 2026-10-28 — desk grants and independent approval
+
+Increment 8B adds school-master reservations, explicit second-approval thresholds,
+independent desk permission, cancellation and private printable/personal receipts.
+Shared family, teacher and dedicated facilitator wallets display pending and final
+outcomes. Qualification is in self-tests/money/desk-wallet-topups.md. Parent-owned
+deposits/transfers remain 8C; gateway integration remains deferred.
+
+## 2026-10-28 — parent wallet transfers and recovery
+
+Increment 8C1 adds parent/child wallet movements, explicit child-return policy,
+private transfer receipts and durable recovery of interrupted money requests.
+Concurrency and app recovery checks are recorded in self-tests/money/parent-wallet-
+transfers.md. Parent outside deposits and Finance verification remain 8C2; gateways
+remain deferred. This does not close increment 8 or Phase 5.
+
+## 2026-10-28 — original-parent deposits and independent verification
+
+Increment8C2 records already-paid cash/EFT claims without posting money, then
+independent Finance verifies actual receipt and credits the original parent wallet.
+The school explicitly configures methods separately from master funding. Immutable
+claims/outcomes, private proof, shared external identity, cash custodian, personal
+receipts, recovery and reconciliation are retained. See self-tests/money/parent-
+wallet-deposits.md for executed qualification. Withdrawals, cash-up, commerce and
+6D payer/late-charge work remain; gateways stay deferred.
+
+## 2026-10-28 — reserved adult wallet withdrawals
+
+Increment9 adds original-holder reservations, explicit cash/bank boundary and
+pickup capacity, independent Finance approval, verified outside payout, safe
+release, shared fee-refund/wallet disbursement identity and private app receipts.
+Qualification is tracked in self-tests/money/adult-wallet-withdrawals.md. Vendor
+setup/catalogues/stock proceed while native and hosted qualification runs.
+Gateway execution remains deferred.
+
+## 2026-10-28 — vendor catalogues and counted stock
+
+Increment11A adds vendor/category preparation, explicit activation and settlement
+liability, product tax/price configuration and immutable counted stock history.
+The Finance workbench works while wallet transactions are paused. No money is
+created by setup. Backend/concurrency13/95 and four responsive browser cases passed;
+remaining evidence is tracked in self-tests/money/vendor-catalogues-stock.md.
+Orders/fulfilment11B and dedicated vendor operators/scanner12 follow.

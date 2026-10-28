@@ -1,5 +1,16 @@
 # Appendix A: data model reference
 
+## Phase5: verified parent wallet deposits
+
+`wallet_deposit_policies` explicitly enables/pauses parent cash/EFT independently
+of school master funding. Immutable `wallet_deposit_claims` binds original Parent,
+personal wallet, requested cents, date/reference and encrypted proof.
+`wallet_parent_deposits` records independently verified actual cents, exact entry,
+collector/net/settlement, cash custodian and encrypted evidence.
+`wallet_deposit_actions` permits one verified/rejected/cancelled outcome with
+encrypted rejection notes. `financial_receipts` adds the parent domain to prevent
+booking one incoming source through multiple modules.
+
 The tables and columns NavigateEd has added to the seed's schema, phase by phase. It holds only what exists in the code; tables still planned are tracked in the private Build Bible (Appendix A) and are added here when a phase builds them. Engineers extend this page at the end of each phase.
 
 ## Phase 5: fee-plan configuration
@@ -438,3 +449,54 @@ reservation, verified payout or cancellation with exact two-sided ledger entries
 and unique payout-reference hashes. `fee_refund` is a nonnegative fees liability;
 held/paid amounts reduce only the original receipt credit. No receipt, original
 invoice or allocation is rewritten.
+
+### Personal wallets
+
+`wallet_settings` stores explicit revisioned school currency, daily maximum and
+child-control policy. `wallet_accounts` binds immutable school/person/currency to
+one existing wallet ledger account. `wallet_limits` stores revisioned daily/category
+controls. Immutable `wallet_operations` retains actor-bound UUID receipts. No new
+balance projection or money posting is created by issuance.
+
+### School master funding and external receipt identity
+
+`wallet_funding_policies` retains explicit revisioned manual-method choices.
+`wallet_fundings` retains immutable school-owned receipts, exact posted master/asset
+accounts, collection metadata and encrypted evidence. `financial_receipts` reserves
+one canonical outside source across fee and wallet receipts without reposting old
+entries. `wallet_bank` is a wallet-only debit asset. New history prevents rollback.
+
+### Desk wallet grants and approval
+
+`wallet_desk_policies` stores an explicit revisioned threshold. Immutable
+`wallet_desk_topups` binds recipient, school-owned master, dedicated reserve, original
+policy and exact reservation entry. `wallet_desk_actions` records one released or
+cancelled outcome, current policy, independent actor and terminal entry. Private
+reasons are encrypted; retained domain history prevents destructive rollback.
+
+### Parent wallet transfers
+
+`wallet_transfer_policies` retains the school's explicit revisioned child-return
+choice. Immutable `wallet_transfers` binds actor/operation, both personal wallets
+and owners, direction, cents/currency, exact source entry and policy revision.
+`wallet_operations` also retains abandoned keys for durable interrupted-request
+recovery without changing any earlier operation or posted money.
+
+## Phase5: adult withdrawal reservations
+
+School-owned wallet_withdrawal_policies, wallet_withdrawal_slots and immutable
+slot closures configure explicit currency thresholds and capacity. wallet_withdrawals
+binds original holder/wallet, pending liability, exact reservation, pickup or
+encrypted bank instructions. Append-only wallet_withdrawal_actions records approval,
+release or verified payout, actual date and cash custodian. financial_disbursements
+shares immutable outside identity across original fee refunds and wallet payouts.
+
+## Phase5: vendor catalogues and counted stock
+
+School-owned vendor_categories retain canonical category keys. vendors retain
+original operation, immutable ownership kind/currency and dedicated vendor ledger
+identity, encrypted bank instructions and explicit VAT/liability/settlement choices.
+vendor_products retain vendor, SKU and stock mode, integer gross cents, tax and
+revision. vendor_stock_movements are immutable actor-bound counted adjustments;
+vendor_stock_balances is a checked projection, not opening money. vendor_operations
+retain permanent actor-bound UUID receipts. Archive/disable preserves all history.

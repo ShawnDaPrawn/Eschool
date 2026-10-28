@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Platform\School;
+use App\Services\Commerce\VendorCatalogueReconciliation;
 use App\Services\Money\FeePaymentReconciliation;
+use App\Services\Money\WalletDepositReconciliation;
+use App\Services\Money\WalletDeskReconciliation;
+use App\Services\Money\WalletFundingReconciliation;
+use App\Services\Money\WalletTransferReconciliation;
+use App\Services\Money\WalletWithdrawalReconciliation;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -60,13 +66,19 @@ final class ReconcileLedger extends Command
                 // Never repair from invalid/incomplete history. This switch
                 // repairs projections only, never entries, receipts or floats.
                 $payments = app(FeePaymentReconciliation::class)->inspect();
-                $validPayments = FeePaymentReconciliation::healthy($payments);
-                $repair = $validPayments && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
+                $walletFunding = app(WalletFundingReconciliation::class)->inspect();
+                $desk = app(WalletDeskReconciliation::class)->inspect();
+                $transfers = app(WalletTransferReconciliation::class)->inspect();
+                $parentDeposits = app(WalletDepositReconciliation::class)->inspect();
+                $withdrawals = app(WalletWithdrawalReconciliation::class)->inspect();
+                $vendors = app(VendorCatalogueReconciliation::class)->inspect();
+                $validDomain = VendorCatalogueReconciliation::healthy($vendors) && WalletWithdrawalReconciliation::healthy($withdrawals) && FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding) && WalletDeskReconciliation::healthy($desk) && WalletTransferReconciliation::healthy($transfers) && WalletDepositReconciliation::healthy($parentDeposits);
+                $repair = $validDomain && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
                 return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
-                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validPayments, ...$payments];
+                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding, ...$desk, ...$transfers, ...$parentDeposits, ...$withdrawals, ...$vendors];
             }));
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
                 || $report['incomplete_invoices'] > 0

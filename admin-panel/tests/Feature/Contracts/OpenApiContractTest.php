@@ -50,6 +50,20 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'listPersonalWalletWithdrawals requires authentication' => [null, 'GET', 'api/v2/wallets/withdrawals', [], 401],
+            'requestPersonalWalletWithdrawal requires authentication' => [null, 'POST', 'api/v2/wallets/withdrawals', [], 401],
+            'cancelPersonalWalletWithdrawal requires authentication' => [null, 'POST', 'api/v2/wallets/withdrawals/1/cancel', [], 401],
+            'listPersonalWalletDeposits requires authentication' => [null, 'GET', 'api/v2/wallets/deposits', [], 401],
+            'requestPersonalWalletDeposit requires authentication' => [null, 'POST', 'api/v2/wallets/deposits', [], 401],
+            'cancelPersonalWalletDeposit requires authentication' => [null, 'POST', 'api/v2/wallets/deposits/1/cancel', [], 401],
+            'listPersonalWalletTransfers requires authentication' => [null, 'GET', 'api/v2/wallets/transfers', [], 401],
+            'transferPersonalWalletMoney requires authentication' => [null, 'POST', 'api/v2/wallets/transfers', [], 401],
+            'resolvePersonalWalletOperation requires authentication' => [null, 'POST', 'api/v2/wallets/operations/00000000-0000-4000-8000-000000000001/resolve', [], 401],
+            'listPersonalDeskTopupReceipts requires authentication' => [null, 'GET', 'api/v2/wallets/1/desk-topups', [], 401],
+            'listPersonalWallets requires authentication' => [null, 'GET', 'api/v2/wallets', [], 401],
+            'openPersonalWallet requires authentication' => [null, 'POST', 'api/v2/wallets', [], 401],
+            'getPersonalWalletStatement requires authentication' => [null, 'GET', 'api/v2/wallets/1/statement', [], 401],
+            'setPersonalWalletLimits requires authentication' => [null, 'PUT', 'api/v2/wallets/1/limits', [], 401],
             'listParentFeeOptionalItems requires authentication' => [null, 'GET', 'api/v2/parent/fees/accounts/1/optional-items', [], 401],
             'changeParentFeeItemConsent requires authentication' => [null, 'POST', 'api/v2/parent/fees/accounts/1/optional-items/1/consents', [], 401],
             'listParentFeeOptionalItems refuses learner' => ['asha', 'GET', 'api/v2/parent/fees/accounts/1/optional-items', [], 403],

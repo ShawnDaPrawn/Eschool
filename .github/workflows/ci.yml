@@ -253,7 +253,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications, packages/eschool_people, packages/eschool_features/academics, packages/eschool_features/fees]
+        app: [e-school, e-school-teacher, packages/eschool_core, packages/eschool_api, packages/eschool_session, packages/eschool_notifications, packages/eschool_people, packages/eschool_features/academics, packages/eschool_features/fees, packages/eschool_features/wallet]
     defaults:
       run:
         working-directory: ${{ matrix.app }}
@@ -439,6 +439,13 @@ jobs:
             flow: teacher_academic_marks_smoke_test.dart
           - app: e-school
             flow: family_fee_statements_smoke_test.dart
+          - app: e-school
+            flow: personal_wallet_smoke_test.dart
+          - app: e-school-teacher
+            flow: teacher_wallet_smoke_test.dart
+          - app: e-school-teacher
+            flow: facilitator_wallet_smoke_test.dart
+            flavor: facilitator
           - app: e-school
             flow: family_academic_marks_smoke_test.dart
           - app: e-school-teacher
@@ -701,9 +708,13 @@ jobs:
         working-directory: documentation
         run: npm audit --audit-level=critical
 
-  playwright:
-    name: Admin panel (Playwright)
+  playwright-parts:
+    name: Admin panel browser (${{ matrix.part }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        part: ['1', '2', '3', '4', 'wizard']
     defaults:
       run:
         working-directory: admin-panel
@@ -775,14 +786,31 @@ jobs:
         run: |
           npm run typecheck
           trap 'panel_result=$?; if ! kill -0 "$(cat ../storage/logs/panel.pid)" 2>/dev/null; then echo "Panel server exited during the browser run"; tail -n 40 ../storage/logs/serve.log; panel_result=1; fi; exit "$panel_result"' EXIT
-          npx playwright test
+          python3 ../tool/ci/playwright_partition.py --prepare
+          if [ '${{ matrix.part }}' = '1' ]; then
+            python3 ../tool/ci/playwright_partition.py --verify
+          fi
+          python3 ../tool/ci/playwright_partition.py --part '${{ matrix.part }}'
       - name: Upload the report
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.part }}
           path: |
             admin-panel/e2e/playwright-report/
             admin-panel/e2e/test-results/
             admin-panel/storage/logs/
           retention-days: 14
+
+  playwright:
+    # Preserve the existing required check; no failed, cancelled or missing part
+    # can be accepted as the complete browser suite.
+    name: Admin panel (Playwright)
+    runs-on: ubuntu-latest
+    needs: playwright-parts
+    if: always()
+    steps:
+      - name: Require every isolated browser part to pass
+        env:
+          BROWSER_PARTS_RESULT: ${{ needs.playwright-parts.result }}
+        run: test "$BROWSER_PARTS_RESULT" = success

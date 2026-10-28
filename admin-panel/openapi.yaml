@@ -158,6 +158,8 @@ security:
 - bearerAuth: []
 - cookieAuth: []
 tags:
+- name: Wallets
+  description: Private personal wallets and guardian spending controls.
 - name: Gallery
   description: Private family photo history and consent.
 - name: Consultations
@@ -26144,6 +26146,616 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SecureEncodingConfirmation'
+  /wallets/transfers:
+    get:
+      operationId: listPersonalWalletTransfers
+      tags:
+      - Wallets
+      summary: Read your parent wallet transfers and current transfer authority
+      description: Current school, account and wallet authority apply. Integer cents and immutable actor-bound operation
+        receipts preserve money. Child returns require explicit school policy. Recovery permanently closes an uncommitted
+        operation so a late original request cannot post.
+      parameters:
+      - &id001
+        $ref: '#/components/parameters/SchoolId'
+      - &id002
+        $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Read your parent wallet transfers and current transfer authority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletTransferPageResponse'
+        '401': &id003
+          $ref: '#/components/responses/Unauthenticated'
+        '403': &id004
+          $ref: '#/components/responses/Forbidden'
+        '404': &id005
+          $ref: '#/components/responses/NotFound'
+        '409': &id006
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422': &id007
+          $ref: '#/components/responses/ValidationFailed'
+        '429': &id008
+          $ref: '#/components/responses/TooManyRequests'
+        '500': &id009
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: transferPersonalWalletMoney
+      tags:
+      - Wallets
+      summary: Move money between your own and an approved child wallet
+      description: Current school, account and wallet authority apply. Integer cents and immutable actor-bound operation
+        receipts preserve money. Child returns require explicit school policy. Recovery permanently closes an uncommitted
+        operation so a late original request cannot post.
+      parameters:
+      - *id001
+      - *id002
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Move money between your own and an approved child wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletTransferReceiptResponse'
+        '401': *id003
+        '403': *id004
+        '404': *id005
+        '409': *id006
+        '422': *id007
+        '429': *id008
+        '500': *id009
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletTransferWrite'
+  /wallets/operations/{operation}/resolve:
+    post:
+      operationId: resolvePersonalWalletOperation
+      tags:
+      - Wallets
+      summary: Resolve and close an interrupted wallet operation
+      description: Current school, account and wallet authority apply. Integer cents and immutable actor-bound operation
+        receipts preserve money. Child returns require explicit school policy. Recovery permanently closes an uncommitted
+        operation so a late original request cannot post.
+      parameters:
+      - *id001
+      - *id002
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Resolve and close an interrupted wallet operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletOperationResolutionResponse'
+        '401': *id003
+        '403': *id004
+        '404': *id005
+        '409': *id006
+        '422': *id007
+        '429': *id008
+        '500': *id009
+  /wallets/deposits:
+    get:
+      operationId: listPersonalWalletDeposits
+      tags:
+      - Wallets
+      summary: Read your wallet deposit requests and verified receipts
+      description: Current school and actor authority applies before replay. Claims create no money. An independent
+        Finance verifier records actual receipts against the immutable original parent wallet. Private proof never
+        enters receipts. No outside payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Read your wallet deposit requests and verified receipts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDepositPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: requestPersonalWalletDeposit
+      tags:
+      - Wallets
+      summary: Request independent verification of an already paid parent deposit
+      description: Current school and actor authority applies before replay. Claims create no money. An independent
+        Finance verifier records actual receipts against the immutable original parent wallet. Private proof never
+        enters receipts. No outside payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Request independent verification of an already paid parent deposit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDepositReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletDepositClaimWrite'
+  /wallets/deposits/{claim}/cancel:
+    post:
+      operationId: cancelPersonalWalletDeposit
+      tags:
+      - Wallets
+      summary: Withdraw your pending deposit verification request
+      description: Current school and actor authority applies before replay. Claims create no money. An independent
+        Finance verifier records actual receipts against the immutable original parent wallet. Private proof never
+        enters receipts. No outside payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: claim
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '200':
+          description: Withdraw your pending deposit verification request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDepositReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletDepositCancelWrite'
+  /wallets/withdrawals:
+    get:
+      operationId: listPersonalWalletWithdrawals
+      tags:
+      - Wallets
+      summary: Read own withdrawal policy, pickup availability and history
+      description: Fresh school, adult role, original owner and module authority apply before permanent replay. Requests
+        reserve own available funds; Finance approval and verified outside payout are separate. Current learners never
+        withdraw. Private bank instructions and proof are excluded from history. No payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Read own withdrawal policy, pickup availability and history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletWithdrawalPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: requestPersonalWalletWithdrawal
+      tags:
+      - Wallets
+      summary: Reserve original adult wallet money for Finance approval
+      description: Fresh school, adult role, original owner and module authority apply before permanent replay. Requests
+        reserve own available funds; Finance approval and verified outside payout are separate. Current learners never
+        withdraw. Private bank instructions and proof are excluded from history. No payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Reserve original adult wallet money for Finance approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletWithdrawalReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletWithdrawalWrite'
+  /wallets/withdrawals/{withdrawal}/cancel:
+    post:
+      operationId: cancelPersonalWalletWithdrawal
+      tags:
+      - Wallets
+      summary: Cancel an unpaid own withdrawal and restore its original wallet
+      description: Fresh school, adult role, original owner and module authority apply before permanent replay. Requests
+        reserve own available funds; Finance approval and verified outside payout are separate. Current learners never
+        withdraw. Private bank instructions and proof are excluded from history. No payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: withdrawal
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '200':
+          description: Cancel an unpaid own withdrawal and restore its original wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletWithdrawalReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletWithdrawalCancelWrite'
+  /wallets:
+    get:
+      operationId: listPersonalWallets
+      tags:
+      - Wallets
+      summary: List your own and authorised child wallet choices
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: List your own and authorised child wallet choices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletIndexResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: openPersonalWallet
+      tags:
+      - Wallets
+      summary: Open a zero-balance personal wallet
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Open a zero-balance personal wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpenPersonalWalletRequest'
+  /wallets/{wallet}/desk-topups:
+    get:
+      operationId: listPersonalDeskTopupReceipts
+      tags:
+      - Wallets
+      summary: Read your permitted private desk top-up receipts
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: wallet
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 30
+      responses:
+        '200':
+          description: Read your permitted private desk top-up receipts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDeskReceiptPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /wallets/{wallet}/statement:
+    get:
+      operationId: getPersonalWalletStatement
+      tags:
+      - Wallets
+      summary: Read your own permitted wallet statement
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: wallet
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 30
+      responses:
+        '200':
+          description: Read your own permitted wallet statement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /wallets/{wallet}/limits:
+    put:
+      operationId: setPersonalWalletControls
+      tags:
+      - Wallets
+      summary: Set your own adult or authorised child spending controls
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: wallet
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Set your own adult or authorised child spending controls
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalWalletStatementResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletControlsChange'
   /parent/fees/accounts:
     get:
       operationId: listParentFeeAccounts
@@ -30465,6 +31077,9 @@ components:
       - messages
       - counselling
       properties:
+        wallet:
+          type: boolean
+          description: Optional personal-wallet capability, independently of fee access. Absence means unavailable.
         school_assistance:
           type: boolean
           description: Optional current school-office support capability; exact thread assignment is checked before every
@@ -59168,3 +59783,1281 @@ components:
         total:
           type: integer
           minimum: 0
+
+    WalletControls:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - daily_spend_cents
+      - effective_daily_spend_cents
+      - all_categories
+      - categories
+      - configured
+      properties:
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        daily_spend_cents:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        effective_daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        all_categories:
+          type: boolean
+        categories:
+          type: array
+          maxItems: 50
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_-]{0,39}$
+        configured:
+          type: boolean
+    WalletSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - owner_user_id
+      - owner_name
+      - currency
+      - balance_cents
+      - is_child
+      - read_only
+      - can_manage_limits
+      - school_daily_spend_cents
+      - child_limits_required
+      - limits
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_name:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        balance_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        is_child:
+          type: boolean
+        read_only:
+          type: boolean
+        can_manage_limits:
+          type: boolean
+        school_daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        child_limits_required:
+          type: boolean
+        limits:
+          $ref: '#/components/schemas/WalletControls'
+    WalletStatementEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - entry_id
+      - posted_at
+      - change_cents
+      - balance_after_cents
+      - description
+      properties:
+        entry_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        posted_at:
+          type: string
+          format: date-time
+        change_cents:
+          type: integer
+          format: int64
+          minimum: -9000000000000000
+          maximum: 9000000000000000
+        balance_after_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        description:
+          type: string
+    WalletEntryPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - current_page
+      - per_page
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletStatementEntry'
+        current_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+    WalletStatement:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - owner_user_id
+      - owner_name
+      - currency
+      - balance_cents
+      - is_child
+      - read_only
+      - can_manage_limits
+      - school_daily_spend_cents
+      - child_limits_required
+      - limits
+      - entries
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_name:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        balance_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        is_child:
+          type: boolean
+        read_only:
+          type: boolean
+        can_manage_limits:
+          type: boolean
+        school_daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        child_limits_required:
+          type: boolean
+        limits:
+          $ref: '#/components/schemas/WalletControls'
+        entries:
+          $ref: '#/components/schemas/WalletEntryPage'
+    WalletOwner:
+      type: object
+      additionalProperties: false
+      required:
+      - owner_user_id
+      - owner_name
+      - is_self
+      - can_open
+      - wallets
+      properties:
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_name:
+          type: string
+        is_self:
+          type: boolean
+        can_open:
+          type: boolean
+        wallets:
+          type: array
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/WalletSummary'
+    PersonalWalletIndex:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - currency
+      - owners
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Z]{3}$
+        owners:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletOwner'
+    OpenPersonalWalletRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - owner_user_id
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+    WalletControlsChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - daily_spend_cents
+      - all_categories
+      - categories
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        daily_spend_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        all_categories:
+          type: boolean
+        categories:
+          type: array
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_-]{0,39}$
+    PersonalWalletIndexResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/PersonalWalletIndex'
+        code:
+          type: integer
+    PersonalWalletStatementResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletStatement'
+        code:
+          type: integer
+
+    WalletDeskReceipt:
+      type: object
+      additionalProperties: false
+      required: [id, reference, currency, amount_cents, status, created_at, processed_at, collected_by, fee_cents, net_cents]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: '^WT-[0-9]+$'
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        status:
+          type: string
+          enum: [pending, released, cancelled]
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: [string, 'null']
+          format: date-time
+        collected_by:
+          type: string
+          enum: [school]
+        fee_cents:
+          type: integer
+          format: int64
+          const: 0
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+    WalletDeskReceiptPage:
+      type: object
+      additionalProperties: false
+      required: [school_id, actor_user_id, wallet_id, owner_user_id, currency, read_only, current_page, per_page, total, items]
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        read_only:
+          type: boolean
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletDeskReceipt'
+    WalletDeskReceiptPageResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletDeskReceiptPage'
+        code:
+          type: integer
+
+    WalletTransferReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - actor_user_id
+      - from_wallet_id
+      - to_wallet_id
+      - from_owner_id
+      - to_owner_id
+      - reference
+      - operation_id
+      - kind
+      - currency
+      - amount_cents
+      - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        from_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        to_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        from_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        to_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: ^WX-[0-9]+$
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - to_child
+          - to_parent
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        created_at:
+          type: string
+          format: date-time
+    WalletTransferWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - from_wallet_id
+      - to_wallet_id
+      - amount
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        from_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        to_wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        amount:
+          type: string
+          pattern: ^\d{1,10}(?:\.\d{1,2})?$
+        confirmed:
+          type: boolean
+          description: Must be true to confirm the reviewed source, recipient and amount.
+    WalletTransferPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - can_transfer
+      - child_returns
+      - policy_revision
+      - current_page
+      - per_page
+      - total
+      - items
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        can_transfer:
+          type: boolean
+        child_returns:
+          type: string
+          enum:
+          - unconfigured
+          - disabled
+          - current_approving_guardian
+        policy_revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletTransferReceipt'
+    WalletOperationResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - operation_id
+      - status
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+    WalletTransferReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletTransferReceipt'
+        code:
+          type: integer
+    WalletTransferPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletTransferPage'
+        code:
+          type: integer
+    WalletOperationResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletOperationResolution'
+        code:
+          type: integer
+
+    WalletDepositReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - reference
+      - school_id
+      - actor_user_id
+      - operation_id
+      - wallet_id
+      - currency
+      - requested_cents
+      - requested_method
+      - requested_reference
+      - paid_on
+      - status
+      - reason_code
+      - created_at
+      - processed_at
+      - verified_receipt
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: ^WD-[0-9]+$
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        requested_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        requested_method:
+          type: string
+          enum:
+          - cash
+          - eft
+        requested_reference:
+          type: string
+          pattern: ^[A-Z0-9][A-Z0-9 ._:/-]{0,95}$
+        paid_on:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - pending
+          - verified
+          - cancelled
+          - rejected
+        reason_code:
+          type:
+          - string
+          - 'null'
+          enum:
+          - null
+          - verified
+          - withdrawn
+          - not_verified
+          - duplicate
+          - request_incorrect
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_receipt:
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          required:
+          - reference
+          - currency
+          - amount_cents
+          - method
+          - source_reference
+          - received_on
+          - collected_by
+          - fee_cents
+          - net_cents
+          - settlement_reference
+          properties:
+            reference:
+              type: string
+              pattern: ^WP-[0-9]+$
+            currency:
+              type: string
+              pattern: ^[A-Z]{3}$
+            amount_cents:
+              type: integer
+              format: int64
+              minimum: 1
+              maximum: 100000000000
+            method:
+              type: string
+              enum:
+              - cash
+              - eft
+            source_reference:
+              type: string
+              pattern: ^[A-Z0-9][A-Z0-9 ._:/-]{0,95}$
+            received_on:
+              type: string
+              format: date
+            collected_by:
+              type: string
+              enum:
+              - school
+            fee_cents:
+              type: integer
+              format: int64
+              minimum: 0
+              maximum: 0
+            net_cents:
+              type: integer
+              format: int64
+              minimum: 1
+              maximum: 100000000000
+            settlement_reference:
+              type:
+              - string
+              - 'null'
+              maxLength: 96
+    WalletDepositPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - currency
+      - is_parent
+      - read_only
+      - can_submit
+      - cash_allowed
+      - eft_allowed
+      - current_page
+      - per_page
+      - total
+      - items
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Z]{3}$
+        is_parent:
+          type: boolean
+        read_only:
+          type: boolean
+        can_submit:
+          type: boolean
+        cash_allowed:
+          type: boolean
+        eft_allowed:
+          type: boolean
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletDepositReceipt'
+    WalletDepositClaimWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - amount
+      - method
+      - source_reference
+      - paid_on
+      - evidence
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          pattern: ^\d{1,10}(?:\.\d{1,2})?$
+        method:
+          type: string
+          enum:
+          - cash
+          - eft
+        source_reference:
+          type: string
+          minLength: 1
+          maxLength: 96
+        paid_on:
+          type: string
+          format: date
+        evidence:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        confirmed:
+          type: boolean
+          description: Must be true to acknowledge that Finance must independently verify the claimed deposit.
+    WalletDepositCancelWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        confirmed:
+          type: boolean
+          description: Must be true to withdraw this pending verification request without moving money.
+    WalletDepositReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletDepositReceipt'
+        code:
+          type: integer
+    WalletDepositPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletDepositPage'
+        code:
+          type: integer
+
+    WalletWithdrawalSlot:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - starts_at
+      - ends_at
+      - label
+      - available_places
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        label:
+          type: string
+          minLength: 1
+          maxLength: 160
+        available_places:
+          type: integer
+          minimum: 1
+          maximum: 1000
+    WalletWithdrawalReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - reference
+      - school_id
+      - holder_user_id
+      - operation_id
+      - wallet_id
+      - currency
+      - amount_cents
+      - method
+      - status
+      - created_at
+      - processed_at
+      - pickup_starts_at
+      - pickup_ends_at
+      - paid_on
+      - payout_reference
+      - pickup_label
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: ^WW-[1-9][0-9]*$
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        method:
+          type: string
+          enum:
+          - cash
+          - eft
+        status:
+          type: string
+          enum:
+          - requested
+          - approved
+          - paid
+          - cancelled
+          - rejected
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        pickup_starts_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        pickup_ends_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        paid_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        payout_reference:
+          type:
+          - string
+          - 'null'
+          pattern: ^WW-PAY-[1-9][0-9]*$
+        pickup_label:
+          type:
+          - string
+          - 'null'
+          maxLength: 160
+    WalletWithdrawalPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - currency
+      - is_adult
+      - read_only
+      - can_request
+      - policy_revision
+      - cash_threshold_cents
+      - cash_at_boundary
+      - timezone
+      - slots
+      - current_page
+      - per_page
+      - total
+      - items
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Z]{3}$
+        is_adult:
+          type: boolean
+        read_only:
+          type: boolean
+        can_request:
+          type: boolean
+        policy_revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        cash_threshold_cents:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        cash_at_boundary:
+          type:
+          - boolean
+          - 'null'
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 100
+        slots:
+          type: array
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/WalletWithdrawalSlot'
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletWithdrawalReceipt'
+    WalletWithdrawalWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - amount
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          pattern: ^\d{1,10}(?:\.\d{1,2})?$
+        slot_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        private_bank_instructions:
+          type:
+          - string
+          - 'null'
+          minLength: 10
+          maxLength: 2000
+          description: Required only for the bank method; original-holder instructions are encrypted and never returned
+            in history.
+        confirmed:
+          type: boolean
+          description: Must be true to reserve original available wallet funds for Finance approval.
+    WalletWithdrawalCancelWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - private_reason
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        private_reason:
+          type: string
+          minLength: 5
+          maxLength: 1000
+        confirmed:
+          type: boolean
+          description: Must be true to release the reservation only if no outside payout occurred.
+    WalletWithdrawalReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletWithdrawalReceipt'
+        code:
+          type: integer
+    WalletWithdrawalPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletWithdrawalPage'
+        code:
+          type: integer

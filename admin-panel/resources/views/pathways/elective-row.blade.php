@@ -3,4 +3,4 @@
 <x-page.field :id="'pathway-elective-'.$index.'-choose'" :name="'elective_groups['.$index.'][choose]'" type="number" :label="__('Number of subjects to choose')" :value="$row['choose']" min="1" max="20" :required="true" :restore-old-input="false" />
 <label for="pathway-elective-{{ $index }}-subjects">{{ __('Subjects available in this group') }}</label><select id="pathway-elective-{{ $index }}-subjects" class="m3-text-field__input" name="elective_groups[{{ $index }}][subject_ids][]" multiple size="5" required style="width:100%;max-width:100%">
 @foreach($subjects as $id=>$name)<option value="{{ $id }}" @selected(in_array($id,$row['subject_ids'],true))>{{ $name }}</option>@endforeach</select>
-<button type="button" class="m3-button m3-button--text" data-pathway-remove>{{ __('Remove elective group') }}</button></fieldset>
+<button type="button" class="m3-button m3-button--text" disabled data-pathway-remove>{{ __('Remove elective group') }}</button></fieldset>

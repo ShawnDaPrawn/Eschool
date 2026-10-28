@@ -14,6 +14,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(
   ($checkedConvert) {
     $checkKeys(json, requiredKeys: const ['groups', 'messages', 'counselling']);
     final val = FacilitatorFeatures(
+      wallet: $checkedConvert('wallet', (v) => v as bool?),
       schoolAssistance: $checkedConvert('school_assistance', (v) => v as bool?),
       teachingAssistant: $checkedConvert(
         'teaching_assistant',
@@ -64,6 +65,7 @@ FacilitatorFeatures _$FacilitatorFeaturesFromJson(
 Map<String, dynamic> _$FacilitatorFeaturesToJson(
   FacilitatorFeatures instance,
 ) => <String, dynamic>{
+  'wallet': ?instance.wallet,
   'school_assistance': ?instance.schoolAssistance,
   'teaching_assistant': ?instance.teachingAssistant,
   'test_insights': ?instance.testInsights,

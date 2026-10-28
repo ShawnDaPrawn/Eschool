@@ -755,6 +755,7 @@ import 'package:eschool_api/src/model/notification_preferences_response.dart';
 import 'package:eschool_api/src/model/notification_rule.dart';
 import 'package:eschool_api/src/model/notification_type_preference.dart';
 import 'package:eschool_api/src/model/notification_type_preference_channels.dart';
+import 'package:eschool_api/src/model/open_personal_wallet_request.dart';
 import 'package:eschool_api/src/model/open_wellbeing_case_response.dart';
 import 'package:eschool_api/src/model/pagination.dart';
 import 'package:eschool_api/src/model/parent_fee_account_summary.dart';
@@ -810,6 +811,9 @@ import 'package:eschool_api/src/model/peer_session_page.dart';
 import 'package:eschool_api/src/model/peer_session_page_response.dart';
 import 'package:eschool_api/src/model/peer_session_result.dart';
 import 'package:eschool_api/src/model/peer_session_result_response.dart';
+import 'package:eschool_api/src/model/personal_wallet_index.dart';
+import 'package:eschool_api/src/model/personal_wallet_index_response.dart';
+import 'package:eschool_api/src/model/personal_wallet_statement_response.dart';
 import 'package:eschool_api/src/model/practice_access.dart';
 import 'package:eschool_api/src/model/practice_approval.dart';
 import 'package:eschool_api/src/model/practice_approve_input.dart';
@@ -1195,6 +1199,37 @@ import 'package:eschool_api/src/model/update_profile_field_request.dart';
 import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
 import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
+import 'package:eschool_api/src/model/wallet_controls.dart';
+import 'package:eschool_api/src/model/wallet_controls_change.dart';
+import 'package:eschool_api/src/model/wallet_deposit_cancel_write.dart';
+import 'package:eschool_api/src/model/wallet_deposit_claim_write.dart';
+import 'package:eschool_api/src/model/wallet_deposit_page.dart';
+import 'package:eschool_api/src/model/wallet_deposit_page_response.dart';
+import 'package:eschool_api/src/model/wallet_deposit_receipt.dart';
+import 'package:eschool_api/src/model/wallet_deposit_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_deposit_receipt_verified_receipt.dart';
+import 'package:eschool_api/src/model/wallet_desk_receipt.dart';
+import 'package:eschool_api/src/model/wallet_desk_receipt_page.dart';
+import 'package:eschool_api/src/model/wallet_desk_receipt_page_response.dart';
+import 'package:eschool_api/src/model/wallet_entry_page.dart';
+import 'package:eschool_api/src/model/wallet_operation_resolution.dart';
+import 'package:eschool_api/src/model/wallet_operation_resolution_response.dart';
+import 'package:eschool_api/src/model/wallet_owner.dart';
+import 'package:eschool_api/src/model/wallet_statement.dart';
+import 'package:eschool_api/src/model/wallet_statement_entry.dart';
+import 'package:eschool_api/src/model/wallet_summary.dart';
+import 'package:eschool_api/src/model/wallet_transfer_page.dart';
+import 'package:eschool_api/src/model/wallet_transfer_page_response.dart';
+import 'package:eschool_api/src/model/wallet_transfer_receipt.dart';
+import 'package:eschool_api/src/model/wallet_transfer_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_transfer_write.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_cancel_write.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_page.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_page_response.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_receipt.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_slot.dart';
+import 'package:eschool_api/src/model/wallet_withdrawal_write.dart';
 import 'package:eschool_api/src/model/weekly_digest_access.dart';
 import 'package:eschool_api/src/model/weekly_digest_access_response.dart';
 import 'package:eschool_api/src/model/weekly_digest_action_templates.dart';
@@ -3896,6 +3931,9 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'OpenPersonalWalletRequest':
+      return OpenPersonalWalletRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'OpenWellbeingCaseResponse':
       return OpenWellbeingCaseResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -4057,6 +4095,17 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'PeerSessionResultResponse':
       return PeerSessionResultResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PersonalWalletIndex':
+      return PersonalWalletIndex.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PersonalWalletIndexResponse':
+      return PersonalWalletIndexResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PersonalWalletStatementResponse':
+      return PersonalWalletStatementResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'PracticeAccess':
       return PracticeAccess.fromJson(value as Map<String, dynamic>)
@@ -5382,6 +5431,112 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletControls':
+      return WalletControls.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletControlsChange':
+      return WalletControlsChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositCancelWrite':
+      return WalletDepositCancelWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositClaimWrite':
+      return WalletDepositClaimWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositPage':
+      return WalletDepositPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositPageResponse':
+      return WalletDepositPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositReceipt':
+      return WalletDepositReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositReceiptResponse':
+      return WalletDepositReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletDepositReceiptVerifiedReceipt':
+      return WalletDepositReceiptVerifiedReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletDeskReceipt':
+      return WalletDeskReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDeskReceiptPage':
+      return WalletDeskReceiptPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDeskReceiptPageResponse':
+      return WalletDeskReceiptPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletEntryPage':
+      return WalletEntryPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletOperationResolution':
+      return WalletOperationResolution.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletOperationResolutionResponse':
+      return WalletOperationResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletOwner':
+      return WalletOwner.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'WalletStatement':
+      return WalletStatement.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletStatementEntry':
+      return WalletStatementEntry.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletSummary':
+      return WalletSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferPage':
+      return WalletTransferPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferPageResponse':
+      return WalletTransferPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferReceipt':
+      return WalletTransferReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletTransferReceiptResponse':
+      return WalletTransferReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletTransferWrite':
+      return WalletTransferWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalCancelWrite':
+      return WalletWithdrawalCancelWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalPage':
+      return WalletWithdrawalPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalPageResponse':
+      return WalletWithdrawalPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletWithdrawalReceipt':
+      return WalletWithdrawalReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalReceiptResponse':
+      return WalletWithdrawalReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletWithdrawalSlot':
+      return WalletWithdrawalSlot.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletWithdrawalWrite':
+      return WalletWithdrawalWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WeeklyDigestAccess':
       return WeeklyDigestAccess.fromJson(value as Map<String, dynamic>)

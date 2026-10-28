@@ -72,6 +72,18 @@ class FacilitatorAccessTest extends TestCase
         return $response;
     }
 
+    public function test_facilitator_wallet_profile_and_private_api_are_independent_of_fees_and_revoked_fresh(): void
+    {
+        $admin = $this->superAdmin();
+        app(ModuleGate::class)->change('wallet', true, $admin);
+        app(ModuleGate::class)->change('fees', false, $admin);
+        $token = $this->login()->assertOk()->assertJsonPath('data.profile.features.wallet', true)->json('data.token');
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->facilitator->id])->getJson('/api/v2/wallets')->assertOk()->assertJsonPath('data.actor_user_id', (int) $this->facilitator->id);
+        SchoolMembership::where('user_id', $this->facilitator->id)->where('role', 'Facilitator')->update(['status' => 'ended']);
+        $this->getJson('/api/v2/wallets')->assertForbidden();
+    }
+
     public function test_dedicated_profile_preserves_other_app_tokens_and_push_registration(): void
     {
         $teacher = $this->facilitator->createToken(AppTokens::TEACHER);

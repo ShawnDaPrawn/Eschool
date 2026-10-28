@@ -75,6 +75,12 @@ use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
+use App\Http\Controllers\Panel\Money\VendorCataloguePanelController;
+use App\Http\Controllers\Panel\Money\WalletDepositPanelController;
+use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
+use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
+use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
+use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
@@ -380,6 +386,55 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('vendor-catalogues')->name('vendor-catalogues.')->middleware([PrivateDomainResponse::class, 'module:vendors,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = VendorCataloguePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('{kind}', [$c, 'save'])->whereIn('kind', ['category', 'vendor', 'product', 'stock'])->name('save');
+        });
+        Route::prefix('wallet-topups')->name('wallet-desk.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            Route::get('/', [WalletDeskPanelController::class, 'index'])->name('index');
+            Route::post('policy', [WalletDeskPanelController::class, 'policy'])->name('policy');
+            Route::post('grants', [WalletDeskPanelController::class, 'grant'])->name('grant');
+            Route::get('{topup}/receipt', [WalletDeskPanelController::class, 'receipt'])->whereNumber('topup')->name('receipt');
+            Route::post('{topup}/release', [WalletDeskPanelController::class, 'release'])->whereNumber('topup')->name('release');
+            Route::post('{topup}/cancel', [WalletDeskPanelController::class, 'cancel'])->whereNumber('topup')->name('cancel');
+        });
+        Route::prefix('wallet-withdrawals')->name('wallet-withdrawals.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = WalletWithdrawalPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::post('slots', [$c, 'publishSlot'])->name('slots.publish');
+            Route::post('slots/{slot}/close', [$c, 'closeSlot'])->whereNumber('slot')->name('slots.close');
+            Route::post('offboarding', [$c, 'offboarding'])->name('offboarding');
+            Route::get('{withdrawal}', [$c, 'show'])->whereNumber('withdrawal')->name('show');
+            Route::post('{withdrawal}/approve', [$c, 'approve'])->whereNumber('withdrawal')->name('approve');
+            Route::post('{withdrawal}/paid', [$c, 'finish'])->whereNumber('withdrawal')->name('paid');
+            Route::post('{withdrawal}/reject', [$c, 'finish'])->whereNumber('withdrawal')->name('reject');
+            Route::post('{withdrawal}/cancel', [$c, 'finish'])->whereNumber('withdrawal')->name('cancel');
+            Route::get('{withdrawal}/receipt', [$c, 'receipt'])->whereNumber('withdrawal')->name('receipt');
+        });
+        Route::prefix('wallet-deposits')->name('wallet-deposits.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = WalletDepositPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::get('{claim}', [$c, 'show'])->whereNumber('claim')->name('show');
+            Route::post('{claim}/verify', [$c, 'verify'])->whereNumber('claim')->name('verify');
+            Route::post('{claim}/reject', [$c, 'reject'])->whereNumber('claim')->name('reject');
+            Route::get('{claim}/receipt', [$c, 'receipt'])->whereNumber('claim')->name('receipt');
+        });
+        Route::prefix('wallet-funding')->name('wallet-funding.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            Route::get('/', [WalletFundingPanelController::class, 'index'])->name('index');
+            Route::post('policy', [WalletFundingPanelController::class, 'policy'])->name('policy');
+            Route::post('receipts', [WalletFundingPanelController::class, 'record'])->name('record');
+            Route::get('{funding}/receipt', [WalletFundingPanelController::class, 'receipt'])->whereNumber('funding')->name('receipt');
+        });
+        Route::prefix('wallet-settings')->name('wallet-finance.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = WalletFinancePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'save'])->name('save');
+            Route::post('child-return-policy', [$c, 'returnPolicy'])->name('return-policy');
+            Route::get('{wallet}/statement', [$c, 'show'])->whereNumber('wallet')->name('show');
         });
         Route::prefix('fee-refunds')->name('fee-refunds.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeRefundPanelController::class;

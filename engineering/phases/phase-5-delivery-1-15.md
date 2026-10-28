@@ -16,11 +16,11 @@ or reconciling abandoned seed money into the new financial source.
 | 4 | Automatic/rule/membership fee items and VAT | VAT PR318 and compulsory/membership PR319 merged via108/108 qualified source; opt-ins PR320 and discounts PR321 in hosted qualification |
 | 5 | Discounts, bursaries, exemptions and approval | Rule/calculator/Finance workbench locally qualified; PR321 in hosted qualification |
 | 6 | Pro-rata joins/leavers, refunds and payer corrections | Proration PR322 in hosted qualification; later leaver credits PR323 in hosted qualification; reserved manual refunds implemented with qualification in progress; payer corrections/late charges remain |
-| 7 | Personal wallets, statements and spending limits | Pending |
-| 8 | Master funding, desk/parent top-ups, approvals and transfers | Pending |
-| 9 | Adult withdrawals, Finance approval and cash/bank policy | Pending |
+| 7 | Personal wallets, statements and spending limits | Implemented; local and hosted qualification in progress |
+| 8 | Master funding, desk/parent top-ups, approvals and transfers | Master funding PR327 and desk grants PR328 published; parent transfers/recovery implemented in qualification; parent deposits8C2 published as PR332 with local qualification passed; exact-source hosted CI/review/main remain pending |
+| 9 | Adult withdrawals, Finance approval and cash/bank policy | Published as draft PR333; Learner/Parent/Teacher/Facilitator Chrome journeys passed; final migration/hosted/main pending |
 | 10 | Daily cash-up by operator and explained differences | Pending |
-| 11 | Vendors, storefronts, products/stock, orders and fulfilment | Pending |
+| 11 | Vendors, storefronts, products/stock, orders and fulfilment | Vendor catalogue/stock11A implemented;13 backend/concurrency cases and four responsive browser cases passed; hosted/main pending. Orders11B remain |
 | 12 | Vendor-owned panel/API and native scanner flavour | Pending |
 | 13 | Vendor settlements, collection metadata and reports | Pending |
 | 14 | Ticket sales, capacity, ownership, redemption and transfers | Pending |

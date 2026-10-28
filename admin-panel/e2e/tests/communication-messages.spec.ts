@@ -10,6 +10,13 @@ const author = 'message.author@demo.navigateed.test';
 const run = Date.now().toString(36);
 function php(code: string) { return execFileSync('php',['artisan','tinker','--execute',code],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8'}); }
 test.beforeAll(() => php("require base_path('e2e/support/message-fixture.php');"));
+test('an edit made before the deferred message script loads blocks the saved preview', async ({ page }) => {
+  await page.setContent('<form data-message-draft><input name="title" aria-label="Message subject" value="Saved subject"></form><button data-message-saved-action>Submit previewed message</button><p data-message-dirty-status hidden role="status">Save your changes</p>');
+  await page.getByRole('textbox', { name: 'Message subject', exact: true }).fill('Early unsaved edit');
+  await page.addScriptTag({ path: path.resolve(process.cwd(), '../public/assets/js/message-workbench.js') });
+  await expect(page.getByRole('button', { name: 'Submit previewed message', exact: true })).toBeDisabled();
+  await expect(page.getByRole('status')).toContainText('Save your changes');
+});
 for (const width of [1024,1280]) {
   test(`draft preview approval publication and withdrawal at ${width}px`, async ({ page,baseURL }) => {
     await page.setViewportSize({width,height:900});

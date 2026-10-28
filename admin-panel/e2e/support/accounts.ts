@@ -19,12 +19,12 @@ export const accounts = {
 
 /** Signs in through the panel's login form and waits for Home. */
 export async function signIn(page: Page, email: string, password = PASSWORD): Promise<void> {
-  await page.goto('/login');
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await Promise.all([
-    page.waitForURL(/\/home/),
-    page.locator('form button[type="submit"], form input[type="submit"]').first().click(),
+    page.waitForURL(/\/home/, { waitUntil: 'domcontentloaded' }),
+    page.locator('form button[type="submit"], form input[type="submit"]').first().click({ noWaitAfter: true }),
   ]);
   await expect(page.locator('body[data-panel-layout]')).toBeVisible();
 }

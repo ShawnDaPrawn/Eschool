@@ -1,3 +1,4 @@
+import 'package:eschool_wallet/eschool_wallet.dart';
 import 'package:eschool_teacher/utils/teachingCamera.dart';
 import 'package:eschool_academics/eschool_academics.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -2033,4 +2034,101 @@ class SchoolAssistanceEntry extends StatelessWidget {
       );
     },
   );
+}
+
+Route<dynamic> personalWalletsRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context;
+    final school = me?.currentSchoolId, account = me?.user?.id;
+    if (session.state is! MeContextLoaded ||
+        me == null ||
+        school == null ||
+        account == null ||
+        !me.isModuleOn('wallet') ||
+        !allowsSchoolModule(me, 'wallet') ||
+        !me.roles.any(
+          [
+            'Parent',
+            'Student',
+            'Teacher',
+            'Facilitator',
+            'Super Admin',
+          ].contains,
+        )) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'Wallets'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    final pinned = me;
+    bool active() =>
+        session.state is MeContextLoaded &&
+        walletAccessStillCurrent(pinned, session.context) &&
+        (schools.state.selectedId == null ||
+            schools.state.selectedId == school);
+    return BlocListener<MeContextCubit, MeContextState>(
+      listener: (_, state) {
+        if (!active()) Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: WalletSessionBoundary(
+        pinned: pinned,
+        builder: (_, generationActive) => WalletScreen(
+          repository: ApiWalletRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
+        ),
+      ),
+    );
+  },
+);
+
+class PersonalWalletsEntry extends StatelessWidget {
+  const PersonalWalletsEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          if (state is! MeContextLoaded ||
+              !state.context.isModuleOn('wallet') ||
+              !allowsSchoolModule(state.context, 'wallet') ||
+              !state.context.roles.any(
+                [
+                  'Parent',
+                  'Student',
+                  'Teacher',
+                  'Facilitator',
+                  'Super Admin',
+                ].contains,
+              ))
+            return const SizedBox.shrink();
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.account_balance_wallet_outlined),
+              title: Text(SharedUiUtils.getTranslatedLabel(context, 'Wallets')),
+              subtitle: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Your wallet balances, statements and spending controls',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () =>
+                  Navigator.of(context).pushNamed(Routes.personalWallets),
+            ),
+          );
+        },
+      );
 }

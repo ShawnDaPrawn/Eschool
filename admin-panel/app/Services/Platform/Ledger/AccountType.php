@@ -11,6 +11,7 @@ enum AccountType: string
     case FeeVat = 'fee_vat';
     case FeeRefund = 'fee_refund';
     case FeeBank = 'fee_bank';
+    case WalletBank = 'wallet_bank';
     case Family = 'family';
     case Wallet = 'wallet';
     case Vendor = 'vendor';
@@ -21,7 +22,7 @@ enum AccountType: string
     public function normalDirection(): string
     {
         return match ($this) {
-            self::FeeReceivable, self::FeeBank, self::CashDesk, self::Clearing => 'debit',
+            self::FeeReceivable, self::FeeBank, self::WalletBank, self::CashDesk, self::Clearing => 'debit',
             default => 'credit',
         };
     }
@@ -29,7 +30,7 @@ enum AccountType: string
     public function module(): string
     {
         return match ($this) {
-            self::Wallet => 'wallet',
+            self::Wallet, self::WalletBank => 'wallet',
             self::Vendor => 'vendors',
             default => 'fees',
         };

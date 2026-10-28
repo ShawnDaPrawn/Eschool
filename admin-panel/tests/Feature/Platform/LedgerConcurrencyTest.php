@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Models\Platform\SchoolModule;
 use App\Services\Platform\Ledger\AccountType;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
@@ -32,8 +33,7 @@ class LedgerConcurrencyTest extends TestCase
 
     public function test_parallel_spends_cannot_overdraw_and_parallel_same_key_posts_once(): void
     {
-        config(['modules.wallet' => ['name' => 'Wallet', 'money' => true, 'default' => true],
-            'school_packages.legacy' => [...config('school_packages.legacy'), 'wallet']]);
+        SchoolModule::updateOrCreate(['module' => 'wallet'], ['enabled' => true, 'read_only' => false, 'in_package' => true]);
         $ledger = app(LedgerService::class);
         $cash = $ledger->openAccount(AccountType::CashDesk, 'cash', 'ZAR');
         $wallet = $ledger->openAccount(AccountType::Wallet, 'wallet', 'ZAR');
