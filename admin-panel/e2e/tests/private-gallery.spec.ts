@@ -21,6 +21,9 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('button', { name: 'Photograph', exact: true }).setInputFiles({ name: 'sensitive-device-name.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64') });
     await page.getByRole('textbox', { name: 'Date photographed', exact: true }).fill(new Date().toISOString().slice(0, 10));
     await page.getByLabel('Caption', { exact: true }).fill(caption);
+    let releaseViewer!: () => void;
+    const viewerReady = new Promise<void>(resolve => { releaseViewer = resolve; });
+    await page.route('**/assets/js/private-gallery.js', async route => { await viewerReady; await route.continue(); }, { times: 1 });
     await page.getByRole('button', { name: 'Save private photograph', exact: true }).click();
     const card = page.locator('article').filter({ hasText: caption });
     await expect(card).toBeVisible();
@@ -31,6 +34,8 @@ for (const width of [390, 820, 1280]) {
     expect(response.headers()['cache-control']).toContain('no-store');
     expect(response.headers()['content-type']).toContain('image/jpeg');
     expect((await response.body()).subarray(0, 2).toString('hex')).toBe('ffd8');
+    await expect(card.getByRole('button', { name: 'Open photograph', exact: true })).toBeDisabled();
+    releaseViewer();
     await card.getByRole('button', { name: 'Open photograph', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Private photograph', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Close photograph', exact: true }).click();

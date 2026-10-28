@@ -24,10 +24,10 @@
 <section aria-labelledby="pathway-subjects"><h2 id="pathway-subjects">{{ __('Subjects in this programme source') }}</h2>
 <p>{{ __('Set minimum percentages only where the source requires them. Explicitly choose which subjects count toward its score.') }}</p>
 <div data-pathway-rows="subject">@foreach($source['rules']['subjects'] ?? [['subject_id'=>null,'minimum_bp'=>null,'counts_for_score'=>true]] as $index=>$row)@include('pathways.subject-row')@endforeach</div>
-<button type="button" class="m3-button m3-button--outlined" data-pathway-add="subject">{{ __('Add subject rule') }}</button></section>
+<button type="button" class="m3-button m3-button--outlined" disabled data-pathway-add="subject">{{ __('Add subject rule') }}</button></section>
 <section aria-labelledby="pathway-bands"><h2 id="pathway-bands">{{ __('Score bands stated by the source') }}</h2><p>{{ __('Include a band beginning at zero percent. Higher percentages cannot receive fewer points.') }}</p>
 <div data-pathway-rows="band">@foreach($source['rules']['bands'] ?? [['minimum_bp'=>0,'points'=>null]] as $index=>$row)@include('pathways.band-row')@endforeach</div>
-<button type="button" class="m3-button m3-button--outlined" data-pathway-add="band">{{ __('Add score band') }}</button></section>
+<button type="button" class="m3-button m3-button--outlined" disabled data-pathway-add="band">{{ __('Add score band') }}</button></section>
 <x-page.field id="pathway-best" name="best_n" type="number" :label="__('Number of best subjects to count')" :value="$source['rules']['best_n'] ?? ''" min="1" max="20" :required="true" :restore-old-input="false" />
 <x-page.field id="pathway-minimum" name="minimum_score" type="number" :label="__('Minimum points stated by the source')" :value="$source['rules']['minimum_score'] ?? ''" min="0" max="400" :required="true" :restore-old-input="false" />
 @else
@@ -35,7 +35,7 @@
 @foreach($subjects as $id=>$name)<option value="{{ $id }}" @selected(in_array($id,$source['rules']['compulsory_subject_ids']??[],true))>{{ $name }}</option>@endforeach</select>
 <section aria-labelledby="pathway-electives"><h2 id="pathway-electives">{{ __('Elective subject groups') }}</h2><p>{{ __('Put each elective in one group and state how many choices the source requires.') }}</p>
 <div data-pathway-rows="elective">@foreach($source['rules']['elective_groups'] ?? [['title'=>'','choose'=>1,'subject_ids'=>[]]] as $index=>$row)@include('pathways.elective-row')@endforeach</div>
-<button type="button" class="m3-button m3-button--outlined" data-pathway-add="elective">{{ __('Add elective group') }}</button></section>
+<button type="button" class="m3-button m3-button--outlined" disabled data-pathway-add="elective">{{ __('Add elective group') }}</button></section>
 @endif
 @if($source)<x-page.field id="pathway-status" name="status" type="select" :label="__('Source publication status')" :value="$source['status']" :options="['published'=>__('Published'),'withdrawn'=>__('Withdrawn')]" :restore-old-input="false" />
 @else<input type="hidden" name="status" value="published">@endif

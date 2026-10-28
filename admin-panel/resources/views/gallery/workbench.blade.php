@@ -24,7 +24,7 @@
                 <img src="{{ $image }}&amp;thumbnail=1" alt="{{ __('Private group photograph') }}" width="360" height="270" loading="lazy">
                 <p class="gallery-caption">{{ $photo['caption'] }}</p>
                 <p>{{ $photo['school_year'] }} · {{ $photo['captured_on'] }}</p>
-                <button type="button" class="m3-button m3-button--text" data-gallery-open="{{ $image }}">{{ __('Open photograph') }}</button>
+                <button type="button" class="m3-button m3-button--text" disabled data-gallery-open="{{ $image }}">{{ __('Open photograph') }}</button>
                 @if($canWrite && $group['can_upload'])
                 <form method="POST" action="{{ route('gallery-panel.propose', ['photo' => $photo['id']]) }}" aria-label="{{ __('Propose photo tag').' '.$photo['id'] }}">
                     @include('gallery.hidden')

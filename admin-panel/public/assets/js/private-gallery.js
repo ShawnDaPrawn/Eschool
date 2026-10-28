@@ -10,6 +10,7 @@
     full.src = button.dataset.galleryOpen;
     dialog.showModal();
   });
+  if (dialog && full) root.querySelectorAll('[data-gallery-open]').forEach(button => { button.disabled = false; });
   dialog?.addEventListener('close', () => full?.removeAttribute('src'));
   const erase = () => {
     dialog?.close();

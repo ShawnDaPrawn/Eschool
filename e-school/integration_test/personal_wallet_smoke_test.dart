@@ -389,7 +389,8 @@ Future<void> exerciseWithdrawal(
 }
 
 Future<void> openWalletStatement(WidgetTester tester, int wallet) async {
-  await pumpUntilFound(tester, find.text('Open wallet statement'));
+  // Other wallet sections can push this lazily built card below the viewport.
+  await pumpUntilFound(tester, find.byKey(const ValueKey('wallet-screen-scroll')));
   final target = find.byKey(ValueKey('wallet-statement-$wallet'));
   await tester.scrollUntilVisible(
     target,
