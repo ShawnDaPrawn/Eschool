@@ -7,6 +7,7 @@ namespace App\Models\Commerce;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property string|null $legal_address */
 class Vendor extends Model
 {
     use BelongsToSchool;

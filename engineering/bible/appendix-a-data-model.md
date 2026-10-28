@@ -500,3 +500,14 @@ vendor_products retain vendor, SKU and stock mode, integer gross cents, tax and
 revision. vendor_stock_movements are immutable actor-bound counted adjustments;
 vendor_stock_balances is a checked projection, not opening money. vendor_operations
 retain permanent actor-bound UUID receipts. Archive/disable preserves all history.
+
+### Vendor wallet orders and inventory events
+
+`vendor_orders` retains original buyer/wallet/vendor, school-local order number,
+sealed item/seller/tax snapshots, exact paid ledger entry, permanent operation and
+encrypted collection QR. `vendor_order_lines` preserves original product revision,
+quantity and integer gross/net/VAT. One immutable `vendor_order_actions` outcome
+records collection or verified original cancellation. `vendor_order_counters`
+advances school numbers without reuse. `vendor_stock_events` indexes original
+manual movements and exact purchase/cancellation lines in checked per-product
+sequence; original manual roots and stock projections survive the upgrade.

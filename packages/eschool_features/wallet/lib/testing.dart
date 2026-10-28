@@ -1,3 +1,5 @@
+export 'src/testing/commerce_fixtures.dart';
+
 Map<String, dynamic> walletSummaryFixture({
   int owner = 31,
   int viewer = 21,

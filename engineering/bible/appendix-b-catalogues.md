@@ -378,3 +378,13 @@ Finance requires vendors-manage; only the system Super Admin starts with it.
 Custom Finance roles need an explicit grant. Current Students and Vendor operators
 are excluded from catalogue Finance even if a permission was accidentally granted.
 No vendor login or general staff authority is introduced by catalogue creation.
+
+### Storefront and counter collection
+
+The existing vendors module covers active catalogue/private receipt reads and
+single-use counter collection. Purchases/cancellations additionally require current
+wallet write authority and its existing limits. Finance collection uses
+vendors-manage; Finance cancellation also requires wallet Finance. Dedicated
+vendor identity is separate. Facilitator profiles advertise optional vendors
+capability only when the actor has its own allowed wallet and commerce access.
+No external provider, notification transport or Phase6 collection is activated.

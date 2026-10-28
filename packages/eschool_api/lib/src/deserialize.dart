@@ -232,6 +232,26 @@ import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
 import 'package:eschool_api/src/model/class_grade_write.dart';
 import 'package:eschool_api/src/model/close_consultation_response.dart';
+import 'package:eschool_api/src/model/commerce_cancel_write.dart';
+import 'package:eschool_api/src/model/commerce_cart_line.dart';
+import 'package:eschool_api/src/model/commerce_catalogue.dart';
+import 'package:eschool_api/src/model/commerce_catalogue_response.dart';
+import 'package:eschool_api/src/model/commerce_catalogue_vendor.dart';
+import 'package:eschool_api/src/model/commerce_order_page.dart';
+import 'package:eschool_api/src/model/commerce_order_page_response.dart';
+import 'package:eschool_api/src/model/commerce_order_receipt.dart';
+import 'package:eschool_api/src/model/commerce_order_receipt_response.dart';
+import 'package:eschool_api/src/model/commerce_product.dart';
+import 'package:eschool_api/src/model/commerce_purchase_write.dart';
+import 'package:eschool_api/src/model/commerce_quote.dart';
+import 'package:eschool_api/src/model/commerce_quote_line.dart';
+import 'package:eschool_api/src/model/commerce_quote_response.dart';
+import 'package:eschool_api/src/model/commerce_quote_write.dart';
+import 'package:eschool_api/src/model/commerce_receipt_line.dart';
+import 'package:eschool_api/src/model/commerce_seller.dart';
+import 'package:eschool_api/src/model/commerce_vendor_brief.dart';
+import 'package:eschool_api/src/model/commerce_vendor_page.dart';
+import 'package:eschool_api/src/model/commerce_vendor_page_response.dart';
 import 'package:eschool_api/src/model/communication_audience.dart';
 import 'package:eschool_api/src/model/communication_audience_list.dart';
 import 'package:eschool_api/src/model/communication_audience_list_response.dart';
@@ -2144,6 +2164,68 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CloseConsultationResponse':
       return CloseConsultationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCancelWrite':
+      return CommerceCancelWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCartLine':
+      return CommerceCartLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCatalogue':
+      return CommerceCatalogue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCatalogueResponse':
+      return CommerceCatalogueResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCatalogueVendor':
+      return CommerceCatalogueVendor.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderPage':
+      return CommerceOrderPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderPageResponse':
+      return CommerceOrderPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderReceipt':
+      return CommerceOrderReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderReceiptResponse':
+      return CommerceOrderReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommerceProduct':
+      return CommerceProduct.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommercePurchaseWrite':
+      return CommercePurchaseWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuote':
+      return CommerceQuote.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuoteLine':
+      return CommerceQuoteLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuoteResponse':
+      return CommerceQuoteResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuoteWrite':
+      return CommerceQuoteWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceReceiptLine':
+      return CommerceReceiptLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceSeller':
+      return CommerceSeller.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceVendorBrief':
+      return CommerceVendorBrief.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceVendorPage':
+      return CommerceVendorPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceVendorPageResponse':
+      return CommerceVendorPageResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'CommunicationAudience':
       return CommunicationAudience.fromJson(value as Map<String, dynamic>)

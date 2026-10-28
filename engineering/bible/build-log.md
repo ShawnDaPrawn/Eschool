@@ -863,3 +863,14 @@ The Finance workbench works while wallet transactions are paused. No money is
 created by setup. Backend/concurrency13/95 and four responsive browser cases passed;
 remaining evidence is tracked in self-tests/money/vendor-catalogues-stock.md.
 Orders/fulfilment11B and dedicated vendor operators/scanner12 follow.
+
+## 2026-10-28 — quoted wallet purchases and vendor order fulfilment
+
+Increment11B implements active storefront API/app surfaces, integer original
+seller/tax receipts, exact wallet-to-vendor postings, atomic counted inventory,
+durable interrupted-request recovery, private collection QR/typed numbers,
+single-use Finance handover and original-wallet uncollected cancellation. Retained
+manual stock is indexed without rewriting original history. Qualification is
+tracked in self-tests/money/vendor-wallet-orders.md. Dedicated vendor identities,
+panel/native scanner12, settlements13, tickets14 and card spending15 remain;
+gateways and production activation stay deferred.

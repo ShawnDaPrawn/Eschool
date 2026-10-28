@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
+import 'support/commerce_journey.dart';
 import 'support/smoke.dart';
 
 void main() {
@@ -63,6 +64,7 @@ void main() {
                 'people',
                 'academics',
                 'wallet',
+                'vendors',
                 'web_parent',
                 'web_learner',
               ])
@@ -299,6 +301,7 @@ void main() {
             hasLength(1),
           );
         }
+        await exerciseCommerce(tester, api, actor: actor, learner: !parent);
         allowed = false;
         await tester.tap(find.byTooltip('Refresh wallets'));
         await pumpUntilFound(
@@ -390,7 +393,10 @@ Future<void> exerciseWithdrawal(
 
 Future<void> openWalletStatement(WidgetTester tester, int wallet) async {
   // Other wallet sections can push this lazily built card below the viewport.
-  await pumpUntilFound(tester, find.byKey(const ValueKey('wallet-screen-scroll')));
+  await pumpUntilFound(
+    tester,
+    find.byKey(const ValueKey('wallet-screen-scroll')),
+  );
   final target = find.byKey(ValueKey('wallet-statement-$wallet'));
   await tester.scrollUntilVisible(
     target,

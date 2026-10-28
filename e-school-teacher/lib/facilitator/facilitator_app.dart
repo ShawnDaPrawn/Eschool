@@ -595,6 +595,42 @@ class _StaffHome extends StatelessWidget {
                 onTap: () => open(
                   'wallet',
                   WalletScreen(
+                    storefrontBuilder: profile.features['vendors'] == true
+                        ? (_) => AnimatedBuilder(
+                            animation: repository,
+                            builder: (_, __) =>
+                                repository.matches(generation, school, user) &&
+                                    repository.profile?.features['wallet'] ==
+                                        true &&
+                                    repository.profile?.features['vendors'] ==
+                                        true
+                                ? CommerceScreen(
+                                    repository: ApiCommerceRepository(
+                                      repository.client,
+                                      wallets: ApiWalletRepository(
+                                        repository.client,
+                                        schoolId: school,
+                                        accountId: user,
+                                        contextActive: () =>
+                                            repository.matches(
+                                              generation,
+                                              school,
+                                              user,
+                                            ) &&
+                                            repository
+                                                    .profile
+                                                    ?.features['wallet'] ==
+                                                true &&
+                                            repository
+                                                    .profile
+                                                    ?.features['vendors'] ==
+                                                true,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                          )
+                        : null,
                     repository: ApiWalletRepository(
                       repository.client,
                       schoolId: school,

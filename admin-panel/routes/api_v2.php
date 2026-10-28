@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
+use App\Http\Controllers\Api\V2\Money\StorefrontController;
 use App\Http\Controllers\Api\V2\Money\WalletController;
 use App\Http\Controllers\Api\V2\Money\WalletDepositController;
 use App\Http\Controllers\Api\V2\Money\WalletTransferController;
@@ -90,6 +91,7 @@ use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
+use App\Http\Middleware\RequireCommerceAuthority;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
@@ -398,6 +400,17 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
     Route::middleware($money)->group(function () {
         //
     });
+});
+
+Route::prefix('commerce')->name('api.v2.commerce.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:vendors,read'])->group(function () {
+    $c = StorefrontController::class;
+    Route::get('vendors', [$c, 'index'])->name('index');
+    Route::get('vendors/{vendor}', [$c, 'catalogue'])->whereNumber('vendor')->name('catalogue');
+    Route::get('orders', [$c, 'orders'])->name('orders');
+    Route::get('orders/{order}', [$c, 'show'])->whereNumber('order')->name('show');
+    Route::post('quotes', [$c, 'quote'])->middleware('throttle:money')->name('quote');
+    Route::post('orders', [$c, 'purchase'])->middleware([RequireCommerceAuthority::class, 'throttle:money', 'idempotent:required'])->name('purchase');
+    Route::post('orders/{order}/cancel', [$c, 'cancel'])->whereNumber('order')->middleware([RequireCommerceAuthority::class, 'throttle:money', 'idempotent:required'])->name('cancel');
 });
 
 Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Commerce;
 
+use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,6 +22,6 @@ class VendorStockMovement extends Model
 
     protected function casts(): array
     {
-        return ['product_id' => 'integer', 'actor_id' => 'integer', 'units_delta' => 'integer', 'before_units' => 'integer', 'after_units' => 'integer', 'private_reason' => 'encrypted', 'created_at' => 'immutable_datetime'];
+        return ['product_id' => 'integer', 'actor_id' => 'integer', 'units_delta' => 'integer', 'before_units' => 'integer', 'after_units' => 'integer', 'private_reason' => 'encrypted', 'created_at' => UtcInstant::class];
     }
 }

@@ -65,3 +65,8 @@ Finance browser and app qualification. This does not close Phase5 or increments9
 Adult withdrawal qualification is tracked in money/adult-wallet-withdrawals.md.
 Vendor implementation proceeds independently; pending external evidence does not
 freeze catalogue development.
+
+[Vendor wallet orders](money/vendor-wallet-orders.md) records quoted storefront
+checkout, original receipts, counted stock, Finance collection, cancellation,
+recovery and affected app verification. Dedicated vendor identities/scanner and
+settlement/ticket/card increments remain separate work.

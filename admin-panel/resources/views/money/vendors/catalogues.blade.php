@@ -29,6 +29,7 @@
         <fieldset @disabled(!$canWrite)><legend>{{ __('Vendor details and settlement choices') }}</legend>
             <x-page.field id="vendor-name" :restore-old-input="false" name="name" :label="__('Vendor name')" :value="$vendor?->name" required maxlength="160" />
             <x-page.field id="vendor-legal_name" :restore-old-input="false" name="legal_name" :label="__('Legal trading name')" :value="$vendor?->legal_name" maxlength="160" />
+            <x-page.field id="vendor-legal_address" :restore-old-input="false" type="textarea" name="legal_address" :label="__('Legal trading address for VAT receipts')" :value="$vendor?->legal_address" maxlength="1000" />
             <x-page.field id="vendor-description" :restore-old-input="false" type="textarea" name="description" :label="__('Storefront description')" :value="$vendor?->description" maxlength="2000" />
             <x-page.field id="vendor-category_id" :restore-old-input="false" type="select" name="category_id" :label="__('Vendor category')" :value="$vendor?->category_id" :options="$categoryOptions" required />
             <x-page.field id="vendor-kind" :restore-old-input="false" type="select" name="kind" :label="__('Vendor ownership')" :value="$vendor?->kind" :options="['school'=>__('School run'),'independent'=>__('Independent vendor')]" required />

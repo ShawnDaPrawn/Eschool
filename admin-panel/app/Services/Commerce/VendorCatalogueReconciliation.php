@@ -25,14 +25,21 @@ final class VendorCatalogueReconciliation
         })->count();
         foreach (DB::table('vendor_products')->where('school_id', $school)->orderBy('id')->get() as $product) {
             $balance = DB::table('vendor_stock_balances')->where('school_id', $school)->where('product_id', $product->id)->first();
-            $movements = DB::table('vendor_stock_movements')->where('school_id', $school)->where('product_id', $product->id)->orderBy('id')->get();
+            $events = Schema::hasTable('vendor_stock_events');
+            $movements = DB::table($events ? 'vendor_stock_events' : 'vendor_stock_movements')->where('school_id', $school)->where('product_id', $product->id)->orderBy($events ? 'sequence' : 'id')->get();
+            if ($events && $movements->where('kind', 'manual')->count() !== DB::table('vendor_stock_movements')->where('school_id', $school)->where('product_id', $product->id)->count()) {
+                $report['vendor_stock_history_mismatches']++;
+            }
             if (! $product->tracks_stock) {
                 $report['vendor_stock_history_mismatches'] += $balance !== null || $movements->isNotEmpty() ? 1 : 0;
 
                 continue;
             }
             $units = 0;
-            foreach ($movements as $movement) {
+            foreach ($movements as $index => $movement) {
+                if ($events && (int) $movement->sequence !== $index + 1) {
+                    $report['vendor_stock_history_mismatches']++;
+                }
                 if ((int) $movement->before_units !== $units || (int) $movement->after_units !== $units + (int) $movement->units_delta) {
                     $report['vendor_stock_history_mismatches']++;
                 }

@@ -16,6 +16,8 @@ part 'facilitator_features.g.dart';
 class FacilitatorFeatures {
   /// Returns a new [FacilitatorFeatures] instance.
   FacilitatorFeatures({
+    this.vendors,
+
     this.wallet,
 
     this.schoolAssistance,
@@ -60,6 +62,10 @@ class FacilitatorFeatures {
 
     this.examCoach,
   });
+
+  /// Optional own-wallet storefront and order capability. Vendor operator authority is separate; absence means unavailable.
+  @JsonKey(name: r'vendors', required: false, includeIfNull: false)
+  final bool? vendors;
 
   /// Optional personal-wallet capability, independently of fee access. Absence means unavailable.
   @JsonKey(name: r'wallet', required: false, includeIfNull: false)
@@ -150,6 +156,7 @@ class FacilitatorFeatures {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FacilitatorFeatures &&
+          other.vendors == vendors &&
           other.wallet == wallet &&
           other.schoolAssistance == schoolAssistance &&
           other.teachingAssistant == teachingAssistant &&
@@ -175,6 +182,7 @@ class FacilitatorFeatures {
 
   @override
   int get hashCode =>
+      vendors.hashCode +
       wallet.hashCode +
       schoolAssistance.hashCode +
       teachingAssistant.hashCode +

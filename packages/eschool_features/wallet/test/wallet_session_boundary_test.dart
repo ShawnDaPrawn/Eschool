@@ -10,6 +10,8 @@ MeContext _context({
   String role = 'Parent',
   bool enabled = true,
   bool readOnly = false,
+  bool vendors = false,
+  bool vendorReadOnly = false,
 }) => MeContext.fromJson({
   'user': {
     'id': actor,
@@ -33,11 +35,12 @@ MeContext _context({
   'feature_flags': {'module_switches': true},
   'modules': [
     if (enabled) {'key': 'wallet', 'read_only': readOnly},
+    if (vendors) {'key': 'vendors', 'read_only': vendorReadOnly},
   ],
 });
 
 class _Context implements MeContextRepository {
-  MeContext current = _context();
+  MeContext current = _context(vendors: true);
   @override
   Future<MeContext?> fetchContext() async => current;
 }
@@ -54,13 +57,27 @@ void main() {
         _context(role: 'Student'),
         _context(enabled: false),
         _context(readOnly: true),
+        _context(vendors: true),
         null,
       ]) {
         expect(walletAccessStillCurrent(pinned, other), isFalse);
       }
     },
   );
-  for (final change in ['school', 'account', 'logout']) {
+  test('vendor pause invalidates a pinned storefront', () {
+    expect(
+      walletAccessStillCurrent(
+        _context(vendors: true),
+        _context(vendors: true, vendorReadOnly: true),
+      ),
+      isFalse,
+    );
+    expect(
+      walletAccessStillCurrent(_context(vendors: true), _context()),
+      isFalse,
+    );
+  });
+  for (final change in ['school', 'account', 'logout', 'vendor pause']) {
     testWidgets(
       '$change clears the mounted private view and permanently invalidates its generation',
       (tester) async {
@@ -94,6 +111,8 @@ void main() {
         } else {
           repository.current = change == 'school'
               ? _context(school: 2)
+              : change == 'vendor pause'
+              ? _context(vendors: true, vendorReadOnly: true)
               : _context(actor: 22);
           await session.load();
         }
