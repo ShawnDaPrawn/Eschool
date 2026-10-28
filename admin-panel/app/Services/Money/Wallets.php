@@ -106,6 +106,9 @@ final class Wallets
             $settings = WalletSetting::first();
             $rows = [];
             foreach (User::whereIn('id', array_unique($ids))->orderBy('id')->lockForUpdate()->get() as $subject) {
+                if ((int) $subject->id !== (int) $fresh->id && ! $policy->learnerWalletOwner($subject)) {
+                    continue;
+                }
                 $policy->owner($fresh, (int) $subject->id);
                 $wallet = WalletAccount::where('user_id', $subject->id)->first();
                 $rows[] = ['owner_user_id' => (int) $subject->id, 'owner_name' => trim($subject->first_name.' '.$subject->last_name), 'is_self' => (int) $subject->id === (int) $fresh->id, 'can_open' => $settings !== null && app(ModuleGate::class)->writable('wallet') && $this->canOpen($subject), 'wallets' => $wallet ? [$this->summary($wallet) + ['can_manage_limits' => $this->canManage($fresh, $wallet)]] : []];
@@ -165,7 +168,7 @@ final class Wallets
         $settings = WalletSetting::firstOrFail();
         $limit = WalletLimit::where('wallet_account_id', $wallet->id)->first();
         $subject = User::withTrashed()->findOrFail($wallet->user_id);
-        $child = Students::where('user_id', $subject->id)->exists();
+        $child = app(WalletPolicy::class)->learnerWalletOwner($subject);
         $gate = app(ModuleGate::class);
 
         return ['id' => (int) $wallet->id, 'school_id' => $school, 'owner_user_id' => $wallet->user_id, 'owner_name' => trim($subject->first_name.' '.$subject->last_name), 'currency' => $wallet->currency, 'balance_cents' => $balance, 'is_child' => $child, 'read_only' => ! $gate->writable('wallet'), 'school_daily_spend_cents' => $settings->daily_spend_cents, 'child_limits_required' => $settings->child_limits_required, 'limits' => ['revision' => $limit->revision ?? 0, 'daily_spend_cents' => $limit?->daily_spend_cents, 'effective_daily_spend_cents' => ($child && $settings->child_limits_required && $limit === null) ? 0 : min($settings->daily_spend_cents, $limit->daily_spend_cents ?? $settings->daily_spend_cents), 'all_categories' => $limit->all_categories ?? true, 'categories' => $limit->categories ?? [], 'configured' => $limit !== null]];
@@ -191,7 +194,7 @@ final class Wallets
             return false;
         }$subject = User::withTrashed()->findOrFail($wallet->user_id);
 
-        return $this->canOpen($subject) && ((int) $actor->id !== (int) $wallet->user_id || ! Students::where('user_id', $actor->id)->exists());
+        return $this->canOpen($subject) && ((int) $actor->id !== (int) $wallet->user_id || ! in_array('Student', app(WalletPolicy::class)->roles($actor), true));
     }
 
     public static function openRules(): array

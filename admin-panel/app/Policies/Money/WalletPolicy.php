@@ -95,6 +95,7 @@ final class WalletPolicy
             return $fresh;
         }
         abort_unless(in_array('Parent', $this->roles($fresh), true) && $fresh->email_verified_at !== null, 403);
+        abort_unless($this->learnerWalletOwner($subject), 404);
         $student = Students::where('user_id', $owner)->lockForUpdate()->first();
         abort_unless($student !== null, 404);
         abort_unless(GuardianLink::where('learner_id', $student->id)->where('guardian_user_id', $fresh->id)->where('status', 'active')->where('can_approve', true)->lockForUpdate()->exists(), 404);
@@ -110,10 +111,26 @@ final class WalletPolicy
     {
         $subject = $this->owner($actor, (int) $wallet->user_id, $write);
         if ($write && (int) $actor->id === (int) $wallet->user_id) {
-            abort_if(Students::where('user_id', $actor->id)->exists(), 403, 'Learner spending controls are set by an authorised guardian.');
+            abort_if(in_array('Student', $this->roles($subject), true), 403, 'Learner spending controls are set by an authorised guardian.');
         }
 
         return $subject;
+    }
+
+    /** Retained learner history is distinct from an adult's historical learner row. */
+    public function learnerWalletOwner(User $subject): bool
+    {
+        $roles = $this->roles($subject);
+        if (in_array('Student', $roles, true)) {
+            return true;
+        }
+        if ($roles !== []) {
+            return false;
+        }
+
+        return Students::where('user_id', $subject->id)->exists()
+            && ! SchoolMembership::where('school_id', app(CurrentSchool::class)->id())->where('user_id', $subject->id)
+                ->whereIn('role', ['Parent', 'Teacher', 'Facilitator', 'Super Admin'])->lockForUpdate()->exists();
     }
 
     public function roles(User $user): array
