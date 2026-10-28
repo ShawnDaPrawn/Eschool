@@ -9,6 +9,7 @@ enum AccountType: string
     case FeeReceivable = 'fee_receivable';
     case FeeIncome = 'fee_income';
     case FeeVat = 'fee_vat';
+    case FeeRefund = 'fee_refund';
     case FeeBank = 'fee_bank';
     case Family = 'family';
     case Wallet = 'wallet';

@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * @property 'annual'|'fee_item' $kind
  *
  * Immutable billing snapshot with explicit calendar and UTC attributes.
- * @property array{year_id: int, year_start: string, year_end: string, as_of: string, due_on: string, tax_treatment: string, rows: list<array>, totals: array<string, int>, exceptions: array<string, int>, learners: int, billable: int, skipped: int, account_count: int} $snapshot
+ * @property array{year_id: int, year_start: string, year_end: string, as_of: string, due_on: string, tax_treatment: string, rows: list<array>, totals: array<string, int>, exceptions: array<string, int>, learners: int, billable: int, skipped: int, account_count: int, lifecycle_policy?: array{id: int, revision: int, join_basis: string, leaver_basis: string, installments: string}|null, installments?: array<int, array>, invoice_schedules?: array<int, array>} $snapshot
  * @property Carbon $as_of
  * @property Carbon $due_on
  * @property CarbonImmutable|null $approved_at

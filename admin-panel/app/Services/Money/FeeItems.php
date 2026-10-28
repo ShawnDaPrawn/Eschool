@@ -6,6 +6,7 @@ namespace App\Services\Money;
 
 use App\Models\Money\FeeCharge;
 use App\Models\Money\FeeItem;
+use App\Models\Money\FeeItemConsent;
 use App\Models\User;
 use App\Policies\Money\MoneyPolicy;
 use App\Services\Platform\Audit\Audit;
@@ -30,7 +31,7 @@ final class FeeItems
         $receipt = app(BillingOperations::class)->once($actor, self::PERMISSION, 'fee_item_save', $data, function () use ($data, $id): array {
             $item = $id === null ? new FeeItem : FeeItem::lockForUpdate()->findOrFail($id);
             abort_unless((int) ($item->revision ?? 0) === (int) $data['revision'], 409, 'This fee item changed. Review it before saving again.');
-            abort_if($item->exists && FeeCharge::where('fee_item_id', $item->id)->exists() && ($item->scope !== $data['scope'] || $item->currency !== $data['currency']), 422, 'An item with charge history keeps its scope and currency.');
+            abort_if($item->exists && (FeeCharge::where('fee_item_id', $item->id)->exists() || FeeItemConsent::where('fee_item_id', $item->id)->exists()) && ($item->scope !== $data['scope'] || $item->currency !== $data['currency']), 422, 'An item with charge or approval history keeps its scope and currency.');
             try {
                 $rate = array_key_exists('vat_rate', $data) ? FeeTaxAmounts::rate($data['vat_rate']) : ($item->vat_rate_bp ?? 0);
                 FeeTaxAmounts::price($data['amount_cents'], $data['tax_treatment'], $rate);

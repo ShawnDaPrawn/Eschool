@@ -752,3 +752,53 @@ new invoices, exceptions and already-charged targets; family occurrences dedupli
 posting rechecks eligibility and the whole batch is atomic and permanently replayable.
 New batches retain exact sealed child invoices without raw occurrence plaintext.
 Verification is in self-tests/money/automatic-fee-items.md; opt-in consent is next.
+
+## 2026-10-27 — parent optional fee approvals
+
+Increment4 adds explicit yearly/per-occurrence opt-in terms, current own parent
+review and immutable approval/withdrawal. All current payers must approve material
+terms before billing; fresh guardian checks precede cached replay. Annual duplicate
+billing is refused even with another occurrence reference. API/SDK/shared parent UI
+and Finance browser coverage are included. Qualification is tracked in
+self-tests/money/fee-item-opt-ins.md and the PR. Discounts and increments5–15 remain
+next; gateway and production activation remain deferred.
+
+## 2026-10-27 — approved fee reduction workbench
+
+Increment5 implements explicit sibling, configured staff-role, receipt-backed early
+settlement, bursary and exemption rules. Finance reviews exact remaining original
+charges and payer credits; approval separation and overlap are school choices.
+Linked credits preserve invoices, original tax and restricted paid receipt credit.
+Qualification is in self-tests/money/fee-discounts.md and the feature PR. Refunds,
+pro-rata and wallet/commerce increments remain next; gateways stay deferred.
+
+## 2026-10-27 — explicit join and known-leaver charge calculation
+
+Increment6 begins with canonical inclusive daily/calendar-month/full-year charging
+and explicit installment redistribution. Preview and posting share exact cents,
+original annual rate, actual period, policy revision and original payer shares.
+A policy/enrolment change invalidates a pending review; posted history is retained.
+Qualification is tracked in self-tests/money/fee-lifecycle-proration.md and the PR.
+Later leaver adjustments, refunds, payer corrections and late-charge policy remain
+next in increment6; wallet/commerce7–15 and gateway deferral continue separately.
+
+## 2026-10-28 — reviewed later leaver credits
+
+Increment6 adds reasoned later departures using original annual rates/contracts,
+continuous school attendance, explicit previous-reduction handling and original
+payer credits. Repeated unchanged departures cannot refund twice; an earlier
+corrected departure credits only the remaining legitimate difference. Paid credits
+restore restricted original receipts. Qualification is tracked in
+self-tests/money/leaver-credits.md and the PR. Verified cash/bank fee refunds and
+payer-debt corrections are next; wallets/commerce7–15 continue separately.
+
+## 2026-10-28 — reserved manual receipt refunds
+
+Increment6 adds reviewed original-holder cash/EFT refunds. Approval reserves the
+original unallocated receipt credit before an outside payout; verified payment
+clears that liability and cancellation restores its original learner restriction.
+Append-only actions, private evidence, payout identity, original-credit budgets,
+accounting and domain reconciliation are retained. Shared fee app/SDK statements
+show reserved/paid amounts. Qualification is recorded in
+self-tests/money/fee-refunds.md and the feature PR. No external payment is executed.
+Payer corrections/explicit late-charge policy and increments7–15 continue next.

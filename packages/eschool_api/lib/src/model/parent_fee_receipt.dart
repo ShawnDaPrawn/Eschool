@@ -35,6 +35,10 @@ class ParentFeeReceipt {
     required this.creditCents,
 
     this.releasedCents,
+
+    this.pendingRefundCents,
+
+    this.refundedCents,
   });
 
   // minimum: 1
@@ -79,6 +83,16 @@ class ParentFeeReceipt {
   @JsonKey(name: r'released_cents', required: false, includeIfNull: false)
   final int? releasedCents;
 
+  /// Original receipt credit reserved for an approved manual refund; unavailable for allocation.
+  // minimum: 0
+  @JsonKey(name: r'pending_refund_cents', required: false, includeIfNull: false)
+  final int? pendingRefundCents;
+
+  /// Original receipt amount already paid back to its holder by verified manual refund.
+  // minimum: 0
+  @JsonKey(name: r'refunded_cents', required: false, includeIfNull: false)
+  final int? refundedCents;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -92,7 +106,9 @@ class ParentFeeReceipt {
           other.amountCents == amountCents &&
           other.allocatedCents == allocatedCents &&
           other.creditCents == creditCents &&
-          other.releasedCents == releasedCents;
+          other.releasedCents == releasedCents &&
+          other.pendingRefundCents == pendingRefundCents &&
+          other.refundedCents == refundedCents;
 
   @override
   int get hashCode =>
@@ -105,7 +121,9 @@ class ParentFeeReceipt {
       amountCents.hashCode +
       allocatedCents.hashCode +
       creditCents.hashCode +
-      releasedCents.hashCode;
+      releasedCents.hashCode +
+      pendingRefundCents.hashCode +
+      refundedCents.hashCode;
 
   factory ParentFeeReceipt.fromJson(Map<String, dynamic> json) =>
       _$ParentFeeReceiptFromJson(json);

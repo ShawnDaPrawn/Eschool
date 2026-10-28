@@ -26263,6 +26263,131 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /parent/fees/accounts/{account}/optional-items:
+    get:
+      operationId: listParentFeeOptionalItems
+      tags:
+      - FeeStatements
+      summary: Review your current optional fee items and own approvals
+      description: Current-year holder and guardian scoped. Published item price and your own share/VAT only; no other
+        payer identity or approval records. Unavailable prior selected offers remain withdrawable. No money is posted.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: account
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      responses:
+        '200':
+          description: Private current offers and your own approval state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListParentFeeOptionalItemsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '409':
+          description: The current year, approval revision or financial terms changed; refresh and review again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /parent/fees/accounts/{account}/optional-items/{item}/consents:
+    post:
+      operationId: changeParentFeeItemConsent
+      tags:
+      - FeeStatements
+      summary: Approve current optional fee terms or withdraw your approval
+      description: Requires current holder and guardian approval authority before execution and before cached idempotent
+        replay. Every current payer must approve the current financial terms before billing. Accepting checks the
+        reviewed fingerprint and own revision. Withdrawal preserves original money history. No payment or refund is
+        made.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: account
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: ^[\x21-\x7E]+$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentFeeItemConsentChange'
+      responses:
+        '200':
+          description: Immutable record of your approval change; refresh offers for current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeParentFeeItemConsentResponse'
+        '400':
+          description: A valid Idempotency-Key is required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '409':
+          description: The current year, approval revision or financial terms changed; refresh and review again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -58471,6 +58596,279 @@ components:
           minimum: 0
           description: Cumulative money restored to this receipt by posted credit notes; current held money remains
             credit_cents.
+        pending_refund_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Original receipt credit reserved for an approved manual refund; unavailable for allocation.
+        refunded_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Original receipt amount already paid back to its holder by verified manual refund.
+    ParentFeeOptionalItem:
+      type: object
+      additionalProperties: false
+      required:
+      - fee_item_id
+      - name
+      - scope
+      - billing
+      - learner_id
+      - learner_name
+      - currency
+      - available
+      - can_approve
+      - price_cents
+      - share_cents
+      - vat_cents
+      - selected
+      - current_terms_approved
+      - revision
+      - fingerprint
+      properties:
+        fee_item_id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        scope:
+          type: string
+          enum:
+          - learner
+          - family
+        billing:
+          type: string
+          enum:
+          - once_per_year
+          - per_occurrence
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+        learner_name:
+          type:
+          - string
+          - 'null'
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        available:
+          type: boolean
+        can_approve:
+          type: boolean
+        price_cents:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        share_cents:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        selected:
+          type: boolean
+        current_terms_approved:
+          type: boolean
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+        fingerprint:
+          type:
+          - string
+          - 'null'
+          pattern: ^[a-f0-9]{64}$
+    ParentFeeOptionalItemsPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - holder_user_id
+      - fee_account_id
+      - session_year_id
+      - writable
+      - items
+      - current_page
+      - per_page
+      - total
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+        fee_account_id:
+          type: integer
+          format: int64
+          minimum: 1
+        session_year_id:
+          type: integer
+          format: int64
+          minimum: 1
+        writable:
+          type: boolean
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ParentFeeOptionalItem'
+        current_page:
+          type: integer
+          format: int64
+          minimum: 1
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+          maximum: 20000
+    ParentFeeItemConsentChange:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - session_year_id
+      - revision
+      - active
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        session_year_id:
+          type: integer
+          format: int64
+          minimum: 1
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+        active:
+          type: boolean
+        fingerprint:
+          type:
+          - string
+          - 'null'
+          pattern: ^[a-f0-9]{64}$
+          description: Required for acceptance; use the current reviewed offer. Withdrawal may omit it.
+        confirmed:
+          type: boolean
+          description: Must be true to confirm the reviewed approval change.
+    ParentFeeItemConsentReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - holder_user_id
+      - fee_account_id
+      - fee_item_id
+      - session_year_id
+      - learner_id
+      - revision
+      - active
+      - recorded_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+        fee_account_id:
+          type: integer
+          format: int64
+          minimum: 1
+        fee_item_id:
+          type: integer
+          format: int64
+          minimum: 1
+        session_year_id:
+          type: integer
+          format: int64
+          minimum: 1
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+        revision:
+          type: integer
+          format: int64
+          minimum: 1
+        active:
+          type: boolean
+        recorded_at:
+          type: string
+          format: date-time
+    ListParentFeeOptionalItemsResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ParentFeeOptionalItemsPage'
+        code:
+          type: integer
+    ChangeParentFeeItemConsentResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/ParentFeeItemConsentReceipt'
+        code:
+          type: integer
     ParentFeeAccountsPage:
       type: object
       additionalProperties: false

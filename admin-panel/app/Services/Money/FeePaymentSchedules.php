@@ -6,6 +6,7 @@ namespace App\Services\Money;
 
 use App\Models\Money\FeePlan;
 use App\Models\SessionYear;
+use App\Services\Platform\Ledger\CentsRatio;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -70,7 +71,7 @@ final class FeePaymentSchedules
         return $date;
     }
 
-    public function lines(FeePlan $plan, SessionYear $year, string $fallback, array $holders, ?string $choice = null): array
+    public function lines(FeePlan $plan, SessionYear $year, string $fallback, array $holders, ?string $choice = null, ?int $amountCents = null, ?string $notBefore = null): array
     {
         $options = $this->normalize($plan->payment_options, $year);
         $key = $choice ?? $plan->default_payment_option ?? $options[0]['key'];
@@ -84,12 +85,18 @@ final class FeePaymentSchedules
         } else {
             $parts = array_map(fn ($p) => ['due_on' => $this->date($year, $p['month'], $p['day']), 'weight_bp' => $p['weight_bp']], $parts);
         }
+        if ($notBefore !== null) {
+            $parts = array_values(array_filter($parts, fn ($part) => $part['due_on'] >= $notBefore));
+            if ($parts === []) {
+                $parts = [['due_on' => $fallback, 'weight_bp' => 10000]];
+            }
+        }
         $lines = [];
         foreach ($parts as $i => $part) {
             $lines[$i] = ['installment_number' => $i + 1, 'due_on' => $part['due_on'], 'amount_cents' => 0, 'holder_shares' => [], 'payment_option' => $key, 'payment_option_label' => $option['label']];
         }
-        foreach (BillingPreview::shares($plan->amount_cents, $holders) as $holder) {
-            $split = self::split($holder['amount_cents'], array_column($parts, 'weight_bp'));
+        foreach (BillingPreview::shares($amountCents ?? $plan->amount_cents, $holders) as $holder) {
+            $split = self::weighted($holder['amount_cents'], array_column($parts, 'weight_bp'));
             foreach ($split as $i => $cents) {
                 $lines[$i]['amount_cents'] += $cents;
                 $lines[$i]['holder_shares'][] = array_replace($holder, ['amount_cents' => $cents]);
@@ -99,23 +106,35 @@ final class FeePaymentSchedules
         return array_values(array_filter($lines, fn ($l) => $l['amount_cents'] > 0));
     }
 
-    /** Integer largest remainders, chronological ties. */
+    /** Original public schedule contract retains weights totaling exactly 10000. */
     public static function split(int $cents, array $weights): array
     {
-        if ($cents < 0 || $cents > FeePlans::MAX_CENTS || $weights === [] || count($weights) > 24 || array_sum($weights) !== 10000) {
-            throw new \InvalidArgumentException('Use bounded cents and weights totaling 10000.');
+        if (array_sum($weights) !== 10000) {
+            throw new \InvalidArgumentException('Weights must total exactly 10000.');
         }
-        $out = [];
-        $r = [];
-        foreach ($weights as $i => $weight) {
+
+        return self::weighted($cents, $weights);
+    }
+
+    /** Integer largest remainders over retained contract weights, chronological ties. */
+    public static function weighted(int $cents, array $weights): array
+    {
+        if ($cents < 0 || $cents > FeePlans::MAX_CENTS || $weights === [] || count($weights) > 24) {
+            throw new \InvalidArgumentException('Use bounded cents and explicit schedule weights.');
+        }
+        foreach ($weights as $weight) {
             if (! is_int($weight) || $weight < 1 || $weight > 10000) {
-                throw new \InvalidArgumentException('Positive integer weights required.');
-            }$weighted = $cents * $weight;
-            $out[$i] = intdiv($weighted, 10000);
-            $r[$i] = $weighted % 10000;
+                throw new \InvalidArgumentException('Use positive integer installment weights.');
+            }
         }
-        $indices = array_keys($r);
-        usort($indices, fn ($a, $b) => ($r[$b] <=> $r[$a]) ?: ($a <=> $b));
+        $total = array_sum($weights);
+        $out = [];
+        $remainders = [];
+        foreach ($weights as $i => $weight) {
+            [$out[$i],$remainders[$i]] = CentsRatio::quotientAndRemainder($cents, $weight, $total);
+        }
+        $indices = array_keys($out);
+        usort($indices, fn ($a, $b) => ($remainders[$b] <=> $remainders[$a]) ?: ($a <=> $b));
         $left = $cents - array_sum($out);
         for ($n = 0; $n < $left; $n++) {
             $out[$indices[$n]]++;

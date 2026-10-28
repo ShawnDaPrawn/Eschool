@@ -48,7 +48,7 @@ return [
             'fee-plans/*',
             'fee-accounts/*',
             // Receipt/allocation writes settle retained invoices without editing year records.
-            'fee-reminders', 'fee-reminders/*', 'fee-reporting/*', 'bank-statements/*', 'fee-payments/*', 'fee-credit-notes/*', 'fee-items/*', 'fee-item-charges/*', 'fee-item-batches/*',
+            'fee-reminders', 'fee-reminders/*', 'fee-reporting/*', 'bank-statements/*', 'fee-payments/*', 'fee-credit-notes/*', 'fee-discounts/*', 'fee-lifecycle', 'fee-lifecycle/*', 'fee-leavers', 'fee-leavers/*', 'fee-refunds', 'fee-refunds/*', 'fee-items/*', 'fee-item-charges/*', 'fee-item-batches/*',
             'fee-bill-runs/new',
             'fee-bill-runs/*/approve',
 

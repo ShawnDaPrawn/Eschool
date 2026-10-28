@@ -6,7 +6,7 @@ import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_core/testing.dart';
 import 'package:eschool_fees/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
@@ -20,6 +20,7 @@ void main() {
       (tester) async {
         final actor = parent ? 21 : 11;
         var allowed = true;
+        final optional = feeOptionalItemsFixture();
         Object privateRead(Object data) => allowed
             ? ok(data)
             : FakeResponse({
@@ -72,9 +73,33 @@ void main() {
               ],
           }),
           'GET v2/parent/fees/accounts': (RequestOptions _) =>
-              privateRead(feeCreditedAccountsFixture()),
+              privateRead(feeRefundedAccountsFixture()),
           'GET v2/parent/fees/accounts/7/statement': (RequestOptions _) =>
-              privateRead(feeVatStatementFixture()),
+              privateRead(feeRefundedStatementFixture()),
+          'GET v2/parent/fees/accounts/7/optional-items': (RequestOptions _) =>
+              privateRead(optional),
+          'POST v2/parent/fees/accounts/7/optional-items/91/consents':
+              (RequestOptions request) {
+                if (!allowed) return privateRead({});
+                final body = request.data as Map;
+                final row =
+                    (optional['items'] as List).first as Map<String, dynamic>;
+                row['selected'] = body['active'];
+                row['current_terms_approved'] = body['active'];
+                row['revision'] = (body['revision'] as int) + 1;
+                return ok({
+                  'id': 41,
+                  'school_id': 1,
+                  'holder_user_id': 21,
+                  'fee_account_id': 7,
+                  'fee_item_id': 91,
+                  'session_year_id': 3,
+                  'learner_id': null,
+                  'revision': row['revision'],
+                  'active': body['active'],
+                  'recorded_at': '2026-06-15T12:00:00Z',
+                });
+              },
         });
         await tapWhenReady(
           tester,
@@ -141,6 +166,13 @@ void main() {
         );
         expect(find.text('FEE-PAY-SYNTHETIC-1'), findsOneWidget);
         await tester.scrollUntilVisible(
+          find.text('Reserved for refund'),
+          150,
+          scrollable: find.byType(Scrollable).last,
+        );
+        expect(find.text('Reserved for refund'), findsOneWidget);
+        expect(find.text('Refunded to you'), findsOneWidget);
+        await tester.scrollUntilVisible(
           find.text('Reserved for learner: Cara Synthetic'),
           200,
           scrollable: find.byType(Scrollable).last,
@@ -156,6 +188,46 @@ void main() {
         expect(find.text('Restored to receipts'), findsOneWidget);
         expect(find.text('VAT included in this credit'), findsOneWidget);
         expect(find.text('Credit before VAT'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Optional fee items'),
+          -300,
+          scrollable: find.byType(Scrollable).last,
+        );
+        await tapWhenReady(tester, find.text('Optional fee items'));
+        await tapWhenReady(tester, find.text('Review optional fee'));
+        await tester.scrollUntilVisible(
+          find.byType(CheckboxListTile),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
+        await tester.tap(find.byType(CheckboxListTile));
+        await tester.pump();
+        await tapWhenReady(tester, find.text('Record my approval'));
+        await pumpUntilFound(tester, find.text('Your approval was recorded.'));
+        final family = find.byKey(const ValueKey('optional-91-null'));
+        final withdraw = find.descendant(
+          of: family,
+          matching: find.text('Withdraw approval'),
+        );
+        await tester.scrollUntilVisible(
+          withdraw,
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
+        await tapWhenReady(tester, withdraw);
+        await tester.scrollUntilVisible(
+          find.byType(CheckboxListTile),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
+        await tester.tap(find.byType(CheckboxListTile));
+        await tester.pump();
+        await tapWhenReady(tester, find.text('Confirm withdrawal'));
+        await pumpUntilFound(tester, find.text('Your approval was withdrawn.'));
+        await tapWhenReady(tester, find.byTooltip('Back'));
+        await tapWhenReady(tester, find.text('Open statement'));
+        await pumpUntilFound(tester, find.text('Your learner charges'));
+        expect(find.text('ZAR 7.02'), findsOneWidget);
         allowed = false;
         await tapWhenReady(tester, find.byTooltip('Refresh fee statements'));
         await pumpUntilFound(tester, find.text('Your fee access changed'));

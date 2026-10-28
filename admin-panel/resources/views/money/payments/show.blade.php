@@ -17,6 +17,7 @@
     </dl>
     <p>{{ $payment->pinned_learner_id===null?__('This receipt may pay eligible learners for its named holder.'):__('This receipt stays pinned to its recorded learner.') }}</p>
     @if($canWrite && $credit>0)<x-m3.button :href="route('fee-payments.preview',['payment'=>$payment->id])">{{ __('Review credit allocation') }}</x-m3.button>@endif
+    @if($canWrite && $credit>0)<x-m3.button variant="outlined" :href="route('fee-refunds.new',['payment_id'=>$payment->id])">{{ __('Prepare receipt refund') }}</x-m3.button>@endif
     @if(!$canWrite)<p>{{ __('Payment history is read-only while fees are disabled.') }}</p>@endif
     <h2 class="m3-title-large">{{ __('Posted allocations') }}</h2>
     @if($runs->isEmpty())<p>{{ __('No allocation has been posted for this receipt.') }}</p>@else

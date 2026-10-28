@@ -2706,6 +2706,12 @@ Route<dynamic> feeStatementsRoute() => AdaptivePageRoute(
       child: FeeSessionBoundary(
         pinned: pinned,
         builder: (_, generationActive) => FeeStatementScreen(
+          optionalItems: ApiFeeOptInRepository(
+            Api.client,
+            schoolId: school,
+            accountId: account,
+            contextActive: () => generationActive() && active(),
+          ),
           repository: ApiFeeStatementRepository(
             Api.client,
             schoolId: school,

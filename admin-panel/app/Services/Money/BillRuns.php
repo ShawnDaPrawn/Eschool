@@ -116,7 +116,7 @@ final class BillRuns
             }
             foreach ($row['installment_lines'] as $part) {
                 $lines[] = ['session_year_id' => $run->session_year_id, 'learner_id' => $row['learner_id'], 'fee_plan_id' => $row['plan_id'], 'plan_revision' => $row['plan_revision'],
-                    'learner_name' => $row['name'], 'description' => $row['plan_names'][0], 'period_start' => $run->snapshot['year_start'], 'period_end' => $run->snapshot['year_end'],
+                    'learner_name' => $row['name'], 'description' => $row['plan_names'][0], 'period_start' => $row['period_start'], 'period_end' => $row['period_end'],
                     'currency' => $row['currency'], 'amount_cents' => $part['amount_cents'], 'vat_cents' => 0, 'holder_shares' => $part['holder_shares'], 'installment_number' => $part['installment_number'], 'installment_due_on' => $part['due_on']];
             }
         }

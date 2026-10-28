@@ -33,7 +33,7 @@ final class FeePaymentReconciliation
             ->selectRaw("p.account_id, SUM(CASE WHEN p.direction = 'credit' THEN p.cents ELSE -p.cents END) AS cents")->groupBy('p.account_id')->pluck('cents', 'account_id');
         foreach ($totals as $total) {
             $id = (int) $total->credit_account_id;
-            $expected = (int) $total->cents - (int) ($used[$id] ?? 0) + (int) ($restored[$id] ?? 0);
+            $expected = (int) $total->cents - (int) ($used[$id] ?? 0) + (int) ($restored[$id] ?? 0) - app(FeeRefundHistory::class)->heldForCredit($id);
             $actual = (int) ($posted[$id] ?? 0);
             if ($actual !== $expected || $expected < 0) {
                 $credit[] = ['account_id' => $id, 'expected_cents' => $expected, 'posting_cents' => $actual];
@@ -54,7 +54,7 @@ final class FeePaymentReconciliation
             }
         }
 
-        return ['incomplete_allocations' => $drafts, 'allocation_mismatches' => $badRuns, 'family_credit_differences' => $credit, 'fee_receivable_differences' => $receivable, ...app(FeeCreditReconciliation::class)->inspect($accountIds), ...app(FeeItemReconciliation::class)->inspect($accountIds), ...app(BankStatementReconciliation::class)->inspect($accountIds)];
+        return ['incomplete_allocations' => $drafts, 'allocation_mismatches' => $badRuns, 'family_credit_differences' => $credit, 'fee_receivable_differences' => $receivable, ...app(FeeCreditReconciliation::class)->inspect($accountIds), ...app(FeeItemReconciliation::class)->inspect($accountIds), ...app(BankStatementReconciliation::class)->inspect($accountIds), ...app(FeeRefundReconciliation::class)->inspect($accountIds)];
     }
 
     public static function healthy(array $report): bool

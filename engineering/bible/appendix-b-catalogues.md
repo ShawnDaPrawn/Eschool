@@ -294,3 +294,38 @@ statements add optional own VAT metadata; disabled fees retain history.
 Existing fees module and fee-items-manage permission cover compulsory and dated
 membership batch preparation/posting. No new notification, provider or parent
 consent is inferred. Existing guardian/payer and disabled-history checks apply.
+
+### Parent optional fee items
+
+Existing fees/current parent guardian policies cover own optional offers and
+approval/withdrawal. Fee visibility alone does not grant approval rights. New v2
+routes use fresh authority before idempotent replay. No provider, notification type
+or spend is added. Disabled fees keep read-only offers and prior agreements.
+
+### Fee reductions
+
+Existing fees and fee-credits-manage permission cover rule preparation/approval
+and original-holder reduction credits. Private evidence has no parent route.
+Disabled fees retain read-only history. No provider, notification or spend is added.
+
+### Enrolment fee policy
+
+Existing fees and fee-plans-manage permission cover explicit school proration and
+new-bill installment policy. History remains readable when fees are disabled,
+including policies saved before the first posting. No notification/provider is added.
+
+### Later leaver credits
+
+Existing fees/fee-credits-manage permission covers the reviewed departure workbench.
+Independent approval is an explicit school choice for this workflow. Parents reuse
+generic own leaver-credit history. No new notification, provider or transport is
+activated. Disabled fees keep read-only policy and departure history.
+
+### Manual fee refunds
+
+Existing fees/fee-payments-manage authority covers policy, review, reservation,
+verified outside payout and cancellation. Fresh actor/approver permissions apply.
+Own parent receipt projections add reserved/paid cents without Finance evidence.
+Internal `fees.refund_changed` outbox events contain refund ID, amount and action;
+no new notification transport, provider, bank transfer or spend is activated.
+Disabled fees retain policy, private Finance history and own parent statements.

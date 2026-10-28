@@ -11,6 +11,7 @@ use App\Models\Activities\ActivityGroup;
 use App\Models\Activities\ActivityMembership;
 use App\Models\ClassSchool;
 use App\Models\ClassSection;
+use App\Models\Money\FeeAccount;
 use App\Models\Money\FeeItem;
 use App\Models\Money\FeeItemEligibilityRule;
 use App\Models\People\Enrolment;
@@ -73,11 +74,14 @@ final class FeeItemEligibility
         return ['rule_id' => (int) $rule->id, 'rule_revision' => $rule->revision, 'mode' => $rule->mode, 'target_scope' => $rule->target_scope, 'target_id' => $rule->target_id, 'applies_to' => $rule->applies_to, 'matched_learner_ids' => $matched, 'issues' => $issues, 'source' => $source, 'memberships' => $members];
     }
 
-    public function forCharge(FeeItem $item, array $learnerIds, int $year, string $date): ?array
+    public function forCharge(FeeItem $item, array $learnerIds, int $year, string $date, FeeAccount $account): ?array
     {
         $result = $this->evaluate($item, $learnerIds, $year, $date);
         abort_unless($result === null || $result['issues'] === [], 422, 'Assigned learner enrolments need review before charging this item.');
         abort_unless($result === null || $result['matched_learner_ids'] !== [], 422, 'No assigned learner currently qualifies for this item on the charge date.');
+        if (($result['mode'] ?? null) === 'opt_in') {
+            $result['consents'] = app(FeeItemConsents::class)->authorizes($item, $account, $year, $learnerIds, $date);
+        }
 
         return $result;
     }

@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\V2\Learning\TeachingDraftController;
 use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
+use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
 use App\Http\Controllers\Api\V2\Pathways\PathwayController;
@@ -85,6 +86,7 @@ use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
+use App\Http\Middleware\RequireFeeItemConsentAuthority;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -395,6 +397,8 @@ Route::prefix('parent/fees')->middleware([PrivateDomainResponse::class, 'auth:sa
     $c = ParentFeeController::class;
     Route::get('accounts', [$c, 'index'])->name('accounts');
     Route::get('accounts/{account}/statement', [$c, 'show'])->whereNumber('account')->name('statement');
+    Route::get('accounts/{account}/optional-items', [ParentFeeItemConsentController::class, 'index'])->whereNumber('account')->name('optional-items');
+    Route::post('accounts/{account}/optional-items/{item}/consents', [ParentFeeItemConsentController::class, 'change'])->whereNumber('account')->whereNumber('item')->middleware([RequireFeeItemConsentAuthority::class, 'throttle:money', 'idempotent:required'])->name('optional-item-consent');
 });
 
 Route::prefix('parent')->middleware(['auth:sanctum', 'school.context', 'role:Parent', 'parent.children.session.active', 'parent.policy', 'idempotent'])->name('api.v2.parent.')->group(function () use ($money) {

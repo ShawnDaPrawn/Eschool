@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $activity_group_id
  * @property int|null $teaching_group_id
  * @property int|null $subject_id
+ * @property string|null $opt_in_billing
  */
 class FeeItemEligibilityRule extends Model
 {

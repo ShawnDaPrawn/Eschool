@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
@@ -14,8 +15,10 @@ class _Repository implements FeeStatementRepository {
     this.withCredits = false,
     this.withItems = false,
     this.withVat = false,
+    this.withRefunds = false,
   });
   final bool withVat;
+  final bool withRefunds;
   final bool withItems;
   final bool withCredits;
   bool active = true;
@@ -34,7 +37,9 @@ class _Repository implements FeeStatementRepository {
   }) async {
     if (error != null) throw error!;
     return ParentFeeAccountsPage.fromJson(
-      (withCredits || withItems || withVat)
+      withRefunds
+          ? feeRefundedAccountsFixture()
+          : (withCredits || withItems || withVat)
           ? feeCreditedAccountsFixture()
           : feeAccountsFixture(),
     );
@@ -52,7 +57,9 @@ class _Repository implements FeeStatementRepository {
     return pending?.future ??
         Future.value(
           ParentFeeStatement.fromJson(
-            withVat
+            withRefunds
+                ? feeRefundedStatementFixture()
+                : withVat
                 ? feeVatStatementFixture()
                 : withItems
                 ? feeItemStatementFixture()
@@ -119,6 +126,60 @@ void main() {
     },
   );
 
+  for (final bad in [null, 0.5, '0', -1, 100]) {
+    test(
+      'receipt refund cents reject malformed or inconsistent $bad',
+      () async {
+        final data = feeStatementFixture();
+        ((data['receipts'] as Map)['items'] as List)
+                .first['pending_refund_cents'] =
+            bad;
+        final api = FakeApi(
+          routes: {'GET v2/parent/fees/accounts/7/statement': _ok(data)},
+        );
+        final repo = ApiFeeStatementRepository(
+          ApiClient(
+            authToken: () => 'synthetic',
+            onUnauthorized: () {},
+            createDio: () => Dio()..httpClientAdapter = api,
+          ),
+          schoolId: 1,
+          accountId: 21,
+          contextActive: () => true,
+        );
+        await expectLater(repo.statement(7), throwsA(isA<ApiException>()));
+      },
+    );
+  }
+  test(
+    'receipt statements retain integer pending and completed refund amounts',
+    () async {
+      final data = feeStatementFixture();
+      final row = ((data['receipts'] as Map)['items'] as List)[1];
+      row['pending_refund_cents'] = 20;
+      row['refunded_cents'] = 10;
+      row['credit_cents'] = 20;
+      data['credit_cents'] = 20;
+      data['net_cents'] = (data['outstanding_cents'] as int) - 20;
+      final api = FakeApi(
+        routes: {'GET v2/parent/fees/accounts/7/statement': _ok(data)},
+      );
+      final repo = ApiFeeStatementRepository(
+        ApiClient(
+          authToken: () => 'synthetic',
+          onUnauthorized: () {},
+          createDio: () => Dio()..httpClientAdapter = api,
+        ),
+        schoolId: 1,
+        accountId: 21,
+        contextActive: () => true,
+      );
+      final result = await repo.statement(7);
+      expect(result.receipts.items[1].pendingRefundCents, 20);
+      expect(result.receipts.items[1].refundedCents, 10);
+      expect(result.receipts.items[1].creditCents, 20);
+    },
+  );
   for (final wrong in ['school', 'holder', 'amount']) {
     test(
       'repository rejects a mismatched $wrong response before returning it',
@@ -344,6 +405,29 @@ void main() {
         contextActive: () => true,
       );
       await expectLater(repository.statement(7), throwsA(isA<ApiException>()));
+    });
+  }
+  for (final width in [390.0, 820.0, 1280.0]) {
+    testWidgets('reserved and paid refunds are clear at $width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: FeeStatementScreen(repository: _Repository(withRefunds: true)),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open statement'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Reserved for refund'), 200);
+      expect(find.text('Reserved for refund'), findsOneWidget);
+      expect(find.text('Refunded to you'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   }
   for (final width in [390.0, 820.0, 1280.0]) {

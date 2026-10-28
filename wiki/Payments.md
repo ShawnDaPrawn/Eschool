@@ -445,3 +445,62 @@ Use the same occurrence reference while resolving exceptions later. Review the
 payer exceptions and every allocation; confirm any exclusions before posting.
 Family items charge once for the family. Membership changes affect future charges;
 posted invoices require reasoned credits. This does not record parent opt-in consent.
+
+## Parent optional fee items
+
+Finance chooses **Parent opt-in** and an explicit yearly or per-occurrence frequency
+under an item's rules. Parents open **Optional fee items** from their account or
+statement, review their own price/share/VAT and frequency, and confirm. Every
+current payer must approve the current terms before Finance can bill. Changed
+prices or allocations need renewed approval. Withdrawing stops future optional
+charges; posted invoices require the existing reasoned credit process.
+
+## Approved discounts and bursaries
+
+Open Money → Discounts and bursaries. Finance drafts a dated rule for sibling,
+configured staff roles, early settlement, bursary or exemption and chooses the
+calculation, source charge, overlap policy and approval separation explicitly.
+Bursaries and exemptions require a named learner. Save and approve the rule, then
+prepare an application against an original billed family and learner. Review each
+original-holder credit, approve, and post. Original invoices remain available;
+paid reductions restore held credit to original restricted receipts. Private
+eligibility and explanations remain with Finance. No cash refund is made here.
+
+## Enrolment fee policy
+
+Finance opens Money → Enrolment fee policy and explicitly chooses daily, touched
+calendar-month or full-year join charging, the known-leaver rule, and whether new
+invoices keep contractual installment dates or redistribute over remaining dates.
+The preview shows original annual rate, charged period and exact calculated cents.
+If all scheduled dates have passed, redistribution uses the reviewed due date.
+Review and post through the existing bill run; old invoices keep their original
+amounts. Unconfirmed/overlapping enrolments remain exceptions. Free plans create
+no charge. A later leaver credit or cash refund requires its own reviewed workflow.
+
+Adjacent dated class moves retain continuous school attendance for charging. Gaps
+and overlapping or unconfirmed records require review. They are not inferred as
+school departures or discounted joining dates.
+
+## Later departure credits
+
+Money → Leaver credits retains original tuition contracts and each original payer's
+credits. Finance explicitly chooses treatment of existing reductions and prior
+policyless invoices, then selects the original invoice and learner. Confirmed
+continuous school attendance must have ended; a class move does not qualify.
+Review original/served tuition and each payer credit, approve, then post once.
+Paid reductions restore original restricted receipt credit. This operation makes
+no cash refund. An unchanged departure cannot generate another credit; changed
+original rates/policies do not rewrite the saved contract. Private evidence stays
+with Finance, and parents see only their own generic leaver-credit history.
+
+### Manual receipt refunds
+
+Finance opens **Fee refunds**, explicitly configures permitted cash/EFT methods
+and whether another operator must approve, then selects the original receipt.
+Only currently available original-holder credit can be reserved. A paid invoice
+first needs a reasoned credit note that restores its original restricted receipt.
+Approval removes the refund amount from allocatable credit. Finance records a
+verified outside payout to the original holder with a unique reference and private
+evidence, or cancels an unpaid reservation. Supported cash/bank books must cover
+the payout. The application makes no bank/provider call. Parents see their own
+reserved/paid receipt amounts; Finance evidence stays private.

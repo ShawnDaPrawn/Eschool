@@ -12,6 +12,7 @@ parameters:
         - app/Http/Resources/Money
         - app/Events/Money
         - app/Http/Requests/Money
+        - app/Http/Middleware/RequireFeeItemConsentAuthority.php
         - database/migrations/2026_10_26_260000_create_fee_plan_catalogue.php
         - database/migrations/2026_10_27_100000_create_family_billing.php
         - database/migrations/2026_10_27_200000_create_fee_payments.php
@@ -23,6 +24,11 @@ parameters:
         - database/migrations/2026_10_27_800000_expand_fee_plan_rules_and_schedules.php
         - database/migrations/2026_10_27_900000_add_fee_item_vat.php
         - database/migrations/2026_10_27_910000_add_automatic_fee_items.php
+        - database/migrations/2026_10_27_920000_add_fee_item_consents.php
+        - database/migrations/2026_10_27_930000_add_approved_fee_discounts.php
+        - database/migrations/2026_10_27_940000_add_fee_lifecycle_policies.php
+        - database/migrations/2026_10_27_950000_add_reviewed_leaver_credits.php
+        - database/migrations/2026_10_27_960000_add_reserved_manual_fee_refunds.php
         - app/Console/Commands/SendFeeReminders.php
         - app/Services/Platform/Ledger/CentsRatio.php
         - app/Services/Platform/Ledger/AccountType.php

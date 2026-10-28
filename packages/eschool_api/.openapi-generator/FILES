@@ -262,6 +262,7 @@ lib/src/model/branding.dart
 lib/src/model/calendar_removed_response.dart
 lib/src/model/cancel_consultation_response.dart
 lib/src/model/cast_consultation_vote_response.dart
+lib/src/model/change_parent_fee_item_consent_response.dart
 lib/src/model/child.dart
 lib/src/model/class_grade_mapping.dart
 lib/src/model/class_grade_mapping_grade_level.dart
@@ -737,6 +738,7 @@ lib/src/model/list_consultation_responses_response.dart
 lib/src/model/list_consultations_response.dart
 lib/src/model/list_managed_consultations_response.dart
 lib/src/model/list_parent_fee_accounts_response.dart
+lib/src/model/list_parent_fee_optional_items_response.dart
 lib/src/model/list_staff_private_notices_response.dart
 lib/src/model/list_wellbeing_appointments_response.dart
 lib/src/model/list_wellbeing_case_assignments_response.dart
@@ -804,6 +806,10 @@ lib/src/model/parent_fee_charge.dart
 lib/src/model/parent_fee_charge_page.dart
 lib/src/model/parent_fee_credit_note.dart
 lib/src/model/parent_fee_credit_page.dart
+lib/src/model/parent_fee_item_consent_change.dart
+lib/src/model/parent_fee_item_consent_receipt.dart
+lib/src/model/parent_fee_optional_item.dart
+lib/src/model/parent_fee_optional_items_page.dart
 lib/src/model/parent_fee_receipt.dart
 lib/src/model/parent_fee_receipt_page.dart
 lib/src/model/parent_fee_statement.dart

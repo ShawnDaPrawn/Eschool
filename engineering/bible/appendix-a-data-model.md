@@ -394,3 +394,47 @@ history remains unchanged.
 rules and explicit canonical source FKs. `fee_item_batches` retains the original
 review, exact sealed charge IDs and total; SQL checks source tenancy, exact child
 identity and immutable history. Existing manual financial rows are unchanged.
+
+### Parent fee item approvals
+
+`fee_item_consents` is tenant-owned, append-only and revisioned by item/account/year/
+target/actor. It retains active/withdrawn state, permanent UUID, material terms hash
+and own frozen consent snapshot. Tenant FKs and SQL guards preserve targets, current
+payer insertion and immutable history. Eligibility rules add explicit opt-in billing
+frequency. No balance table or financial posting is created by an approval.
+
+### Approved fee reductions
+
+`fee_discounts` stores revisioned dated school rules and explicit amount, source,
+overlap, staff-role and independent-approval choices. `fee_discount_runs` retains
+immutable reviewed original-holder credit snapshots and encrypted private evidence.
+SQL guards require exact sealed linked credit notes, learner/year/currency identity,
+valid approval transitions and one posted rule/learner/year. No duplicate balance
+projection is created; existing fee credits supply ledger/reconciliation history.
+
+### Enrolment fee proration
+
+`fee_lifecycle_policies` is school/year-owned and revisioned. Explicit join, leaver
+and installment choices feed canonical rate/bill previews. Immutable bill snapshots
+retain original annual cents, actual enrolment, exact policy/units, charged period
+and installment budgets. Existing invoice line/seal checks bind those original
+reviewed amounts and periods; no original financial row is rewritten.
+
+### Later leaver credits
+
+`fee_leaver_policies` stores explicit handling for prior policyless ledger invoices,
+existing reductions and independent approval. `fee_leaver_runs` retains immutable
+reviewed original contract/attendance/payer-credit snapshots and encrypted Finance
+evidence. Tenant FKs and SQL guards bind exact sealed original tuition credits,
+learner/year/currency, states and approval. Existing invoices remain unchanged;
+prior leaver credits are counted separately from permanent own payer reductions.
+
+### Reserved manual fee refunds
+
+`fee_refund_policies` holds explicit school cash/EFT and approval choices. Immutable
+`fee_refunds` reviews bind original payment, holder, learner pin, currency, amount,
+policy snapshot and encrypted evidence. Append-only `fee_refund_actions` records
+reservation, verified payout or cancellation with exact two-sided ledger entries
+and unique payout-reference hashes. `fee_refund` is a nonnegative fees liability;
+held/paid amounts reduce only the original receipt credit. No receipt, original
+invoice or allocation is rewritten.
