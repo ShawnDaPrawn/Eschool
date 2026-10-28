@@ -8,3 +8,8 @@ Money is validated as integer cents before generated DTO parsing. Mutations reta
 one operation UUID for uncertain retries. Session boundaries clear private state
 when school/account/token/roles/children/module access changes. Wallet creation
 issues a zero-balance ledger account; funding and commerce are subsequent increments.
+
+Parent deposits request verification of already-paid cash/EFT; they never credit
+optimistically or enter school master funding. Finance-verification receipts retain
+requested and actual cents. Unknown claim outcomes use the same opaque permanent
+operation recovery as transfers. Gateway execution remains deferred.

@@ -163,3 +163,69 @@ Map<String, dynamic> walletTransferPageFixture({
   'total': items.length,
   'items': items,
 };
+
+Map<String, dynamic> walletDepositReceiptFixture({
+  String operation = '00000000-0000-4000-8000-000000000401',
+  int viewer = 21,
+  String status = 'pending',
+  int requestedCents = 2000,
+  int verifiedCents = 2000,
+  String method = 'eft',
+  String reference = 'PARENT-DEPOSIT-001',
+  String paidOn = '2026-06-15',
+}) => {
+  'id': 401,
+  'reference': 'WD-401',
+  'school_id': 1,
+  'actor_user_id': viewer,
+  'operation_id': operation,
+  'wallet_id': 6,
+  'currency': 'ZAR',
+  'requested_cents': requestedCents,
+  'requested_method': method,
+  'requested_reference': reference,
+  'paid_on': paidOn,
+  'status': status,
+  'reason_code': switch (status) {
+    'verified' => 'verified',
+    'cancelled' => 'withdrawn',
+    'rejected' => 'not_verified',
+    _ => null,
+  },
+  'created_at': '2026-06-15T09:00:00.000000Z',
+  'processed_at': status == 'pending' ? null : '2026-06-15T09:01:00.000000Z',
+  'verified_receipt': status == 'verified'
+      ? {
+          'reference': 'WP-501',
+          'currency': 'ZAR',
+          'amount_cents': verifiedCents,
+          'method': method,
+          'source_reference': 'BANK-VERIFIED-001',
+          'received_on': paidOn,
+          'collected_by': 'school',
+          'fee_cents': 0,
+          'net_cents': verifiedCents,
+          'settlement_reference': method == 'eft' ? 'BANK-VERIFIED-001' : null,
+        }
+      : null,
+};
+
+Map<String, dynamic> walletDepositPageFixture({
+  int viewer = 21,
+  bool configured = false,
+  bool readOnly = false,
+  List<Map<String, dynamic>> items = const [],
+}) => {
+  'school_id': 1,
+  'actor_user_id': viewer,
+  'currency': 'ZAR',
+  'is_parent': viewer == 21,
+  'read_only': readOnly,
+  'can_submit': viewer == 21 && configured && !readOnly,
+  'cash_allowed': viewer == 21 && configured,
+  'eft_allowed': viewer == 21 && configured,
+  'current_page': 1,
+  'per_page': 30,
+  'total': items.length,
+  'items': items,
+};

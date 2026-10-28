@@ -47,6 +47,12 @@ void main() {
           'code': 200,
           'data': walletTransferPageFixture(viewer: 12),
         },
+        'GET v2/wallets/deposits': {
+          'error': false,
+          'message': '',
+          'code': 200,
+          'data': walletDepositPageFixture(viewer: 12),
+        },
         'GET v2/wallets/6/desk-topups': {
           'error': false,
           'message': '',

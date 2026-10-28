@@ -50,6 +50,9 @@ class OpenApiContractTest extends TestCase
     public static function scenarios(): array
     {
         return [
+            'listPersonalWalletDeposits requires authentication' => [null, 'GET', 'api/v2/wallets/deposits', [], 401],
+            'requestPersonalWalletDeposit requires authentication' => [null, 'POST', 'api/v2/wallets/deposits', [], 401],
+            'cancelPersonalWalletDeposit requires authentication' => [null, 'POST', 'api/v2/wallets/deposits/1/cancel', [], 401],
             'listPersonalWalletTransfers requires authentication' => [null, 'GET', 'api/v2/wallets/transfers', [], 401],
             'transferPersonalWalletMoney requires authentication' => [null, 'POST', 'api/v2/wallets/transfers', [], 401],
             'resolvePersonalWalletOperation requires authentication' => [null, 'POST', 'api/v2/wallets/operations/00000000-0000-4000-8000-000000000001/resolve', [], 401],

@@ -1201,6 +1201,13 @@ import 'package:eschool_api/src/model/upload_identified_incident_photo_response.
 import 'package:eschool_api/src/model/validation_errors.dart';
 import 'package:eschool_api/src/model/wallet_controls.dart';
 import 'package:eschool_api/src/model/wallet_controls_change.dart';
+import 'package:eschool_api/src/model/wallet_deposit_cancel_write.dart';
+import 'package:eschool_api/src/model/wallet_deposit_claim_write.dart';
+import 'package:eschool_api/src/model/wallet_deposit_page.dart';
+import 'package:eschool_api/src/model/wallet_deposit_page_response.dart';
+import 'package:eschool_api/src/model/wallet_deposit_receipt.dart';
+import 'package:eschool_api/src/model/wallet_deposit_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_deposit_receipt_verified_receipt.dart';
 import 'package:eschool_api/src/model/wallet_desk_receipt.dart';
 import 'package:eschool_api/src/model/wallet_desk_receipt_page.dart';
 import 'package:eschool_api/src/model/wallet_desk_receipt_page_response.dart';
@@ -5423,6 +5430,31 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'WalletControlsChange':
       return WalletControlsChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositCancelWrite':
+      return WalletDepositCancelWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositClaimWrite':
+      return WalletDepositClaimWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositPage':
+      return WalletDepositPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositPageResponse':
+      return WalletDepositPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositReceipt':
+      return WalletDepositReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDepositReceiptResponse':
+      return WalletDepositReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletDepositReceiptVerifiedReceipt':
+      return WalletDepositReceiptVerifiedReceipt.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'WalletDeskReceipt':
       return WalletDeskReceipt.fromJson(value as Map<String, dynamic>)

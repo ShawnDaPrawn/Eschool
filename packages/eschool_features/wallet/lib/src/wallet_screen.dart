@@ -6,6 +6,7 @@ import 'wallet_cubit.dart';
 import 'wallet_repository.dart';
 import 'wallet_text.dart';
 import 'wallet_transfer_section.dart';
+import 'wallet_deposit_section.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({required this.repository, super.key});
@@ -79,6 +80,9 @@ class _WalletViewState extends State<_WalletView> {
                       cubit.transfers?.canTransfer == true ||
                       (cubit.transfers?.total ?? 0) > 0)
                     WalletTransferSection(cubit: cubit),
+                  if (cubit.deposits?.isParent == true ||
+                      (cubit.deposits?.total ?? 0) > 0)
+                    WalletDepositSection(cubit: cubit),
                   if (statement == null) ...[
                     Text(
                       tr('Your own and authorised child wallets'),

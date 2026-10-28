@@ -32,10 +32,13 @@ transfer history refused down. New transfers and committed/abandoned recovery th
 reconciled. The synthetic old fixture's inactive leaver had to be reactivated before
 using it as an eligible child; no financial history was changed.
 
-Two local family Chrome debug startups exhausted the constrained local memory;
-neither is a passing app journey. A profile-mode run is being qualified separately.
-Actual Parent Chrome/Android, complete final-source CI/review, SDK reproducibility,
-configured panel and docs checks remain hosted qualification requirements. Parent deposits, withdrawals, commerce and
+Two local family Chrome debug startups exhausted constrained memory. A subsequent
+profile-mode learner/Parent journey passed after explicitly registering the mock
+text input required by Flutter integration tests outside debug mode. The temporary
+diagnostic was excluded from the published feature. Current deposit qualification
+also passes the actual learner/Parent transfer, claim/receipt and revocation journey.
+Actual Android, complete exact-source CI/review and SDK reproducibility remain
+hosted qualification requirements. Parent deposits, withdrawals, commerce and
 later increments remain active delivery. Hosted exact-source CI/review/main,
 staging/devices, fluent languages and independent financial acceptance are separate
 records. Payment gateways and production activation remain deferred.

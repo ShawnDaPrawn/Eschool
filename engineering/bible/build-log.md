@@ -835,3 +835,13 @@ private transfer receipts and durable recovery of interrupted money requests.
 Concurrency and app recovery checks are recorded in self-tests/money/parent-wallet-
 transfers.md. Parent outside deposits and Finance verification remain 8C2; gateways
 remain deferred. This does not close increment 8 or Phase 5.
+
+## 2026-10-28 — original-parent deposits and independent verification
+
+Increment8C2 records already-paid cash/EFT claims without posting money, then
+independent Finance verifies actual receipt and credits the original parent wallet.
+The school explicitly configures methods separately from master funding. Immutable
+claims/outcomes, private proof, shared external identity, cash custodian, personal
+receipts, recovery and reconciliation are retained. See self-tests/money/parent-
+wallet-deposits.md for executed qualification. Withdrawals, cash-up, commerce and
+6D payer/late-charge work remain; gateways stay deferred.

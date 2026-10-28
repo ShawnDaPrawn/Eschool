@@ -57,3 +57,7 @@ are tracked in money/desk-wallet-topups.md. Parent funding/transfers and increme
 Parent transfer and interrupted-request recovery evidence is tracked in
 money/parent-wallet-transfers.md. Parent deposit verification remains 8C2, and
 6D payer corrections/late charges plus increments9–15 remain required.
+
+Parent deposit evidence is tracked in money/parent-wallet-deposits.md: independently
+verified original-parent receipts, no-money claims, private proof, safe recovery,
+Finance browser and app qualification. This does not close Phase5 or increments9–15.

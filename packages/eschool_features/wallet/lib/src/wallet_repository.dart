@@ -38,7 +38,24 @@ abstract interface class WalletMoneyRepository {
   Future<WalletOperationResolution> resolve(String operation);
 }
 
-class ApiWalletRepository implements WalletRepository, WalletMoneyRepository {
+abstract interface class WalletDepositRepository {
+  Future<WalletDepositPage> deposits({int page = 1, int perPage = 30});
+  Future<WalletDepositReceipt> requestDeposit({
+    required int amountCents,
+    required String method,
+    required String reference,
+    required String paidOn,
+    required String evidence,
+    required String operation,
+  });
+  Future<WalletDepositReceipt> cancelDeposit(int claim, String operation);
+}
+
+class ApiWalletRepository
+    implements
+        WalletRepository,
+        WalletMoneyRepository,
+        WalletDepositRepository {
   ApiWalletRepository(
     this.client, {
     required this.schoolId,
@@ -53,6 +70,8 @@ class ApiWalletRepository implements WalletRepository, WalletMoneyRepository {
   final Set<int> _owners = {}, _wallets = {};
   final Map<int, int> _walletOwners = {};
   String? _currency;
+  WalletDepositPage? _depositCapabilities;
+  final Set<int> _depositClaims = {};
   @override
   bool get isActive =>
       schoolId > 0 &&
@@ -243,6 +262,201 @@ class ApiWalletRepository implements WalletRepository, WalletMoneyRepository {
   bool _uuid(String value) => RegExp(
     r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
   ).hasMatch(value);
+
+  void _depositReceipt(WalletDepositReceipt row) {
+    final verified = row.verifiedReceipt;
+    final pending = row.status == WalletDepositReceiptStatusEnum.pending;
+    final credited = row.status == WalletDepositReceiptStatusEnum.verified;
+    final reason = row.reasonCode;
+    if (row.id < 1 ||
+        row.reference != 'WD-${row.id}' ||
+        row.schoolId != schoolId ||
+        row.actorUserId != accountId ||
+        !_uuid(row.operationId) ||
+        row.walletId < 1 ||
+        (_walletOwners[row.walletId] != null &&
+            _walletOwners[row.walletId] != accountId) ||
+        row.currency != _currency ||
+        row.requestedCents < 1 ||
+        row.requestedCents > 100000000000 ||
+        row.requestedMethod ==
+            WalletDepositReceiptRequestedMethodEnum.unknownDefaultOpenApi ||
+        !_receiptReference(row.requestedReference) ||
+        row.status == WalletDepositReceiptStatusEnum.unknownDefaultOpenApi ||
+        reason == WalletDepositReceiptReasonCodeEnum.unknownDefaultOpenApi ||
+        pending != (row.processedAt == null) ||
+        pending != (reason == null) ||
+        credited != (verified != null) ||
+        (credited && reason != WalletDepositReceiptReasonCodeEnum.verified) ||
+        (row.status == WalletDepositReceiptStatusEnum.cancelled &&
+            reason != WalletDepositReceiptReasonCodeEnum.withdrawn) ||
+        (row.status == WalletDepositReceiptStatusEnum.rejected &&
+            ![
+              WalletDepositReceiptReasonCodeEnum.notVerified,
+              WalletDepositReceiptReasonCodeEnum.duplicate,
+              WalletDepositReceiptReasonCodeEnum.requestIncorrect,
+            ].contains(reason))) {
+      _invalid();
+    }
+    if (verified != null) {
+      if (!RegExp(r'^WP-[1-9][0-9]*$').hasMatch(verified.reference) ||
+          verified.currency != row.currency ||
+          verified.amountCents < 1 ||
+          verified.amountCents > 100000000000 ||
+          verified.feeCents != 0 ||
+          verified.netCents != verified.amountCents ||
+          verified.collectedBy !=
+              WalletDepositReceiptVerifiedReceiptCollectedByEnum.school ||
+          verified.method ==
+              WalletDepositReceiptVerifiedReceiptMethodEnum
+                  .unknownDefaultOpenApi ||
+          !_receiptReference(verified.sourceReference) ||
+          (verified.method == WalletDepositReceiptVerifiedReceiptMethodEnum.eft
+              ? verified.settlementReference != verified.sourceReference
+              : verified.settlementReference != null)) {
+        _invalid();
+      }
+    }
+  }
+
+  bool _receiptReference(String value) =>
+      RegExp(r'^[A-Z0-9][A-Z0-9 ._:/-]{0,95}$').hasMatch(value) &&
+      value == value.trim() &&
+      !value.contains('  ');
+
+  @override
+  Future<WalletDepositPage> deposits({int page = 1, int perPage = 30}) async {
+    if (page < 1 || page > 1000000 || perPage < 1 || perPage > 50) {
+      throw ArgumentError('Use a supported deposit page.');
+    }
+    final out = WalletDepositPage.fromJson(
+      await _send(
+        'GET',
+        '/deposits',
+        query: {'page': page, 'per_page': perPage},
+      ),
+    );
+    if (out.schoolId != schoolId ||
+        out.actorUserId != accountId ||
+        out.currency != _currency ||
+        out.currentPage != page ||
+        out.perPage != perPage ||
+        out.total < 0 ||
+        out.items.length > perPage ||
+        out.items.length > out.total ||
+        out.items.map((r) => r.id).toSet().length != out.items.length ||
+        (out.canSubmit &&
+            (!out.isParent ||
+                out.readOnly ||
+                out.currency == null ||
+                (!out.cashAllowed && !out.eftAllowed))) ||
+        (!out.isParent && (out.cashAllowed || out.eftAllowed))) {
+      _invalid();
+    }
+    for (final row in out.items) {
+      _depositReceipt(row);
+    }
+    _depositCapabilities = out;
+    _depositClaims
+      ..clear()
+      ..addAll(out.items.map((row) => row.id));
+    return out;
+  }
+
+  @override
+  Future<WalletDepositReceipt> requestDeposit({
+    required int amountCents,
+    required String method,
+    required String reference,
+    required String paidOn,
+    required String evidence,
+    required String operation,
+  }) async {
+    final allowed = _depositCapabilities;
+    if (allowed == null ||
+        !allowed.canSubmit ||
+        !['cash', 'eft'].contains(method) ||
+        (method == 'cash' ? !allowed.cashAllowed : !allowed.eftAllowed)) {
+      throw ApiException(
+        'Parent deposit methods changed. Refresh Wallets.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+    if (amountCents < 1 || amountCents > 100000000000 || !_uuid(operation)) {
+      throw ArgumentError('Use supported parent deposit details.');
+    }
+    final canonical = reference
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .toUpperCase();
+    if (!_receiptReference(canonical)) {
+      throw ArgumentError('Use a supported receipt reference.');
+    }
+    final amount =
+        '${amountCents ~/ 100}.${(amountCents % 100).toString().padLeft(2, '0')}';
+    final out = WalletDepositReceipt.fromJson(
+      await _send(
+        'POST',
+        '/deposits',
+        data: {
+          'operation_id': operation,
+          'amount': amount,
+          'method': method,
+          'source_reference': canonical,
+          'paid_on': paidOn,
+          'evidence': evidence,
+          'confirmed': true,
+        },
+        operation: operation,
+      ),
+    );
+    _depositReceipt(out);
+    final date =
+        '${out.paidOn.year.toString().padLeft(4, '0')}-${out.paidOn.month.toString().padLeft(2, '0')}-${out.paidOn.day.toString().padLeft(2, '0')}';
+    if (out.operationId != operation ||
+        out.requestedCents != amountCents ||
+        out.requestedMethod.value != method ||
+        out.requestedReference != canonical ||
+        date != paidOn) {
+      _invalid();
+    }
+    _depositClaims.add(out.id);
+    return out;
+  }
+
+  @override
+  Future<WalletDepositReceipt> cancelDeposit(
+    int claim,
+    String operation,
+  ) async {
+    final allowed = _depositCapabilities;
+    if (!_depositClaims.contains(claim) ||
+        allowed == null ||
+        !allowed.isParent ||
+        allowed.readOnly ||
+        !_uuid(operation)) {
+      throw ApiException(
+        'Your wallet access changed. Reopen Wallets.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+    final out = WalletDepositReceipt.fromJson(
+      await _send(
+        'POST',
+        '/deposits/$claim/cancel',
+        data: {'operation_id': operation, 'confirmed': true},
+        operation: operation,
+      ),
+    );
+    _depositReceipt(out);
+    if (out.id != claim ||
+        out.status != WalletDepositReceiptStatusEnum.cancelled) {
+      _invalid();
+    }
+    return out;
+  }
 
   void _summary({
     required int id,

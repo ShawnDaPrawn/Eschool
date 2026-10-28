@@ -41,4 +41,6 @@ parameters:
         - database/migrations/2026_10_28_110000_add_wallet_master_funding.php
         - database/migrations/2026_10_28_120000_add_desk_wallet_topups.php
         - database/migrations/2026_10_28_130000_add_parent_wallet_transfers.php
+        - database/migrations/2026_10_28_140000_add_verified_parent_wallet_deposits.php
+        - app/Http/Middleware/RequireWalletDepositAuthority.php
     noUnnecessaryCollectionCall: false

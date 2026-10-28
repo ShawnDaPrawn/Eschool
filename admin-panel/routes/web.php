@@ -75,6 +75,7 @@ use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
+use App\Http\Controllers\Panel\Money\WalletDepositPanelController;
 use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
@@ -391,6 +392,15 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('{topup}/receipt', [WalletDeskPanelController::class, 'receipt'])->whereNumber('topup')->name('receipt');
             Route::post('{topup}/release', [WalletDeskPanelController::class, 'release'])->whereNumber('topup')->name('release');
             Route::post('{topup}/cancel', [WalletDeskPanelController::class, 'cancel'])->whereNumber('topup')->name('cancel');
+        });
+        Route::prefix('wallet-deposits')->name('wallet-deposits.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            $c = WalletDepositPanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('policy', [$c, 'policy'])->name('policy');
+            Route::get('{claim}', [$c, 'show'])->whereNumber('claim')->name('show');
+            Route::post('{claim}/verify', [$c, 'verify'])->whereNumber('claim')->name('verify');
+            Route::post('{claim}/reject', [$c, 'reject'])->whereNumber('claim')->name('reject');
+            Route::get('{claim}/receipt', [$c, 'receipt'])->whereNumber('claim')->name('receipt');
         });
         Route::prefix('wallet-funding')->name('wallet-funding.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
             Route::get('/', [WalletFundingPanelController::class, 'index'])->name('index');

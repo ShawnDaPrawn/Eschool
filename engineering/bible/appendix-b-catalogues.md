@@ -1,5 +1,11 @@
 # Appendix B: module and notification catalogues
 
+Parent deposits reuse the wallet module and wallet-finance-manage for independent
+Finance review. Verified Parent own-wallet claims require no fee authority.
+Manual parent-method settings are separate from school master funding. Existing
+actor-scoped operation recovery handles interrupted claims/cancellations. No
+notification transport, gateway, payment execution or provider spend is activated.
+
 Phase 5 fee-plan configuration and annual-rate preview use the existing `fees`
 module and the explicit school permission `fee-plans-manage` (Super Admin default;
 grant explicitly to custom Finance roles). No new payment method, wallet/vendor

@@ -21,6 +21,7 @@ void main() {
         final actor = parent ? 21 : 11;
         var allowed = true;
         final transfers = <Map<String, dynamic>>[];
+        final deposits = <Map<String, dynamic>>[];
         final statement = walletStatementFixture();
         statement['owner_user_id'] = 11;
         statement['can_manage_limits'] = parent;
@@ -112,6 +113,23 @@ void main() {
                 1000;
             return response(receipt);
           },
+          'GET v2/wallets/deposits': (RequestOptions _) => response(
+            walletDepositPageFixture(
+              viewer: actor,
+              configured: parent,
+              items: deposits,
+            ),
+          ),
+          'POST v2/wallets/deposits': (RequestOptions q) {
+            final body = q.data as Map;
+            final receipt = walletDepositReceiptFixture(
+              operation: body['operation_id'] as String,
+              reference: body['source_reference'] as String,
+              paidOn: body['paid_on'] as String,
+            );
+            deposits.add(receipt);
+            return response(receipt);
+          },
           'GET v2/wallets/7/statement': (RequestOptions _) =>
               response(statement),
           'GET v2/wallets/7/desk-topups': (RequestOptions _) =>
@@ -175,6 +193,76 @@ void main() {
           );
           await tapWhenReady(tester, find.text('Open wallet statement').last);
           await pumpUntilFound(tester, find.text('ZAR 60.00'));
+          await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          await pumpUntilFound(
+            tester,
+            find.byType(DropdownButtonFormField<String>),
+          );
+          await tester.ensureVisible(
+            find.byType(DropdownButtonFormField<String>).last,
+          );
+          await tester.tap(find.byType(DropdownButtonFormField<String>).last);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('EFT already paid').last);
+          await tester.pumpAndSettle();
+          Future<void> enterDeposit(String label, String value) async {
+            final field = find.byWidgetPredicate(
+              (w) => w is TextField && w.decoration?.labelText == label,
+            );
+            await tester.ensureVisible(field);
+            await tester.enterText(field, value);
+          }
+
+          await enterDeposit('Amount already paid', '20.00');
+          await enterDeposit(
+            'Cash receipt or bank transaction reference',
+            'PARENT-DEPOSIT-001',
+          );
+          await enterDeposit('Paid date (YYYY-MM-DD)', '2026-06-15');
+          await enterDeposit(
+            'Private receipt details for Finance',
+            'Private synthetic native parent proof',
+          );
+          await tapWhenReady(
+            tester,
+            find.text(
+              'I already paid this deposit and understand that Finance must verify it before crediting my wallet.',
+            ),
+          );
+          await tapWhenReady(
+            tester,
+            find.text('Submit deposit for verification'),
+          );
+          await tester.pumpAndSettle();
+          await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          await pumpUntilFound(tester, find.text('WD-401'));
+          expect(find.text('Awaiting Finance verification'), findsOneWidget);
+          expect(
+            find.text('Private synthetic native parent proof'),
+            findsNothing,
+          );
+          expect(
+            ((index['owners'] as List).first['wallets'] as List)
+                .first['balance_cents'],
+            1000,
+          );
+          final original = deposits.single;
+          deposits[0] = walletDepositReceiptFixture(
+            operation: original['operation_id'] as String,
+            status: 'verified',
+            verifiedCents: 1950,
+          );
+          ((index['owners'] as List).first['wallets'] as List)
+                  .first['balance_cents'] =
+              2950;
+          await tester.tap(find.byTooltip('Refresh wallets'));
+          await tester.pumpAndSettle();
+          await tapWhenReady(tester, find.text('Parent wallet deposits'));
+          await pumpUntilFound(tester, find.text('WP-501'));
+          expect(
+            find.text('Actual verified amount: ZAR 19.50'),
+            findsOneWidget,
+          );
         }
         allowed = false;
         await tester.tap(find.byTooltip('Refresh wallets'));
@@ -185,6 +273,8 @@ void main() {
         expect(find.text('Asha Synthetic'), findsNothing);
         expect(find.text('WT-201'), findsNothing);
         expect(find.text('WX-301'), findsNothing);
+        expect(find.text('WD-401'), findsNothing);
+        expect(find.text('WP-501'), findsNothing);
         final reads = api.requests.where(
           (q) => q.uri.path.contains('/v2/wallets'),
         );

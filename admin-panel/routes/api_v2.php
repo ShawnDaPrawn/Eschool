@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
 use App\Http\Controllers\Api\V2\Money\WalletController;
+use App\Http\Controllers\Api\V2\Money\WalletDepositController;
 use App\Http\Controllers\Api\V2\Money\WalletTransferController;
 use App\Http\Controllers\Api\V2\Pastoral\CoverController;
 use App\Http\Controllers\Api\V2\Pastoral\SupportController;
@@ -90,6 +91,7 @@ use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
 use App\Http\Middleware\RequireWalletAuthority;
+use App\Http\Middleware\RequireWalletDepositAuthority;
 use App\Services\Recognition\RecognitionQueries;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -399,6 +401,9 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
 Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {
     $c = WalletController::class;
     Route::get('/', [$c, 'index'])->name('index');
+    Route::get('deposits', [WalletDepositController::class, 'index'])->name('deposits.index');
+    Route::post('deposits', [WalletDepositController::class, 'claim'])->middleware([RequireWalletDepositAuthority::class, 'throttle:money', 'idempotent:required'])->name('deposits.claim');
+    Route::post('deposits/{claim}/cancel', [WalletDepositController::class, 'cancel'])->whereNumber('claim')->middleware([RequireWalletDepositAuthority::class, 'throttle:money', 'idempotent:required'])->name('deposits.cancel');
     Route::get('transfers', [WalletTransferController::class, 'index'])->name('transfers');
     Route::post('transfers', [WalletTransferController::class, 'transfer'])->middleware([RequireWalletAuthority::class.':transfer', 'throttle:money', 'idempotent:required'])->name('transfer');
     Route::post('operations/{operation}/resolve', [WalletTransferController::class, 'resolve'])->whereUuid('operation')->middleware('throttle:money')->name('resolve');

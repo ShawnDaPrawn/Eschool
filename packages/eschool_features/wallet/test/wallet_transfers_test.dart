@@ -68,6 +68,8 @@ class Server {
               : [],
         ),
       ),
+      'GET v2/wallets/deposits': (RequestOptions _) =>
+          ok(walletDepositPageFixture()),
       'POST v2/wallets/transfers': (RequestOptions q) {
         writes++;
         lastOperation = (q.data as Map)['operation_id'] as String;
@@ -159,7 +161,7 @@ void main() {
       expect(await store.read(1, 21), {operation});
       server.failResolution = false;
       expect(await cubit.resolvePending(), isTrue);
-      expect(cubit.resolutionMessage, contains('No money moved'));
+      expect(cubit.resolutionMessage, contains('was safely closed'));
       expect(server.writes, 0);
       await cubit.close();
     },
@@ -214,6 +216,7 @@ void main() {
       expect(cubit.state.statement, isNull);
       expect(cubit.state.deskReceipts, isNull);
       expect(cubit.transfers, isNull);
+      expect(cubit.deposits, isNull);
       await cubit.close();
     },
   );

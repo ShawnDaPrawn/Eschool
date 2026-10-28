@@ -1245,6 +1245,13 @@ lib/src/model/upload_identified_incident_photo_response.dart
 lib/src/model/validation_errors.dart
 lib/src/model/wallet_controls.dart
 lib/src/model/wallet_controls_change.dart
+lib/src/model/wallet_deposit_cancel_write.dart
+lib/src/model/wallet_deposit_claim_write.dart
+lib/src/model/wallet_deposit_page.dart
+lib/src/model/wallet_deposit_page_response.dart
+lib/src/model/wallet_deposit_receipt.dart
+lib/src/model/wallet_deposit_receipt_response.dart
+lib/src/model/wallet_deposit_receipt_verified_receipt.dart
 lib/src/model/wallet_desk_receipt.dart
 lib/src/model/wallet_desk_receipt_page.dart
 lib/src/model/wallet_desk_receipt_page_response.dart

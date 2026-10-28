@@ -26257,6 +26257,138 @@ paths:
         '422': *id007
         '429': *id008
         '500': *id009
+  /wallets/deposits:
+    get:
+      operationId: listPersonalWalletDeposits
+      tags:
+      - Wallets
+      summary: Read your wallet deposit requests and verified receipts
+      description: Current school and actor authority applies before replay. Claims create no money. An independent
+        Finance verifier records actual receipts against the immutable original parent wallet. Private proof never
+        enters receipts. No outside payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Read your wallet deposit requests and verified receipts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDepositPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: requestPersonalWalletDeposit
+      tags:
+      - Wallets
+      summary: Request independent verification of an already paid parent deposit
+      description: Current school and actor authority applies before replay. Claims create no money. An independent
+        Finance verifier records actual receipts against the immutable original parent wallet. Private proof never
+        enters receipts. No outside payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Request independent verification of an already paid parent deposit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDepositReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletDepositClaimWrite'
+  /wallets/deposits/{claim}/cancel:
+    post:
+      operationId: cancelPersonalWalletDeposit
+      tags:
+      - Wallets
+      summary: Withdraw your pending deposit verification request
+      description: Current school and actor authority applies before replay. Claims create no money. An independent
+        Finance verifier records actual receipts against the immutable original parent wallet. Private proof never
+        enters receipts. No outside payment is executed.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: claim
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '200':
+          description: Withdraw your pending deposit verification request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDepositReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletDepositCancelWrite'
   /wallets:
     get:
       operationId: listPersonalWallets
@@ -60204,5 +60336,298 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/WalletOperationResolution'
+        code:
+          type: integer
+
+    WalletDepositReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - reference
+      - school_id
+      - actor_user_id
+      - operation_id
+      - wallet_id
+      - currency
+      - requested_cents
+      - requested_method
+      - requested_reference
+      - paid_on
+      - status
+      - reason_code
+      - created_at
+      - processed_at
+      - verified_receipt
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: ^WD-[0-9]+$
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        requested_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        requested_method:
+          type: string
+          enum:
+          - cash
+          - eft
+        requested_reference:
+          type: string
+          pattern: ^[A-Z0-9][A-Z0-9 ._:/-]{0,95}$
+        paid_on:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+          - pending
+          - verified
+          - cancelled
+          - rejected
+        reason_code:
+          type:
+          - string
+          - 'null'
+          enum:
+          - null
+          - verified
+          - withdrawn
+          - not_verified
+          - duplicate
+          - request_incorrect
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_receipt:
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          required:
+          - reference
+          - currency
+          - amount_cents
+          - method
+          - source_reference
+          - received_on
+          - collected_by
+          - fee_cents
+          - net_cents
+          - settlement_reference
+          properties:
+            reference:
+              type: string
+              pattern: ^WP-[0-9]+$
+            currency:
+              type: string
+              pattern: ^[A-Z]{3}$
+            amount_cents:
+              type: integer
+              format: int64
+              minimum: 1
+              maximum: 100000000000
+            method:
+              type: string
+              enum:
+              - cash
+              - eft
+            source_reference:
+              type: string
+              pattern: ^[A-Z0-9][A-Z0-9 ._:/-]{0,95}$
+            received_on:
+              type: string
+              format: date
+            collected_by:
+              type: string
+              enum:
+              - school
+            fee_cents:
+              type: integer
+              format: int64
+              minimum: 0
+              maximum: 0
+            net_cents:
+              type: integer
+              format: int64
+              minimum: 1
+              maximum: 100000000000
+            settlement_reference:
+              type:
+              - string
+              - 'null'
+              maxLength: 96
+    WalletDepositPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - currency
+      - is_parent
+      - read_only
+      - can_submit
+      - cash_allowed
+      - eft_allowed
+      - current_page
+      - per_page
+      - total
+      - items
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Z]{3}$
+        is_parent:
+          type: boolean
+        read_only:
+          type: boolean
+        can_submit:
+          type: boolean
+        cash_allowed:
+          type: boolean
+        eft_allowed:
+          type: boolean
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletDepositReceipt'
+    WalletDepositClaimWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - amount
+      - method
+      - source_reference
+      - paid_on
+      - evidence
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          pattern: ^\d{1,10}(?:\.\d{1,2})?$
+        method:
+          type: string
+          enum:
+          - cash
+          - eft
+        source_reference:
+          type: string
+          minLength: 1
+          maxLength: 96
+        paid_on:
+          type: string
+          format: date
+        evidence:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        confirmed:
+          type: boolean
+          description: Must be true to acknowledge that Finance must independently verify the claimed deposit.
+    WalletDepositCancelWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        confirmed:
+          type: boolean
+          description: Must be true to withdraw this pending verification request without moving money.
+    WalletDepositReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletDepositReceipt'
+        code:
+          type: integer
+    WalletDepositPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletDepositPage'
         code:
           type: integer

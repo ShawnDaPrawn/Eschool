@@ -197,7 +197,7 @@ class ModuleGate
         }
 
         if ($module === 'wallet') {
-            foreach (['wallet_settings', 'wallet_limits', 'wallet_operations', 'wallet_funding_policies', 'wallet_fundings', 'wallet_desk_policies', 'wallet_desk_topups', 'wallet_desk_actions', 'wallet_transfer_policies', 'wallet_transfers'] as $table) {
+            foreach (['wallet_settings', 'wallet_limits', 'wallet_operations', 'wallet_funding_policies', 'wallet_fundings', 'wallet_desk_policies', 'wallet_desk_topups', 'wallet_desk_actions', 'wallet_transfer_policies', 'wallet_transfers', 'wallet_deposit_policies', 'wallet_deposit_claims', 'wallet_parent_deposits', 'wallet_deposit_actions'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
                     return true;
                 }

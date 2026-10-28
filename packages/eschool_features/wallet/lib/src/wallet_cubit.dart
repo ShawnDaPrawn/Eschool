@@ -30,13 +30,21 @@ class WalletCubit extends Cubit<WalletState> {
   final Set<String> _pending = {};
   WalletTransferPage? _transfers;
   WalletTransferReceipt? _lastTransfer;
+  WalletDepositPage? _deposits;
+  WalletDepositReceipt? _lastDeposit;
   String? _resolutionMessage;
   WalletMoneyRepository? get _money => repository is WalletMoneyRepository
       ? repository as WalletMoneyRepository
       : null;
+  WalletDepositRepository? get _depositApi =>
+      repository is WalletDepositRepository
+      ? repository as WalletDepositRepository
+      : null;
   bool get hasPendingMoney => _pending.isNotEmpty;
   WalletTransferPage? get transfers => _transfers;
   WalletTransferReceipt? get lastTransfer => _lastTransfer;
+  WalletDepositPage? get deposits => _deposits;
+  WalletDepositReceipt? get lastDeposit => _lastDeposit;
   String? get resolutionMessage => _resolutionMessage;
   Future<WalletState> Function()? _retry;
   bool get canRetry => _retry != null && !hasPendingMoney;
@@ -99,6 +107,8 @@ class WalletCubit extends Cubit<WalletState> {
   void _clearPrivateMoney() {
     _transfers = null;
     _lastTransfer = null;
+    _deposits = null;
+    _lastDeposit = null;
     _resolutionMessage = null;
   }
 
@@ -112,6 +122,7 @@ class WalletCubit extends Cubit<WalletState> {
     }
     final index = await repository.index();
     if (_money != null) _transfers = await _money!.transfers();
+    if (_depositApi != null) _deposits = await _depositApi!.deposits();
     return WalletState(index: index);
   }, clearView: true);
 
@@ -137,6 +148,9 @@ class WalletCubit extends Cubit<WalletState> {
       final receipt = await _money!.transfer(from, to, amountCents, operation);
       final index = await repository.index();
       final history = await _money!.transfers();
+      final deposits = _depositApi != null
+          ? await _depositApi!.deposits()
+          : null;
       await pendingStore.remove(
         repository.schoolId,
         repository.accountId,
@@ -145,6 +159,7 @@ class WalletCubit extends Cubit<WalletState> {
       _pending.remove(operation);
       _lastTransfer = receipt;
       _transfers = history;
+      _deposits = deposits;
       _resolutionMessage = null;
       return WalletState(index: index);
     }, clearView: true);
@@ -157,6 +172,9 @@ class WalletCubit extends Cubit<WalletState> {
       final outcome = await _money!.resolve(operation);
       final index = await repository.index();
       final history = await _money!.transfers();
+      final deposits = _depositApi != null
+          ? await _depositApi!.deposits()
+          : null;
       await pendingStore.remove(
         repository.schoolId,
         repository.accountId,
@@ -164,10 +182,11 @@ class WalletCubit extends Cubit<WalletState> {
       );
       _pending.remove(operation);
       _transfers = history;
+      _deposits = deposits;
       _resolutionMessage =
           outcome.status == WalletOperationResolutionStatusEnum.committed
-          ? 'The previous wallet request was recorded. Review your balances and transfer history.'
-          : 'No money moved for the interrupted request. You can start again.';
+          ? 'The previous wallet request was recorded. Review your wallet balances and receipts.'
+          : 'The interrupted wallet request was safely closed. Review your receipts before starting again.';
       return WalletState(index: index);
     }, clearView: true);
   }
@@ -177,6 +196,102 @@ class WalletCubit extends Cubit<WalletState> {
     if (_money == null) return Future.value(false);
     return _run(() async {
       _transfers = await _money!.transfers(page: page);
+      return WalletState(index: before.index, statement: before.statement);
+    });
+  }
+
+  Future<bool> requestDeposit({
+    required int amountCents,
+    required String method,
+    required String reference,
+    required String paidOn,
+    required String evidence,
+  }) {
+    if (hasPendingMoney ||
+        _depositApi == null ||
+        _deposits?.canSubmit != true) {
+      return Future.value(false);
+    }
+    final operation = const Uuid().v4();
+    return _run(() async {
+      await pendingStore.put(
+        repository.schoolId,
+        repository.accountId,
+        operation,
+      );
+      _pending.add(operation);
+      if (!repository.isActive) {
+        throw ApiException(
+          'Your wallet access changed. Reopen Wallets.',
+          statusCode: 403,
+          isApiMessage: true,
+        );
+      }
+      final receipt = await _depositApi!.requestDeposit(
+        amountCents: amountCents,
+        method: method,
+        reference: reference,
+        paidOn: paidOn,
+        evidence: evidence,
+        operation: operation,
+      );
+      final index = await repository.index();
+      final deposits = await _depositApi!.deposits();
+      await pendingStore.remove(
+        repository.schoolId,
+        repository.accountId,
+        operation,
+      );
+      _pending.remove(operation);
+      _deposits = deposits;
+      _lastDeposit = receipt;
+      _resolutionMessage = null;
+      return WalletState(index: index);
+    }, clearView: true);
+  }
+
+  Future<bool> cancelDeposit(int claim) {
+    if (hasPendingMoney ||
+        _depositApi == null ||
+        _deposits?.isParent != true ||
+        _deposits!.readOnly) {
+      return Future.value(false);
+    }
+    final operation = const Uuid().v4();
+    return _run(() async {
+      await pendingStore.put(
+        repository.schoolId,
+        repository.accountId,
+        operation,
+      );
+      _pending.add(operation);
+      if (!repository.isActive) {
+        throw ApiException(
+          'Your wallet access changed. Reopen Wallets.',
+          statusCode: 403,
+          isApiMessage: true,
+        );
+      }
+      final receipt = await _depositApi!.cancelDeposit(claim, operation);
+      final index = await repository.index();
+      final deposits = await _depositApi!.deposits();
+      await pendingStore.remove(
+        repository.schoolId,
+        repository.accountId,
+        operation,
+      );
+      _pending.remove(operation);
+      _deposits = deposits;
+      _lastDeposit = receipt;
+      return WalletState(index: index);
+    }, clearView: true);
+  }
+
+  Future<bool> depositHistory({int page = 1}) {
+    final before = state;
+    if (_depositApi == null) return Future.value(false);
+    return _run(() async {
+      _deposits = await _depositApi!.deposits(page: page);
       return WalletState(index: before.index, statement: before.statement);
     });
   }

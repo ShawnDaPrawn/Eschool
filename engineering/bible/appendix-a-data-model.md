@@ -1,5 +1,16 @@
 # Appendix A: data model reference
 
+## Phase5: verified parent wallet deposits
+
+`wallet_deposit_policies` explicitly enables/pauses parent cash/EFT independently
+of school master funding. Immutable `wallet_deposit_claims` binds original Parent,
+personal wallet, requested cents, date/reference and encrypted proof.
+`wallet_parent_deposits` records independently verified actual cents, exact entry,
+collector/net/settlement, cash custodian and encrypted evidence.
+`wallet_deposit_actions` permits one verified/rejected/cancelled outcome with
+encrypted rejection notes. `financial_receipts` adds the parent domain to prevent
+booking one incoming source through multiple modules.
+
 The tables and columns NavigateEd has added to the seed's schema, phase by phase. It holds only what exists in the code; tables still planned are tracked in the private Build Bible (Appendix A) and are added here when a phase builds them. Engineers extend this page at the end of each phase.
 
 ## Phase 5: fee-plan configuration
