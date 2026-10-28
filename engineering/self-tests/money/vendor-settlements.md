@@ -67,3 +67,15 @@ and aligning the isolated demo fixture's raw legacy cents through its existing
 helper, the full global ledger command passed1/9 after an internal VAT settlement.
 Existing fee credit and VAT suites passed31/282. Fresh Pint and Money PHPStan
 passed for the update. No original financial history was changed by the fix.
+
+Hosted integration follow-up: the ordinary Admin page inventory now explicitly
+asserts403 for the purpose-restricted Vendor counter instead of treating it as an
+Admin page. The Vendor shell loads generated M3 tokens before the component CSS;
+the raw outline fallback was removed. Af/Zu Password and Sign out use the approved
+glossary. Panel/design checks3/20, translation checks5/5 and all five Vendor/Finance
+browser cases passed with the corrected token palette. The four secret-scan
+findings were the exact fixed synthetic fixture passwords. The exception requires
+both their two exact values and two isolated fixture paths; the pinned scanner
+passed all public branch histories (735 commits,59.11MB). Seven already classified
+synthetic identifiers in private local archive commits were not added to the
+public exception. Secret rules and ordinary Vendor refusal assertions stay active.

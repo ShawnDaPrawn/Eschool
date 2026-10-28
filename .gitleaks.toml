@@ -60,3 +60,18 @@ condition = "AND"
 paths = ['''^services/converter/transcription-model\.json$''']
 regexTarget = "secret"
 regexes = ['''^fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab$''']
+
+[[allowlists]]
+description = "Exact public vendor passwords in isolated synthetic fixtures"
+# These two fixed values exercise password setup against FakeApi or a guarded
+# synthetic *_test/eschool_e2e schema. They are not deployed credentials. Restrict
+# the exception to these exact values AND these two fixture paths, including
+# their original history; all other password/key values remain scanned.
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = [
+  '''^admin-panel/e2e/support/vendor-access-fixture\.php$''',
+  '''^e-school-teacher/test/vendor_repository_test\.dart$''',
+]
+regexTarget = "secret"
+regexes = ['''^(SyntheticVendor2026|NewSyntheticVendor2026)$''']
