@@ -206,6 +206,32 @@ class _WalletViewState extends State<_WalletView> {
                         },
                         onCancel: () => setState(() => editing = false),
                       ),
+                    OutlinedButton(
+                      onPressed: state.busy
+                          ? null
+                          : () {
+                              setState(() => editing = false);
+                              if (state.deskReceipts == null) {
+                                cubit.deskReceipts(statement.id);
+                              } else {
+                                cubit.hideDeskReceipts();
+                              }
+                            },
+                      child: Text(
+                        tr(
+                          state.deskReceipts == null
+                              ? 'View desk top-up receipts'
+                              : 'Hide desk top-up receipts',
+                        ),
+                      ),
+                    ),
+                    if (state.deskReceipts != null)
+                      _DeskReceipts(
+                        page: state.deskReceipts!,
+                        busy: state.busy,
+                        onPage: (page) =>
+                            cubit.deskReceipts(statement.id, page: page),
+                      ),
                     Text(
                       tr('Wallet statement'),
                       style: Theme.of(context).textTheme.titleLarge,
@@ -444,4 +470,90 @@ class _ControlsState extends State<_Controls> {
           .toSet()
           .toList()
         ..sort();
+}
+
+class _DeskReceipts extends StatelessWidget {
+  const _DeskReceipts({
+    required this.page,
+    required this.busy,
+    required this.onPage,
+  });
+  final WalletDeskReceiptPage page;
+  final bool busy;
+  final void Function(int) onPage;
+  @override
+  Widget build(BuildContext context) {
+    String tr(String s) => walletText(context, s);
+    final labels = MaterialLocalizations.of(context);
+    String date(DateTime value) {
+      final local = value.toLocal();
+      return '${labels.formatMediumDate(local)} ${labels.formatTimeOfDay(TimeOfDay.fromDateTime(local))}';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          tr('Desk top-up receipts'),
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        Text(
+          tr(
+            'School desk credits appear in your balance after required approval.',
+          ),
+        ),
+        if (page.readOnly) Text(tr('Wallet history is read-only.')),
+        if (page.items.isEmpty) Text(tr('No desk top-up receipts yet.')),
+        for (final receipt in page.items)
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    receipt.reference,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(walletAmount(receipt.currency, receipt.amountCents)),
+                  Text(
+                    tr(switch (receipt.status) {
+                      WalletDeskReceiptStatusEnum.pending =>
+                        'Awaiting independent approval',
+                      WalletDeskReceiptStatusEnum.released => 'Credited',
+                      WalletDeskReceiptStatusEnum.cancelled => 'Cancelled',
+                      _ => 'Status unavailable',
+                    }),
+                  ),
+                  Text('${tr('Recorded on')}: ${date(receipt.createdAt)}'),
+                  if (receipt.processedAt != null)
+                    Text(
+                      '${tr('Processed on')}: ${date(receipt.processedAt!)}',
+                    ),
+                ],
+              ),
+            ),
+          ),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            TextButton(
+              onPressed: busy || page.currentPage <= 1
+                  ? null
+                  : () => onPage(page.currentPage - 1),
+              child: Text(tr('Previous receipts')),
+            ),
+            TextButton(
+              onPressed: busy || page.currentPage * page.perPage >= page.total
+                  ? null
+                  : () => onPage(page.currentPage + 1),
+              child: Text(tr('Next receipts')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

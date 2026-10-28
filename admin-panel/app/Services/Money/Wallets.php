@@ -8,6 +8,7 @@ use App\Models\Money\WalletAccount;
 use App\Models\Money\WalletLimit;
 use App\Models\Money\WalletSetting;
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Policies\Money\WalletPolicy;
@@ -28,20 +29,41 @@ final class Wallets
         $data = Validator::make($input, self::openRules())->validate();
         $data['owner_user_id'] = (int) $data['owner_user_id'];
         $receipt = app(WalletOperations::class)->once($actor, 'wallet_open', $data, fn () => app(WalletPolicy::class)->owner($actor, $data['owner_user_id'], true), function () use ($data): array {
-            $settings = WalletSetting::lockForUpdate()->first();
-            abort_unless($settings !== null, 422, 'Finance must configure the school wallet currency and spending rules first.');
-            $prior = WalletAccount::where('user_id', $data['owner_user_id'])->where('currency', $settings->currency)->lockForUpdate()->first();
-            if ($prior !== null) {
-                return ['id' => (int) $prior->id];
-            }
-            $ledger = app(LedgerService::class)->openAccount(AccountType::Wallet, 'wallet:person:'.$data['owner_user_id'].':'.$settings->currency, $settings->currency, $data['owner_user_id']);
-            $wallet = WalletAccount::create(['user_id' => $data['owner_user_id'], 'ledger_account_id' => $ledger, 'currency' => $settings->currency, 'created_at' => now('UTC')]);
-            Audit::record('wallet.account_opened', $wallet, [], ['owner_user_id' => $data['owner_user_id']]);
-
-            return ['id' => (int) $wallet->id];
+            return ['id' => (int) $this->issue($data['owner_user_id'])->id];
         });
 
         return WalletAccount::findOrFail($receipt['id']);
+    }
+
+    /** Internal Finance provisioning for a desk grant; personal API ownership is unchanged. */
+    public function deskOpen(User $actor, int $owner): WalletAccount
+    {
+        return DB::transaction(function () use ($actor, $owner): WalletAccount {
+            $policy = app(WalletPolicy::class);
+            $policy->desk($actor, true);
+            $subject = User::whereIn('id', SchoolMembership::active()->where('school_id', app(CurrentSchool::class)->id())->select('user_id'))->lockForUpdate()->findOrFail($owner);
+            $policy->activePerson($subject);
+            $wallet = $this->issue($owner);
+            $policy->desk($actor, true);
+            $policy->activePerson(User::whereKey($owner)->lockForUpdate()->firstOrFail());
+
+            return $wallet;
+        }, 3);
+    }
+
+    private function issue(int $owner): WalletAccount
+    {
+        $settings = WalletSetting::lockForUpdate()->first();
+        abort_unless($settings !== null, 422, 'Finance must configure the school wallet currency and spending rules first.');
+        $prior = WalletAccount::where('user_id', $owner)->where('currency', $settings->currency)->lockForUpdate()->first();
+        if ($prior !== null) {
+            return $prior;
+        }
+        $ledger = app(LedgerService::class)->openAccount(AccountType::Wallet, 'wallet:person:'.$owner.':'.$settings->currency, $settings->currency, $owner);
+        $wallet = WalletAccount::create(['user_id' => $owner, 'ledger_account_id' => $ledger, 'currency' => $settings->currency, 'created_at' => now('UTC')]);
+        Audit::record('wallet.account_opened', $wallet, [], ['owner_user_id' => $owner]);
+
+        return $wallet;
     }
 
     public function controls(User $actor, int $id, array $input): WalletLimit
@@ -98,6 +120,7 @@ final class Wallets
         $this->paging($page, $perPage);
 
         return DB::transaction(function () use ($actor, $id, $page, $perPage): array {
+            app(WalletPolicy::class)->actor($actor);
             $wallet = WalletAccount::lockForUpdate()->findOrFail($id);
             app(WalletPolicy::class)->owner($actor, (int) $wallet->user_id);
 

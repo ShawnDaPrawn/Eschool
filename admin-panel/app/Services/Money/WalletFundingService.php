@@ -80,7 +80,24 @@ final class WalletFundingService
 
     public function balance(User $actor): array
     {
-        app(WalletPolicy::class)->finance($actor);
+        return DB::transaction(function () use ($actor): array {
+            app(WalletPolicy::class)->finance($actor);
+
+            return $this->balanceProjection();
+        });
+    }
+
+    public function deskBalance(User $actor): array
+    {
+        return DB::transaction(function () use ($actor): array {
+            app(WalletPolicy::class)->desk($actor);
+
+            return $this->balanceProjection();
+        });
+    }
+
+    private function balanceProjection(): array
+    {
         $setting = WalletSetting::first();
         if ($setting === null) {
             return ['currency' => null, 'balance_cents' => 0];

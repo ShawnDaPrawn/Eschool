@@ -11,6 +11,11 @@ abstract interface class WalletRepository {
     int page = 1,
     int perPage = 30,
   });
+  Future<WalletDeskReceiptPage> deskReceipts(
+    int wallet, {
+    int page = 1,
+    int perPage = 30,
+  });
   Future<WalletStatement> open(int owner, String operation);
   Future<WalletStatement> controls(
     int wallet, {
@@ -35,6 +40,8 @@ class ApiWalletRepository implements WalletRepository {
   @override
   final int schoolId, accountId;
   final Set<int> _owners = {}, _wallets = {};
+  final Map<int, int> _walletOwners = {};
+  String? _currency;
   @override
   bool get isActive =>
       schoolId > 0 &&
@@ -169,6 +176,7 @@ class ApiWalletRepository implements WalletRepository {
     final owners = out.owners.map((o) => o.ownerUserId).toSet();
     if (owners.any((id) => id < 1)) _invalid();
     final wallets = <int>{};
+    final walletOwners = <int, int>{};
     for (final owner in out.owners) {
       if (owner.isSelf != (owner.ownerUserId == accountId) ||
           owner.wallets.length > 1 ||
@@ -193,6 +201,7 @@ class ApiWalletRepository implements WalletRepository {
           allowedOwners: owners,
         );
         if (!wallets.add(wallet.id)) _invalid();
+        walletOwners[wallet.id] = owner.ownerUserId;
       }
     }
     _owners
@@ -201,6 +210,10 @@ class ApiWalletRepository implements WalletRepository {
     _wallets
       ..clear()
       ..addAll(wallets);
+    _walletOwners
+      ..clear()
+      ..addAll(walletOwners);
+    _currency = out.currency;
     return out;
   }
 
@@ -209,9 +222,14 @@ class ApiWalletRepository implements WalletRepository {
     int wallet, {
     int page = 1,
     int perPage = 30,
+    int? expectedOwner,
   }) {
     final out = WalletStatement.fromJson(data);
-    if (out.id != wallet) _invalid();
+    if (out.id != wallet ||
+        out.ownerUserId != (expectedOwner ?? _walletOwners[wallet]) ||
+        (_currency != null && out.currency != _currency)) {
+      _invalid();
+    }
     _summary(
       id: out.id,
       school: out.schoolId,
@@ -289,9 +307,66 @@ class ApiWalletRepository implements WalletRepository {
     );
     final id = data['id'];
     if (id is! int) _invalid();
-    final out = _statement(data, id);
+    if (_walletOwners[id] != null && _walletOwners[id] != owner) _invalid();
+    final out = _statement(data, id, expectedOwner: owner);
     if (out.ownerUserId != owner) _invalid();
     _wallets.add(id);
+    _walletOwners[id] = owner;
+    _currency = out.currency;
+    return out;
+  }
+
+  @override
+  Future<WalletDeskReceiptPage> deskReceipts(
+    int wallet, {
+    int page = 1,
+    int perPage = 30,
+  }) async {
+    if (page < 1 || page > 1000000 || perPage < 1 || perPage > 50) {
+      throw ArgumentError('Use a supported receipt page.');
+    }
+    if (!_wallets.contains(wallet)) {
+      throw ApiException(
+        'Your wallet access changed. Reopen Wallets.',
+        statusCode: 403,
+        isApiMessage: true,
+      );
+    }
+    final out = WalletDeskReceiptPage.fromJson(
+      await _send(
+        'GET',
+        '/$wallet/desk-topups',
+        query: {'page': page, 'per_page': perPage},
+      ),
+    );
+    if (out.schoolId != schoolId ||
+        out.actorUserId != accountId ||
+        out.walletId != wallet ||
+        out.ownerUserId != _walletOwners[wallet] ||
+        out.currency != _currency ||
+        out.currentPage != page ||
+        out.perPage != perPage ||
+        out.total < 0 ||
+        out.items.length > perPage ||
+        out.items.length > out.total ||
+        out.items.map((r) => r.id).toSet().length != out.items.length) {
+      _invalid();
+    }
+    for (final row in out.items) {
+      if (row.id < 1 ||
+          row.reference != 'WT-${row.id}' ||
+          row.currency != out.currency ||
+          row.amountCents < 1 ||
+          row.amountCents > 100000000000 ||
+          row.netCents != row.amountCents ||
+          row.feeCents != WalletDeskReceiptFeeCentsEnum.number0 ||
+          row.collectedBy != WalletDeskReceiptCollectedByEnum.school ||
+          row.status == WalletDeskReceiptStatusEnum.unknownDefaultOpenApi ||
+          (row.status == WalletDeskReceiptStatusEnum.pending) !=
+              (row.processedAt == null)) {
+        _invalid();
+      }
+    }
     return out;
   }
 

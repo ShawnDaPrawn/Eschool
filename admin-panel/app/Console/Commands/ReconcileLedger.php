@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Platform\School;
 use App\Services\Money\FeePaymentReconciliation;
+use App\Services\Money\WalletDeskReconciliation;
 use App\Services\Money\WalletFundingReconciliation;
 use App\Services\Platform\Ledger\CentsColumns;
 use App\Services\Platform\Ledger\LedgerService;
@@ -62,13 +63,14 @@ final class ReconcileLedger extends Command
                 // repairs projections only, never entries, receipts or floats.
                 $payments = app(FeePaymentReconciliation::class)->inspect();
                 $walletFunding = app(WalletFundingReconciliation::class)->inspect();
-                $validDomain = FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding);
+                $desk = app(WalletDeskReconciliation::class)->inspect();
+                $validDomain = FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding) && WalletDeskReconciliation::healthy($desk);
                 $repair = $validDomain && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
                 return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
-                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding];
+                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding, ...$desk];
             }));
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
                 || $report['incomplete_invoices'] > 0

@@ -41,6 +41,12 @@ void main() {
           'code': 200,
           'data': walletIndexFixture(viewer: 12),
         },
+        'GET v2/wallets/6/desk-topups': {
+          'error': false,
+          'message': '',
+          'code': 200,
+          'data': walletDeskReceiptsFixture(owner: 12, viewer: 12),
+        },
         'GET v2/wallets/6/statement': {
           'error': false,
           'message': '',
@@ -64,10 +70,14 @@ void main() {
       await tapWhenReady(tester, find.text('Wallets'));
       await tapWhenReady(tester, find.text('Open wallet statement'));
       await pumpUntilFound(tester, find.text('Staff Synthetic'));
+      await tapWhenReady(tester, find.text('View desk top-up receipts'));
+      await pumpUntilFound(tester, find.text('WT-201'));
+      expect(find.text('Awaiting independent approval'), findsOneWidget);
       fixture.permitted = false;
       await tester.runAsync(repo.refresh);
       await tester.pumpAndSettle();
       expect(find.text('Staff Synthetic'), findsNothing);
+      expect(find.text('WT-201'), findsNothing);
       expect(find.text('Wallets'), findsNothing);
       expect(
         fixture.api.requests

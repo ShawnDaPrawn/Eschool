@@ -29,6 +29,9 @@ void main() {
         child['is_self'] = !parent;
         (child['wallets'] as List).first['owner_user_id'] = 11;
         (child['wallets'] as List).first['can_manage_limits'] = parent;
+        final receipts = walletDeskReceiptsFixture();
+        receipts['owner_user_id'] = 11;
+        receipts['actor_user_id'] = actor;
         Object response(Object data) => allowed
             ? ok(data)
             : FakeResponse({
@@ -83,6 +86,8 @@ void main() {
           'GET v2/wallets': (RequestOptions _) => response(index),
           'GET v2/wallets/7/statement': (RequestOptions _) =>
               response(statement),
+          'GET v2/wallets/7/desk-topups': (RequestOptions _) =>
+              response(receipts),
         });
         await tapWhenReady(
           tester,
@@ -113,6 +118,9 @@ void main() {
           parent ? findsOneWidget : findsNothing,
         );
         expect(find.text('ZAR 50.00'), findsWidgets);
+        await tapWhenReady(tester, find.text('View desk top-up receipts'));
+        await pumpUntilFound(tester, find.text('WT-201'));
+        expect(find.text('Awaiting independent approval'), findsOneWidget);
         allowed = false;
         await tester.tap(find.byTooltip('Refresh wallets'));
         await pumpUntilFound(
@@ -120,6 +128,7 @@ void main() {
           find.text('Your wallet access changed. Reopen Wallets.'),
         );
         expect(find.text('Asha Synthetic'), findsNothing);
+        expect(find.text('WT-201'), findsNothing);
         final reads = api.requests.where(
           (q) => q.uri.path.contains('/v2/wallets'),
         );

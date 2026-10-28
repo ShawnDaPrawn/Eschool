@@ -59,6 +59,22 @@ class Repo implements WalletRepository {
   }
 
   @override
+  Future<WalletDeskReceiptPage> deskReceipts(
+    int wallet, {
+    int page = 1,
+    int perPage = 30,
+  }) async {
+    if (error != null) throw error!;
+    return WalletDeskReceiptPage.fromJson(
+      walletDeskReceiptsFixture(
+        owner: wallet == 7 ? 31 : viewer,
+        viewer: viewer,
+        readOnly: readOnly,
+      ),
+    );
+  }
+
+  @override
   Future<WalletStatement> open(int owner, String operation) async {
     operations.add(operation);
     if (failNext) {
@@ -168,6 +184,106 @@ void main() {
       expect(api.requests, hasLength(1));
     },
   );
+  test(
+    'desk receipts use the pinned wallet and actor and retain pending/credited/cancelled outcomes',
+    () async {
+      final api = FakeApi(
+        routes: {
+          'GET v2/wallets': ok(walletIndexFixture()),
+          'GET v2/wallets/7/desk-topups': ok(walletDeskReceiptsFixture()),
+        },
+      );
+      final repo = apiRepo(api);
+      await repo.index();
+      final page = await repo.deskReceipts(7);
+      expect(page.items.map((r) => r.status.value), [
+        'released',
+        'pending',
+        'cancelled',
+      ]);
+      expect(api.requests.last.headers['X-School-Id'].toString(), '1');
+      expect(api.requests.last.headers['X-Account-Id'].toString(), '21');
+    },
+  );
+  test('receipt cents cannot be truncated by generated DTO parsing', () async {
+    final data = walletDeskReceiptsFixture();
+    (data['items'] as List).first['amount_cents'] = 5000.5;
+    final repo = apiRepo(
+      FakeApi(
+        routes: {
+          'GET v2/wallets': ok(walletIndexFixture()),
+          'GET v2/wallets/7/desk-topups': ok(data),
+        },
+      ),
+    );
+    await repo.index();
+    await expectLater(repo.deskReceipts(7), throwsA(isA<ApiException>()));
+  });
+  test(
+    'an authorised sibling/own identity cannot be substituted for the selected wallet',
+    () async {
+      final statement = walletStatementFixture()..['owner_user_id'] = 21;
+      final receipts = walletDeskReceiptsFixture()..['owner_user_id'] = 21;
+      final repo = apiRepo(
+        FakeApi(
+          routes: {
+            'GET v2/wallets': ok(walletIndexFixture()),
+            'GET v2/wallets/7/statement': ok(statement),
+            'GET v2/wallets/7/desk-topups': ok(receipts),
+          },
+        ),
+      );
+      await repo.index();
+      await expectLater(repo.statement(7), throwsA(isA<ApiException>()));
+      await expectLater(repo.deskReceipts(7), throwsA(isA<ApiException>()));
+    },
+  );
+  test(
+    'losing access while reading receipts clears statement and receipt data',
+    () async {
+      final repo = Repo();
+      final cubit = WalletCubit(repo);
+      addTearDown(cubit.close);
+      await cubit.load();
+      await cubit.show(7);
+      await cubit.deskReceipts(7);
+      expect(cubit.state.deskReceipts?.items, hasLength(3));
+      repo.error = ApiException('Forbidden', statusCode: 403);
+      await cubit.deskReceipts(7);
+      expect(cubit.state.accessLost, true);
+      expect(cubit.state.statement, isNull);
+      expect(cubit.state.deskReceipts, isNull);
+    },
+  );
+  for (final width in [390.0, 820.0, 1280.0]) {
+    testWidgets(
+      'parent reads private desk receipt states at $width without changing controls',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 1000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(),
+            home: WalletScreen(repository: Repo()),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Open wallet statement').last);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('View desk top-up receipts'));
+        await tester.tap(find.text('View desk top-up receipts'));
+        await tester.pumpAndSettle();
+        expect(find.text('WT-201'), findsOneWidget);
+        expect(find.text('Credited'), findsOneWidget);
+        expect(find.text('Awaiting independent approval'), findsOneWidget);
+        expect(find.text('Cancelled'), findsOneWidget);
+        expect(find.textContaining('Private synthetic'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
   test('unknown mutation retry keeps one operation UUID', () async {
     final repo = Repo(issued: false)..failNext = true;
     final cubit = WalletCubit(repo);

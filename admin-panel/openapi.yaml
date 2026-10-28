@@ -26220,6 +26220,62 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OpenPersonalWalletRequest'
+  /wallets/{wallet}/desk-topups:
+    get:
+      operationId: listPersonalDeskTopupReceipts
+      tags:
+      - Wallets
+      summary: Read your permitted private desk top-up receipts
+      description: Fresh active school/person roles and verified guardian approval authority apply independently of
+        fees. Learners cannot edit their own controls. Issuance creates no money. History is retained read-only when
+        the wallet module is disabled. Statements expose only the permitted account, safe descriptions and integer
+        cents.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: wallet
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+          default: 1
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 30
+      responses:
+        '200':
+          description: Read your permitted private desk top-up receipts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletDeskReceiptPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /wallets/{wallet}/statement:
     get:
       operationId: getPersonalWalletStatement
@@ -59699,5 +59755,107 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/WalletStatement'
+        code:
+          type: integer
+
+    WalletDeskReceipt:
+      type: object
+      additionalProperties: false
+      required: [id, reference, currency, amount_cents, status, created_at, processed_at, collected_by, fee_cents, net_cents]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        reference:
+          type: string
+          pattern: '^WT-[0-9]+$'
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        status:
+          type: string
+          enum: [pending, released, cancelled]
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type: [string, 'null']
+          format: date-time
+        collected_by:
+          type: string
+          enum: [school]
+        fee_cents:
+          type: integer
+          format: int64
+          const: 0
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+    WalletDeskReceiptPage:
+      type: object
+      additionalProperties: false
+      required: [school_id, actor_user_id, wallet_id, owner_user_id, currency, read_only, current_page, per_page, total, items]
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        owner_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        read_only:
+          type: boolean
+        current_page:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+        per_page:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/WalletDeskReceipt'
+    WalletDeskReceiptPageResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message, data, code]
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/WalletDeskReceiptPage'
         code:
           type: integer

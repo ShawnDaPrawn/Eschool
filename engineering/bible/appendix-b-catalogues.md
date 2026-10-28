@@ -344,3 +344,10 @@ Existing wallet module and separate wallet-finance-manage permission cover expli
 manual-method policy, verified school-owned funding and private printable receipts.
 No parent payment, top-up grant, notification transport or gateway is enabled.
 Ledger reconciliation includes receipt attribution and external-source identity.
+
+### Desk wallet top-ups
+
+Wallet desk operations use `wallet-desk-process`; threshold management additionally
+requires `wallet-desk-policy-manage` and wallet Finance access. These capabilities
+remain in the wallet module, independent of fee access. Personal receipt reads use
+current own/approving-guardian authority. No external notification/provider is added.

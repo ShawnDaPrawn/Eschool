@@ -1245,6 +1245,9 @@ lib/src/model/upload_identified_incident_photo_response.dart
 lib/src/model/validation_errors.dart
 lib/src/model/wallet_controls.dart
 lib/src/model/wallet_controls_change.dart
+lib/src/model/wallet_desk_receipt.dart
+lib/src/model/wallet_desk_receipt_page.dart
+lib/src/model/wallet_desk_receipt_page_response.dart
 lib/src/model/wallet_entry_page.dart
 lib/src/model/wallet_owner.dart
 lib/src/model/wallet_statement.dart

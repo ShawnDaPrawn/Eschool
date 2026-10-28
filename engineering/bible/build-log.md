@@ -819,3 +819,11 @@ identity prevents recording the same source through fees and wallets. New histor
 and encrypted evidence are retained. See self-tests/money/wallet-master-funding.md.
 Desk approval/grants, parent funding/transfers and later increments remain separate;
 no provider or production activation is implied.
+
+## 2026-10-28 — desk grants and independent approval
+
+Increment 8B adds school-master reservations, explicit second-approval thresholds,
+independent desk permission, cancellation and private printable/personal receipts.
+Shared family, teacher and dedicated facilitator wallets display pending and final
+outcomes. Qualification is in self-tests/money/desk-wallet-topups.md. Parent-owned
+deposits/transfers remain 8C; gateway integration remains deferred.

@@ -90,3 +90,40 @@ Map<String, dynamic> walletStatementFixture({
     },
   };
 }
+
+Map<String, dynamic> walletDeskReceiptsFixture({
+  int owner = 31,
+  int viewer = 21,
+  bool readOnly = false,
+}) => {
+  'school_id': 1,
+  'actor_user_id': viewer,
+  'wallet_id': owner == 31 ? 7 : 6,
+  'owner_user_id': owner,
+  'currency': 'ZAR',
+  'read_only': readOnly,
+  'current_page': 1,
+  'per_page': 30,
+  'total': 3,
+  'items': [
+    for (final row in [
+      (201, 'released', owner == 31 ? 5000 : 2000),
+      (202, 'pending', 1000),
+      (203, 'cancelled', 500),
+    ])
+      {
+        'id': row.$1,
+        'reference': 'WT-${row.$1}',
+        'currency': 'ZAR',
+        'amount_cents': row.$3,
+        'status': row.$2,
+        'created_at': '2026-06-15T09:00:00.000000Z',
+        'processed_at': row.$2 == 'pending'
+            ? null
+            : '2026-06-15T09:01:00.000000Z',
+        'collected_by': 'school',
+        'fee_cents': 0,
+        'net_cents': row.$3,
+      },
+  ],
+};

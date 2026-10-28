@@ -49,3 +49,7 @@ statements and controls. Funding, withdrawals and commerce remain separate work.
 
 [Master funding](money/wallet-master-funding.md) records verified school-owned
 receipts; it does not qualify the remaining desk/parent/withdrawal flows.
+
+Desk master-to-person grants, independent approval, private receipts and cancellation
+are tracked in money/desk-wallet-topups.md. Parent funding/transfers and increments
+9–15 remain under active delivery; this does not close increment 8 or Phase 5.

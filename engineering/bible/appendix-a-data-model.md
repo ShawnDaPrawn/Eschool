@@ -454,3 +454,11 @@ balance projection or money posting is created by issuance.
 accounts, collection metadata and encrypted evidence. `financial_receipts` reserves
 one canonical outside source across fee and wallet receipts without reposting old
 entries. `wallet_bank` is a wallet-only debit asset. New history prevents rollback.
+
+### Desk wallet grants and approval
+
+`wallet_desk_policies` stores an explicit revisioned threshold. Immutable
+`wallet_desk_topups` binds recipient, school-owned master, dedicated reserve, original
+policy and exact reservation entry. `wallet_desk_actions` records one released or
+cancelled outcome, current policy, independent actor and terminal entry. Private
+reasons are encrypted; retained domain history prevents destructive rollback.

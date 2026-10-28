@@ -1247,6 +1247,9 @@ export 'package:eschool_api/src/model/upload_identified_incident_photo_response.
 export 'package:eschool_api/src/model/validation_errors.dart';
 export 'package:eschool_api/src/model/wallet_controls.dart';
 export 'package:eschool_api/src/model/wallet_controls_change.dart';
+export 'package:eschool_api/src/model/wallet_desk_receipt.dart';
+export 'package:eschool_api/src/model/wallet_desk_receipt_page.dart';
+export 'package:eschool_api/src/model/wallet_desk_receipt_page_response.dart';
 export 'package:eschool_api/src/model/wallet_entry_page.dart';
 export 'package:eschool_api/src/model/wallet_owner.dart';
 export 'package:eschool_api/src/model/wallet_statement.dart';

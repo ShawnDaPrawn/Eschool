@@ -39,4 +39,5 @@ parameters:
         - database/migrations/2026_10_26_250000_create_immutable_ledger.php
         - database/migrations/2026_10_28_100000_create_personal_wallets.php
         - database/migrations/2026_10_28_110000_add_wallet_master_funding.php
+        - database/migrations/2026_10_28_120000_add_desk_wallet_topups.php
     noUnnecessaryCollectionCall: false

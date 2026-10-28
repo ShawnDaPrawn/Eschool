@@ -75,6 +75,7 @@ use App\Http\Controllers\Panel\Money\FeeRefundPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
 use App\Http\Controllers\Panel\Money\FeeReportPanelController;
 use App\Http\Controllers\Panel\Money\FeeTaxPanelController;
+use App\Http\Controllers\Panel\Money\WalletDeskPanelController;
 use App\Http\Controllers\Panel\Money\WalletFinancePanelController;
 use App\Http\Controllers\Panel\Money\WalletFundingPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
@@ -382,6 +383,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('wallet-topups')->name('wallet-desk.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
+            Route::get('/', [WalletDeskPanelController::class, 'index'])->name('index');
+            Route::post('policy', [WalletDeskPanelController::class, 'policy'])->name('policy');
+            Route::post('grants', [WalletDeskPanelController::class, 'grant'])->name('grant');
+            Route::get('{topup}/receipt', [WalletDeskPanelController::class, 'receipt'])->whereNumber('topup')->name('receipt');
+            Route::post('{topup}/release', [WalletDeskPanelController::class, 'release'])->whereNumber('topup')->name('release');
+            Route::post('{topup}/cancel', [WalletDeskPanelController::class, 'cancel'])->whereNumber('topup')->name('cancel');
         });
         Route::prefix('wallet-funding')->name('wallet-funding.')->middleware([PrivateDomainResponse::class, 'module:wallet,read'])->withoutMiddleware([EnforceReadOnlyYears::class])->group(function () {
             Route::get('/', [WalletFundingPanelController::class, 'index'])->name('index');

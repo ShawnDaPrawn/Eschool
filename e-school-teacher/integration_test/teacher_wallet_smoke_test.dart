@@ -51,6 +51,8 @@ void main() {
           response(walletIndexFixture(viewer: 12)),
       'GET v2/wallets/6/statement': (RequestOptions _) =>
           response(walletStatementFixture(owner: 12, viewer: 12)),
+      'GET v2/wallets/6/desk-topups': (RequestOptions _) =>
+          response(walletDeskReceiptsFixture(owner: 12, viewer: 12)),
     });
     await pumpUntilFound(tester, find.text('Email or handle'));
     await enterField(tester, 0, teacherEmail);
@@ -64,6 +66,9 @@ void main() {
     await pumpUntilFound(tester, find.text('Wallet balance'));
     expect(find.text('Staff Synthetic'), findsOneWidget);
     expect(find.text('Edit spending controls'), findsOneWidget);
+    await tapWhenReady(tester, find.text('View desk top-up receipts'));
+    await pumpUntilFound(tester, find.text('WT-201'));
+    expect(find.text('Awaiting independent approval'), findsOneWidget);
     allowed = false;
     await tester.tap(find.byTooltip('Refresh wallets'));
     await pumpUntilFound(
@@ -71,6 +76,7 @@ void main() {
       find.text('Your wallet access changed. Reopen Wallets.'),
     );
     expect(find.text('Staff Synthetic'), findsNothing);
+    expect(find.text('WT-201'), findsNothing);
     expect(
       api.requests
           .where((q) => q.uri.path.contains('/v2/wallets'))

@@ -17,7 +17,7 @@ or reconciling abandoned seed money into the new financial source.
 | 5 | Discounts, bursaries, exemptions and approval | Rule/calculator/Finance workbench locally qualified; PR321 in hosted qualification |
 | 6 | Pro-rata joins/leavers, refunds and payer corrections | Proration PR322 in hosted qualification; later leaver credits PR323 in hosted qualification; reserved manual refunds implemented with qualification in progress; payer corrections/late charges remain |
 | 7 | Personal wallets, statements and spending limits | Implemented; local and hosted qualification in progress |
-| 8 | Master funding, desk/parent top-ups, approvals and transfers | School master funding implemented, in qualification; desk grants/approvals and parent flows remain |
+| 8 | Master funding, desk/parent top-ups, approvals and transfers | Master funding PR327 published; desk grants/approvals and personal receipts implemented in qualification; parent deposits/transfers remain |
 | 9 | Adult withdrawals, Finance approval and cash/bank policy | Pending |
 | 10 | Daily cash-up by operator and explained differences | Pending |
 | 11 | Vendors, storefronts, products/stock, orders and fulfilment | Pending |

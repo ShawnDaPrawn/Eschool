@@ -398,6 +398,7 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
 Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {
     $c = WalletController::class;
     Route::get('/', [$c, 'index'])->name('index');
+    Route::get('{wallet}/desk-topups', [$c, 'deskReceipts'])->whereNumber('wallet')->name('desk-receipts');
     Route::get('{wallet}/statement', [$c, 'statement'])->whereNumber('wallet')->name('statement');
     Route::post('/', [$c, 'open'])->middleware([RequireWalletAuthority::class.':open', 'throttle:money', 'idempotent:required'])->name('open');
     Route::put('{wallet}/limits', [$c, 'limits'])->whereNumber('wallet')->middleware([RequireWalletAuthority::class.':limits', 'throttle:money', 'idempotent:required'])->name('limits');

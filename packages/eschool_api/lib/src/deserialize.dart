@@ -1201,6 +1201,9 @@ import 'package:eschool_api/src/model/upload_identified_incident_photo_response.
 import 'package:eschool_api/src/model/validation_errors.dart';
 import 'package:eschool_api/src/model/wallet_controls.dart';
 import 'package:eschool_api/src/model/wallet_controls_change.dart';
+import 'package:eschool_api/src/model/wallet_desk_receipt.dart';
+import 'package:eschool_api/src/model/wallet_desk_receipt_page.dart';
+import 'package:eschool_api/src/model/wallet_desk_receipt_page_response.dart';
 import 'package:eschool_api/src/model/wallet_entry_page.dart';
 import 'package:eschool_api/src/model/wallet_owner.dart';
 import 'package:eschool_api/src/model/wallet_statement.dart';
@@ -5413,6 +5416,17 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'WalletControlsChange':
       return WalletControlsChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDeskReceipt':
+      return WalletDeskReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDeskReceiptPage':
+      return WalletDeskReceiptPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletDeskReceiptPageResponse':
+      return WalletDeskReceiptPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'WalletEntryPage':
       return WalletEntryPage.fromJson(value as Map<String, dynamic>)

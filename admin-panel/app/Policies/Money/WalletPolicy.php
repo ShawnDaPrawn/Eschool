@@ -18,6 +18,10 @@ final class WalletPolicy
 {
     public const FINANCE = 'wallet-finance-manage';
 
+    public const DESK_POLICY = 'wallet-desk-policy-manage';
+
+    public const DESK_PROCESS = 'wallet-desk-process';
+
     public const PERSONAL_ROLES = ['Parent', 'Student', 'Teacher', 'Facilitator', 'Super Admin'];
 
     public function actor(User $actor, bool $write = false): User
@@ -38,13 +42,35 @@ final class WalletPolicy
     public function finance(User $actor, bool $write = false): User
     {
         $fresh = $this->actor($actor, $write);
-        $school = app(CurrentSchool::class)->id();
-        $roles = $this->roles($fresh);
-        $grants = DB::table('model_has_roles as mr')->join('roles as r', 'r.id', '=', 'mr.role_id')->join('role_has_permissions as rp', 'rp.role_id', '=', 'r.id')->join('permissions as p', 'p.id', '=', 'rp.permission_id')->where('mr.school_id', $school)->where('r.school_id', $school)->where('mr.model_id', $fresh->id)->where('mr.model_type', $fresh->getMorphClass())->whereIn('r.name', $roles)->where('p.name', self::FINANCE)->where('p.guard_name', 'web')->lockForUpdate();
-        $direct = DB::table('model_has_permissions as mp')->join('permissions as p', 'p.id', '=', 'mp.permission_id')->where('mp.school_id', $school)->where('mp.model_id', $fresh->id)->where('mp.model_type', $fresh->getMorphClass())->where('p.name', self::FINANCE)->where('p.guard_name', 'web')->lockForUpdate();
-        abort_unless($grants->first() !== null || $direct->first() !== null, 403);
+        abort_unless($this->permission($fresh, self::FINANCE), 403);
 
         return $fresh;
+    }
+
+    public function desk(User $actor, bool $write = false): User
+    {
+        $fresh = $this->actor($actor, $write);
+        abort_unless($this->permission($fresh, self::DESK_PROCESS) || $this->permission($fresh, self::FINANCE), 403);
+
+        return $fresh;
+    }
+
+    public function deskPolicy(User $actor, bool $write = true): User
+    {
+        $fresh = $this->finance($actor, $write);
+        abort_unless($this->permission($fresh, self::DESK_POLICY), 403);
+
+        return $fresh;
+    }
+
+    private function permission(User $fresh, string $permission): bool
+    {
+        $school = app(CurrentSchool::class)->id();
+        $roles = $this->roles($fresh);
+        $grants = DB::table('model_has_roles as mr')->join('roles as r', 'r.id', '=', 'mr.role_id')->join('role_has_permissions as rp', 'rp.role_id', '=', 'r.id')->join('permissions as p', 'p.id', '=', 'rp.permission_id')->where('mr.school_id', $school)->where('r.school_id', $school)->where('mr.model_id', $fresh->id)->where('mr.model_type', $fresh->getMorphClass())->whereIn('r.name', $roles)->where('p.name', $permission)->where('p.guard_name', 'web')->lockForUpdate();
+        $direct = DB::table('model_has_permissions as mp')->join('permissions as p', 'p.id', '=', 'mp.permission_id')->where('mp.school_id', $school)->where('mp.model_id', $fresh->id)->where('mp.model_type', $fresh->getMorphClass())->where('p.name', $permission)->where('p.guard_name', 'web')->lockForUpdate();
+
+        return $grants->first() !== null || $direct->first() !== null;
     }
 
     /** Fresh owner authority. Inactive learners retain guardian-readable existing history. */
@@ -90,6 +116,7 @@ final class WalletPolicy
 
     public function activePerson(User $subject): void
     {
+        abort_if(DB::table('platform_staff_identities')->where('user_id', $subject->id)->where('active', true)->lockForUpdate()->exists(), 403);
         abort_unless((int) $subject->status === 1 && $subject->deleted_at === null && array_intersect($this->roles($subject), self::PERSONAL_ROLES) !== [], 403);
         if (in_array('Student', $this->roles($subject), true)) {
             $student = Students::where('user_id', $subject->id)->lockForUpdate()->first();

@@ -8,12 +8,14 @@ class WalletState {
   const WalletState({
     this.index,
     this.statement,
+    this.deskReceipts,
     this.busy = false,
     this.error,
     this.accessLost = false,
   });
   final PersonalWalletIndex? index;
   final WalletStatement? statement;
+  final WalletDeskReceiptPage? deskReceipts;
   final bool busy, accessLost;
   final String? error;
 }
@@ -28,7 +30,12 @@ class WalletCubit extends Cubit<WalletState> {
     final before = state;
     _retry = work;
     emit(
-      WalletState(index: before.index, statement: before.statement, busy: true),
+      WalletState(
+        index: before.index,
+        statement: before.statement,
+        deskReceipts: before.deskReceipts,
+        busy: true,
+      ),
     );
     try {
       final next = await work();
@@ -57,6 +64,7 @@ class WalletCubit extends Cubit<WalletState> {
           WalletState(
             index: before.index,
             statement: before.statement,
+            deskReceipts: before.deskReceipts,
             error: error is ApiException && error.isApiMessage
                 ? error.errorMessage
                 : 'Wallets could not be updated. Try again or refresh.',
@@ -77,6 +85,26 @@ class WalletCubit extends Cubit<WalletState> {
         statement: await repository.statement(wallet, page: page),
       ),
     );
+  }
+
+  Future<bool> deskReceipts(int wallet, {int page = 1}) {
+    final before = state;
+    if (before.statement?.id != wallet) return Future.value(false);
+    return _run(() async {
+      final receipts = await repository.deskReceipts(wallet, page: page);
+      final statement = await repository.statement(wallet);
+      return WalletState(
+        index: before.index,
+        statement: statement,
+        deskReceipts: receipts,
+      );
+    });
+  }
+
+  void hideDeskReceipts() {
+    if (isClosed || state.busy) return;
+    _retry = null;
+    emit(WalletState(index: state.index, statement: state.statement));
   }
 
   Future<bool> open(int owner) {

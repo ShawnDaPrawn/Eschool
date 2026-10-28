@@ -2333,5 +2333,16 @@
   "Wallets could not be updated. Try again or refresh.": "Wallets could not be updated. Try again or refresh.",
   "Your own and authorised child wallets": "Your own and authorised child wallets",
   "Your wallet access changed. Reopen Wallets.": "Your wallet access changed. Reopen Wallets.",
-  "Your wallet balances, statements and spending controls": "Your wallet balances, statements and spending controls"
+  "Your wallet balances, statements and spending controls": "Your wallet balances, statements and spending controls",
+  "View desk top-up receipts": "View desk top-up receipts",
+  "Hide desk top-up receipts": "Hide desk top-up receipts",
+  "Desk top-up receipts": "Desk top-up receipts",
+  "School desk credits appear in your balance after required approval.": "School desk credits appear in your balance after required approval.",
+  "No desk top-up receipts yet.": "No desk top-up receipts yet.",
+  "Awaiting independent approval": "Awaiting independent approval",
+  "Credited": "Credited",
+  "Recorded on": "Recorded on",
+  "Processed on": "Processed on",
+  "Previous receipts": "Previous receipts",
+  "Next receipts": "Next receipts"
 }

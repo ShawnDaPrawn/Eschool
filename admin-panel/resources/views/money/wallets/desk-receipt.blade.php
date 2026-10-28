@@ -1,0 +1,14 @@
+@extends('layouts.master')
+@section('title', __('Desk wallet top-up receipt'))
+@section('css')<link rel="stylesheet" href="{{ asset('assets/css/fee-plans.css') }}">@endsection
+@section('content')<div class="content-wrapper m3 fee-plan-workbench"><x-page.header :title="__('Desk wallet top-up receipt')" />
+@if(session('success'))<p role="status">{{ session('success') }}</p>@endif
+<p>{{ app(\App\Services\Platform\Tenancy\CurrentSchool::class)->school()->name }}</p>
+<dl><dt>{{ __('Receipt') }}</dt><dd>{{ $receipt['reference'] }}</dd><dt>{{ __('Wallet recipient') }}</dt><dd>{{ $owner['owner_name'] }}</dd><dt>{{ __('Amount') }}</dt><dd>{{ \App\Services\Platform\Ledger\Money::ofCents($receipt['amount_cents'],$receipt['currency'])->format() }}</dd><dt>{{ __('Status') }}</dt><dd>{{ match($receipt['status']){'released'=>__('Credited'),'cancelled'=>__('Cancelled'),default=>__('Awaiting independent approval')} }}</dd><dt>{{ __('Recorded on') }}</dt><dd>{{ $receipt['created_at'] }}</dd></dl>
+<p>{{ __('School-owned desk grant. The personal wallet is credited only after required approval.') }}</p><details><summary>{{ __('Private school grant reason') }}</summary><p>{{ $reason }}</p></details>
+@if($canWrite&&$receipt['status']==='pending')
+@if(!$topup->requires_second_approval||(int)auth()->id()!==$topup->requested_by)<form method="post" action="{{ route('wallet-desk.release',['topup'=>$topup->id]) }}" data-year-safe>@include('money.fee-plans.hidden',['revision'=>0])<fieldset><legend>{{ __('Independent Finance approval') }}</legend><label><input type="checkbox" name="confirmed" value="1" required> {{ __('I independently reviewed this recipient and amount and approve the desk credit.') }}</label><x-m3.button type="submit">{{ __('Approve and credit top-up') }}</x-m3.button></fieldset></form>@else<p>{{ __('A different current Finance approver must confirm this top-up.') }}</p>@endif
+<form method="post" action="{{ route('wallet-desk.cancel',['topup'=>$topup->id]) }}" data-year-safe>@include('money.fee-plans.hidden',['revision'=>0])<fieldset><legend>{{ __('Cancel the pending school grant') }}</legend><x-m3.text-field name="note" type="textarea" rows="3" :label="__('Private cancellation reason')" minlength="10" maxlength="2000" required /><label><input type="checkbox" name="confirmed" value="1" required> {{ __('Return this pending school-owned reservation to the master wallet.') }}</label><x-m3.button type="submit" variant="outlined">{{ __('Cancel pending top-up') }}</x-m3.button></fieldset></form>
+@endif
+<x-m3.button type="button" data-wallet-print>{{ __('Print receipt') }}</x-m3.button> <a href="{{ route('wallet-desk.index') }}">{{ __('Back to desk top-ups') }}</a></div>@endsection
+@section('js')<script defer src="{{ asset('assets/js/custom/wallet-funding.js') }}"></script>@endsection
