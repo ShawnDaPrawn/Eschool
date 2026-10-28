@@ -320,6 +320,6 @@ class CashCustodyTest extends TestCase
         $this->assertSame(800, $s->available($this->finance->id, 'ZAR')['available_cents']);
         $s->requirePayout($this->finance, 'ZAR', 800, $paidOn);
         $this->refuses(fn () => $s->requirePayout($this->finance, 'ZAR', 801, $paidOn), 422);
-        $this->assertSame(2000,$s->available($this->finance->id,'ZAR')['reserved_cents']);
+        $this->assertSame(2000, $s->available($this->finance->id, 'ZAR')['reserved_cents']);
     }
 }

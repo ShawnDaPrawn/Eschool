@@ -11,7 +11,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-if (! in_array(config('database.connections.mysql.database'), ['eschool_pastoral_test', 'eschool_e2e'], true)) {
+if (! in_array(config('database.connections.mysql.database'), ['eschool_pastoral_test', 'eschool_e2e', 'eschool_test'], true)) {
     throw new RuntimeException('Isolated synthetic schema only');
 }
 $cashupFixtureDeposit = function (User $finance, User $parent, string $method, string $amount): void {
