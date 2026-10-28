@@ -34,8 +34,9 @@
         <x-m3.button type="submit" variant="outlined">{{ __('Filter learners') }}</x-m3.button>
     </form>
     <div class="m3-card m3-card--outlined"><div class="page-table__scroll" role="region" aria-label="{{ __('Bill preview learners') }}" tabindex="0"><table class="page-table__table">
-        <caption>{{ __('Bill preview learners') }}</caption><thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Family account') }}</th><th scope="col">{{ __('Annual amount') }}</th><th scope="col">{{ __('Result') }}</th></tr></thead>
+        <caption>{{ __('Bill preview learners') }}</caption><thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Family account') }}</th><th scope="col">{{ __('Calculated charge') }}</th><th scope="col">{{ __('Result') }}</th></tr></thead>
         <tbody>@forelse($rows as $row)<tr><td>{{ $row['name'] }}</td><td>{{ $row['account_name']??__('No payer') }}</td><td>{{ $row['amount_cents']===null?'—':\App\Services\Platform\Ledger\Money::ofCents($row['amount_cents'],$row['currency'])->format() }}</td><td>
+            @include('money.lifecycle.charge-detail',['row'=>$row])
             @if(isset($row['installment_lines']))<details><summary>{{ __('Reviewed installment schedule') }}</summary><ul>@foreach($row['installment_lines'] as $part)<li>{{ $part['due_on'] }} · {{ \App\Services\Platform\Ledger\Money::ofCents($part['amount_cents'],$row['currency'])->format() }} · {{ $part['payment_option_label'] }}<ul>@foreach($part['holder_shares'] as $share)<li>{{ $share['name'] }}: {{ \App\Services\Platform\Ledger\Money::ofCents($share['amount_cents'],$row['currency'])->format() }}</li>@endforeach</ul></li>@endforeach</ul></details>@endif
             @if($row['issues'])<ul>@foreach($row['issues'] as $issue)<li>{{ __($issue) }}</li>@endforeach</ul>
             @elseif($row['state']==='already_billed'){{ __('Already invoiced') }}

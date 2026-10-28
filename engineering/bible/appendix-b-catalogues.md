@@ -307,3 +307,9 @@ or spend is added. Disabled fees keep read-only offers and prior agreements.
 Existing fees and fee-credits-manage permission cover rule preparation/approval
 and original-holder reduction credits. Private evidence has no parent route.
 Disabled fees retain read-only history. No provider, notification or spend is added.
+
+### Enrolment fee policy
+
+Existing fees and fee-plans-manage permission cover explicit school proration and
+new-bill installment policy. History remains readable when fees are disabled,
+including policies saved before the first posting. No notification/provider is added.

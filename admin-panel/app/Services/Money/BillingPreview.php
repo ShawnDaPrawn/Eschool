@@ -7,6 +7,7 @@ namespace App\Services\Money;
 use App\Models\Money\FeeAccount;
 use App\Models\Money\FeeAccountHolder;
 use App\Models\Money\FeeAccountLearner;
+use App\Models\Money\FeeLifecyclePolicy;
 use App\Models\Money\FeePaymentChoice;
 use App\Models\Money\FeePlan;
 use App\Models\SessionYear;
@@ -40,6 +41,7 @@ final class BillingPreview
             })->where('l.school_id', $school)->where('l.session_year_id', $year)->whereNull('l.fee_charge_id')->lockForUpdate()->get(['l.learner_id', 'l.invoice_id', 'i.sealed_at'])->keyBy('learner_id');
             $yearModel = SessionYear::lockForUpdate()->findOrFail($year);
             $plans = FeePlan::where('session_year_id', $year)->lockForUpdate()->get()->keyBy('id');
+            $lifecyclePolicy = FeeLifecyclePolicy::where('session_year_id', $year)->lockForUpdate()->first();
             $choices = FeePaymentChoice::where('session_year_id', $year)->lockForUpdate()->get()->keyBy('learner_id');
             $rows = [];
             $totals = [];
@@ -88,7 +90,7 @@ final class BillingPreview
                         $row['issues'][] = 'Payment choice needs review for the matched plan';
                     } else {
                         try {
-                            $row['installment_lines'] = app(FeePaymentSchedules::class)->lines($plans->get($rate['plan_id']), $yearModel, $due, $row['holders'], $choice?->option_key);
+                            $row['installment_lines'] = app(FeePaymentSchedules::class)->lines($plans->get($rate['plan_id']), $yearModel, $due, $row['holders'], $choice?->option_key, $row['amount_cents'], $lifecyclePolicy?->installments === 'remaining_dates' ? $date : null);
                             $row['payment_choice_revision'] = $choice?->revision;
                         } catch (ValidationException) {
                             $row['issues'][] = 'Payment schedule needs review';
@@ -126,14 +128,14 @@ final class BillingPreview
                 if ($row['state'] !== 'ready') {
                     continue;
                 }
-                $installments[$row['learner_id']] = array_intersect_key($row, array_flip(['plan_id', 'plan_revision', 'account_id', 'installment_lines'])) + ['description' => $row['plan_names'][0], 'period_start' => $rates['year_start'], 'period_end' => $rates['year_end']];
+                $installments[$row['learner_id']] = array_intersect_key($row, array_flip(['plan_id', 'plan_revision', 'account_id', 'installment_lines'])) + ['description' => $row['plan_names'][0], 'period_start' => $row['period_start'], 'period_end' => $row['period_end']];
                 $accountId = $row['account_id'];
                 $invoiceSchedules[$accountId] ??= ['line_count' => 0, 'total_cents' => 0];
                 $invoiceSchedules[$accountId]['line_count'] += count($row['installment_lines']);
                 $invoiceSchedules[$accountId]['total_cents'] += $row['amount_cents'];
             }
 
-            return ['invoice_schedules' => $invoiceSchedules, 'installments' => $installments, 'year_id' => $year, 'year_start' => $rates['year_start'], 'year_end' => $rates['year_end'], 'as_of' => $date, 'due_on' => $due, 'tax_treatment' => $tax,
+            return ['lifecycle_policy' => $lifecyclePolicy?->only(['id', 'revision', 'join_basis', 'leaver_basis', 'installments']), 'invoice_schedules' => $invoiceSchedules, 'installments' => $installments, 'year_id' => $year, 'year_start' => $rates['year_start'], 'year_end' => $rates['year_end'], 'as_of' => $date, 'due_on' => $due, 'tax_treatment' => $tax,
                 'rows' => $rows, 'totals' => $totals, 'exceptions' => $exceptions, 'learners' => count($rows), 'billable' => $ready, 'skipped' => $skipped,
                 'account_count' => count(array_unique(array_column(array_filter($rows, fn ($r) => $r['state'] === 'ready'), 'account_id')))];
         });

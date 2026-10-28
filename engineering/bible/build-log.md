@@ -771,3 +771,13 @@ charges and payer credits; approval separation and overlap are school choices.
 Linked credits preserve invoices, original tax and restricted paid receipt credit.
 Qualification is in self-tests/money/fee-discounts.md and the feature PR. Refunds,
 pro-rata and wallet/commerce increments remain next; gateways stay deferred.
+
+## 2026-10-27 — explicit join and known-leaver charge calculation
+
+Increment6 begins with canonical inclusive daily/calendar-month/full-year charging
+and explicit installment redistribution. Preview and posting share exact cents,
+original annual rate, actual period, policy revision and original payer shares.
+A policy/enrolment change invalidates a pending review; posted history is retained.
+Qualification is tracked in self-tests/money/fee-lifecycle-proration.md and the PR.
+Later leaver adjustments, refunds, payer corrections and late-charge policy remain
+next in increment6; wallet/commerce7–15 and gateway deferral continue separately.

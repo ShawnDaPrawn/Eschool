@@ -26,6 +26,7 @@ parameters:
         - database/migrations/2026_10_27_910000_add_automatic_fee_items.php
         - database/migrations/2026_10_27_920000_add_fee_item_consents.php
         - database/migrations/2026_10_27_930000_add_approved_fee_discounts.php
+        - database/migrations/2026_10_27_940000_add_fee_lifecycle_policies.php
         - app/Console/Commands/SendFeeReminders.php
         - app/Services/Platform/Ledger/CentsRatio.php
         - app/Services/Platform/Ledger/AccountType.php

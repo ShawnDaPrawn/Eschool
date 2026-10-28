@@ -189,7 +189,7 @@ class ModuleGate
         // Parent agreements and reviewed reductions also remain readable before
         // the first ledger posting. Disabling a module does not hide legal history.
         if ($module === 'fees') {
-            foreach (['fee_item_consents', 'fee_discounts', 'fee_discount_runs'] as $table) {
+            foreach (['fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
                     return true;
                 }

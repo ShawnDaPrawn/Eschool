@@ -67,6 +67,7 @@ use App\Http\Controllers\Panel\Money\FeeDiscountPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemBatchPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemPanelController;
 use App\Http\Controllers\Panel\Money\FeeItemRulePanelController;
+use App\Http\Controllers\Panel\Money\FeeLifecyclePanelController;
 use App\Http\Controllers\Panel\Money\FeePaymentPanelController;
 use App\Http\Controllers\Panel\Money\FeePlanPanelController;
 use App\Http\Controllers\Panel\Money\FeeReminderPanelController;
@@ -377,6 +378,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('new', [$c, 'post'])->name('post');
             Route::get('{charge}', [$c, 'show'])->whereNumber('charge')->name('show');
             Route::get('{charge}/invoice', [$c, 'invoice'])->whereNumber('charge')->name('invoice');
+        });
+        Route::prefix('fee-lifecycle')->name('fee-lifecycle.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
+            $c = FeeLifecyclePanelController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('/', [$c, 'save'])->name('save');
         });
         Route::prefix('fee-discounts')->name('fee-discounts.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             $c = FeeDiscountPanelController::class;

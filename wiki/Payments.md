@@ -465,3 +465,18 @@ prepare an application against an original billed family and learner. Review eac
 original-holder credit, approve, and post. Original invoices remain available;
 paid reductions restore held credit to original restricted receipts. Private
 eligibility and explanations remain with Finance. No cash refund is made here.
+
+## Enrolment fee policy
+
+Finance opens Money → Enrolment fee policy and explicitly chooses daily, touched
+calendar-month or full-year join charging, the known-leaver rule, and whether new
+invoices keep contractual installment dates or redistribute over remaining dates.
+The preview shows original annual rate, charged period and exact calculated cents.
+If all scheduled dates have passed, redistribution uses the reviewed due date.
+Review and post through the existing bill run; old invoices keep their original
+amounts. Unconfirmed/overlapping enrolments remain exceptions. Free plans create
+no charge. A later leaver credit or cash refund requires its own reviewed workflow.
+
+Adjacent dated class moves retain continuous school attendance for charging. Gaps
+and overlapping or unconfirmed records require review. They are not inferred as
+school departures or discounted joining dates.

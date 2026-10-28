@@ -411,3 +411,11 @@ immutable reviewed original-holder credit snapshots and encrypted private eviden
 SQL guards require exact sealed linked credit notes, learner/year/currency identity,
 valid approval transitions and one posted rule/learner/year. No duplicate balance
 projection is created; existing fee credits supply ledger/reconciliation history.
+
+### Enrolment fee proration
+
+`fee_lifecycle_policies` is school/year-owned and revisioned. Explicit join, leaver
+and installment choices feed canonical rate/bill previews. Immutable bill snapshots
+retain original annual cents, actual enrolment, exact policy/units, charged period
+and installment budgets. Existing invoice line/seal checks bind those original
+reviewed amounts and periods; no original financial row is rewritten.
