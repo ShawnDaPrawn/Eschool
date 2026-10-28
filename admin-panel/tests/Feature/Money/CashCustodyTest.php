@@ -322,4 +322,39 @@ class CashCustodyTest extends TestCase
         $this->refuses(fn () => $s->requirePayout($this->finance, 'ZAR', 801, $paidOn), 422);
         $this->assertSame(2000, $s->available($this->finance->id, 'ZAR')['reserved_cents']);
     }
+
+    public function test_historical_receipts_rebase_shortage_without_delivering_new_cash_after_a_count(): void
+    {
+        $count = app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'One original rand physically missing at the count']));
+        $countedOn = now()->toDateString();
+        $this->travel(2)->days();
+        $this->deposit('cash', '5.00', $countedOn);
+        $service = app(CashCustody::class);
+        $available = $service->available($this->finance->id, 'ZAR');
+        $this->assertSame(2500, $available['book_cents']);
+        $this->assertSame(-600, $available['shortage_cents']);
+        $this->assertSame(1900, $available['available_cents']);
+        $this->assertSame(-100, $count->fresh()->variance_cents);
+        $this->refuses(fn () => $service->requirePayout($this->finance, 'ZAR', 1901), 422);
+        $this->deposit('cash', '3.00');
+        $this->assertSame(2200, $service->available($this->finance->id, 'ZAR')['available_cents']);
+        $this->refuses(fn () => $service->requirePayout($this->finance, 'ZAR', 1901, $countedOn), 422);
+        $service->requirePayout($this->finance, 'ZAR', 2200);
+        $this->assertTrue(app(CashControlReconciliation::class)->inspect()['cash_control_healthy']);
+    }
+
+    public function test_historical_receipt_cannot_restore_a_pending_handover_beyond_actual_counted_cash(): void
+    {
+        $recipient = $this->cashier();
+        $service = app(CashCustody::class);
+        $handover = $service->propose($this->finance, $this->proposal($recipient, '19.50'));
+        app(Cashups::class)->record($this->finance, $this->input(['counted_amount' => '19.00', 'private_reason' => 'Original actual shortage detected before independent handover acceptance']));
+        $countedOn = now()->toDateString();
+        $this->travel(2)->days();
+        $this->deposit('cash', '5.00', $countedOn);
+        $this->refuses(fn () => $service->finish($recipient, $handover->id, 'accepted', $this->outcome()), 409);
+        $this->assertSame(0, CashHandoverOutcome::count());
+        $service->finish($recipient, $handover->id, 'rejected', $this->outcome());
+        $this->assertSame(1900, $service->available($this->finance->id, 'ZAR')['available_cents']);
+    }
 }

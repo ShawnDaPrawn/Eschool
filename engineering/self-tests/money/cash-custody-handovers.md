@@ -68,3 +68,11 @@ known shortages. Current pending proposals are reserved against current funds;
 they are not falsely subtracted from earlier dates before those proposals existed.
 Full-interval regressions and existing cash controls passed21 tests /155
 assertions, with fresh money PHPStan and Pint checks before publication. No original financial or custody history is rewritten.
+
+Historical-receipt review follow-up: available custody now rebases the latest
+physical counted amount against current source history through that count date.
+A late-entered historical receipt cannot appear as cash delivered after the count.
+The same calculation applies at every count during a backdated payout interval.
+Original immutable counts and their recorded variance remain unchanged. Thirteen
+cash-custody tests passed90 assertions, including historical receipt/payout bounds,
+subsequent actual receipts and pending handover acceptance refusal.

@@ -41,7 +41,17 @@ final class CashCustody
         }
         $count = CashupCount::where('operator_id', $operator)->where('currency', $currency)->where('counted_on', '<=', $date)->orderByDesc('counted_on')->orderByDesc('revision')->first();
         // A recorded surplus does not create money; an observed shortage reduces usable custody.
-        $shortage = min(0, $count?->getAttribute('variance_cents') ?? 0);
+        $throughCount = 0;
+        if ($count !== null) {
+            foreach ($flows['events'] as $event) {
+                if ($event['operator_id'] === $operator && $event['effective_on'] <= $count->counted_on) {
+                    $throughCount += $event['amount_cents'];
+                }
+            }
+        }
+        // Historical source corrections do not deliver cash after a physical count.
+        // Preserve the actual counted amount while rebasing against current history.
+        $shortage = $count === null ? 0 : min(0, $count->getAttribute('counted_cents') - $throughCount);
         $reserved = (int) CashHandover::where('sender_id', $operator)->where('currency', $currency)->whereNotIn('id', CashHandoverOutcome::select('handover_id'))->sum('amount_cents');
 
         return ['book_cents' => $book, 'shortage_cents' => $shortage, 'reserved_cents' => $reserved, 'available_cents' => max(0, $book + $shortage - $reserved), 'healthy' => CashFlows::healthy($flows)];
@@ -67,14 +77,16 @@ final class CashCustody
             }
             $counts = [];
             foreach (CashupCount::where('operator_id', $actor->id)->where('currency', $currency)->where('counted_on', '<=', $today)->orderBy('counted_on')->orderBy('revision')->get() as $count) {
-                $counts[$count->counted_on] = min(0, $count->getAttribute('variance_cents'));
+                $counts[$count->counted_on] = $count->getAttribute('counted_cents');
             }
             $dates = array_unique([...array_keys($daily), ...array_keys($counts), $paidOn, $today]);
             sort($dates);
             $book = $shortage = 0;
             foreach ($dates as $date) {
                 $book += $daily[$date] ?? 0;
-                $shortage = $counts[$date] ?? $shortage;
+                if (array_key_exists($date, $counts)) {
+                    $shortage = min(0, $counts[$date] - $book);
+                }
                 if ($date >= $paidOn) {
                     $minimum = min($minimum, max(0, $book + $shortage));
                 }

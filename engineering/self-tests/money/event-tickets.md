@@ -67,5 +67,5 @@ the current pinned context; Facilitator uses its revocable authority epoch. Scho
 role, guardian-child and ticket-module changes immediately dispose cached ticket
 credentials without waiting for an API call or app suspension. Four pushed-route
 regressions and all109 shared wallet tests passed. Both actual apps analyzed with
-no errors/warnings (existing style infos remain). Compiled profile requalification
-is running; no unrun evidence is claimed.
+no errors/warnings (existing style infos remain). Compiled actual Learner, Parent, Teacher and Facilitator profile requalification
+all passed on the live-authority fix.
