@@ -103,3 +103,35 @@ or a deleted offering cannot make an untaught term selectable or writable; the
 actual taught term remains usable. Existing term-calendar fixtures now explicitly
 configure their subject offerings. This final correction is awaiting hosted
 qualification; it was not executed locally because the workspace became unavailable.
+
+
+## Final hosted integration corrections
+
+The full hosted run on4c2dab73 exercised4,328 PHP cases and exposed13 failures
+that the narrower local cohorts had not covered. The hosted browser partitions
+also identified the following integration gaps. The correction commit addresses:
+
+- Preserve saved VAT details in the owning school's read-only financial history,
+  even before the first posting. A foreign school's VAT row cannot retain an
+  unused local fee module.
+- Derive dashboard fee-card visibility from the same fresh MoneyPolicy used by
+  its endpoint, including revoked grants and platform-operator restrictions.
+- Replace the header avatar's inline error attribute with a trusted capturing
+  listener; retain strict CSP and add a real-browser fallback control.
+- Seed demo tuition plans, optional items and an unassigned setup family account
+  in the canonical catalogue. Retire demo legacy fee writes and old Finance grants.
+  The setup account creates no charges, postings or payer assignments.
+- Exercise canonical posted journals in module/package-retention tests. Retired
+  v1 APIs keep their explicit private envelopes, never mutate abandoned records,
+  and return HTTP410 for receipt PDFs. Old debt never activates a learning lock.
+- Use an isolated school year and actual billing, receipt and allocation services
+  for the responsive leadership browser fixture. Check explicit currency and
+  the current explanatory copy without deleting financial history.
+- Remove deleted legacy files from the shrinking Bootstrap baseline and use the
+  shared Material card for Vendor currency readiness. Keep the module-route
+  coverage assertion tied to every mapped route rather than a stale route count.
+
+The correction is awaiting a fresh hosted run and review. The workspace is still
+unavailable, so these last changes have not been executed locally. Earlier passing
+local cohorts and hosted jobs are historical evidence, not a claim that the full
+final suite passed. Production deployment has not started.

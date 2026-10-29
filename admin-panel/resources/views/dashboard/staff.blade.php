@@ -18,7 +18,7 @@
     @include('dashboard.partials.stat-cards')
 
     <div class="row">
-        @if(auth()->user()->can('fee-payments-manage') && app(\App\Services\Platform\Modules\ModuleGate::class)->allows('fees'))
+        @if($can_read_fee_receipts ?? false)
             <div class="col-12 col-lg-6 mb-4">
                 @include('dashboard.partials.fees-collection')
             </div>

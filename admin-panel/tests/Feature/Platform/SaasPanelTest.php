@@ -14,6 +14,10 @@ use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
+use App\Services\Platform\Ledger\AccountType;
+use App\Services\Platform\Ledger\LedgerService;
+use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Ledger\Posting;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Saas\PlatformStaffAccess;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -49,6 +53,19 @@ class SaasPanelTest extends TestCase
         PlatformAdminGrant::query()->updateOrCreate(['user_id' => $user->id], ['active' => true, 'expires_at' => now()->addHour()]);
 
         return $user;
+    }
+
+    private function seedCanonicalFeeHistory(): int
+    {
+        return app(CurrentSchool::class)->run(2, function (): int {
+            $ledger = app(LedgerService::class);
+            $cash = $ledger->openAccount(AccountType::CashDesk, 'synthetic:saas:cash', 'ZAR');
+            $family = $ledger->openAccount(AccountType::Family, 'synthetic:saas:family', 'ZAR');
+
+            return $ledger->post('synthetic:saas:receipt', 'synthetic:saas:receipt', 'Synthetic retained receipt', [
+                Posting::debit($cash, Money::ofCents(100)), Posting::credit($family, Money::ofCents(100)),
+            ]);
+        });
     }
 
     /** @return array<string, string> */
@@ -220,6 +237,7 @@ class SaasPanelTest extends TestCase
     public function test_package_downgrade_keeps_existing_financial_records_readable_only(): void
     {
         $staff = $this->staff();
+        $entry = $this->seedCanonicalFeeHistory();
         $count = DB::table('fees_paids')->where('school_id', 2)->count();
         $this->assertGreaterThan(0, $count);
         $this->actingAs($staff)->put('/saas/schools/2/package', ['package_key' => 'core'])->assertRedirect();
@@ -230,9 +248,10 @@ class SaasPanelTest extends TestCase
             $this->assertFalse(app(ModuleGate::class)->writable('fees'));
         });
         $this->assertSame($count, DB::table('fees_paids')->where('school_id', 2)->count());
+        $this->assertDatabaseHas('ledger_entries', ['id' => $entry, 'school_id' => 2]);
         $this->assertNull(School::query()->findOrFail(1)->package_key);
         auth()->forgetGuards();
-        $this->withToken($this->schoolB->tokens['asha'])->withHeader('X-School-Id', '2')->getJson('/api/student/fees-paid-list')->assertOk();
+        $this->withToken($this->schoolB->tokens['asha'])->withHeader('X-School-Id', '2')->getJson('/api/student/fees-paid-list')->assertOk()->assertJsonPath('code', 410)->assertJsonPath('data', null);
     }
 
     public function test_role_free_sign_in_still_refuses_missing_expired_revoked_or_unsettled_authority(): void
@@ -532,6 +551,7 @@ class SaasPanelTest extends TestCase
         $this->actingAs($staff);
         $this->put('/saas/schools/2/package', ['package_key' => 'standard'])->assertRedirect();
         $this->put('/saas/schools/2/modules/fees', ['enabled' => 1])->assertRedirect();
+        $entry = $this->seedCanonicalFeeHistory();
         $this->assertGreaterThan(0, DB::table('fees_paids')->where('school_id', 2)->count());
         app(CurrentSchool::class)->run(2, fn () => $this->assertTrue(app(ModuleGate::class)->writable('fees')));
 
@@ -544,8 +564,9 @@ class SaasPanelTest extends TestCase
             $this->assertFalse($state['in_package']);
         });
         $this->app['auth']->forgetGuards();
-        $this->withToken($this->schoolB->tokens['asha'])->getJson('/api/student/fees-paid-list')->assertOk();
-        $this->postJson('/api/student/store-fees', [])->assertForbidden();
+        $this->withToken($this->schoolB->tokens['asha'])->getJson('/api/student/fees-paid-list')->assertOk()->assertJsonPath('code', 410)->assertJsonPath('data', null);
+        $this->postJson('/api/student/store-fees', [])->assertOk()->assertJsonPath('code', 410);
+        $this->assertDatabaseHas('ledger_entries', ['id' => $entry, 'school_id' => 2]);
         // Another school's fees were never touched.
         app(CurrentSchool::class)->run(1, fn () => $this->assertTrue(app(ModuleGate::class)->writable('fees')));
     }

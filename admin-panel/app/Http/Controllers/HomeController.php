@@ -29,6 +29,7 @@ use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\Timetable;
 use App\Models\User;
+use App\Policies\Money\MoneyPolicy;
 use App\Services\Money\FeeReceiptOverview;
 use App\Services\Panel\SetupChecklist;
 use App\Services\Panel\TodayNumbers;
@@ -46,6 +47,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class HomeController extends Controller
@@ -150,6 +152,17 @@ class HomeController extends Controller
             $data = array_merge($data, $this->getTeacherDashboardInitialData($session_year));
         } else {
             $data = array_merge($data, $this->getStaffDashboardInitialData($session_year, $user));
+        }
+
+        // The card and its endpoint use the same fresh financial authority.
+        $data['can_read_fee_receipts'] = false;
+        try {
+            app(MoneyPolicy::class)->authorize($user, 'fee-payments-manage');
+            $data['can_read_fee_receipts'] = true;
+        } catch (HttpExceptionInterface $denied) {
+            if ($denied->getStatusCode() !== 403) {
+                throw $denied;
+            }
         }
 
         // Setup checklist (people who can complete a step) and today's numbers.

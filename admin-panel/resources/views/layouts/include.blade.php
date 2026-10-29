@@ -79,4 +79,13 @@
         e.target.onerror = null;
         e.target.src = "{{ asset('assets/avatar.png') }}";
     };
+    // Image errors do not bubble. Capture them without inline event attributes,
+    // including failures while the rest of the page is still being parsed.
+    document.addEventListener('error', (event) => {
+        const image = event.target;
+        if (image instanceof HTMLImageElement && image.hasAttribute('data-avatar-fallback')) {
+            image.removeAttribute('data-avatar-fallback');
+            onErrorAvatar(event);
+        }
+    }, true);
 </script>

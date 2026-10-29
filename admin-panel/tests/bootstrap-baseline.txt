@@ -14,9 +14,6 @@ app/Http/Controllers/Exam/ExamController.php
 app/Http/Controllers/Exam/MarksController.php
 app/Http/Controllers/Exam/ResultController.php
 app/Http/Controllers/ExamTimetableController.php
-app/Http/Controllers/Fees/ClassController.php
-app/Http/Controllers/Fees/PaidController.php
-app/Http/Controllers/Fees/TypeController.php
 app/Http/Controllers/FormFieldController.php
 app/Http/Controllers/HolidayController.php
 app/Http/Controllers/LanguageController.php
@@ -106,12 +103,6 @@ resources/views/exams/index.blade.php
 resources/views/exams/show_exam_result.blade.php
 resources/views/exams/upload-marks.blade.php
 resources/views/exams/view-result.blade.php
-resources/views/fees/fees_class.blade.php
-resources/views/fees/fees_config.blade.php
-resources/views/fees/fees_paid.blade.php
-resources/views/fees/fees_receipt.blade.php
-resources/views/fees/fees_transaction_logs.blade.php
-resources/views/fees/fees_types.blade.php
 resources/views/form_fields/index.blade.php
 resources/views/holiday/index.blade.php
 resources/views/holiday/list.blade.php
@@ -184,7 +175,6 @@ resources/views/students/report/assignment.blade.php
 resources/views/students/report/attendance.blade.php
 resources/views/students/report/calendar.blade.php
 resources/views/students/report/exam.blade.php
-resources/views/students/report/fees.blade.php
 resources/views/students/report/index.blade.php
 resources/views/students/report/leave.blade.php
 resources/views/students/report/personal.blade.php

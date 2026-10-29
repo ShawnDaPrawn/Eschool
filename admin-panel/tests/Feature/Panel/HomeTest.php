@@ -6,6 +6,7 @@ namespace Tests\Feature\Panel;
 
 use App\Models\Money\FeeAccount;
 use App\Models\Money\FeePlan;
+use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Panel\SetupChecklist;
@@ -131,6 +132,25 @@ class HomeTest extends TestCase
         $page = $this->actingAs($this->superAdmin())->get('/home')->assertOk();
 
         $this->assertMatchesRegularExpression('/data-today="staff"[^>]*>\s*<span class="page-stat-label">[^<]+<\/span>\s*<span class="page-stat-value">1 of 2<\/span>/', $page->getContent());
+    }
+
+    public function test_receipt_card_is_hidden_when_the_financial_endpoint_refuses_a_platform_operator(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin)->get('/home')->assertOk()->assertSee('id="fees-card"', false);
+        $this->getJson('/home/widget/fees-collection?session_year_id='.$this->year->id)->assertOk();
+        PlatformStaffIdentity::create(['user_id' => $admin->id, 'active' => true]);
+        $this->get('/home')->assertOk()->assertDontSee('id="fees-card"', false);
+        $this->getJson('/home/widget/fees-collection?session_year_id='.$this->year->id)->assertForbidden();
+    }
+
+    public function test_receipt_card_rechecks_a_loaded_users_revoked_financial_grant(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin)->get('/home')->assertOk()->assertSee('id="fees-card"', false);
+        DB::table('role_has_permissions')->where('permission_id', DB::table('permissions')->where('name', 'fee-payments-manage')->value('id'))->delete();
+        $this->get('/home')->assertOk()->assertDontSee('id="fees-card"', false);
+        $this->getJson('/home/widget/fees-collection?session_year_id='.$this->year->id)->assertForbidden();
     }
 
     private function buildSchool(): void

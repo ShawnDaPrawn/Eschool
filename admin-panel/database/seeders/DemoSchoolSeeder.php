@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Models\Money\FeeAccount;
+use App\Models\Money\FeeItem;
+use App\Models\Money\FeePlan;
 use App\Models\Platform\Role;
 use App\Models\Platform\School;
 use App\Models\SessionYear;
@@ -356,7 +359,7 @@ class DemoSchoolSeeder extends Seeder
         // role, made the way a school makes one on the Roles page.
         $finance = Role::query()->firstOrCreate(['name' => 'Finance', 'guard_name' => 'web']);
         $finance->forceFill(['custom_role' => 1])->save();
-        $finance->syncPermissions(['fees-type', 'fees-classes', 'fees-paid', 'fees-config', 'fee-plans-manage', 'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage', 'fee-credits-manage', 'fee-items-manage']);
+        $finance->syncPermissions(['fee-plans-manage', 'fee-accounts-manage', 'fee-billing-manage', 'fee-payments-manage', 'fee-credits-manage', 'fee-items-manage']);
         [$first, $last, $gender] = $school['finance'];
         $staff = $this->user("finance.$k", $first, $last, 'Finance', ['gender' => $gender, 'dob' => '1985-09-30']);
         $this->row('staffs', ['user_id' => $staff->id]);
@@ -473,16 +476,16 @@ class DemoSchoolSeeder extends Seeder
     /** @param array<string, mixed> $school */
     private function money(array $school, SessionYear $current): void
     {
-        [$name, $description, $perGrade] = $school['fees']['compulsory'];
-        $compulsory = $this->row('fees_types', ['name' => $name], ['description' => $description]);
-        [$name, $description, $optionalCents] = $school['fees']['optional'];
-        $optional = $this->row('fees_types', ['name' => $name], ['description' => $description]);
-
+        $tuition = $school['fees']['compulsory'];
         foreach ($school['grades'] as $index => $grade) {
             $class = (int) SchoolTable::query('classes')->where('name', $grade)->value('id');
-            $this->row('fees_classes', ['session_year_id' => $current->id, 'class_id' => $class, 'fees_type_id' => $compulsory], $this->amount($perGrade[$index]) + ['choiceable' => 0]);
-            $this->row('fees_classes', ['session_year_id' => $current->id, 'class_id' => $class, 'fees_type_id' => $optional], $this->amount($optionalCents) + ['choiceable' => 1]);
+            FeePlan::firstOrCreate(['session_year_id' => $current->id, 'name' => $tuition[0], 'scope' => 'class', 'target_id' => $class], ['amount_cents' => $tuition[2][$index], 'currency' => 'ZAR', 'state' => 'active', 'revision' => 1]);
         }
+        $optional = $school['fees']['optional'];
+        FeeItem::firstOrCreate(['name' => $optional[0]], ['scope' => 'learner', 'amount_cents' => $optional[2],
+            'currency' => 'ZAR', 'tax_treatment' => 'no_vat', 'vat_rate_bp' => 0, 'state' => 'active', 'revision' => 1]);
+        // A setup account has no charges or assigned payer until Finance adds them.
+        FeeAccount::firstOrCreate(['reference' => 'DEMO-'.strtoupper($school['key']).'-'.$current->id], ['name' => 'Demo family setup '.$current->name, 'currency' => 'ZAR', 'active' => true, 'revision' => 1]);
     }
 
     /** @param array<string, mixed> $school */
@@ -538,17 +541,6 @@ class DemoSchoolSeeder extends Seeder
             'points' => 10,
             'resubmission' => 0,
         ]);
-    }
-
-    /** @return array<string, float|int> */
-    private function amount(int $cents): array
-    {
-        $values = ['amount' => $cents / 100];
-        if ($this->hasColumn('fees_classes', 'amount_cents')) {
-            $values['amount_cents'] = $cents;
-        }
-
-        return $values;
     }
 
     /**

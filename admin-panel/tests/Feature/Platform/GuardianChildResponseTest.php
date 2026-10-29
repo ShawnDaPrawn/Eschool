@@ -86,7 +86,7 @@ class GuardianChildResponseTest extends TestCase
         ])->save();
         FeesPaid::query()->where('student_id', $this->schoolA->ids['asha'])->delete();
         $before = collect($this->profile())->firstWhere('id', $this->schoolA->ids['asha']);
-        $this->assertSame(1, $before['is_fee_payment_due']);
+        $this->assertSame(0, $before['is_fee_payment_due'], 'Legacy debt never creates an academic paywall, including for guardians with fee rights.');
         GuardianLink::query()->where('learner_id', $this->schoolA->ids['asha'])->where('guardian_user_id', $this->schoolA->ids['farid_user'])->update(['can_see_fees' => false]);
         $after = collect($this->profile())->firstWhere('id', $this->schoolA->ids['asha']);
         $this->assertSame(0, $after['is_fee_payment_due']);

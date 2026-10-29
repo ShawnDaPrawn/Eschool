@@ -48,6 +48,10 @@ test('Scoped CSP runs trusted workbench scripts and blocks injected inline code'
   expect(scriptPolicy).toContain("'nonce-");
   expect(scriptPolicy).not.toContain("'unsafe-inline'");
   expect(await page.evaluate(() => Boolean((window as any).panelShell))).toBe(true);
+  const avatar = page.locator('.panel-account__avatar');
+  await expect(avatar).not.toHaveAttribute('onerror', /.*/);
+  await avatar.dispatchEvent('error');
+  await expect(avatar).toHaveAttribute('src', /\/assets\/avatar\.png$/);
   await page.evaluate(() => {
     (window as any).__injectedScriptRan = false;
     const script = document.createElement('script');

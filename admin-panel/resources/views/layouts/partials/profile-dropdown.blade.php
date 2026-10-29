@@ -7,7 +7,7 @@
     aria-expanded="false" aria-label="{{ __('nav_account_menu', ['name' => Auth::user()->first_name]) }}">
     {{-- No photo yet: the generic avatar, rather than a request for an empty storage path. --}}
     <img class="panel-account__avatar" src="{{ Auth::user()->getRawOriginal('image') ? Auth::user()->image : asset('assets/avatar.png') }}" alt=""
-        onerror="onErrorAvatar(event)">
+        data-avatar-fallback>
     <span class="panel-account__name">{{ Auth::user()->first_name }}</span>
     <x-icon name="chevron-down" :size="18" class="panel-account__chevron" />
 </button>

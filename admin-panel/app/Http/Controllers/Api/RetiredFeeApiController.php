@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\ResponseService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -14,12 +13,12 @@ final class RetiredFeeApiController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $response = ResponseService::errorResponse('Update the app to use current fee statements and receipts. Online payments are not available yet.', null, 410);
-        $response->headers->set('Cache-Control', 'no-store, private');
-        if (str_ends_with($request->path(), '-pdf')) {
-            $response->setStatusCode(410);
-        }
-
-        return $response;
+        return response()->json([
+            'error' => true,
+            'message' => __('Update the app to use current fee statements and receipts. Online payments are not available yet.'),
+            'data' => null,
+            'code' => 410,
+            'details' => '',
+        ], str_ends_with($request->path(), '-pdf') ? 410 : 200, ['Cache-Control' => 'no-store, private']);
     }
 }

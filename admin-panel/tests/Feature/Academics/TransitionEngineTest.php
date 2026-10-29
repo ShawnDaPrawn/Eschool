@@ -617,7 +617,7 @@ class TransitionEngineTest extends TestCase
         $this->assertSame(0, (int) StudentSessions::where('student_id', $this->schoolA->ids['asha'])->where('session_year_id', $this->year)->value('status'));
         $this->withToken($token)->getJson('/api/parent/get-profile-data')->assertOk()->assertJsonPath('error', false);
         $this->getJson('/api/parent/attendance?child_id='.$this->schoolA->ids['asha'])->assertOk()->assertJsonPath('error', false);
-        $this->getJson('/api/parent/fees-transactions-list')->assertOk()->assertJsonPath('error', false);
+        $this->getJson('/api/parent/fees-transactions-list')->assertOk()->assertJsonPath('error', true)->assertJsonPath('code', 410)->assertJsonPath('data', null);
         $this->getJson('/api/v2/academics/reports/learners/'.$this->schoolA->ids['asha'])->assertOk();
         // Retained departure rights do not require a session in a later school year.
         $next = SessionYear::forceCreate(['name' => '2027', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31', 'default' => 0]);
