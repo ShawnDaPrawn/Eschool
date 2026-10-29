@@ -91,3 +91,15 @@ financial authority. Database permission definitions remain for rollout history;
 no new financial permission is implicitly granted. The final receipt, role/tenant
 and read-only-year cohort passed 37 tests (351 assertions), including role-form
 choices and a crafted legacy grant. Pint passed on the affected source.
+
+
+## Final review: term-specific subject offerings
+
+Homework copy targets must also have an active ClassSubject row for the exact
+class, subject, session year and term. Grade compatibility and teacher allocation
+remain additional requirements. The regression checks both non-Teacher staff and
+a teacher with a stray allocation: another class, another subject, another year
+or a deleted offering cannot make an untaught term selectable or writable; the
+actual taught term remains usable. Existing term-calendar fixtures now explicitly
+configure their subject offerings. This final correction is awaiting hosted
+qualification; it was not executed locally because the workspace became unavailable.

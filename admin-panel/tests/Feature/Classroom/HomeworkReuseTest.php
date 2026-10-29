@@ -195,6 +195,7 @@ class HomeworkReuseTest extends TestCase
         $classC = $this->school->ids['class_c'];
         $year = $this->school->ids['session_year'];
         $term = $this->school->ids['term'];
+        SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_c_maths'])->update(['term_id' => $term]);
         SchoolTable::query('class_session_configs')->where('class_id', $classC)->where('session_year_id', $year)->update(['include_terms' => 1]);
         SchoolTable::query('subject_teachers')->where('teacher_id', $this->school->ids['tara_teacher'])
             ->where('class_section_id', $this->school->ids['section_c'])->delete();
@@ -223,6 +224,7 @@ class HomeworkReuseTest extends TestCase
             $this->actingAs($this->user('tara'), 'web');
             $this->assertTrue(Assignment::assignmentTeachers()->whereKey($copy->id)->exists());
         } finally {
+            SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_c_maths'])->update(['term_id' => null]);
             SchoolTable::query('class_session_configs')->where('class_id', $classC)->where('session_year_id', $year)->update(['include_terms' => 0]);
             SchoolTable::query('subject_teachers')->where('teacher_id', $this->school->ids['tara_teacher'])
                 ->where('class_section_id', $this->school->ids['section_c'])->delete();
@@ -356,6 +358,7 @@ class HomeworkReuseTest extends TestCase
         $class->forceFill(['grade_level_id' => GradeLevel::where('code', '6')->value('id')])->save();
         $year = $this->school->ids['session_year'];
         $lower = Term::findOrFail($this->school->ids['term']);
+        SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_c_maths'])->update(['term_id' => $lower->id]);
         $lower->forceFill(['grade_from' => 0, 'grade_to' => 6])->save();
         $upper = Term::create(['name' => 'Upper grades only', 'session_year_id' => $year,
             'start_date' => $lower->start_date->toDateString(), 'end_date' => $lower->end_date->toDateString(), 'grade_from' => 7, 'grade_to' => 12]);
@@ -378,6 +381,53 @@ class HomeworkReuseTest extends TestCase
             $this->assertSame($before, Assignment::count());
             $this->postJson("/assignment/$source/copy", ['targets' => [$base.$lower->id], 'due_date' => $this->dueDate()])->assertOk()->assertJsonPath('error', false);
             $this->assertSame((int) $lower->id, (int) Assignment::latest('id')->firstOrFail()->term_id);
+        }
+    }
+
+    public function test_copy_targets_require_the_subject_in_the_exact_class_term_and_year(): void
+    {
+        $class = $this->school->ids['class_c'];
+        $year = $this->school->ids['session_year'];
+        $subject = $this->school->ids['maths'];
+        $taught = Term::findOrFail($this->school->ids['term']);
+        $untaught = Term::create(['name' => 'Term without Maths', 'session_year_id' => $year,
+            'start_date' => $taught->end_date->addDay()->toDateString(), 'end_date' => $taught->end_date->addMonths(3)->toDateString(),
+            'grade_from' => $taught->grade_from, 'grade_to' => $taught->grade_to]);
+        SchoolTable::query('class_session_configs')->where('class_id', $class)->where('session_year_id', $year)->update(['include_terms' => 1]);
+        SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_c_maths'])->update(['term_id' => $taught->id]);
+
+        // Neither another class nor another subject authorizes this class's Maths homework.
+        $rows = [
+            ['class_id' => $this->school->ids['class_a'], 'subject_id' => $subject, 'session_year_id' => $year],
+            ['class_id' => $class, 'subject_id' => $this->school->ids['science'], 'session_year_id' => $year],
+            ['class_id' => $class, 'subject_id' => $subject, 'session_year_id' => $year, 'deleted_at' => now()],
+        ];
+        $earlier = SchoolTable::query('session_years')->insertGetId([
+            'name' => 'Earlier subject year', 'start_date' => now()->subYears(2)->toDateString(), 'end_date' => now()->subYear()->toDateString(),
+            'default' => 0, 'free_app_use_date' => now()->subYears(2)->toDateString(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $rows[] = ['class_id' => $class, 'subject_id' => $subject, 'session_year_id' => $earlier];
+        foreach ($rows as $row) {
+            SchoolTable::query('class_subjects')->insert($row + ['term_id' => $untaught->id, 'type' => 'Compulsory']);
+        }
+        foreach ([$taught->id, $untaught->id] as $term) {
+            SchoolTable::query('subject_teachers')->updateOrInsert(['class_section_id' => $this->school->ids['section_c'],
+                'subject_id' => $subject, 'teacher_id' => $this->school->ids['tara_teacher'],
+                'session_year_id' => $year, 'term_id' => $term], []);
+        }
+        $admin = $this->superAdmin();
+        $admin->givePermissionTo('assignment-create');
+        foreach ([$admin, $this->user('tara')] as $actor) {
+            $source = $this->school->ids['assignment'];
+            $base = $this->school->ids['section_c'].':';
+            $targets = collect($this->actingAs($actor, 'web')->getJson("/assignment/$source/copy-targets")->assertOk()->json('data'))->pluck('key')->all();
+            $this->assertContains($base.$taught->id, $targets);
+            $this->assertNotContains($base.$untaught->id, $targets);
+            $before = Assignment::count();
+            $this->postJson("/assignment/$source/copy", ['targets' => [$base.$untaught->id], 'due_date' => $this->dueDate()])->assertOk()->assertJsonPath('error', true);
+            $this->assertSame($before, Assignment::count());
+            $this->postJson("/assignment/$source/copy", ['targets' => [$base.$taught->id], 'due_date' => $this->dueDate()])->assertOk()->assertJsonPath('error', false);
+            $this->assertSame((int) $taught->id, (int) Assignment::latest('id')->firstOrFail()->term_id);
         }
     }
 }
