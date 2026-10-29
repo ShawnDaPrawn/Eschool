@@ -49,6 +49,8 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
   late final TextEditingController _title, _body;
   // One operation id per new entry: a retried save cannot make a copy.
   final String _operation = const Uuid().v4();
+  // Once a create has been sent the entry may exist, so its kind is fixed.
+  bool _sent = false;
   late bool _todo, _done;
   DateTime? _date, _remind;
   bool _busy = false;
@@ -114,9 +116,22 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
     });
     try {
       final entry = widget.entry;
-      final saved = entry == null
-          ? await widget.repository.create(_operation, draft)
-          : await widget.repository.update(entry.id, entry.revision, draft);
+      DiaryEntry saved;
+      if (entry == null) {
+        _sent = true;
+        saved = await widget.repository.create(_operation, draft);
+        // A retry after a lost reply returns the entry the first try made;
+        // anything the learner changed since then is saved onto it.
+        if (!diaryEntryMatches(saved, draft)) {
+          saved = await widget.repository.update(
+            saved.id,
+            saved.revision,
+            draft,
+          );
+        }
+      } else {
+        saved = await widget.repository.update(entry.id, entry.revision, draft);
+      }
       if (mounted) Navigator.of(context).pop(DiarySaved(saved));
     } catch (error) {
       if (!mounted) return;
@@ -257,7 +272,7 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
                 ),
               ],
               selected: {_todo},
-              onSelectionChanged: _busy
+              onSelectionChanged: _busy || _sent
                   ? null
                   : (value) => setState(() {
                       _todo = value.first;

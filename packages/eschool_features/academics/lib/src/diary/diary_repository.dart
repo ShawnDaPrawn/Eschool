@@ -1,6 +1,8 @@
 import 'package:eschool_api/eschool_api.dart';
 import 'package:eschool_core/eschool_core.dart';
 
+import 'diary_dates.dart';
+
 /// A note or a to-do as the learner writes it. Only the learner reads it.
 class DiaryDraft {
   const DiaryDraft({
@@ -57,6 +59,19 @@ class DiaryDraft {
       'done': todo && done,
     };
   }
+}
+
+/// Whether [entry] already holds exactly what [draft] would save, as the
+/// server stores it (title trimmed, a blank body as none).
+bool diaryEntryMatches(DiaryEntry entry, DiaryDraft draft) {
+  final fields = draft.fields();
+  final date = entry.date;
+  return (entry.kind == DiaryEntryKindEnum.todo) == draft.todo &&
+      entry.title == fields['title'] &&
+      entry.body == fields['body'] &&
+      (date == null ? null : diaryDay(date)) == fields['date'] &&
+      entry.remindAt == fields['remind_at'] &&
+      entry.done == fields['done'];
 }
 
 final diaryDatePattern = RegExp(r'^\d{4}-\d{2}-\d{2}$');

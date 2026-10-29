@@ -291,7 +291,8 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (_current(epoch)) {
         setState(
-          () => _notice = 'Your diary could not be saved. Check your connection and try again.',
+          () => _notice =
+              'Your diary could not be saved. Check your connection and try again.',
         );
       }
     }

@@ -105,6 +105,10 @@ class _FakeDiary implements DiaryRepository {
   List<Map<String, Object?>> entries;
   List<Map<String, Object?>> items;
   bool active = true;
+
+  /// The next create is stored but its reply is lost, as on a timeout.
+  bool loseNextCreate = false;
+  final _byOperation = <String, Map<String, Object?>>{};
   final ranges = <String>[];
   final created = <(String, DiaryDraft)>[];
   final updated = <(int, int, DiaryDraft)>[];
@@ -143,15 +147,27 @@ class _FakeDiary implements DiaryRepository {
   @override
   Future<DiaryEntry> create(String operationId, DiaryDraft draft) async {
     created.add((operationId, draft));
+    // Like the server: a repeated operation returns what the first made.
+    final original = _byOperation[operationId];
+    if (original != null) {
+      return DiaryEntry.fromJson(
+        entries.firstWhere((e) => e['id'] == original['id']),
+      );
+    }
     final entry = _entry(
       90 + created.length,
       kind: draft.todo ? 'todo' : 'note',
       title: draft.title.trim(),
-      body: draft.body,
+      body: draft.fields()['body'] as String?,
       date: draft.date,
       remindAt: draft.remindAt,
     );
     entries = [...entries, entry];
+    _byOperation[operationId] = entry;
+    if (loseNextCreate) {
+      loseNextCreate = false;
+      throw ApiException('Connection timed out.', isTransportFailure: true);
+    }
     return DiaryEntry.fromJson(entry);
   }
 
@@ -591,6 +607,38 @@ void main() {
       expect(diary.created.single.$2.todo, isTrue);
       expect(find.text('Finish science project'), findsOneWidget);
       expect(find.text('Saved.'), findsOneWidget);
+    });
+
+    testWidgets('edits after a lost save reply are kept, without a copy', (
+      tester,
+    ) async {
+      final diary = _FakeDiary()..loseNextCreate = true;
+      await _mount(tester, diary);
+      await tester.tap(find.byKey(const ValueKey('diary-add-todo')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('diary-title')),
+        'Draft',
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('diary-save')));
+      await tester.tap(find.byKey(const ValueKey('diary-save')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('diary-editor-error')), findsOneWidget);
+
+      // The learner changes it, then tries again.
+      await tester.enterText(
+        find.byKey(const ValueKey('diary-title')),
+        'Finished draft',
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('diary-save')));
+      await tester.tap(find.byKey(const ValueKey('diary-save')));
+      await tester.pumpAndSettle();
+      expect(diary.created, hasLength(2));
+      expect(diary.created.first.$1, diary.created.last.$1);
+      expect(diary.updated.single.$3.title, 'Finished draft');
+      expect(diary.entries, hasLength(1), reason: 'no copy');
+      expect(find.text('Finished draft'), findsOneWidget);
+      expect(find.text('Draft'), findsNothing);
     });
 
     testWidgets('a note can be deleted for good after confirming', (
