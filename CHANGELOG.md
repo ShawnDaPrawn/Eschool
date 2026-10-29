@@ -23,6 +23,13 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- The learner's LURITS number can be recorded as their primary identifier, once per
+  learner across all schools, encrypted, and never written twice: a number another
+  learner already holds opens a conflict for review instead. The NavigateEd number
+  remains the temporary identifier for learners without one (ADR 0007). Screens,
+  API fields, imports and SA-SAMS keying follow. **Deploy:** run the additive
+  `learner_identifiers` LURITS migration.
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.

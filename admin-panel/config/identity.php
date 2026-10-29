@@ -8,4 +8,10 @@ return [
     // Rollout is explicit: the service and tests work before a school enables it.
     // No existing account is silently treated as having guardian consent.
     'approval_enforced' => (bool) env('LEARNER_APPROVAL_ENFORCED', false),
+    // LURITS number shape (digits only, after removing spaces and dashes).
+    // Deliberately permissive until confirmed against the SA-SAMS / DBE
+    // specification; see engineering/specs/platform/lurits.md.
+    'lurits' => [
+        'pattern' => env('LURITS_PATTERN', '/^[0-9]{6,16}$/D'),
+    ],
 ];

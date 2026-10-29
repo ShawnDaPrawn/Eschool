@@ -11,5 +11,6 @@ A record is never rewritten after it is accepted. When a decision changes, add a
 | [0003](0003-app-packages-and-web.md) | Thin app shells over shared packages, web builds on Firebase Hosting, portal hostnames | Accepted (hostnames defaulted, Q0.2) |
 | [0004](0004-transactional-email.md) | Transactional email through Amazon SES in `af-south-1`, bounces and complaints through SNS | Accepted (defaulted, Q0.1) |
 | [0005](0005-student-number-and-handles.md) | Lifelong student number and learner handle rules | Accepted (defaulted, Q0.5 and Q0.6); built in Phase 1 |
+| [0007](0007-lurits-primary-learner-identifier.md) | The LURITS number is the learner's primary identifier | Accepted (product owner, 30 October 2026); foundation built |
 
 Defaults taken while the product owner has not answered are listed in [`phases/phase-N-questions.md`](../phases/phase-0-questions.md); when the answer differs from the default, a superseding record follows.

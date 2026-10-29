@@ -1,0 +1,148 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Platform\Identity;
+
+use App\Models\Students;
+use App\Models\User;
+use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolTable;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+
+/**
+ * The LURITS number is the learner's primary identifier: it follows them to
+ * any school in South Africa. It belongs to the human's global identity
+ * (learner_identifiers), never to one school's learner row.
+ * Specification: engineering/specs/platform/lurits.md (ADR 0007).
+ *
+ * The NavigateEd student number (ADR 0005) stays the fallback for learners
+ * without a LURITS number, and history stays linked to NavigateEd's own
+ * records, so a mistyped or corrected LURITS number never breaks marks,
+ * reports or transfers.
+ */
+class LuritsNumbers
+{
+    public const RECORDED = 'recorded';
+
+    public const UNCHANGED = 'unchanged';
+
+    public const CONFLICT = 'conflict';
+
+    public const SOURCES = ['school_entry', 'sasams_import', 'onboarding_import', 'transfer', 'dbe_correction'];
+
+    /** Digits only: spaces and dashes that people type are removed. */
+    public static function normalise(string $number): string
+    {
+        return preg_replace('/[\s\-]/', '', trim($number)) ?? '';
+    }
+
+    /**
+     * Whether a normalised number has the expected shape. The official format
+     * is configured (config/identity.php lurits.pattern) until it is confirmed
+     * against the SA-SAMS / DBE specification.
+     */
+    public static function valid(string $number): bool
+    {
+        return preg_match((string) config('identity.lurits.pattern'), $number) === 1;
+    }
+
+    /** Keyed so the stored hash cannot be reversed by trying every number. */
+    public static function hash(string $number): string
+    {
+        return hash_hmac('sha256', 'lurits:'.$number, (string) config('app.key'));
+    }
+
+    /**
+     * Records a learner's LURITS number. A number another person already holds
+     * is not written: a conflict is opened for review and CONFLICT is returned,
+     * without revealing who holds it or at which school.
+     */
+    public function record(Students $learner, string $number, string $source, ?User $actor = null): string
+    {
+        $number = self::normalise($number);
+        if (! self::valid($number)) {
+            throw new InvalidArgumentException('That is not a valid LURITS number.');
+        }
+        if (! in_array($source, self::SOURCES, true)) {
+            throw new InvalidArgumentException('Unknown LURITS source.');
+        }
+        $hash = self::hash($number);
+
+        return DB::transaction(function () use ($learner, $number, $source, $actor, $hash) {
+            app(StudentNumbers::class)->assign($learner);
+            $identity = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->lockForUpdate()->first();
+            $holder = DB::table('learner_identifiers')->where('lurits_hash', $hash)->lockForUpdate()->value('user_id');
+
+            if ($holder !== null && (int) $holder !== (int) $learner->user_id) {
+                $open = SchoolTable::query('lurits_conflicts')->where('learner_id', $learner->id)->where('lurits_hash', $hash)->where('status', 'open')->exists();
+                if (! $open) {
+                    SchoolTable::query('lurits_conflicts')->insert([
+                        'school_id' => app(CurrentSchool::class)->id(), 'learner_id' => $learner->id, 'lurits_hash' => $hash,
+                        'holder_user_id' => (int) $holder, 'source' => $source, 'status' => 'open', 'raised_by' => $actor?->id,
+                        'created_at' => now(), 'updated_at' => now(),
+                    ]);
+                }
+                Audit::record('identity.lurits_conflict', $learner, [], ['source' => $source, 'lurits_hash' => $hash]);
+
+                return self::CONFLICT;
+            }
+            if ($identity->lurits_hash === $hash) {
+                return self::UNCHANGED;
+            }
+
+            DB::table('learner_identifiers')->where('user_id', $learner->user_id)->update([
+                'lurits_hash' => $hash, 'lurits_number' => Crypt::encryptString($number), 'lurits_source' => $source,
+                'lurits_recorded_at' => now(), 'lurits_recorded_by' => $actor?->id, 'updated_at' => now(),
+            ]);
+            // Hashes only: the number itself never enters the audit log.
+            Audit::record('identity.lurits_recorded', $learner, ['lurits_hash' => $identity->lurits_hash], ['lurits_hash' => $hash, 'source' => $source]);
+
+            return self::RECORDED;
+        });
+    }
+
+    /** The learner's LURITS number, or null when none is recorded. */
+    public function forLearner(Students $learner): ?string
+    {
+        $encrypted = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->value('lurits_number');
+
+        return $encrypted === null ? null : Crypt::decryptString((string) $encrypted);
+    }
+
+    /**
+     * The identifier shown first wherever a learner is identified: LURITS when
+     * recorded, otherwise the NavigateEd number, labelled as temporary.
+     *
+     * @return array{type: 'lurits'|'navigateed', value: string}|null
+     */
+    public function primary(Students $learner): ?array
+    {
+        $lurits = $this->forLearner($learner);
+        if ($lurits !== null) {
+            return ['type' => 'lurits', 'value' => $lurits];
+        }
+        $number = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->value('student_number');
+
+        return $number === null ? null : ['type' => 'navigateed', 'value' => (string) $number];
+    }
+
+    /**
+     * The human who holds a LURITS number, for matching at admission and
+     * import. Internal only: callers must not reveal the holder's school or
+     * records to the school asking; an existing holder means "start a transfer".
+     */
+    public function holderUserId(string $number): ?int
+    {
+        $number = self::normalise($number);
+        if (! self::valid($number)) {
+            return null;
+        }
+        $userId = DB::table('learner_identifiers')->where('lurits_hash', self::hash($number))->value('user_id');
+
+        return $userId === null ? null : (int) $userId;
+    }
+}

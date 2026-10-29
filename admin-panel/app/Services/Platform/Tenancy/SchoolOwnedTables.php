@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'lurits_conflicts',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',
@@ -125,7 +126,7 @@ final class SchoolOwnedTables
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',
         'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
         'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
-        'learner_identifiers' => 'one immutable student number per human across schools; accessed by user id under a lock',
+        'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',
         'platform_counters' => 'platform-wide sequence allocation under a row lock',
         'schools' => 'the schools themselves',
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
