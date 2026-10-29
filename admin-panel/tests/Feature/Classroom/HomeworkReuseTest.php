@@ -5,11 +5,13 @@ namespace Tests\Feature\Classroom;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\File;
+use App\Models\Notification;
 use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Platform\Tenancy\SchoolTable;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
@@ -287,5 +289,61 @@ class HomeworkReuseTest extends TestCase
         ]);
 
         $this->assertNotSame('Not mine to mark', AssignmentSubmission::query()->findOrFail($submission)->feedback);
+    }
+
+    public function test_reused_video_owns_its_thumbnail_and_deleting_it_preserves_the_original(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('assignment/synthetic-video.mp4', 'synthetic video');
+        Storage::disk('public')->put('assignment/synthetic-thumb.jpg', 'synthetic thumbnail');
+        $source = Assignment::findOrFail($this->school->ids['assignment'])->replicate();
+        $source->save();
+        File::create(['modal_type' => Assignment::class, 'modal_id' => $source->id, 'file_name' => 'Synthetic video', 'type' => 3,
+            'file_url' => 'assignment/synthetic-video.mp4', 'file_thumbnail' => 'assignment/synthetic-thumb.jpg']);
+        $this->actingAs($this->user('tara'), 'web')->postJson("/assignment/{$source->id}/copy", [
+            'targets' => [$this->sectionKey('a')], 'due_date' => $this->dueDate(),
+        ])->assertOk()->assertJsonPath('error', false);
+        $copy = Assignment::latest('id')->firstOrFail();
+        $attachment = File::where('modal_type', Assignment::class)->where('modal_id', $copy->id)->sole();
+        $this->assertNotSame('assignment/synthetic-thumb.jpg', $attachment->getRawOriginal('file_thumbnail'));
+        Storage::disk('public')->assertExists($attachment->getRawOriginal('file_url'));
+        Storage::disk('public')->assertExists($attachment->getRawOriginal('file_thumbnail'));
+        $copy->delete();
+        Storage::disk('public')->assertExists('assignment/synthetic-video.mp4');
+        Storage::disk('public')->assertExists('assignment/synthetic-thumb.jpg');
+    }
+
+    public function test_missing_thumbnail_rolls_back_homework_and_cleans_partially_copied_files(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('assignment/synthetic-video.mp4', 'synthetic video');
+        $source = Assignment::findOrFail($this->school->ids['assignment'])->replicate();
+        $source->save();
+        File::create(['modal_type' => Assignment::class, 'modal_id' => $source->id, 'file_name' => 'Synthetic video', 'type' => 3,
+            'file_url' => 'assignment/synthetic-video.mp4', 'file_thumbnail' => 'assignment/missing-thumb.jpg']);
+        $before = Assignment::count();
+        $this->actingAs($this->user('tara'), 'web')->postJson("/assignment/{$source->id}/copy", [
+            'targets' => [$this->sectionKey('a')], 'due_date' => $this->dueDate(),
+        ])->assertOk()->assertJsonPath('error', true);
+        $this->assertSame($before, Assignment::count());
+        $this->assertSame(['assignment/synthetic-video.mp4'], Storage::disk('public')->allFiles('assignment'));
+    }
+
+    public function test_notification_intent_failure_cannot_report_a_committed_copy_as_failed(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('assignment/synthetic-video.mp4', 'synthetic video');
+        $source = Assignment::findOrFail($this->school->ids['assignment'])->replicate();
+        $source->save();
+        File::create(['modal_type' => Assignment::class, 'modal_id' => $source->id, 'file_name' => 'Synthetic video', 'type' => 3,
+            'file_url' => 'assignment/synthetic-video.mp4']);
+        $before = Assignment::count();
+        Event::listen('eloquent.creating: '.Notification::class,
+            static fn () => throw new \RuntimeException('Synthetic notification-intent failure'));
+        $this->actingAs($this->user('tara'), 'web')->postJson("/assignment/{$source->id}/copy", [
+            'targets' => [$this->sectionKey('a')], 'due_date' => $this->dueDate(),
+        ])->assertOk()->assertJsonPath('error', true);
+        $this->assertSame($before, Assignment::count());
+        $this->assertSame(['assignment/synthetic-video.mp4'], Storage::disk('public')->allFiles('assignment'));
     }
 }

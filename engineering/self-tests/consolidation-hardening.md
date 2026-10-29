@@ -51,3 +51,19 @@ Browser cookie sessions continue using IndexedDB and never persist a bearer toke
 Physical iOS/Android backup/restore and locked-device testing remain external.
 Fluent AF/ZU acceptance and independent security testing remain separate from code
 and structural locale checks. See security/consolidation-threats-and-evidence.md.
+
+## Final cumulative qualification
+
+Final full client suites passed: Core146, Family124, Teacher185, Session121,
+Fees70 and Wallet119. The cumulative backend homework/money/leadership/CSP cohort
+passed86 tests (743 assertions). Final analyses have no errors/warnings; existing
+informational findings remain Core1, Family60 and Teacher58.
+
+Review of the included homework PR reproduced two file defects: copies shared
+video thumbnails, and missing files could produce incomplete homework. Copies
+now own their uploaded files and thumbnails, check storage-copy outcomes and
+remove partial destinations on failure. Notification rows and durable outbox
+intent commit in the same transaction as copies, so an intent failure cannot
+report an already-created copy as failed. The final homework/read-only-year cohort
+passed21 tests (109 assertions), including the three new file/rollback controls.
+The original two diagnostic cases failed before the correction, as intended.

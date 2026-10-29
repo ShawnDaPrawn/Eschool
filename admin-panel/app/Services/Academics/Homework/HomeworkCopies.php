@@ -143,10 +143,15 @@ class HomeworkCopies
                     $copy->save();
 
                     foreach ($source->file as $file) {
-                        $storedPaths[] = $this->copyFile($file, $copy);
+                        $this->copyFile($file, $copy, $storedPaths);
                     }
 
                     $copied->push($copy);
+                }
+                // Notice rows and durable recipient intent commit with the copies.
+                // Notifier accelerates delivery only after the outer commit.
+                foreach ($copied as $copy) {
+                    $this->notifyLearners($copy, $source->subject?->name ?? '', $sessionYearId);
                 }
             });
         } catch (\Throwable $e) {
@@ -155,10 +160,6 @@ class HomeworkCopies
             }
 
             throw $e;
-        }
-
-        foreach ($copied as $copy) {
-            $this->notifyLearners($copy, $source->subject?->name ?? '', $sessionYearId);
         }
 
         return $copied;
@@ -199,31 +200,45 @@ class HomeworkCopies
         return (int) ($actor->teacher?->id ?? 0);
     }
 
-    private function copyFile(File $file, Assignment $copy): ?string
+    /** Every local file, including a link's thumbnail, belongs to its copy. */
+    private function copyFile(File $file, Assignment $copy, array &$storedPaths): void
     {
         $path = $file->getRawOriginal('file_url');
-        $newPath = null;
-
-        // Uploaded files (and videos) are stored per assignment, because deleting an
-        // assignment deletes its stored files; links are copied as they are.
-        if (in_array((int) $file->type, [1, 3], true) && $path && ! preg_match('#^https?://#i', $path)) {
-            if (! Storage::disk('public')->exists($path)) {
-                return null;
+        if (in_array((int) $file->type, [1, 3], true)) {
+            if (! is_string($path) || $path === '') {
+                throw ValidationException::withMessages(['files' => __('An attached file is unavailable. Restore it before reusing this homework.')]);
             }
-            $extension = pathinfo($path, PATHINFO_EXTENSION);
-            $newPath = 'assignment/'.Str::random(40).($extension !== '' ? '.'.$extension : '');
-            Storage::disk('public')->copy($path, $newPath);
+            $path = $this->copyStoredPath($path, $storedPaths);
         }
-
+        $thumbnail = $this->copyStoredPath($file->getRawOriginal('file_thumbnail'), $storedPaths);
         $clone = new File;
         $clone->file_name = $file->file_name;
         $clone->type = $file->type;
-        $clone->file_url = $newPath ?? $path;
-        $clone->file_thumbnail = $file->getRawOriginal('file_thumbnail');
+        $clone->file_url = $path;
+        $clone->file_thumbnail = $thumbnail;
         $clone->modal()->associate($copy);
         $clone->save();
+    }
 
-        return $newPath;
+    private function copyStoredPath(?string $path, array &$storedPaths): ?string
+    {
+        // Links remain links; no external resource is fetched by the server.
+        if ($path === null || $path === '' || preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+        $disk = Storage::disk('public');
+        if (! $disk->exists($path)) {
+            throw ValidationException::withMessages(['files' => __('An attached file is unavailable. Restore it before reusing this homework.')]);
+        }
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $destination = 'assignment/'.Str::random(40).($extension !== '' ? '.'.$extension : '');
+        // Track before I/O: failures can leave a partial destination behind.
+        $storedPaths[] = $destination;
+        if (! $disk->copy($path, $destination)) {
+            throw new \RuntimeException('Homework attachment could not be copied.');
+        }
+
+        return $destination;
     }
 
     /** The same notice as setting new homework: the class's learners (only those taking an elective). */
