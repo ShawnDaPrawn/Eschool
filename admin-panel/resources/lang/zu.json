@@ -1911,6 +1911,8 @@
     "Map the existing school subject instead of creating a duplicate.": "Imephu yesifundo sesikole esikhona esikhundleni sokwenza impinda.",
     "Curriculum plans": "Izinhlelo zekharikhulamu",
     "new_year_carry_curriculum": "Kopisha umlando wokuchazwa kwekharikhulamu njengokusalungiswa (awekho amamaki noma imibiko)",
+    "new_year_carry_teaching_groups": "Amaqembu okufundisa ngesifundo nangebanga (angenalutho: abafundi nothisha babelwa kabusha)",
+    "new_year_carry_activity_groups": "Amaqembu emisebenzi, amaqembu ezemidlalo namakilabhu (angenalutho: amalungu nabasebenzi babelwa kabusha)",
     "Teaching groups": "Amaqembu okufundisa",
     "Academic allocations": "Izabelo zezemfundo",
     "Academic timetable": "Ithayimithebula yezemfundo",

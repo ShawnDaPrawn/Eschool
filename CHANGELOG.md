@@ -23,6 +23,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- The new-year wizard can carry teaching groups and activity groups (teams, clubs,
+  societies) into the next year empty, with their tree, rules and seasons moved to
+  the new year, so learners and staff are allocated afresh and nobody is left in
+  last year's groups.
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.
