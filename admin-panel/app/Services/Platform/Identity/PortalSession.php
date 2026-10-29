@@ -7,6 +7,7 @@ namespace App\Services\Platform\Identity;
 use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Notifications\PushDevices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -50,7 +51,14 @@ final class PortalSession
         app(ApprovalService::class)->assertAccess($user);
 
         if (! self::isPortal($request)) {
-            return AppTokens::issue($user, $app);
+            $plain = AppTokens::issue($user, $app);
+            $fcm = $request->input('fcm_id');
+            if (is_string($fcm) && $fcm !== '' && is_string($request->input('device_type'))) {
+                $tokenId = (int) strstr($plain, '|', true);
+                app(PushDevices::class)->register($user, $fcm, (string) $request->input('device_type'), $app, $tokenId > 0 ? $tokenId : null);
+            }
+
+            return $plain;
         }
 
         if ($app === AppTokens::STUDENT) {
@@ -105,9 +113,9 @@ final class PortalSession
     {
         $token = $user->currentAccessToken();
         if ($token instanceof PersonalAccessToken) {
-            if (! in_array($token->name, [AppTokens::FACILITATOR, AppTokens::VENDOR], true)) {
-                $user->update(['fcm_id' => '']);
-            }
+            // Only this device stops receiving notifications; the account's
+            // other signed-in devices keep theirs.
+            app(PushDevices::class)->revokeForAccessToken((int) $token->getKey());
             AppTokens::signOut($user, $token);
         }
 

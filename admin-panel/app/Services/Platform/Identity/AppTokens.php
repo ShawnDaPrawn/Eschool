@@ -45,14 +45,24 @@ final class AppTokens
         self::VENDOR => 'Vendor',
     ];
 
-    /** Revokes the account's earlier tokens for this app and issues a new one. */
+    /** Signed-in devices kept per app and account; the oldest beyond this are signed out. */
+    public const MAX_DEVICES_PER_APP = 5;
+
+    /**
+     * Issues a token for one more device of this app. The account stays signed
+     * in on its other devices (a parent's phone and tablet), up to
+     * MAX_DEVICES_PER_APP; the oldest beyond that are revoked. Unnamed tokens
+     * from before app names are still removed when they can only be this app's.
+     */
     public static function issue(User $user, string $app): string
     {
         app(ApprovalService::class)->assertAccess($user);
         if ($app === self::STUDENT) {
             app(LearnerAcademicAccess::class)->assertUser($user);
         }
-        self::revokeApp($user, $app);
+        self::revokeLegacy($user, $app);
+        $keep = $user->tokens()->where('name', $app)->orderByDesc('id')->limit(self::MAX_DEVICES_PER_APP - 1)->pluck('id');
+        $user->tokens()->where('name', $app)->whereNotIn('id', $keep)->delete();
 
         return $user->createToken($app)->plainTextToken;
     }
@@ -77,23 +87,26 @@ final class AppTokens
             ->delete();
     }
 
-    /** Signs the token's holder out of the app the token belongs to. */
+    /** Signs this device out: the account's other devices stay signed in. */
     public static function signOut(User $user, ?PersonalAccessToken $token): void
     {
         if ($token === null) {
             return;
         }
 
-        if (in_array($token->name, [self::FACILITATOR, self::VENDOR], true)) {
-            $token->delete();
-
-            return;
-        }
-
-        if (array_key_exists($token->name, self::APPS)) {
-            self::revokeApp($user, $token->name);
+        if (! in_array($token->name, [self::FACILITATOR, self::VENDOR], true) && array_key_exists($token->name, self::APPS)) {
+            self::revokeLegacy($user, $token->name);
         }
         $token->delete();
+    }
+
+    /** Removes unnamed tokens from before app names when they can only be this app's. */
+    private static function revokeLegacy(User $user, string $app): void
+    {
+        if (in_array($app, [self::FACILITATOR, self::VENDOR], true) || self::usesAnotherApp($user, $app)) {
+            return;
+        }
+        $user->tokens()->whereNotIn('name', array_keys(self::APPS))->delete();
     }
 
     /** Revokes every token of the account, optionally keeping one. */

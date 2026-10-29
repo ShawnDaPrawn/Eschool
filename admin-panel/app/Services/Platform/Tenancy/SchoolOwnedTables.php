@@ -126,6 +126,7 @@ final class SchoolOwnedTables
         'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
         'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
         'learner_identifiers' => 'one immutable student number per human across schools; accessed by user id under a lock',
+        'user_devices' => 'push registrations belong to one human across schools, like users; each notification carries its own school',
         'platform_counters' => 'platform-wide sequence allocation under a row lock',
         'schools' => 'the schools themselves',
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',

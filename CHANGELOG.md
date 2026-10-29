@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Notifications now reach every device a person is signed in on, not only the last
+  one: a parent's phone and tablet, or a teacher's two devices, all receive them.
+  Signing in to an app on another device no longer signs the first one out (up to
+  five devices per app), and signing out ends only that device. **Deploy:** run the
+  additive `user_devices` migration, which copies each existing push registration.
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.
