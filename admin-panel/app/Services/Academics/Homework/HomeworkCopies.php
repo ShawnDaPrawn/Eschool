@@ -174,18 +174,16 @@ class HomeworkCopies
 
         return Term::query()
             ->where('session_year_id', $sessionYearId)
-            ->when($teacherId !== null, fn ($q) => $q->where(function ($q) use ($section, $subjectId, $sessionYearId, $teacherId) {
-                // A teacher allocated without a term teaches the subject in every term.
-                $allocations = SubjectTeacher::query()
-                    ->where('teacher_id', $teacherId)
-                    ->where('class_section_id', $section->id)
-                    ->where('subject_id', $subjectId)
-                    ->where('session_year_id', $sessionYearId);
-                if ((clone $allocations)->whereNull('term_id')->exists()) {
-                    return;
-                }
-                $q->whereIn('id', $allocations->whereNotNull('term_id')->select('term_id'));
-            }))
+            // Assignment::scopeAssignmentTeachers() lets a teacher see term-class homework only
+            // through a subject_teachers row for that exact term, so only those terms are offered
+            // (a copy in any other term would vanish from the teacher's own list).
+            ->when($teacherId !== null, fn ($q) => $q->whereIn('id', SubjectTeacher::query()
+                ->where('teacher_id', $teacherId)
+                ->where('class_section_id', $section->id)
+                ->where('subject_id', $subjectId)
+                ->where('session_year_id', $sessionYearId)
+                ->whereNotNull('term_id')
+                ->select('term_id')))
             ->orderBy('id')
             ->get();
     }

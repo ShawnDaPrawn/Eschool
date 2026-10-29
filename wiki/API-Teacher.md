@@ -75,7 +75,7 @@ The [`CheckStudent`](https://github.com/ShawnDaPrawn/Eschool/blob/main/admin-pan
 | Permission | Endpoints |
 |---|---|
 | `assignment-list` | `get-assignment` |
-| `assignment-create` | `create-assignment`, `get-assignment-copy-targets`, `copy-assignment` |
+| `assignment-create` | `create-assignment` |
 | `assignment-edit` | `update-assignment` |
 | `assignment-delete` | `delete-assignment` |
 | `assignment-submission` | `get-assignment-submission`, `update-assignment-submission` |
@@ -127,8 +127,6 @@ When a term is running (`Term::current`), `classes`, `teacher_timetable` and `up
 | GET | `subjects` | `subjects` | | own rows |
 | GET | `get-assignment` | `getAssignment` | `assignment-list` | `assignmentTeachers` |
 | POST | `create-assignment` | `createAssignment` | `assignment-create` | `teachesSubject` |
-| GET | `get-assignment-copy-targets` | `getAssignmentCopyTargets` | `assignment-create` | `assignmentTeachers` + own `subject_teachers` rows |
-| POST | `copy-assignment` | `copyAssignment` | `assignment-create` | `assignmentTeachers` + own `subject_teachers` rows |
 | POST | `update-assignment` | `updateAssignment` | `assignment-edit` | scope + `teachesSubject` |
 | POST | `delete-assignment` | `deleteAssignment` | `assignment-delete` | `assignmentTeachers` |
 | GET | `get-assignment-submission` | `getAssignmentSubmission` | `assignment-submission` | `assignmentSubmissionTeachers` |
@@ -474,28 +472,6 @@ See the [assignments docs](https://shawndaprawn.github.io/Eschool/features/assig
 
 - **Scope:** `teachesSubject(class_section_id, subject_id, termId)` (403 otherwise).
 - **Side effects:** a `notifications` row (`type = assignment`, `send_to = 3`, title `New assignment added in <subject>`), `user_notifications` rows and an FCM push to the students. If the subject is `Elective` in `class_subjects`, only students with a `student_subjects` row for it this session year are notified, otherwise every student whose `class_section_id` is the section.
-
-#### GET get-assignment-copy-targets
-
-Reusing homework: where one of the teacher's assignments (from any session year) can be set again.
-
-| Parameter | Type | Required | Notes |
-|---|---|---|---|
-| `assignment_id` | numeric | yes | Must pass `assignmentTeachers()` (403 otherwise) |
-
-- **Response:** `data` is a list of `{key, class_section_id, term_id, name}`, one per class section of the school that studies the assignment's subject this session year (`class_subjects`) and that the teacher teaches it in (`subject_teachers`). For a class with terms there is one entry per term the teacher's rows cover (all terms when a row has no term). `key` is `"<class_section_id>:<term_id>"`, the term part empty when the class has no terms. The same rules serve the panel's **Set for other classes** button (`GET assignment/{id}/copy-targets`); a non-teacher panel user with `assignment-create` is offered every class that studies the subject.
-
-#### POST copy-assignment
-
-| Parameter | Type | Required | Notes |
-|---|---|---|---|
-| `assignment_id` | numeric | yes | Must pass `assignmentTeachers()` (403 otherwise) |
-| `targets[]` | keys from `get-assignment-copy-targets` | yes, 1 to 50 | Any key not offered refuses the whole request; nothing is created |
-| `due_date` | `d-m-Y H:i` | yes | Must be in the future |
-
-- **Effect:** one new assignment per target in the current session year, with the source's name, instructions, total (`points`) and resubmission settings, the target's `class_section_id`/`term_id`, the new due date, no submissions, and its own copies of the uploaded files (stored separately, so deleting one class's copy never removes another's files; links are copied as they are). Created in one transaction.
-- **Side effects:** the same notification as `create-assignment`, per copy (elective rule included).
-- **Response:** `data.assignment_ids`.
 
 #### POST update-assignment
 

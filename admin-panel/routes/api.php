@@ -218,8 +218,6 @@ Route::group(['prefix' => 'teacher'], function () {
         // Assignment
         Route::get('get-assignment', [Teacher\AssignmentController::class, 'getAssignment']);
         Route::post('create-assignment', [Teacher\AssignmentController::class, 'createAssignment']);
-        Route::get('get-assignment-copy-targets', [Teacher\AssignmentController::class, 'getAssignmentCopyTargets']);
-        Route::post('copy-assignment', [Teacher\AssignmentController::class, 'copyAssignment']);
         Route::post('update-assignment', [Teacher\AssignmentController::class, 'updateAssignment']);
         Route::post('delete-assignment', [Teacher\AssignmentController::class, 'deleteAssignment']);
 

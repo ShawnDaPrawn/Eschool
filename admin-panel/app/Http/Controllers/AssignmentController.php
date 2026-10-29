@@ -629,9 +629,6 @@ class AssignmentController extends Controller
         foreach ($res as $row) {
             $row = (object) $row;
             $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
-            if (Auth::user()->can('assignment-create')) {
-                $operate .= '<a href="#" class="btn btn-xs btn-gradient-info btn-rounded btn-icon copy-assignment" data-id="'.$row->id.'" data-name="'.e($row->name).'" title="'.e(__('Set for other classes')).'" data-toggle="modal" data-target="#copyAssignmentModal"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;';
-            }
 
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;

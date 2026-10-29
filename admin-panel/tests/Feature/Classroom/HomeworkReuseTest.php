@@ -155,29 +155,43 @@ class HomeworkReuseTest extends TestCase
         $this->assertTrue($response->json('error'));
     }
 
-    public function test_the_teacher_app_reuses_homework(): void
+    public function test_in_a_class_with_terms_only_the_terms_the_teacher_is_allocated_to_are_offered(): void
     {
-        $this->taraAlsoTeachesGradeSix();
-        $targets = $this->withToken($this->school->tokens['tara'])->getJson('/api/teacher/get-assignment-copy-targets?assignment_id='.$this->school->ids['assignment'])->assertOk();
-        $this->assertFalse($targets->json('error'));
-        $this->assertContains($this->sectionKey('c'), collect($targets->json('data'))->pluck('key')->all());
+        $classC = $this->school->ids['class_c'];
+        $year = $this->school->ids['session_year'];
+        $term = $this->school->ids['term'];
+        SchoolTable::query('class_session_configs')->where('class_id', $classC)->where('session_year_id', $year)->update(['include_terms' => 1]);
+        SchoolTable::query('subject_teachers')->where('teacher_id', $this->school->ids['tara_teacher'])
+            ->where('class_section_id', $this->school->ids['section_c'])->delete();
+        $offered = fn () => collect($this->actingAs($this->user('tara'), 'web')->getJson("/assignment/{$this->school->ids['assignment']}/copy-targets")
+            ->assertOk()->json('data'))->pluck('key')->all();
 
-        $copied = $this->withToken($this->school->tokens['tara'])->postJson('/api/teacher/copy-assignment', [
-            'assignment_id' => $this->school->ids['assignment'],
-            'targets' => [$this->sectionKey('c')],
-            'due_date' => now()->addDays(3)->format('d-m-Y H:i'),
-        ])->assertOk();
-        $this->assertFalse($copied->json('error'), (string) $copied->json('message'));
-        $this->assertCount(1, $copied->json('data.assignment_ids'));
+        try {
+            // A row without a term does not let a teacher see homework in a term class, so nothing is offered there.
+            $this->taraAlsoTeachesGradeSix();
+            $this->assertNotContains($this->school->ids['section_c'].':', $offered());
+            $this->assertNotContains($this->school->ids['section_c'].':'.$term, $offered());
 
-        // Theo cannot reuse Tara's homework.
-        $this->app['auth']->forgetGuards();
-        $refused = $this->withToken($this->school->tokens['theo'])->postJson('/api/teacher/copy-assignment', [
-            'assignment_id' => $this->school->ids['assignment'],
-            'targets' => [$this->sectionKey('c')],
-            'due_date' => now()->addDays(3)->format('d-m-Y H:i'),
-        ]);
-        $this->assertTrue($refused->json('error'));
+            SchoolTable::query('subject_teachers')->where('teacher_id', $this->school->ids['tara_teacher'])
+                ->where('class_section_id', $this->school->ids['section_c'])->update(['term_id' => $term]);
+            $this->assertContains($this->school->ids['section_c'].':'.$term, $offered());
+
+            $this->actingAs($this->user('tara'), 'web')->postJson("/assignment/{$this->school->ids['assignment']}/copy", [
+                'targets' => [$this->school->ids['section_c'].':'.$term],
+                'due_date' => $this->dueDate(),
+            ])->assertOk()->assertJson(['error' => false]);
+            $copy = Assignment::query()->latest('id')->firstOrFail();
+            $this->assertSame((int) $term, (int) $copy->term_id);
+
+            // The copy stays in the teacher's own list.
+            $this->assertTrue(Assignment::query()->whereKey($copy->id)->exists());
+            $this->actingAs($this->user('tara'), 'web');
+            $this->assertTrue(Assignment::assignmentTeachers()->whereKey($copy->id)->exists());
+        } finally {
+            SchoolTable::query('class_session_configs')->where('class_id', $classC)->where('session_year_id', $year)->update(['include_terms' => 0]);
+            SchoolTable::query('subject_teachers')->where('teacher_id', $this->school->ids['tara_teacher'])
+                ->where('class_section_id', $this->school->ids['section_c'])->delete();
+        }
     }
 
     public function test_another_schools_class_is_never_offered_or_accepted(): void
@@ -208,15 +222,6 @@ class HomeworkReuseTest extends TestCase
             'due_date' => $this->dueDate(),
         ])->assertOk();
         $this->assertTrue($response->json('error'));
-        $this->assertSame($before, Assignment::query()->count());
-
-        // Nor can the other school's teacher reuse this school's homework through the app.
-        $this->app['auth']->forgetGuards();
-        $this->withToken($other->tokens['tara'])->postJson('/api/teacher/copy-assignment', [
-            'assignment_id' => $this->school->ids['assignment'],
-            'targets' => [$foreignKey],
-            'due_date' => now()->addDays(3)->format('d-m-Y H:i'),
-        ]);
         $this->assertSame($before, Assignment::query()->count());
     }
 
