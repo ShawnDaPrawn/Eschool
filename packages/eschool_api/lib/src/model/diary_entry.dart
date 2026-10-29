@@ -30,6 +30,8 @@ class DiaryEntry {
 
     required this.done,
 
+    required this.doneOn,
+
     required this.revision,
 
     required this.updatedAt,
@@ -63,6 +65,10 @@ class DiaryEntry {
   @JsonKey(name: r'done', required: true, includeIfNull: false)
   final bool done;
 
+  /// The school day a to-do was ticked off. An undated to-do that is done shows on that day.
+  @JsonKey(name: r'done_on', required: true, includeIfNull: true)
+  final DateTime? doneOn;
+
   // minimum: 1
   @JsonKey(name: r'revision', required: true, includeIfNull: false)
   final int revision;
@@ -81,6 +87,7 @@ class DiaryEntry {
           other.date == date &&
           other.remindAt == remindAt &&
           other.done == done &&
+          other.doneOn == doneOn &&
           other.revision == revision &&
           other.updatedAt == updatedAt;
 
@@ -93,6 +100,7 @@ class DiaryEntry {
       (date == null ? 0 : date.hashCode) +
       (remindAt == null ? 0 : remindAt.hashCode) +
       done.hashCode +
+      (doneOn == null ? 0 : doneOn.hashCode) +
       revision.hashCode +
       (updatedAt == null ? 0 : updatedAt.hashCode);
 

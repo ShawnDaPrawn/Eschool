@@ -8,7 +8,7 @@ notes, phone reminders and a "Talk to someone" link to wellbeing reporting.
 
 ## Executed locally
 
-- `tests/Feature/Learning/LearnerDiaryTest.php`: 11 tests pass (266 assertions), validated against
+- `tests/Feature/Learning/LearnerDiaryTest.php`: 12 tests pass (300 assertions), validated against
   `openapi.yaml`. They cover encrypted storage (no plaintext in the rows), a new
   `DIARY_KEY` keeping older text readable, retry by operation id, the 409 on a
   stale revision, permanent delete, refusal of another learner (404), Parent,

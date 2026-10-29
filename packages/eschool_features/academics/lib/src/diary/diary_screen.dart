@@ -183,8 +183,11 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     return !day.isBefore(start) && !day.isAfter(end);
   }
 
-  bool _entryOn(DiaryEntry entry, DateTime day) =>
-      entry.date != null && diaryDate(entry.date!) == day;
+  /// A dated entry shows on its day; an undated to-do that is done shows on
+  /// the day it was done (open ones are on today's page, "Anytime").
+  bool _entryOn(DiaryEntry entry, DateTime day) => entry.date != null
+      ? diaryDate(entry.date!) == day
+      : entry.done && entry.doneOn != null && diaryDate(entry.doneOn!) == day;
 
   bool _hasSomething(DateTime day) =>
       _items.any((item) => _onDay(item, day)) ||
@@ -561,7 +564,9 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
         ? _entries
               .where(
                 (entry) =>
-                    entry.kind == DiaryEntryKindEnum.todo && entry.date == null,
+                    entry.kind == DiaryEntryKindEnum.todo &&
+                    entry.date == null &&
+                    !entry.done,
               )
               .toList()
         : const <DiaryEntry>[];

@@ -24,14 +24,22 @@ class DiaryEntries
 
     public function __construct(private readonly DiaryCipher $cipher, private readonly DiarySchoolItems $items) {}
 
-    /** The range the learner is looking at: dated entries in it, open undated to-dos, and the school items. */
+    /**
+     * The range the learner is looking at: dated entries in it, undated
+     * to-dos that are open or were done during it (so a done one can still be
+     * found, reopened or deleted on the day it was done), and the school items.
+     */
     public function range(Students $learner, CarbonImmutable $from, CarbonImmutable $to): array
     {
         $today = $this->today();
         $userId = (int) $learner->user_id;
+        $zone = $this->zone();
+        $doneFrom = CarbonImmutable::parse($from->toDateString(), $zone)->startOfDay()->setTimezone(config('app.timezone'));
+        $doneTo = CarbonImmutable::parse($to->toDateString(), $zone)->endOfDay()->setTimezone(config('app.timezone'));
         $entries = DiaryEntry::query()->where('user_id', $userId)
             ->where(fn ($q) => $q->whereBetween('entry_on', [$from->toDateString(), $to->toDateString()])
-                ->orWhere(fn ($q) => $q->whereNull('entry_on')->where('kind', 'todo')->whereNull('done_at')))
+                ->orWhere(fn ($q) => $q->whereNull('entry_on')->where('kind', 'todo')
+                    ->where(fn ($q) => $q->whereNull('done_at')->orWhereBetween('done_at', [$doneFrom, $doneTo]))))
             ->orderByRaw('entry_on is null')->orderBy('entry_on')->orderBy('id')
             ->limit(self::MAX_ENTRIES)->get();
 
@@ -207,6 +215,7 @@ class DiaryEntries
             'date' => $entry->entry_on?->toDateString(),
             'remind_at' => $entry->remind_at?->format('Y-m-d H:i'),
             'done' => $entry->done_at !== null,
+            'done_on' => $entry->done_at?->setTimezone($this->zone())->toDateString(),
             'revision' => (int) $entry->revision,
             'updated_at' => $entry->updated_at?->toIso8601String(),
         ];

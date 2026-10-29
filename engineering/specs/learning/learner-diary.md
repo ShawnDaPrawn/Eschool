@@ -22,7 +22,7 @@ School items are a projection worked out when the diary is read, not copies. A c
 
 | Source | Kind | Who gets it | When it shows |
 |---|---|---|---|
-| Assignments | `homework` | Learners in the assignment's class section this session year; for an elective subject only learners with a `student_subjects` row for it | On its due date, and every day after while it is not submitted |
+| Assignments | `homework` | Learners in the assignment's class section this session year; for an elective subject only learners with a `student_subjects` row for it | On its due date. While it is late and not handed in (up to 30 days), a range that includes today shows it on today instead; any other range keeps it on its due date, marked late |
 | Holidays | `holiday` | Everyone in the school | Each day of the holiday in the range |
 | Events (school calendar) | `event` | Everyone in the school | From start to end date |
 
@@ -36,7 +36,7 @@ Later sources (exam timetable and revision reminders, activity group sessions, c
 
 `/api/v2/diary`, guarded by `auth:sanctum`, school context, `learner.approved` and `module:diary`. The learner must be a current, guardian-approved Student of the school.
 
-- `GET diary?from=YYYY-MM-DD&to=YYYY-MM-DD`: up to 62 days. Returns the learner's entries whose date (or due date) falls in the range, undated to-dos that are still open, the school items in the range, and the server's school-local today.
+- `GET diary?from=YYYY-MM-DD&to=YYYY-MM-DD`: up to 62 days. Returns the learner's entries whose date falls in the range, undated to-dos that are still open or were ticked off during the range (`done_on`, so a done one can always be found again, reopened or deleted), the school items in the range, and the server's school-local today.
 - `POST diary/entries`: creates a `note` or `todo` (`operation_id` makes a retry return the original entry).
 - `PUT diary/entries/{entry}`: replaces it (a field left out is cleared); `revision` must match (409 otherwise).
 - `DELETE diary/entries/{entry}`: deletes it permanently.

@@ -21,6 +21,7 @@ Map<String, Object?> _entry(
   String? date = '2026-10-29',
   String? remindAt,
   bool done = false,
+  String? doneOn,
   int revision = 1,
 }) => {
   'id': id,
@@ -30,6 +31,7 @@ Map<String, Object?> _entry(
   'date': date,
   'remind_at': remindAt,
   'done': done,
+  'done_on': done ? (doneOn ?? '2026-10-29') : null,
   'revision': revision,
   'updated_at': '2026-10-29T08:00:00+02:00',
 };
@@ -432,6 +434,13 @@ void main() {
             _entry(1, title: 'Buy poster paper'),
             _entry(2, kind: 'note', title: 'Feeling nervous', body: 'Revise'),
             _entry(3, title: 'Return library book', date: null),
+            _entry(
+              5,
+              title: 'Done on Friday',
+              date: null,
+              done: true,
+              doneOn: '2026-10-30',
+            ),
             _entry(4, title: 'Next week thing', date: '2026-10-30'),
           ],
           items: [
@@ -455,6 +464,7 @@ void main() {
         expect(find.text('Feeling nervous'), findsOneWidget);
         expect(find.text('Return library book'), findsOneWidget);
         expect(find.text('Next week thing'), findsNothing);
+        expect(find.text('Done on Friday'), findsNothing);
         expect(find.text('Sports day'), findsNothing);
         expect(find.textContaining('Only you can see them'), findsOneWidget);
 
@@ -463,6 +473,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Sports day'), findsOneWidget);
         expect(find.text('Next week thing'), findsOneWidget);
+        expect(find.text('Done on Friday'), findsOneWidget);
         expect(find.text('Return library book'), findsNothing);
         expect(find.text('Fraction worksheet'), findsNothing);
         // Saturday still shows the two-day event.

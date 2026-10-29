@@ -194,6 +194,30 @@ class LearnerDiaryTest extends TestCase
         $this->assertSame(now(schoolSetting('time_zone', 'UTC'))->toDateString(), $ben['date']);
         // Asha handed it in, so it is not carried forward.
         $this->assertNull(collect($this->range('asha', 0, 5)->json('data.school_items'))->firstWhere('source', 'homework'));
+
+        // A past week that does not show today keeps it on its due day, still marked late.
+        $past = collect($this->range('ben', -4, -1)->json('data.school_items'))->firstWhere('source', 'homework');
+        $this->assertSame(now()->subDays(2)->toDateString(), $past['date']);
+        $this->assertTrue($past['homework']['overdue']);
+
+        // Beyond the 30-day window it is not carried to today, but its own week still shows it.
+        SchoolTable::query('assignments')->where('id', $this->school->ids['assignment'])->update(['due_date' => now()->subDays(40)->format('Y-m-d').' 17:00:00']);
+        $this->assertNull(collect($this->range('ben', 0, 5)->json('data.school_items'))->firstWhere('source', 'homework'));
+        $this->assertSame(now()->subDays(40)->toDateString(), collect($this->range('ben', -42, -38)->json('data.school_items'))->firstWhere('source', 'homework')['date']);
+    }
+
+    public function test_a_done_undated_to_do_stays_reachable_on_the_day_it_was_done(): void
+    {
+        $todo = $this->create('asha', ['title' => 'Return library book', 'date' => null]);
+        $this->as('asha')->putJson("/api/v2/diary/entries/{$todo['id']}", ['revision' => 1, 'title' => 'Return library book', 'done' => true])->assertOk();
+
+        $today = now(schoolSetting('time_zone', 'UTC') ?: 'UTC')->toDateString();
+        $entry = collect($this->range('asha')->json('data.entries'))->firstWhere('id', $todo['id']);
+        $this->assertTrue($entry['done']);
+        $this->assertSame($today, $entry['done_on']);
+        // Another week does not list it; the week it was done in always will, so it can be reopened or deleted.
+        $this->assertNull(collect($this->range('asha', 10, 16)->json('data.entries'))->firstWhere('id', $todo['id']));
+        $this->as('asha')->deleteJson("/api/v2/diary/entries/{$todo['id']}")->assertOk();
     }
 
     public function test_an_elective_is_only_in_the_diary_of_learners_who_take_it(): void

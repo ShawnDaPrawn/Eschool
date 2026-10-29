@@ -66196,6 +66196,7 @@ components:
       - date
       - remind_at
       - done
+      - done_on
       - revision
       - updated_at
       properties:
@@ -66226,6 +66227,12 @@ components:
           - type: 'null'
         done:
           type: boolean
+        done_on:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The school day a to-do was ticked off. An undated to-do that is done shows on that day.
         revision:
           type: integer
           minimum: 1

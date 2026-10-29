@@ -108,7 +108,7 @@ class DiarySchoolItems
             ->get()
             ->keyBy('assignment_id');
 
-        return $rows->map(function (Assignment $row) use ($submissions, $today, $from) {
+        return $rows->map(function (Assignment $row) use ($submissions, $today, $from, $carryOverdue) {
             $submission = $submissions->get($row->id);
             $due = CarbonImmutable::parse($row->due_date);
             $submitted = $submission !== null && in_array((int) $submission->status, [0, 1, 3], true);
@@ -122,7 +122,10 @@ class DiarySchoolItems
                 'source' => 'homework',
                 'id' => (int) $row->id,
                 'title' => (string) $row->name,
-                'date' => $overdue ? $today->toDateString() : $due->toDateString(),
+                // Late work moves to today only on a page that shows today and
+                // within the carry window; any other range shows its due day.
+                'date' => $overdue && $carryOverdue && ! $due->lessThan($today->subDays(self::OVERDUE_DAYS)->startOfDay())
+                    ? $today->toDateString() : $due->toDateString(),
                 'due_at' => $due->format('Y-m-d H:i'),
                 'end_date' => null,
                 'subject' => $row->subject ? ['id' => (int) $row->subject->id, 'name' => (string) $row->subject->name] : null,
