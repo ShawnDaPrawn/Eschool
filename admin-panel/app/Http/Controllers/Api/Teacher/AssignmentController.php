@@ -17,13 +17,17 @@ use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\Term;
+use App\Services\Academics\Homework\HomeworkCopies;
+use App\Services\Academics\Homework\HomeworkMarks;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
@@ -356,12 +360,14 @@ class AssignmentController extends Controller
                 return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
-            $assignment_submission->feedback = $request->feedback;
-            if ($request->status == 1) {
-                $assignment_submission->points = $request->points;
-            } else {
-                $assignment_submission->points = null;
+            $marks = app(HomeworkMarks::class);
+            $problem = $marks->problem(Assignment::query()->findOrFail($assignment_submission->assignment_id), $request->status, $request->points);
+            if ($problem !== null) {
+                return ResponseService::validationError($problem);
             }
+
+            $assignment_submission->feedback = $request->feedback;
+            $assignment_submission->points = $marks->stored($request->status, $request->points);
 
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];
@@ -401,5 +407,77 @@ class AssignmentController extends Controller
         } catch (Throwable $e) {
             return ResponseService::errorResponse('error_occurred', null, 103, $e);
         }
+    }
+
+    /** Classes (and terms) the teacher can set an existing assignment for this session year. */
+    public function getAssignmentCopyTargets(Request $request): JsonResponse
+    {
+        ResponseService::noPermissionThenSendJson('assignment-create');
+
+        $validator = Validator::make($request->all(), ['assignment_id' => 'required|numeric']);
+        if ($validator->fails()) {
+            return ResponseService::validationError($validator->errors()->first());
+        }
+
+        $this->currentTeacher();
+        $source = Assignment::assignmentTeachers()->find($request->assignment_id);
+        if (! $source) {
+            return ResponseService::errorResponse('no_permission_message', null, 403);
+        }
+
+        return ResponseService::successResponse('data_fetch_successfully', app(HomeworkCopies::class)
+            ->targets($source, Auth::user(), (int) $this->currentSessionYearId())->all());
+    }
+
+    /**
+     * Reuse homework: set one of the teacher's assignments (from any year) for
+     * other classes they teach the subject in, with a new due date. targets are
+     * the keys from get-assignment-copy-targets ("classSectionId:termId").
+     */
+    public function copyAssignment(Request $request): JsonResponse
+    {
+        ResponseService::noPermissionThenSendJson('assignment-create');
+
+        $validator = Validator::make($request->all(), [
+            'assignment_id' => 'required|numeric',
+            'targets' => 'required|array|min:1|max:50',
+            'targets.*' => ['required', 'string', 'regex:/^\d+:(\d+)?$/'],
+            'due_date' => 'required|date_format:d-m-Y H:i',
+        ], [
+            'due_date.date_format' => 'Due date must be in format DD-MM-YYYY HH:MM (e.g., 07-08-2025 15:45)',
+        ]);
+        if ($validator->fails()) {
+            return ResponseService::validationError($validator->errors()->first());
+        }
+
+        $this->currentTeacher();
+        $source = Assignment::assignmentTeachers()->find($request->assignment_id);
+        if (! $source) {
+            return ResponseService::errorResponse('no_permission_message', null, 403);
+        }
+
+        $targets = collect($request->input('targets'))->map(function (string $key) {
+            [$classSectionId, $termId] = explode(':', $key) + [1 => ''];
+
+            return ['class_section_id' => (int) $classSectionId, 'term_id' => $termId === '' ? null : (int) $termId];
+        })->all();
+
+        try {
+            $copies = app(HomeworkCopies::class)->copy(
+                $source,
+                Auth::user(),
+                $targets,
+                Carbon::createFromFormat('d-m-Y H:i', $request->due_date),
+                (int) $this->currentSessionYearId(),
+            );
+        } catch (ValidationException $e) {
+            return ResponseService::validationError(collect($e->errors())->flatten()->first());
+        } catch (Throwable $e) {
+            return ResponseService::errorResponse('error_occurred', null, 103, $e);
+        }
+
+        return ResponseService::successResponse('Assignment set for '.$copies->count().' '.($copies->count() === 1 ? 'class.' : 'classes.'), [
+            'assignment_ids' => $copies->pluck('id')->all(),
+        ]);
     }
 }

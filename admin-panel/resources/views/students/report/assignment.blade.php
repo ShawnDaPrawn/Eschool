@@ -32,8 +32,9 @@
                 ? date('Y-m-d H:i', strtotime($submission->assignment->due_date))
                 : '',
             'submittedAt' => $submission->created_at ? date('Y-m-d H:i', strtotime($submission->created_at)) : '',
-            'points' => (int) ($submission->points ?? 0),
-            'maxPoints' => (int) ($submission->assignment?->points ?? 100),
+            // A mark only counts once accepted with one; homework without a total is not scored.
+            'points' => $submission->status == 1 && $submission->points !== null ? (int) $submission->points : null,
+            'maxPoints' => $submission->assignment?->points ? (int) $submission->assignment->points : null,
             'status' => $status,
             'feedback' => $submission->feedback ?? '',
             'attachedFile' => $fileUrl,
@@ -337,6 +338,10 @@
             renderSubjectGrouping(filtered);
         }
 
+        function isMarked(item) {
+            return item.status === 'Accepted' && item.points !== null && item.maxPoints !== null && item.maxPoints > 0;
+        }
+
         function updateStatisticsCards(data) {
             let totalObtained = 0,
                 totalMax = 0;
@@ -349,10 +354,13 @@
             data.forEach(item => {
                 const isLate = checkIsLate(item);
                 if (isLate) countLate++;
-                totalMax += item.maxPoints;
+                // The average covers marked homework only: accepted, with a mark and a total.
+                if (isMarked(item)) {
+                    totalMax += item.maxPoints;
+                    totalObtained += item.points;
+                }
 
                 if (item.status === 'Accepted') {
-                    totalObtained += item.points;
                     if (!isLate) countAccepted++;
                 } else if (item.status === 'Pending') {
                     if (!isLate) countPending++;
@@ -432,8 +440,10 @@
                 let subObtained = 0,
                     subMax = 0;
                 assignments.forEach(a => {
-                    subMax += a.maxPoints;
-                    if (a.status === 'Accepted') subObtained += a.points;
+                    if (isMarked(a)) {
+                        subMax += a.maxPoints;
+                        subObtained += a.points;
+                    }
                 });
                 const pct = subMax > 0 ? ((subObtained / subMax) * 100).toFixed(0) : 0;
 
@@ -455,16 +465,16 @@
 
                     let marksDisplay = '';
                     if (item.status === 'Accepted') {
-                        marksDisplay =
-                            `<span class="font-weight-bold text-dark" style="font-size:14px;">${esc(item.points)}</span> <span class="text-muted">/ ${esc(item.maxPoints)}</span>`;
+                        marksDisplay = isMarked(item) ?
+                            `<span class="font-weight-bold text-dark" style="font-size:14px;">${esc(item.points)}</span> <span class="text-muted">/ ${esc(item.maxPoints)}</span>` :
+                            `<span class="text-muted">${esc(item.points ?? '-')}${item.maxPoints ? ' / ' + esc(item.maxPoints) : ''}</span>`;
                     } else if (item.status === 'Pending' && item.submittedAt) {
                         marksDisplay =
                             `<span class="font-italic text-warning small font-weight-bold">{{ __('awaiting_evaluate') }}</span>`;
                     } else if (item.status === 'Rejected') {
-                        marksDisplay =
-                            `<span class="font-weight-bold text-danger" style="font-size:14px;">${esc(item.points)}</span> <span class="text-muted">/ ${esc(item.maxPoints)}</span>`;
+                        marksDisplay = `<span class="font-weight-bold text-danger">{{ __('rejected') }}</span>`;
                     } else {
-                        marksDisplay = `<span class="text-muted">- / ${esc(item.maxPoints)}</span>`;
+                        marksDisplay = `<span class="text-muted">-${item.maxPoints ? ' / ' + esc(item.maxPoints) : ''}</span>`;
                     }
 
                     let attachmentHTML = '';
@@ -588,10 +598,10 @@
                 linkBox.innerText = 'No link provided';
             }
 
-            document.getElementById('modal-points-obtained-val').innerText = item.points;
-            document.getElementById('modal-points-max-val').innerText = item.maxPoints;
-            const pct = item.maxPoints > 0 ? Math.round((item.points / item.maxPoints) * 100) : 0;
-            document.getElementById('modal-points-percentage').innerText = `${pct}%`;
+            document.getElementById('modal-points-obtained-val').innerText = item.points ?? '-';
+            document.getElementById('modal-points-max-val').innerText = item.maxPoints ?? '-';
+            document.getElementById('modal-points-percentage').innerText = isMarked(item) ?
+                `${Math.round((item.points / item.maxPoints) * 100)}%` : '-';
 
             const statusContainer = document.getElementById('modal-status-badge-container');
             const isLate = checkIsLate(item);
