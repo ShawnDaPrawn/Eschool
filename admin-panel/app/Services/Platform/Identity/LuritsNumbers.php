@@ -71,8 +71,15 @@ class LuritsNumbers
             throw new InvalidArgumentException('Unknown LURITS source.');
         }
         $hash = self::hash($number);
+        $this->ownedHere($learner);
 
         return DB::transaction(function () use ($learner, $number, $source, $actor, $hash) {
+            $this->ownedHere($learner);
+            // One claim at a time, platform-wide: two schools recording the same
+            // unused number at once must not both pass the holder check, and
+            // the second must get CONFLICT rather than a database error.
+            DB::table('platform_counters')->insertOrIgnore(['name' => 'lurits_claims', 'value' => 0]);
+            DB::table('platform_counters')->where('name', 'lurits_claims')->lockForUpdate()->value('value');
             app(StudentNumbers::class)->assign($learner);
             $identity = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->lockForUpdate()->first();
             $holder = DB::table('learner_identifiers')->where('lurits_hash', $hash)->lockForUpdate()->value('user_id');
@@ -108,6 +115,7 @@ class LuritsNumbers
     /** The learner's LURITS number, or null when none is recorded. */
     public function forLearner(Students $learner): ?string
     {
+        $this->ownedHere($learner);
         $encrypted = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->value('lurits_number');
 
         return $encrypted === null ? null : Crypt::decryptString((string) $encrypted);
@@ -121,6 +129,7 @@ class LuritsNumbers
      */
     public function primary(Students $learner): ?array
     {
+        $this->ownedHere($learner);
         $lurits = $this->forLearner($learner);
         if ($lurits !== null) {
             return ['type' => 'lurits', 'value' => $lurits];
@@ -144,5 +153,17 @@ class LuritsNumbers
         $userId = DB::table('learner_identifiers')->where('lurits_hash', self::hash($number))->value('user_id');
 
         return $userId === null ? null : (int) $userId;
+    }
+
+    /**
+     * Reads and writes act on a learner of the current school only, even for a
+     * model loaded elsewhere: the identity is global, the authority is not.
+     * holderUserId() is the one deliberately cross-school, internal lookup.
+     */
+    private function ownedHere(Students $learner): void
+    {
+        $owned = Students::acrossSchools()->withTrashed()->whereKey($learner->getKey())
+            ->where('school_id', app(CurrentSchool::class)->id())->where('user_id', $learner->user_id)->exists();
+        abort_unless($owned, 404);
     }
 }

@@ -11,6 +11,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -138,5 +139,26 @@ class LuritsNumbersTest extends TestCase
 
         $this->assertSame((int) $claimant->user_id, app(LuritsNumbers::class)->holderUserId('9988 7766 55'));
         $this->assertNull(app(LuritsNumbers::class)->holderUserId('1111111111'));
+    }
+
+    public function test_a_learner_of_another_school_cannot_be_read_or_written_from_this_school(): void
+    {
+        $foreign = $this->learnerB();
+        app(CurrentSchool::class)->run(2, fn () => app(LuritsNumbers::class)->record($foreign, '5566778899', 'school_entry'));
+
+        foreach ([
+            fn () => app(LuritsNumbers::class)->record($foreign, '1234567890', 'school_entry'),
+            fn () => app(LuritsNumbers::class)->forLearner($foreign),
+            fn () => app(LuritsNumbers::class)->primary($foreign),
+        ] as $call) {
+            try {
+                $call();
+                $this->fail('School A reached a School B learner');
+            } catch (HttpException $e) {
+                $this->assertSame(404, $e->getStatusCode());
+            }
+        }
+        $this->assertSame(LuritsNumbers::hash('5566778899'), DB::table('learner_identifiers')->where('user_id', $foreign->user_id)->value('lurits_hash'), 'unchanged');
+        $this->assertSame(0, DB::table('lurits_conflicts')->count());
     }
 }
