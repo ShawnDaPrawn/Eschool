@@ -10,8 +10,13 @@ class AuthInitial extends AuthState {}
 class Unauthenticated extends AuthState {}
 
 class Authenticated extends AuthState {
-  Authenticated({required this.jwtToken, required this.teacher});
+  Authenticated({
+    required this.jwtToken,
+    required this.teacher,
+    this.sessionGeneration = 0,
+  });
   final String jwtToken;
+  final int sessionGeneration;
   final Teacher teacher;
 }
 
@@ -20,6 +25,7 @@ class AuthCubit extends Cubit<AuthState> {
     _checkIsAuthenticated();
   }
   final AuthRepository authRepository;
+  int _sessionGeneration = 0;
 
   void _checkIsAuthenticated() {
     if (authRepository.getIsLogIn()) {
@@ -41,7 +47,13 @@ class AuthCubit extends Cubit<AuthState> {
     authRepository.setTeacherDetails(teacher);
 
     //emit new state
-    emit(Authenticated(teacher: teacher, jwtToken: jwtToken));
+    emit(
+      Authenticated(
+        teacher: teacher,
+        jwtToken: jwtToken,
+        sessionGeneration: ++_sessionGeneration,
+      ),
+    );
   }
 
   Teacher getTeacherDetails() {

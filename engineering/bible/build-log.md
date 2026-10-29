@@ -975,3 +975,14 @@ count. Original financial history and counts remain unchanged. Qualification is
 recorded in self-tests/money/cash-count-boundaries.md. This correction belongs to
 cumulative PR346; PR345 is held as a draft and must not merge independently.
 Hosted source checks, review and main integration remain pending.
+
+## 2026-10-29 — whole-app consolidation: session privacy
+
+Owner-accepted fixes F2–F4 pin authenticated requests and context generations,
+serialize cache invalidation and clear replacement account selections, including
+signed-in invitation acceptance. Opaque browser markers detect cross-portal
+session replacement without exposing authentication cookies. Invitation requests
+are private and debug URL logging is redacted. Targeted independent investigation
+and candidate review informed regression coverage; local evidence is recorded in
+self-tests/whole-app-session-security.md. Hosted checks/review/main integration
+remain pending. Phase6, gateway integration and production remain excluded.

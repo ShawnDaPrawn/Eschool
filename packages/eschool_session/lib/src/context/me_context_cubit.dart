@@ -63,9 +63,12 @@ class MeContextCubit extends Cubit<MeContextState> {
     required MeContextRepository repository,
     required MeContextCache cache,
     DateTime Function()? clock,
+    Object? Function()? contextIdentity,
   }) : _repository = repository,
        _cache = cache,
        _clock = clock ?? DateTime.now,
+       _contextIdentity = contextIdentity,
+       _lastIdentity = contextIdentity?.call(),
        super(const MeContextInitial());
 
   /// How old the context may get before coming back to the app fetches it
@@ -76,6 +79,31 @@ class MeContextCubit extends Cubit<MeContextState> {
   final MeContextCache _cache;
   final DateTime Function() _clock;
   Future<void>? _loading;
+  final Object? Function()? _contextIdentity;
+  Object? _lastIdentity;
+  int _generation = 0;
+  bool _discardCache = false;
+  Future<void>? _cacheWork;
+
+  bool _current(int generation, Object? identity) =>
+      !isClosed &&
+      generation == _generation &&
+      identity == _contextIdentity?.call();
+
+  Future<void> _cacheMutation(Future<void> Function() work) {
+    final previous = _cacheWork;
+    final result = previous == null
+        ? Future<void>.sync(work)
+        : previous.then((_) => work());
+    late Future<void> barrier;
+    barrier = result
+        .then<void>((_) {}, onError: (Object _, StackTrace _) {})
+        .whenComplete(() {
+          if (identical(_cacheWork, barrier)) _cacheWork = null;
+        });
+    _cacheWork = barrier;
+    return result;
+  }
 
   /// When the server last said it has no `/me/context` (it is older than
   /// API v2): it is not asked again on every resume.
@@ -88,27 +116,52 @@ class MeContextCubit extends Cubit<MeContextState> {
 
   /// Fetches the context. A second call while one is on its way waits for
   /// it instead of asking twice.
-  Future<void> load() =>
-      _loading ??= _load().whenComplete(() => _loading = null);
-
-  Future<void> _load() async {
-    final MeContext? kept = state.context ?? _cache.read();
+  Future<void> load() {
+    if (isClosed) return Future<void>.value();
+    final identity = _contextIdentity?.call();
+    if (_loading != null && identity == _lastIdentity) return _loading!;
+    if (identity != _lastIdentity) {
+      _discardCache = true;
+      _unavailableAt = null;
+      // A write already in progress must finish before this erasure. Otherwise
+      // a failed replacement fetch can leave the old school's disk cache behind.
+      _cacheMutation(_cache.clear).ignore();
+    }
+    _lastIdentity = identity;
+    final generation = ++_generation;
+    final kept = _discardCache ? null : (state.context ?? _cache.read());
     emit(MeContextLoading(context: kept));
+    return _loading = _load(generation, identity, kept).whenComplete(() {
+      if (generation == _generation) _loading = null;
+    });
+  }
+
+  Future<void> _load(int generation, Object? identity, MeContext? kept) async {
     try {
-      final MeContext? fresh = await _repository.fetchContext();
-      if (isClosed) {
-        return;
-      }
+      final pendingCache = _cacheWork;
+      if (pendingCache != null) await pendingCache;
+      if (!_current(generation, identity)) return;
+      final fresh = await _repository.fetchContext();
+      if (!_current(generation, identity)) return;
+      await _cacheMutation(() async {
+        if (!_current(generation, identity)) return;
+        if (fresh == null) {
+          await _cache.clear();
+        } else {
+          await _cache.write(fresh, fetchedAt: _clock());
+        }
+      });
+      if (!_current(generation, identity)) return;
       if (fresh == null) {
-        await _cache.clear();
         _unavailableAt = _clock();
+        _discardCache = true;
         emit(const MeContextUnavailable());
-        return;
+      } else {
+        _discardCache = false;
+        emit(MeContextLoaded(fresh));
       }
-      await _cache.write(fresh, fetchedAt: _clock());
-      emit(MeContextLoaded(fresh));
     } catch (e) {
-      if (!isClosed) {
+      if (_current(generation, identity)) {
         emit(
           MeContextFailure(
             ApiException.fromException(e).errorMessage,
@@ -122,6 +175,10 @@ class MeContextCubit extends Cubit<MeContextState> {
   /// Fetches the context again when the one kept is older than [maxAge]
   /// (or there is none, or the last try failed). Answers whether it did.
   Future<bool> refreshIfStale({Duration maxAge = staleAfter}) async {
+    if (_contextIdentity?.call() != _lastIdentity) {
+      await load();
+      return true;
+    }
     final DateTime? at = state is MeContextUnavailable
         ? _unavailableAt
         : _cache.fetchedAt();
@@ -136,8 +193,19 @@ class MeContextCubit extends Cubit<MeContextState> {
     return true;
   }
 
-  Future<void> clear() async {
-    await _cache.clear();
-    emit(const MeContextInitial());
+  Future<void> clear() {
+    _generation++;
+    _loading = null;
+    _discardCache = true;
+    _unavailableAt = null;
+    if (!isClosed) emit(const MeContextInitial());
+    return _cacheMutation(_cache.clear);
+  }
+
+  @override
+  Future<void> close() {
+    _generation++;
+    _loading = null;
+    return super.close();
   }
 }

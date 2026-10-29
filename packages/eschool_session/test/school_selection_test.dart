@@ -47,6 +47,19 @@ final MeContext oneSchool = MeContext.fromJson(contextJson);
 final MeContext twoSchools = MeContext.fromJson(phase1GuardianJson);
 
 void main() {
+  test(
+    'finishing an old clear cannot erase replacement school context',
+    () async {
+      final subject = SchoolSelectionCubit(store: InMemorySelectionStore());
+      await subject.syncWithContext(oneSchool);
+      final cleared = subject.clear();
+      expect(subject.state.schools, isEmpty);
+      await subject.syncWithContext(twoSchools);
+      await cleared;
+      expect(subject.state.schools, twoSchools.schools);
+      await subject.close();
+    },
+  );
   late InMemorySelectionStore store;
   late SchoolSelectionCubit cubit;
 

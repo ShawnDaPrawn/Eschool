@@ -23,14 +23,22 @@ class Authenticated extends AuthState {
     required this.isStudent,
     required this.student,
     required this.parent,
+    this.sessionGeneration = 0,
   });
   final String jwtToken;
+  final int sessionGeneration;
   final bool isStudent;
   final Student student;
   final Parent parent;
 
   @override
-  List<Object?> get props => [jwtToken, parent, student, isStudent];
+  List<Object?> get props => [
+    jwtToken,
+    parent,
+    student,
+    isStudent,
+    sessionGeneration,
+  ];
 
   Authenticated copyWith({
     String? jwtToken,
@@ -40,6 +48,7 @@ class Authenticated extends AuthState {
   }) {
     return Authenticated(
       jwtToken: jwtToken ?? this.jwtToken,
+      sessionGeneration: sessionGeneration,
       isStudent: isStudent ?? this.isStudent,
       student: student ?? this.student,
       parent: parent ?? this.parent,
@@ -52,6 +61,7 @@ class AuthCubit extends Cubit<AuthState> {
     _checkIsAuthenticated();
   }
   final AuthRepository authRepository;
+  int _sessionGeneration = 0;
 
   void _checkIsAuthenticated() {
     if (authRepository.getIsLogIn()) {
@@ -89,6 +99,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(
       Authenticated(
         jwtToken: jwtToken,
+        sessionGeneration: ++_sessionGeneration,
         isStudent: isStudent,
         student: student,
         parent: parent,

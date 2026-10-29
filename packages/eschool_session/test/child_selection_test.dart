@@ -60,6 +60,19 @@ Widget _frame(ChildSelectionCubit cubit) => BlocProvider.value(
 );
 
 void main() {
+  test(
+    'finishing an old clear cannot erase a replacement child list',
+    () async {
+      final subject = ChildSelectionCubit(store: InMemorySelectionStore());
+      await subject.setChildren([asha]);
+      final cleared = subject.clear();
+      expect(subject.state.children, isEmpty);
+      await subject.setChildren([cara]);
+      await cleared;
+      expect(subject.state.selectedId, cara.id);
+      await subject.close();
+    },
+  );
   late InMemorySelectionStore store;
   late ChildSelectionCubit cubit;
 

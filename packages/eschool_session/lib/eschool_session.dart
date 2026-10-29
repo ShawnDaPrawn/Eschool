@@ -14,6 +14,7 @@ export 'package:eschool_api/eschool_api.dart'
         SchoolSummary;
 
 export 'src/auth/auth_mode.dart';
+export 'src/auth/browser_session_identity.dart';
 export 'src/availability/endpoint_availability.dart';
 export 'src/auth/session_dio.dart';
 export 'src/auth/session_repository.dart';

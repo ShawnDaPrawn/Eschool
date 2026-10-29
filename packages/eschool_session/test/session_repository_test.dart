@@ -5,6 +5,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
 void main() {
+  test(
+    'cookie session replacement changes identity even with empty tokens',
+    () async {
+      final session = InMemorySessionRepository(mode: AuthMode.cookie);
+      final first = session.generation;
+      await session.setToken('');
+      expect(session.generation, greaterThan(first));
+      final second = session.generation;
+      await session.setSignedIn(true);
+      expect(session.generation, greaterThan(second));
+      expect(session.token, isEmpty);
+    },
+  );
+
   late Directory directory;
   late Box<dynamic> box;
 

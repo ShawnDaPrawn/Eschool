@@ -75,9 +75,16 @@ class _SessionWatcherState extends State<SessionWatcher> {
       listeners: [
         BlocListener<AuthCubit, AuthState>(
           listenWhen: (previous, current) =>
-              previous.runtimeType != current.runtimeType,
+              previous.runtimeType != current.runtimeType ||
+              (previous is Authenticated &&
+                  current is Authenticated &&
+                  previous.sessionGeneration != current.sessionGeneration),
           listener: (context, state) {
             if (state is Authenticated) {
+              EndpointAvailability.forget();
+              context.read<MeContextCubit>().clear();
+              context.read<ChildSelectionCubit>().clear();
+              context.read<SchoolSelectionCubit>().clear();
               context.read<MeContextCubit>().load();
               _syncChildren();
             } else if (state is Unauthenticated) {
