@@ -119,6 +119,36 @@ class HomeworkReuseTest extends TestCase
         Storage::disk('public')->assertExists($original->getRawOriginal('file_url'));
     }
 
+    public function test_homework_from_an_earlier_year_is_reused_while_that_year_is_viewed(): void
+    {
+        $this->taraAlsoTeachesGradeSix();
+        $current = (int) $this->school->ids['session_year'];
+        $earlier = SchoolTable::query('session_years')->insertGetId([
+            'name' => 'Earlier year', 'start_date' => now()->subYears(2)->toDateString(), 'end_date' => now()->subYear()->toDateString(),
+            'default' => 0, 'free_app_use_date' => now()->subYears(2)->toDateString(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $old = Assignment::query()->findOrFail($this->school->ids['assignment'])->replicate();
+        $old->session_year_id = $earlier;
+        $old->save();
+
+        // The header shows the earlier year, so the panel is read-only for that year's data.
+        $response = $this->actingAs($this->user('tara'), 'web')->withSession(['session_year' => $earlier])
+            ->postJson("/assignment/{$old->id}/copy", [
+                'targets' => [$this->sectionKey('c')],
+                'due_date' => $this->dueDate(),
+            ])->assertOk();
+        $this->assertFalse($response->json('error'), (string) $response->json('message'));
+
+        $copy = Assignment::query()->latest('id')->firstOrFail();
+        $this->assertSame($current, (int) $copy->session_year_id);
+        $this->assertSame((int) $this->school->ids['section_c'], (int) $copy->class_section_id);
+
+        // Other writes stay refused while an earlier year is viewed.
+        $this->actingAs($this->user('tara'), 'web')->withSession(['session_year' => $earlier])
+            ->putJson("/assignment-submission/{$this->school->ids['submission']}", ['status' => 2, 'feedback' => 'x'])
+            ->assertStatus(423);
+    }
+
     public function test_homework_cannot_be_set_for_a_class_the_teacher_does_not_teach(): void
     {
         SchoolTable::query('subject_teachers')->where('teacher_id', $this->school->ids['tara_teacher'])
