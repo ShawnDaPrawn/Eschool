@@ -111,6 +111,7 @@ SECRET_STRIPE_KEY=navigateed-stripe-secret-key
 SECRET_STRIPE_WEBHOOK=navigateed-stripe-webhook-secret
 SECRET_RECAPTCHA=navigateed-recaptcha-secret-key
 SECRET_FCM=navigateed-fcm-service-account
+SECRET_DIARY_KEY=navigateed-diary-key
 
 # Those secrets as "variable|secret|roles that mount it". Each is mounted once
 # it has a value: Cloud Run refuses a revision that mounts a secret without a
@@ -125,6 +126,7 @@ OPTIONAL_SECRETS=(
     "STRIPE_SECRET_KEY|$SECRET_STRIPE_KEY|web scheduler"
     "STRIPE_WEBHOOK_SECRET|$SECRET_STRIPE_WEBHOOK|web scheduler"
     "RECAPTCHA_SECRET_KEY|$SECRET_RECAPTCHA|web scheduler"
+    "DIARY_KEY|$SECRET_DIARY_KEY|web scheduler"
 )
 
 PROJECT_NUMBER="$("${G[@]}" projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)"

@@ -5,6 +5,7 @@ import 'package:eschool/app/routes.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/chatUser.dart';
 import 'package:eschool/ui/screens/home/homeScreen.dart';
+import 'package:eschool/utils/diaryReminders.dart';
 import 'package:eschool/utils/uiUtils.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_session/eschool_session.dart';
@@ -28,6 +29,7 @@ final NotificationConfig notificationConfig = NotificationConfig(
   backgroundHandler: onBackgroundMessage,
   chatSenderFromApi: ChatUser.fromJsonAPI,
   chatSenderFromMap: ChatUser.fromMap,
+  diaryReminders: true,
 );
 
 /// FCM calls this, in an isolate of its own, for pushes that arrive while
@@ -57,7 +59,10 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
     );
     return;
   }
-  if (notificationType == NotificationUtility.noticeboardNotificationType) {
+  if (notificationType == DeviceDiaryReminders.notificationType) {
+    UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.learnerDiary);
+  } else if (notificationType ==
+      NotificationUtility.noticeboardNotificationType) {
     UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.noticeBoard);
   } else if (notificationType ==
       NotificationUtility.assignmentlNotificationType) {

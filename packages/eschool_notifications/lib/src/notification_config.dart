@@ -22,6 +22,7 @@ class NotificationConfig {
     required this.backgroundHandler,
     required this.chatSenderFromApi,
     required this.chatSenderFromMap,
+    this.diaryReminders = false,
   });
 
   /// The description of the general Android channel (`basic_channel`).
@@ -44,4 +45,8 @@ class NotificationConfig {
   /// The app's `ChatUser.fromJsonAPI` and `ChatUser.fromMap`.
   final ChatSender Function(Map<dynamic, dynamic> json) chatSenderFromApi;
   final ChatSender Function(Map<String, dynamic> map) chatSenderFromMap;
+
+  /// Whether the app schedules learner diary reminders, on their own
+  /// channel ([diaryReminderChannelKey]).
+  final bool diaryReminders;
 }

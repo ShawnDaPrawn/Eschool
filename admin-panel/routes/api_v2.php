@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\V2\Growth\MasteryController;
 use App\Http\Controllers\Api\V2\Growth\MyGradeController;
 use App\Http\Controllers\Api\V2\Growth\ProgressNotesController;
 use App\Http\Controllers\Api\V2\Growth\RiskController;
+use App\Http\Controllers\Api\V2\Learning\DiaryController;
 use App\Http\Controllers\Api\V2\Learning\Digests\DigestController;
 use App\Http\Controllers\Api\V2\Learning\ExamCoachController;
 use App\Http\Controllers\Api\V2\Learning\PracticeController;
@@ -769,6 +770,17 @@ Route::prefix('card-readers')->name('api.v2.cards.readers.')->middleware([Privat
 });
 
 // Private learner tutoring; parent authority applies only to template summaries.
+// The learner's private diary: only the signed-in learner, never a parent, teacher or staff member.
+Route::prefix('diary')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:diary', 'cache.headers:private;no_store'])->name('api.v2.diary.')->group(function () {
+    $c = DiaryController::class;
+    Route::get('/', [$c, 'index'])->name('index');
+    Route::get('reminders', [$c, 'reminders'])->name('reminders');
+    Route::post('entries', [$c, 'store'])->middleware('throttle:60,1')->name('entries.store');
+    Route::put('entries/{entry}', [$c, 'update'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.update');
+    Route::delete('entries/{entry}', [$c, 'destroy'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.destroy');
+    Route::put('items/{source}/{item}/state', [$c, 'state'])->whereIn('source', ['homework', 'holiday', 'event'])->whereNumber('item')->middleware('throttle:60,1')->name('items.state');
+});
+
 Route::prefix('tutor')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:tutor'])->name('api.v2.tutor.')->group(function () {
     $c = TutorController::class;
     Route::get('configuration', [$c, 'configuration'])->name('configuration');

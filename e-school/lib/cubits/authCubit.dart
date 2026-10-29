@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
+import 'package:eschool/utils/diaryReminders.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -141,6 +142,8 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   void signOut() {
+    // The next person to sign in on this phone must not get them.
+    DeviceDiaryReminders.clear();
     NotificationUtility.subscribeOrUnsubscribeToNotificationTopics(
       audience: isParent()
           ? NotificationAudience.parents

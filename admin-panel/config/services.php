@@ -59,4 +59,10 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    // The learner diary's own encryption root (engineering/specs/learning/learner-diary.md).
+    // Set it to a separate 32-byte secret ("base64:..."); rotating it makes existing entries unreadable.
+    'diary' => [
+        'key' => env('DIARY_KEY'),
+    ],
+
 ];

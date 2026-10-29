@@ -17,6 +17,10 @@ import 'package:permission_handler/permission_handler.dart';
 /// The Android channel general notifications are shown on.
 const String notificationChannelKey = 'basic_channel';
 
+/// The channel a learner's own diary reminders are scheduled on. Its
+/// notifications keep their text off a locked screen.
+const String diaryReminderChannelKey = 'diary_reminders';
+
 /// Push notifications (FCM) and the local notifications that show them on
 /// Android, shared by both apps. Each app calls [configure] once at start-up
 /// with its [NotificationConfig]; everything else is the same in both.
@@ -235,6 +239,14 @@ class NotificationUtility {
             vibrationPattern: highVibrationPattern,
             importance: NotificationImportance.High,
           ),
+          if (appConfig.diaryReminders)
+            NotificationChannel(
+              channelKey: diaryReminderChannelKey,
+              channelName: 'Diary reminders',
+              channelDescription: 'Reminders you set in your diary',
+              importance: NotificationImportance.High,
+              defaultPrivacy: NotificationPrivacy.Private,
+            ),
         ]);
   }
 
