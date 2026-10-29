@@ -6,6 +6,7 @@ namespace App\Services\Academics;
 
 use App\Models\Academics\AttendanceRegister;
 use App\Models\Academics\BellPeriod;
+use App\Models\Academics\BellScheduleOverride;
 use App\Models\Academics\HomeroomAllocation;
 use App\Models\Academics\Room;
 use App\Models\Academics\TeachingAllocation;
@@ -43,6 +44,14 @@ class TimetableEngine
 
     private ?array $homeroomRoster = null;
 
+    private ?DayPatterns $patterns = null;
+
+    /** Short days (bell schedule overrides) that apply to occurrences and their times. */
+    public function patterns(): DayPatterns
+    {
+        return $this->patterns ??= app(DayPatterns::class);
+    }
+
     public static function rules(): array
     {
         return ['session_year_id' => ['required', 'integer', 'min:1'], 'term_id' => ['nullable', 'integer', 'min:1'],
@@ -58,7 +67,7 @@ class TimetableEngine
     {
         app(AcademicAuthority::class)->manage($actor);
         $this->dateCache = $this->periodCache = $this->rosterCache = [];
-        $this->groupRoster = $this->homeroomRoster = null;
+        $this->groupRoster = $this->homeroomRoster = $this->patterns = null;
         if ($rows === [] || count($rows) > 300) {
             throw ValidationException::withMessages(['rows' => __('Submit between one and 300 lessons.')]);
         }
@@ -113,6 +122,7 @@ class TimetableEngine
             'allocations' => TeachingAllocation::orderBy('id')->get()->toArray(),
             'homerooms' => HomeroomAllocation::orderBy('id')->get()->toArray(),
             'legacy' => $legacyRows,
+            'overrides' => BellScheduleOverride::orderBy('id')->get()->toArray(),
             'cover' => app(CoverTimetable::class)->enabled() ? CoverAssignment::where('state', 'assigned')->orderBy('id')->get(['id', 'timetable_lesson_id', 'substitute_teacher_id', 'on_date', 'revision', 'source_hash'])->toArray() : []];
 
         return ['rows' => $normal, 'conflicts' => $conflicts, 'can_save' => $conflicts === [],
@@ -225,12 +235,13 @@ class TimetableEngine
         return $data;
     }
 
+    /** Dates the lesson takes place: its pattern, less short days that leave no period for it. */
     public function dates(array $lesson): array
     {
         if (! $lesson['active']) {
             return [];
         }
-        $key = implode('|', [$lesson['starts_on'], $lesson['ends_on'], $lesson['occurs_on'] ?? '', $lesson['weekday'], $lesson['week_pattern']]);
+        $key = implode('|', [$lesson['starts_on'], $lesson['ends_on'], $lesson['occurs_on'] ?? '', $lesson['weekday'], $lesson['week_pattern'], $lesson['bell_period_id'] ?? '']);
         if (isset($this->dateCache[$key])) {
             return $this->dateCache[$key];
         }
@@ -248,10 +259,34 @@ class TimetableEngine
             if (($pattern === 'odd' && $date->isoWeek() % 2 === 0) || ($pattern === 'even' && $date->isoWeek() % 2 === 1)) {
                 continue;
             }
+            if (isset($lesson['bell_period_id']) && ! $this->patterns()->takesPlace((int) $lesson['bell_period_id'], $date->toDateString())) {
+                continue;
+            }
             $result[] = $date->toDateString();
         }
 
         return $this->dateCache[$key] = $result;
+    }
+
+    /** Whether the lesson's own pattern places it on the date, before any short day applies. */
+    public function scheduledOn(array $lesson, string $date): bool
+    {
+        if (! $lesson['active']) {
+            return false;
+        }
+        $day = CarbonImmutable::parse($date);
+        $occurs = $lesson['occurs_on'] ?? null;
+        $pattern = $lesson['week_pattern'];
+
+        return $date >= substr((string) $lesson['starts_on'], 0, 10) && $date <= substr((string) $lesson['ends_on'], 0, 10)
+            && ($occurs === null || substr((string) $occurs, 0, 10) === $date) && $day->isoWeekday() === (int) $lesson['weekday']
+            && ! (($pattern === 'odd' && $day->isoWeek() % 2 === 0) || ($pattern === 'even' && $day->isoWeek() % 2 === 1));
+    }
+
+    /** Whether the lesson takes place on the date, short days included. */
+    public function occursOn(array $lesson, string $date): bool
+    {
+        return $this->scheduledOn($lesson, $date) && (! isset($lesson['bell_period_id']) || $this->patterns()->takesPlace((int) $lesson['bell_period_id'], $date));
     }
 
     public function learners(array $lesson, string $date): array
@@ -283,7 +318,10 @@ class TimetableEngine
         }
         $first = $this->periodCache[$one['bell_period_id']] ??= BellPeriod::findOrFail($one['bell_period_id']);
         $second = $this->periodCache[$two['bell_period_id']] ??= BellPeriod::findOrFail($two['bell_period_id']);
-        if ($first->starts_at >= $second->ends_at || $second->starts_at >= $first->ends_at) {
+        // A short day can move either lesson, so a replaced schedule is compared date by date.
+        $patterns = $this->patterns();
+        $retimed = $patterns->replaces((int) $first->bell_schedule_id) || $patterns->replaces((int) $second->bell_schedule_id);
+        if (! $retimed && ($first->starts_at >= $second->ends_at || $second->starts_at >= $first->ends_at)) {
             return [];
         }
         $reasons = [];
@@ -301,6 +339,13 @@ class TimetableEngine
         }
         $dates = array_intersect($this->dates($one), $this->dates($two));
         foreach ($dates as $date) {
+            if ($retimed) {
+                $a = $patterns->period((int) $first->id, $date);
+                $b = $patterns->period((int) $second->id, $date);
+                if ($a === null || $b === null || $a->starts_at >= $b->ends_at || $b->starts_at >= $a->ends_at) {
+                    continue;
+                }
+            }
             $shared = array_intersect($this->learners($one, $date), $this->learners($two, $date));
             $onDate = $shared === [] ? $reasons : array_values(array_unique([...$reasons, 'learner']));
             if ($onDate !== []) {

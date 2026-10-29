@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Academics;
 
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Academics\DayPatterns;
 use App\Services\Academics\TimetableConfiguration;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -45,6 +46,12 @@ class TimetableWorkbenchRequest extends FormRequest
         }
         if (str_ends_with($name, '.bells')) {
             return $common + TimetableConfiguration::bellRules() + ['schedule_id' => ['nullable', 'integer', 'min:1'], 'revision' => ['nullable', 'integer', 'min:1']];
+        }
+        if (str_ends_with($name, '.short-day')) {
+            return $common + DayPatterns::rules();
+        }
+        if (str_ends_with($name, '.short-day-remove')) {
+            return $common + ['override_id' => ['required', 'integer', 'min:1'], 'revision' => ['required', 'integer', 'min:1']];
         }
         if (str_ends_with($name, '.preview')) {
             return $common + ['lesson' => ['required', 'array', 'max:16']];

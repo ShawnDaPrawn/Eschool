@@ -102,7 +102,8 @@ class TimetableQueries
                 if (! $manager && ! $allocation->where('teacher_id', $lesson->teacher_id)->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->exists()) {
                     continue;
                 }
-                $row = $this->data($lesson, $date);
+                // A short day moves the lesson to the replacement bells' period in the same order.
+                $row = $engine->patterns()->display($this->data($lesson, $date), (int) $lesson->bell_period_id, $date);
                 $rows[] = $cover === null ? $row : app(CoverTimetable::class)->display($row, $cover);
             }
         }

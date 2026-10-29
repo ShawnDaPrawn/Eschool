@@ -23,6 +23,13 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Short days: the timetable workbench can replace a bell schedule on one date
+  with short-day bells. Lessons keep their order and take the short times;
+  lessons past the last short period do not run that day. Clashing short days
+  are refused, and affected learners, guardians and teachers are notified. The
+  v2 week adds an optional `day_pattern`. **Deploy:** run the additive
+  `bell_schedule_overrides` migration.
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.

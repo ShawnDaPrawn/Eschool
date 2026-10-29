@@ -37765,6 +37765,8 @@ components:
           minimum: 1
         original_teacher_name:
           type: string
+        day_pattern:
+          type: string
         id:
           type: integer
           minimum: 1
