@@ -986,3 +986,13 @@ are private and debug URL logging is redacted. Targeted independent investigatio
 and candidate review informed regression coverage; local evidence is recorded in
 self-tests/whole-app-session-security.md. Hosted checks/review/main integration
 remain pending. Phase6, gateway integration and production remain excluded.
+
+## 2026-10-29 — whole-app navigation and large-text actions
+
+Teacher home actions now use content-sized Material buttons and adaptive columns.
+Money navigation groups work by task; reader navigation shares the destination's
+current authority and module/history checks. Fee allocation help describes current
+charge ordering and held credit. Poppins large-text/destination tests and targeted
+permission, navigation and finance controls are recorded in
+self-tests/consolidation-navigation.md. Hosted qualification/main integration and
+external language/device acceptance remain separate. Legacy fee cutover continues.

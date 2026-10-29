@@ -11,6 +11,7 @@ use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Ai\Quarantine\AiReviewAuthority;
 use App\Services\Assistance\AssistanceQueries;
 use App\Services\Cards\CardPanelScope;
+use App\Services\Commerce\VendorPaymentReaderAccess;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
@@ -138,6 +139,9 @@ class Navigation
     public function visible(array $item, ?User $user): bool
     {
         if (! $user || ! $this->routeExists($item) || ! $this->moduleEnabled($item['module'] ?? null)) {
+            return false;
+        }
+        if (($item['vendor_payment_reader_actor'] ?? false) && ! app(VendorPaymentReaderAccess::class)->available($user)) {
             return false;
         }
         if (! empty($item['roles']) && ! $user->hasAnyRole($item['roles'])) {

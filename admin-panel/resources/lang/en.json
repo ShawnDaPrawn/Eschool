@@ -4008,7 +4008,6 @@
     "A holder credit does not automatically settle another holder share. Pinned credits remain with their learner.": "A holder credit does not automatically settle another holder share. Pinned credits remain with their learner.",
     "Account statement": "Account statement",
     "Account statement and receipts": "Account statement and receipts",
-    "All currently supported charges are annual tuition, so both rules use the oldest due date first.": "All currently supported charges are annual tuition, so both rules use the oldest due date first.",
     "Allocation": "Allocation",
     "Allocation order": "Allocation order",
     "Amount received": "Amount received",
@@ -5338,5 +5337,10 @@
     "Wallet QR camera preview": "Wallet QR camera preview",
     "Wallet payments": "Wallet payments",
     "Wallet payments are paused. Original order receipts remain available in the counter queue.": "Wallet payments are paused. Original order receipts remain available in the counter queue.",
-    "Record a fresh physical cash count before paying or handing over this cash.": "Record a fresh physical cash count before paying or handing over this cash."
+    "Record a fresh physical cash count before paying or handing over this cash.": "Record a fresh physical cash count before paying or handing over this cash.",
+    "nav_group_wallets": "Wallets",
+    "nav_group_vendors": "Vendors and tickets",
+    "nav_group_cash": "Cash and reconciliation",
+    "nav_group_money_configuration": "Money configuration",
+    "Oldest due first allocates across eligible charges by due date. Tuition first pays annual tuition before other charges, using the oldest due date within each group. Credit stays held until you allocate it.": "Oldest due first allocates across eligible charges by due date. Tuition first pays annual tuition before other charges, using the oldest due date within each group. Credit stays held until you allocate it."
 }
