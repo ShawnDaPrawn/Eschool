@@ -500,6 +500,29 @@ void main() {
       },
     );
 
+    for (final kind in ['note', 'todo']) {
+      testWidgets(
+        'read-only $kind opens its full text without write controls',
+        (tester) async {
+          final body = List.generate(20, (i) => 'Private line $i').join('\n');
+          final diary = _FakeDiary(
+            entries: [
+              _entry(1, kind: kind, title: 'Full private entry', body: body),
+            ],
+          );
+          await _mount(tester, diary, canWrite: () => false);
+          await tester.tap(find.text('Full private entry'));
+          await tester.pumpAndSettle();
+          final text = tester.widget<Text>(find.text(body));
+          expect(text.maxLines, isNull);
+          expect(find.byKey(const ValueKey('diary-save')), findsNothing);
+          expect(find.byKey(const ValueKey('diary-delete')), findsNothing);
+          expect(diary.updated, isEmpty);
+          expect(diary.deleted, isEmpty);
+        },
+      );
+    }
+
     testWidgets('ticking a to-do and a school item saves only that state', (
       tester,
     ) async {

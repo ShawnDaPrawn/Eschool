@@ -8,7 +8,7 @@ notes, phone reminders and a "Talk to someone" link to wellbeing reporting.
 
 ## Executed locally
 
-- `tests/Feature/Learning/LearnerDiaryTest.php`: 12 tests pass (300 assertions), validated against
+- `tests/Feature/Learning/LearnerDiaryTest.php`: 13 tests pass (312 assertions), validated against
   `openapi.yaml`. They cover encrypted storage (no plaintext in the rows), a new
   `DIARY_KEY` keeping older text readable, retry by operation id, the 409 on a
   stale revision, permanent delete, refusal of another learner (404), Parent,
@@ -37,11 +37,15 @@ notes, phone reminders and a "Talk to someone" link to wellbeing reporting.
   cleared from `inactive`, and reminders are replaced from the server's full
   list, with a sign-out guard.
 
+## Merge-review regressions (29 October 2026)
+
+- School-local diary range boundaries and due wall times now use the same timezone as school-local today. The API regression freezes a Monday in a UTC application and an Africa/Johannesburg school, carries Sunday 23:30 homework to Monday, and preserves it on Sunday in a historical range.
+- Read-only entries now open a full-text reader without mutation controls. Widget regressions cover both long notes and long to-dos and assert that no updates or deletes occur.
+- All 13 backend diary tests passed locally (312 assertions). All 14 diary widget tests passed locally; analysis of the changed Dart files found no issues, and changed PHP passed Pint.
+- The preceding head472e8b0 passed all125 CI checks, including the diary package and app-entry widget tests. The final correction head must finish its own CI before merge.
+
 ## Not yet executed
 
-- `flutter test` for `packages/eschool_features/academics/test/diary/` and
-  `e-school/test/diary_entry_test.dart`: this environment cannot download the
-  Flutter engine, so these run in CI first.
 - The learner app on a device or browser profile, reminders on a physical
   Android phone, fluent Afrikaans and isiZulu labels (English fallbacks are in
   every catalogue), the school Information Officer's POPIA confirmation,

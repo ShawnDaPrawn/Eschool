@@ -110,7 +110,7 @@ class DiarySchoolItems
 
         return $rows->map(function (Assignment $row) use ($submissions, $today, $from, $carryOverdue) {
             $submission = $submissions->get($row->id);
-            $due = CarbonImmutable::parse($row->due_date);
+            $due = CarbonImmutable::parse($row->due_date, $today->getTimezone());
             $submitted = $submission !== null && in_array((int) $submission->status, [0, 1, 3], true);
             $overdue = ! $submitted && $due->lessThan($today->startOfDay());
             // Carried in only because it might be overdue: once handed in, it stays on its own day.

@@ -193,6 +193,36 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
       _items.any((item) => _onDay(item, day)) ||
       _entries.any((entry) => _entryOn(entry, day));
 
+  Future<void> _readEntry(DiaryEntry entry) async {
+    if (!_active || !_loaded) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (detailContext) => ScreenScaffold(
+          title: l('My diary'),
+          onBack: () => Navigator.of(detailContext).maybePop(),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: SelectionArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    entry.title,
+                    style: Theme.of(detailContext).textTheme.titleLarge,
+                  ),
+                  if (entry.body != null) ...[
+                    const SizedBox(height: 16),
+                    Text(entry.body!),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _edit({DiaryEntry? entry, bool todo = true}) async {
     if (!_writable) return;
     final result = await Navigator.of(context).push<DiaryEditResult>(
@@ -261,8 +291,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     } catch (_) {
       if (_current(epoch)) {
         setState(
-          () => _notice =
-              'Your diary could not be saved. Check your connection and try again.',
+          () => _notice = 'Your diary could not be saved. Check your connection and try again.',
         );
       }
     }
@@ -486,7 +515,9 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
                 maxLines: todo ? 3 : 6,
                 overflow: TextOverflow.ellipsis,
               ),
-        onTap: _writable ? () => _edit(entry: entry) : null,
+        onTap: _active && _loaded
+            ? () => _writable ? _edit(entry: entry) : _readEntry(entry)
+            : null,
       ),
     );
   }

@@ -16,9 +16,10 @@ class DiaryController extends Controller
 {
     public function index(DiaryRequest $request, DiaryEntries $diary): JsonResponse
     {
+        $zone = $diary->today()->getTimezone();
         $data = $diary->range($request->learner(),
-            CarbonImmutable::createFromFormat('!Y-m-d', (string) $request->validated('from')),
-            CarbonImmutable::createFromFormat('!Y-m-d', (string) $request->validated('to')));
+            CarbonImmutable::createFromFormat('!Y-m-d', (string) $request->validated('from'), $zone),
+            CarbonImmutable::createFromFormat('!Y-m-d', (string) $request->validated('to'), $zone));
 
         return ResponseService::successResponse('data_fetch_successfully', $data);
     }

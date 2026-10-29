@@ -11,6 +11,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolModule;
+use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
@@ -204,6 +205,28 @@ class LearnerDiaryTest extends TestCase
         SchoolTable::query('assignments')->where('id', $this->school->ids['assignment'])->update(['due_date' => now()->subDays(40)->format('Y-m-d').' 17:00:00']);
         $this->assertNull(collect($this->range('ben', 0, 5)->json('data.school_items'))->firstWhere('source', 'homework'));
         $this->assertSame(now()->subDays(40)->toDateString(), collect($this->range('ben', -42, -38)->json('data.school_items'))->firstWhere('source', 'homework')['date']);
+    }
+
+    public function test_monday_carries_overdue_homework_using_school_wall_dates(): void
+    {
+        config(['app.timezone' => 'UTC']);
+        Settings::updateOrCreate(['type' => 'time_zone'], ['message' => 'Africa/Johannesburg']);
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-11-02 08:00:00', 'UTC'));
+        try {
+            // Sunday late evening is already overdue on Monday in this school.
+            SchoolTable::query('assignments')->where('id', $this->school->ids['assignment'])
+                ->update(['due_date' => '2026-11-01 23:30:00']);
+            $items = $this->as('ben')->getJson('/api/v2/diary?from=2026-11-02&to=2026-11-08')
+                ->assertOk()->json('data.school_items');
+            $homework = collect($items)->firstWhere('source', 'homework');
+            $this->assertNotNull($homework);
+            $this->assertSame('2026-11-02', $homework['date']);
+            $this->assertTrue($homework['homework']['overdue']);
+            $past = $this->as('ben')->getJson('/api/v2/diary?from=2026-10-26&to=2026-11-01')->assertOk();
+            $this->assertSame('2026-11-01', collect($past->json('data.school_items'))->firstWhere('source', 'homework')['date']);
+        } finally {
+            CarbonImmutable::setTestNow();
+        }
     }
 
     public function test_a_done_undated_to_do_stays_reachable_on_the_day_it_was_done(): void
