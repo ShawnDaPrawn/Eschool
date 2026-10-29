@@ -5,8 +5,6 @@ class SessionYear {
     required this.defaultValue,
     required this.startDate,
     required this.endDate,
-    required this.feesDueCharges,
-    required this.feesDueDate,
   });
 
   SessionYear.fromJson(Map<String, dynamic> json) {
@@ -19,14 +17,10 @@ class SessionYear {
     endDate = json['end_date'] == null
         ? DateTime.now()
         : DateTime.parse(json['end_date'].toString());
-    feesDueCharges = json['fee_due_charges'].toString();
-    feesDueDate = DateTime.tryParse(json['fee_due_date'].toString());
   }
   late final int id;
   late final String name;
   late final int defaultValue;
   late final DateTime startDate;
   late final DateTime endDate;
-  late final String feesDueCharges;
-  late final DateTime? feesDueDate;
 }

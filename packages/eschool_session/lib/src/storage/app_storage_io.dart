@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'native_auth_box.dart';
+
 /// Starts Hive in the app's private support directory. Hive.initFlutter() would
 /// use the Documents directory, which iOS shows in the Files app (because
 /// UIFileSharingEnabled is on), exposing the boxes, including the login token.
@@ -55,4 +57,16 @@ Future<void> _moveHiveBoxesFromDocuments(
       //Could not move this box: it starts empty in the new directory
     }
   }
+}
+
+Future<Box<dynamic>> openAuthStorage(String name) async {
+  final directory = await getApplicationSupportDirectory();
+  final documents = await getApplicationDocumentsDirectory();
+  return NativeAuthBox.open(
+    directory: directory.path,
+    name: name,
+    otherLegacyDirectories: documents.path == directory.path
+        ? const []
+        : [documents.path],
+  );
 }

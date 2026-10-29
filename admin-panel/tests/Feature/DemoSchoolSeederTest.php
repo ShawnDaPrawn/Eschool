@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Money\FeeAccount;
+use App\Models\Money\FeeItem;
+use App\Models\Money\FeePlan;
 use App\Models\Parents;
 use App\Models\Platform\School;
 use App\Models\SessionYear;
@@ -63,7 +66,8 @@ class DemoSchoolSeederTest extends TestCase
         // Staff with the custom Finance role.
         $finance = $this->user('finance.a');
         $this->assertTrue($finance->hasRole('Finance'));
-        $this->assertTrue($finance->can('fees-paid'));
+        $this->assertTrue($finance->can('fee-payments-manage'));
+        $this->assertFalse($finance->can('fees-paid'));
         $this->assertFalse($finance->can('student-create'));
         $this->assertNotNull($finance->staff);
 
@@ -82,6 +86,10 @@ class DemoSchoolSeederTest extends TestCase
         $this->assertSame(72, (int) DB::table('exam_marks')->where('exam_timetable_id', $paper->id)->where('student_id', $learner->student->id)->value('obtained_marks'));
         $this->assertSame(2, DB::table('exam_classes')->where('exam_id', $exam->id)->count());
         $this->assertSame(1, DB::table('assignments')->where('session_year_id', $current->id)->where('class_section_id', $learner->student->class_section_id)->count());
+
+        $this->assertSame(2, FeePlan::where('session_year_id', $current->id)->where('state', 'active')->count());
+        $this->assertSame(1, FeeItem::where('state', 'active')->count());
+        $this->assertSame(1, FeeAccount::where('active', true)->count());
 
         // Home's setup checklist is complete for the demo school.
         $this->assertTrue(app(SetupChecklist::class)->forUser($admin)['complete']);
@@ -123,7 +131,7 @@ class DemoSchoolSeederTest extends TestCase
         $this->seed(InstallationSeeder::class);
         $this->seed(DemoSchoolSeeder::class);
         $tables = ['users', 'students', 'parents', 'teachers', 'staffs', 'session_years', 'terms', 'classes', 'class_sections', 'subjects',
-            'class_subjects', 'class_teachers', 'subject_teachers', 'timetables', 'student_sessions', 'fees_classes', 'grades', 'announcements', 'attendances', 'roles',
+            'class_subjects', 'class_teachers', 'subject_teachers', 'timetables', 'student_sessions', 'fees_classes', 'fee_plans', 'fee_items', 'fee_accounts', 'grades', 'announcements', 'attendances', 'roles',
             'exams', 'exam_classes', 'exam_timetables', 'exam_marks', 'assignments'];
         $before = array_combine($tables, array_map(fn ($table) => DB::table($table)->count(), $tables));
 

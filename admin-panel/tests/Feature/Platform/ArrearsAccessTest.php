@@ -42,7 +42,7 @@ class ArrearsAccessTest extends TestCase
         $this->getJson('/api/settings?type=app_settings')->assertOk()
             ->assertJsonPath('data.compulsory_fee_payment_mode', '0');
         $this->withToken($this->schoolA->tokens['asha'])
-            ->getJson('/api/student/get-profile-data')->assertOk()->assertJsonPath('data.is_fee_payment_due', 1);
+            ->getJson('/api/student/get-profile-data')->assertOk()->assertJsonPath('data.is_fee_payment_due', 0);
         foreach (['dashboard', 'subjects', 'exam-marks?exam_id='.$this->schoolA->ids['exam'], 'offline-exam-report?session_year_id='.$this->schoolA->ids['session_year']] as $path) {
             $this->app['auth']->forgetGuards();
             $answer = $this->getJson('/api/student/'.$path)->assertOk();

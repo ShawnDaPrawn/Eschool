@@ -6,10 +6,6 @@ namespace App\Http\Controllers\Api\Parent;
 
 use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
-use App\Models\FeesPaid;
-use App\Models\InstallmentFee;
-use App\Models\PaidInstallmentFee;
-use App\Models\SessionYear;
 use App\Models\Shift;
 use App\Models\StudentSessions;
 use App\Services\Platform\Identity\AppTokens;
@@ -17,7 +13,6 @@ use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\Platform\Identity\PortalSession;
 use App\Services\Platform\Identity\StudentNumbers;
 use App\Services\ResponseService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -42,18 +37,6 @@ class AuthController extends Controller
 
         $session_year = getSettings('session_year');
         $session_year_id = $session_year['session_year'];
-
-        $compulsory_fees_mode = getSettings('compulsory_fee_payment_mode');
-        $compulsory_fees_mode = $compulsory_fees_mode['compulsory_fee_payment_mode'] ?? 0;
-
-        $session_year = SessionYear::where('id', $session_year_id)->first();
-
-        $isInstallment = $session_year->include_fee_installments;
-
-        $due_date = $session_year->fee_due_date;
-        $free_app_use_date = $session_year->free_app_use_date;
-
-        $current_date = Carbon::now()->toDateString();
 
         $identity = app(StudentNumbers::class)->resolveLogin((string) $request->email);
         if ($identity !== null && Auth::attempt(['id' => $identity->id, 'password' => $request->password])) {
@@ -97,8 +80,6 @@ class AuthController extends Controller
             } else {
                 $parentDynamicFields = null;
             }
-
-            $restrictedFeeChildIds = $this->feeRestrictedChildIds((int) Auth::id());
             $user = flattenMyModel($user);
 
             $hasAnyValidSession = false;
@@ -125,101 +106,8 @@ class AuthController extends Controller
 
                     $class_id = $studentSession->class_section->class_id;
 
-                    if ($compulsory_fees_mode == 1 && ! in_array((int) $child->id, $restrictedFeeChildIds, true)) {
-                        if (isset($free_app_use_date)) {
-                            if ($current_date >= $free_app_use_date) {
-                                $fees_paid = FeesPaid::where('student_id', $child->id)->where('session_year_id', $session_year_id)->first();
-
-                                if ($isInstallment == 0) {
-                                    if ($fees_paid) {
-                                        if (isset($fees_paid) && $fees_paid->is_fully_paid == 0) {
-                                            $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
-                                        } else {
-                                            $child->is_fee_payment_due = 0;
-                                        }
-                                    } else {
-                                        $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
-                                    }
-                                } else {
-
-                                    if (isset($fees_paid) && $fees_paid->is_fully_paid == 1) {
-                                        $child->is_fee_payment_due = 0;
-                                    } else {
-                                        // Installment case
-                                        $installment_db = InstallmentFee::where('session_year_id', $session_year_id);
-                                        if ($installment_db->count()) {
-                                            $installment_db_data = $installment_db->get();
-                                            foreach ($installment_db_data as $data) {
-                                                $paid_installment_data = PaidInstallmentFee::where(['student_id' => $child->id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'installment_fee_id' => $data['id'], 'status' => 1])->first();
-                                                $installment_data[] = [
-                                                    'id' => $data->id,
-                                                    'name' => $data->name,
-                                                    'due_date' => date('Y-m-d', strtotime($data->due_date)),
-                                                    'due_charges' => $data->due_charges,
-                                                    'is_paid' => $paid_installment_data->status ?? 0,
-                                                ];
-                                            }
-                                        }
-                                        // Find the first unpaid installment and set its due date
-                                        foreach ($installment_data as $data) {
-                                            if ($data['is_paid'] == 0) {
-                                                $due_date = $data['due_date'];
-                                                break; // Stop after the first unpaid installment
-                                            }
-                                        }
-                                        $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
-                                    }
-                                }
-                            } else {
-                                $child->is_fee_payment_due = 0;
-                            }
-                        } else {
-                            $fees_paid = FeesPaid::where('student_id', $child->id)->where('session_year_id', $session_year_id)->first();
-
-                            if ($isInstallment == 0) {
-                                // Non-installment case
-                                if (isset($fees_paid) && $fees_paid->is_fully_paid == 0) {
-                                    $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
-                                } else {
-                                    $child->is_fee_payment_due = 0;
-                                }
-                            } else {
-
-                                if (isset($fees_paid) && $fees_paid->is_fully_paid == 1) {
-                                    $child->is_fee_payment_due = 0;
-                                } else {
-                                    // Installment case
-                                    $installment_db = InstallmentFee::where('session_year_id', $session_year_id);
-                                    if ($installment_db->count()) {
-                                        $installment_db_data = $installment_db->get();
-                                        foreach ($installment_db_data as $data) {
-                                            $paid_installment_data = PaidInstallmentFee::where(['student_id' => $child->id, 'class_id' => $class_id, 'session_year_id' => $session_year_id, 'installment_fee_id' => $data['id'], 'status' => 1])->first();
-                                            $installment_data[] = [
-                                                'id' => $data->id,
-                                                'name' => $data->name,
-                                                'due_date' => date('Y-m-d', strtotime($data->due_date)),
-                                                'due_charges' => $data->due_charges,
-                                                'is_paid' => $paid_installment_data->status ?? 0,
-                                            ];
-                                        }
-                                    }
-                                    // Find the first unpaid installment and set its due date
-                                    foreach ($installment_data as $data) {
-                                        if ($data['is_paid'] == 0) {
-                                            $due_date = $data['due_date'];
-                                            break; // Stop after the first unpaid installment
-                                        }
-                                    }
-                                    $child->is_fee_payment_due = ($current_date >= $due_date) ? 1 : 0;
-                                }
-                            }
-                        }
-                    } else {
-                        $child->is_fee_payment_due = 0;
-                    }
-                } else {
-                    $child->is_fee_payment_due = 0;
                 }
+                $child->is_fee_payment_due = 0; // Retired v1 hint; statements are authoritative.
 
                 $dynamicFields = null;
                 $dynamicField = $child->dynamic_fields;

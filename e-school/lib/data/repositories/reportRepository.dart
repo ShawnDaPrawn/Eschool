@@ -1,6 +1,5 @@
 import 'package:eschool/utils/api.dart';
 import 'package:eschool/ui/screens/reports/models/attendanceReport.dart';
-import 'package:eschool/ui/screens/reports/models/feesReport.dart';
 import 'package:eschool/ui/screens/reports/models/assignmentReport.dart';
 import 'package:eschool/ui/screens/reports/models/leaveReport.dart';
 import 'package:eschool/ui/screens/reports/models/offlineExamReport.dart';
@@ -84,31 +83,6 @@ class ReportRepository {
       );
 
       return AttendanceReport.fromJson(Map.from(response['data'] ?? {}));
-    } catch (e) {
-      throw ApiException(e.toString());
-    }
-  }
-
-  Future<FeesReport> getFeesReport({
-    required int sessionYearId,
-    int? childId,
-  }) async {
-    try {
-      final Map<String, dynamic> queryParameters = {
-        'session_year_id': sessionYearId,
-      };
-
-      if (childId != null && childId != 0) {
-        queryParameters.addAll({'child_id': childId});
-      }
-
-      final response = await Api.get(
-        url: childId != null ? Api.parentFeesReport : Api.studentFeesReport,
-        useAuthToken: true,
-        queryParameters: queryParameters,
-      );
-
-      return FeesReport.fromJson(Map.from(response['data'] ?? {}));
     } catch (e) {
       throw ApiException(e.toString());
     }

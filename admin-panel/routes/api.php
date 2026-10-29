@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\Parent as ParentApi;
+use App\Http\Controllers\Api\RetiredFeeApiController;
 use App\Http\Controllers\Api\Student;
 use App\Http\Controllers\Api\Teacher;
 // use Illuminate\Http\Request;
@@ -84,14 +85,14 @@ Route::group(['prefix' => 'student'], function () {
         Route::post('read-all-message', [Student\ChatController::class, 'readAllMessages']);
 
         // fees
-        Route::get('fees-details', [Student\FeesController::class, 'getFeesDetails']); // Fees Details
-        Route::post('add-fees-transaction', [Student\FeesController::class, 'storeFeesTransaction']); // Fees Details
-        Route::post('store-fees', [Student\FeesController::class, 'storeFees']); // Store Fees
-        Route::get('fees-paid-list', [Student\FeesController::class, 'feesPaidList']); // Fees Details
-        Route::get('fees-paid-receipt-pdf', [Student\FeesController::class, 'feesPaidReceiptPDF'])->middleware('throttle:heavy'); // Fees Receipt
-        Route::get('fees-transactions-list', [Student\FeesController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
-        Route::post('fail-payment-transaction', [Student\FeesController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
-        Route::get('fees-report', [Student\ReportController::class, 'getFeesReport']); // Fees Report Statistics
+        Route::get('fees-details', RetiredFeeApiController::class); // Fees Details
+        Route::post('add-fees-transaction', RetiredFeeApiController::class); // Fees Details
+        Route::post('store-fees', RetiredFeeApiController::class); // Store Fees
+        Route::get('fees-paid-list', RetiredFeeApiController::class); // Fees Details
+        Route::get('fees-paid-receipt-pdf', RetiredFeeApiController::class)->middleware('throttle:heavy'); // Fees Receipt
+        Route::get('fees-transactions-list', RetiredFeeApiController::class); // Fees Payment Transaction Details
+        Route::post('fail-payment-transaction', RetiredFeeApiController::class); // Make Payment Transaction Fail API
+        Route::get('fees-report', RetiredFeeApiController::class); // Fees Report Statistics
         Route::get('leave-report', [Student\ReportController::class, 'leaveReport']); // Leave Report Statistics
         Route::get('assignment-report', [Student\ReportController::class, 'assignmentReport']); // Assignment Report Statistics
 
@@ -99,12 +100,12 @@ Route::group(['prefix' => 'student'], function () {
         Route::get('academic-calendar-pdf', [Student\CalendarController::class, 'getAcademicCalendarPdf'])->middleware('throttle:heavy');
 
         // fee notification
-        Route::get('send-fee-notification', [Student\FeesController::class, 'sendFeeNotification']);
+        Route::get('send-fee-notification', RetiredFeeApiController::class);
 
         Route::post('apply-leave', [Student\LeaveController::class, 'applyLeave']);
         Route::post('get-leave-list', [Student\LeaveController::class, 'getMyLeave']);
         Route::post('delete-leave', [Student\LeaveController::class, 'deleteLeave']);
-        Route::post('get-payment-status', [ParentApi\FeesController::class, 'getPaymentStatus']); // Get Payment Status
+        Route::post('get-payment-status', RetiredFeeApiController::class); // Get Payment Status
     });
 });
 
@@ -136,12 +137,12 @@ Route::group(['prefix' => 'parent'], function () {
 
         // APIS Without Child ID
         Route::get('announcements', [ParentApi\AnnouncementController::class, 'getAnnouncements']); // Get Announcementes
-        Route::get('fees-paid-receipt-pdf', [ParentApi\FeesController::class, 'feesPaidReceiptPDF'])->middleware('throttle:heavy'); // Fees Receipt
-        Route::get('fees-transactions-list', [ParentApi\FeesController::class, 'getFeesPaymentTransactions']); // Fees Payment Transaction Details
+        Route::get('fees-paid-receipt-pdf', RetiredFeeApiController::class)->middleware('throttle:heavy'); // Fees Receipt
+        Route::get('fees-transactions-list', RetiredFeeApiController::class); // Fees Payment Transaction Details
         Route::get('get-profile-data', [ParentApi\ProfileController::class, 'getProfileDetails']); // Get Profile Data
-        Route::post('fail-payment-transaction', [ParentApi\FeesController::class, 'failPaymentTransactionStatus']); // Make Payment Transaction Fail API
+        Route::post('fail-payment-transaction', RetiredFeeApiController::class); // Make Payment Transaction Fail API
         Route::get('get-notification', [ParentApi\NotificationController::class, 'getNotifications']); // Get Notification Data
-        Route::post('get-payment-status', [ParentApi\FeesController::class, 'getPaymentStatus']); // Get Payment Status
+        Route::post('get-payment-status', RetiredFeeApiController::class); // Get Payment Status
         Route::get('get-user-list', [ParentApi\ChatController::class, 'getChatUserList']);
         Route::post('send-message', [ParentApi\ChatController::class, 'sendMessage']);
         Route::post('get-user-message', [ParentApi\ChatController::class, 'getUserChatMessage']);
@@ -166,11 +167,11 @@ Route::group(['prefix' => 'parent'], function () {
             Route::get('online-exam-report', [ParentApi\ReportController::class, 'onlineExamReport']); // Online Exam Report Statistics
 
             // fees
-            Route::get('fees-details', [ParentApi\FeesController::class, 'getFeesDetails']); // Fees Details
-            Route::post('add-fees-transaction', [ParentApi\FeesController::class, 'storeFeesTransaction']); // Fees Details
-            Route::post('store-fees', [ParentApi\FeesController::class, 'storeFees']); // Store Fees
-            Route::get('fees-paid-list', [ParentApi\FeesController::class, 'feesPaidList']); // Fees Details
-            Route::get('fees-report', [ParentApi\ReportController::class, 'getFeesReport']); // Fees Report Statistics
+            Route::get('fees-details', RetiredFeeApiController::class); // Fees Details
+            Route::post('add-fees-transaction', RetiredFeeApiController::class); // Fees Details
+            Route::post('store-fees', RetiredFeeApiController::class); // Store Fees
+            Route::get('fees-paid-list', RetiredFeeApiController::class); // Fees Details
+            Route::get('fees-report', RetiredFeeApiController::class); // Fees Report Statistics
             Route::get('leave-report', [ParentApi\ReportController::class, 'leaveReport']); // Leave Report Statistics
             Route::get('assignment-report', [ParentApi\ReportController::class, 'assignmentReport']); // Assignment Report Statistics
 

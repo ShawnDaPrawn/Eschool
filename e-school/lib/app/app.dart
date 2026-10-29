@@ -12,14 +12,10 @@ import 'package:eschool/cubits/chat/chatUsersCubit.dart';
 import 'package:eschool/cubits/examDetailsCubit.dart';
 import 'package:eschool/cubits/examTabSelectionCubit.dart';
 import 'package:eschool/cubits/examsOnlineCubit.dart';
-import 'package:eschool/cubits/feesPaymentCubit.dart';
-import 'package:eschool/cubits/feesReceiptCubit.dart';
 import 'package:eschool/cubits/noticeBoardCubit.dart';
-import 'package:eschool/cubits/postFeesPaymentCubit.dart';
 import 'package:eschool/cubits/resultTabSelectionCubit.dart';
 import 'package:eschool/cubits/resultsOnlineCubit.dart';
 import 'package:eschool/cubits/studentDashboardCubit.dart';
-import 'package:eschool/cubits/studentFeesCubit.dart';
 import 'package:eschool/cubits/studentSubjectsCubit.dart';
 import 'package:eschool/data/repositories/announcementRepository.dart';
 import 'package:eschool/data/repositories/authRepository.dart';
@@ -102,7 +98,7 @@ Future<void> prepareApp({bool useFirebase = true}) async {
 
   await initAppStorage([showCaseBoxKey, authBoxKey, settingsBoxKey]);
   await Hive.openBox(showCaseBoxKey);
-  await Hive.openBox(authBoxKey);
+  await openAuthStorage(authBoxKey);
 
   await Hive.openBox(settingsBoxKey);
 }
@@ -160,18 +156,6 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider<ExamDetailsCubit>(
           create: (context) => ExamDetailsCubit(StudentRepository()),
-        ),
-        BlocProvider<StudentFeesCubit>(
-          create: (context) => StudentFeesCubit(StudentRepository()),
-        ),
-        BlocProvider<FeesPaymentCubit>(
-          create: (context) => FeesPaymentCubit(StudentRepository()),
-        ),
-        BlocProvider<PostFeesPaymentCubit>(
-          create: (context) => PostFeesPaymentCubit(StudentRepository()),
-        ),
-        BlocProvider<FeesReceiptCubit>(
-          create: (context) => FeesReceiptCubit(StudentRepository()),
         ),
         BlocProvider<ResultTabSelectionCubit>(
           create: (_) => ResultTabSelectionCubit(),

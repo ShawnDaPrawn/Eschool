@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\Money\FinancialYears;
 use App\Services\Platform\Tenancy\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -16,10 +17,6 @@ class SessionYear extends Model
         'name',
         'start_date',
         'end_date',
-        'fee_due_date',
-        'fee_due_charges',
-        'free_app_use_date',
-        'include_fee_installments',
     ];
 
     use SoftDeletes;
@@ -99,24 +96,6 @@ class SessionYear extends Model
     }
 
     /* ======================
-     | Fees & Finances
-     ====================== */
-
-    public function feesPaids()
-    {
-        return $this->hasMany(FeesPaid::class, 'session_year_id');
-    }
-
-    public function feesChoiceables()
-    {
-        return $this->hasMany(FeesChoiceable::class, 'session_year_id');
-    }
-
-    public function fee_installments()
-    {
-        return $this->hasMany(InstallmentFee::class, 'session_year_id');
-    }
-    /* ======================
      | Meta Data
      ====================== */
 
@@ -144,10 +123,10 @@ class SessionYear extends Model
     protected static function booted()
     {
         static::deleting(function (SessionYear $sessionYear) {
-
             if ((int) $sessionYear->default === 1) {
                 throw new \Exception('Default session year cannot be deleted');
             }
+            FinancialYears::assertDeletable((int) $sessionYear->id);
 
             $relations = [
                 // Core Academic
@@ -165,11 +144,6 @@ class SessionYear extends Model
                 'leaveMaster',
                 'onlineExamQuestion',
                 'onlineExam',
-
-                // Fees
-                'feesPaids',
-                'feesChoiceables',
-                'fee_installments',
 
                 // Meta
                 'announcements',

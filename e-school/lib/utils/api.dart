@@ -161,37 +161,9 @@ class Api {
   static String parentOnlineExamResult =
       '${databaseUrl}parent/get-online-exam-result';
 
-  static String getFeesTransactions =
-      '${databaseUrl}parent/fees-transactions-list';
-  static String verifyStripePayment = '${databaseUrl}parent/get-payment-status';
 
-  static String getStudentFeesDetailParent =
-      '${databaseUrl}parent/fees-details';
-  static String addFeesTransaction =
-      '${databaseUrl}parent/add-fees-transaction';
-  static String failPaymentTransaction =
-      '${databaseUrl}parent/fail-payment-transaction';
-  static String storeFeesParent = '${databaseUrl}parent/store-fees';
 
-  static String getPaidFeesListParent = '${databaseUrl}parent/fees-paid-list';
-  static String downloadFeesPaidReceiptParent =
-      '${databaseUrl}parent/fees-paid-receipt-pdf';
 
-  static String getStudentFeesDetailStudent =
-      '${databaseUrl}student/fees-details';
-  static String addFeesTransactionStudent =
-      '${databaseUrl}student/add-fees-transaction';
-  static String failPaymentTransactionStudent =
-      '${databaseUrl}student/fail-payment-transaction';
-  static String storeFeesStudent = '${databaseUrl}student/store-fees';
-  static String downloadFeesPaidReceiptStudent =
-      '${databaseUrl}student/fees-paid-receipt-pdf';
-  static String getFeesTransactionsStudent =
-      '${databaseUrl}student/fees-transactions-list';
-  static String verifyStripePaymentStudent =
-      '${databaseUrl}student/get-payment-status';
-  static String askParentsToPayFees =
-      '${databaseUrl}student/send-fee-notification';
 
   static String getStudentNotifications =
       '${databaseUrl}student/get-notification';
@@ -212,8 +184,6 @@ class Api {
       '${databaseUrl}parent/assignment-report';
   static String studentLeaveReport = '${databaseUrl}student/leave-report';
   static String parentLeaveReport = '${databaseUrl}parent/leave-report';
-  static String studentFeesReport = '${databaseUrl}student/fees-report';
-  static String parentFeesReport = '${databaseUrl}parent/fees-report';
   static String studentOfflineExamReport =
       '${databaseUrl}student/offline-exam-report';
   static String parentOfflineExamReport =

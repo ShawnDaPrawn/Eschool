@@ -1,3 +1,4 @@
+import 'package:eschool/ui/screens/fees/studentFeePaymentDueScreen.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/app/deepLinks.dart';
@@ -25,12 +26,6 @@ import 'package:eschool/ui/screens/event/eventsDetailsScreen.dart';
 import 'package:eschool/ui/screens/exam/examTimeTableScreen.dart';
 import 'package:eschool/ui/screens/exam/onlineExam/examOnlineScreen.dart';
 import 'package:eschool/ui/screens/examScreen.dart';
-import 'package:eschool/ui/screens/fees/feesDetailsScreen.dart';
-import 'package:eschool/ui/screens/fees/feesPaymentVerification.dart';
-import 'package:eschool/ui/screens/fees/feesStatusScreen.dart';
-import 'package:eschool/ui/screens/fees/feesTransactionScreen.dart';
-import 'package:eschool/ui/screens/fees/studentFeePaymentDueScreen.dart';
-import 'package:eschool/ui/screens/fees/webviewPaymentScreen.dart';
 import 'package:eschool/ui/screens/fileViews/imageFileScreen.dart';
 import 'package:eschool/ui/screens/fileViews/pdfFileScreen.dart';
 import 'package:eschool/ui/screens/gallery/galleryAlbumPhotosScreen.dart';
@@ -343,16 +338,16 @@ class Routes {
         return feeStatementsRoute();
 
       case childFees:
-        return FeesStatusScreen.route(routeSettings);
+        return feeStatementsRoute();
 
       case feesDetails:
-        return FeesDetailsScreen.route(routeSettings);
+        return feeStatementsRoute();
 
       case resultOnline:
         return ResultOnlineScreen.route(routeSettings);
 
       case feesTransaction:
-        return FeesTransactionScreen.route(routeSettings);
+        return feeStatementsRoute();
 
       case notifications:
         return NotificationScreen.route(routeSettings);
@@ -361,7 +356,7 @@ class Routes {
       case imageFileView:
         return ImageFileScreen.route(routeSettings);
       case paymentVerify:
-        return FeesPaymentVerification.route(routeSettings);
+        return feeStatementsRoute();
 
       case subjectWiseReport:
         return ReportsScreen.route(routeSettings);
@@ -389,7 +384,7 @@ class Routes {
         return StudentFeePaymentDueScreen.route(routeSettings);
 
       case webViewPaymentScreen:
-        return WebViewPaymentScreen.route(routeSettings);
+        return feeStatementsRoute();
 
       case addLeave:
         return AddLeaveScreen.route(routeSettings);

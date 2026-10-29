@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 String walletText(BuildContext context, String text) =>
     AppLocalization.of(context)?.getTranslatedValues(text) ?? text;
 String walletAmount(String currency, int cents) =>
-    '$currency ${cents < 0 ? '-' : ''}${cents.abs() ~/ 100}.${(cents.abs() % 100).toString().padLeft(2, '0')}';
+    formatFinancialAmount(currency, cents);
 int? walletCents(String value) {
   if (!RegExp(r'^\d{1,10}(?:\.\d{1,2})?$').hasMatch(value)) return null;
   final parts = value.split('.');

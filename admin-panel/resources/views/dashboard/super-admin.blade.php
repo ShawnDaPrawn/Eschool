@@ -15,13 +15,15 @@
     @include('dashboard.partials.stat-cards')
 
     <div class="row">
+        @if($can_read_fee_receipts ?? false)
         <div class="col-12 col-xl-5 mb-4">
             @include('dashboard.partials.fees-collection')
         </div>
-        <div class="col-12 col-lg-7 col-xl-4 mb-4">
+        @endif
+        <div class="col-12 col-lg-7 col-xl-4 flex-grow-1 mb-4">
             @include('dashboard.partials.attendance')
         </div>
-        <div class="col-12 col-lg-5 col-xl-3 mb-4">
+        <div class="col-12 col-lg-5 col-xl-3 flex-grow-1 mb-4">
             @include('dashboard.partials.total-students')
         </div>
     </div>

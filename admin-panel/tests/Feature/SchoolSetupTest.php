@@ -26,7 +26,7 @@ class SchoolSetupTest extends TestCase
         $this->seedLikeInstaller();
     }
 
-    public function test_a_session_year_created_with_installments_is_flagged_as_having_them(): void
+    public function test_school_year_creation_ignores_retired_installment_inputs(): void
     {
         // include_fee_installments wasn't fillable: the installments were saved, the flag wasn't.
         $this->actingAs($this->superAdmin())
@@ -37,8 +37,8 @@ class SchoolSetupTest extends TestCase
             ->assertOk();
 
         $year = SessionYear::where('name', '2031')->firstOrFail();
-        $this->assertSame(1, (int) $year->include_fee_installments);
-        $this->assertSame(1, InstallmentFee::where('session_year_id', $year->id)->count());
+        $this->assertSame(0, (int) $year->include_fee_installments);
+        $this->assertSame(0, InstallmentFee::where('session_year_id', $year->id)->count());
     }
 
     public function test_session_year_names_are_unique(): void
@@ -82,10 +82,10 @@ class SchoolSetupTest extends TestCase
     public function test_the_running_session_year_can_be_edited_after_its_free_app_date(): void
     {
         $year = SessionYear::where('name', '2022-23')->firstOrFail();
-        $year->update([
+        $year->forceFill([
             'start_date' => now()->subMonths(3)->toDateString(), 'end_date' => now()->addMonths(8)->toDateString(),
             'fee_due_date' => now()->addMonth()->toDateString(), 'free_app_use_date' => now()->subDays(10)->toDateString(),
-        ]);
+        ])->save();
         $form = [
             'id' => $year->id, 'name' => 'This year', 'start_date' => now()->subMonths(3)->format('d-m-Y'),
             'end_date' => now()->addMonths(8)->format('d-m-Y'), 'fees_due_date' => now()->addMonth()->format('d-m-Y'),
@@ -96,9 +96,10 @@ class SchoolSetupTest extends TestCase
         $this->actingAs($this->superAdmin())->putJson("/session-years/{$year->id}", $form)->assertJson(['error' => false]);
         $this->assertSame('This year', $year->fresh()->name);
 
-        // A new free-app date must still be in the future.
+        // Retired fee-lock dates cannot change or block the academic year.
         $this->putJson("/session-years/{$year->id}", ['free_app_use_date' => now()->subDays(3)->format('d-m-Y')] + $form)
-            ->assertStatus(422)->assertJsonValidationErrors('free_app_use_date');
+            ->assertJson(['error' => false]);
+        $this->assertSame(now()->subDays(10)->toDateString(), $year->fresh()->free_app_use_date);
     }
 
     public function test_the_migration_flags_existing_years_that_have_installments(): void

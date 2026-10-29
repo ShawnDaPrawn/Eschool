@@ -504,7 +504,7 @@ See the [assignments docs](https://shawndaprawn.github.io/Eschool/features/assig
 |---|---|---|---|
 | `assignment_submission_id` | numeric | yes | |
 | `status` | `1` accepted, `2` rejected | yes | |
-| `points` | numeric | no | Stored only when accepted, otherwise cleared |
+| `points` | whole number | no | Stored only when accepted, otherwise cleared. From 0 to the assignment's `points` (its total) when it has one; otherwise a validation error |
 | `feedback` | any | no | |
 
 - **Scope:** the submission through `assignmentSubmissionTeachers()`, plus a second check that the assignment passes `assignmentTeachers()`.

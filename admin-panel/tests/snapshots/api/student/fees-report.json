@@ -1,19 +1,13 @@
 {
     "request": "GET /api/student/fees-report",
     "status": 200,
-    "error": false,
-    "message": "Data fetched successfully",
-    "code": 200,
+    "error": true,
+    "message": "Update the app to use current fee statements and receipts. Online payments are not available yet.",
+    "code": 410,
     "shape": {
         "code": "number",
-        "data": {
-            "instalments": "null",
-            "last_payment_date": "string",
-            "next_due_date": "null",
-            "total_fee_payable": "number",
-            "total_paid": "number",
-            "total_pending": "number"
-        },
+        "data": "null",
+        "details": "string",
         "error": "bool",
         "message": "string"
     }

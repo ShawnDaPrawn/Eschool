@@ -18,6 +18,8 @@ use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\Term;
 use App\Rules\AfterNow;
+use App\Services\Academics\Homework\HomeworkCopies;
+use App\Services\Academics\Homework\HomeworkMarks;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use Carbon\Carbon;
@@ -25,6 +27,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class AssignmentController extends Controller
@@ -134,6 +137,9 @@ class AssignmentController extends Controller
 
             $row = (object) $row;
             $operate = '<a href="#" class="btn btn-xs btn-gradient-primary btn-rounded btn-icon edit-data" data-id='.$row->id.' title="Edit" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            if (Auth::user()->can('assignment-create')) {
+                $operate .= '<a href="#" class="btn btn-xs btn-gradient-info btn-rounded btn-icon copy-assignment" data-id="'.$row->id.'" data-name="'.e($row->name).'" title="'.e(__('Set for other classes')).'" data-toggle="modal" data-target="#copyAssignmentModal"><i class="fa fa-copy"></i></a>&nbsp;&nbsp;';
+            }
             $operate .= '<a href='.route('assignment.destroy', $row->id).' 
             class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" 
             data-id="'.$row->id.'"
@@ -664,7 +670,8 @@ class AssignmentController extends Controller
             return response()->json($response);
         }
         $validator = Validator::make($request->all(), [
-            'status' => 'required|numeric',
+            'status' => 'required|numeric|in:1,2',
+            'points' => 'nullable|numeric',
             'feedback' => 'nullable',
         ]);
 
@@ -678,13 +685,17 @@ class AssignmentController extends Controller
         }
 
         try {
-            $assignment_submission = AssignmentSubmission::findOrFail($id);
-            $assignment_submission->feedback = $request->feedback;
-            if ($request->status == 1) {
-                $assignment_submission->points = $request->points;
-            } else {
-                $assignment_submission->points = null;
+            // A teacher marks only their own assignments' submissions (as in the teacher app).
+            $assignment_submission = AssignmentSubmission::assignmentSubmissionTeachers()->findOrFail($id);
+            $assignment = Assignment::assignmentTeachers()->findOrFail($assignment_submission->assignment_id);
+
+            $marks = app(HomeworkMarks::class);
+            if ($problem = $marks->problem($assignment, $request->status, $request->points)) {
+                return response()->json(['error' => true, 'message' => $problem]);
             }
+
+            $assignment_submission->feedback = $request->feedback;
+            $assignment_submission->points = $marks->stored($request->status, $request->points);
             $assignment_submission->status = $request->status;
             $assignment_submission->save();
 
@@ -727,5 +738,63 @@ class AssignmentController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /** Classes this assignment can be set for in the current session year. */
+    public function copyTargets(int $id)
+    {
+        abort_unless(Auth::user()->can('assignment-create'), 403);
+        $source = Assignment::assignmentTeachers()->findOrFail($id);
+        $sessionYearId = (int) getSettings('session_year')['session_year'];
+
+        return response()->json([
+            'error' => false,
+            'data' => app(HomeworkCopies::class)->targets($source, Auth::user(), $sessionYearId)->all(),
+        ]);
+    }
+
+    /** Set an existing assignment (from any year) for other classes, with a new due date. */
+    public function copy(Request $request, int $id)
+    {
+        if (! Auth::user()->can('assignment-create')) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'targets' => 'required|array|min:1|max:50',
+            'targets.*' => ['required', 'string', 'regex:/^\d+:(\d+)?$/'],
+            'due_date' => ['required', 'date', new AfterNow],
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+
+        $source = Assignment::assignmentTeachers()->findOrFail($id);
+        $targets = collect($request->input('targets'))->map(function (string $key) {
+            [$classSectionId, $termId] = explode(':', $key) + [1 => ''];
+
+            return ['class_section_id' => (int) $classSectionId, 'term_id' => $termId === '' ? null : (int) $termId];
+        })->all();
+
+        try {
+            $copies = app(HomeworkCopies::class)->copy(
+                $source,
+                Auth::user(),
+                $targets,
+                Carbon::parse($request->due_date),
+                (int) getSettings('session_year')['session_year'],
+            );
+        } catch (ValidationException $e) {
+            return response()->json(['error' => true, 'message' => collect($e->errors())->flatten()->first()]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json(['error' => true, 'message' => trans('error_occurred')]);
+        }
+
+        return response()->json([
+            'error' => false,
+            'message' => trans_choice('Homework set for :count class.|Homework set for :count classes.', $copies->count(), ['count' => $copies->count()]),
+        ]);
     }
 }

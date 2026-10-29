@@ -277,7 +277,7 @@ class AdmissionsTest extends TestCase
             'payment_status' => 1, 'mode' => 0, 'type_of_fee' => 0, 'total_amount_cents' => 5000, 'session_year_id' => $year, 'date' => '2026-02-10']);
         FeesPaid::forceCreate(['student_id' => $learner->id, 'class_id' => $learner->class_id, 'total_amount_cents' => 5000, 'session_year_id' => $year, 'date' => '2026-02-10', 'is_fully_paid' => 0]);
         foreach ([1, 2] as $_) {
-            $this->assertSame(5000, $projection->amount($projection->read($this->admin, $year, '2026-02-01', '2026-02-10'), $this->gradeId, '2026-02-01', '2026-02-10'));
+            $this->assertSame(0, $projection->amount($projection->read($this->admin, $year, '2026-02-01', '2026-02-10'), $this->gradeId, '2026-02-01', '2026-02-10'), 'Abandoned receipts and office acknowledgements are not canonical allocations.');
         }
         $this->assertSame(1, ApplicationEvent::where('application_id', $row->id)->where('kind', 'office_fee_acknowledged')->count());
         $this->assertTrue($row->office_fee_paid);

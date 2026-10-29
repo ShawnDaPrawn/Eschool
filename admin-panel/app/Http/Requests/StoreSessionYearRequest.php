@@ -29,14 +29,6 @@ class StoreSessionYearRequest extends FormRequest
             'start_date' => 'required|date_format:d-m-Y',
             'end_date' => 'required|date_format:d-m-Y|after_or_equal:start_date',
 
-            'fees_due_date' => 'required|date_format:d-m-Y',
-            'fees_due_charges' => 'required|numeric|min:0|max:100',
-
-            'free_app_use_date' => 'nullable|date_format:d-m-Y',
-
-            // Fee installment flag
-            'fees_installment' => 'nullable|in:0,1',
-
             // Make the new year the school's current one
             'set_as_current' => 'nullable|in:0,1',
 
@@ -45,7 +37,6 @@ class StoreSessionYearRequest extends FormRequest
             'transfer_class_teacher_subject' => 'nullable|in:0,1',
             'transfer_class_timetable' => 'nullable|in:0,1',
             'transfer_exam_grades' => 'nullable|in:0,1',
-            'transfer_class_fee_type' => 'nullable|in:0,1',
             'transfer_leave_settings' => 'nullable|in:0,1',
             'transfer_term' => 'nullable|in:0,1',
 
@@ -57,7 +48,6 @@ class StoreSessionYearRequest extends FormRequest
                         $this->transfer_class_teacher_subject ?? '0',
                         $this->transfer_class_timetable ?? '0',
                         $this->transfer_exam_grades ?? '0',
-                        $this->transfer_class_fee_type ?? '0',
                         $this->transfer_leave_settings ?? '0',
                         $this->transfer_term ?? '0',
                     ]);
@@ -77,13 +67,6 @@ class StoreSessionYearRequest extends FormRequest
             'term_data.*.end_date' => 'required_with:term_data|date_format:d-m-Y',
         ];
 
-        if ($this->fees_installment == '1') {
-            $rules['installment_data'] = 'required|array|min:1';
-            $rules['installment_data.*.name'] = 'required|string|max:255';
-            $rules['installment_data.*.due_date'] = 'required|date_format:d-m-Y';
-            $rules['installment_data.*.due_charges'] = 'required|numeric|min:0|max:100';
-        }
-
         return $rules;
     }
 
@@ -94,8 +77,6 @@ class StoreSessionYearRequest extends FormRequest
             'name.unique' => trans('session_year_name_already_exists'),
             'start_date.required' => trans('start_date_is_required'),
             'end_date.after_or_equal' => trans('end_date_must_be_after_start_date'),
-            'fees_due_charges.max' => trans('fees_due_charges_cannot_exceed_100'),
-            'installment_data.required' => trans('at_least_one_installment_required'),
         ];
     }
 }

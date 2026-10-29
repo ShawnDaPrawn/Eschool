@@ -82,7 +82,7 @@ flowchart LR
 | T6 | Injection and cross-site scripting in the panel (1) | Eloquent and bindings; `data-escape="true"` tables with `escapeHtml()`/`safeUrl()`; CSRF on the web group; CSP (report-only first) | in place; CSP Phase 0 (S6) |
 | T7 | Spoofed payment or mail callbacks credit a payment or hide a bounce (2) | Signature verification per provider, idempotency on the provider's event id, amount checked against the transaction; SNS signature verification for SES (ADR 0004) | payments in place; SES Phase 0 (S5) |
 | T8 | Secrets leak from code, logs or settings rows (4) | Secret Manager only; `env()` only in `config/`; gitleaks over the whole history in CI; JSON logs keep ids only and mask e-mail, ID and phone numbers; no arguments in traces; no secret in any app build | gitleaks, logging and Secret Manager wiring in place; settings rows moved Phase 0 (S6) |
-| T9 | Logs become a store of children's personal data (3) | `LOG_CHANNEL=json` formatter allow-list (ids, numbers, descriptive keys); request bodies never logged as context; Cloud Logging retention at the default 30 days | in place; `ResponseService::logCurlRequest` still writes request bodies into the message text (follow-up for S1/S6) |
+| T9 | Logs become a store of children's personal data (3) | `LOG_CHANNEL=json` formatter allow-list (ids, numbers, descriptive keys); request bodies never logged as context; Cloud Logging retention at the default 30 days | request values removed; see current consolidation supplement |
 | T10 | Mail or push sent to real people from staging, or in a school's name by an attacker (6) | Staging sends from its own subdomain and, while SES is in the sandbox, only to verified addresses; the restore drill cuts staging off from mail, push and payments; mail and push only from queued jobs | in place (runbooks); SES Phase 0 (S5) |
 | T11 | A compromised dependency or GitHub Action (supply chain) | Lock files committed and enforced in CI; `composer audit`, `npm audit`, `dart pub outdated`; Dependabot on every project; new workflow actions pinned to commit SHAs; gitleaks binary verified by checksum; base images updated by Dependabot | in place |
 | T12 | Pipeline or cloud credentials abused to reach production (5) | No long-lived keys: Workload Identity Federation per GitHub environment; production environment needs the product owner's approval and deploys only `v*` tags; deployer has no access to secrets or data; least-privilege runtime accounts | in place, not yet run |
@@ -93,7 +93,7 @@ flowchart LR
 
 ## Open items
 
-- `ResponseService::logCurlRequest()` puts request parameters (secrets redacted, names and free text not) into the log message on every API error; under the "ids only" rule it should log the route and ids only. Owner: S1 or S6.
+- Current Phase3–5 boundaries, updated logging/native/CSP controls and remaining validation are tracked in [the consolidation evidence map](consolidation-threats-and-evidence.md).
 - `Log::error($e)` call sites (for example in `LanguageController`, `LeaveController`) log the exception as text, which bypasses the formatter's query-error handling; they should call `report($e)`.
 - Firebase client API key restrictions to be confirmed by the product owner ([phase-0.md](phase-0.md)).
 - Staging hostnames under the production parent domain receive production's cookies ([ADR 0003](../adr/0003-app-packages-and-web.md)); a separate staging domain is recommended.
@@ -113,3 +113,10 @@ reconciliation signal. It exposes no new public posting API or provider. The
 additional threat boundaries and exact verification limits are recorded in the
 [scoped preparation review](p5-preparation.md). This supplements the original
 system model; it does not certify the future commerce surfaces or live release.
+
+## Current Phase3–5 consolidation
+
+Read [the updated threat and evidence inventory](consolidation-threats-and-evidence.md)
+for the current financial, Vendor, portrait, private-reporting, AI/worker, live and
+session boundaries. Historical Phase0 status rows above are not current deployment
+or acceptance proof.

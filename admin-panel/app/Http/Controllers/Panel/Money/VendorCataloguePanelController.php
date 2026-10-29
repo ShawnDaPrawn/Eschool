@@ -11,6 +11,7 @@ use App\Models\Commerce\VendorCategory;
 use App\Models\Commerce\VendorProduct;
 use App\Models\Commerce\VendorStockBalance;
 use App\Models\Commerce\VendorStockMovement;
+use App\Models\Money\WalletSetting;
 use App\Policies\Commerce\VendorPolicy;
 use App\Services\Commerce\VendorCatalogues;
 use App\Services\Platform\Modules\ModuleGate;
@@ -36,8 +37,10 @@ class VendorCataloguePanelController extends Controller
             $stock = $product ? VendorStockBalance::where('product_id', $product->id)->first() : null;
             $movements = $product ? VendorStockMovement::where('product_id', $product->id)->orderByDesc('id')->paginate(30, ['*'], 'stock_page') : null;
             $canWrite = app(ModuleGate::class)->writable('vendors');
+            $walletCurrency = WalletSetting::value('currency');
+            $canConfigureWallets = $request->user()->can('wallet-finance-manage') && app(ModuleGate::class)->allows('wallet');
 
-            return response()->view('money.vendors.catalogues', compact('vendor', 'product', 'category', 'categoryOptions', 'vendors', 'products', 'stock', 'movements', 'canWrite'));
+            return response()->view('money.vendors.catalogues', compact('vendor', 'product', 'category', 'categoryOptions', 'vendors', 'products', 'stock', 'movements', 'canWrite', 'walletCurrency', 'canConfigureWallets'));
         });
     }
 

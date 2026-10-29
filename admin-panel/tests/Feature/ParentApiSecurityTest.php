@@ -52,7 +52,10 @@ class ParentApiSecurityTest extends TestCase
         $api = $this->motherApi();
 
         $receipt = $api->get('/api/parent/fees-paid-receipt-pdf', ['fees_paid_id' => $this->ids['fees_paid_b']]);
-        $this->assertApiError($receipt);
+        $this->assertSame(410, $receipt->status());
+        $this->assertTrue($receipt->json('error'));
+        $this->assertSame(410, $receipt->json('code'));
+        $this->assertNull($receipt->json('data'));
         $this->assertArrayNotHasKey('pdf', $receipt->json() ?? []);
 
         $fail = $api->post('/api/parent/fail-payment-transaction', ['payment_transaction_id' => $this->ids['transaction_b']]);
@@ -73,15 +76,19 @@ class ParentApiSecurityTest extends TestCase
         $malformed = $api->post('/api/parent/get-payment-status', ['payment_intent_id' => '../../v1/customers']);
         $this->assertApiError($malformed);
 
-        // The same calls still work on the mother's own records.
+        // Retired writers cannot mutate the mother's own abandoned records either.
         $ownFail = $api->post('/api/parent/fail-payment-transaction', ['payment_transaction_id' => $this->ids['transaction_a']]);
-        $this->assertApiSuccess($ownFail);
-        $this->assertSame(0, $this->paymentStatus('transaction_a'));
+        $this->assertApiError($ownFail);
+        $this->assertSame(2, $this->paymentStatus('transaction_a'));
 
         // A transaction that is no longer pending can't be failed again (or overwritten).
         $settled = $api->post('/api/parent/fail-payment-transaction', ['payment_transaction_id' => $this->ids['transaction_a_paid']]);
         $this->assertApiError($settled);
         $this->assertSame(1, $this->paymentStatus('transaction_a_paid'));
+        foreach ([$fail, $store, $status, $malformed, $ownFail, $settled] as $retired) {
+            $this->assertSame(410, $retired->json('code'));
+            $this->assertNull($retired->json('data'));
+        }
     }
 
     public function test_teacher_payloads_have_no_date_of_birth(): void

@@ -5,7 +5,7 @@
 <div class="content-wrapper m3 page-content leadership-dashboard">
 <x-page.header :title="__('Leadership dashboard')" :subtitle="__('School trends by grade')" />
 <p>{{ __('Attendance is based on recorded school days. Activity counts show observed signed-in learners. Missing sources are shown as unavailable.') }}</p>
-<p>{{ __('Fee collection shows current recorded paid receipts after corrections, by receipt date. Unreconciled receipts are unavailable.') }}</p>
+<p>{{ __('Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.') }}</p>
 <form method="GET" action="{{ route('leadership-dashboard.index') }}" class="leadership-filters" aria-label="{{ __('Choose dashboard period') }}">
 <x-page.field id="leadership-year" name="session_year_id" type="select" :label="__('School year')" :options="$years->pluck('name','id')->all()" :value="$dashboard['session_year_id']" required />
 <x-page.field id="leadership-weeks" name="weeks" type="number" :label="__('Weeks to show')" :value="$weeks" min="1" max="12" required />
@@ -23,8 +23,24 @@
 <dl class="leadership-values">
 <dt>{{ __('Enrolled learners at period end') }}</dt><dd>{{ $row['enrolled_learners'] }}</dd>
 <dt>{{ __('Recorded attendance') }}</dt><dd>@if($row['attendance']['percentage_bp'] !== null){{ number_format($row['attendance']['percentage_bp']/100,2) }}% · {{ $row['attendance']['recorded_days'] }} {{ __('learner days') }}@else{{ __('Unavailable') }}@endif</dd>
-@foreach(['academic_risk' => __('Learners requiring academic follow-up'), 'discipline' => __('Learners with discipline incidents'), 'fee_collection_cents' => __('Fee collection'), 'active_learners' => __('Observed active learners')] as $key => $label)
-<dt>{{ $label }}</dt><dd>@if($row[$key]['value'] === null){{ __('Unavailable') }}@elseif($key === 'fee_collection_cents'){{ trim(\App\Services\Platform\Ledger\Money::ofCents($row[$key]['value'])->format('')) }}@else{{ $row[$key]['value'] }}@endif @if($row[$key]['status'] === 'partial') · {{ __('Partial observation') }}@endif</dd>
+@foreach(['academic_risk' => __('Learners requiring academic follow-up'), 'discipline' => __('Learners with discipline incidents'), 'fee_collection_cents' => __('Allocated learner fees'), 'active_learners' => __('Observed active learners')] as $key => $label)
+<dt>{{ $label }}</dt>
+<dd>
+    @if($row[$key]['value'] === null)
+        {{ __('Unavailable') }}
+    @elseif($key === 'fee_collection_cents')
+        @if($row['fee_collection_currency'] !== null)
+            {{ \App\Services\Platform\Ledger\Money::ofCents($row[$key]['value'], $row['fee_collection_currency'])->format() }}
+        @else
+            {{ $row[$key]['value'] }}
+        @endif
+    @else
+        {{ $row[$key]['value'] }}
+    @endif
+    @if($row[$key]['status'] === 'partial')
+        · {{ __('Partial observation') }}
+    @endif
+</dd>
 @endforeach
 </dl>
 </div></article>

@@ -8,7 +8,6 @@ use App\Models\Language;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Throwable;
 
@@ -121,7 +120,7 @@ class LanguageController extends Controller
                 'message' => trans('data_store_successfully'),
             ];
         } catch (Throwable $e) {
-            Log::error($e);
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),
@@ -244,7 +243,7 @@ class LanguageController extends Controller
                 'message' => trans('data_update_successfully'),
             ];
         } catch (Throwable $e) {
-            Log::error($e);
+            report($e);
             $response = [
                 'error' => true,
                 'message' => trans('error_occurred'),

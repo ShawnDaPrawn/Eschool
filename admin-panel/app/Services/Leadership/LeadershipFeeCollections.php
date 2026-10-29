@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Services\Leadership;
 
-use App\Models\FeesChoiceable;
-use App\Models\FeesPaid;
-use App\Models\PaidInstallmentFee;
-use App\Models\PaymentTransaction;
+use App\Models\Money\FeePlan;
 use App\Models\People\Enrolment;
 use App\Models\User;
+use App\Services\Money\FeeCreditHistory;
+use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 
-/** Current recorded fee receipts, reconciled in cents; never a bank/ledger balance. */
+/** Applied learner receipts; excludes held credit and unassigned family charges. */
 class LeadershipFeeCollections
 {
-    private const MAX_CENTS = 9007199254740991;
+    private const MAX_CENTS = LedgerService::MAX_CENTS;
 
     public function read(User $actor, int $year, string $start, string $end): array
     {
@@ -24,81 +24,69 @@ class LeadershipFeeCollections
         $authority->principal($actor, $year);
         $gate = app(ModuleGate::class);
         $gate->forget();
+        $off = ['enabled' => false, 'events' => [], 'unavailable' => [], 'currency' => null];
         if (! $gate->allows('fees')) {
-            return ['enabled' => false, 'events' => [], 'unavailable' => []];
+            return $off;
         }
-
-        // All three sources see one committed snapshot. Never add the running
-        // fees_paids balance to individual transactions: that counts twice.
         $snapshot = DB::transaction(function () use ($year, $start, $end): array {
-            $enrolments = Enrolment::with('homeroom.class')->where('session_year_id', $year)
-                ->whereDate('starts_on', '<=', $end)
-                ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $start))->get();
-            $scopes = $enrolments->filter(fn ($e) => $e->homeroom?->class?->grade_level_id !== null)
-                ->groupBy(fn ($e) => $e->learner_id.':'.$e->homeroom->class_id);
-            $byLearner = $enrolments->groupBy('learner_id');
-            $learners = $enrolments->pluck('learner_id')->unique()->all();
-            $receipts = PaymentTransaction::where('session_year_id', $year)->whereIn('student_id', $learners)
-                ->where('payment_status', 1)->select(['id', 'student_id', 'class_id', 'session_year_id', 'type_of_fee', 'date', 'total_amount_cents'])->get()
-                ->groupBy(fn ($r) => $r->student_id.':'.$r->class_id);
-            $balances = FeesPaid::where('session_year_id', $year)->whereIn('student_id', $learners)
-                ->select(['id', 'student_id', 'class_id', 'total_amount_cents'])->get()
-                ->groupBy(fn ($r) => $r->student_id.':'.$r->class_id);
+            $school = app(CurrentSchool::class)->id();
+            $rosters = Enrolment::with('homeroom.class')->where('session_year_id', $year)
+                ->whereDate('starts_on', '<=', $end)->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $start))
+                ->get()->groupBy('learner_id');
+            $rows = DB::table('payment_allocations as a')
+                ->join('payment_allocation_runs as r', fn ($j) => $j->on('r.school_id', '=', 'a.school_id')->on('r.id', '=', 'a.allocation_run_id'))
+                ->join('payments as p', fn ($j) => $j->on('p.school_id', '=', 'a.school_id')->on('p.id', '=', 'a.payment_id'))
+                ->join('invoice_lines as l', fn ($j) => $j->on('l.school_id', '=', 'a.school_id')->on('l.id', '=', 'a.invoice_line_id'))
+                ->join('invoices as i', fn ($j) => $j->on('i.school_id', '=', 'l.school_id')->on('i.id', '=', 'l.invoice_id'))
+                ->join('bill_runs as b', fn ($j) => $j->on('b.school_id', '=', 'i.school_id')->on('b.id', '=', 'i.bill_run_id'))
+                ->join('ledger_entries as e', fn ($j) => $j->on('e.school_id', '=', 'r.school_id')->on('e.id', '=', 'r.ledger_entry_id'))
+                ->where('a.school_id', $school)->where('l.session_year_id', $year)->whereNotNull('l.learner_id')
+                ->whereNotNull('r.sealed_at')->whereNotNull('i.sealed_at')->where('b.state', 'posted')->whereNotNull('e.posted_at')
+                ->whereBetween('p.received_on', [$start, $end])
+                ->get(['a.id', 'a.amount_cents', 'l.learner_id', 'l.currency as line_currency', 'p.currency', 'p.received_on']);
+            $released = FeeCreditHistory::releases()->whereIn('c.allocation_id', $rows->pluck('id')->all())
+                ->selectRaw('c.allocation_id, SUM(c.amount_cents) AS cents')->groupBy('c.allocation_id')->pluck('cents', 'allocation_id');
+            $currencies = FeePlan::where('session_year_id', $year)->distinct()->pluck('currency');
             $events = [];
             $unavailable = [];
-            foreach ($scopes as $key => $roster) {
-                $rows = $receipts->get($key, collect());
-                $balance = $balances->get($key, collect());
-                $total = 0;
-                $valid = $balance->count() <= 1;
-                foreach ($rows as $row) {
-                    $cents = $this->cents($row->getRawOriginal('total_amount_cents'));
-                    if ($cents === null || $cents > self::MAX_CENTS - $total) {
-                        $valid = false;
-                        break;
-                    }
-                    $total += $cents;
-                }
-                $expected = $balance->isEmpty() ? ($rows->isEmpty() ? 0 : null) : $this->cents($balance->first()->getRawOriginal('total_amount_cents'));
-                if (! $valid || $expected === null || $total !== $expected) {
-                    foreach ($roster as $e) {
-                        $unavailable[(int) $e->homeroom->class->grade_level_id] = true;
+            foreach ($rows as $row) {
+                $dated = $rosters->get($row->learner_id, collect())->filter(fn ($e) => $e->starts_on->toDateString() <= $row->received_on && ($e->ends_on === null || $e->ends_on->toDateString() >= $row->received_on));
+                $amount = $this->cents($row->amount_cents);
+                $credit = $this->cents($released[$row->id] ?? 0);
+                if ($dated->count() !== 1 || $amount === null || $credit === null || $credit > $amount || $row->currency !== $row->line_currency) {
+                    foreach ($dated as $enrolment) {
+                        if ($enrolment->homeroom?->class?->grade_level_id !== null) {
+                            $unavailable[(int) $enrolment->homeroom->class->grade_level_id] = true;
+                        }
                     }
 
                     continue;
                 }
-                foreach ($rows as $row) {
-                    $date = $this->receiptDate($row);
-                    if ($date === null) {
-                        foreach ($roster as $e) {
-                            $unavailable[(int) $e->homeroom->class->grade_level_id] = true;
-                        }
-
-                        continue;
-                    }
-                    if ($date < $start || $date > $end) {
-                        continue;
-                    }
-                    $dated = $byLearner->get($row->student_id, collect())->filter(fn ($e) => $e->starts_on->toDateString() <= $date && ($e->ends_on === null || $e->ends_on->toDateString() >= $date));
-                    if ($dated->count() > 1) {
-                        foreach ($dated as $e) {
-                            if ($e->homeroom?->class?->grade_level_id !== null) {
-                                $unavailable[(int) $e->homeroom->class->grade_level_id] = true;
-                            }
-                        }
-                    } elseif ($dated->count() === 1 && (int) $dated->sole()->homeroom?->class_id === (int) $row->class_id) {
-                        $events[] = ['date' => $date, 'grade_id' => (int) $dated->sole()->homeroom->class->grade_level_id,
-                            'cents' => $this->cents($row->getRawOriginal('total_amount_cents'))];
-                    }
+                $grade = $dated->sole()->homeroom?->class?->grade_level_id;
+                if ($grade !== null) {
+                    $events[] = ['date' => $row->received_on, 'grade_id' => (int) $grade, 'cents' => $amount - $credit, 'currency' => $row->currency];
                 }
             }
 
-            return ['enabled' => true, 'events' => $events, 'unavailable' => array_keys($unavailable)];
+            return ['enabled' => true, 'events' => $events, 'unavailable' => array_keys($unavailable),
+                'currency' => $currencies->count() === 1 ? $currencies->sole() : null];
         });
         $authority->principal($actor, $year);
         $gate->forget();
 
-        return $gate->allows('fees') ? $snapshot : ['enabled' => false, 'events' => [], 'unavailable' => []];
+        return $gate->allows('fees') ? $snapshot : $off;
+    }
+
+    public function currency(array $snapshot, int $grade, string $start, string $end): ?string
+    {
+        $currencies = [];
+        foreach ($snapshot['events'] as $event) {
+            if ($event['grade_id'] === $grade && $event['date'] >= $start && $event['date'] <= $end) {
+                $currencies[$event['currency']] = true;
+            }
+        }
+
+        return count($currencies) === 1 ? array_key_first($currencies) : ($currencies === [] ? ($snapshot['currency'] ?? null) : null);
     }
 
     public function amount(array $snapshot, int $grade, string $start, string $end): ?int
@@ -107,16 +95,18 @@ class LeadershipFeeCollections
             return null;
         }
         $sum = 0;
+        $currencies = [];
         foreach ($snapshot['events'] as $event) {
             if ($event['grade_id'] === $grade && $event['date'] >= $start && $event['date'] <= $end) {
                 if ($event['cents'] > self::MAX_CENTS - $sum) {
                     return null;
                 }
                 $sum += $event['cents'];
+                $currencies[$event['currency']] = true;
             }
         }
 
-        return $sum;
+        return count($currencies) > 1 ? null : $sum;
     }
 
     private function cents(mixed $raw): ?int
@@ -127,48 +117,5 @@ class LeadershipFeeCollections
         $value = filter_var($raw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => self::MAX_CENTS]]);
 
         return $value === false ? null : $value;
-    }
-
-    private function day(mixed $raw): ?string
-    {
-        if (! is_string($raw) || ! preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})(?: [0-9]{2}:[0-9]{2}:[0-9]{2})?$/D', $raw, $m)) {
-            return null;
-        }
-
-        return checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ? substr($raw, 0, 10) : null;
-    }
-
-    private function receiptDate(PaymentTransaction $receipt): ?string
-    {
-        if (! in_array((string) $receipt->getRawOriginal('type_of_fee'), ['0', '1', '2'], true)) {
-            return null;
-        }
-        if ($receipt->getRawOriginal('date') !== null) {
-            return $this->day($receipt->getRawOriginal('date'));
-        }
-        // Older optional office receipts omitted the transaction date. Their
-        // exact settled components may supply it, never created_at or a guess.
-        $type = (int) $receipt->type_of_fee;
-        if (! in_array($type, [1, 2], true)) {
-            return null;
-        }
-        $model = $type === 2 ? FeesChoiceable::class : PaidInstallmentFee::class;
-        $column = $type === 2 ? 'total_amount_cents' : 'amount_cents';
-        $parts = $model::where('payment_transaction_id', $receipt->id)->where('student_id', $receipt->student_id)
-            ->where('class_id', $receipt->class_id)->where('session_year_id', $receipt->session_year_id)->where('status', 1)->get();
-        $dates = [];
-        $sum = 0;
-        foreach ($parts as $part) {
-            $date = $this->day($part->getRawOriginal('date'));
-            $amount = $this->cents($part->getRawOriginal($column));
-            $due = $type === 1 ? $this->cents($part->getRawOriginal('due_charges_cents') ?? 0) : 0;
-            if ($date === null || $amount === null || $due === null || $amount > self::MAX_CENTS - $sum || $due > self::MAX_CENTS - $sum - $amount) {
-                return null;
-            }
-            $sum += $amount + $due;
-            $dates[$date] = true;
-        }
-
-        return count($dates) === 1 && $sum === $this->cents($receipt->getRawOriginal('total_amount_cents')) ? array_key_first($dates) : null;
     }
 }

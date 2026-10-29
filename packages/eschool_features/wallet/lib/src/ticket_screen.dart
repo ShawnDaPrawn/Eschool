@@ -152,7 +152,7 @@ class _TicketsViewState extends State<_TicketsView>
                         ),
                         SelectableText(state.receiving!.receiveCode),
                         Text(
-                          '${tr('Receiving code expires')}: ${state.receiving!.expiresAt.toLocal()}',
+                          '${tr('Receiving code expires')}: ${formatFinancialInstant(context, state.receiving!.expiresAt)}',
                         ),
                         TextButton(
                           onPressed: () => Clipboard.setData(
@@ -188,10 +188,10 @@ class _TicketsViewState extends State<_TicketsView>
                             '${tr('Original named learner')}: ${ticket.namedLearnerName}',
                           ),
                         Text(
-                          '${tr('Admission opens in your local time')}: ${ticket.event.startsAt.toLocal()}',
+                          '${tr('Admission opens in your local time')}: ${formatFinancialInstant(context, ticket.event.startsAt)}',
                         ),
                         Text(
-                          '${tr('Admission closes in your local time')}: ${ticket.event.endsAt.toLocal()}',
+                          '${tr('Admission closes in your local time')}: ${formatFinancialInstant(context, ticket.event.endsAt)}',
                         ),
                         Text(
                           '${tr('Original paid admission')}: ${walletAmount(ticket.currency, ticket.unitPriceCents)} · ${ticket.orderNumber}',
@@ -211,7 +211,7 @@ class _TicketsViewState extends State<_TicketsView>
                         ],
                         if (ticket.status == AdmissionTicketStatusEnum.redeemed)
                           Text(
-                            '${tr('Original admission recorded at')}: ${ticket.redeemedAt!.toLocal()} · ${tr('Operator')}: ${ticket.redeemedBy}',
+                            '${tr('Original admission recorded at')}: ${formatFinancialInstant(context, ticket.redeemedAt!)} · ${tr('Operator')}: ${ticket.redeemedBy}',
                           ),
                         if (ticket.qr == null &&
                             ticket.status != AdmissionTicketStatusEnum.redeemed)

@@ -2,8 +2,8 @@
     "request": "POST /api/student/fail-payment-transaction",
     "status": 200,
     "error": true,
-    "message": "Invalid transaction",
-    "code": 103,
+    "message": "Update the app to use current fee statements and receipts. Online payments are not available yet.",
+    "code": 410,
     "shape": {
         "code": "number",
         "data": "null",

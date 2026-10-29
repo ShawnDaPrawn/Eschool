@@ -161,3 +161,13 @@ parallel writable money systems or invest in polishing replaced legacy screens.
 Preserve new immutable history and distinct capabilities without complete
 replacements. Follow engineering/phases/whole-app-consolidation.md. Gateway
 integration and production activation remain outside this authorization.
+
+## Consolidation deployment decision (29 October2026)
+
+The owner explicitly requested finishing the accepted fixes and safely deploying
+the updates. This authorizes the existing-environment rollout after source
+qualification, merge, backup and applicable deployment checks; retain the
+repository's protected production approval process. Record the running release
+and post-deployment verification separately from main integration. Do not infer
+new infrastructure spend, payment-gateway activation, native-store credentials
+or Phase6 work from this authorization.

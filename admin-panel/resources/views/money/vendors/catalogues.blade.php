@@ -7,6 +7,14 @@
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
     @if(!$canWrite)<p role="status">{{ __('Vendor history is read-only while this module is paused.') }}</p>@endif
     <p>{{ __('Drafts can be prepared before activation. Activation requires explicit VAT, settlement and refund responsibility choices.') }}</p>
+    @if(!$walletCurrency)
+    <aside role="status" class="m3-card m3-card--outlined"><div class="m3-card__content">
+        <h2>{{ __('Set the school currency first') }}</h2>
+        <p>{{ __('Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.') }}</p>
+        @if($canConfigureWallets)<a href="{{ route('wallet-finance.index') }}">{{ __('Open wallet settings') }}</a>
+        @else<p>{{ __('Ask Finance to configure the school wallet currency.') }}</p>@endif
+    </div></aside>
+    @endif
     <p><a href="{{ route('vendor-catalogues.index') }}">{{ __('New vendor or category') }}</a></p>
     <h2>{{ __('Vendor categories') }}</h2>
     <ul>@foreach($categoryOptions as $categoryId=>$label)<li><a href="{{ route('vendor-catalogues.index',['category_id'=>$categoryId]) }}">{{ $label }}</a></li>@endforeach</ul>

@@ -24,7 +24,7 @@
             <x-m3.text-field name="source_reference" :label="__('Unique cash receipt or bank transaction reference')" maxlength="96" autocomplete="off" required />
             <x-m3.text-field name="amount" :label="__('Amount received')" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,2})?" autocomplete="off" required />
             <x-m3.text-field name="received_on" type="date" :label="__('Received on')" :value="$today" :max="$today" required />
-            <x-m3.checkbox name="confirmed" value="1" :label="__('I verified the received funds and confirm this receipt is not already recorded in legacy payment history.')" required />
+            <x-m3.checkbox name="confirmed" value="1" :label="__('I verified the received funds and confirm this receipt has not already been recorded.')" required />
             <p>{{ __('Recording holds the money as credit. Review allocation separately before it reduces invoice debt.') }}</p>
             <x-m3.button type="submit">{{ __('Record receipt once') }}</x-m3.button>
         </fieldset>

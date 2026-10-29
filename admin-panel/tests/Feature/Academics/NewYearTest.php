@@ -157,13 +157,13 @@ class NewYearTest extends TestCase
         $next = $this->createNextYear();
 
         $preview = $this->actingAs($this->superAdmin())
-            ->getJson(route('new-year.preview', ['year_id' => $next->id, 'carry' => ['subjects', 'fees']]))
+            ->getJson(route('new-year.preview', ['year_id' => $next->id, 'carry' => ['subjects', 'grading']]))
             ->assertOk()->json('data');
 
         $carry = collect($preview['carry'])->keyBy('key');
         $this->assertTrue($carry['subjects']['copies']);
         $this->assertSame(2, $carry['subjects']['source']);
-        $this->assertTrue($carry['fees']['copies']);
+        $this->assertArrayNotHasKey('fees', $carry, 'Financial plans are configured explicitly, never copied into old tables.');
         $this->assertFalse($carry['timetable']['copies']);
         $this->assertSame(1, $preview['learners']);
         // Previewing changed nothing.
@@ -194,7 +194,7 @@ class NewYearTest extends TestCase
             'terms' => [['name' => 'Term 1', 'start_date' => now()->addMonths(3)->toDateString(), 'end_date' => now()->addMonths(2)->toDateString()]],
         ]);
 
-        $response->assertStatus(422)->assertJsonValidationErrors(['name', 'start_date', 'end_date', 'fee_due_date', 'fee_due_charges', 'terms.0.end_date']);
+        $response->assertStatus(422)->assertJsonValidationErrors(['name', 'start_date', 'end_date', 'terms.0.end_date']);
         $this->assertSame($years, SessionYear::count(), 'Nothing is created when the form has errors');
     }
 

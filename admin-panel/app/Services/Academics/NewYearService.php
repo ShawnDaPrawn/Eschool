@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Academics;
 
-use App\Actions\Transfers\TransferClassFeeType;
 use App\Actions\Transfers\TransferClassSubject;
 use App\Actions\Transfers\TransferClassTeacherAndSubjectTeacher;
 use App\Actions\Transfers\TransferClassTimetable;
@@ -15,7 +14,6 @@ use App\Models\Academics\CurriculumPlan;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Exam;
-use App\Models\FeesClass;
 use App\Models\Grade;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
@@ -54,7 +52,6 @@ class NewYearService
         'teachers' => ['new_year_carry_teachers', TransferClassTeacherAndSubjectTeacher::class],
         'timetable' => ['new_year_carry_timetable', TransferClassTimetable::class],
         'grading' => ['new_year_carry_grading', TransferExamGrades::class],
-        'fees' => ['new_year_carry_fees', TransferClassFeeType::class],
         'leave' => ['new_year_carry_leave', TransferLeaveSettings::class],
     ];
 
@@ -86,7 +83,7 @@ class NewYearService
      * Suggested name, dates, terms and fee settings for the next year: the
      * current year moved on by whole years until it has not ended.
      *
-     * @return array{name: string, start_date: string, end_date: string, fee_due_date: string, fee_due_charges: string, terms: list<array{name: string, start_date: string, end_date: string}>}
+     * @return array{name: string, start_date: string, end_date: string, terms: list<array{name: string, start_date: string, end_date: string}>}
      */
     public function suggestion(SessionYear $current): array
     {
@@ -98,11 +95,6 @@ class NewYearService
 
         $start = $move($current->start_date);
         $end = $move($current->end_date);
-        $feeDue = $move($current->fee_due_date);
-        if ($feeDue === '' || $feeDue < $start || $feeDue > $end) {
-            $feeDue = Carbon::parse($start)->addMonth()->toDateString();
-        }
-
         $terms = $current->terms()->orderBy('start_date')->get()
             ->map(fn ($term) => ['name' => $term->name, 'start_date' => $move($term->start_date), 'end_date' => $move($term->end_date),
                 'grade_from' => $term->grade_from, 'grade_to' => $term->grade_to,
@@ -116,8 +108,6 @@ class NewYearService
             'name' => $this->moveName($current->name, $shift, $start),
             'start_date' => $start,
             'end_date' => $end,
-            'fee_due_date' => $feeDue,
-            'fee_due_charges' => (string) ($current->fee_due_charges ?? 0),
             'terms' => $terms,
         ];
     }
@@ -125,7 +115,7 @@ class NewYearService
     /**
      * Create next year without touching the current one: no transfers, not current.
      *
-     * @param  array{name: string, start_date: string, end_date: string, fee_due_date: string, fee_due_charges: numeric, terms?: list<array{name: string, start_date: string, end_date: string}>}  $data
+     * @param  array{name: string, start_date: string, end_date: string, terms?: list<array{name: string, start_date: string, end_date: string}>}  $data
      */
     public function create(array $data): SessionYear
     {
@@ -137,9 +127,6 @@ class NewYearService
                 'name' => $data['name'],
                 'start_date' => $dmy($data['start_date']),
                 'end_date' => $dmy($data['end_date']),
-                'fees_due_date' => $dmy($data['fee_due_date']),
-                'fees_due_charges' => $data['fee_due_charges'],
-                'fees_installment' => '0',
                 'set_as_current' => '0',
                 'term_data' => empty($data['term_template_id']) ? array_map(fn ($term) => [
                     'name' => $term['name'],
@@ -306,7 +293,6 @@ class NewYearService
             'teachers' => ClassTeacher::where('session_year_id', $yearId)->count() + SubjectTeacher::where('session_year_id', $yearId)->count(),
             'timetable' => Timetable::where('session_year_id', $yearId)->whereNull('timetable_lesson_id')->count(),
             'grading' => Grade::where('session_year_id', $yearId)->count(),
-            'fees' => FeesClass::where('session_year_id', $yearId)->count(),
             'leave' => LeaveMaster::where('session_year_id', $yearId)->count(),
         };
     }

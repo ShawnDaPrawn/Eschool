@@ -76,3 +76,29 @@ test('Teacher cannot open Finance vendor and stock controls', async ({ page }) =
   await signIn(page, data.teacher);
   expect((await page.goto('/vendor-catalogues'))?.status()).toBe(403);
 });
+
+
+test('Scoped CSP runs trusted workbench scripts and blocks injected inline code', async ({ page }) => {
+  const data = fixture();
+  await page.addInitScript(() => {
+    (window as any).__cspViolations = [];
+    document.addEventListener('securitypolicyviolation', event => {
+      (window as any).__cspViolations.push(event.effectiveDirective);
+    });
+  });
+  await signIn(page, data.finance);
+  const response = await page.goto('/vendor-catalogues');
+  expect(response!.status()).toBe(200);
+  const scriptPolicy = response!.headers()['content-security-policy'].split(';').find(value => value.trim().startsWith('script-src'))!;
+  expect(scriptPolicy).toContain("'nonce-");
+  expect(scriptPolicy).not.toContain("'unsafe-inline'");
+  expect(await page.evaluate(() => Boolean((window as any).panelShell))).toBe(true);
+  await page.evaluate(() => {
+    (window as any).__injectedScriptRan = false;
+    const script = document.createElement('script');
+    script.textContent = 'window.__injectedScriptRan = true';
+    document.body.append(script);
+  });
+  await expect.poll(() => page.evaluate(() => (window as any).__cspViolations)).toContain('script-src-elem');
+  expect(await page.evaluate(() => (window as any).__injectedScriptRan)).toBe(false);
+});

@@ -1,8 +1,6 @@
-import 'package:eschool_session/eschool_session.dart';
 import 'package:eschool/app/selectedChild.dart';
 import 'package:eschool/cubits/authCubit.dart';
 import 'package:eschool/data/models/subject.dart';
-import 'package:eschool/cubits/appConfigurationCubit.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool/utils/labelKeys.dart';
 import 'package:eschool/utils/uiUtils.dart';
@@ -10,12 +8,10 @@ import 'package:eschool/cubits/sessionYearCubit.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 import 'package:eschool/ui/screens/reports/widgets/reportsTabContainer.dart';
 import 'package:eschool/ui/screens/reports/tabs/attendanceReportTab.dart';
-import 'package:eschool/ui/screens/reports/tabs/feesReportTab.dart';
 import 'package:eschool/ui/screens/reports/tabs/examReportTab.dart';
 import 'package:eschool/data/repositories/reportRepository.dart';
 import 'package:eschool/data/repositories/studentRepository.dart';
 import 'package:eschool/ui/screens/reports/cubits/attendanceReportCubit.dart';
-import 'package:eschool/ui/screens/reports/cubits/feesReportCubit.dart';
 import 'package:eschool/ui/screens/reports/cubits/examReportCubit.dart';
 import 'package:eschool/cubits/resultsCubit.dart';
 import 'package:eschool/cubits/resultsOnlineCubit.dart';
@@ -24,7 +20,6 @@ import 'package:eschool/ui/screens/reports/cubits/assignmentReportCubit.dart';
 import 'package:eschool/cubits/assignmentsCubit.dart';
 import 'package:eschool/data/repositories/assignmentRepository.dart';
 import 'package:eschool/data/repositories/resultRepository.dart';
-import 'package:eschool/cubits/feesTransactionCubit.dart';
 import 'package:eschool/ui/screens/reports/tabs/leaveReportTab.dart';
 import 'package:eschool/ui/screens/reports/cubits/leaveReportCubit.dart';
 import 'package:eschool/cubits/leavesCubit.dart';
@@ -49,12 +44,6 @@ class ReportsScreen extends StatefulWidget {
       providers: [
         BlocProvider<AttendanceReportCubit>(
           create: (context) => AttendanceReportCubit(ReportRepository()),
-        ),
-        BlocProvider<FeesReportCubit>(
-          create: (context) => FeesReportCubit(ReportRepository()),
-        ),
-        BlocProvider<FeesTransactionsCubit>(
-          create: (context) => FeesTransactionsCubit(StudentRepository()),
         ),
         BlocProvider<ExamReportCubit>(
           create: (context) => ExamReportCubit(ReportRepository()),
@@ -116,20 +105,6 @@ class ReportsScreenState extends State<ReportsScreen> {
 
   List<String> _getTabs(BuildContext context) {
     List<String> tabs = [UiUtils.getTranslatedLabel(context, attendanceKey)];
-
-    final isStudent = !context.read<AuthCubit>().isParent();
-    final canPayFees = context
-        .read<AppConfigurationCubit>()
-        .getAppConfiguration()
-        .canStudentPayTheirFees;
-
-    if ((!isStudent || canPayFees) &&
-        allowsSchoolModule(
-          context.watch<MeContextCubit>().state.context,
-          'fees',
-        )) {
-      tabs.add(UiUtils.getTranslatedLabel(context, feesKey));
-    }
 
     tabs.addAll([
       UiUtils.getTranslatedLabel(context, examsKey),
@@ -216,8 +191,6 @@ class ReportsScreenState extends State<ReportsScreen> {
     final tabName = tabs[_currentSelectedTab];
     if (tabName == UiUtils.getTranslatedLabel(context, attendanceKey)) {
       return AttendanceReportTab.buildShimmer(context);
-    } else if (tabName == UiUtils.getTranslatedLabel(context, feesKey)) {
-      return FeesReportTab.buildShimmer(context);
     } else if (tabName == UiUtils.getTranslatedLabel(context, examsKey)) {
       return ExamReportTab.buildShimmer(context, 0);
     } else if (tabName == UiUtils.getTranslatedLabel(context, assignmentsKey)) {
@@ -242,8 +215,6 @@ class ReportsScreenState extends State<ReportsScreen> {
         final tabName = tabs[index];
         if (tabName == UiUtils.getTranslatedLabel(context, attendanceKey)) {
           return AttendanceReportTab(childId: widget.childId);
-        } else if (tabName == UiUtils.getTranslatedLabel(context, feesKey)) {
-          return FeesReportTab(childId: widget.childId);
         } else if (tabName == UiUtils.getTranslatedLabel(context, examsKey)) {
           return ExamReportTab(
             childId: widget.childId,

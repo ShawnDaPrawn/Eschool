@@ -64,7 +64,7 @@ for (const width of [390, 820, 1280]) for (const existing of [false, true]) {
       : 'Confirmation creates one verified EFT receipt as held credit. Review allocation separately before it reduces invoice debt.');
     expect(fixture('stats', data.school).payments).toBe(existing ? 1 : 0);
     await check(page);
-    await page.getByRole('checkbox', { name: 'I verified the bank evidence, payer and legacy history and confirm this resolution. Resolved bank history cannot be edited.', exact: true }).check();
+    await page.getByRole('checkbox', { name: 'I verified the bank evidence, payer and receipt history and confirm this resolution. Resolved bank history cannot be edited.', exact: true }).check();
     await submitOnceAndReplay(page, 'Confirm bank resolution once');
     await check(page);
     await page.getByRole('link', { name: 'Open matched fee receipt', exact: true }).click();
@@ -77,7 +77,7 @@ for (const width of [390, 820, 1280]) for (const existing of [false, true]) {
     await page.getByRole('textbox', { name: 'Reason this is not a fee receipt', exact: true }).fill('Verified synthetic bank charge unrelated to school fee receipts.');
     await page.getByRole('button', { name: 'Review bank exclusion', exact: true }).click();
     await check(page);
-    await page.getByRole('checkbox', { name: 'I verified the bank evidence, payer and legacy history and confirm this resolution. Resolved bank history cannot be edited.', exact: true }).check();
+    await page.getByRole('checkbox', { name: 'I verified the bank evidence, payer and receipt history and confirm this resolution. Resolved bank history cannot be edited.', exact: true }).check();
     await submitOnceAndReplay(page, 'Confirm bank resolution once');
     await page.goto('/bank-statements');
     await expect(page.getByRole('main')).toContainText('No bank rows in this queue');

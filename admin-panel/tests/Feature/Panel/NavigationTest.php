@@ -53,7 +53,7 @@ class NavigationTest extends TestCase
         // Exams
         'exams.index', 'exam-timetable.index', 'exams.upload-marks', 'exams.view-result', 'exams.get-result', 'grades',
         // Fees and reports
-        'fees-type.index', 'fees.class.index', 'fees.paid.index', 'fees.transactions.log.index', 'students.report',
+        'fee-items.index', 'fee-plans.index', 'fee-payments.index', 'students.report',
         // Online exams
         'online-exam.index', 'online-exam-question.index', 'online-exam-question.create-bulk', 'online-exam.terms-conditions',
         // Communication and calendar
@@ -62,7 +62,7 @@ class NavigationTest extends TestCase
         // Web settings
         'content.index', 'educational.index', 'faq.index', 'contact_us.index',
         // System settings
-        '/app-settings', '/settings', 'language.index', '/fcm-settings', 'chat_setting.index', 'fees.config.index',
+        '/app-settings', '/settings', 'language.index', '/fcm-settings', 'chat_setting.index',
         'setting.email-config-index', 'email.Template', 'id_card_setting.index', 'form-fields.index', 'privacy.index',
         '/contact-us', '/about-us', '/terms-condition',
     ];
@@ -156,7 +156,7 @@ class NavigationTest extends TestCase
         foreach (['home', 'learners', 'take-attendance', 'notices', 'lessons', 'capture-marks', 'apply-leave', 'person-profile'] as $key) {
             $this->assertContains($key, $keys, "A teacher should see $key");
         }
-        foreach (['add-learner', 'import-learners', 'school-profile', 'roles', 'fee-types', 'staff', 'school-years', 'parents'] as $key) {
+        foreach (['add-learner', 'import-learners', 'school-profile', 'roles', 'fee-plans', 'staff', 'school-years', 'parents'] as $key) {
             $this->assertNotContains($key, $keys, "A teacher must not see $key");
         }
         $sections = array_column($navigation->sections($teacher), 'key');
@@ -166,12 +166,12 @@ class NavigationTest extends TestCase
 
     public function test_a_custom_staff_role_sees_only_its_own_sections(): void
     {
-        Role::create(['name' => 'Finance', 'custom_role' => 1])->syncPermissions(['fees-type', 'fees-classes', 'fees-paid']);
+        Role::create(['name' => 'Finance', 'custom_role' => 1])->syncPermissions(['fee-accounts-manage', 'fee-payments-manage']);
         $finance = $this->user('Finance');
 
         $this->assertSame(['home', 'money', 'settings'], array_column(app(Navigation::class)->sections($finance), 'key'));
         $this->assertSame(
-            ['home', 'fee-types', 'grade-fees', 'fees-paid', 'payment-log', 'person-profile'],
+            ['home', 'fee-accounts', 'fee-payments', 'fee-refunds', 'fee-reporting', 'bank-statements', 'fee-reminders', 'person-profile'],
             array_column(app(Navigation::class)->items($finance), 'key')
         );
     }
@@ -200,7 +200,7 @@ class NavigationTest extends TestCase
         // The redesign moves pages into sections without changing any address,
         // so bookmarks and old links keep working.
         $admin = $this->actingAs($this->superAdmin());
-        foreach (['/medium', '/settings', '/class-timetable', '/announcement', '/fees-type', '/session-years'] as $path) {
+        foreach (['/medium', '/settings', '/class-timetable', '/announcement', '/fee-items', '/session-years'] as $path) {
             $admin->get($path)->assertOk();
         }
     }

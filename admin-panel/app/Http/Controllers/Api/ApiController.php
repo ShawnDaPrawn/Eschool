@@ -145,13 +145,13 @@ class ApiController extends Controller
                 $data['teacher_ios_app_version'] = $settings['teacher_ios_app_version'] ?? '';
                 $data['teacher_force_app_update'] = $settings['teacher_force_app_update'] ?? '';
                 $data['teacher_app_maintenance'] = $settings['teacher_app_maintenance'] ?? '';
-                $data['online_payment'] = $settings['online_payment'] ?? '1';
+                $data['online_payment'] = '0';
                 $data['is_demo'] = config('app.demo_mode');
 
                 // Keep the v1 field but never instruct installed clients to
                 // restrict learning. The stored setting controls reminders.
                 $data['compulsory_fee_payment_mode'] = '0';
-                $data['is_student_can_pay_fees'] = $settings['is_student_can_pay_fees'] ?? '';
+                $data['is_student_can_pay_fees'] = '0';
 
                 if (isset($settings['max_file_size_in_bytes'])) {
                     $max_file_size_in_bytes = $settings['max_file_size_in_bytes'] * 1000000;
@@ -168,23 +168,7 @@ class ApiController extends Controller
 
                 $data['payment_options']['currency_code'] = $settings['currency_code'] ?? '';
                 $data['payment_options']['currency_symbol'] = $settings['currency_symbol'] ?? '';
-                if (isset($settings['fees_due_date'])) {
-                    $date = date('Y-m-d', strtotime($settings['fees_due_date']));
-                    $data['payment_options']['fees_due_date'] = $date ?? '';
-                    $data['payment_options']['fees_due_charges'] = $settings['fees_due_charges'] ?? '';
-                }
-
-                // Stripe is the only gateway. Razorpay, Paystack and Flutterwave were
-                // removed: like a gateway the school has switched off, they are left
-                // out, so installed apps stop offering them. Public keys only: secret
-                // keys and webhook secrets never leave the server.
-                if (isset($settings['stripe_status']) && $settings['stripe_status']) {
-                    $data['payment_options']['stripe'] = [
-                        'stripe_status' => $settings['stripe_status'] ?? '',
-                        'stripe_publishable_key' => $settings['stripe_publishable_key'] ?? '',
-                        'stripe_currency_code' => $settings['stripe_currency_code'] ?? $settings['currency_code'],
-                    ];
-                }
+                // Retired v1 payment metadata stays inert; no gateway is configured.
 
                 if (isset($settings['online_exam_terms_condition']) && ! empty($settings['online_exam_terms_condition'])) {
                     $data['online_exam_terms_condition'] = htmlspecialchars_decode($settings['online_exam_terms_condition']);

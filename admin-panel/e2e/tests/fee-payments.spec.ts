@@ -42,7 +42,7 @@ for (const width of [390, 820, 1280]) {
     await page.getByRole('combobox', { name: 'Receipt method', exact: true }).selectOption('eft');
     await page.getByRole('textbox', { name: 'Unique cash receipt or bank transaction reference', exact: true }).fill(`SYNTHETIC-BANK-${data.school}`);
     await page.getByRole('textbox', { name: 'Amount received', exact: true }).fill('20.00');
-    await page.getByRole('checkbox', { name: 'I verified the received funds and confirm this receipt is not already recorded in legacy payment history.', exact: true }).check();
+    await page.getByRole('checkbox', { name: 'I verified the received funds and confirm this receipt has not already been recorded.', exact: true }).check();
     await check(page);
     await submitOnceAndReplay(page, 'Record receipt once');
     await expect(page.getByRole('status')).toContainText('Verified fee receipt recorded once.');

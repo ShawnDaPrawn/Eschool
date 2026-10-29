@@ -17,6 +17,7 @@ use App\Models\Students;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\Term;
+use App\Services\Academics\Homework\HomeworkMarks;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Notifications\Notifier;
 use App\Services\ResponseService;
@@ -356,12 +357,14 @@ class AssignmentController extends Controller
                 return ResponseService::errorResponse('no_permission_message', null, 403);
             }
 
-            $assignment_submission->feedback = $request->feedback;
-            if ($request->status == 1) {
-                $assignment_submission->points = $request->points;
-            } else {
-                $assignment_submission->points = null;
+            $marks = app(HomeworkMarks::class);
+            $problem = $marks->problem(Assignment::query()->findOrFail($assignment_submission->assignment_id), $request->status, $request->points);
+            if ($problem !== null) {
+                return ResponseService::validationError($problem);
             }
+
+            $assignment_submission->feedback = $request->feedback;
+            $assignment_submission->points = $marks->stored($request->status, $request->points);
 
             $session_year = getSettings('session_year');
             $session_year_id = $session_year['session_year'];

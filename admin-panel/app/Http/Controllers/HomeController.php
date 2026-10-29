@@ -29,7 +29,8 @@ use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\Timetable;
 use App\Models\User;
-use App\Services\FeesCollectionService;
+use App\Policies\Money\MoneyPolicy;
+use App\Services\Money\FeeReceiptOverview;
 use App\Services\Panel\SetupChecklist;
 use App\Services\Panel\TodayNumbers;
 use App\Services\Platform\Files\FileNames;
@@ -46,6 +47,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class HomeController extends Controller
@@ -152,6 +154,17 @@ class HomeController extends Controller
             $data = array_merge($data, $this->getStaffDashboardInitialData($session_year, $user));
         }
 
+        // The card and its endpoint use the same fresh financial authority.
+        $data['can_read_fee_receipts'] = false;
+        try {
+            app(MoneyPolicy::class)->authorize($user, 'fee-payments-manage');
+            $data['can_read_fee_receipts'] = true;
+        } catch (HttpExceptionInterface $denied) {
+            if ($denied->getStatusCode() !== 403) {
+                throw $denied;
+            }
+        }
+
         // Setup checklist (people who can complete a step) and today's numbers.
         $data['checklist'] = app(SetupChecklist::class)->forUser($user);
         $data['today'] = $user->hasRole('Teacher') ? [] : app(TodayNumbers::class)->forUser($user, $session_year);
@@ -202,7 +215,7 @@ class HomeController extends Controller
             'can_approve_leaves' => $user->can('leave-approve'),
         ];
 
-        if ($user->can('fees-paid')) {
+        if ($user->can('fee-payments-manage')) {
             $data['currency_symbol'] = getSettings('currency_symbol')['currency_symbol'] ?? '';
         }
 
@@ -459,13 +472,12 @@ class HomeController extends Controller
     /**
      * Fees Collection widget (donut + collected / upcoming / overdue).
      */
-    public function feesCollectionWidget(Request $request, FeesCollectionService $feesCollectionService): JsonResponse
+    public function feesCollectionWidget(Request $request, FeeReceiptOverview $receipts): JsonResponse
     {
-        ResponseService::noPermissionThenSendJson('fees-paid');
+        $request->validate(['session_year_id' => ['sometimes', 'integer', 'min:1']]);
+        $year = $request->integer('session_year_id') ?: (int) schoolSetting('session_year');
 
-        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
-
-        return response()->json($feesCollectionService->summary($session_year_id));
+        return response()->json($receipts->read($request->user(), $year))->header('Cache-Control', 'no-store, private');
     }
 
     /**

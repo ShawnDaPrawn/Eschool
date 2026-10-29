@@ -13,6 +13,7 @@ use App\Models\Money\WalletSetting;
 use App\Models\Money\WalletTransferPolicy;
 use App\Models\Money\WalletWithdrawalPolicy;
 use App\Policies\Money\WalletPolicy;
+use App\Services\Money\WalletFinanceOverview;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
 use App\Services\Money\WalletTransfers;
@@ -31,10 +32,8 @@ class WalletFinancePanelController extends Controller
             $settings = WalletSetting::first();
             $issued = WalletAccount::exists() || WalletFunding::exists() || WalletDeskPolicy::exists() || WalletWithdrawalPolicy::exists() || DB::table('ledger_accounts')->where('school_id', app(CurrentSchool::class)->id())->where('module', 'vendors')->exists();
             $wallets = WalletAccount::join('users as u', 'u.id', '=', 'wallet_accounts.user_id')->orderBy('wallet_accounts.id')->paginate(30, ['wallet_accounts.*', 'u.first_name', 'u.last_name']);
-            $summaries = [];
-            foreach ($wallets as $wallet) {
-                $summaries[(int) $wallet->id] = app(Wallets::class)->summary($wallet);
-            }$canWrite = app(ModuleGate::class)->writable('wallet');
+            $summaries = app(WalletFinanceOverview::class)->read($request->user(), $wallets->getCollection());
+            $canWrite = app(ModuleGate::class)->writable('wallet');
 
             $transferPolicy = WalletTransferPolicy::first();
             $canConfigureReturns = false;

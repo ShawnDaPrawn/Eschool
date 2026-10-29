@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Panel;
 
+use App\Models\Money\FeeAccount;
+use App\Models\Money\FeePlan;
+use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Panel\SetupChecklist;
@@ -49,7 +52,7 @@ class HomeTest extends TestCase
         $page->assertSee(route('subject.index'), false);
         $page->assertSee(route('teachers.index'), false);
         $page->assertSee(route('students.create'), false);
-        $page->assertSee(route('fees-type.index'), false);
+        $page->assertSee(route('fee-plans.index'), false);
         $page->assertSee(__('checklist_progress', ['done' => 0, 'total' => 7]));
         // What the dashboard always showed is still there.
         $page->assertSee('id="noticeboard-card"', false);
@@ -131,6 +134,25 @@ class HomeTest extends TestCase
         $this->assertMatchesRegularExpression('/data-today="staff"[^>]*>\s*<span class="page-stat-label">[^<]+<\/span>\s*<span class="page-stat-value">1 of 2<\/span>/', $page->getContent());
     }
 
+    public function test_receipt_card_is_hidden_when_the_financial_endpoint_refuses_a_platform_operator(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin)->get('/home')->assertOk()->assertSee('id="fees-card"', false);
+        $this->getJson('/home/widget/fees-collection?session_year_id='.$this->year->id)->assertOk();
+        PlatformStaffIdentity::create(['user_id' => $admin->id, 'active' => true]);
+        $this->get('/home')->assertOk()->assertDontSee('id="fees-card"', false);
+        $this->getJson('/home/widget/fees-collection?session_year_id='.$this->year->id)->assertForbidden();
+    }
+
+    public function test_receipt_card_rechecks_a_loaded_users_revoked_financial_grant(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin)->get('/home')->assertOk()->assertSee('id="fees-card"', false);
+        DB::table('role_has_permissions')->where('permission_id', DB::table('permissions')->where('name', 'fee-payments-manage')->value('id'))->delete();
+        $this->get('/home')->assertOk()->assertDontSee('id="fees-card"', false);
+        $this->getJson('/home/widget/fees-collection?session_year_id='.$this->year->id)->assertForbidden();
+    }
+
     private function buildSchool(): void
     {
         foreach (['school_name' => 'Demo School', 'school_email' => 'office@example.com', 'school_phone' => '0123456789', 'school_address' => '1 Main Road'] as $type => $message) {
@@ -159,7 +181,7 @@ class HomeTest extends TestCase
         $student = SchoolTable::query('students')->insertGetId(['user_id' => $learnerUser->id, 'class_id' => $class, 'class_section_id' => $homeroom, 'category_id' => $category, 'admission_no' => 'GR-1', 'roll_number' => 1, 'admission_date' => now()->toDateString(), 'father_id' => $parent] + $now);
         SchoolTable::query('student_sessions')->insert(['student_id' => $student, 'class_section_id' => $homeroom, 'session_year_id' => $this->year->id, 'status' => 1] + $now);
 
-        $type = SchoolTable::query('fees_types')->insertGetId(['name' => 'Tuition', 'description' => 'Tuition fee'] + $now);
-        SchoolTable::query('fees_classes')->insert(['session_year_id' => $this->year->id, 'class_id' => $class, 'fees_type_id' => $type, 'choiceable' => 0, 'amount' => 1000] + $now);
+        FeePlan::create(['session_year_id' => $this->year->id, 'name' => 'Tuition', 'scope' => 'all', 'currency' => 'ZAR', 'amount_cents' => 100000, 'state' => 'active', 'revision' => 1]);
+        FeeAccount::create(['reference' => 'NEF-SETUP', 'name' => 'Family', 'currency' => 'ZAR', 'active' => true, 'revision' => 1]);
     }
 }

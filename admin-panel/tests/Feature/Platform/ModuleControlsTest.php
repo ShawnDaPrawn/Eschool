@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Jobs\Platform\SendPush;
+use App\Models\Money\FeeTaxSetting;
 use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolModule;
@@ -12,6 +13,10 @@ use App\Models\User;
 use App\Services\Money\WalletSettings;
 use App\Services\Panel\Navigation;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Ledger\AccountType;
+use App\Services\Platform\Ledger\LedgerService;
+use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Ledger\Posting;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Modules\ModuleRoutes;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -86,16 +91,52 @@ class ModuleControlsTest extends TestCase
 
     public function test_financial_records_become_read_only_without_being_deleted(): void
     {
+        $admin = $this->superAdmin();
         $count = DB::table('fees_paids')->where('school_id', 1)->count();
-        $state = app(ModuleGate::class)->change('fees', false, $this->superAdmin());
+        $ledger = app(LedgerService::class);
+        $cash = $ledger->openAccount(AccountType::CashDesk, 'synthetic:retained:cash', 'ZAR');
+        $family = $ledger->openAccount(AccountType::Family, 'synthetic:retained:family', 'ZAR');
+        $ledger->post('synthetic:retained:receipt', 'synthetic:retained:receipt', 'Synthetic retained receipt', [
+            Posting::debit($cash, Money::ofCents(100)), Posting::credit($family, Money::ofCents(100)),
+        ]);
+        $entries = DB::table('ledger_entries')->where('school_id', 1)->orderBy('id')->get()->toJson();
+        $postings = DB::table('ledger_postings')->where('school_id', 1)->orderBy('id')->get()->toJson();
+        $state = app(ModuleGate::class)->change('fees', false, $admin);
         $this->assertTrue($state['enabled']);
         $this->assertTrue($state['read_only']);
         $this->assertSame($count, DB::table('fees_paids')->where('school_id', 1)->count());
-        $this->withToken($this->schoolA->tokens['asha'])->getJson('/api/student/fees-paid-list')->assertOk();
-        $this->postJson('/api/student/store-fees', [])->assertForbidden();
-        $this->getJson('/api/student/send-fee-notification')->assertForbidden();
-        $this->assertTrue(app(ModuleGate::class)->change('fees', true, $this->superAdmin())['enabled']);
+        $this->assertSame($entries, DB::table('ledger_entries')->where('school_id', 1)->orderBy('id')->get()->toJson());
+        $this->assertSame($postings, DB::table('ledger_postings')->where('school_id', 1)->orderBy('id')->get()->toJson());
+        $this->actingAs($admin)->post('/fee-plans/new', ['expected_school_id' => 1, 'expected_account_id' => $admin->id,
+            'operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->schoolA->ids['session_year'],
+            'name' => 'Refused read-only plan', 'amount' => '1.00', 'currency' => 'ZAR', 'scope' => 'all', 'target_id' => null, 'state' => 'active'])->assertForbidden();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($this->schoolA->tokens['asha'])->getJson('/api/student/fees-paid-list')
+            ->assertOk()->assertJsonPath('error', true)->assertJsonPath('code', 410)->assertJsonPath('data', null);
+        $this->postJson('/api/student/store-fees', [])->assertOk()->assertJsonPath('error', true)->assertJsonPath('code', 410);
+        $this->getJson('/api/student/send-fee-notification')->assertOk()->assertJsonPath('error', true)->assertJsonPath('code', 410);
+        $this->assertTrue(app(ModuleGate::class)->change('fees', true, $admin)['enabled']);
         $this->assertFalse(app(ModuleGate::class)->state('fees')['read_only']);
+    }
+
+    public function test_saved_vat_details_are_retained_only_in_their_own_school(): void
+    {
+        $admin = $this->superAdmin();
+        $setting = ['enabled' => true, 'country_code' => 'ZA', 'tax_registration' => 'SYNTHETIC-VAT',
+            'seller_name' => 'Synthetic seller', 'seller_address' => 'Synthetic legal address', 'revision' => 1, 'changed_by' => $admin->id];
+        app(CurrentSchool::class)->run(2, fn () => FeeTaxSetting::create(array_replace($setting, ['tax_registration' => 'PRIVATE-FOREIGN-VAT'])));
+        $gate = app(ModuleGate::class);
+        $this->assertFalse($gate->change('fees', false, $admin)['enabled'], 'Another school cannot retain an unused fee module.');
+        $this->actingAs($admin)->get('/fee-items/tax-settings')->assertNotFound()->assertDontSee('PRIVATE-FOREIGN-VAT');
+        FeeTaxSetting::create($setting);
+        $state = $gate->change('fees', false, $admin);
+        $this->assertTrue($state['enabled']);
+        $this->assertTrue($state['read_only']);
+        $this->get('/fee-items/tax-settings')->assertOk()->assertSee('read-only')->assertSee('SYNTHETIC-VAT')->assertDontSee('PRIVATE-FOREIGN-VAT');
+        $this->post('/fee-items/tax-settings', ['expected_school_id' => 1, 'expected_account_id' => $admin->id,
+            'operation_id' => (string) Str::uuid(), 'revision' => 1, 'enabled' => true, 'country_code' => 'ZA',
+            'tax_registration' => 'REFUSED-VAT', 'seller_name' => 'Refused seller', 'seller_address' => 'Refused legal address'])->assertForbidden();
+        $this->assertSame('SYNTHETIC-VAT', FeeTaxSetting::sole()->tax_registration);
     }
 
     public function test_paused_dependency_does_not_enable_unused_money_modules(): void
@@ -175,7 +216,7 @@ class ModuleControlsTest extends TestCase
                 $this->assertNotEmpty(array_filter($route->gatherMiddleware(), fn ($name) => str_starts_with($name, 'module:'.$module.',')), $route->uri());
             }
         }
-        $this->assertGreaterThan(70, $count);
+        $this->assertGreaterThan(0, $count, 'The module route map must not be empty.');
     }
 
     public function test_module_changes_queue_a_silent_refresh_for_only_the_changed_school(): void

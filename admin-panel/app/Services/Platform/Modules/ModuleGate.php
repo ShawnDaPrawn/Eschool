@@ -182,16 +182,11 @@ class ModuleGate
     {
         // Preserve financial history as well as outstanding charges. These
         // integer-cents records are never removed by a switch operation.
-        foreach ($module === 'fees' ? ['fees_classes', 'fees_paids', 'payment_transactions'] : [] as $table) {
-            if (DB::table($table)->where('school_id', $schoolId)->exists()) {
-                return true;
-            }
-        }
 
         // Parent agreements and reviewed reductions also remain readable before
         // the first ledger posting. Disabling a module does not hide legal history.
         if ($module === 'fees') {
-            foreach (['fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies', 'fee_leaver_policies', 'fee_leaver_runs', 'fee_refund_policies', 'fee_refunds', 'fee_refund_actions', 'fee_late_charge_policies', 'fee_late_policy_revisions', 'fee_late_charges'] as $table) {
+            foreach (['fee_tax_settings', 'fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies', 'fee_leaver_policies', 'fee_leaver_runs', 'fee_refund_policies', 'fee_refunds', 'fee_refund_actions', 'fee_late_charge_policies', 'fee_late_policy_revisions', 'fee_late_charges'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
                     return true;
                 }

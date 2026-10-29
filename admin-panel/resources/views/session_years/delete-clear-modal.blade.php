@@ -145,16 +145,7 @@
                             </div>
                         </label>
 
-                        {{-- Fees Transactions and Fee Details --}}
-                        <label class="custom-checkbox-container">
-                            <input type="checkbox" name="clear_data[]" value="fees_transactions"
-                                {{ in_array('fees_transactions', old('clear_data', [])) ? 'checked' : '' }}>
-                            <span class="checkbox-checkmark"></span>
-                            <div class="checkbox-content">
-                                <div class="checkbox-title">{{ __('fees_transactions_and_fee_details') }}</div>
-                                <div class="checkbox-description">{{ __('delete_all_fee_records') }}</div>
-                            </div>
-                        </label>
+
 
                         {{-- Notifications --}}
                         <label class="custom-checkbox-container">

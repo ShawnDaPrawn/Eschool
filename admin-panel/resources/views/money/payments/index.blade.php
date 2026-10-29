@@ -6,7 +6,6 @@
     <x-m3.button variant="outlined" :href="route('bank-statements.index')">{{ __('Bank statement matching') }}</x-m3.button>
     <x-page.header :title="__('Fee payments')" />
     @if(session('success'))<p role="status">{{ session('success') }}</p>@endif
-    <p>{{ __('These are new NavigateEd ledger receipts. Earlier fee and payment history remains separate.') }}</p>
     @if($canWrite)<x-m3.button :href="route('fee-payments.new')">{{ __('Record verified receipt') }}</x-m3.button>@else<p>{{ __('Payment history is read-only while fees are disabled.') }}</p>@endif
     <form method="get"><x-m3.text-field name="search" type="search" :label="__('Find a family or receipt reference')" :value="request('search')" /><x-m3.button type="submit" variant="outlined">{{ __('Search') }}</x-m3.button></form>
     <h2 class="m3-title-large">{{ __('School allocation rule') }}</h2>

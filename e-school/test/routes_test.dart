@@ -61,16 +61,8 @@ void main() {
       examId: 2,
       examName: 'June exams',
     ),
-    Routes.feesDetails: FeesDetailsArguments(
-      studentDetails: student,
-      sessionYearId: 1,
-    ),
-    Routes.paymentVerify: PaymentVerificationArguments(
-      studentDetails: student,
-      transactionId: 9,
-      isStudentPaying: false,
-      status: 1,
-    ),
+    Routes.feesDetails: null,
+    Routes.paymentVerify: null,
     Routes.webViewPaymentScreen: 'https://checkout.test/pay',
     Routes.manageLeaves: student,
     Routes.addLeave: student,
@@ -114,9 +106,9 @@ void main() {
     });
   }
 
-  test('a fee reminder opens the fees of the child it names', () {
+  test('a bookmarked fee link opens current protected statements', () {
     expect(
-      open(Routes.feesDetails, const FeesDetailsArguments.forChildId(4)),
+      open(Routes.feesDetails, {'legacy_child_id': 4}),
       isA<PageRoute<dynamic>>(),
     );
   });

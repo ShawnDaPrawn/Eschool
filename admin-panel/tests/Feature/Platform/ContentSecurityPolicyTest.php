@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Security\ContentSecurityPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +50,33 @@ class ContentSecurityPolicyTest extends TestCase
         $this->assertStringContainsString('https://cdnjs.cloudflare.com', $policy);
         $this->assertStringNotContainsString("'unsafe-eval'", $policy);
         $this->assertDoesNotMatchRegularExpression('/(script|style|default|connect)-src[^;]*\s\*(\s|;|$)/', $policy);
+    }
+
+    public function test_canonical_workbenches_enforce_fresh_nonces_without_authorizing_injected_scripts(): void
+    {
+        $admin = $this->superAdmin();
+        $admin->forceFill(['password' => bcrypt('Csp-workbench-2026')])->save();
+        app(ModuleGate::class)->change('wallet', true, $admin);
+        app(ModuleGate::class)->change('vendors', true, $admin);
+        $nonces = [];
+        foreach (['/wallet-settings', '/vendor-catalogues'] as $path) {
+            $response = $this->actingAs($admin)->get($path)->assertOk()
+                ->assertHeaderMissing(ContentSecurityPolicy::HEADER);
+            $policy = $response->headers->get('Content-Security-Policy');
+            preg_match('/script-src ([^;]+)/', $policy, $scriptPolicy);
+            $this->assertStringNotContainsString("'unsafe-inline'", $scriptPolicy[1]);
+            $this->assertStringNotContainsString("'unsafe-eval'", $scriptPolicy[1]);
+            preg_match("/nonce-([^']+)/", $scriptPolicy[1], $match);
+            $this->assertNotEmpty($match[1]);
+            $nonces[] = $match[1];
+            preg_match_all('/<script([^>]*)>/i', $response->getContent(), $scripts);
+            foreach ($scripts[1] as $attributes) {
+                if (! str_contains($attributes, 'src=')) {
+                    $this->assertStringContainsString('nonce="'.$match[1].'"', $attributes);
+                }
+            }
+        }
+        $this->assertNotSame($nonces[0], $nonces[1]);
     }
 
     public function test_api_answers_do_not_carry_it(): void

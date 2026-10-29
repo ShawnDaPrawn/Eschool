@@ -1,9 +1,7 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:eschool/data/models/appConfiguration.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_session/eschool_session.dart';
-import 'package:eschool/data/models/paymentOptions.dart';
 import 'package:eschool/data/repositories/systemInfoRepository.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -94,25 +92,11 @@ class AppConfigurationCubit extends Cubit<AppConfigurationState> {
     return false;
   }
 
-  PaymentOptions getPaymentOptions() {
-    if (state is AppConfigurationFetchSuccess) {
-      return getAppConfiguration().paymentOptions;
-    }
-    return PaymentOptions.fromJson(Map.from({}));
-  }
-
   ChatSettings getChatSettings() {
     if (state is AppConfigurationFetchSuccess) {
       return getAppConfiguration().chatSettings;
     }
     return ChatSettings.fromJson(Map.from({}));
-  }
-
-  bool getOnlineFeesPaymentStatus() {
-    if (state is AppConfigurationFetchSuccess) {
-      return getAppConfiguration().isOnlineFeesPaymentEnabled == '1';
-    }
-    return false;
   }
 
   bool getIsDemoModeOn() {
@@ -127,20 +111,6 @@ class AppConfigurationCubit extends Cubit<AppConfigurationState> {
       return getAppConfiguration().onlineExamRules;
     }
     return '';
-  }
-
-  bool isCompulsoryFeePaymentMode() {
-    if (state is AppConfigurationFetchSuccess) {
-      return getAppConfiguration().isCompulsoryFeePaymentMode;
-    }
-    return false;
-  }
-
-  bool canStudentPayTheirFees() {
-    if (state is AppConfigurationFetchSuccess) {
-      return getAppConfiguration().canStudentPayTheirFees;
-    }
-    return false;
   }
 
   List<String> getHolidayWeekDays() {

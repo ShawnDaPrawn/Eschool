@@ -17,6 +17,9 @@ use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
+    // Retain old database grants for rollout history, not current role choices.
+    private const RETIRED_FEE_PERMISSIONS = ['fees-type', 'fees-classes', 'fees-paid', 'fees-config'];
+
     /** Roles the application relies on; they are never edited or deleted here. */
     private const BUILT_IN_ROLES = ['Super Admin', 'Teacher', 'Parent', 'Student'];
 
@@ -161,6 +164,7 @@ class RoleController extends Controller
         $role = Role::findOrFail($id);
         $rolePermissions = Permission::join('role_has_permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
             ->where('role_has_permissions.role_id', $id)
+            ->whereNotIn('permissions.name', self::RETIRED_FEE_PERMISSIONS)
             ->select('permissions.*')
             ->get();
 
@@ -289,7 +293,7 @@ class RoleController extends Controller
         // roles can't be assigned Teacher-only permissions (attendance, lessons,
         // assignments, online exam, etc.). This stays in sync automatically as the
         // Super Admin permission set changes, instead of a hand-kept exclusion list.
-        return Permission::whereHas('roles', function ($query) {
+        return Permission::whereNotIn('name', self::RETIRED_FEE_PERMISSIONS)->whereHas('roles', function ($query) {
             $query->where('name', 'Super Admin');
         })
             ->orderBy('id', 'ASC')
