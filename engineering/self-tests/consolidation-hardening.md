@@ -67,3 +67,10 @@ intent commit in the same transaction as copies, so an intent failure cannot
 report an already-created copy as failed. The final homework/read-only-year cohort
 passed21 tests (109 assertions), including the three new file/rollback controls.
 The original two diagnostic cases failed before the correction, as intended.
+
+Fresh review also identified grade-specific calendars in homework reuse. Target
+terms now use the existing class-grade term scope before authorization or saving.
+A reproduced regression covers both non-Teacher staff and a teacher with a stray
+allocation to another grade's term: the wrong calendar is neither offered nor
+accepted, while the matching term works. Final homework/read-only-year suite:
+22 tests passed,127 assertions. No unrelated academic behavior is changed.

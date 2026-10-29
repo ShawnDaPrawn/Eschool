@@ -174,6 +174,7 @@ class HomeworkCopies
         }
 
         return Term::query()
+            ->forClass((int) $section->class_id)
             ->where('session_year_id', $sessionYearId)
             // Assignment::scopeAssignmentTeachers() lets a teacher see term-class homework only
             // through a subject_teachers row for that exact term, so only those terms are offered

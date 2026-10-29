@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Classroom;
 
+use App\Models\Academics\GradeLevel;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\ClassSchool;
 use App\Models\File;
 use App\Models\Notification;
 use App\Models\Platform\School;
+use App\Models\Term;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
@@ -345,5 +348,36 @@ class HomeworkReuseTest extends TestCase
         ])->assertOk()->assertJsonPath('error', true);
         $this->assertSame($before, Assignment::count());
         $this->assertSame(['assignment/synthetic-video.mp4'], Storage::disk('public')->allFiles('assignment'));
+    }
+
+    public function test_copy_targets_respect_grade_calendars_even_with_a_stray_teacher_allocation(): void
+    {
+        $class = ClassSchool::findOrFail($this->school->ids['class_c']);
+        $class->forceFill(['grade_level_id' => GradeLevel::where('code', '6')->value('id')])->save();
+        $year = $this->school->ids['session_year'];
+        $lower = Term::findOrFail($this->school->ids['term']);
+        $lower->forceFill(['grade_from' => 0, 'grade_to' => 6])->save();
+        $upper = Term::create(['name' => 'Upper grades only', 'session_year_id' => $year,
+            'start_date' => $lower->start_date->toDateString(), 'end_date' => $lower->end_date->toDateString(), 'grade_from' => 7, 'grade_to' => 12]);
+        SchoolTable::query('class_session_configs')->where('class_id', $class->id)->where('session_year_id', $year)->update(['include_terms' => 1]);
+        foreach ([$lower->id, $upper->id] as $term) {
+            SchoolTable::query('subject_teachers')->updateOrInsert(['class_section_id' => $this->school->ids['section_c'],
+                'subject_id' => $this->school->ids['maths'], 'teacher_id' => $this->school->ids['tara_teacher'],
+                'session_year_id' => $year, 'term_id' => $term], []);
+        }
+        $admin = $this->superAdmin();
+        $admin->givePermissionTo('assignment-create');
+        foreach ([$admin, $this->user('tara')] as $actor) {
+            $source = $this->school->ids['assignment'];
+            $base = $this->school->ids['section_c'].':';
+            $targets = collect($this->actingAs($actor, 'web')->getJson("/assignment/$source/copy-targets")->assertOk()->json('data'))->pluck('key')->all();
+            $this->assertContains($base.$lower->id, $targets);
+            $this->assertNotContains($base.$upper->id, $targets);
+            $before = Assignment::count();
+            $this->postJson("/assignment/$source/copy", ['targets' => [$base.$upper->id], 'due_date' => $this->dueDate()])->assertOk()->assertJsonPath('error', true);
+            $this->assertSame($before, Assignment::count());
+            $this->postJson("/assignment/$source/copy", ['targets' => [$base.$lower->id], 'due_date' => $this->dueDate()])->assertOk()->assertJsonPath('error', false);
+            $this->assertSame((int) $lower->id, (int) Assignment::latest('id')->firstOrFail()->term_id);
+        }
     }
 }
