@@ -252,7 +252,7 @@ class StudentApiSecurityTest extends TestCase
         $this->assertFileExists($this->appServerStoragePath('app/public/'.$stored));
     }
 
-    public function test_fee_payments_use_server_amounts_and_own_transactions(): void
+    public function test_retired_fee_endpoints_reject_amounts_and_cannot_touch_old_transactions(): void
     {
         $api = $this->api($this->token('student'));
 
@@ -261,7 +261,7 @@ class StudentApiSecurityTest extends TestCase
             'optional_fees_data' => [['id' => $this->ids['fee_sports'], 'amount' => '1.00']],
         ]);
         $this->assertTrue($response->json('error'));
-        $this->assertStringContainsString('amount', $response->json('message'));
+        $this->assertSame(410, $response->json('code'));
 
         // The parent app's endpoint uses the same server-side pricing.
         $response = $this->api($this->token('parent'))->asForm()->post('/api/parent/add-fees-transaction', [
@@ -269,7 +269,7 @@ class StudentApiSecurityTest extends TestCase
             'optional_fees_data' => [['id' => $this->ids['fee_sports'], 'amount' => '1.00']],
         ]);
         $this->assertTrue($response->json('error'));
-        $this->assertStringContainsString('amount', $response->json('message'));
+        $this->assertSame(410, $response->json('code'));
         $this->assertSame(0, PaymentTransaction::count());
 
         // Another student's pending transaction can't be touched.

@@ -16,6 +16,12 @@ Verified locally during implementation:
   findings, no errors or warnings. Follow-up removal of unused school-year fee
   properties requires the final focused rerun recorded in the PR.
 
+The broader contract/privacy/academic cohort ran736 tests:733 passed initially;
+its three expected retirement assertions were corrected (13 reviewed snapshots,
+the permanently neutral learning-lock hint, and disabled legacy amount handling).
+Those three affected cases are rerun separately; do not claim that initial run
+was fully green. PHPStan passed.
+
 Final cohort, contract/snapshot, static, responsive-browser and hosted exact-head
 results are recorded in the PR after completion. Initial runs correctly exposed
 obsolete tests that still required retired collectors; those tests are adapted
