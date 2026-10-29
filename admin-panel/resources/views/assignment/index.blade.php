@@ -294,6 +294,105 @@
                     </div>
                 </div>
             </div>
+
+            <div class="modal fade" id="copyAssignmentModal" tabindex="-1" role="dialog"
+                aria-labelledby="copyAssignmentTitle" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="copyAssignmentTitle">{{ __('Set for other classes') }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('close') }}">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form id="copy-assignment-form" novalidate="novalidate">
+                            <div class="modal-body">
+                                <p class="mb-3">
+                                    <strong id="copy-assignment-name"></strong><br>
+                                    <span class="small text-muted">{{ __('Each class gets its own copy, with the same instructions, files and total, for this school year. Submissions and marks stay separate per class.') }}</span>
+                                </p>
+                                <div class="form-group">
+                                    <label>{{ __('Classes') }} <span class="text-danger">*</span></label>
+                                    <div id="copy-assignment-targets" class="border rounded p-2" style="max-height: 260px; overflow-y: auto;"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="copy_due_date">{{ __('submission_due_date') }} <span class="text-danger">*</span></label>
+                                    <input type="text" id="copy_due_date" name="due_date"
+                                        placeholder="{{ __('submission_due_date') }}" class="form-control datetimepicker-popup"
+                                        data-min="{{ date('Y-m-d\TH:i') }}">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('close') }}</button>
+                                <button type="submit" class="btn btn-theme" id="copy-assignment-submit">{{ __('Set homework') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+    <script>
+        (function() {
+            let copyId = null;
+            const $targets = $('#copy-assignment-targets');
+
+            $(document).on('click', '.copy-assignment', function(e) {
+                e.preventDefault();
+                copyId = $(this).data('id');
+                $('#copy-assignment-name').text($(this).data('name'));
+                $targets.html('<span class="text-muted small">{{ __('Loading...') }}</span>');
+                if (window.setDateTimeValue) {
+                    setDateTimeValue($('#copy_due_date'), '');
+                }
+                $.get("{{ url('assignment') }}/" + copyId + "/copy-targets", function(response) {
+                    $targets.empty();
+                    if (!response.data || !response.data.length) {
+                        $targets.html('<span class="text-muted small">{{ __('There are no classes you can set this homework for this school year.') }}</span>');
+                        return;
+                    }
+                    response.data.forEach(function(target, index) {
+                        const id = 'copy-target-' + index;
+                        const $row = $('<div class="form-check my-1"></div>');
+                        const $label = $('<label class="form-check-label"></label>').attr('for', id);
+                        $label.append($('<input type="checkbox" class="form-check-input" name="targets[]">')
+                            .attr('id', id).val(target.key));
+                        $label.append(document.createTextNode(target.name));
+                        $label.append('<i class="input-helper"></i>');
+                        $row.append($label);
+                        $targets.append($row);
+                    });
+                }).fail(function() {
+                    $targets.html('<span class="text-danger small">{{ __('error_occurred') }}</span>');
+                });
+            });
+
+            $('#copy-assignment-form').on('submit', function(e) {
+                e.preventDefault();
+                if (!copyId) {
+                    return;
+                }
+                const formData = new FormData(this);
+                const $button = $('#copy-assignment-submit');
+                ajaxRequest('POST', "{{ url('assignment') }}/" + copyId + "/copy", formData,
+                    function() {
+                        $button.prop('disabled', true);
+                    },
+                    function(response) {
+                        showSuccessToast(response.message);
+                        $('#copyAssignmentModal').modal('hide');
+                        $('#table_list').bootstrapTable('refresh');
+                    },
+                    function(response) {
+                        showErrorToast(response.message);
+                    },
+                    function() {
+                        $button.prop('disabled', false);
+                    });
+            });
+        })();
+    </script>
 @endsection

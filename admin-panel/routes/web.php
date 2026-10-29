@@ -899,6 +899,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
 
         Route::resource('assignment', AssignmentController::class)->except(['create', 'edit']);
         Route::get('assignment-class-sections', [AssignmentController::class, 'getClassSectionsBySessionYear'])->name('assignment.class-sections');
+        Route::get('assignment/{id}/copy-targets', [AssignmentController::class, 'copyTargets'])->whereNumber('id')->name('assignment.copy-targets');
+        Route::post('assignment/{id}/copy', [AssignmentController::class, 'copy'])->whereNumber('id')->name('assignment.copy');
         Route::get('assignment-submission', [AssignmentController::class, 'viewAssignmentSubmission'])->name('assignment.submission');
         Route::put('assignment-submission/{id}', [AssignmentController::class, 'updateAssignmentSubmission'])->name('assignment.submission.update');
         Route::get('assignment-submission-list', [AssignmentController::class, 'assignmentSubmissionList'])->name('assignment.submission.list');

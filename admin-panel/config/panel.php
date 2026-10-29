@@ -61,6 +61,10 @@ return [
             'academic-content',
             'academic-content/*',
 
+            // Reusing homework from the year being viewed: the copies always go
+            // into the current year (HomeworkCopies), under the usual checks.
+            'assignment/*/copy',
+
             // Settings that are the same in every year.
             'clear',
             'settings',
