@@ -284,7 +284,9 @@ class _WalletViewState extends State<_WalletView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(tr(entry.description)),
-                              Text(entry.postedAt.toLocal().toString()),
+                              Text(
+                                formatFinancialInstant(context, entry.postedAt),
+                              ),
                               _amount(
                                 context,
                                 'Amount',
@@ -522,11 +524,7 @@ class _DeskReceipts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String tr(String s) => walletText(context, s);
-    final labels = MaterialLocalizations.of(context);
-    String date(DateTime value) {
-      final local = value.toLocal();
-      return '${labels.formatMediumDate(local)} ${labels.formatTimeOfDay(TimeOfDay.fromDateTime(local))}';
-    }
+    String date(DateTime value) => formatFinancialInstant(context, value);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -5349,5 +5349,9 @@
     "Gross confirmed receipts received during the selected school year, including held credit. Refunds and current debt are shown in their own reports.": "Bruto bevestigde ontvangste gedurende die gekose skooljaar, insluitend ongeallokeerde krediet. Terugbetalings en huidige skuld verskyn in hul eie verslae.",
     "Fee setup: :plans active plans and :accounts family accounts.": "Skoolgeldopstelling: :plans aktiewe planne en :accounts gesinsrekeninge.",
     "Allocated learner fees": "Geallokeerde leerdergelde",
-    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "Geallokeerde leerdergelde toon huidige toegepaste ontvangste volgens ontvangsdatum, ná kredietvrystellings. Ongeallokeerde krediet en gesinsheffings word uitgesluit; gemengde geldeenhede of onversoende bedrae is nie beskikbaar nie."
+    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "Geallokeerde leerdergelde toon huidige toegepaste ontvangste volgens ontvangsdatum, ná kredietvrystellings. Ongeallokeerde krediet en gesinsheffings word uitgesluit; gemengde geldeenhede of onversoende bedrae is nie beskikbaar nie.",
+    "Set the school currency first": "Stel eers die skool se geldeenheid in",
+    "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "Finansies moet die beursie se geldeenheid kies voordat verskaffers of produkte gestoor kan word. Kategorieë kan reeds voorberei word.",
+    "Open wallet settings": "Maak beursie-instellings oop",
+    "Ask Finance to configure the school wallet currency.": "Vra Finansies om die skool se beursiegeldeenheid in te stel."
 }

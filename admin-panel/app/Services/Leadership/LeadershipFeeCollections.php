@@ -8,6 +8,7 @@ use App\Models\Money\FeePlan;
 use App\Models\People\Enrolment;
 use App\Models\User;
 use App\Services\Money\FeeCreditHistory;
+use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 /** Applied learner receipts; excludes held credit and unassigned family charges. */
 class LeadershipFeeCollections
 {
-    private const MAX_CENTS = 9007199254740991;
+    private const MAX_CENTS = LedgerService::MAX_CENTS;
 
     public function read(User $actor, int $year, string $start, string $end): array
     {

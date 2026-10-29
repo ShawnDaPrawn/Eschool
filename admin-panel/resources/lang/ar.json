@@ -4273,5 +4273,9 @@
     "Gross confirmed receipts received during the selected school year, including held credit. Refunds and current debt are shown in their own reports.": "إجمالي الإيصالات المؤكدة خلال العام الدراسي المحدد، بما فيها الرصيد غير المخصص. تظهر المبالغ المستردة والديون الحالية في تقاريرها.",
     "Fee setup: :plans active plans and :accounts family accounts.": "إعداد الرسوم: :plans خطط نشطة و:accounts حسابات أسرية.",
     "Allocated learner fees": "رسوم المتعلمين المخصصة",
-    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "تعرض رسوم المتعلمين المخصصة الإيصالات المطبقة حسب تاريخ الاستلام بعد تحرير الأرصدة. لا تشمل الأرصدة غير المخصصة ورسوم الأسرة؛ لا تتوفر المبالغ بعملات مختلطة أو غير المطابقة."
+    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "تعرض رسوم المتعلمين المخصصة الإيصالات المطبقة حسب تاريخ الاستلام بعد تحرير الأرصدة. لا تشمل الأرصدة غير المخصصة ورسوم الأسرة؛ لا تتوفر المبالغ بعملات مختلطة أو غير المطابقة.",
+    "Set the school currency first": "حدد عملة المدرسة أولاً",
+    "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "يجب على مسؤول المالية اختيار عملة المحفظة قبل حفظ البائعين أو المنتجات. يمكنك إعداد الفئات الآن.",
+    "Open wallet settings": "افتح إعدادات المحفظة",
+    "Ask Finance to configure the school wallet currency.": "اطلب من مسؤول المالية إعداد عملة محفظة المدرسة."
 }

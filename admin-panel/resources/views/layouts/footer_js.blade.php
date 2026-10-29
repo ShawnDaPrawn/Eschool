@@ -52,7 +52,7 @@
 
 @if ($errors->any())
     @foreach ($errors->all() as $error)
-        <script type='text/javascript'>
+        <script type='text/javascript' nonce="{{ request()->attributes->get('csp_nonce') }}">
             $.toast({
                 text: escapeHtml(@json($error)),
                 showHideTransition: 'slide',
@@ -65,7 +65,7 @@
 @endif
 
 @if (Session::has('success'))
-    <script>
+    <script nonce="{{ request()->attributes->get('csp_nonce') }}">
         $.toast({
             text: escapeHtml(@json(Session::get('success'))),
             showHideTransition: 'slide',
@@ -76,7 +76,7 @@
     </script>
 @endif
 
-<script>
+<script nonce="{{ request()->attributes->get('csp_nonce') }}">
     $(document).on('click', '.deletedata', function() {
         const relatedEntities = $(this).data('related'); // array OR undefined
         let extraHtml = '';
@@ -127,7 +127,7 @@
         });
     });
 </script>
-<script>
+<script nonce="{{ request()->attributes->get('csp_nonce') }}">
     const lang_no = "{{ __('no') }}"
     const lang_yes = "{{ __('yes') }}"
     const lang_this_data_is_linked_with = "{{ __('this_data_is_linked_with') }}"

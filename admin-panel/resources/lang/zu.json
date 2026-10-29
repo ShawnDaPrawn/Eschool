@@ -5349,5 +5349,9 @@
     "Gross confirmed receipts received during the selected school year, including held credit. Refunds and current debt are shown in their own reports.": "Isamba samarisidi aqinisekisiwe atholwe ngonyaka wesikole okhethiwe, kuhlanganise nekhredithi engakabiwanga. Ukubuyiselwa kwemali nezikweletu zamanje kuboniswa emibikweni yakho.",
     "Fee setup: :plans active plans and :accounts family accounts.": "Ukulungiselelwa kwezimali zesikole: izinhlelo ezisebenzayo ezingu-:plans nama-akhawunti emindeni angu-:accounts.",
     "Allocated learner fees": "Izimali zabafundi ezabiwe",
-    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "Izimali zabafundi ezabiwe zibonisa amarisidi asetshenzisiwe ngosuku lwerisidi, ngemva kokukhululwa kwekhredithi. Ikhredithi engakabiwanga nezindleko zomndeni azifakiwe; izimali ezixubile noma ezingakabuyekezwa azitholakali."
+    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "Izimali zabafundi ezabiwe zibonisa amarisidi asetshenzisiwe ngosuku lwerisidi, ngemva kokukhululwa kwekhredithi. Ikhredithi engakabiwanga nezindleko zomndeni azifakiwe; izimali ezixubile noma ezingakabuyekezwa azitholakali.",
+    "Set the school currency first": "Setha imali esetshenziswa yisikole kuqala",
+    "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "Abezezimali kufanele bakhethe imali yesikhwama ngaphambi kokugcina abathengisi noma imikhiqizo. Ungalungiselela izigaba manje.",
+    "Open wallet settings": "Vula izilungiselelo zesikhwama",
+    "Ask Finance to configure the school wallet currency.": "Cela abezezimali ukuthi balungiselele imali yesikhwama sesikole."
 }

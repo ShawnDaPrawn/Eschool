@@ -20,6 +20,10 @@ class SecurityHeaders
 {
     public function handle(Request $request, Closure $next)
     {
+        // Trusted Blade templates opt their inline scripts into the scoped policy.
+        // Never add nonces by rewriting user-controlled response HTML.
+        $nonce = base64_encode(random_bytes(24));
+        $request->attributes->set('csp_nonce', $nonce);
         $response = $next($request);
 
         $defaults = [
@@ -32,7 +36,8 @@ class SecurityHeaders
         }
         if (str_starts_with(strtolower((string) $response->headers->get('Content-Type', 'text/html')), 'text/html')
             && ! $response->headers->has('Content-Security-Policy')) {
-            $defaults[ContentSecurityPolicy::HEADER] = ContentSecurityPolicy::header();
+            $enforced = $request->routeIs('wallet-finance.*', 'vendor-catalogues.*');
+            $defaults[$enforced ? 'Content-Security-Policy' : ContentSecurityPolicy::HEADER] = ContentSecurityPolicy::header($enforced ? $nonce : null);
             $defaults['Reporting-Endpoints'] = ContentSecurityPolicy::reportingEndpoints();
         }
         foreach ($defaults as $name => $value) {

@@ -10,6 +10,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\LearnerApproval;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Money\WalletFinanceOverview;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
 use App\Services\Platform\Ledger\AccountType;
@@ -232,6 +233,30 @@ class PersonalWalletsTest extends TestCase
         $this->app['auth']->forgetGuards();
 
         return $this->flushHeaders()->withToken($actor->createToken('synthetic-wallet')->plainTextToken)->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $actor->id]);
+    }
+
+    public function test_finance_page_projection_preserves_child_caps_and_checks_raw_balances(): void
+    {
+        $this->settings();
+        $service = app(Wallets::class);
+        $parent = $service->open($this->parent, $this->openInput($this->parent));
+        $child = $service->open($this->parent, $this->openInput($this->learner));
+        $wallets = WalletAccount::whereIn('id', [$parent->id, $child->id])->get();
+        $projection = app(WalletFinanceOverview::class);
+        $rows = $projection->read($this->admin, $wallets);
+        foreach ($wallets as $wallet) {
+            $detail = $service->summary($wallet);
+            $this->assertSame($detail['owner_name'], $rows[$wallet->id]['owner_name']);
+            $this->assertSame($detail['balance_cents'], $rows[$wallet->id]['balance_cents']);
+            $this->assertSame($detail['limits']['effective_daily_spend_cents'], $rows[$wallet->id]['limits']['effective_daily_spend_cents']);
+        }
+        $this->assertSame(0, $rows[$child->id]['limits']['effective_daily_spend_cents']);
+        $this->refuses(fn () => $projection->read($this->parent, $wallets), 403);
+        app(CurrentSchool::class)->run(2, function () use ($projection, $wallets): void {
+            $this->refuses(fn () => $projection->read($this->admin, $wallets), 403);
+        });
+        DB::table('ledger_accounts')->where('id', $parent->ledger_account_id)->update(['balance_cents' => 1]);
+        $this->refuses(fn () => $projection->read($this->admin, $wallets), 409);
     }
 
     private function settings(array $changes = []): void

@@ -67,7 +67,7 @@
         --image-url: url(<?= $login_image ?>);
     }
 </style>
-<script>
+<script nonce="{{ request()->attributes->get('csp_nonce') }}">
     var baseUrl = "{{ URL::to('/') }}";
     // Try the placeholder once; a missing placeholder must not retry forever.
     const onErrorImage = (e) => {

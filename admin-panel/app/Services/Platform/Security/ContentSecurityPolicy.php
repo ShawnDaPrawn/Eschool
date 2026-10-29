@@ -47,10 +47,14 @@ final class ContentSecurityPolicy
         'frame-ancestors' => ["'self'"],
     ];
 
-    public static function header(): string
+    public static function header(?string $nonce = null): string
     {
         $parts = [];
         foreach (self::DIRECTIVES as $directive => $sources) {
+            if ($nonce !== null && $directive === 'script-src') {
+                $sources = array_values(array_diff($sources, ["'unsafe-inline'"]));
+                $sources[] = "'nonce-".$nonce."'";
+            }
             $parts[] = $directive.' '.implode(' ', $sources);
         }
         $parts[] = 'report-uri '.self::REPORT_PATH;

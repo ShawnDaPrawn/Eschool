@@ -31,3 +31,29 @@ for(const width of [390,820,1280]){
  });
 }
 test('Teacher cannot configure school wallets or read Finance wallet lists',async({page})=>{const data=fixture();await signIn(page,data.teacher);for(const url of ['/wallet-settings','/wallet-settings/9999/statement'])expect((await page.goto(url))?.status()).toBe(403);});
+
+
+test('Scoped CSP runs trusted workbench scripts and blocks injected inline code', async ({ page }) => {
+  const data = fixture();
+  await page.addInitScript(() => {
+    (window as any).__cspViolations = [];
+    document.addEventListener('securitypolicyviolation', event => {
+      (window as any).__cspViolations.push(event.effectiveDirective);
+    });
+  });
+  await signIn(page, data.finance);
+  const response = await page.goto('/wallet-settings');
+  expect(response!.status()).toBe(200);
+  const scriptPolicy = response!.headers()['content-security-policy'].split(';').find(value => value.trim().startsWith('script-src'))!;
+  expect(scriptPolicy).toContain("'nonce-");
+  expect(scriptPolicy).not.toContain("'unsafe-inline'");
+  expect(await page.evaluate(() => Boolean((window as any).panelShell))).toBe(true);
+  await page.evaluate(() => {
+    (window as any).__injectedScriptRan = false;
+    const script = document.createElement('script');
+    script.textContent = 'window.__injectedScriptRan = true';
+    document.body.append(script);
+  });
+  await expect.poll(() => page.evaluate(() => (window as any).__cspViolations)).toContain('script-src-elem');
+  expect(await page.evaluate(() => (window as any).__injectedScriptRan)).toBe(false);
+});

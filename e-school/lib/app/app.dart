@@ -98,7 +98,7 @@ Future<void> prepareApp({bool useFirebase = true}) async {
 
   await initAppStorage([showCaseBoxKey, authBoxKey, settingsBoxKey]);
   await Hive.openBox(showCaseBoxKey);
-  await Hive.openBox(authBoxKey);
+  await openAuthStorage(authBoxKey);
 
   await Hive.openBox(settingsBoxKey);
 }

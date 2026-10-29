@@ -996,3 +996,23 @@ charge ordering and held credit. Poppins large-text/destination tests and target
 permission, navigation and finance controls are recorded in
 self-tests/consolidation-navigation.md. Hosted qualification/main integration and
 external language/device acceptance remain separate. Legacy fee cutover continues.
+
+## 2026-10-29 — canonical money and consolidation hardening
+
+Session/security and navigation fixes are on main through PR348 (including347).
+The remaining seed fee collectors, checkout and duplicate money reports are
+retired in favor of canonical statements, posted receipts and allocations. No
+new immutable history is removed. Physical legacy schema remains for additive
+rollout/rollback; distinct academic, notices, direct-chat and exam capabilities
+remain where replacement parity has not been established.
+
+Follow-up source adds shared integer-money/date/time formatting, Vendor currency
+readiness guidance, measured bounded Finance projection reads, encrypted native
+auth/profile storage with verified migration, and scoped enforced workbench CSP.
+See self-tests/canonical-fee-cutover.md, self-tests/consolidation-hardening.md and
+security/consolidation-threats-and-evidence.md for evidence and limits. Owner
+approval now includes safe deployment to the existing environment after exact-head
+qualification, merge, backup and post-deployment checks. No Phase6, gateway adapter,
+new infrastructure spend or native-store publication is included. Hosted review,
+remaining browser checks and the running consolidation release are tracked in PRs
+and the release workflow; do not infer their completion from this source record.

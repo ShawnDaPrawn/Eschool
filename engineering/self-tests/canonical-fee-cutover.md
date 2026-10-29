@@ -1,7 +1,7 @@
 # Canonical fee cutover verification
 
 Scope: the accepted whole-app review's F1 and dependent callers, following the
-session-security/navigation fixes. No Phase6 or payment adapter is included.
+session-security/navigation fixes. No Phase 6 or payment adapter is included.
 
 Verified locally during implementation:
 
@@ -31,3 +31,8 @@ privacy coverage. Do not treat an initial diagnostic failure as a passing check.
 Production rollout is separately authorized by the owner. Require qualified main,
 protected release, backup and live smoke evidence before calling it deployed.
 Physical devices, native stores and fluent locale approval remain separate.
+
+Final local responsive cohort:14 checks passed, including complete receipt/
+allocation/statement flows at 390/820/1280px and Teacher denials. The final API
+contract and three affected retirement controls passed (4 tests, 206 assertions);
+the final historical-year fixture check passed (1 test, 4 assertions).

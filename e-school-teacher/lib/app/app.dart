@@ -129,7 +129,7 @@ Future<void> prepareApp({bool useFirebase = true}) async {
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initAppStorage([authBoxKey, settingsBoxKey]);
-  await Hive.openBox(authBoxKey);
+  await openAuthStorage(authBoxKey);
   await Hive.openBox(settingsBoxKey);
 }
 

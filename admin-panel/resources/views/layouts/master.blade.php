@@ -69,7 +69,7 @@
             'baseUrl' => url('/'),
         ];
     @endphp
-    <script>
+    <script nonce="{{ request()->attributes->get('csp_nonce') }}">
         window.panelShell = @json($panelShell);
     </script>
     <script src="{{ asset('/assets/m3/m3.js') }}?v={{ filemtime(public_path('assets/m3/m3.js')) }}"></script>
