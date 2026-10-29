@@ -27,6 +27,9 @@ abstract final class SessionBoxKeys {
 abstract interface class SessionRepository {
   AuthMode get mode;
 
+  /// Changes whenever login credentials or signed-in state are replaced.
+  int get generation;
+
   bool get isSignedIn;
   Future<void> setSignedIn(bool value);
 
@@ -52,14 +55,21 @@ class HiveSessionRepository implements SessionRepository {
 
   final Box<dynamic>? _box;
 
+  int _generation = 0;
+
+  @override
+  int get generation => _generation;
+
   Box<dynamic> get _authBox => _box ?? Hive.box(SessionBoxKeys.authBox);
 
   @override
   bool get isSignedIn => _authBox.get(SessionBoxKeys.isLogIn) ?? false;
 
   @override
-  Future<void> setSignedIn(bool value) =>
-      _authBox.put(SessionBoxKeys.isLogIn, value);
+  Future<void> setSignedIn(bool value) {
+    _generation++;
+    return _authBox.put(SessionBoxKeys.isLogIn, value);
+  }
 
   @override
   String get token => mode == AuthMode.bearer
@@ -67,10 +77,13 @@ class HiveSessionRepository implements SessionRepository {
       : '';
 
   @override
-  Future<void> setToken(String value) => _authBox.put(
-    SessionBoxKeys.jwtToken,
-    mode == AuthMode.bearer ? value : '',
-  );
+  Future<void> setToken(String value) {
+    _generation++;
+    return _authBox.put(
+      SessionBoxKeys.jwtToken,
+      mode == AuthMode.bearer ? value : '',
+    );
+  }
 
   @override
   bool get hasSubscribedToNotificationTopics =>
@@ -91,6 +104,11 @@ class InMemorySessionRepository implements SessionRepository {
   @override
   bool isSignedIn = false;
 
+  int _generation = 0;
+
+  @override
+  int get generation => _generation;
+
   String _token = '';
 
   @override
@@ -100,11 +118,16 @@ class InMemorySessionRepository implements SessionRepository {
   String get token => mode == AuthMode.bearer ? _token : '';
 
   @override
-  Future<void> setSignedIn(bool value) async => isSignedIn = value;
+  Future<void> setSignedIn(bool value) async {
+    _generation++;
+    isSignedIn = value;
+  }
 
   @override
-  Future<void> setToken(String value) async =>
-      _token = mode == AuthMode.bearer ? value : '';
+  Future<void> setToken(String value) async {
+    _generation++;
+    _token = mode == AuthMode.bearer ? value : '';
+  }
 
   @override
   Future<void> setHasSubscribedToNotificationTopics(bool value) async =>

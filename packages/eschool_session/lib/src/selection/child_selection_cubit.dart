@@ -90,10 +90,11 @@ class ChildSelectionCubit extends Cubit<ChildSelectionState> {
   }
 
   /// Forgets the children and the choice: at sign-out.
-  Future<void> clear() async {
-    await _store.setChildId(null);
+  Future<void> clear() {
+    final cleared = _store.setChildId(null);
     if (!isClosed) {
       emit(const ChildSelectionState(children: []));
     }
+    return cleared;
   }
 }

@@ -36,6 +36,7 @@ use App\Services\Money\WalletDeposits;
 use App\Services\Money\Wallets;
 use App\Services\Money\WalletSettings;
 use App\Services\Money\WalletTransfers;
+use App\Services\Panel\Navigation;
 use App\Services\ParentPolicyService;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\AppTokens;
@@ -410,6 +411,40 @@ class WalletCounterPaymentsTest extends TestCase
         $this->post($url.'/'.$new->id.'/revoke', ['expected_school_id' => 1, 'expected_account_id' => $this->admin->id])->assertOk();
         $this->assertSame('revoked', $new->fresh()->status);
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']))->get($url)->assertForbidden();
+    }
+
+    public function test_reader_navigation_and_destination_require_both_current_permissions(): void
+    {
+        $navigation = app(Navigation::class);
+        $item = collect($navigation->definitions())->firstWhere('key', 'vendor-payment-readers');
+        $staff = User::findOrFail($this->schoolA->ids['tara_user']);
+        $staff->givePermissionTo('cards-readers-manage');
+        $this->assertFalse($navigation->visible($item, $staff));
+        $this->actingAs($staff)->get('/vendor-payment-readers')->assertForbidden();
+
+        $staff->revokePermissionTo('cards-readers-manage');
+        $staff->givePermissionTo('vendors-manage');
+        $this->assertFalse($navigation->visible($item, $staff));
+        $this->get('/vendor-payment-readers')->assertForbidden();
+
+        $staff->givePermissionTo('cards-readers-manage');
+        $this->assertTrue($navigation->visible($item, $staff));
+        $this->get('/vendor-payment-readers')->assertOk();
+        app(CurrentSchool::class)->run(2, function () use ($navigation, $item, $staff): void {
+            $this->assertFalse($navigation->visible($item, $staff), 'permissions in the first school confer no membership in another');
+        });
+        app(ModuleGate::class)->change('wallet_payments', false, $this->admin);
+        $this->assertFalse($navigation->visible($item, $staff), 'a paused unused module has no retained reader history');
+        $this->get('/vendor-payment-readers')->assertNotFound();
+        app(ModuleGate::class)->change('wallet_payments', true, $this->admin);
+        $this->cardFixture();
+        app(ModuleGate::class)->change('wallet_payments', false, $this->admin);
+        $this->assertTrue($navigation->visible($item, $staff), 'the link still reaches reader revocation while spending is paused');
+        $this->get('/vendor-payment-readers')->assertOk();
+
+        $staff->forceFill(['status' => 0])->save();
+        $this->assertFalse($navigation->visible($item, $staff));
+        $this->get('/vendor-payment-readers')->assertRedirect('/login')->assertSessionHasErrors();
     }
 
     public function test_vendor_portal_qr_confirmation_replay_and_bound_forms(): void

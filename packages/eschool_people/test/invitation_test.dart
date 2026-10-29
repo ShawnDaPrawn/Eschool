@@ -63,6 +63,23 @@ void main() {
       expect(invitation.expiresAt, DateTime.utc(2026, 10, 29, 8));
     });
 
+    test('fetch and accept never log invitation credentials', () async {
+      final logs = <String>[];
+      final previous = debugPrint;
+      debugPrint = (String? text, {int? wrapWidth}) {
+        logs.add(text ?? '');
+      };
+      addTearDown(() => debugPrint = previous);
+      final repository = ApiInvitationRepository(
+        clientFor(
+          RecordingAdapter(200, {'error': false, 'data': invitationJson()}),
+        ),
+      );
+      await repository.fetch('private/invitation?token');
+      await repository.accept('private/invitation?token');
+      expect(logs, isEmpty);
+    });
+
     test('an unknown, expired or used link reads as none', () async {
       final repository = ApiInvitationRepository(
         clientFor(RecordingAdapter(404, {'message': 'Not Found'})),

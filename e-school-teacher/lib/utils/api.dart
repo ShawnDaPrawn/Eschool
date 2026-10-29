@@ -31,6 +31,14 @@ class Api {
   static final ApiClient _client = ApiClient(
     authToken: () => session.token,
     onUnauthorized: logoutUser,
+    sessionIdentity: () => SessionIdentity(
+      generation: session.generation,
+      token: session.token,
+      schoolId: selection.schoolId,
+      browserSession: session.mode == AuthMode.cookie
+          ? browserSessionIdentity()
+          : null,
+    ),
     createDio: () => withSchoolHeader(
       debugCreateDio?.call() ??
           createSessionDio(mode: session.mode, apiBaseUrl: baseUrl),
@@ -209,10 +217,10 @@ class Api {
     final context = UiUtils.rootNavigatorKey.currentContext;
     NotificationUtility.removeListener();
     context?.read<AuthCubit>().signOut();
-    Navigator.of(
-      context!,
-    ).pushNamedAndRemoveUntil(Routes.login, (_) => false).then((_) {
-      isLoggingOut = false;
-    });
+    Navigator.of(context!)
+        .pushNamedAndRemoveUntil(Routes.login, (_) => false)
+        .then((_) {
+          isLoggingOut = false;
+        });
   }
 }

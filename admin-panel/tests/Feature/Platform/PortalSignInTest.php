@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Http\Middleware\VerifyCsrfToken;
+use App\Listeners\RotateBrowserSessionIdentity;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Testing\TestResponse;
@@ -143,6 +145,35 @@ class PortalSignInTest extends TestCase
         $this->browser('GET', '/api/v2/me/context', [], self::TEACH_PORTAL)->assertUnauthorized();
     }
 
+    public function test_browser_identity_changes_only_with_sign_in_or_sign_out(): void
+    {
+        config(['session.domain' => '.navigateed.co.za', 'session.secure' => true]);
+        $this->signInAt(self::APP_PORTAL, 'parent/login', ['email' => 'pam@example.com', 'password' => 'secret123']);
+        $first = $this->jar[RotateBrowserSessionIdentity::COOKIE];
+
+        $read = $this->browser('GET', '/api/v2/me/context')->assertOk();
+        $this->assertSame($first, $this->jar[RotateBrowserSessionIdentity::COOKIE]);
+        $this->assertNotContains(RotateBrowserSessionIdentity::COOKIE, array_map(fn ($cookie) => $cookie->getName(), $read->headers->getCookies()));
+
+        // The same browser replaces its account in another portal, without
+        // changing the first tab's in-memory state or local selected school.
+        $signIn = $this->browser('POST', '/api/teacher/login', ['email' => 'tom@example.com', 'password' => 'secret123'], self::TEACH_PORTAL)->assertOk();
+        $second = $this->jar[RotateBrowserSessionIdentity::COOKIE];
+        $this->assertNotSame($first, $second);
+        $cookie = collect($signIn->headers->getCookies())->first(fn ($cookie) => $cookie->getName() === RotateBrowserSessionIdentity::COOKIE);
+        $this->assertFalse($cookie->isHttpOnly());
+        $this->assertTrue($cookie->isSecure());
+        $this->assertSame('.navigateed.co.za', $cookie->getDomain());
+        $this->assertSame('lax', $cookie->getSameSite());
+        $this->browser('GET', '/api/v2/me/context', [], self::TEACH_PORTAL)->assertJsonPath('data.user.id', $this->people['teacher']);
+
+        $this->browser('POST', '/api/logout', [], self::TEACH_PORTAL)->assertOk();
+        $signedOut = $this->jar[RotateBrowserSessionIdentity::COOKIE];
+        $this->assertNotSame($second, $signedOut);
+        $this->browser('GET', '/api/v2/me/context', [], self::TEACH_PORTAL)->assertUnauthorized();
+        $this->assertSame($signedOut, $this->jar[RotateBrowserSessionIdentity::COOKIE], 'a current 401 must not change its request identity');
+    }
+
     public function test_portal_writes_need_the_csrf_token(): void
     {
         $this->browser('GET', '/sanctum/csrf-cookie');
@@ -224,6 +255,8 @@ class PortalSignInTest extends TestCase
         foreach ($response->headers->getCookies() as $cookie) {
             $this->jar[$cookie->getName()] = (string) $cookie->getValue();
         }
+        // A real HTTP request has a fresh cookie queue; this test reuses its container.
+        Cookie::unqueue(RotateBrowserSessionIdentity::COOKIE, config('session.path', '/'));
         $this->defaultHeaders = [];
 
         return $response;

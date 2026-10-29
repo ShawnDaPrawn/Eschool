@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_session/eschool_session.dart';
 import 'package:flutter/widgets.dart';
@@ -21,6 +23,38 @@ class FakeMeContextRepository implements MeContextRepository {
   }
 }
 
+class DeferredContexts implements MeContextRepository {
+  final answers = List.generate(3, (_) => Completer<MeContext?>());
+  int calls = 0;
+  @override
+  Future<MeContext?> fetchContext() => answers[calls++].future;
+}
+
+class HeldCache extends InMemoryMeContextCache {
+  final started = Completer<void>();
+  final release = Completer<void>();
+  bool holdWrite = false, holdClear = false;
+  @override
+  Future<void> write(MeContext context, {DateTime? fetchedAt}) async {
+    if (holdWrite) {
+      holdWrite = false;
+      started.complete();
+      await release.future;
+    }
+    await super.write(context, fetchedAt: fetchedAt);
+  }
+
+  @override
+  Future<void> clear() async {
+    if (holdClear) {
+      holdClear = false;
+      started.complete();
+      await release.future;
+    }
+    await super.clear();
+  }
+}
+
 void main() {
   final MeContext tara = MeContext.fromJson(contextJson);
   late FakeMeContextRepository repository;
@@ -40,6 +74,222 @@ void main() {
   });
 
   tearDown(() => cubit.close());
+
+  group('session generation and cache ordering', () {
+    for (final cookie in [false, true]) {
+      test(
+        'initial ${cookie ? 'cookie' : 'bearer'} school resolution retains fresh and offline context',
+        () async {
+          int? school;
+          final source = FakeMeContextRepository()..answer = tara;
+          final kept = InMemoryMeContextCache();
+          final subject = MeContextCubit(
+            repository: source,
+            cache: kept,
+            contextIdentity: () => SessionIdentity(
+              generation: 1,
+              token: cookie ? '' : 'synthetic-token',
+              schoolId: school,
+              browserSession: cookie ? 'opaque-cookie' : null,
+            ),
+          );
+          await subject.load();
+          school = tara.currentSchoolId;
+          expect(await subject.refreshIfStale(), false);
+          expect(source.calls, 1);
+          expect(subject.context, tara);
+          source.error = ApiException('offline');
+          await subject.load();
+          expect(subject.state, MeContextFailure('offline', context: tara));
+          expect(kept.read(), tara);
+          await subject.close();
+        },
+      );
+    }
+    for (final replacement in ['school', 'credentials', 'browser']) {
+      test(
+        'initial resolution never hides a real $replacement replacement',
+        () async {
+          int? school;
+          var generation = 1, browser = 'opaque-cookie';
+          final source = FakeMeContextRepository()..answer = tara;
+          final kept = InMemoryMeContextCache();
+          final subject = MeContextCubit(
+            repository: source,
+            cache: kept,
+            contextIdentity: () => SessionIdentity(
+              generation: generation,
+              token: '',
+              schoolId: school,
+              browserSession: browser,
+            ),
+          );
+          await subject.load();
+          school = replacement == 'school' ? 2 : tara.currentSchoolId;
+          if (replacement == 'credentials') generation++;
+          if (replacement == 'browser') browser = 'replacement-cookie';
+          source.error = ApiException('offline');
+          final changed = subject.refreshIfStale();
+          expect(subject.context, isNull);
+          expect(await changed, true);
+          expect(kept.read(), isNull);
+          expect(subject.context, isNull);
+          await subject.close();
+        },
+      );
+    }
+    MeContext person(int id) => MeContext.fromJson({
+      ...contextJson,
+      'user': {...contextJson['user'] as Map, 'id': id},
+    });
+    test('replacement refresh ignores the old fresh-cache timestamp', () async {
+      var identity = 'parent A';
+      final source = FakeMeContextRepository()..answer = person(12);
+      final subject = MeContextCubit(
+        repository: source,
+        cache: InMemoryMeContextCache(),
+        contextIdentity: () => identity,
+      );
+      await subject.load();
+      identity = 'parent B';
+      source.answer = person(99);
+      final refreshed = subject.refreshIfStale();
+      expect(subject.context, isNull);
+      expect(await refreshed, isTrue);
+      expect(subject.context?.user?.id, 99);
+      await subject.close();
+    });
+    test(
+      'school replacement erases a held old write even if the new fetch fails and the cubit restarts',
+      () async {
+        var identity = 1;
+        final deferred = DeferredContexts();
+        final kept = HeldCache()..holdWrite = true;
+        final subject = MeContextCubit(
+          repository: deferred,
+          cache: kept,
+          contextIdentity: () => identity,
+        );
+        final old = subject.load();
+        deferred.answers[0].complete(person(12));
+        await kept.started.future;
+        identity = 2;
+        final replacement = subject.load();
+        expect(subject.context, isNull);
+        kept.release.complete();
+        await old;
+        await Future<void>.delayed(Duration.zero);
+        deferred.answers[1].completeError(ApiException('offline'));
+        await replacement;
+        expect(kept.read(), isNull);
+        await subject.close();
+        final offline = FakeMeContextRepository()
+          ..error = ApiException('offline');
+        final restarted = MeContextCubit(
+          repository: offline,
+          cache: kept,
+          contextIdentity: () => identity,
+        );
+        final loading = restarted.load();
+        expect(restarted.context, isNull);
+        await loading;
+        expect(restarted.context, isNull);
+        await restarted.close();
+      },
+    );
+    for (final completion in ['success', 'unsupported', 'failure']) {
+      test(
+        'cleared $completion cannot replace a new session or its load',
+        () async {
+          final deferred = DeferredContexts();
+          final kept = InMemoryMeContextCache();
+          final subject = MeContextCubit(repository: deferred, cache: kept);
+          final old = subject.load();
+          await Future<void>.delayed(Duration.zero);
+          await subject.clear();
+          final replacement = subject.load();
+          await Future<void>.delayed(Duration.zero);
+          expect(deferred.calls, 2);
+          if (completion == 'failure') {
+            deferred.answers[0].completeError(ApiException('old failure'));
+          } else {
+            deferred.answers[0].complete(
+              completion == 'success' ? person(12) : null,
+            );
+          }
+          await old;
+          final joined = subject.load();
+          expect(deferred.calls, 2);
+          expect(subject.state, isA<MeContextLoading>());
+          expect(subject.context, isNull);
+          deferred.answers[1].complete(person(99));
+          await Future.wait([replacement, joined]);
+          expect(subject.context?.user?.id, 99);
+          expect(kept.stored?.user?.id, 99);
+          await subject.close();
+        },
+      );
+    }
+    test(
+      'school identity change starts a separate load without cached fallback',
+      () async {
+        var identity = 1;
+        final deferred = DeferredContexts();
+        final subject = MeContextCubit(
+          repository: deferred,
+          cache: InMemoryMeContextCache(),
+          contextIdentity: () => identity,
+        );
+        final old = subject.load();
+        await Future<void>.delayed(Duration.zero);
+        identity = 2;
+        final next = subject.load();
+        await Future<void>.delayed(Duration.zero);
+        expect(deferred.calls, 2);
+        deferred.answers[1].complete(person(99));
+        await next;
+        deferred.answers[0].complete(person(12));
+        await old;
+        expect(subject.context?.user?.id, 99);
+        await subject.close();
+      },
+    );
+    for (final write in [true, false]) {
+      test(
+        'cache ${write ? 'write' : 'clear'} cannot overtake replacement',
+        () async {
+          final deferred = DeferredContexts();
+          final kept = HeldCache()..stored = person(12);
+          final subject = MeContextCubit(repository: deferred, cache: kept);
+          Future<void>? old;
+          if (write) {
+            kept.holdWrite = true;
+            old = subject.load();
+            await Future<void>.delayed(Duration.zero);
+            deferred.answers[0].complete(person(12));
+            await kept.started.future;
+          } else {
+            kept.holdClear = true;
+          }
+          final cleared = subject.clear();
+          if (!write) await kept.started.future;
+          final next = subject.load();
+          expect(subject.context, isNull);
+          await Future<void>.delayed(Duration.zero);
+          expect(deferred.calls, write ? 1 : 0);
+          kept.release.complete();
+          await cleared;
+          await Future<void>.delayed(Duration.zero);
+          deferred.answers[write ? 1 : 0].complete(person(99));
+          await next;
+          if (old != null) await old;
+          expect(kept.stored?.user?.id, 99);
+          expect(subject.context?.user?.id, 99);
+          await subject.close();
+        },
+      );
+    }
+  });
 
   test('starts with nothing', () {
     expect(cubit.state, const MeContextInitial());

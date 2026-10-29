@@ -81,6 +81,7 @@ class ApiInvitationRepository implements InvitationRepository {
       method: 'GET',
       url: '$url/${Uri.encodeComponent(token)}',
       useAuthToken: false,
+      privateRequest: true,
       notFoundAsNull: true,
     );
     return result == null ? null : GuardianInvitation.fromJson(dataMap(result));
@@ -92,6 +93,7 @@ class ApiInvitationRepository implements InvitationRepository {
       method: 'POST',
       url: '$url/${Uri.encodeComponent(token)}/accept',
       useAuthToken: false,
+      privateRequest: true,
       data: {'password': ?password, ...?await deviceFields?.call()},
     );
     return result ?? const {};

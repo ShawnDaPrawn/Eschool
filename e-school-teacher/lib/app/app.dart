@@ -155,6 +155,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider<MeContextCubit>(
           create: (_) => MeContextCubit(
             repository: ApiMeContextRepository(Api.client),
+            contextIdentity: () => Api.client.requestIdentity,
             cache: HiveMeContextCache(),
           ),
         ),

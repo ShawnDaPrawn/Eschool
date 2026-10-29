@@ -470,7 +470,9 @@ class FeePaymentsTest extends TestCase
     {
         $this->bill();
         $bind = ['expected_account_id' => $this->admin->id, 'expected_school_id' => 1];
-        $this->actingAs($this->admin)->get('/fee-payments')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs($this->admin)->get('/fee-payments')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertSee('Tuition first pays annual tuition before other charges')
+            ->assertDontSee('All currently supported charges are annual tuition');
         $this->get('/fee-payments/new?account_id='.$this->account->id)->assertOk()->assertSee('Holder whose share this pays');
         $input = $this->receipt(['method' => 'eft', 'amount' => '20.00']);
         $this->post('/fee-payments/new', [...$input, 'confirmed' => false] + $bind)->assertStatus(422)->assertSessionMissing('_old_input')->assertHeader('Cache-Control', 'no-store, private');

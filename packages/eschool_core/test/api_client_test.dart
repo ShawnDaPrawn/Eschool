@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/foundation.dart';
 
 /// Answers every request with [respond], and remembers the requests it saw.
 class _FakeAdapter implements HttpClientAdapter {
@@ -65,6 +65,156 @@ void main() {
     }
     fail('expected an ApiException');
   }
+
+  group('request identity', () {
+    test(
+      'another portal can replace cookies without changing this tab generation or school',
+      () async {
+        var browserMarker = 'opaque-parent-session';
+        final started = Completer<void>();
+        final response = Completer<ResponseBody>();
+        client = ApiClient(
+          authToken: () => '',
+          sendsBearerToken: false,
+          sessionIdentity: () => (0, '', 1, browserMarker),
+          onUnauthorized: () => unauthorizedCalls++,
+          createDio: () => Dio()
+            ..httpClientAdapter = _FakeAdapter((_) {
+              started.complete();
+              return response.future;
+            }),
+        );
+        final result = failure(
+          client.get(
+            url: 'https://school.test/api/v2/private',
+            useAuthToken: true,
+          ),
+        );
+        await started.future;
+        browserMarker = 'opaque-teacher-replacement';
+        response.complete(_json({'message': 'Unauthenticated.'}, status: 401));
+        expect((await result).statusCode, 401);
+        expect(unauthorizedCalls, 0);
+      },
+    );
+    for (final cookie in [false, true]) {
+      for (final stale in [false, true]) {
+        for (final method in ['get', 'post', 'supported', 'send', 'bytes']) {
+          test(
+            '$method ${cookie ? 'cookie' : 'bearer'} ${stale ? 'stale' : 'current'} 401',
+            () async {
+              var generation = 1;
+              final started = Completer<void>();
+              final response = Completer<ResponseBody>();
+              client = ApiClient(
+                authToken: () => cookie ? '' : 'token-$generation',
+                sendsBearerToken: !cookie,
+                sessionIdentity: () => generation,
+                onUnauthorized: () => unauthorizedCalls++,
+                createDio: () => Dio()
+                  ..httpClientAdapter = _FakeAdapter((_) {
+                    started.complete();
+                    return response.future;
+                  }),
+              );
+              const url = 'https://school.test/api/v2/private';
+              final Future<Object?> request = switch (method) {
+                'get' => client.get(url: url, useAuthToken: true),
+                'post' => client.post(url: url, body: {}, useAuthToken: true),
+                'supported' => client.getIfSupported(
+                  url: url,
+                  useAuthToken: true,
+                ),
+                'send' => client.send(method: 'GET', url: url),
+                _ => client.getBytes(url: url),
+              };
+              final result = failure(request);
+              await started.future;
+              if (stale) generation++;
+              response.complete(
+                _json({'message': 'Unauthenticated.'}, status: 401),
+              );
+              expect((await result).statusCode, 401);
+              expect(unauthorizedCalls, stale ? 0 : 1);
+            },
+          );
+        }
+      }
+    }
+    test(
+      'anonymous startup calls never read unopened session storage',
+      () async {
+        client = ApiClient(
+          authToken: () => throw StateError('storage unopened'),
+          sessionIdentity: () => throw StateError('storage unopened'),
+          onUnauthorized: () => unauthorizedCalls++,
+          createDio: () => Dio()
+            ..httpClientAdapter = _FakeAdapter(
+              (_) async => _json({'error': false}),
+            ),
+        );
+        await client.get(
+          url: 'https://school.test/settings',
+          useAuthToken: false,
+        );
+        await client.post(
+          url: 'https://school.test/login',
+          body: {},
+          useAuthToken: false,
+        );
+        await client.getIfSupported(
+          url: 'https://school.test/settings',
+          useAuthToken: false,
+        );
+        await client.send(
+          method: 'GET',
+          url: 'https://school.test/settings',
+          useAuthToken: false,
+        );
+        expect(unauthorizedCalls, 0);
+      },
+    );
+    test('anonymous 401 does not sign out a current account', () async {
+      useServer((_) async => _json({}, status: 401));
+      expect(
+        (await failure(
+          client.get(url: 'https://school.test/public', useAuthToken: false),
+        )).statusCode,
+        401,
+      );
+      expect(unauthorizedCalls, 0);
+    });
+    test(
+      'logging keeps route metadata but excludes credentials and URL copies',
+      () async {
+        final messages = <String>[];
+        final previous = debugPrint;
+        debugPrint = (String? message, {int? wrapWidth}) {
+          messages.add(message ?? '');
+        };
+        addTearDown(() => debugPrint = previous);
+        await client.get(
+          url:
+              'https://user:password@school.test/api/v2/guardian/%69nvitations/private%2Fsecret?token=query-secret#fragment-secret',
+          useAuthToken: false,
+        );
+        expect(
+          messages.single,
+          contains('/api/v2/guardian/invitations/:redacted'),
+        );
+        for (final secret in [
+          'user:',
+          'password',
+          'private',
+          'secret',
+          'query',
+          'fragment',
+        ]) {
+          expect(messages.join(), isNot(contains(secret)));
+        }
+      },
+    );
+  });
 
   test(
     'pinned requests send account binding and anonymous requests omit it',

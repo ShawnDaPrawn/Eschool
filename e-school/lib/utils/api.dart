@@ -31,6 +31,14 @@ class Api {
   static final ApiClient _client = ApiClient(
     authToken: () => session.token,
     onUnauthorized: logoutUser,
+    sessionIdentity: () => SessionIdentity(
+      generation: session.generation,
+      token: session.token,
+      schoolId: selection.schoolId,
+      browserSession: session.mode == AuthMode.cookie
+          ? browserSessionIdentity()
+          : null,
+    ),
     createDio: () => withSchoolHeader(
       debugCreateDio?.call() ??
           createSessionDio(mode: session.mode, apiBaseUrl: baseUrl),

@@ -22,7 +22,6 @@ import 'package:eschool_teacher/ui/screens/home/tabs/homeContainer/widgets/subje
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_teacher/ui/widgets/noDataContainer.dart';
 import 'package:eschool_teacher/utils/assets.dart';
-import 'package:eschool_teacher/utils/fixHeightDeligate.dart';
 import 'package:eschool_teacher/utils/labelKeys.dart';
 import 'package:eschool_teacher/utils/uiUtils.dart';
 import 'package:flutter/material.dart';
@@ -381,27 +380,8 @@ class _HomeContainerState extends State<HomeContainer> {
     );
   }
 
-  Widget _buildExploreAcademics() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: exploreAcademicsItems.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCountAndFixedHeight(
-        crossAxisCount: 3,
-        height: MediaQuery.sizeOf(context).width / 3 < 150
-            ? 120 //fixed height for smaller devices
-            : (MediaQuery.sizeOf(context).width / 3) - 16,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-      ),
-      padding: EdgeInsets.zero,
-      itemBuilder: (context, index) {
-        return HomeContainerExploreAcademicsItemContainer(
-          item: exploreAcademicsItems[index],
-        );
-      },
-    );
-  }
+  Widget _buildExploreAcademics() =>
+      ExploreAcademicsGrid(items: exploreAcademicsItems);
 
   Widget _buildEventList(List<Event> events) {
     return Padding(

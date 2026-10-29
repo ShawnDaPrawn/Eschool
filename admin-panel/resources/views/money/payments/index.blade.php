@@ -11,7 +11,7 @@
     <form method="get"><x-m3.text-field name="search" type="search" :label="__('Find a family or receipt reference')" :value="request('search')" /><x-m3.button type="submit" variant="outlined">{{ __('Search') }}</x-m3.button></form>
     <h2 class="m3-title-large">{{ __('School allocation rule') }}</h2>
     <p>{{ __('Choose the order before allocating. Receipts can remain held credit while the rule is undecided.') }}</p>
-    <p>{{ __('All currently supported charges are annual tuition, so both rules use the oldest due date first.') }}</p>
+    <p>{{ __('Oldest due first allocates across eligible charges by due date. Tuition first pays annual tuition before other charges, using the oldest due date within each group. Credit stays held until you allocate it.') }}</p>
     <form method="post" action="{{ route('fee-payments.policy') }}" data-year-safe>
         @include('money.fee-plans.hidden',['revision'=>$policy?->revision??0])
         <fieldset @disabled(!$canWrite)><legend>{{ __('School allocation rule') }}</legend>

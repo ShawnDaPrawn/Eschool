@@ -115,10 +115,11 @@ class SchoolSelectionCubit extends Cubit<SchoolSelectionState> {
   }
 
   /// Forgets the schools and the choice: at sign-out.
-  Future<void> clear() async {
-    await _store.setSchoolId(null);
+  Future<void> clear() {
+    final cleared = _store.setSchoolId(null);
     if (!isClosed) {
       emit(const SchoolSelectionState(schools: []));
     }
+    return cleared;
   }
 }

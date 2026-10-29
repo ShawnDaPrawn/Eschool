@@ -15,7 +15,9 @@ class ApiClient {
     required this.onUnauthorized,
     Dio Function()? createDio,
     this.sendsBearerToken = true,
-  }) : _createDio = createDio ?? Dio.new;
+    Object Function()? sessionIdentity,
+  }) : _createDio = createDio ?? Dio.new,
+       _sessionIdentity = sessionIdentity;
 
   /// The signed-in user's token, or an empty string when nobody is signed in.
   final String Function() authToken;
@@ -24,6 +26,36 @@ class ApiClient {
   final void Function() onUnauthorized;
 
   final Dio Function() _createDio;
+  final Object Function()? _sessionIdentity;
+
+  /// Includes cookie-session replacement when supplied by the app.
+  Object get requestIdentity => _sessionIdentity?.call() ?? authToken();
+
+  void _logRequest(String method, String url, {bool privateRequest = false}) {
+    if (!kDebugMode || privateRequest) return;
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      debugPrint('API Called $method');
+      return;
+    }
+    // Do not print query, fragment, origin user-info or path credentials.
+    const credentials = {
+      'invite',
+      'invitations',
+      'reset',
+      'reset-password',
+      'password-reset',
+      'token',
+      'tokens',
+    };
+    var secret = false;
+    final path = <String>[];
+    for (final segment in uri.pathSegments) {
+      path.add(secret ? ':redacted' : Uri.encodeComponent(segment));
+      secret = secret || credentials.contains(segment.toLowerCase());
+    }
+    debugPrint('API Called $method: /${path.join('/')}');
+  }
 
   /// False when the signed-in user is known by a session cookie instead (the
   /// web portals), so no Authorization header is sent.
@@ -47,6 +79,7 @@ class ApiClient {
     Function(int, int)? onSendProgress,
     Function(int, int)? onReceiveProgress,
   }) async {
+    final identity = useAuthToken ? requestIdentity : null;
     try {
       final Dio dio = _createDio();
       final FormData formData = FormData.fromMap(
@@ -54,7 +87,7 @@ class ApiClient {
         ListFormat.multiCompatible,
       );
 
-      debugPrint('API Called POST: $url');
+      _logRequest('POST', url);
 
       final response = await dio.post(
         url,
@@ -68,7 +101,11 @@ class ApiClient {
 
       return _checked(response);
     } on DioException catch (e) {
-      throw _fromDioException(e);
+      throw _fromDioException(
+        e,
+        identity: identity,
+        authenticated: useAuthToken,
+      );
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -81,10 +118,11 @@ class ApiClient {
     required bool useAuthToken,
     Map<String, dynamic>? queryParameters,
   }) async {
+    final identity = useAuthToken ? requestIdentity : null;
     try {
       final Dio dio = _createDio();
 
-      debugPrint('API Called GET: $url');
+      _logRequest('GET', url);
 
       final response = await dio.get(
         url,
@@ -94,7 +132,11 @@ class ApiClient {
 
       return _checked(response);
     } on DioException catch (e) {
-      throw _fromDioException(e);
+      throw _fromDioException(
+        e,
+        identity: identity,
+        authenticated: useAuthToken,
+      );
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -109,10 +151,11 @@ class ApiClient {
     required bool useAuthToken,
     Map<String, dynamic>? queryParameters,
   }) async {
+    final identity = useAuthToken ? requestIdentity : null;
     try {
       final Dio dio = _createDio();
 
-      debugPrint('API Called GET: $url');
+      _logRequest('GET', url);
 
       final response = await dio.get(
         url,
@@ -125,7 +168,11 @@ class ApiClient {
       if (e.response?.statusCode == 404) {
         return null;
       }
-      throw _fromDioException(e);
+      throw _fromDioException(
+        e,
+        identity: identity,
+        authenticated: useAuthToken,
+      );
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -154,6 +201,7 @@ class ApiClient {
     Duration? requestTimeout,
     bool privateRequest = false,
   }) async {
+    final identity = useAuthToken ? requestIdentity : null;
     final cancellation = requestTimeout == null ? null : CancelToken();
     var deadlineElapsed = false;
     final deadline = requestTimeout == null
@@ -165,7 +213,7 @@ class ApiClient {
     try {
       final Dio dio = _createDio();
 
-      if (!privateRequest) debugPrint('API Called $method: $url');
+      _logRequest(method, url, privateRequest: privateRequest);
 
       final response = await dio.request<dynamic>(
         url,
@@ -217,7 +265,11 @@ class ApiClient {
           statusCode: status,
         );
       }
-      throw _fromDioException(e);
+      throw _fromDioException(
+        e,
+        identity: identity,
+        authenticated: useAuthToken,
+      );
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -234,6 +286,7 @@ class ApiClient {
     int? accountId,
     Duration? requestTimeout,
   }) async {
+    final identity = requestIdentity;
     try {
       final dio = _createDio();
       if (requestTimeout != null) dio.options.connectTimeout = requestTimeout;
@@ -255,7 +308,7 @@ class ApiClient {
       }
       return Uint8List.fromList(response.data!);
     } on DioException catch (error) {
-      throw _fromDioException(error);
+      throw _fromDioException(error, identity: identity, authenticated: true);
     } on ApiException {
       rethrow;
     } catch (_) {
@@ -347,9 +400,13 @@ class ApiClient {
     return Map.from(response.data);
   }
 
-  ApiException _fromDioException(DioException e) {
+  ApiException _fromDioException(
+    DioException e, {
+    Object? identity,
+    bool authenticated = false,
+  }) {
     if (e.response?.statusCode == 401) {
-      onUnauthorized();
+      if (authenticated && identity == requestIdentity) onUnauthorized();
       return ApiException(ApiErrorCodes.unauthorizedAccess, statusCode: 401);
     }
     if (e.response?.statusCode == 503 || e.response?.statusCode == 500) {

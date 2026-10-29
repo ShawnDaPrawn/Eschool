@@ -151,3 +151,13 @@ than imported/reconciled into the new ledger; retire their dependencies safely.
 This does not authorize deleting the new immutable ledger/domain history or
 production activation. Configure school-specific financial rules explicitly and
 keep unrelated development moving while particular evidence/settings are pending.
+
+## Whole-app consolidation decision (29 October 2026)
+
+The owner accepted the whole-app review fixes and UX/UI standardization pass,
+without starting Phase6. Remove fully replaceable legacy implementations after
+moving their callers and required dependencies to the new build. Do not retain
+parallel writable money systems or invest in polishing replaced legacy screens.
+Preserve new immutable history and distinct capabilities without complete
+replacements. Follow engineering/phases/whole-app-consolidation.md. Gateway
+integration and production activation remain outside this authorization.
