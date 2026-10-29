@@ -78,13 +78,29 @@ class PushDevicesTest extends TestCase
     {
         $parent = $this->parent();
         $phone = $this->signedInDevice($parent, 'phone-token');
-        $this->signedInDevice($parent, 'tablet-token');
-        $parent->forceFill(['fcm_id' => null])->save();
+        $tablet = $this->signedInDevice($parent, 'tablet-token');
 
-        // As a password change or account revocation does.
-        $parent->tokens()->whereKey($phone)->delete();
+        // As a password change or account revocation does. users.fcm_id still
+        // holds the tablet, the latest registration: it must not bring it back.
+        $parent->tokens()->whereKey($tablet)->delete();
 
-        $this->assertSame(['tablet-token'], array_column(app(PushDevices::class)->destinations($parent->fresh()), 'token'));
+        $this->assertSame('tablet-token', $parent->fresh()->fcm_id);
+        $this->assertSame(['phone-token'], array_column(app(PushDevices::class)->destinations($parent->fresh()), 'token'));
+        $this->assertFalse(app(PushDevices::class)->isCurrent($parent->fresh(), 'tablet-token'));
+    }
+
+    public function test_signing_out_of_a_sign_in_from_before_registrations_ends_its_device(): void
+    {
+        $parent = $this->parent();
+        // As the migration leaves an existing client: registered, but bound to no sign-in.
+        $parent->forceFill(['fcm_id' => 'old-client', 'device_type' => 'android'])->save();
+        UserDevice::query()->create(['user_id' => $parent->id, 'token_hash' => hash('sha256', 'old-client'), 'token' => 'old-client', 'platform' => 'android', 'last_seen_at' => now()]);
+        $token = $parent->createToken(AppTokens::PARENT)->plainTextToken;
+
+        $this->withToken($token)->postJson('/api/logout')->assertOk();
+
+        $this->assertSame([], app(PushDevices::class)->destinations($parent->fresh()));
+        $this->assertSame('', (string) $parent->fresh()->fcm_id);
     }
 
     public function test_a_shared_phone_moves_to_the_account_that_signed_in_last(): void

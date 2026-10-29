@@ -74,9 +74,10 @@ class PushDevices
         $legacy = is_string($user->fcm_id) ? trim($user->fcm_id) : '';
         if ($legacy !== '' && in_array($user->device_type, self::PLATFORMS, true)) {
             $hash = hash('sha256', $legacy);
-            // A legacy token another account has since registered is that account's device.
-            $ownedElsewhere = ! isset($found[$hash]) && UserDevice::query()->where('token_hash', $hash)->where('user_id', '!=', $user->id)->whereNull('revoked_at')->exists();
-            if (! isset($found[$hash]) && ! $ownedElsewhere && ! $this->revokedForUser((int) $user->id, $hash)) {
+            // The legacy value counts only for a token with no registration at
+            // all. A registered token is decided by its registration: revoked,
+            // signed out, or another account's device all mean "do not send".
+            if (! isset($found[$hash]) && ! UserDevice::query()->where('token_hash', $hash)->exists()) {
                 $found[$hash] = ['token' => $legacy, 'platform' => (string) $user->device_type];
             }
         }
@@ -99,13 +100,35 @@ class PushDevices
         return false;
     }
 
-    /** Ends the notifications of the device bound to one sign-in token. */
-    public function revokeForAccessToken(int $accessTokenId): void
+    /**
+     * Ends the notifications of the device bound to one sign-in token.
+     *
+     * @return int how many devices were revoked
+     */
+    public function revokeForAccessToken(int $accessTokenId): int
     {
         $devices = UserDevice::query()->where('personal_access_token_id', $accessTokenId)->whereNull('revoked_at')->get();
         foreach ($devices as $device) {
             $this->revoke($device);
         }
+
+        return $devices->count();
+    }
+
+    /**
+     * Signing out of a sign-in from before device registrations existed: that
+     * sign-in has no bound device, and the account then had one device per app,
+     * the one in users.fcm_id. End that device as sign-out always did.
+     */
+    public function revokeLegacy(User $user): void
+    {
+        $legacy = is_string($user->fcm_id) ? trim($user->fcm_id) : '';
+        if ($legacy !== '') {
+            UserDevice::query()->where('user_id', $user->id)->where('token_hash', hash('sha256', $legacy))
+                ->whereNull('personal_access_token_id')->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        }
+        User::acrossSchools()->whereKey($user->id)->update(['fcm_id' => '']);
+        $user->forceFill(['fcm_id' => ''])->syncOriginalAttributes(['fcm_id']);
     }
 
     /** FCM says the token no longer exists: forget it for this account. */
@@ -129,10 +152,6 @@ class PushDevices
         User::acrossSchools()->whereKey($device->user_id)->where('fcm_id', $token)->update(['fcm_id' => null]);
     }
 
-    private function revokedForUser(int $userId, string $hash): bool
-    {
-        return UserDevice::query()->where('user_id', $userId)->where('token_hash', $hash)->whereNotNull('revoked_at')->exists();
-    }
 
     private function prune(int $userId): void
     {
