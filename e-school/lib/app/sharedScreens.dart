@@ -2350,9 +2350,12 @@ Route<dynamic> learnerDiaryRoute() => AdaptivePageRoute(
         ),
       );
     }
+    // The diary runs in a navigator of its own: leaving it and opening other
+    // screens go through this route's navigator.
+    final outside = Navigator.of(context);
     return DiarySessionBoundary(
       pinned: me,
-      builder: (context, fresh) {
+      builder: (_, fresh) {
         bool active() =>
             fresh() &&
             (schools.state.selectedId == null ||
@@ -2370,8 +2373,9 @@ Route<dynamic> learnerDiaryRoute() => AdaptivePageRoute(
               active() &&
               allowsSchoolModule(session.context, 'diary', write: true),
           reminders: const DeviceDiaryReminders(),
+          onBack: () => outside.maybePop(),
           onTalkToSomeone: wellbeing
-              ? () => Navigator.of(context).pushNamed(Routes.reportConcern)
+              ? () => outside.pushNamed(Routes.reportConcern)
               : null,
         );
       },

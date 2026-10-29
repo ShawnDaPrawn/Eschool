@@ -74,9 +74,23 @@ class _DiaryItemSheetState extends State<DiaryItemSheet> {
   }
 
   Future<void> _save() async {
-    if (_busy || !widget.repository.isActive) return;
-    if (_note.text.length > 2000) {
+    if (_busy) return;
+    if (_note.text.runes.length > 2000) {
       setState(() => _error = 'Keep the note to 2,000 characters.');
+      return;
+    }
+    final remind = _remind;
+    if (remind != null &&
+        diaryTime(remind) != widget.item.state.remindAt &&
+        !remind.isAfter(DateTime.now())) {
+      setState(() => _error = 'Choose a reminder time that is still to come.');
+      return;
+    }
+    if (!widget.repository.isActive) {
+      setState(
+        () => _error =
+            'Your diary is checking your access. Try again in a moment.',
+      );
       return;
     }
     setState(() {
@@ -86,7 +100,9 @@ class _DiaryItemSheetState extends State<DiaryItemSheet> {
     try {
       final state = await widget.repository.setItemState(
         widget.item,
-        done: _done,
+        // Handed-in homework is done by the school; no layer of the
+        // learner's own is needed for that.
+        done: !_submitted && _done,
         remindAt: _remind == null ? null : diaryTime(_remind!),
         note: _note.text,
       );

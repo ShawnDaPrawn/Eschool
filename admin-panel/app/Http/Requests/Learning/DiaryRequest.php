@@ -32,6 +32,11 @@ class DiaryRequest extends FormRequest
     public function rules(): array
     {
         $method = $this->route()->getActionMethod();
+        if ($this->isMethodSafe() && $method === 'reminders') {
+            abort_if($this->query->count() !== 0, 422, 'Reminders take no query.');
+
+            return [];
+        }
         if ($this->isMethodSafe()) {
             abort_if(array_diff(array_keys($this->query->all()), ['from', 'to']) !== [], 422, 'Use only from and to.');
 
@@ -71,7 +76,7 @@ class DiaryRequest extends FormRequest
     public function after(): array
     {
         return [function ($validator) {
-            if (! $this->isMethodSafe() || $validator->errors()->isNotEmpty()) {
+            if (! $this->isMethodSafe() || $this->route()->getActionMethod() === 'reminders' || $validator->errors()->isNotEmpty()) {
                 return;
             }
             $from = CarbonImmutable::createFromFormat('!Y-m-d', (string) $this->query('from'));

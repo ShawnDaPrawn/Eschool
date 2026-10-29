@@ -122,6 +122,22 @@ class _FakeDiary implements DiaryRepository {
     );
   }
 
+  /// What the server's reminder list holds: open entries with a reminder.
+  @override
+  Future<DiaryReminders> reminders() async => DiaryReminders.fromJson({
+    'school_id': 1,
+    'reader_id': 7,
+    'reminders': [
+      for (final e in entries)
+        if (e['remind_at'] != null && e['done'] != true)
+          {
+            'key': 'entry:${e['id']}',
+            'at': '${(e['remind_at'] as String).replaceFirst(' ', 'T')}:00Z',
+            'text': e['title'],
+          },
+    ],
+  });
+
   @override
   Future<DiaryEntry> create(String operationId, DiaryDraft draft) async {
     created.add((operationId, draft));
@@ -179,14 +195,17 @@ class _FakeDiary implements DiaryRepository {
   }
 }
 
-class _Reminders implements DiaryReminders {
-  final plans = <Map<String, DiaryReminder?>>[];
+class _Reminders implements DiaryPhoneReminders {
+  final synced = <List<String>>[];
   @override
-  Future<void> plan(
+  Future<void> replaceAll(
     int schoolId,
     int readerId,
-    Map<String, DiaryReminder?> reminders,
-  ) async => plans.add(reminders);
+    List<DiaryReminder> reminders,
+  ) async => synced.add([
+    for (final reminder in reminders)
+      '$schoolId/$readerId ${reminder.key} ${reminder.at.toIso8601String()}',
+  ]);
 }
 
 ApiClient _client(FakeApi api) => ApiClient(
@@ -548,26 +567,26 @@ void main() {
       expect(find.text('Private thought'), findsNothing);
     });
 
-    testWidgets('reminders follow the entries and the school items', (
+    testWidgets('the phone keeps exactly the server\'s upcoming reminders', (
       tester,
     ) async {
       final reminders = _Reminders();
       final diary = _FakeDiary(
-        entries: [
-          _entry(1, title: 'Revise', remindAt: '2026-10-29 18:00'),
-          _entry(2, title: 'Old', remindAt: '2026-10-28 18:00'),
-          _entry(3, title: 'Done', remindAt: '2026-10-29 19:00', done: true),
-        ],
-        items: [_homework(10, remindAt: '2026-10-29 16:00')],
+        entries: [_entry(1, title: 'Revise', remindAt: '2026-10-29 18:00')],
       );
       await _mount(tester, diary, reminders: reminders);
-      final plan = reminders.plans.single;
-      expect(plan['entry:1']!.at, DateTime(2026, 10, 29, 18));
-      expect(plan['entry:1']!.text, 'Revise');
-      expect(plan.containsKey('entry:2'), isTrue);
-      expect(plan['entry:2'], isNull, reason: 'past reminders are cancelled');
-      expect(plan['entry:3'], isNull, reason: 'done things need no reminder');
-      expect(plan['homework:10']!.at, DateTime(2026, 10, 29, 16));
+      expect(reminders.synced, [
+        ['1/7 entry:1 2026-10-29T18:00:00.000Z'],
+      ]);
+      // Ticking it off syncs again, and the done to-do has no reminder.
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('diary-entry-1')),
+          matching: find.byType(Checkbox),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(reminders.synced.last, isEmpty);
     });
 
     testWidgets('read-only, talk to someone, and nothing left in background', (
@@ -587,11 +606,15 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('diary-talk')));
       expect(talked, 1);
 
+      await tester.pumpAndSettle();
+
+      // Cleared on `inactive`, while frames still draw (the app switcher's
+      // snapshot is taken then).
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       await tester.pump();
       expect(find.text('Secret plan'), findsNothing);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -607,37 +630,67 @@ void main() {
       await tester.tap(find.byTooltip('Refresh'));
       await tester.pumpAndSettle();
       expect(find.text('Secret plan'), findsNothing);
+      expect(find.byKey(const ValueKey('diary-closed')), findsOneWidget);
     });
   });
 
-  testWidgets('the boundary closes the diary when the account changes', (
-    tester,
-  ) async {
-    final repo = _ContextRepo();
-    final session = MeContextCubit(
-      repository: repo,
-      cache: InMemoryMeContextCache(),
-    );
-    await session.load();
-    addTearDown(session.close);
-    await tester.pumpWidget(
-      BlocProvider.value(
-        value: session,
-        child: MaterialApp(
-          home: DiarySessionBoundary(
-            pinned: session.context!,
-            builder: (_, _) => const Text('Private diary canary'),
+  testWidgets(
+    'the boundary keeps an open editor through a refresh, closes it on a change',
+    (tester) async {
+      final repo = _ContextRepo();
+      final session = MeContextCubit(
+        repository: repo,
+        cache: InMemoryMeContextCache(),
+      );
+      await session.load();
+      addTearDown(session.close);
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: session,
+          child: MaterialApp(
+            home: DiarySessionBoundary(
+              pinned: session.context!,
+              builder: (context, _) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          const Scaffold(body: Text('Private editor canary')),
+                    ),
+                  ),
+                  child: const Text('Private diary canary'),
+                ),
+              ),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pump();
-    expect(find.text('Private diary canary'), findsOneWidget);
-    repo.role = 'Parent';
-    await session.load();
-    await tester.pump();
-    expect(find.text('Private diary canary'), findsNothing);
-  });
+      );
+      await tester.pump();
+      await tester.tap(find.text('Private diary canary'));
+      await tester.pumpAndSettle();
+      expect(find.text('Private editor canary'), findsOneWidget);
+
+      // The same learner's context, refreshed: the editor stays.
+      await session.load();
+      await tester.pumpAndSettle();
+      expect(find.text('Private editor canary'), findsOneWidget);
+
+      // Away from the front: covered.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('diary-privacy-cover')), findsOneWidget);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('diary-privacy-cover')), findsNothing);
+
+      // Another role: the diary and the editor above it are both gone.
+      repo.role = 'Parent';
+      await session.load();
+      await tester.pumpAndSettle();
+      expect(find.text('Private editor canary'), findsNothing);
+      expect(find.text('Private diary canary'), findsNothing);
+    },
+  );
 }
 
 class _ContextRepo implements MeContextRepository {

@@ -30,8 +30,11 @@ class DiaryDraft {
   String? get problem {
     final title = this.title.trim();
     if (title.isEmpty) return 'Write a title.';
-    if (title.length > maxTitle) return 'Keep the title to 200 characters.';
-    if ((body ?? '').length > maxBody) {
+    // Counted as the server counts: Unicode code points.
+    if (title.runes.length > maxTitle) {
+      return 'Keep the title to 200 characters.';
+    }
+    if ((body ?? '').runes.length > maxBody) {
       return 'Keep the note to 10,000 characters.';
     }
     if (!todo && date == null) return 'Choose a date for the note.';
@@ -72,6 +75,9 @@ abstract interface class DiaryRepository {
   Future<DiaryEntry> create(String operationId, DiaryDraft draft);
   Future<DiaryEntry> update(int id, int revision, DiaryDraft draft);
   Future<void> delete(int id);
+
+  /// Every upcoming reminder, for the phone to schedule.
+  Future<DiaryReminders> reminders();
   Future<DiaryItemState> setItemState(
     DiarySchoolItem item, {
     required bool done,
@@ -156,6 +162,15 @@ class ApiDiaryRepository implements DiaryRepository {
   }
 
   @override
+  Future<DiaryReminders> reminders() async {
+    final result = DiaryReminders.fromJson(await _send('GET', '/reminders'));
+    if (result.schoolId != schoolId || result.readerId != readerId) {
+      throw ApiException(ApiErrorCodes.defaultErrorMessageKey, statusCode: 403);
+    }
+    return result;
+  }
+
+  @override
   Future<DiaryEntry> create(String operationId, DiaryDraft draft) async {
     _draft(draft);
     return DiaryEntry.fromJson(
@@ -211,7 +226,7 @@ class ApiDiaryRepository implements DiaryRepository {
     if (remindAt != null && !diaryTimePattern.hasMatch(remindAt)) {
       throw ArgumentError('Choose a valid reminder time.');
     }
-    if ((note ?? '').length > 2000) {
+    if ((note ?? '').runes.length > 2000) {
       throw ArgumentError('Keep the note to 2,000 characters.');
     }
     final trimmed = note?.trim();

@@ -38,8 +38,9 @@ Later sources (exam timetable and revision reminders, activity group sessions, c
 
 - `GET diary?from=YYYY-MM-DD&to=YYYY-MM-DD`: up to 62 days. Returns the learner's entries whose date (or due date) falls in the range, undated to-dos that are still open, the school items in the range, and the server's school-local today.
 - `POST diary/entries`: creates a `note` or `todo` (`operation_id` makes a retry return the original entry).
-- `PUT diary/entries/{entry}`: updates it; `revision` must match (409 otherwise).
+- `PUT diary/entries/{entry}`: replaces it (a field left out is cleared); `revision` must match (409 otherwise).
 - `DELETE diary/entries/{entry}`: deletes it permanently.
+- `GET diary/reminders`: every reminder still to come (open entries, and school items that still apply and are not handed in), with its UTC instant and text, up to 500.
 - `PUT diary/items/{source}/{id}/state`: sets done, a reminder and a private note on a school item that currently applies to the learner (404 otherwise).
 
 Another learner's entry, or an item that does not apply to the learner, is 404 (no existence leak). Validation uses the v2 envelope.
@@ -51,8 +52,8 @@ The learner app opens the diary from the home screen (**My diary**) and from `/l
 - A page per day with a week strip. Each page shows the school items for that day, the learner's to-dos and notes for that day, and on today's page the open to-dos without a date ("Anytime").
 - To-dos and school items are ticked off from the list. Submitted homework is ticked by the school and cannot be unticked. Tapping an item opens its private note and reminder; tapping an entry opens it to edit or delete.
 - A note always has a date; a to-do may have none.
-- The diary is cleared from the screen when the app goes to the background and when the account, school, role, approval or module changes, so the app switcher and a borrowed phone show nothing.
-- Reminders are local notifications scheduled on the learner's phone, on their own Android channel (`diary_reminders`) with private lock-screen visibility. Each load reschedules the reminders it sees, past or done reminders are cancelled, and signing out cancels every diary reminder on the phone. The server never sends a diary push, so no reminder text leaves the phone.
+- The diary and everything it opens (editor, item sheet, dialogs) run in a navigator of their own inside the session boundary. Any change of account, school, role, approval or module removes all of it at once; a routine context refresh that leaves the same learner keeps an open editor. From the moment the app leaves the front (`inactive`), the diary is covered and its loaded text discarded, so the app switcher and a borrowed phone show nothing.
+- Reminders are local notifications scheduled on the learner's phone, on their own Android channel (`diary_reminders`) with private lock-screen visibility. Whenever the diary loads or changes, the phone replaces all its diary reminders with the server's complete list of upcoming ones (`GET diary/reminders`, instants in UTC), so moved, done, deleted and unviewed entries are always right. Signing out cancels every diary reminder on the phone and stops a sync in progress. The server never sends a diary push.
 - A **Talk to someone** link opens the existing wellbeing reporting when that module is on. Nothing in the diary is passed to it.
 
 ## Limits

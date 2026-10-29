@@ -28769,6 +28769,33 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /diary/reminders:
+    get:
+      operationId: getDiaryReminders
+      tags:
+      - Diary
+      summary: getDiaryReminders
+      description: Every reminder the signed-in learner has set that is still to come, as UTC instants, for the learner's phone
+        to schedule. The phone replaces the diary reminders it holds with exactly this list. Done entries, handed-in homework and
+        school items that no longer apply have none. Only a current guardian-approved Student of the school reads it.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: The learner's upcoming reminders.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryRemindersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
   /diary/entries:
     post:
       operationId: createDiaryEntry
@@ -66423,6 +66450,7 @@ components:
           type: boolean
     DiaryEntryUpdateInput:
       type: object
+      description: Replaces the whole entry. A field left out is cleared (body, date and reminder become null, done becomes false).
       additionalProperties: false
       required:
       - revision
@@ -66453,6 +66481,7 @@ components:
           type: boolean
     DiaryItemStateInput:
       type: object
+      description: Replaces the learner's whole layer on the item. A field left out is cleared.
       additionalProperties: false
       required:
       - done
@@ -66468,6 +66497,57 @@ components:
           - string
           - 'null'
           maxLength: 2000
+    DiaryReminder:
+      type: object
+      additionalProperties: false
+      required:
+      - key
+      - at
+      - text
+      properties:
+        key:
+          type: string
+          description: '`entry:<id>` or `<source>:<id>` for a school item; stable, so the phone can replace an earlier reminder.'
+        at:
+          type: string
+          format: date-time
+          description: When to remind, in UTC.
+        text:
+          type: string
+    DiaryReminders:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - reminders
+      properties:
+        school_id:
+          type: integer
+        reader_id:
+          type: integer
+        reminders:
+          type: array
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/DiaryReminder'
+    DiaryRemindersResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiaryReminders'
+        code:
+          type: integer
     DiaryRangeResponse:
       type: object
       additionalProperties: false

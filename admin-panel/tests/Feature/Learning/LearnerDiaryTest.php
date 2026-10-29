@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Platform\Tenancy\SchoolTable;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -221,6 +222,34 @@ class LearnerDiaryTest extends TestCase
         // Homework that is not Cara's does not exist for her.
         $this->as('cara')->putJson($path, ['done' => true])->assertNotFound();
         $this->as('ben')->putJson('/api/v2/diary/items/homework/999999/state', ['done' => true])->assertNotFound();
+    }
+
+    public function test_the_phone_gets_every_upcoming_reminder_and_only_those(): void
+    {
+        $zone = schoolSetting('time_zone', 'UTC') ?: 'UTC';
+        $tomorrow = now($zone)->addDay()->format('Y-m-d');
+        $soon = $this->create('asha', ['title' => 'Pack sports kit', 'date' => null, 'remind_at' => $tomorrow.' 18:00']);
+        $this->create('asha', ['title' => 'Already done', 'remind_at' => $tomorrow.' 19:00', 'done' => true]);
+        $this->create('asha', ['title' => 'Past', 'remind_at' => now($zone)->subDay()->format('Y-m-d').' 07:00']);
+        $later = $this->create('asha', ['title' => 'Far week', 'date' => now($zone)->addDays(40)->toDateString(), 'remind_at' => now($zone)->addDays(40)->format('Y-m-d').' 07:30']);
+        $homework = $this->school->ids['assignment'];
+        $this->as('asha')->putJson("/api/v2/diary/items/homework/{$homework}/state", ['done' => false, 'remind_at' => $tomorrow.' 16:00'])->assertOk();
+        $this->as('ben')->putJson("/api/v2/diary/items/homework/{$homework}/state", ['done' => false, 'remind_at' => $tomorrow.' 17:00'])->assertOk();
+
+        $data = $this->as('asha')->getJson('/api/v2/diary/reminders')->assertOk()->assertHeader('Cache-Control', 'no-store, private')->json('data');
+        $this->assertSame([1, $this->school->ids['asha_user']], [$data['school_id'], $data['reader_id']]);
+        // Asha has handed the worksheet in, so it needs no reminder; done and past ones have none either.
+        $this->assertSame(["entry:{$soon['id']}", "entry:{$later['id']}"], array_column($data['reminders'], 'key'));
+        $this->assertSame('Pack sports kit', $data['reminders'][0]['text']);
+        $this->assertSame(CarbonImmutable::parse($tomorrow.' 18:00', $zone)->utc()->format('Y-m-d\\TH:i:s\\Z'), $data['reminders'][0]['at']);
+
+        // Ben has not handed it in: his reminder is his own, with the homework's title.
+        $ben = $this->as('ben')->getJson('/api/v2/diary/reminders')->assertOk()->json('data.reminders');
+        $this->assertSame(["homework:{$homework}"], array_column($ben, 'key'));
+        $this->assertSame('Fraction worksheet', $ben[0]['text']);
+
+        $this->as('asha')->getJson('/api/v2/diary/reminders?from=2026-01-01')->assertStatus(422);
+        $this->as('farid')->getJson('/api/v2/diary/reminders')->assertForbidden();
     }
 
     public function test_another_schools_learner_never_reaches_this_schools_diary(): void

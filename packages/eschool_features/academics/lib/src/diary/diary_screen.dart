@@ -18,6 +18,7 @@ class DiaryScreen extends StatefulWidget {
     this.canWrite,
     this.onTalkToSomeone,
     this.reminders,
+    this.onBack,
     this.now,
     super.key,
   });
@@ -29,7 +30,10 @@ class DiaryScreen extends StatefulWidget {
 
   /// Opens the school's wellbeing reporting, which the learner chooses to use.
   final Future<void> Function()? onTalkToSomeone;
-  final DiaryReminders? reminders;
+  final DiaryPhoneReminders? reminders;
+
+  /// Leaves the diary (it opens in a navigator of its own).
+  final VoidCallback? onBack;
 
   /// The device clock, replaceable in tests.
   final DateTime Function()? now;
@@ -45,6 +49,9 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
   int _epoch = 0;
   bool _busy = true, _hidden = false, _loaded = false;
   String? _error, _notice;
+  // Entries and items with a write on its way, so a quick second tap waits.
+  final Set<String> _saving = {};
+  Future<void> _reminderSync = Future<void>.value();
 
   bool get _active => mounted && !_hidden && widget.repository.isActive;
   bool _current(int epoch) => _active && epoch == _epoch;
@@ -66,16 +73,16 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Private text is cleared while the app is in the background, so the app
-  /// switcher and a borrowed phone show nothing.
+  /// Private text is cleared as soon as the app leaves the front (from
+  /// `inactive`, while frames still draw), so the app switcher and a
+  /// borrowed phone show nothing. It is loaded again on return.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       if (!_hidden) return;
       _hidden = false;
       _load(_day ?? diaryDate(_now));
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
+    } else if (!_hidden) {
       _epoch++;
       _hidden = true;
       if (mounted) {
@@ -97,7 +104,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
       if (mounted) setState(() {});
       return;
     }
-    final from = diaryWeekStart(day), to = from.add(const Duration(days: 6));
+    final from = diaryWeekStart(day), to = diaryAddDays(from, 6);
     setState(() {
       _busy = !quiet;
       _error = null;
@@ -117,7 +124,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
         _loaded = true;
         _busy = false;
       });
-      _planReminders(range.entries, range.schoolItems);
+      _syncReminders();
       // The school's today can fall in another week than the device's.
       final shown = _day!;
       if (shown.isBefore(_from!) || shown.isAfter(_to!)) {
@@ -134,19 +141,27 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _planReminders(
-    Iterable<DiaryEntry> entries,
-    Iterable<DiarySchoolItem> items,
-  ) {
-    final reminders = widget.reminders;
-    if (reminders == null) return;
-    reminders
-        .plan(
-          widget.repository.schoolId,
-          widget.repository.readerId,
-          diaryReminderPlan(entries, items, _now),
-        )
-        .catchError((Object _) {});
+  /// The phone's diary reminders become the server's complete list of
+  /// upcoming ones, so moved, done, deleted and unviewed entries are all
+  /// right. One sync runs at a time; each asks the server afresh.
+  void _syncReminders() {
+    final phone = widget.reminders;
+    if (phone == null) return;
+    final repository = widget.repository;
+    _reminderSync = _reminderSync.then((_) async {
+      if (!mounted || !repository.isActive) return;
+      try {
+        final upcoming = await repository.reminders();
+        if (!mounted || !repository.isActive) return;
+        await phone.replaceAll(
+          repository.schoolId,
+          repository.readerId,
+          upcoming.reminders,
+        );
+      } catch (_) {
+        // Reminders are a convenience; the next sync tries again.
+      }
+    });
   }
 
   void _show(DateTime day) {
@@ -188,13 +203,6 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
       ),
     );
     if (!mounted || result == null) return;
-    if (result is DiaryDeletedEntry) {
-      widget.reminders
-          ?.plan(widget.repository.schoolId, widget.repository.readerId, {
-            diaryEntryKey(result.id): null,
-          })
-          .catchError((Object _) {});
-    }
     setState(
       () => _notice = switch (result) {
         DiarySaved() => 'Saved.',
@@ -205,8 +213,10 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _toggleTodo(DiaryEntry entry, bool done) async {
-    if (!_writable) return;
+    final key = 'entry:${entry.id}';
+    if (!_writable || _saving.contains(key)) return;
     final epoch = _epoch;
+    setState(() => _saving.add(key));
     try {
       await widget.repository.update(
         entry.id,
@@ -230,11 +240,14 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
       }
     }
     if (_current(epoch)) await _load(_day ?? diaryDate(_now), quiet: true);
+    if (mounted) setState(() => _saving.remove(key));
   }
 
   Future<void> _toggleItem(DiarySchoolItem item, bool done) async {
-    if (!_writable) return;
+    final key = diaryItemKey(item);
+    if (!_writable || _saving.contains(key)) return;
     final epoch = _epoch;
+    setState(() => _saving.add(key));
     try {
       await widget.repository.setItemState(
         item,
@@ -251,6 +264,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
       }
     }
     if (_current(epoch)) await _load(_day ?? diaryDate(_now), quiet: true);
+    if (mounted) setState(() => _saving.remove(key));
   }
 
   Future<void> _openItem(DiarySchoolItem item) async {
@@ -291,7 +305,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
         IconButton(
           tooltip: l('Previous week'),
           icon: const Icon(Icons.chevron_left),
-          onPressed: () => _show(from.subtract(const Duration(days: 7))),
+          onPressed: () => _show(diaryAddDays(from, -7)),
         ),
         Expanded(
           child: Row(
@@ -300,7 +314,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
               for (var i = 0; i < 7; i++)
                 Builder(
                   builder: (context) {
-                    final day = from.add(Duration(days: i));
+                    final day = diaryAddDays(from, i);
                     final selected = day == _day;
                     final today = day == _today;
                     return Expanded(
@@ -351,7 +365,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
         IconButton(
           tooltip: l('Next week'),
           icon: const Icon(Icons.chevron_right),
-          onPressed: () => _show(from.add(const Duration(days: 7))),
+          onPressed: () => _show(diaryAddDays(from, 7)),
         ),
       ],
     );
@@ -404,7 +418,10 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
             ? Icon(icon)
             : Checkbox(
                 value: item.state.done,
-                onChanged: !_writable || submitted
+                onChanged:
+                    !_writable ||
+                        submitted ||
+                        _saving.contains(diaryItemKey(item))
                     ? null
                     : (value) => _toggleItem(item, value ?? false),
               ),
@@ -445,7 +462,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
         leading: todo
             ? Checkbox(
                 value: entry.done,
-                onChanged: _writable
+                onChanged: _writable && !_saving.contains('entry:${entry.id}')
                     ? (value) => _toggleTodo(entry, value ?? false)
                     : null,
               )
@@ -476,9 +493,37 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final day = _day;
-    if (!_active || (_busy && !_loaded) || day == null) {
+    if (_hidden) {
+      // Away from the front: nothing private, and nothing animating.
       return ScreenScaffold(
         title: l('My diary'),
+        onBack: widget.onBack,
+        body: Center(
+          child: Icon(
+            Icons.lock_outline,
+            size: 48,
+            color: colors.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+    if (!widget.repository.isActive) {
+      return ScreenScaffold(
+        title: l('My diary'),
+        onBack: widget.onBack,
+        body: Center(
+          child: Text(
+            l('Reopen your diary to check your access.'),
+            key: const ValueKey('diary-closed'),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    if ((_busy && !_loaded) || day == null) {
+      return ScreenScaffold(
+        title: l('My diary'),
+        onBack: widget.onBack,
         body: Center(
           child: _error != null && !_busy
               ? Padding(
@@ -530,6 +575,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
         items.isEmpty && todos.isEmpty && anytime.isEmpty && notes.isEmpty;
     return ScreenScaffold(
       title: l('My diary'),
+      onBack: widget.onBack,
       action: IconButton(
         tooltip: l('Refresh'),
         icon: const Icon(Icons.refresh),

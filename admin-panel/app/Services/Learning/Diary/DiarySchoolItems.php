@@ -57,6 +57,37 @@ class DiarySchoolItems
         };
     }
 
+    /**
+     * The titles of the items [states] point at that still apply and are not
+     * handed in, keyed "source:id".
+     *
+     * @return array<string, string>
+     */
+    public function openTitles(Students $learner, Collection $states): array
+    {
+        $ids = fn (string $source) => $states->where('source', $source)->pluck('source_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $titles = [];
+        if (($homework = $ids('homework')) !== []) {
+            $handedIn = AssignmentSubmission::query()->where('student_id', $learner->id)->whereIn('assignment_id', $homework)
+                ->whereIn('status', [0, 1, 3])->pluck('assignment_id')->map(fn ($id) => (int) $id)->all();
+            foreach ($this->homeworkQuery($learner)->whereKey($homework)->get(['id', 'name']) as $row) {
+                if (! in_array((int) $row->id, $handedIn, true)) {
+                    $titles['homework:'.$row->id] = (string) $row->name;
+                }
+            }
+        }
+        $year = (int) schoolSetting('session_year');
+        foreach (['holiday' => Holiday::class, 'event' => Event::class] as $source => $model) {
+            if (($list = $ids($source)) !== []) {
+                foreach ($model::query()->where('session_year_id', $year)->whereKey($list)->get(['id', 'title']) as $row) {
+                    $titles[$source.':'.$row->id] = (string) $row->title;
+                }
+            }
+        }
+
+        return $titles;
+    }
+
     private function homework(Students $learner, CarbonImmutable $from, CarbonImmutable $to, CarbonImmutable $today): Collection
     {
         $carryOverdue = $today->betweenIncluded($from, $to);

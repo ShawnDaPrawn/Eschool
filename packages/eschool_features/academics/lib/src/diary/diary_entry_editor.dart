@@ -94,13 +94,20 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
         );
 
   Future<void> _save() async {
+    if (_busy) return;
     final draft = _draft;
-    final problem = draft.problem;
+    final problem = draft.problem ?? _reminderProblem();
     if (problem != null) {
       setState(() => _error = problem);
       return;
     }
-    if (_busy || !widget.repository.isActive) return;
+    if (!widget.repository.isActive) {
+      setState(
+        () => _error =
+            'Your diary is checking your access. Try again in a moment.',
+      );
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -120,11 +127,24 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
     }
   }
 
+  /// A newly chosen reminder must still be to come; an unchanged old one
+  /// is kept as it is.
+  String? _reminderProblem() {
+    final remind = _remind;
+    if (remind == null) return null;
+    final unchanged = widget.entry?.remindAt == diaryTime(remind);
+    return unchanged || remind.isAfter(DateTime.now())
+        ? null
+        : 'Choose a reminder time that is still to come.';
+  }
+
   Future<void> _delete() async {
     final entry = widget.entry;
     if (entry == null || _busy) return;
     final sure = await showDialog<bool>(
       context: context,
+      // In the diary's own navigator, so closing the diary closes this too.
+      useRootNavigator: false,
       builder: (context) => AlertDialog(
         title: AcademicText(
           entry.kind == DiaryEntryKindEnum.todo
@@ -146,7 +166,14 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
         ],
       ),
     );
-    if (sure != true || !mounted || !widget.repository.isActive) return;
+    if (sure != true || !mounted) return;
+    if (!widget.repository.isActive) {
+      setState(
+        () => _error =
+            'Your diary is checking your access. Try again in a moment.',
+      );
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;

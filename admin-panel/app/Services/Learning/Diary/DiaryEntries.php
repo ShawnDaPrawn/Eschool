@@ -20,6 +20,8 @@ class DiaryEntries
 {
     public const MAX_ENTRIES = 2000;
 
+    public const MAX_REMINDERS = 500;
+
     public function __construct(private readonly DiaryCipher $cipher, private readonly DiarySchoolItems $items) {}
 
     /** The range the learner is looking at: dated entries in it, open undated to-dos, and the school items. */
@@ -115,9 +117,57 @@ class DiaryEntries
         return ['source' => $source, 'id' => $id, 'done' => $done, 'remind_at' => $remind?->format('Y-m-d H:i'), 'note' => $note];
     }
 
+    /**
+     * Every reminder still to come, as instants: the learner's phone replaces
+     * the diary reminders it has scheduled with exactly these. Done entries,
+     * handed-in homework and items that no longer apply have none.
+     */
+    public function reminders(Students $learner): array
+    {
+        $userId = (int) $learner->user_id;
+        $zone = $this->zone();
+        $after = CarbonImmutable::now($zone)->format('Y-m-d H:i:s');
+        $reminders = [];
+        $entries = DiaryEntry::query()->where('user_id', $userId)->whereNull('done_at')
+            ->whereNotNull('remind_at')->where('remind_at', '>', $after)
+            ->orderBy('remind_at')->limit(self::MAX_REMINDERS)->get();
+        foreach ($entries as $entry) {
+            $reminders[] = ['key' => 'entry:'.$entry->id, 'at' => $this->utc($entry->remind_at, $zone),
+                'text' => (string) $this->cipher->decrypt($userId, $entry->title)];
+        }
+        $states = DiaryItemState::query()->where('user_id', $userId)->whereNull('done_at')
+            ->whereNotNull('remind_at')->where('remind_at', '>', $after)
+            ->orderBy('remind_at')->limit(self::MAX_REMINDERS)->get();
+        $titles = $this->items->openTitles($learner, $states);
+        foreach ($states as $state) {
+            $key = $state->source.':'.$state->source_id;
+            if (isset($titles[$key])) {
+                $reminders[] = ['key' => $key, 'at' => $this->utc($state->remind_at, $zone), 'text' => $titles[$key]];
+            }
+        }
+        usort($reminders, fn (array $a, array $b) => [$a['at'], $a['key']] <=> [$b['at'], $b['key']]);
+
+        return [
+            'school_id' => (int) $learner->school_id,
+            'reader_id' => $userId,
+            'reminders' => array_slice($reminders, 0, self::MAX_REMINDERS),
+        ];
+    }
+
     public function today(): CarbonImmutable
     {
-        return CarbonImmutable::now(schoolSetting('time_zone', 'UTC') ?: 'UTC')->startOfDay();
+        return CarbonImmutable::now($this->zone())->startOfDay();
+    }
+
+    private function zone(): string
+    {
+        return schoolSetting('time_zone', 'UTC') ?: 'UTC';
+    }
+
+    /** A stored school wall time as a UTC instant. */
+    private function utc(\DateTimeInterface $wall, string $zone): string
+    {
+        return CarbonImmutable::createFromFormat('Y-m-d H:i:s', $wall->format('Y-m-d H:i:s'), $zone)->utc()->format('Y-m-d\\TH:i:s\\Z');
     }
 
     private function fill(DiaryEntry $entry, int $userId, array $input): void

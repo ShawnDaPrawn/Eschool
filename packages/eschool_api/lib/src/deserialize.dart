@@ -437,6 +437,9 @@ import 'package:eschool_api/src/model/diary_item_state_input.dart';
 import 'package:eschool_api/src/model/diary_item_state_response.dart';
 import 'package:eschool_api/src/model/diary_range.dart';
 import 'package:eschool_api/src/model/diary_range_response.dart';
+import 'package:eschool_api/src/model/diary_reminder.dart';
+import 'package:eschool_api/src/model/diary_reminders.dart';
+import 'package:eschool_api/src/model/diary_reminders_response.dart';
 import 'package:eschool_api/src/model/diary_school_item.dart';
 import 'package:eschool_api/src/model/diary_subject.dart';
 import 'package:eschool_api/src/model/discipline_acknowledge_write.dart';
@@ -2919,6 +2922,15 @@ ReturnType deserialize<ReturnType, BaseType>(
       return DiaryRange.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'DiaryRangeResponse':
       return DiaryRangeResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryReminder':
+      return DiaryReminder.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryReminders':
+      return DiaryReminders.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryRemindersResponse':
+      return DiaryRemindersResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'DiarySchoolItem':
       return DiarySchoolItem.fromJson(value as Map<String, dynamic>)

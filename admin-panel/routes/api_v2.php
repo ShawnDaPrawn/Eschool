@@ -774,6 +774,7 @@ Route::prefix('card-readers')->name('api.v2.cards.readers.')->middleware([Privat
 Route::prefix('diary')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'learner.approved', 'module:diary', 'cache.headers:private;no_store'])->name('api.v2.diary.')->group(function () {
     $c = DiaryController::class;
     Route::get('/', [$c, 'index'])->name('index');
+    Route::get('reminders', [$c, 'reminders'])->name('reminders');
     Route::post('entries', [$c, 'store'])->middleware('throttle:60,1')->name('entries.store');
     Route::put('entries/{entry}', [$c, 'update'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.update');
     Route::delete('entries/{entry}', [$c, 'destroy'])->whereNumber('entry')->middleware('throttle:60,1')->name('entries.destroy');

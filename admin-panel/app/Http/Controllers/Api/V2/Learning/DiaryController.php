@@ -23,6 +23,11 @@ class DiaryController extends Controller
         return ResponseService::successResponse('data_fetch_successfully', $data);
     }
 
+    public function reminders(DiaryRequest $request, DiaryEntries $diary): JsonResponse
+    {
+        return ResponseService::successResponse('data_fetch_successfully', $diary->reminders($request->learner()));
+    }
+
     public function store(DiaryRequest $request, DiaryEntries $diary): JsonResponse
     {
         return ResponseService::successResponse('data_store_successfully', $diary->create($request->learner(), $request->validated()));

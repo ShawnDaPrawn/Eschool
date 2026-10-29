@@ -478,6 +478,9 @@ lib/src/model/diary_item_state_input.dart
 lib/src/model/diary_item_state_response.dart
 lib/src/model/diary_range.dart
 lib/src/model/diary_range_response.dart
+lib/src/model/diary_reminder.dart
+lib/src/model/diary_reminders.dart
+lib/src/model/diary_reminders_response.dart
 lib/src/model/diary_school_item.dart
 lib/src/model/diary_subject.dart
 lib/src/model/discipline_acknowledge_write.dart

@@ -9,9 +9,14 @@ String diaryDay(DateTime date) =>
 
 DateTime diaryDate(DateTime date) => DateTime(date.year, date.month, date.day);
 
+/// [days] calendar days after [date]. Calendar arithmetic, not a
+/// `Duration`, so a daylight-saving change cannot shift the day.
+DateTime diaryAddDays(DateTime date, int days) =>
+    DateTime(date.year, date.month, date.day + days);
+
 /// The Monday that starts [date]'s week.
 DateTime diaryWeekStart(DateTime date) =>
-    diaryDate(date).subtract(Duration(days: date.weekday - DateTime.monday));
+    diaryAddDays(date, DateTime.monday - date.weekday);
 
 String diaryTime(DateTime at) =>
     '${diaryDay(at)} ${at.hour.toString().padLeft(2, '0')}:'
