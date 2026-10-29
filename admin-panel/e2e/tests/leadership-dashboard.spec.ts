@@ -52,7 +52,6 @@ for (const width of [390, 1024, 1280]) {
     await expect(page.getByText('Unavailable', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Recorded attendance', { exact: true }).first()).toBeVisible();
     const collected = page.getByText('Allocated learner fees', { exact: true }).first().locator('xpath=following-sibling::dd[1]');
-    console.info('Leadership rendered diagnostic:', page.url(), await collected.innerText());
     await expect(collected).toHaveText('ZAR 4.00');
     await expect(page.getByText('Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.', { exact: true })).toBeVisible();
     expect(await seriousViolations(page)).toEqual([]);

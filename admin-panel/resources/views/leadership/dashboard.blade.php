@@ -24,7 +24,23 @@
 <dt>{{ __('Enrolled learners at period end') }}</dt><dd>{{ $row['enrolled_learners'] }}</dd>
 <dt>{{ __('Recorded attendance') }}</dt><dd>@if($row['attendance']['percentage_bp'] !== null){{ number_format($row['attendance']['percentage_bp']/100,2) }}% · {{ $row['attendance']['recorded_days'] }} {{ __('learner days') }}@else{{ __('Unavailable') }}@endif</dd>
 @foreach(['academic_risk' => __('Learners requiring academic follow-up'), 'discipline' => __('Learners with discipline incidents'), 'fee_collection_cents' => __('Allocated learner fees'), 'active_learners' => __('Observed active learners')] as $key => $label)
-<dt>{{ $label }}</dt><dd>@if($row[$key]['value'] === null){{ __('Unavailable') }}@elseif($key === 'fee_collection_cents')@if($row['fee_collection_currency'] !== null){{ \App\Services\Platform\Ledger\Money::ofCents($row[$key]['value'], $row['fee_collection_currency'])->format() }}@else{{ $row[$key]['value'] }}@endif@else{{ $row[$key]['value'] }}@endif @if($row[$key]['status'] === 'partial') · {{ __('Partial observation') }}@endif</dd>
+<dt>{{ $label }}</dt>
+<dd>
+    @if($row[$key]['value'] === null)
+        {{ __('Unavailable') }}
+    @elseif($key === 'fee_collection_cents')
+        @if($row['fee_collection_currency'] !== null)
+            {{ \App\Services\Platform\Ledger\Money::ofCents($row[$key]['value'], $row['fee_collection_currency'])->format() }}
+        @else
+            {{ $row[$key]['value'] }}
+        @endif
+    @else
+        {{ $row[$key]['value'] }}
+    @endif
+    @if($row[$key]['status'] === 'partial')
+        · {{ __('Partial observation') }}
+    @endif
+</dd>
 @endforeach
 </dl>
 </div></article>
