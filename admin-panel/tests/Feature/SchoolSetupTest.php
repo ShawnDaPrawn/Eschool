@@ -82,10 +82,10 @@ class SchoolSetupTest extends TestCase
     public function test_the_running_session_year_can_be_edited_after_its_free_app_date(): void
     {
         $year = SessionYear::where('name', '2022-23')->firstOrFail();
-        $year->update([
+        $year->forceFill([
             'start_date' => now()->subMonths(3)->toDateString(), 'end_date' => now()->addMonths(8)->toDateString(),
             'fee_due_date' => now()->addMonth()->toDateString(), 'free_app_use_date' => now()->subDays(10)->toDateString(),
-        ]);
+        ])->save();
         $form = [
             'id' => $year->id, 'name' => 'This year', 'start_date' => now()->subMonths(3)->format('d-m-Y'),
             'end_date' => now()->addMonths(8)->format('d-m-Y'), 'fees_due_date' => now()->addMonth()->format('d-m-Y'),
