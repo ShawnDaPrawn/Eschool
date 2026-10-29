@@ -6,15 +6,19 @@ use App\Models\Academics\GradeLevel;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\ClassSchool;
+use App\Models\ElectiveSubjectGroup;
 use App\Models\File;
 use App\Models\Notification;
+use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\School;
+use App\Models\StudentSubject;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\RunsAppServer;
 use Tests\Support\DemoSchool;
@@ -429,5 +433,45 @@ class HomeworkReuseTest extends TestCase
             $this->postJson("/assignment/$source/copy", ['targets' => [$base.$taught->id], 'due_date' => $this->dueDate()])->assertOk()->assertJsonPath('error', false);
             $this->assertSame((int) $taught->id, (int) Assignment::latest('id')->firstOrFail()->term_id);
         }
+    }
+
+    public function test_elective_copy_notifications_match_the_target_class_term_and_year(): void
+    {
+        Queue::fake();
+        $year = $this->school->ids['session_year'];
+        $class = $this->school->ids['class_a'];
+        $section = $this->school->ids['section_a'];
+        $subject = $this->school->ids['maths'];
+        $target = Term::findOrFail($this->school->ids['term']);
+        $target->forceFill(['grade_from' => 0, 'grade_to' => 12])->save();
+        $other = $target->replicate();
+        $other->name = 'Other elective term';
+        $other->save();
+        SchoolTable::query('class_session_configs')->where('class_id', $class)->where('session_year_id', $year)->update(['include_terms' => 1]);
+        // The older row is compulsory in another term; it must not determine this term's recipients.
+        SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_a_maths'])->update(['term_id' => $other->id]);
+        $group = ElectiveSubjectGroup::create(['class_id' => $class, 'session_year_id' => $year, 'term_id' => $target->id,
+            'total_subjects' => 1, 'total_selectable_subjects' => 1]);
+        SchoolTable::query('class_subjects')->insert(['class_id' => $class, 'subject_id' => $subject, 'session_year_id' => $year,
+            'term_id' => $target->id, 'type' => 'Elective', 'elective_subject_group_id' => $group->id]);
+        SchoolTable::query('student_subjects')->where('subject_id', $subject)->where('session_year_id', $year)
+            ->whereIn('student_id', [$this->school->ids['asha'], $this->school->ids['ben']])->delete();
+        foreach ([
+            [$this->school->ids['asha'], $section, $target->id],
+            [$this->school->ids['ben'], $section, $other->id],
+            [$this->school->ids['ben'], $this->school->ids['section_c'], $target->id],
+        ] as [$learner, $homeroom, $term]) {
+            StudentSubject::create(['student_id' => $learner, 'class_section_id' => $homeroom, 'subject_id' => $subject,
+                'session_year_id' => $year, 'term_id' => $term]);
+        }
+        $admin = $this->superAdmin();
+        $admin->givePermissionTo('assignment-create');
+        $this->actingAs($admin, 'web')->postJson("/assignment/{$this->school->ids['assignment']}/copy", [
+            'targets' => [$section.':'.$target->id], 'due_date' => $this->dueDate(),
+        ])->assertOk()->assertJsonPath('error', false);
+        $notice = Notification::latest('id')->firstOrFail();
+        $intent = OutboxEvent::where('school_id', app(CurrentSchool::class)->id())->where('type', 'notification.requested')->latest('id')->firstOrFail();
+        $this->assertSame((int) $notice->id, $intent->payload['notification_id']);
+        $this->assertSame([$this->school->ids['asha_user']], $intent->payload['user_ids']);
     }
 }

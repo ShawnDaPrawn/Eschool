@@ -116,6 +116,8 @@ jobs:
       - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate --force
+      - name: Fast homework reuse regressions
+        run: php artisan test --filter=HomeworkReuseTest
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -826,6 +828,10 @@ jobs:
           npm run typecheck
           trap 'panel_result=$?; if ! kill -0 "$(cat ../storage/logs/panel.pid)" 2>/dev/null; then echo "Panel server exited during the browser run"; tail -n 40 ../storage/logs/serve.log; panel_result=1; fi; exit "$panel_result"' EXIT
           python3 ../tool/ci/playwright_partition.py --prepare
+          # Fail quickly on the active consolidation regression before the broad sweep.
+          if [ '${{ matrix.part }}' = '3' ]; then
+            npx playwright test tests/leadership-dashboard.spec.ts --project=flows
+          fi
           if [ '${{ matrix.part }}' = '1' ]; then
             python3 ../tool/ci/playwright_partition.py --verify
           fi

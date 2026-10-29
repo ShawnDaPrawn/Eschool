@@ -22,6 +22,10 @@ $data=app(\App\Services\Platform\Tenancy\CurrentSchool::class)->run($data['schoo
  app(\App\Services\Money\FeeAllocations::class)->post($actor,$payment->id,['operation_id'=>(string)\Illuminate\Support\Str::uuid(),'fingerprint'=>$allocation['fingerprint'],'confirmed'=>true]);
  $learner=\App\Models\Students::findOrFail($data['learners'][0]['id']);
  foreach([0=>'present',1=>'first_half'] as $days=>$state){$on=\Carbon\CarbonImmutable::parse($data['date'])->subDays($days)->toDateString();$register=\App\Models\Academics\AttendanceRegister::create(['session_year_id'=>$data['year'],'on_date'=>$on,'scope_key'=>'homeroom:'.$learner->class_section_id,'class_section_id'=>$learner->class_section_id,'grade_level_id'=>$grade->id,'label'=>'Synthetic dashboard register','revision'=>1]);\App\Models\Academics\AttendanceEntry::create(['attendance_register_id'=>$register->id,'learner_id'=>$learner->id,'state'=>$state,'source'=>'manual','revision'=>1,'captured_by'=>$actor->id]);}
+ $reader=app(\App\Services\Leadership\LeadershipFeeCollections::class);
+ $snapshot=$reader->read($actor,$data['year'],$data['date'],$data['date']);
+ $actual=$reader->amount($snapshot,(int)$grade->id,$data['date'],$data['date']);
+ if($actual!==400){throw new \RuntimeException('Leadership projection diagnostic: '.json_encode(['actual'=>$actual,'expected'=>400,'school'=>$data['school'],'year'=>$data['year'],'date'=>$data['date'],'grade'=>$grade->id,'allocated'=>$allocation['amount_cents'],'snapshot'=>$snapshot]));}
  return $data;
 });echo json_encode($data);`;
   try {
@@ -47,7 +51,9 @@ for (const width of [390, 1024, 1280]) {
     await expect(page.getByRole('heading', { name: 'Grade 5', exact: true }).first()).toBeVisible();
     await expect(page.getByText('Unavailable', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Recorded attendance', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('ZAR 4.00', { exact: true })).toBeVisible();
+    const collected = page.getByText('Allocated learner fees', { exact: true }).first().locator('xpath=following-sibling::dd[1]');
+    console.info('Leadership rendered diagnostic:', page.url(), await collected.innerText());
+    await expect(collected).toHaveText('ZAR 4.00');
     await expect(page.getByText('Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.', { exact: true })).toBeVisible();
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);

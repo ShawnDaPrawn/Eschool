@@ -256,13 +256,16 @@ class HomeworkCopies
             ->where('subject_id', $assignment->subject_id)
             ->where('class_id', $classId)
             ->where('session_year_id', $sessionYearId)
+            ->when($assignment->term_id !== null, fn ($query) => $query->where('term_id', $assignment->term_id))
             ->first();
 
         $learners = Students::query()->where('class_section_id', $assignment->class_section_id);
         if ($classSubject?->type === 'Elective') {
             $learners->whereIn('id', StudentSubject::query()
                 ->where('subject_id', $assignment->subject_id)
+                ->where('class_section_id', $assignment->class_section_id)
                 ->where('session_year_id', $sessionYearId)
+                ->when($assignment->term_id !== null, fn ($query) => $query->where('term_id', $assignment->term_id))
                 ->select('student_id'));
         }
         $userIds = $learners->pluck('user_id')->filter()->values()->all();

@@ -156,3 +156,10 @@ Teacher targets now use the same verified disjoint two-part pattern as Family.
 Discovery/exclusions and both original required aggregate check names are
 preserved; every part must pass. These last fixture/CI edits require a new run.
 No production application logic or migration changes accompany this correction.
+
+
+### Final notification and leadership regression qualification
+
+Elective homework copy recipients now match the copied assignment's class section, session year and term, including the ClassSubject row that determines whether the subject is elective. The added durable-outbox regression includes a correct-term learner and wrong-term/wrong-section selections. These changes await the current CI run; no new passing result is claimed here.
+
+The leadership browser fixture now checks its canonical allocated collection before opening the page and reports the rendered collection value if the UI differs. Existing homework and leadership cases run early in their existing CI jobs to shorten feedback; the complete backend and browser suites remain required and unchanged in scope.
