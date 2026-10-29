@@ -9,6 +9,7 @@ use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolModule;
 use App\Models\User;
+use App\Services\Money\WalletSettings;
 use App\Services\Panel\Navigation;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Modules\ModuleGate;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
@@ -94,6 +96,32 @@ class ModuleControlsTest extends TestCase
         $this->getJson('/api/student/send-fee-notification')->assertForbidden();
         $this->assertTrue(app(ModuleGate::class)->change('fees', true, $this->superAdmin())['enabled']);
         $this->assertFalse(app(ModuleGate::class)->state('fees')['read_only']);
+    }
+
+    public function test_paused_dependency_does_not_enable_unused_money_modules(): void
+    {
+        $admin = $this->superAdmin();
+        $gate = app(ModuleGate::class);
+        $gate->change('wallet', true, $admin);
+        $gate->change('vendors', true, $admin);
+        app(WalletSettings::class)->save($admin, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'currency' => 'ZAR', 'daily_spend_cents' => 5000, 'child_limits_required' => true]);
+        $state = $gate->change('wallet', false, $admin);
+        $this->assertTrue($state['enabled']);
+        $this->assertTrue($state['read_only']);
+        foreach (['wallet_payments', 'ticketing'] as $module) {
+            $this->assertFalse($gate->allows($module));
+            $this->assertFalse($gate->writable($module));
+            $this->assertNotContains($module, array_column($gate->context(), 'key'));
+        }
+        $gate->change('vendors', false, $admin);
+        $this->assertFalse($gate->allows('vendors'));
+        app(CurrentSchool::class)->run(2, fn () => $this->assertFalse($gate->allows('wallet_payments')));
+        // A retained module's own history remains readable even with a paused
+        // dependency and removed entitlement. It never becomes writable.
+        SchoolModule::query()->updateOrCreate(['module' => 'wallet_payments'], ['enabled' => true, 'in_package' => false, 'read_only' => true]);
+        $gate->forget();
+        $this->assertTrue($gate->allows('wallet_payments'));
+        $this->assertFalse($gate->writable('wallet_payments'));
     }
 
     public function test_dependency_switches_fail_without_partial_changes(): void

@@ -209,6 +209,9 @@ final class WalletWithdrawals
                 $hash = app(ExternalDisbursements::class)->available($row->method, $row->currency, $data['payout_reference']);
                 $counter = $ledger->openAccount($row->method === 'cash' ? AccountType::CashDesk : AccountType::WalletBank, 'wallet:'.$row->method.':'.$row->currency, $row->currency, module: 'wallet');
                 abort_unless($this->soundBalance($counter) >= $row->amount_cents, 422, 'Reconcile and fund the actual payout asset before recording payment.');
+                if ($row->method === 'cash') {
+                    app(CashCustody::class)->requirePayout($actor, $row->currency, $row->amount_cents, $data['paid_on']);
+                }
                 $evidence = json_encode(['reference' => $data['payout_reference'], 'verification' => $data['private_evidence']], JSON_THROW_ON_ERROR);
                 $cashOperator = $row->method === 'cash' ? (int) $actor->id : null;
             } else {

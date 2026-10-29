@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/fixtures.dart';
+import 'support/commerce_journey.dart';
 import 'support/smoke.dart';
 
 void main() {
@@ -45,6 +46,8 @@ void main() {
             'people',
             'academics',
             'wallet',
+            'vendors',
+            'wallet_payments',
             'web_teacher',
           ])
             {'key': key, 'read_only': false},
@@ -104,6 +107,7 @@ void main() {
       ),
       hasLength(1),
     );
+    await exerciseCommerce(tester, api, actor: 12);
     allowed = false;
     await tester.tap(find.byTooltip('Refresh wallets'));
     await pumpUntilFound(

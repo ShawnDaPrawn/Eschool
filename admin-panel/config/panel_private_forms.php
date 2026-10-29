@@ -17,7 +17,11 @@ use App\Services\Wellbeing\WellbeingPanelScope;
 // Private form text may be returned to its author in a no-store refusal page,
 // but must never be copied into Laravel's plain session old-input flash.
 return [
+    ['paths' => ['cashups', 'cashups/*'], 'title' => 'Daily cash-up', 'route' => 'cashups.index', 'fields' => []],
+    ['paths' => ['vendor-settlements', 'vendor-settlements/*'], 'title' => 'Vendor settlements', 'route' => 'vendor-settlements.index', 'fields' => []],
     ['paths' => ['wallet-topups', 'wallet-topups/*'], 'title' => 'Desk wallet top-ups', 'route' => 'wallet-desk.index', 'fields' => []],
+    ['paths' => ['vendor-operators', 'vendor-operators/*'], 'title' => 'Vendor operators', 'route' => 'vendor-operators.index', 'fields' => []],
+    ['paths' => ['vendor-orders', 'vendor-orders/*'], 'title' => 'Vendor orders', 'route' => 'vendor-orders.index', 'fields' => []],
     ['paths' => ['vendor-catalogues', 'vendor-catalogues/*'], 'title' => 'Vendors and stock', 'route' => 'vendor-catalogues.index', 'fields' => []],
     ['paths' => ['wallet-withdrawals', 'wallet-withdrawals/*'], 'title' => 'Adult wallet withdrawals', 'route' => 'wallet-withdrawals.index', 'fields' => []],
     ['paths' => ['wallet-deposits', 'wallet-deposits/*'], 'title' => 'Parent wallet deposits', 'route' => 'wallet-deposits.index', 'fields' => []],

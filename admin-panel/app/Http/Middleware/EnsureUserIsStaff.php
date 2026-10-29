@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Commerce\VendorOperatorAccess;
 use Closure;
 use Illuminate\Http\Request;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -18,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserIsStaff
 {
     /** Roles that are never staff. */
-    public const APP_ONLY_ROLES = ['Parent', 'Student'];
+    public const APP_ONLY_ROLES = ['Parent', 'Student', 'Vendor'];
 
     /**
      * @param  Closure(Request): Response  $next
@@ -29,6 +30,8 @@ class EnsureUserIsStaff
         if ($user === null) {
             throw UnauthorizedException::notLoggedIn();
         }
+
+        abort_if(app(VendorOperatorAccess::class)->ownsSession($request), 403);
 
         if ($user->getRoleNames()->diff(self::APP_ONLY_ROLES)->isEmpty()) {
             throw UnauthorizedException::forRoles(['staff']);

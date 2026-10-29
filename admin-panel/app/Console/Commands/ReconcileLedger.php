@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Platform\School;
 use App\Services\Commerce\VendorCatalogueReconciliation;
+use App\Services\Commerce\VendorOrderReconciliation;
 use App\Services\Money\FeePaymentReconciliation;
 use App\Services\Money\WalletDepositReconciliation;
 use App\Services\Money\WalletDeskReconciliation;
@@ -72,13 +73,14 @@ final class ReconcileLedger extends Command
                 $parentDeposits = app(WalletDepositReconciliation::class)->inspect();
                 $withdrawals = app(WalletWithdrawalReconciliation::class)->inspect();
                 $vendors = app(VendorCatalogueReconciliation::class)->inspect();
-                $validDomain = VendorCatalogueReconciliation::healthy($vendors) && WalletWithdrawalReconciliation::healthy($withdrawals) && FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding) && WalletDeskReconciliation::healthy($desk) && WalletTransferReconciliation::healthy($transfers) && WalletDepositReconciliation::healthy($parentDeposits);
+                $orders = app(VendorOrderReconciliation::class)->inspect();
+                $validDomain = VendorOrderReconciliation::healthy($orders) && VendorCatalogueReconciliation::healthy($vendors) && WalletWithdrawalReconciliation::healthy($withdrawals) && FeePaymentReconciliation::healthy($payments) && WalletFundingReconciliation::healthy($walletFunding) && WalletDeskReconciliation::healthy($desk) && WalletTransferReconciliation::healthy($transfers) && WalletDepositReconciliation::healthy($parentDeposits);
                 $repair = $validDomain && (bool) $this->option('rebuild') && $unbalanced === 0 && $drafts === 0 && $invoiceDrafts === 0;
                 $differences = $ledger->projectionDifferences($repair);
 
                 return ['school_id' => (int) $school, 'unbalanced_entries' => $unbalanced, 'incomplete_entries' => $drafts, 'incomplete_invoices' => $invoiceDrafts,
                     'projection_differences' => $differences, 'projections_rebuilt' => $repair && $differences !== [],
-                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding, ...$desk, ...$transfers, ...$parentDeposits, ...$withdrawals, ...$vendors];
+                    'legacy_cents_mismatches' => $legacy, 'domain_history_valid' => $validDomain, ...$payments, ...$walletFunding, ...$desk, ...$transfers, ...$parentDeposits, ...$withdrawals, ...$vendors, ...$orders];
             }));
             $bad = $report['unbalanced_entries'] > 0 || $report['incomplete_entries'] > 0
                 || $report['incomplete_invoices'] > 0

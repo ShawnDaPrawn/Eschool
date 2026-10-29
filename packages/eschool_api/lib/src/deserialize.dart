@@ -217,6 +217,29 @@ import 'package:eschool_api/src/model/activity_session_roster_learner.dart';
 import 'package:eschool_api/src/model/activity_session_write.dart';
 import 'package:eschool_api/src/model/activity_staff_write.dart';
 import 'package:eschool_api/src/model/add_wellbeing_case_entry_response.dart';
+import 'package:eschool_api/src/model/admission_counter_outcome.dart';
+import 'package:eschool_api/src/model/admission_counter_outcome_response.dart';
+import 'package:eschool_api/src/model/admission_counter_resolution.dart';
+import 'package:eschool_api/src/model/admission_counter_resolution_response.dart';
+import 'package:eschool_api/src/model/admission_counter_ticket.dart';
+import 'package:eschool_api/src/model/admission_counter_ticket_response.dart';
+import 'package:eschool_api/src/model/admission_event.dart';
+import 'package:eschool_api/src/model/admission_lookup_write.dart';
+import 'package:eschool_api/src/model/admission_product.dart';
+import 'package:eschool_api/src/model/admission_quote_details.dart';
+import 'package:eschool_api/src/model/admission_receive_code.dart';
+import 'package:eschool_api/src/model/admission_receive_code_response.dart';
+import 'package:eschool_api/src/model/admission_redeem_write.dart';
+import 'package:eschool_api/src/model/admission_ticket.dart';
+import 'package:eschool_api/src/model/admission_ticket_page.dart';
+import 'package:eschool_api/src/model/admission_ticket_page_response.dart';
+import 'package:eschool_api/src/model/admission_ticket_response.dart';
+import 'package:eschool_api/src/model/admission_transfer_ack.dart';
+import 'package:eschool_api/src/model/admission_transfer_ack_response.dart';
+import 'package:eschool_api/src/model/admission_transfer_preview.dart';
+import 'package:eschool_api/src/model/admission_transfer_preview_response.dart';
+import 'package:eschool_api/src/model/admission_transfer_preview_write.dart';
+import 'package:eschool_api/src/model/admission_transfer_write.dart';
 import 'package:eschool_api/src/model/approval_learner.dart';
 import 'package:eschool_api/src/model/approval_state.dart';
 import 'package:eschool_api/src/model/approval_state_response.dart';
@@ -232,6 +255,26 @@ import 'package:eschool_api/src/model/class_grade_mapping_grade_level.dart';
 import 'package:eschool_api/src/model/class_grade_response.dart';
 import 'package:eschool_api/src/model/class_grade_write.dart';
 import 'package:eschool_api/src/model/close_consultation_response.dart';
+import 'package:eschool_api/src/model/commerce_cancel_write.dart';
+import 'package:eschool_api/src/model/commerce_cart_line.dart';
+import 'package:eschool_api/src/model/commerce_catalogue.dart';
+import 'package:eschool_api/src/model/commerce_catalogue_response.dart';
+import 'package:eschool_api/src/model/commerce_catalogue_vendor.dart';
+import 'package:eschool_api/src/model/commerce_order_page.dart';
+import 'package:eschool_api/src/model/commerce_order_page_response.dart';
+import 'package:eschool_api/src/model/commerce_order_receipt.dart';
+import 'package:eschool_api/src/model/commerce_order_receipt_response.dart';
+import 'package:eschool_api/src/model/commerce_product.dart';
+import 'package:eschool_api/src/model/commerce_purchase_write.dart';
+import 'package:eschool_api/src/model/commerce_quote.dart';
+import 'package:eschool_api/src/model/commerce_quote_line.dart';
+import 'package:eschool_api/src/model/commerce_quote_response.dart';
+import 'package:eschool_api/src/model/commerce_quote_write.dart';
+import 'package:eschool_api/src/model/commerce_receipt_line.dart';
+import 'package:eschool_api/src/model/commerce_seller.dart';
+import 'package:eschool_api/src/model/commerce_vendor_brief.dart';
+import 'package:eschool_api/src/model/commerce_vendor_page.dart';
+import 'package:eschool_api/src/model/commerce_vendor_page_response.dart';
 import 'package:eschool_api/src/model/communication_audience.dart';
 import 'package:eschool_api/src/model/communication_audience_list.dart';
 import 'package:eschool_api/src/model/communication_audience_list_response.dart';
@@ -1199,8 +1242,43 @@ import 'package:eschool_api/src/model/update_profile_field_request.dart';
 import 'package:eschool_api/src/model/upload_anonymous_incident_photo_response.dart';
 import 'package:eschool_api/src/model/upload_identified_incident_photo_response.dart';
 import 'package:eschool_api/src/model/validation_errors.dart';
+import 'package:eschool_api/src/model/vendor_counter_collect.dart';
+import 'package:eschool_api/src/model/vendor_counter_line.dart';
+import 'package:eschool_api/src/model/vendor_counter_lookup.dart';
+import 'package:eschool_api/src/model/vendor_counter_page.dart';
+import 'package:eschool_api/src/model/vendor_counter_page_response.dart';
+import 'package:eschool_api/src/model/vendor_counter_receipt.dart';
+import 'package:eschool_api/src/model/vendor_counter_receipt_response.dart';
+import 'package:eschool_api/src/model/vendor_counter_resolution.dart';
+import 'package:eschool_api/src/model/vendor_counter_resolution_response.dart';
+import 'package:eschool_api/src/model/vendor_operator_counter.dart';
+import 'package:eschool_api/src/model/vendor_operator_profile.dart';
+import 'package:eschool_api/src/model/vendor_operator_profile_response.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_in_data.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_in_data_response.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_in_input.dart';
+import 'package:eschool_api/src/model/vendor_operator_sign_out_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_line.dart';
+import 'package:eschool_api/src/model/vendor_settlement_page.dart';
+import 'package:eschool_api/src/model/vendor_settlement_page_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_receipt.dart';
+import 'package:eschool_api/src/model/vendor_settlement_receipt_response.dart';
+import 'package:eschool_api/src/model/vendor_settlement_summary.dart';
+import 'package:eschool_api/src/model/wallet_card_payment_review.dart';
+import 'package:eschool_api/src/model/wallet_card_payment_review_response.dart';
+import 'package:eschool_api/src/model/wallet_card_prepare_write.dart';
+import 'package:eschool_api/src/model/wallet_card_prepare_write_lines_inner.dart';
 import 'package:eschool_api/src/model/wallet_controls.dart';
 import 'package:eschool_api/src/model/wallet_controls_change.dart';
+import 'package:eschool_api/src/model/wallet_counter_catalogue.dart';
+import 'package:eschool_api/src/model/wallet_counter_catalogue_response.dart';
+import 'package:eschool_api/src/model/wallet_counter_pay_write.dart';
+import 'package:eschool_api/src/model/wallet_counter_payment_receipt.dart';
+import 'package:eschool_api/src/model/wallet_counter_payment_receipt_response.dart';
+import 'package:eschool_api/src/model/wallet_counter_payment_resolution.dart';
+import 'package:eschool_api/src/model/wallet_counter_payment_resolution_response.dart';
+import 'package:eschool_api/src/model/wallet_counter_product.dart';
+import 'package:eschool_api/src/model/wallet_counter_product_response.dart';
 import 'package:eschool_api/src/model/wallet_deposit_cancel_write.dart';
 import 'package:eschool_api/src/model/wallet_deposit_claim_write.dart';
 import 'package:eschool_api/src/model/wallet_deposit_page.dart';
@@ -1215,6 +1293,14 @@ import 'package:eschool_api/src/model/wallet_entry_page.dart';
 import 'package:eschool_api/src/model/wallet_operation_resolution.dart';
 import 'package:eschool_api/src/model/wallet_operation_resolution_response.dart';
 import 'package:eschool_api/src/model/wallet_owner.dart';
+import 'package:eschool_api/src/model/wallet_payment_instruction.dart';
+import 'package:eschool_api/src/model/wallet_payment_instruction_response.dart';
+import 'package:eschool_api/src/model/wallet_payment_issue_write.dart';
+import 'package:eschool_api/src/model/wallet_payment_lookup_write.dart';
+import 'package:eschool_api/src/model/wallet_payment_personal.dart';
+import 'package:eschool_api/src/model/wallet_payment_personal_page.dart';
+import 'package:eschool_api/src/model/wallet_payment_personal_page_response.dart';
+import 'package:eschool_api/src/model/wallet_payment_personal_response.dart';
 import 'package:eschool_api/src/model/wallet_statement.dart';
 import 'package:eschool_api/src/model/wallet_statement_entry.dart';
 import 'package:eschool_api/src/model/wallet_summary.dart';
@@ -2096,6 +2182,89 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'AdmissionCounterOutcome':
+      return AdmissionCounterOutcome.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionCounterOutcomeResponse':
+      return AdmissionCounterOutcomeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionCounterResolution':
+      return AdmissionCounterResolution.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionCounterResolutionResponse':
+      return AdmissionCounterResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionCounterTicket':
+      return AdmissionCounterTicket.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionCounterTicketResponse':
+      return AdmissionCounterTicketResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionEvent':
+      return AdmissionEvent.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionLookupWrite':
+      return AdmissionLookupWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionProduct':
+      return AdmissionProduct.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionQuoteDetails':
+      return AdmissionQuoteDetails.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionReceiveCode':
+      return AdmissionReceiveCode.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionReceiveCodeResponse':
+      return AdmissionReceiveCodeResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionRedeemWrite':
+      return AdmissionRedeemWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicket':
+      return AdmissionTicket.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicketPage':
+      return AdmissionTicketPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicketPageResponse':
+      return AdmissionTicketPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTicketResponse':
+      return AdmissionTicketResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTransferAck':
+      return AdmissionTransferAck.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTransferAckResponse':
+      return AdmissionTransferAckResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionTransferPreview':
+      return AdmissionTransferPreview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'AdmissionTransferPreviewResponse':
+      return AdmissionTransferPreviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionTransferPreviewWrite':
+      return AdmissionTransferPreviewWrite.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'AdmissionTransferWrite':
+      return AdmissionTransferWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'ApprovalLearner':
       return ApprovalLearner.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2144,6 +2313,68 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CloseConsultationResponse':
       return CloseConsultationResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCancelWrite':
+      return CommerceCancelWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCartLine':
+      return CommerceCartLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCatalogue':
+      return CommerceCatalogue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCatalogueResponse':
+      return CommerceCatalogueResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceCatalogueVendor':
+      return CommerceCatalogueVendor.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderPage':
+      return CommerceOrderPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderPageResponse':
+      return CommerceOrderPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderReceipt':
+      return CommerceOrderReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceOrderReceiptResponse':
+      return CommerceOrderReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommerceProduct':
+      return CommerceProduct.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommercePurchaseWrite':
+      return CommercePurchaseWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuote':
+      return CommerceQuote.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuoteLine':
+      return CommerceQuoteLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuoteResponse':
+      return CommerceQuoteResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceQuoteWrite':
+      return CommerceQuoteWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceReceiptLine':
+      return CommerceReceiptLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceSeller':
+      return CommerceSeller.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceVendorBrief':
+      return CommerceVendorBrief.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceVendorPage':
+      return CommerceVendorPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommerceVendorPageResponse':
+      return CommerceVendorPageResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'CommunicationAudience':
       return CommunicationAudience.fromJson(value as Map<String, dynamic>)
@@ -5432,11 +5663,144 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'ValidationErrors':
       return ValidationErrors.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'VendorCounterCollect':
+      return VendorCounterCollect.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterLine':
+      return VendorCounterLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterLookup':
+      return VendorCounterLookup.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterPage':
+      return VendorCounterPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterPageResponse':
+      return VendorCounterPageResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterReceipt':
+      return VendorCounterReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterReceiptResponse':
+      return VendorCounterReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorCounterResolution':
+      return VendorCounterResolution.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorCounterResolutionResponse':
+      return VendorCounterResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorOperatorCounter':
+      return VendorOperatorCounter.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorProfile':
+      return VendorOperatorProfile.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorProfileResponse':
+      return VendorOperatorProfileResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorOperatorSignInData':
+      return VendorOperatorSignInData.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorSignInDataResponse':
+      return VendorOperatorSignInDataResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorOperatorSignInInput':
+      return VendorOperatorSignInInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorOperatorSignOutResponse':
+      return VendorOperatorSignOutResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorSettlementLine':
+      return VendorSettlementLine.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorSettlementPage':
+      return VendorSettlementPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorSettlementPageResponse':
+      return VendorSettlementPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorSettlementReceipt':
+      return VendorSettlementReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'VendorSettlementReceiptResponse':
+      return VendorSettlementReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'VendorSettlementSummary':
+      return VendorSettlementSummary.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCardPaymentReview':
+      return WalletCardPaymentReview.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCardPaymentReviewResponse':
+      return WalletCardPaymentReviewResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletCardPrepareWrite':
+      return WalletCardPrepareWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCardPrepareWriteLinesInner':
+      return WalletCardPrepareWriteLinesInner.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'WalletControls':
       return WalletControls.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'WalletControlsChange':
       return WalletControlsChange.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCounterCatalogue':
+      return WalletCounterCatalogue.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCounterCatalogueResponse':
+      return WalletCounterCatalogueResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletCounterPayWrite':
+      return WalletCounterPayWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCounterPaymentReceipt':
+      return WalletCounterPaymentReceipt.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCounterPaymentReceiptResponse':
+      return WalletCounterPaymentReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletCounterPaymentResolution':
+      return WalletCounterPaymentResolution.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletCounterPaymentResolutionResponse':
+      return WalletCounterPaymentResolutionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletCounterProduct':
+      return WalletCounterProduct.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletCounterProductResponse':
+      return WalletCounterProductResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     case 'WalletDepositCancelWrite':
       return WalletDepositCancelWrite.fromJson(value as Map<String, dynamic>)
@@ -5487,6 +5851,36 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'WalletOwner':
       return WalletOwner.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'WalletPaymentInstruction':
+      return WalletPaymentInstruction.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletPaymentInstructionResponse':
+      return WalletPaymentInstructionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletPaymentIssueWrite':
+      return WalletPaymentIssueWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletPaymentLookupWrite':
+      return WalletPaymentLookupWrite.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletPaymentPersonal':
+      return WalletPaymentPersonal.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletPaymentPersonalPage':
+      return WalletPaymentPersonalPage.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'WalletPaymentPersonalPageResponse':
+      return WalletPaymentPersonalPageResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'WalletPaymentPersonalResponse':
+      return WalletPaymentPersonalResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'WalletStatement':
       return WalletStatement.fromJson(value as Map<String, dynamic>)
           as ReturnType;

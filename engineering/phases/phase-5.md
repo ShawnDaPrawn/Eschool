@@ -71,9 +71,11 @@ rows in a private queue. See [bank matching](../specs/money/bank-matching.md) an
 
 Automatic fee rules/VAT/discounts, join/leaver adjustments, manual refunds and
 personal wallet controls have been implemented in dependent feature PRs; consult
-the delivery inventory for what is actually on main. Payer corrections/late-charge
-policy, wallet funding/approvals/transfers/withdrawals, cash-up, vendors/orders/
-settlement, ticketing and online QR/card spending remain to finish through15.
+the delivery inventory for what is actually on main. Remaining payer corrections
+and late charges are published; online QR/card spending is implemented and being
+qualified. The dependent cash-up, vendor, settlement and ticket PRs still require
+exact-source hosted qualification and main integration. See the inventory and
+feature self-test records rather than treating source implementation as a merge.
 External payment-provider integration remains deferred. Clearing and due-to-school balances remain zero until Phase 6.
 
 The owner authorized implementation on 26 October and superseded the Phase 0

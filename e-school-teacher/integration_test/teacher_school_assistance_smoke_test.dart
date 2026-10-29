@@ -118,6 +118,8 @@ Future<void> assistanceOfficeJourney(
   await assistanceFind(tester, find.text('PRIVATE original Parent question'));
   await assistanceType(tester, 'Your reply', 'PRIVATE original office reply');
   await assistanceTap(tester, 'Send reply');
+  // Wait for the saved conversation, including the re-authorisation read.
+  await pumpUntilFound(tester, find.text('PRIVATE original office reply'));
   expect(
     fixture.writes
         .where((w) => w['action'] == 'reply')

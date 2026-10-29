@@ -1,3 +1,6 @@
+import 'package:eschool_teacher/vendor/vendor_app.dart';
+import 'package:eschool_teacher/vendor/vendor_repository.dart';
+import 'package:eschool_teacher/vendor/vendor_nfc.dart';
 import 'package:eschool_teacher/facilitator/facilitator_app.dart';
 import 'package:eschool_teacher/facilitator/facilitator_repository.dart';
 import 'package:eschool_teacher/app/staffBuildIdentity.dart';
@@ -35,31 +38,51 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-Future<void> initializeApp({FacilitatorRepository? facilitatorRepository}) =>
-    startStaffBuild(
-      identity: StaffBuildIdentity.current,
-      startTeacher: () async {
-        // A web build shows each screen's address without the '#'.
-        usePathUrlStrategy();
-        await prepareApp();
-        runApp(const MyApp());
-      },
-      startFacilitator: () async {
-        await prepareFacilitatorApp();
-        runApp(
-          FacilitatorApp(
-            repository: facilitatorRepository ?? FacilitatorRepository(),
-          ),
-        );
-      },
-      startUnavailable: (identity) {
-        WidgetsFlutterBinding.ensureInitialized();
-        runApp(StaffBuildUnavailable(identity: identity));
-      },
+Future<void> initializeApp({
+  FacilitatorRepository? facilitatorRepository,
+  VendorRepository? vendorRepository,
+  Future<String?> Function(BuildContext)? vendorScanQr,
+  Future<VendorSunTap?> Function(int school)? vendorReadCard,
+}) => startStaffBuild(
+  identity: StaffBuildIdentity.current,
+  startTeacher: () async {
+    // A web build shows each screen's address without the '#'.
+    usePathUrlStrategy();
+    await prepareApp();
+    runApp(const MyApp());
+  },
+  startFacilitator: () async {
+    await prepareFacilitatorApp();
+    runApp(
+      FacilitatorApp(
+        repository: facilitatorRepository ?? FacilitatorRepository(),
+      ),
     );
+  },
+  startVendor: () async {
+    await prepareVendorApp();
+    runApp(
+      VendorApp(
+        repository: vendorRepository ?? VendorRepository(),
+        scanQr: vendorScanQr,
+        readCard: vendorReadCard,
+      ),
+    );
+  },
+  startUnavailable: (identity) {
+    WidgetsFlutterBinding.ensureInitialized();
+    runApp(StaffBuildUnavailable(identity: identity));
+  },
+);
 
 /// Initialize private feature storage without opening or migrating legacy
 /// teacher authentication/settings boxes, Firebase, or notifications.
+Future<void> prepareVendorApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  AppConfig.assertValid();
+  await initAppStorage(const []);
+}
+
 Future<void> prepareFacilitatorApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppConfig.assertValid();

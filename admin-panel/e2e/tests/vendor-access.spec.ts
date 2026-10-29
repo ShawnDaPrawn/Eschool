@@ -1,0 +1,33 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { expect, test, type Page } from '@playwright/test';
+import { signIn } from '../support/accounts';
+import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
+function fixture(action='prepare',school=0){return JSON.parse(execFileSync('php',['artisan','tinker','--execute',"echo json_encode(require base_path('e2e/support/vendor-access-fixture.php'));"],{cwd:path.resolve(process.cwd(),'..'),encoding:'utf8',env:{...process.env,BILLING_FIXTURE_ACTION:action,BILLING_FIXTURE_SCHOOL:String(school)}}).trim());}
+async function check(page:Page){expect(await seriousViolations(page)).toEqual([]);expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);expect(await page.locator('[id]').evaluateAll(nodes=>nodes.map(n=>n.id).filter((id,i,all)=>all.indexOf(id)!==i))).toEqual([]);}
+async function vendorSignIn(page:Page,data:any){await page.goto('/vendor-counter/sign-in');await page.getByRole('textbox',{name:'School code',exact:true}).fill(data.school_slug);await page.getByRole('textbox',{name:'Email or handle',exact:true}).fill(data.operator_email);await page.locator('#vendor-login-password').fill(data.operator_password);await page.getByRole('button',{name:'Sign in to vendor counter',exact:true}).click();await expect(page.getByRole('heading',{name:'Vendor order queue',exact:true})).toBeVisible();}
+test.describe.configure({mode:'serial',retries:0});test.use({storageState:{cookies:[],origins:[]}});
+for(const width of [390,820,1280]){
+ test(`dedicated vendor reviews typed and QR goods once with private paused history at ${width}px`,async({page,baseURL})=>{
+  test.setTimeout(180_000);const data=fixture();await page.setViewportSize({width,height:1000});await vendorSignIn(page,data);const errors=collectErrors(page,baseURL!);await check(page);
+  await page.getByRole('button',{name:'Scan order QR with camera',exact:true}).click();await expect(page.getByRole('status')).toContainText('Type the order number');
+  for(const [index,label] of [[0,'Order number'],[1,'Scanned order QR']] as const){
+   if(index>0)await page.goto('/vendor-counter');const form=page.getByRole('form',{name:'Review order before handover',exact:true});await form.getByRole('textbox',{name:label,exact:true}).fill(index===0?data.orders[index].number:data.orders[index].qr);await form.getByRole('button',{name:'Review order before handover',exact:true}).click();
+   await expect(page.getByRole('heading',{name:data.orders[index].number,exact:true})).toBeVisible();await expect(page.getByRole('main')).toContainText('Synthetic sandwich');await expect(page.getByRole('main')).toContainText('12.50');await check(page);
+   const confirm=page.getByRole('form',{name:'Confirm one order handover',exact:true});await confirm.getByRole('checkbox').check();const fields=await confirm.evaluate(node=>Object.fromEntries(new FormData(node as HTMLFormElement).entries()) as Record<string,string>);const action=(await confirm.getAttribute('action'))!;
+   await confirm.getByRole('button',{name:'Validate one handover',exact:true}).click();await expect(page.getByRole('status').filter({hasText:'Order validated for one collection.'})).toBeVisible();await expect(page.getByRole('button',{name:'Validate one handover',exact:true})).toHaveCount(0);
+   const replay=await page.request.post(action,{form:fields});expect(replay.status()).toBe(200);expect(await replay.text()).toContain('do not hand over goods again');
+  }
+  expect(fixture('stats',data.school)).toEqual({orders:4,collected:2,cancelled:0,wallet_cents:5000,vendor_cents:5000,on_hand:6,healthy:true});
+  fixture('disable',data.school);await page.goto(`/vendor-counter/counters/${data.vendor}/orders/${data.orders[2].id}`);await expect(page.getByRole('main')).toContainText('Synthetic sandwich');await expect(page.getByRole('button',{name:'Validate one handover',exact:true})).toHaveCount(0);await check(page);
+  expect(errors).toEqual([]);
+  fixture('revoke',data.school);expect((await page.goto('/vendor-counter'))?.status()).toBe(403);await expect(page.getByText('Synthetic sandwich')).toHaveCount(0);expect(errors).toEqual(['HTTP 403: /vendor-counter']);
+ });
+}
+test('Finance provisions a private dedicated identity and revokes only its assigned counter',async({page,baseURL})=>{
+ test.setTimeout(180_000);const data=fixture();await signIn(page,data.finance);const errors=collectErrors(page,baseURL!);await page.goto('/vendor-operators');let form=page.getByRole('form',{name:'Create dedicated vendor identity',exact:true});const email=`reviewed.vendor.${data.school}@example.test`;
+ await form.getByRole('textbox',{name:'Operator first name',exact:true}).fill('Reviewed');await form.getByRole('textbox',{name:'Operator last name',exact:true}).fill('Counter');await form.getByRole('textbox',{name:'Operator email address',exact:true}).fill(email);await form.locator('#vendor-operator-password').fill('SyntheticTemporary2026');await form.getByRole('checkbox').check();await form.getByRole('button',{name:'Create dedicated vendor identity',exact:true}).click();await expect(page.getByRole('status')).toContainText('Dedicated vendor identity created');await expect(page.locator('#vendor-operator-password')).toHaveValue('');expect(await page.content()).not.toContain('SyntheticTemporary2026');
+ form=page.getByRole('form',{name:'Assign a vendor counter',exact:true});await form.getByRole('combobox',{name:'Vendor counter',exact:true}).selectOption(String(data.vendor));await form.getByRole('combobox',{name:'Dedicated vendor operator',exact:true}).selectOption({label:`Reviewed Counter · ${email}`});await form.getByRole('textbox',{name:'Private access reason',exact:true}).fill('Reviewed synthetic operator for one counter');await form.getByRole('checkbox').check();await form.getByRole('button',{name:'Assign a vendor counter',exact:true}).click();
+ const row=page.locator('section').filter({hasText:`Reviewed Counter · ${email}`});await row.getByRole('textbox',{name:'Private access change reason',exact:true}).fill('Synthetic operator removed from this counter');await row.getByRole('checkbox').check();await row.getByRole('button',{name:'Revoke this counter access',exact:true}).click();await expect(page.locator('section').filter({hasText:`Reviewed Counter · ${email}`})).toContainText('revoked');await check(page);expect(errors).toEqual([]);
+});
+test('Teacher cannot use vendor-only counter or Finance operator controls',async({page})=>{const data=fixture();await signIn(page,data.teacher);expect((await page.goto('/vendor-counter'))?.status()).toBe(403);expect((await page.goto('/vendor-operators'))?.status()).toBe(403);});

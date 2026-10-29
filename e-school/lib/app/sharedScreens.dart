@@ -2809,14 +2809,43 @@ Route<dynamic> personalWalletsRoute() => AdaptivePageRoute(
       },
       child: WalletSessionBoundary(
         pinned: pinned,
-        builder: (_, generationActive) => WalletScreen(
-          repository: ApiWalletRepository(
+        builder: (_, generationActive) {
+          final wallets = ApiWalletRepository(
             Api.client,
             schoolId: school,
             accountId: account,
             contextActive: () => generationActive() && active(),
-          ),
-        ),
+          );
+          return WalletScreen(
+            repository: wallets,
+            storefrontBuilder:
+                pinned.isModuleOn('vendors') &&
+                    allowsSchoolModule(pinned, 'vendors')
+                ? (_) => WalletSessionBoundary(
+                    pinned: pinned,
+                    builder: (_, shopActive) => CommerceScreen(
+                      privateRouteBuilder: (child) => BlocProvider.value(
+                        value: session,
+                        child: WalletSessionBoundary(
+                          pinned: pinned,
+                          builder: (_, ticketActive) => child,
+                        ),
+                      ),
+                      repository: ApiCommerceRepository(
+                        Api.client,
+                        wallets: ApiWalletRepository(
+                          Api.client,
+                          schoolId: school,
+                          accountId: account,
+                          contextActive: () =>
+                              shopActive() && generationActive() && active(),
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
+          );
+        },
       ),
     );
   },

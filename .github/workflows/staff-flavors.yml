@@ -7,6 +7,8 @@ on:
       - 'e-school-teacher/ios/**'
       - 'e-school-teacher/lib/app/**'
       - 'e-school-teacher/lib/facilitator/**'
+      - 'e-school-teacher/lib/vendor/**'
+      - 'e-school-teacher/test/vendor*'
       - 'e-school-teacher/test/facilitator*'
       - 'e-school-teacher/integration_test/facilitator_smoke_test.dart'
       - 'e-school-teacher/integration_test/support/facilitator_fixture.dart'
@@ -53,6 +55,6 @@ jobs:
       - name: Resolve locked app dependencies
         run: flutter pub get --enforce-lockfile
       - name: Verify scoped identity startup and facilitator session isolation
-        run: flutter test --flavor ${{ matrix.flavor }} --dart-define=FLAVOR=${{ matrix.flavor }} test/staff_build_identity_test.dart test/facilitator_repository_test.dart test/facilitator_widgets_test.dart
+        run: flutter test --flavor ${{ matrix.flavor }} --dart-define=FLAVOR=${{ matrix.flavor }} test/staff_build_identity_test.dart test/facilitator_repository_test.dart test/facilitator_widgets_test.dart test/vendor_repository_test.dart test/vendor_widgets_test.dart test/vendor_tickets_test.dart
       - name: Compile the named Android identity without signing credentials
         run: flutter build apk --debug --flavor ${{ matrix.flavor }} --dart-define=FLAVOR=${{ matrix.flavor }}

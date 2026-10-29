@@ -216,6 +216,8 @@ tags:
   description: Restricted school classroom tablet entry and current-group daily practice.
 - name: FeeStatements
   description: Private parent fee shares, receipts and held credits from the NavigateEd ledger.
+- name: Commerce
+  description: Private wallet storefronts, reviewed purchases and original order receipts.
 paths:
   /facilitator/sign-in:
     post:
@@ -27000,6 +27002,1727 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /commerce/vendors:
+    get:
+      operationId: listCommerceVendors
+      tags:
+      - Commerce
+      summary: Browse active school vendors
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '200':
+          description: Browse active school vendors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceVendorPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /commerce/vendors/{vendor}:
+    get:
+      operationId: getCommerceVendorCatalogue
+      tags:
+      - Commerce
+      summary: Browse an active vendor catalogue
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '200':
+          description: Browse an active vendor catalogue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceCatalogueResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /commerce/orders:
+    get:
+      operationId: listOwnCommerceOrders
+      tags:
+      - Commerce
+      summary: Read own and currently authorised child order receipts
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '200':
+          description: Read own and currently authorised child order receipts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceOrderPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: purchaseCommerceOrder
+      tags:
+      - Commerce
+      summary: Purchase quoted items once from the original wallet
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Purchase quoted items once from the original wallet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceOrderReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommercePurchaseWrite'
+  /commerce/orders/{order}:
+    get:
+      operationId: getOwnCommerceOrder
+      tags:
+      - Commerce
+      summary: Read the original authorised wallet order receipt
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: order
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '200':
+          description: Read the original authorised wallet order receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceOrderReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /commerce/quotes:
+    post:
+      operationId: quoteCommerceOrder
+      tags:
+      - Commerce
+      summary: Review exact current prices tax stock and wallet limits
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '200':
+          description: Review exact current prices tax stock and wallet limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceQuoteResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommerceQuoteWrite'
+  /commerce/orders/{order}/cancel:
+    post:
+      operationId: cancelOwnCommerceOrder
+      tags:
+      - Commerce
+      summary: Return an uncollected order to its original wallet once
+      description: Fresh tenant, person and current owner/guardian authority apply before replay. Integer cents,
+        vendor policy and tax snapshots, spending controls and stock are checked transactionally. School modules
+        remain independent of fees. Private bank details, settlement terms and stock/cancellation reasons never
+        enter customer projections. No gateway is called.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: order
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '200':
+          description: Return an uncollected order to its original wallet once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommerceOrderReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommerceCancelWrite'
+  /vendor/sign-in:
+    post:
+      operationId: signInVendorOperator
+      tags:
+      - Commerce
+      summary: Sign in with a dedicated bound vendor identity
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Sign in with a dedicated bound vendor identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorSignInDataResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          description: Password/current policy setup required. No token or private profile is issued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorSignInDataResponse'
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorOperatorSignInInput'
+  /vendor/session:
+    get:
+      operationId: getVendorOperatorSession
+      tags:
+      - Commerce
+      summary: Refresh the current assigned vendor counters
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Refresh the current assigned vendor counters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+  /vendor/sign-out:
+    post:
+      operationId: signOutVendorOperator
+      tags:
+      - Commerce
+      summary: Revoke only the current owned vendor session
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Revoke only the current owned vendor session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorOperatorSignOutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+  /vendor/counters/{vendor}/orders:
+    get:
+      operationId: listVendorCounterOrders
+      tags:
+      - Commerce
+      summary: Read original order goods at an explicitly assigned counter
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Read original order goods at an explicitly assigned counter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+  /vendor/counters/{vendor}/orders/{order}:
+    get:
+      operationId: getVendorCounterOrder
+      tags:
+      - Commerce
+      summary: Read one assigned counter receipt without buyer identity
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Read one assigned counter receipt without buyer identity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: order
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+  /vendor/counters/{vendor}/lookup:
+    post:
+      operationId: lookupVendorCounterOrder
+      tags:
+      - Commerce
+      summary: Review typed or scanned order goods before handover
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Review typed or scanned order goods before handover
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorCounterLookup'
+  /vendor/counters/{vendor}/collect:
+    post:
+      operationId: collectVendorCounterOrder
+      tags:
+      - Commerce
+      summary: Validate one reviewed counter handover
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Validate one reviewed counter handover
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorCounterCollect'
+  /vendor/counters/{vendor}/operations/{operation}/resolve:
+    post:
+      operationId: resolveVendorCounterCollection
+      tags:
+      - Commerce
+      summary: Recover or abandon the original operator handover intent
+      description: Dedicated vendor credentials and fresh explicit school/counter bindings are required. A role
+        or flavour alone grants no access. Buyer identity, wallet balances, bank details and private QR tokens are
+        omitted. Counter authority is rechecked before cached replies. Collection is single use; replay/recovery
+        requires checking the recorded handover and never supplying goods twice. Module pause preserves authorised
+        history. No gateway is used.
+      responses:
+        '200':
+          description: Recover or abandon the original operator handover intent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorCounterResolutionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /vendor/counters/{vendor}/settlements:
+    get:
+      operationId: listVendorCounterSettlements
+      tags:
+      - Commerce
+      summary: Read assigned counter settlement batches
+      description: Private read under fresh dedicated Vendor credentials and explicit current counter assignment,
+        including while commerce is read-only. No buyer identity, bank instructions, private verification or external
+        payment execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '200':
+          description: Read assigned counter settlement batches
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorSettlementPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /vendor/counters/{vendor}/settlements/{settlement}:
+    get:
+      operationId: getVendorCounterSettlement
+      tags:
+      - Commerce
+      summary: Read original assigned counter settlement and collected order totals
+      description: Private read under fresh dedicated Vendor credentials and explicit current counter assignment,
+        including while commerce is read-only. No buyer identity, bank instructions, private verification or external
+        payment execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+      - name: settlement
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+      responses:
+        '200':
+          description: Read original assigned counter settlement and collected order totals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorSettlementReceiptResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /commerce/tickets:
+    get:
+      operationId: listAdmissionTickets
+      tags:
+      - Commerce
+      summary: listAdmissionTickets
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionTicketPageResponse'
+  /commerce/tickets/receive-code:
+    post:
+      operationId: issueAdmissionReceivingCode
+      tags:
+      - Commerce
+      summary: issueAdmissionReceivingCode
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionReceiveCodeResponse'
+  /commerce/tickets/{ticket}:
+    get:
+      operationId: getAdmissionTicket
+      tags:
+      - Commerce
+      summary: getAdmissionTicket
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: ticket
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionTicketResponse'
+  /commerce/tickets/{ticket}/transfer-preview:
+    post:
+      operationId: previewAdmissionTicketTransfer
+      tags:
+      - Commerce
+      summary: previewAdmissionTicketTransfer
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: ticket
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionTransferPreviewResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdmissionTransferPreviewWrite'
+  /commerce/tickets/{ticket}/transfer:
+    post:
+      operationId: transferAdmissionTicket
+      tags:
+      - Commerce
+      summary: transferAdmissionTicket
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: ticket
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionTransferAckResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdmissionTransferWrite'
+  /vendor/counters/{vendor}/tickets/lookup:
+    post:
+      operationId: lookupCounterAdmissionTicket
+      tags:
+      - Commerce
+      summary: lookupCounterAdmissionTicket
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionCounterTicketResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdmissionLookupWrite'
+  /vendor/counters/{vendor}/tickets/redeem:
+    post:
+      operationId: redeemCounterAdmissionTicket
+      tags:
+      - Commerce
+      summary: redeemCounterAdmissionTicket
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionCounterOutcomeResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdmissionRedeemWrite'
+  /vendor/counters/{vendor}/ticket-operations/{operation}/resolve:
+    post:
+      operationId: resolveCounterAdmissionTicket
+      tags:
+      - Commerce
+      summary: resolveCounterAdmissionTicket
+      description: Fresh current-school ticket authority. Current holder/guardian reads remain private; transfers
+        rotate credentials. Counter admission is scoped to an assigned Vendor and can be redeemed once. No bank/provider
+        execution.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '200':
+          description: Private original admission outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdmissionCounterResolutionResponse'
+  /commerce/wallet-payments:
+    get:
+      operationId: listWalletPaymentInstructions
+      tags:
+      - Commerce
+      summary: listWalletPaymentInstructions
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalPageResponse'
+    post:
+      operationId: issueWalletPaymentQr
+      tags:
+      - Commerce
+      summary: issueWalletPaymentQr
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletPaymentIssueWrite'
+  /commerce/wallet-payment-operations/{operation}:
+    get:
+      operationId: getOriginalWalletPaymentInstruction
+      tags:
+      - Commerce
+      summary: getOriginalWalletPaymentInstruction
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+  /commerce/wallet-payments/{payment}:
+    get:
+      operationId: getWalletPaymentInstruction
+      tags:
+      - Commerce
+      summary: getWalletPaymentInstruction
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+  /commerce/wallet-payments/{payment}/cancel:
+    post:
+      operationId: cancelWalletPaymentInstruction
+      tags:
+      - Commerce
+      summary: cancelWalletPaymentInstruction
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentPersonalResponse'
+  /vendor/counters/{vendor}/payments/catalogue:
+    get:
+      operationId: getCounterPaymentCatalogue
+      tags:
+      - Commerce
+      summary: getCounterPaymentCatalogue
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000000
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterCatalogueResponse'
+  /vendor/counters/{vendor}/payments/receipts/{payment}:
+    get:
+      operationId: getCounterWalletPaymentReceipt
+      tags:
+      - Commerce
+      summary: getCounterWalletPaymentReceipt
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterPaymentReceiptResponse'
+  /vendor/counters/{vendor}/payments/card/{payment}/portrait:
+    get:
+      operationId: getCounterPaymentPortrait
+      tags:
+      - Commerce
+      summary: getCounterPaymentPortrait
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: payment
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-Payment-Reader
+        in: header
+        required: true
+        description: Private purpose-bound Vendor reader credential. Never put it in a URL or persist it in plaintext.
+        schema:
+          type: string
+          maxLength: 159
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current card-payment portrait, no-store.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+  /vendor/counters/{vendor}/payments/lookup:
+    post:
+      operationId: lookupCounterWalletPayment
+      tags:
+      - Commerce
+      summary: lookupCounterWalletPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletPaymentInstructionResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletPaymentLookupWrite'
+  /vendor/counters/{vendor}/payments/card:
+    post:
+      operationId: prepareCounterCardPayment
+      tags:
+      - Commerce
+      summary: prepareCounterCardPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: X-Payment-Reader
+        in: header
+        required: true
+        description: Private purpose-bound Vendor reader credential. Never put it in a URL or persist it in plaintext.
+        schema:
+          type: string
+          maxLength: 159
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCardPaymentReviewResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletCardPrepareWrite'
+  /vendor/counters/{vendor}/payments/pay:
+    post:
+      operationId: confirmCounterWalletPayment
+      tags:
+      - Commerce
+      summary: confirmCounterWalletPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - name: X-Payment-Reader
+        in: header
+        required: false
+        description: Required for a SUN instruction; must be its original purpose-bound device.
+        schema:
+          type: string
+          maxLength: 159
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterPaymentReceiptResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletCounterPayWrite'
+  /vendor/counters/{vendor}/payments/operations/{operation}/resolve:
+    post:
+      operationId: resolveCounterWalletPayment
+      tags:
+      - Commerce
+      summary: resolveCounterWalletPayment
+      description: Online closed-loop wallet payment. Fresh school, wallet, guardian and assigned Vendor authority; original
+        integer cents, stock and daily/category limits; one permanent operation outcome. QR issue and SUN preparation move no
+        money. Card taps require a dedicated reader and current private portrait, with no balance stored on the card. No payment
+        gateway. Responses are private and never cached.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: vendor
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+      - name: operation
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '400':
+          $ref: '#/components/responses/IdempotencyKeyProblem'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/IdempotencyKeyInProgress'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '200':
+          description: Private current-authority original wallet payment outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletCounterPaymentResolutionResponse'
 components:
   securitySchemes:
     bearerAuth:
@@ -31077,6 +32800,9 @@ components:
       - messages
       - counselling
       properties:
+        vendors:
+          type: boolean
+          description: Optional own-wallet storefront and order capability. Vendor operator authority is separate; absence means unavailable.
         wallet:
           type: boolean
           description: Optional personal-wallet capability, independently of fee access. Absence means unavailable.
@@ -60023,6 +61749,14 @@ components:
           maxItems: 1
           items:
             $ref: '#/components/schemas/WalletSummary'
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          description: Current learner identity for this already-authorised wallet owner; absent or null for adult
+            profiles.
     PersonalWalletIndex:
       type: object
       additionalProperties: false
@@ -61059,5 +62793,3147 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/WalletWithdrawalPage'
+        code:
+          type: integer
+    CommerceVendorBrief:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - kind
+      - currency
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        kind:
+          type: string
+          enum:
+          - school
+          - independent
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+    CommerceCatalogueVendor:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - kind
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        kind:
+          type: string
+          enum:
+          - school
+          - independent
+    CommerceSeller:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - legal_name
+      - legal_address
+      - kind
+      - vat_registered
+      - vat_number
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+        legal_name:
+          type: string
+        legal_address:
+          type:
+          - string
+          - 'null'
+        kind:
+          type: string
+          enum:
+          - school
+          - independent
+        vat_registered:
+          type: boolean
+        vat_number:
+          type:
+          - string
+          - 'null'
+    CommerceProduct:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - sku
+      - unit_label
+      - category_key
+      - currency
+      - price_cents
+      - vat_kind
+      - vat_rate_bps
+      - in_stock
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+        description:
+          type:
+          - string
+          - 'null'
+        sku:
+          type: string
+        unit_label:
+          type: string
+        category_key:
+          type: string
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_kind:
+          type: string
+          enum:
+          - none
+          - zero
+          - exempt
+          - standard
+        vat_rate_bps:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 10000
+        in_stock:
+          type: boolean
+        ticket:
+          $ref: '#/components/schemas/AdmissionProduct'
+    CommerceQuoteLine:
+      type: object
+      additionalProperties: false
+      required:
+      - product_id
+      - product_revision
+      - product_name
+      - sku
+      - unit_label
+      - category_key
+      - quantity
+      - unit_price_cents
+      - gross_cents
+      - net_cents
+      - vat_cents
+      - vat_kind
+      - vat_rate_bps
+      - tracks_stock
+      properties:
+        product_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        product_revision:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 4294967295
+        product_name:
+          type: string
+        sku:
+          type: string
+        unit_label:
+          type: string
+        category_key:
+          type: string
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 999
+        unit_price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_kind:
+          type: string
+          enum:
+          - none
+          - zero
+          - exempt
+          - standard
+        vat_rate_bps:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 10000
+        tracks_stock:
+          type: boolean
+        ticket:
+          $ref: '#/components/schemas/AdmissionQuoteDetails'
+    CommerceReceiptLine:
+      type: object
+      additionalProperties: false
+      required:
+      - product_id
+      - name
+      - sku
+      - unit_label
+      - category_key
+      - quantity
+      - unit_price_cents
+      - gross_cents
+      - net_cents
+      - vat_cents
+      - vat_kind
+      - vat_rate_bps
+      properties:
+        product_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+        sku:
+          type: string
+        unit_label:
+          type: string
+        category_key:
+          type: string
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 999
+        unit_price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_kind:
+          type: string
+          enum:
+          - none
+          - zero
+          - exempt
+          - standard
+        vat_rate_bps:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 10000
+    CommerceVendorPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - can_purchase
+      - items
+      - page
+      - last_page
+      properties:
+        wallet_payments_writable:
+          type: boolean
+          description: Optional write capability. Retained payment history can remain available when new QR issue is paused.
+        wallet_payments_available:
+          type: boolean
+          description: Optional online closed-loop wallet payment availability under the current school modules.
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        can_purchase:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommerceVendorBrief'
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        tickets_available:
+          type: boolean
+          description: Whether the ticketing module currently permits retained private ticket views.
+    CommerceCatalogue:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - can_purchase
+      - vendor
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        can_purchase:
+          type: boolean
+        vendor:
+          $ref: '#/components/schemas/CommerceCatalogueVendor'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommerceProduct'
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+    CommerceQuote:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - wallet_id
+      - wallet_owner_id
+      - learner_id
+      - vendor_id
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - seller
+      - lines
+      - quote
+      - expires_at
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+        quote:
+          type: string
+          maxLength: 32768
+        expires_at:
+          type: string
+          format: date-time
+    CommerceOrderReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - school_id
+      - actor_user_id
+      - operation_id
+      - order_number
+      - wallet_id
+      - wallet_owner_id
+      - learner_id
+      - vendor_id
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - status
+      - can_cancel
+      - qr
+      - created_at
+      - processed_at
+      - seller
+      - lines
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        order_number:
+          type: string
+          pattern: ^VO-[0-9]{6,20}$
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        status:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+        can_cancel:
+          type: boolean
+        qr:
+          type:
+          - string
+          - 'null'
+          pattern: ^navigateed:order:[a-f0-9]{64}$
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommerceReceiptLine'
+        fulfilment_kind:
+          type: string
+          enum:
+          - physical_goods
+          - digital_tickets
+        ticket_count:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 2000
+    CommerceOrderPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - read_only
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        read_only:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommerceOrderReceipt'
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+    CommerceCartLine:
+      type: object
+      additionalProperties: false
+      required:
+      - product_id
+      - quantity
+      properties:
+        product_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 999
+    CommerceQuoteWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - vendor_id
+      - wallet_id
+      - lines
+      properties:
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        learner_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceCartLine'
+    CommercePurchaseWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - quote
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        quote:
+          type: string
+          maxLength: 32768
+        confirmed:
+          type: boolean
+          description: Must be true after reviewing the quoted original wallet, products, quantities, tax and total.
+    CommerceCancelWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - private_reason
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        private_reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        confirmed:
+          type: boolean
+          description: Must be true to cancel an uncollected order and return its original wallet money and stock
+            once.
+    CommerceVendorPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CommerceVendorPage'
+        code:
+          type: integer
+    CommerceCatalogueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CommerceCatalogue'
+        code:
+          type: integer
+    CommerceQuoteResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CommerceQuote'
+        code:
+          type: integer
+    CommerceOrderReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CommerceOrderReceipt'
+        code:
+          type: integer
+    CommerceOrderPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/CommerceOrderPage'
+        code:
+          type: integer
+    VendorOperatorCounter:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - currency
+      - can_collect
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 160
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        can_collect:
+          type: boolean
+    VendorOperatorProfile:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - school_name
+      - school_slug
+      - user_id
+      - name
+      - counters
+      properties:
+        wallet_payments_available:
+          type: boolean
+          description: Optional online closed-loop wallet payment availability under the current school modules.
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        school_name:
+          type: string
+          maxLength: 2000
+        school_slug:
+          type: string
+          maxLength: 191
+        user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 2000
+        counters:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorOperatorCounter'
+          minItems: 1
+          maxItems: 100
+        ticketing_available:
+          type: boolean
+          description: Whether the ticketing module currently permits retained private ticket views.
+    VendorOperatorSignInInput:
+      type: object
+      additionalProperties: false
+      required:
+      - school
+      - email
+      - password
+      properties:
+        school:
+          type: string
+          maxLength: 191
+        email:
+          type: string
+          maxLength: 191
+        password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        new_password_confirmation:
+          type: string
+          maxLength: 128
+          writeOnly: true
+        acceptances:
+          type: object
+          additionalProperties:
+            type: string
+            pattern: ^[a-f0-9]{64}$
+    VendorOperatorSignInData:
+      type: object
+      additionalProperties: false
+      required:
+      - authenticated
+      - token
+      - profile
+      - password_change_required
+      - documents
+      properties:
+        authenticated:
+          type: boolean
+        token:
+          type:
+          - string
+          - 'null'
+        profile:
+          anyOf:
+          - $ref: '#/components/schemas/VendorOperatorProfile'
+          - type: 'null'
+        password_change_required:
+          type: boolean
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacilitatorPolicy'
+          minItems: 0
+          maxItems: 2
+    VendorCounterLine:
+      type: object
+      additionalProperties: false
+      required:
+      - product_name
+      - sku
+      - unit_label
+      - quantity
+      - gross_cents
+      - net_cents
+      - vat_cents
+      properties:
+        product_name:
+          type: string
+          maxLength: 160
+        sku:
+          type: string
+          maxLength: 64
+        unit_label:
+          type: string
+          maxLength: 40
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 999
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+    VendorCounterReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - id
+      - order_number
+      - status
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - created_at
+      - processed_at
+      - can_collect
+      - lines
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        order_number:
+          type: string
+          pattern: ^VO-[0-9]{6,20}$
+          maxLength: 32
+        status:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        created_at:
+          type: string
+          format: date-time
+        processed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        can_collect:
+          type: boolean
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorCounterLine'
+          minItems: 1
+          maxItems: 20
+        newly_collected:
+          type: boolean
+      description: Original goods/tax receipt with no buyer identity, wallet balance, bank details or private QR.
+        newly_collected is supplied on collection and is false for every replay. A recovered or previously recorded
+        handover never instructs a second physical supply.
+    VendorCounterPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - status
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        status:
+          type: string
+          enum:
+          - ready
+          - collected
+          - cancelled
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorCounterReceipt'
+          minItems: 0
+          maxItems: 20
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+    VendorCounterLookup:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        order_number:
+          type:
+          - string
+          - 'null'
+          pattern: ^[Vv][Oo]-[0-9]{6,20}$
+          maxLength: 32
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^(navigateed:order:)?[a-f0-9]{64}$
+          maxLength: 81
+      description: 'Supply exactly one order number or private QR in the POST body. The complete navigateed:order:
+        prefix or its raw token is accepted.'
+    VendorCounterCollect:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        order_number:
+          type:
+          - string
+          - 'null'
+          pattern: ^[Vv][Oo]-[0-9]{6,20}$
+          maxLength: 32
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^(navigateed:order:)?[a-f0-9]{64}$
+          maxLength: 81
+        confirmed:
+          type: boolean
+          description: Must be true. The server refuses unconfirmed handovers.
+    VendorCounterResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - operation_id
+      - status
+      - order
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+        order:
+          anyOf:
+          - $ref: '#/components/schemas/VendorCounterReceipt'
+          - type: 'null'
+    VendorOperatorSignInDataResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorOperatorSignInData'
+        code:
+          type:
+          - string
+          - 'null'
+    VendorOperatorProfileResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorOperatorProfile'
+        code:
+          type:
+          - string
+          - 'null'
+    VendorCounterReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorCounterReceipt'
+        code:
+          type: integer
+    VendorCounterPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorCounterPage'
+        code:
+          type: integer
+    VendorCounterResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorCounterResolution'
+        code:
+          type: integer
+    VendorOperatorSignOutResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          anyOf:
+          - type: object
+            additionalProperties: false
+          - type: 'null'
+        code:
+          type:
+          - string
+          - 'null'
+    VendorSettlementSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - method
+      - currency
+      - period_from
+      - period_to
+      - order_count
+      - gross_cents
+      - sales_net_cents
+      - vat_cents
+      - collected_by
+      - collector_fee_cents
+      - payout_cents
+      - status
+      - created_at
+      - settled_at
+      - paid_on
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        method:
+          type: string
+          enum:
+          - school_internal
+          - cash
+          - eft
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        period_from:
+          type: string
+          format: date
+        period_to:
+          type: string
+          format: date
+        order_count:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 500
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        sales_net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        collected_by:
+          type: string
+          enum:
+          - school
+        collector_fee_cents:
+          type: integer
+          minimum: 0
+          maximum: 0
+        payout_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        status:
+          type: string
+          enum:
+          - prepared
+          - approved
+          - settled
+        created_at:
+          type: string
+          format: date-time
+        settled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        paid_on:
+          type:
+          - string
+          - 'null'
+          format: date
+      description: 'Sales net is VAT-exclusive. Payout is original gross less collector fees. NavigateEd collection
+        is disabled: collected_by=school and collector_fee_cents=0. Original bank, private evidence and buyer identity
+        are omitted.'
+    VendorSettlementLine:
+      type: object
+      additionalProperties: false
+      required:
+      - order_number
+      - gross_cents
+      - sales_net_cents
+      - vat_cents
+      properties:
+        order_number:
+          type: string
+          pattern: ^VO-[0-9]{6,20}$
+          maxLength: 32
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        sales_net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+    VendorSettlementReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - id
+      - method
+      - currency
+      - period_from
+      - period_to
+      - order_count
+      - gross_cents
+      - sales_net_cents
+      - vat_cents
+      - collected_by
+      - collector_fee_cents
+      - payout_cents
+      - status
+      - created_at
+      - settled_at
+      - paid_on
+      - lines
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        method:
+          type: string
+          enum:
+          - school_internal
+          - cash
+          - eft
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        period_from:
+          type: string
+          format: date
+        period_to:
+          type: string
+          format: date
+        order_count:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 500
+        gross_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        sales_net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        collected_by:
+          type: string
+          enum:
+          - school
+        collector_fee_cents:
+          type: integer
+          minimum: 0
+          maximum: 0
+        payout_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        status:
+          type: string
+          enum:
+          - prepared
+          - approved
+          - settled
+        created_at:
+          type: string
+          format: date-time
+        settled_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        paid_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorSettlementLine'
+          minItems: 0
+          maxItems: 500
+    VendorSettlementPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 100000000000
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorSettlementSummary'
+          minItems: 0
+          maxItems: 20
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+    VendorSettlementPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorSettlementPage'
+        code:
+          type: integer
+    VendorSettlementReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 2000
+        data:
+          $ref: '#/components/schemas/VendorSettlementReceipt'
+        code:
+          type: integer
+    AdmissionProduct:
+      type: object
+      additionalProperties: false
+      required:
+      - type_id
+      - event_id
+      - event_name
+      - kind
+      - transfer_rule
+      - remaining_capacity
+      - quantity_limit
+      - can_purchase
+      - starts_at
+      - ends_at
+      properties:
+        type_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        event_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        event_name:
+          type: string
+          maxLength: 191
+        kind:
+          type: string
+          enum:
+          - general
+          - named
+        transfer_rule:
+          type: string
+          enum:
+          - none
+          - families
+          - wallet_profiles
+        remaining_capacity:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 1000000
+        quantity_limit:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100
+        can_purchase:
+          type: boolean
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+    AdmissionQuoteDetails:
+      type: object
+      additionalProperties: false
+      required:
+      - type_id
+      - type_revision
+      - event_id
+      - event_revision
+      - event_name
+      - description
+      - kind
+      - capacity
+      - transfer_rule
+      - starts_at
+      - ends_at
+      - named_learner_id
+      properties:
+        type_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        type_revision:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        event_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        event_revision:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        event_name:
+          type: string
+          maxLength: 191
+        description:
+          anyOf:
+          - type: string
+            maxLength: 4000
+          - type: 'null'
+        kind:
+          type: string
+          enum:
+          - general
+          - named
+        capacity:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        transfer_rule:
+          type: string
+          enum:
+          - none
+          - families
+          - wallet_profiles
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        named_learner_id:
+          anyOf:
+          - type: integer
+            format: int64
+            minimum: 1
+            maximum: 9000000000000000
+          - type: 'null'
+    AdmissionEvent:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - description
+      - status
+      - starts_at
+      - ends_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 191
+        description:
+          anyOf:
+          - type: string
+            maxLength: 4000
+          - type: 'null'
+        status:
+          type: string
+          enum:
+          - draft
+          - active
+          - paused
+          - cancelled
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+    AdmissionTicket:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - holder_user_id
+      - revision
+      - status
+      - can_transfer
+      - event
+      - type_id
+      - kind
+      - transfer_rule
+      - product_name
+      - currency
+      - unit_price_cents
+      - order_number
+      - named_learner_id
+      - named_learner_name
+      - qr
+      - ticket_number
+      - issued_at
+      - redeemed_at
+      - redeemed_by
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        holder_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        status:
+          type: string
+          enum:
+          - valid
+          - redeemed
+        can_transfer:
+          type: boolean
+        event:
+          $ref: '#/components/schemas/AdmissionEvent'
+        type_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - general
+          - named
+        transfer_rule:
+          type: string
+          enum:
+          - none
+          - families
+          - wallet_profiles
+        product_name:
+          type: string
+          maxLength: 160
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        unit_price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        order_number:
+          type: string
+          pattern: ^VO-[0-9]{6,20}$
+        named_learner_id:
+          anyOf:
+          - type: integer
+            format: int64
+            minimum: 1
+            maximum: 9000000000000000
+          - type: 'null'
+        named_learner_name:
+          anyOf:
+          - type: string
+            maxLength: 400
+          - type: 'null'
+        qr:
+          anyOf:
+          - type: string
+            pattern: ^navigateed:ticket:[a-f0-9]{64}$
+          - type: 'null'
+        ticket_number:
+          anyOf:
+          - type: string
+            pattern: ^TK-[A-Z0-9]{20}$
+          - type: 'null'
+        issued_at:
+          type: string
+          format: date-time
+        redeemed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        redeemed_by:
+          anyOf:
+          - type: integer
+            format: int64
+            minimum: 1
+            maximum: 9000000000000000
+          - type: 'null'
+    AdmissionTicketPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdmissionTicket'
+          maxItems: 30
+        page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+        last_page:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 1000000
+    AdmissionReceiveCode:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - receive_code
+      - expires_at
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        receive_code:
+          type: string
+          maxLength: 8192
+        expires_at:
+          type: string
+          format: date-time
+    AdmissionTransferPreviewWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - receive_code
+      properties:
+        receive_code:
+          type: string
+          maxLength: 8192
+    AdmissionTransferPreview:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - ticket_id
+      - revision
+      - recipient_id
+      - recipient_name
+      - kind
+      - event_name
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        ticket_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        recipient_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        recipient_name:
+          type: string
+          maxLength: 400
+        kind:
+          type: string
+          enum:
+          - general
+          - named
+        event_name:
+          type: string
+          maxLength: 191
+    AdmissionTransferWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - revision
+      - receive_code
+      - recipient_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        receive_code:
+          type: string
+          maxLength: 8192
+        recipient_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        confirmed:
+          type: boolean
+          description: Must be true to confirm this original ticket action.
+    AdmissionTransferAck:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - ticket_id
+      - operation_id
+      - revision
+      - status
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        ticket_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        status:
+          type: string
+          enum:
+          - transferred
+    AdmissionLookupWrite:
+      type: object
+      additionalProperties: false
+      properties:
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^[a-f0-9]{64}$
+        ticket_number:
+          type:
+          - string
+          - 'null'
+          pattern: ^TK-[A-Z0-9]{20}$
+      oneOf:
+      - required:
+        - qr_token
+      - required:
+        - ticket_number
+    AdmissionRedeemWrite:
+      type: object
+      additionalProperties: false
+      properties:
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^[a-f0-9]{64}$
+        ticket_number:
+          type:
+          - string
+          - 'null'
+          pattern: ^TK-[A-Z0-9]{20}$
+        operation_id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        confirmed:
+          type: boolean
+          description: Must be true to confirm this original ticket action.
+      oneOf:
+      - required:
+        - qr_token
+      - required:
+        - ticket_number
+      required:
+      - operation_id
+      - revision
+      - confirmed
+    AdmissionCounterTicket:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - id
+      - revision
+      - status
+      - event_name
+      - product_name
+      - kind
+      - named_learner_name
+      - starts_at
+      - ends_at
+      - can_redeem
+      - redeemed_at
+      - redeemed_by
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        revision:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+        status:
+          type: string
+          enum:
+          - valid
+          - redeemed
+        event_name:
+          type: string
+          maxLength: 191
+        product_name:
+          type: string
+          maxLength: 160
+        kind:
+          type: string
+          enum:
+          - general
+          - named
+        named_learner_name:
+          anyOf:
+          - type: string
+            maxLength: 400
+          - type: 'null'
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        can_redeem:
+          type: boolean
+        redeemed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        redeemed_by:
+          anyOf:
+          - type: integer
+            format: int64
+            minimum: 1
+            maximum: 9000000000000000
+          - type: 'null'
+    AdmissionCounterOutcome:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - receipt
+      - replayed
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        receipt:
+          $ref: '#/components/schemas/AdmissionCounterTicket'
+        replayed:
+          type: boolean
+    AdmissionCounterResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - operation_id
+      - status
+      - receipt
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+        receipt:
+          anyOf:
+          - $ref: '#/components/schemas/AdmissionCounterTicket'
+          - type: 'null'
+    AdmissionTicketResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionTicket'
+        code:
+          type: integer
+    AdmissionTicketPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionTicketPage'
+        code:
+          type: integer
+    AdmissionReceiveCodeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionReceiveCode'
+        code:
+          type: integer
+    AdmissionTransferPreviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionTransferPreview'
+        code:
+          type: integer
+    AdmissionTransferAckResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionTransferAck'
+        code:
+          type: integer
+    AdmissionCounterTicketResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionCounterTicket'
+        code:
+          type: integer
+    AdmissionCounterOutcomeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionCounterOutcome'
+        code:
+          type: integer
+    AdmissionCounterResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/AdmissionCounterResolution'
+        code:
+          type: integer
+    WalletPaymentInstruction:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - vendor_id
+      - kind
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - expires_at
+      - seller
+      - lines
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - qr
+          - sun
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        expires_at:
+          type: string
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+    WalletPaymentPersonal:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - vendor_id
+      - kind
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - expires_at
+      - seller
+      - lines
+      - status
+      - qr
+      - order_id
+      - wallet_id
+      - wallet_owner_id
+      - wallet_owner_name
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - qr
+          - sun
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        expires_at:
+          type: string
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+        status:
+          type: string
+          enum:
+          - awaiting_counter
+          - paid
+          - expired
+          - cancelled
+        qr:
+          type:
+          - string
+          - 'null'
+          maxLength: 100
+        order_id:
+          type:
+          - integer
+          - 'null'
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        wallet_owner_name:
+          type: string
+          maxLength: 255
+    WalletCardPaymentReview:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - id
+      - vendor_id
+      - kind
+      - currency
+      - amount_cents
+      - net_cents
+      - vat_cents
+      - expires_at
+      - seller
+      - lines
+      - holder_name
+      - portrait_revision
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        kind:
+          type: string
+          enum:
+          - qr
+          - sun
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        net_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        expires_at:
+          type: string
+          format: date-time
+        seller:
+          $ref: '#/components/schemas/CommerceSeller'
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CommerceQuoteLine'
+        holder_name:
+          type: string
+          maxLength: 255
+        portrait_revision:
+          type: integer
+          minimum: 1
+    WalletCounterPaymentReceipt:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - id
+      - intent_id
+      - operation_id
+      - status
+      - paid_at
+      - order
+      properties:
+        replayed:
+          type: boolean
+          description: True on a repeated confirmation. Inspect the original receipt and do not hand over goods again.
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        id:
+          type: string
+          format: uuid
+        intent_id:
+          type: string
+          format: uuid
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - paid
+        paid_at:
+          type: string
+          format: date-time
+        order:
+          $ref: '#/components/schemas/VendorCounterReceipt'
+    WalletCounterPaymentResolution:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - operation_id
+      - status
+      - payment
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        operation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - committed
+          - abandoned
+        payment:
+          anyOf:
+          - $ref: '#/components/schemas/WalletCounterPaymentReceipt'
+          - type: 'null'
+    WalletPaymentPersonalPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletPaymentPersonal'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    WalletCounterProduct:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      - unit_label
+      - revision
+      - unit_price_cents
+      - vat_kind
+      - vat_rate_bps
+      - available_quantity
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        name:
+          type: string
+          maxLength: 191
+        unit_label:
+          type: string
+          maxLength: 40
+        revision:
+          type: integer
+          minimum: 1
+        unit_price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000000
+        vat_kind:
+          type: string
+          enum:
+          - none
+          - exempt
+          - zero
+          - standard
+        vat_rate_bps:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        available_quantity:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+    WalletCounterCatalogue:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - actor_user_id
+      - vendor_id
+      - currency
+      - items
+      - page
+      - last_page
+      properties:
+        school_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        actor_user_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        vendor_id:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletCounterProduct'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+    WalletPaymentIssueWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - quote
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        quote:
+          type: string
+          maxLength: 32768
+        confirmed:
+          type: boolean
+          description: Must be true after reviewing the quoted original wallet, products, quantities, tax and total.
+    WalletPaymentLookupWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - qr_token
+      properties:
+        qr_token:
+          type: string
+          pattern: ^(navigateed:wallet-pay:)?[a-f0-9]{64}$
+          maxLength: 86
+    WalletCounterPayWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - intent_id
+      - confirmed
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        intent_id:
+          type: string
+          format: uuid
+        qr_token:
+          type:
+          - string
+          - 'null'
+          pattern: ^(navigateed:wallet-pay:)?[a-f0-9]{64}$
+          maxLength: 86
+        portrait_revision:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+        portrait_confirmed:
+          type:
+          - boolean
+          - 'null'
+        confirmed:
+          type: boolean
+    WalletCardPrepareWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - card_id
+      - picc
+      - mac
+      - lines
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        card_id:
+          type: string
+          format: uuid
+        picc:
+          type: string
+          pattern: ^[a-fA-F0-9]{32}$
+        mac:
+          type: string
+          pattern: ^[a-fA-F0-9]{16}$
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - product_id
+            - quantity
+            properties:
+              product_id:
+                type: integer
+                format: int64
+                minimum: 1
+                maximum: 9000000000000000
+              quantity:
+                type: integer
+                minimum: 1
+                maximum: 999
+    WalletPaymentInstructionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletPaymentInstruction'
+        code:
+          type: integer
+    WalletPaymentPersonalResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletPaymentPersonal'
+        code:
+          type: integer
+    WalletCardPaymentReviewResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCardPaymentReview'
+        code:
+          type: integer
+    WalletCounterPaymentReceiptResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterPaymentReceipt'
+        code:
+          type: integer
+    WalletCounterPaymentResolutionResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterPaymentResolution'
+        code:
+          type: integer
+    WalletPaymentPersonalPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletPaymentPersonalPage'
+        code:
+          type: integer
+    WalletCounterProductResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterProduct'
+        code:
+          type: integer
+    WalletCounterCatalogueResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+          maxLength: 4000
+        data:
+          $ref: '#/components/schemas/WalletCounterCatalogue'
         code:
           type: integer

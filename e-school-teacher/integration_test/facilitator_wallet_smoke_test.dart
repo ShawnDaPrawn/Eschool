@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/wellbeing_fixture.dart';
+import 'support/commerce_journey.dart';
 import 'support/smoke.dart' show pumpUntilFound, tapWhenReady;
 
 class _Staff extends ClinicalStaffFixture {
@@ -20,6 +21,8 @@ class _Staff extends ClinicalStaffFixture {
     'roles': ['Facilitator'],
     'features': {
       'wallet': permitted,
+      'vendors': permitted,
+      'wallet_payments': permitted,
       'groups': false,
       'messages': false,
       'counselling': false,
@@ -124,6 +127,7 @@ void main() {
         ),
         hasLength(1),
       );
+      await exerciseCommerce(tester, fixture.api, actor: 12);
       fixture.permitted = false;
       await tester.runAsync(repo.refresh);
       await tester.pumpAndSettle();

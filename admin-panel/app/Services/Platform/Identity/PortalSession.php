@@ -61,9 +61,10 @@ final class PortalSession
             AppTokens::PARENT => 'parent',
             AppTokens::TEACHER => 'teacher',
             AppTokens::FACILITATOR => 'facilitator',
+            AppTokens::VENDOR => 'vendor',
             default => 'learner',
         };
-        abort_unless(app(ModuleGate::class)->allows('web_'.$portal), 403, 'Web access is unavailable at this school.');
+        abort_unless(app(ModuleGate::class)->allows($app === AppTokens::VENDOR ? 'vendors' : 'web_'.$portal), 403, 'Web access is unavailable at this school.');
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
@@ -104,7 +105,7 @@ final class PortalSession
     {
         $token = $user->currentAccessToken();
         if ($token instanceof PersonalAccessToken) {
-            if ($token->name !== AppTokens::FACILITATOR) {
+            if (! in_array($token->name, [AppTokens::FACILITATOR, AppTokens::VENDOR], true)) {
                 $user->update(['fcm_id' => '']);
             }
             AppTokens::signOut($user, $token);

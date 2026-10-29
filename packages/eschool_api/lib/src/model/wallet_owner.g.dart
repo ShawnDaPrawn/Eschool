@@ -31,6 +31,7 @@ WalletOwner _$WalletOwnerFromJson(Map<String, dynamic> json) => $checkedCreate(
             .map((e) => WalletSummary.fromJson(e as Map<String, dynamic>))
             .toList(),
       ),
+      learnerId: $checkedConvert('learner_id', (v) => (v as num?)?.toInt()),
     );
     return val;
   },
@@ -39,6 +40,7 @@ WalletOwner _$WalletOwnerFromJson(Map<String, dynamic> json) => $checkedCreate(
     'ownerName': 'owner_name',
     'isSelf': 'is_self',
     'canOpen': 'can_open',
+    'learnerId': 'learner_id',
   },
 );
 
@@ -49,4 +51,5 @@ Map<String, dynamic> _$WalletOwnerToJson(WalletOwner instance) =>
       'is_self': instance.isSelf,
       'can_open': instance.canOpen,
       'wallets': instance.wallets.map((e) => e.toJson()).toList(),
+      'learner_id': ?instance.learnerId,
     };

@@ -130,7 +130,7 @@ final class WalletPolicy
 
         return Students::where('user_id', $subject->id)->exists()
             && ! SchoolMembership::where('school_id', app(CurrentSchool::class)->id())->where('user_id', $subject->id)
-                ->whereIn('role', ['Parent', 'Teacher', 'Facilitator', 'Super Admin'])->lockForUpdate()->exists();
+                ->whereIn('role', ['Parent', 'Teacher', 'Facilitator', 'Super Admin', 'Vendor'])->lockForUpdate()->exists();
     }
 
     public function roles(User $user): array

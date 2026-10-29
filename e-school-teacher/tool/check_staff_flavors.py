@@ -84,21 +84,60 @@ assert 'FirebaseApp.app() == nil' in allowed
 assert 'UNUserNotificationCenter.current().delegate = self' in allowed
 assert application.count('FirebaseApp.configure()')==allowed.count('FirebaseApp.configure()')==1
 assert launch.count('FirebaseApp.configure()')==1
-plugins=swift_body(launch,'func didInitializeImplicitFlutterEngine(')
-# Ignore comments while verifying the early return precedes any plugin call.
-plugins=re.sub(r'//[^\n]*','',plugins).strip()
-assert swift_body(launch,'private var isFacilitatorBuild: Bool').strip() == 'Bundle.main.bundleIdentifier == "tech.tokensoft.navigateed.facilitator"'
-assert plugins.startswith('if isFacilitatorBuild {')
-fac_plugins=swift_body(plugins,'if isFacilitatorBuild')
-assert 'URLLauncherPlugin.register(with: registrar)' in fac_plugins
-assert 'registrar(forPlugin: "URLLauncherPlugin")' in fac_plugins
-assert 'GeneratedPluginRegistrant' not in fac_plugins and 'Firebase' not in fac_plugins
-assert fac_plugins.strip().endswith('return')
-assert launch.count('URLLauncherPlugin.register(')==1
-fac_end=plugins.index('guard isTeacherBuild else { return }')
-assert plugins[fac_end:].startswith('guard isTeacherBuild else { return }')
-assert plugins.count('GeneratedPluginRegistrant.register(')==launch.count('GeneratedPluginRegistrant.register(')==1
-assert plugins.index('guard isTeacherBuild') < plugins.index('GeneratedPluginRegistrant.register(')
+def check_plugin_dispatch(source):
+ assert swift_body(source,'private var isVendorBuild: Bool').strip() == 'Bundle.main.bundleIdentifier == "tech.tokensoft.navigateed.vendor"'
+ assert swift_body(source,'private var isFacilitatorBuild: Bool').strip() == 'Bundle.main.bundleIdentifier == "tech.tokensoft.navigateed.facilitator"'
+ plugins=re.sub(r'//[^\n]*','',swift_body(source,'func didInitializeImplicitFlutterEngine(')).strip()
+ assert plugins.startswith('if isVendorBuild {')
+ vendor_plugins=swift_body(plugins,'if isVendorBuild')
+ assert 'GeneratedPluginRegistrant' not in vendor_plugins and 'Firebase' not in vendor_plugins
+ assert vendor_plugins.strip().endswith('return')
+ assert set(re.findall(r'\b(\w+)\.register\(with: registrar\)',vendor_plugins)) == {'MobileScannerPlugin','SharedPreferencesPlugin'}
+ assert set(re.findall(r'registrar\(forPlugin: "([^"]+)"\)',vendor_plugins)) == {'MobileScannerPlugin','SharedPreferencesPlugin','VendorPaymentNfc'}
+ assert 'VendorPaymentNfc()' in vendor_plugins and 'vendorPaymentNfc = reader' in vendor_plugins
+ assert 'FlutterMethodChannel(name: "navigateed/vendor-payment-nfc"' in vendor_plugins
+ # After each selective branch, require its early return and the next exact gate.
+ start=plugins.index('{',plugins.index('if isVendorBuild'))
+ remainder=plugins[start+len(vendor_plugins)+2:].strip()
+ assert remainder.startswith('if isFacilitatorBuild {')
+ fac_plugins=swift_body(remainder,'if isFacilitatorBuild')
+ assert set(re.findall(r'\b(\w+)\.register\(with: registrar\)',fac_plugins)) == {'URLLauncherPlugin'}
+ assert set(re.findall(r'registrar\(forPlugin: "([^"]+)"\)',fac_plugins)) == {'URLLauncherPlugin'}
+ assert 'GeneratedPluginRegistrant' not in fac_plugins and 'Firebase' not in fac_plugins
+ assert fac_plugins.strip().endswith('return')
+ start=remainder.index('{',remainder.index('if isFacilitatorBuild'))
+ teacher_plugins=remainder[start+len(fac_plugins)+2:].strip()
+ assert ' '.join(teacher_plugins.split()) == 'guard isTeacherBuild else { return } GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)'
+ assert source.count('GeneratedPluginRegistrant.register(')==1
+ assert source.count('FirebaseApp.configure()')==1
+ assert source.count('URLLauncherPlugin.register(')==1
+
+check_plugin_dispatch(launch)
+# Reject widening either selective identity or moving Teacher registration into it.
+for before,after in [
+ ('tech.tokensoft.navigateed.vendor','tech.tokensoft.navigateed.teacher'),
+ ('MobileScannerPlugin.register(with: registrar)','GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)'),
+ ('MobileScannerPlugin.register(with: registrar)','FirebaseApp.configure(); MobileScannerPlugin.register(with: registrar)'),
+ ('MobileScannerPlugin.register(with: registrar)','UnknownPlugin.register(with: registrar); MobileScannerPlugin.register(with: registrar)'),
+ ('URLLauncherPlugin.register(with: registrar)','MobileScannerPlugin.register(with: registrar)'),
+]:
+ assert before in launch
+ try:check_plugin_dispatch(launch.replace(before,after))
+ except AssertionError:pass
+ else:raise AssertionError('Unsafe selective plugin registration was accepted')
+
+# NFC signing authority belongs only to the three signed Vendor configurations.
+with (r/'ios/Runner/Vendor.entitlements').open('rb') as f:nfc=plistlib.load(f)
+assert nfc=={'com.apple.developer.nfc.readersession.formats':['NDEF']}
+for entry in target_entries:
+ settings=entry['buildSettings']
+ assert (settings.get('CODE_SIGN_ENTITLEMENTS')=='Runner/Vendor.entitlements') == entry['name'].endswith('-vendor')
+ns='{http://schemas.android.com/apk/res/android}'
+vendor_manifest=ET.parse(r/'android/app/src/vendor/AndroidManifest.xml').getroot()
+assert [x.attrib[ns+'name'] for x in vendor_manifest.findall('uses-permission')]==['android.permission.NFC']
+assert any(x.attrib.get(ns+'name')=='android.hardware.nfc' and x.attrib.get(ns+'required')=='false' for x in vendor_manifest.findall('uses-feature'))
+main_manifest=ET.parse(r/'android/app/src/main/AndroidManifest.xml').getroot()
+assert all(x.attrib[ns+'name']!='android.permission.NFC' for x in main_manifest.findall('uses-permission'))
 
 # Exercise the actual leading shell gate with native build identities. The
 # upload command is deliberately excluded so this audit can never make a request.

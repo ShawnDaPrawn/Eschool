@@ -500,3 +500,108 @@ vendor_products retain vendor, SKU and stock mode, integer gross cents, tax and
 revision. vendor_stock_movements are immutable actor-bound counted adjustments;
 vendor_stock_balances is a checked projection, not opening money. vendor_operations
 retain permanent actor-bound UUID receipts. Archive/disable preserves all history.
+
+### Vendor wallet orders and inventory events
+
+`vendor_orders` retains original buyer/wallet/vendor, school-local order number,
+sealed item/seller/tax snapshots, exact paid ledger entry, permanent operation and
+encrypted collection QR. `vendor_order_lines` preserves original product revision,
+quantity and integer gross/net/VAT. One immutable `vendor_order_actions` outcome
+records collection or verified original cancellation. `vendor_order_counters`
+advances school numbers without reuse. `vendor_stock_events` indexes original
+manual movements and exact purchase/cancellation lines in checked per-product
+sequence; original manual roots and stock projections survive the upgrade.
+
+### Dedicated vendor operators
+
+`vendor_operators` binds one explicit school/vendor/user identity, creator and UTC
+creation. Immutable `vendor_operator_actions` retain ordered active/revoked
+revisions, actor, permanent operation UUID and encrypted private reason. Composite
+school keys and SQL sequence/update/delete guards retain the assignment history.
+Current authority uses the latest action; no staff permission is inferred.
+
+### Vendor settlements
+
+`vendor_settlements` seals original vendor/instruction revisions, reporting period,
+collected order count and gross/sales-net/VAT/collector-fee/payout cents. Unique
+`vendor_settlement_lines` reserve each original collected order once. Immutable
+`vendor_settlement_approvals` require a different Finance actor; one immutable
+`vendor_settlement_outcomes` records exact original ledger posting, actual payment
+date, cash custodian and encrypted verification. Outside payouts share the existing
+financial_disbursements identity with fee refunds and wallet withdrawals. SQL guards
+retain original totals, identities, school keys and lifecycle; retained down refuses.
+
+### Daily physical cash counts
+
+`cashup_counts` retains school/operator/currency/day, ordered revision, permanent
+operation/request/source hashes, original opening/receipt/payout/closing cents,
+actual counted cents, difference and encrypted private evidence/reason. SQL retains
+ordered revisions and exact arithmetic; updates/deletes and retained down refuse.
+Counts are not ledger adjustments. Source custody comes from actual immutable
+cash receipt/payout roots and their original postings.
+
+`cashup_count_sources` retains one immutable school/count/source fingerprint and
+per-source final-row ID watermarks. Handovers use the confirmation outcome ID,
+not the earlier proposal ID. These boundaries distinguish sources already counted
+from later movements without changing old report fingerprints or financial rows.
+An old count can acquire a boundary only when its exact original source set is
+still provable; otherwise a fresh physical revision is required for cash outflows.
+SQL tenant FKs, fingerprint checks and retention triggers protect the boundary.
+See self-tests/money/cash-count-boundaries.md.
+
+### Confirmed cash custody
+
+`cash_handovers` retains school, original sender/recipient, currency/integer amount,
+original available custody, permanent request UUID/hash and encrypted evidence.
+`cash_handover_outcomes` retains exactly one accepted/cancelled/rejected outcome,
+original actor, actual confirmation date, permanent request UUID/hash and encrypted
+evidence. SQL checks/FKs and immutable triggers retain original actor/school and
+history; retained rollback is refused. Accepted rows project equal opposite custody
+events without money postings. No legacy float records are imported.
+
+## Phase5: event admission tickets
+
+School-owned `ticket_events` stores explicit sale/admission windows and current
+revision; `ticket_types` binds a new uncounted vendor product to general/named
+admission, capacity and the school's explicit transfer rule. Immutable encrypted
+`ticket_catalogue_revisions` retains each policy revision and original actor.
+`tickets` retains original fulfilled order-line/ordinal, holder, named learner and
+price/event snapshot with encrypted QR/typed credentials. Immutable sequential
+`ticket_actions` records transfers with rotated credentials and one redemption
+with original actor/time. Composite tenant FKs, SQL retention/shape/sequence guards,
+school locks and existing order ledger roots protect these records. No ticket
+transfer/redemption posts money. See specs/money/tickets.md.
+
+## Phase5: unpaid payer corrections
+
+`fee_payer_corrections` is immutable school-owned lineage binding an original
+sealed unpaid-only credit to an equal replacement charge and current configured
+payer. It fixes original invoice line/holder, new holder, currency, exact cents/VAT
+and actor. `fee_charges.kind` and bill-run kinds distinguish `payer_correction`
+from `fee_item`; correction sources have no fake fee item. Original SQL invoice/
+charge/tax sealing remains active, and correction lineage is required before the
+replacement seals. Existing item kinds are retained by default during upgrade.
+
+## Phase5: explicit one-off late charges
+
+`fee_late_charge_policies` stores the current explicit year/currency rule and
+revision. Immutable encrypted `fee_late_policy_revisions` retains its exact
+snapshot, reason and actor. Immutable `fee_late_charges` binds the canonical
+original learner invoice-line/payer, source basis, policy revision and new sealed
+late invoice. Composite tenant FKs, one-off uniqueness and SQL invoice/tax/lineage
+checks retain the original financial history. Correction descendants resolve to
+their original source; late roots cannot compound. No dummy fee item is created.
+
+## Phase5: online wallet counter payments
+
+School-owned immutable `vendor_card_readers` binds an existing dedicated Vendor
+reader device to one counter. `wallet_payment_intents` retains the original
+financial authorizer, wallet/vendor/exact cents, encrypted quote and short-lived
+QR or verified SUN/card/portrait revisions. `wallet_payment_closures` retains
+original-holder cancellation without money movement. `wallet_counter_payments`
+binds a single live instruction to its original collected order and actual
+Vendor operator. Original `vendor_orders` gain immutable authorization-channel
+and intent lineage; old orders retain their original fields and app channel.
+SQL guards, school-locked posting and counter reconciliation prevent missing or
+duplicate final receipts. Existing ledger, stock and ticket issuance remain the
+financial roots. No amount or balance is stored on a card.

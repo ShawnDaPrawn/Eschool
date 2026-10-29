@@ -21,6 +21,10 @@ use App\Http\Controllers\Api\V2\Cards\CardController;
 use App\Http\Controllers\Api\V2\Cards\CardEncodingController;
 use App\Http\Controllers\Api\V2\Cards\CardOfflineController;
 use App\Http\Controllers\Api\V2\Classroom\FoundationController;
+use App\Http\Controllers\Api\V2\Commerce\TicketController;
+use App\Http\Controllers\Api\V2\Commerce\VendorCounterController;
+use App\Http\Controllers\Api\V2\Commerce\VendorSessionController;
+use App\Http\Controllers\Api\V2\Commerce\WalletPaymentController;
 use App\Http\Controllers\Api\V2\Communication\MessageController;
 use App\Http\Controllers\Api\V2\Consultations\ConsultationController;
 use App\Http\Controllers\Api\V2\Discipline\DisciplineController;
@@ -40,6 +44,7 @@ use App\Http\Controllers\Api\V2\Learning\TutorController;
 use App\Http\Controllers\Api\V2\Live\LiveController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeController;
 use App\Http\Controllers\Api\V2\Money\ParentFeeItemConsentController;
+use App\Http\Controllers\Api\V2\Money\StorefrontController;
 use App\Http\Controllers\Api\V2\Money\WalletController;
 use App\Http\Controllers\Api\V2\Money\WalletDepositController;
 use App\Http\Controllers\Api\V2\Money\WalletTransferController;
@@ -90,7 +95,10 @@ use App\Http\Middleware\PrivateDomainResponse;
 use App\Http\Middleware\PrivateMastery;
 use App\Http\Middleware\PrivateWellbeing;
 use App\Http\Middleware\PublicReportingBoundary;
+use App\Http\Middleware\RequireCommerceAuthority;
 use App\Http\Middleware\RequireFeeItemConsentAuthority;
+use App\Http\Middleware\RequireTicketAuthority;
+use App\Http\Middleware\RequireVendorCounter;
 use App\Http\Middleware\RequireWalletAuthority;
 use App\Http\Middleware\RequireWalletDepositAuthority;
 use App\Http\Middleware\RequireWalletWithdrawalAuthority;
@@ -164,6 +172,34 @@ Route::prefix('wellbeing')->name('api.v2.wellbeing.')->middleware([PrivateWellbe
         }
         Route::post($path, [$controller, 'write'])->whereNumber(['category', 'case', 'assignment', 'report', 'appointment'])->middleware($middleware)->name($action);
     }
+});
+
+Route::prefix('vendor')->name('api.v2.vendor.')->middleware([PrivateDomainResponse::class])->group(function (): void {
+    $session = VendorSessionController::class;
+    Route::post('sign-in', [$session, 'signIn'])->middleware(['throttle:login', 'portal.sign-in'])->name('sign-in');
+    Route::get('session', [$session, 'show'])->middleware(['auth:sanctum', 'school.context', 'role:Vendor'])->name('session');
+    Route::post('sign-out', [$session, 'signOut'])->middleware(['auth:sanctum'])->name('sign-out');
+    Route::prefix('counters/{vendor}')->whereNumber('vendor')->middleware(['auth:sanctum', 'school.context', 'role:Vendor', 'module:vendors,read', RequireVendorCounter::class])->group(function (): void {
+        $counter = VendorCounterController::class;
+        $payments = WalletPaymentController::class;
+        Route::get('payments/catalogue', [$payments, 'handle'])->name('payments.catalogue');
+        Route::get('payments/receipts/{payment}', [$payments, 'handle'])->whereUuid('payment')->name('payments.receipt');
+        Route::get('payments/card/{payment}/portrait', [$payments, 'handle'])->whereUuid('payment')->name('payments.portrait');
+        Route::post('payments/lookup', [$payments, 'handle'])->middleware('throttle:money')->name('payments.lookup');
+        Route::post('payments/card', [$payments, 'handle'])->middleware('throttle:money')->name('payments.card');
+        Route::post('payments/pay', [$payments, 'handle'])->middleware('throttle:money')->name('payments.pay');
+        Route::post('payments/operations/{operation}/resolve', [$payments, 'handle'])->whereUuid('operation')->middleware('throttle:money')->name('payments.resolve');
+        Route::get('settlements', [$counter, 'handle'])->name('settlements');
+        Route::get('settlements/{settlement}', [$counter, 'handle'])->whereNumber('settlement')->name('settlement');
+        Route::get('orders', [$counter, 'handle'])->name('orders');
+        Route::get('orders/{order}', [$counter, 'handle'])->whereNumber('order')->name('receipt');
+        Route::post('lookup', [$counter, 'handle'])->name('lookup');
+        Route::post('tickets/lookup', [$counter, 'handle'])->name('tickets.lookup');
+        Route::post('ticket-operations/{operation}/resolve', [$counter, 'handle'])->whereUuid('operation')->name('tickets.resolve');
+        Route::post('tickets/redeem', [$counter, 'handle'])->middleware('idempotent:required')->name('tickets.redeem');
+        Route::post('collect', [$counter, 'handle'])->middleware('idempotent:required')->name('collect');
+        Route::post('operations/{operation}/resolve', [$counter, 'handle'])->whereUuid('operation')->name('resolve');
+    });
 });
 
 Route::prefix('facilitator')->name('api.v2.facilitator.')->group(function () {
@@ -398,6 +434,29 @@ Route::prefix('student')->middleware(['auth:sanctum', 'school.context', 'role:St
     Route::middleware($money)->group(function () {
         //
     });
+});
+
+Route::prefix('commerce')->name('api.v2.commerce.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:vendors,read'])->group(function () {
+    $c = StorefrontController::class;
+    $t = TicketController::class;
+    $payments = WalletPaymentController::class;
+    Route::get('wallet-payments', [$payments, 'handle'])->name('wallet-payments.index');
+    Route::get('wallet-payment-operations/{operation}', [$payments, 'handle'])->whereUuid('operation')->name('wallet-payments.outcome');
+    Route::get('wallet-payments/{payment}', [$payments, 'handle'])->whereUuid('payment')->name('wallet-payments.show');
+    Route::post('wallet-payments', [$payments, 'handle'])->middleware('throttle:money')->name('wallet-payments.issue');
+    Route::post('wallet-payments/{payment}/cancel', [$payments, 'handle'])->whereUuid('payment')->middleware('throttle:money')->name('wallet-payments.cancel');
+    Route::get('tickets', [$t, 'handle'])->name('tickets.index');
+    Route::post('tickets/receive-code', [$t, 'handle'])->middleware('throttle:money')->name('tickets.receive-code');
+    Route::get('tickets/{ticket}', [$t, 'handle'])->whereNumber('ticket')->name('tickets.show');
+    Route::post('tickets/{ticket}/transfer-preview', [$t, 'handle'])->whereNumber('ticket')->middleware('throttle:money')->name('tickets.transfer-preview');
+    Route::post('tickets/{ticket}/transfer', [$t, 'handle'])->whereNumber('ticket')->middleware([RequireTicketAuthority::class, 'throttle:money', 'idempotent:required'])->name('tickets.transfer');
+    Route::get('vendors', [$c, 'index'])->name('index');
+    Route::get('vendors/{vendor}', [$c, 'catalogue'])->whereNumber('vendor')->name('catalogue');
+    Route::get('orders', [$c, 'orders'])->name('orders');
+    Route::get('orders/{order}', [$c, 'show'])->whereNumber('order')->name('show');
+    Route::post('quotes', [$c, 'quote'])->middleware('throttle:money')->name('quote');
+    Route::post('orders', [$c, 'purchase'])->middleware([RequireCommerceAuthority::class, 'throttle:money', 'idempotent:required'])->name('purchase');
+    Route::post('orders/{order}/cancel', [$c, 'cancel'])->whereNumber('order')->middleware([RequireCommerceAuthority::class, 'throttle:money', 'idempotent:required'])->name('cancel');
 });
 
 Route::prefix('wallets')->name('api.v2.wallets.')->middleware([PrivateDomainResponse::class, 'auth:sanctum', 'school.context', 'role.any', 'module:wallet,read'])->group(function () {

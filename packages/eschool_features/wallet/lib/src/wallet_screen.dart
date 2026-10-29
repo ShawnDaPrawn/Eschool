@@ -10,17 +10,23 @@ import 'wallet_deposit_section.dart';
 import 'wallet_withdrawal_section.dart';
 
 class WalletScreen extends StatelessWidget {
-  const WalletScreen({required this.repository, super.key});
+  const WalletScreen({
+    required this.repository,
+    this.storefrontBuilder,
+    super.key,
+  });
   final WalletRepository repository;
+  final WidgetBuilder? storefrontBuilder;
   @override
   Widget build(BuildContext context) => BlocProvider(
     create: (_) => WalletCubit(repository)..load(),
-    child: const _WalletView(),
+    child: _WalletView(storefrontBuilder: storefrontBuilder),
   );
 }
 
 class _WalletView extends StatefulWidget {
-  const _WalletView();
+  const _WalletView({this.storefrontBuilder});
+  final WidgetBuilder? storefrontBuilder;
   @override
   State<_WalletView> createState() => _WalletViewState();
 }
@@ -77,6 +83,21 @@ class _WalletViewState extends State<_WalletView> {
                           ],
                         ),
                       ),
+                    ),
+                  if (widget.storefrontBuilder != null)
+                    FilledButton.tonalIcon(
+                      onPressed: state.busy
+                          ? null
+                          : () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: widget.storefrontBuilder!,
+                                ),
+                              );
+                              if (mounted) cubit.load();
+                            },
+                      icon: const Icon(Icons.storefront_outlined),
+                      label: Text(tr('Shop and orders')),
                     ),
                   if (cubit.hasPendingMoney ||
                       cubit.transfers?.canTransfer == true ||

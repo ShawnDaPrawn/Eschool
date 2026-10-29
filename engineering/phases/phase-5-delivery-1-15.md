@@ -13,18 +13,18 @@ or reconciling abandoned seed money into the new financial source.
 | 1 | Arrears ageing and accounting CSV exports | Merged PR315; exact source CI and review passed |
 | 2 | Scheduled fee reminders through Notifier | Merged PR316 through the qualified PR317 tree; both sources verified on main |
 | 3 | Expanded fee-plan rules and payment schedules | Merged PR317; final CI108/108 and review passed |
-| 4 | Automatic/rule/membership fee items and VAT | VAT PR318 and compulsory/membership PR319 merged via108/108 qualified source; opt-ins PR320 and discounts PR321 in hosted qualification |
-| 5 | Discounts, bursaries, exemptions and approval | Rule/calculator/Finance workbench locally qualified; PR321 in hosted qualification |
-| 6 | Pro-rata joins/leavers, refunds and payer corrections | Proration PR322 in hosted qualification; later leaver credits PR323 in hosted qualification; reserved manual refunds implemented with qualification in progress; payer corrections/late charges remain |
-| 7 | Personal wallets, statements and spending limits | Implemented; local and hosted qualification in progress |
-| 8 | Master funding, desk/parent top-ups, approvals and transfers | Master funding PR327 and desk grants PR328 published; parent transfers/recovery implemented in qualification; parent deposits8C2 published as PR332 with local qualification passed; exact-source hosted CI/review/main remain pending |
-| 9 | Adult withdrawals, Finance approval and cash/bank policy | Published as draft PR333; Learner/Parent/Teacher/Facilitator Chrome journeys passed; final migration/hosted/main pending |
-| 10 | Daily cash-up by operator and explained differences | Pending |
-| 11 | Vendors, storefronts, products/stock, orders and fulfilment | Vendor catalogue/stock11A implemented;13 backend/concurrency cases and four responsive browser cases passed; hosted/main pending. Orders11B remain |
-| 12 | Vendor-owned panel/API and native scanner flavour | Pending |
-| 13 | Vendor settlements, collection metadata and reports | Pending |
-| 14 | Ticket sales, capacity, ownership, redemption and transfers | Pending |
-| 15 | Online wallet QR/card spending, SUN, photo and freeze checks | Pending |
+| 4 | Automatic/rule/membership fee items and VAT | Merged through PR324; exact source CI112/112 and review passed |
+| 5 | Discounts, bursaries, exemptions and approval | Merged through PR324; exact source CI112/112 and review passed |
+| 6 | Pro-rata joins/leavers, refunds and payer corrections | Proration, leaver credits and reserved manual refunds merged through PR324; unpaid payer corrections published PR344; explicit one-off late charges published PR345; hosted-check corrections published, current source/main qualification pending |
+| 7 | Personal wallets, statements and spending limits | Merged through PR337; exact source CI121/121 and review passed |
+| 8 | Master funding, desk/parent top-ups, approvals and transfers | Master funding, approved desk grants, parent/child transfers and verified parent deposits merged through PR337 |
+| 9 | Adult withdrawals, Finance approval and cash/bank policy | Merged through PR337; compiled Learner refusal and Parent/Teacher/Facilitator journeys, migration, exact source CI/review passed |
+| 10 | Daily cash-up by operator and explained differences | 10A reports/counts published PR341; 10B confirmed handovers, actual payer custody and nightly cash reconciliation published PR342; counted-source boundary correction qualified locally in cumulative PR346; older PR345 must not merge independently; hosted/main pending |
+| 11 | Vendors, storefronts, products/stock, orders and fulfilment | Catalogue/stock11A merged through PR337; storefront/orders11B PR338 in exact-source hosted qualification after global contract registry correction |
+| 12 | Vendor-owned panel/API and native scanner flavour | PR339 published; local qualification passed; review Finance replay finding fixed, targeted regression passed and updated exact-source review has no findings; hosted/main pending |
+| 13 | Vendor settlements, collection metadata and reports | PR340 published; local qualification passed; fee-only reconciliation review finding fixed, global/fee regressions passed; exact-source hosted CI/main pending |
+| 14 | Ticket sales, capacity, ownership, redemption and transfers | PR343 published; backend/API/races, responsive browser, SDK repeat and compiled five-profile local qualification passed; hosted/main pending |
+| 15 | Online wallet QR/card spending, SUN, photo and freeze checks | Published [PR346](https://github.com/ShawnDaPrawn/Eschool/pull/346); backend/races, browser, migration, API/SDK and five compiled profiles locally qualified; evidence in self-tests/money/wallet-counter-payments.md; current hosted/main status is recorded on the PR |
 
 Every feature includes its applicable panel/app surfaces, contracts, fresh tenant/
 role/owner/guardian checks, balanced cents postings, durable idempotency, immutable

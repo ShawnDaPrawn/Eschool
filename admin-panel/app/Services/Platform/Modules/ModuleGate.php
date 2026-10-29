@@ -71,15 +71,17 @@ class ModuleGate
         $entitled = $inPackage && ($row?->in_package ?? true);
         $default = $school?->package_key === null ? ($definition['legacy'] ?? $definition['default'] ?? false) : ($definition['default'] ?? false);
         $enabled = $entitled && ($row?->enabled ?? $default);
-        $readOnly = $row?->read_only ?? false;
+        $retainedReadOnly = $row?->read_only ?? false;
+        $readOnly = $retainedReadOnly;
         foreach ($definition['dependencies'] ?? [] as $dependency) {
             $state = $this->state($dependency, [...$visited, $key], $locked);
             $enabled = $enabled && $state['enabled'];
             $readOnly = $readOnly || $state['read_only'];
         }
 
-        // Retained financial data stays readable even after entitlement ends.
-        return ['enabled' => $enabled || ($readOnly && ($definition['money'] ?? false)), 'read_only' => $readOnly || ! $entitled, 'in_package' => $entitled];
+        // Only this module's retained history can keep it readable. A paused
+        // dependency must never activate an unused optional money module.
+        return ['enabled' => $enabled || ($retainedReadOnly && ($definition['money'] ?? false)), 'read_only' => $readOnly || ! $entitled, 'in_package' => $entitled];
     }
 
     public function allows(string $key): bool
@@ -189,7 +191,20 @@ class ModuleGate
         // Parent agreements and reviewed reductions also remain readable before
         // the first ledger posting. Disabling a module does not hide legal history.
         if ($module === 'fees') {
-            foreach (['fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies', 'fee_leaver_policies', 'fee_leaver_runs', 'fee_refund_policies', 'fee_refunds', 'fee_refund_actions'] as $table) {
+            foreach (['fee_item_consents', 'fee_discounts', 'fee_discount_runs', 'fee_lifecycle_policies', 'fee_leaver_policies', 'fee_leaver_runs', 'fee_refund_policies', 'fee_refunds', 'fee_refund_actions', 'fee_late_charge_policies', 'fee_late_policy_revisions', 'fee_late_charges'] as $table) {
+                if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
+                    return true;
+                }
+            }
+        }
+
+        if ($module === 'wallet_payments') {
+            return (Schema::hasTable('wallet_payment_intents') && DB::table('wallet_payment_intents')->where('school_id', $schoolId)->exists())
+                || (Schema::hasTable('vendor_card_readers') && DB::table('vendor_card_readers')->where('school_id', $schoolId)->exists());
+        }
+
+        if ($module === 'ticketing') {
+            foreach (['ticket_events', 'ticket_types', 'tickets', 'ticket_actions', 'ticket_catalogue_revisions'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
                     return true;
                 }
@@ -197,7 +212,7 @@ class ModuleGate
         }
 
         if ($module === 'vendors') {
-            foreach (['vendor_categories', 'vendors', 'vendor_products', 'vendor_stock_balances', 'vendor_stock_movements', 'vendor_operations'] as $table) {
+            foreach (['vendor_settlements', 'vendor_settlement_lines', 'vendor_settlement_approvals', 'vendor_settlement_outcomes', 'vendor_operators', 'vendor_operator_actions', 'vendor_order_counters', 'vendor_orders', 'vendor_order_lines', 'vendor_order_actions', 'vendor_stock_events', 'vendor_categories', 'vendors', 'vendor_products', 'vendor_stock_balances', 'vendor_stock_movements', 'vendor_operations'] as $table) {
                 if (Schema::hasTable($table) && DB::table($table)->where('school_id', $schoolId)->exists()) {
                     return true;
                 }

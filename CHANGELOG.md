@@ -1,5 +1,17 @@
 # Changelog
 
+- Phase5: actual daily cash custody reports, retained physical count revisions,
+  explained differences and private exports without automatic ledger adjustments.
+
+
+- Phase5: original vendor settlement batches, separate Finance approval, exact
+  school sales/VAT recognition, verified manual payouts and private vendor reports.
+
+
+- Phase5: dedicated vendor operators, explicit counter assignments, private panel
+  and native scanner access, single-use collection and interrupted handover recovery.
+
+
 What changed in NavigateEd, newest first. Each phase release gets a section when it reaches production; work merged since the last release sits under **Unreleased**. Entries are grouped by who notices them (Admin panel, Apps, API, Platform, Security, Operations, Removed, Developers), and say in plain words what changed for the people who use or run the platform. Deployers' actions are marked **Deploy:**.
 
 Earlier history is kept where it was written and is not repeated here:
@@ -178,3 +190,5 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 
 - Phase 5: verified school-owned master wallet funding, private printable receipts
   and shared outside receipt identity across fee and wallet collections.
+
+- Added independently confirmed operator cash handovers, custody reservations, physical shortage limits and nightly cash reconciliation; fee, wallet and vendor cash payouts use the actual operator’s custody.

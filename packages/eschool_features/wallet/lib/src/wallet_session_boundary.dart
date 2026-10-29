@@ -17,6 +17,15 @@ bool walletAccessStillCurrent(MeContext pinned, MeContext? current) =>
     listEquals([...current.roles]..sort(), [...pinned.roles]..sort()) &&
     listEquals(current.children, pinned.children) &&
     current.isModuleOn('wallet') &&
+    current.isModuleOn('vendors') == pinned.isModuleOn('vendors') &&
+    current.isModuleOn('ticketing') == pinned.isModuleOn('ticketing') &&
+    current.isModuleOn('wallet_payments') ==
+        pinned.isModuleOn('wallet_payments') &&
+    current.isModuleReadOnly('wallet_payments') ==
+        pinned.isModuleReadOnly('wallet_payments') &&
+    current.isModuleReadOnly('ticketing') ==
+        pinned.isModuleReadOnly('ticketing') &&
+    current.isModuleReadOnly('vendors') == pinned.isModuleReadOnly('vendors') &&
     allowsSchoolModule(current, 'wallet') &&
     current.isModuleReadOnly('wallet') == pinned.isModuleReadOnly('wallet');
 

@@ -26,6 +26,8 @@ class WalletOwner {
     required this.canOpen,
 
     required this.wallets,
+
+    this.learnerId,
   });
 
   // minimum: 1
@@ -45,6 +47,11 @@ class WalletOwner {
   @JsonKey(name: r'wallets', required: true, includeIfNull: false)
   final List<WalletSummary> wallets;
 
+  /// Current learner identity for this already-authorised wallet owner; absent or null for adult profiles.
+  // minimum: 1
+  @JsonKey(name: r'learner_id', required: false, includeIfNull: false)
+  final int? learnerId;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -53,7 +60,8 @@ class WalletOwner {
           other.ownerName == ownerName &&
           other.isSelf == isSelf &&
           other.canOpen == canOpen &&
-          other.wallets == wallets;
+          other.wallets == wallets &&
+          other.learnerId == learnerId;
 
   @override
   int get hashCode =>
@@ -61,7 +69,8 @@ class WalletOwner {
       ownerName.hashCode +
       isSelf.hashCode +
       canOpen.hashCode +
-      wallets.hashCode;
+      wallets.hashCode +
+      (learnerId == null ? 0 : learnerId.hashCode);
 
   factory WalletOwner.fromJson(Map<String, dynamic> json) =>
       _$WalletOwnerFromJson(json);

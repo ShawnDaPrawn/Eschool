@@ -378,3 +378,77 @@ Finance requires vendors-manage; only the system Super Admin starts with it.
 Custom Finance roles need an explicit grant. Current Students and Vendor operators
 are excluded from catalogue Finance even if a permission was accidentally granted.
 No vendor login or general staff authority is introduced by catalogue creation.
+
+### Storefront and counter collection
+
+The existing vendors module covers active catalogue/private receipt reads and
+single-use counter collection. Purchases/cancellations additionally require current
+wallet write authority and its existing limits. Finance collection uses
+vendors-manage; Finance cancellation also requires wallet Finance. Dedicated
+vendor identity is separate. Facilitator profiles advertise optional vendors
+capability only when the actor has its own allowed wallet and commerce access.
+No external provider, notification transport or Phase6 collection is activated.
+
+### Dedicated vendor operators
+
+The system Vendor role grants no staff/Finance permissions. Finance uses
+vendors-manage to create dedicated people and append explicit counter assignment
+revisions. Vendor-owned panel/API/native credentials are limited to that profile.
+The vendors module preserves authorised order history when paused; handover stops
+and Finance can still revoke access. No new notification or gateway is enabled.
+
+### Vendor settlement authority
+
+Existing vendors-manage controls explicit Finance preparation, separate approval
+and original settlement recording. Assigned Vendor credentials can read only
+redacted counter batches and original totals through the existing vendors module.
+History remains readable while paused. Outside payouts also require writable wallet
+backing; school-internal sales/VAT recognition remains independent of fee access.
+No new notification/provider is enabled. Clearing/due-to-school accounts remain
+zero and the posting kernel continues to reject Phase6 collection.
+
+### Daily cash control permission
+
+`money-cashup-manage` authorises private cross-domain cash-control reports and the
+operator's own physical count records. It is independent of fee/wallet/vendor
+module pause because it cannot move money. System School Admins start with it;
+custom Finance roles need explicit school grants. Vendor/learner/platform
+impersonation authority is refused. No notification/provider is activated by10A.
+
+### Cash custody control
+
+The existing `money-cashup-manage` permission covers private Finance handovers and
+cash-up. It grants no payment-domain authority. `cash:reconcile --json` runs nightly
+at02:40 after `ledger:reconcile`, with no rebuild or automatic count adjustment.
+Financial failures emit `money_cash_control_reconciliation_failed`; missing/stale
+counts and physical shortages remain explicit human-review fields. No message or
+payment is sent and no provider is activated.
+
+### Optional ticketing module
+
+`ticketing` starts disabled and depends on `vendors` and its wallet dependency.
+Legacy/standard package entitlement permits explicit school enablement; core
+packages do not silently receive commerce. Finance uses existing
+`vendors-manage`; assigned Vendor operators use their own counter scope.
+Pausing retains event/type/revision/ticket/action history with private reads and
+refuses writes. No notification, gateway or Phase6 collection is enabled.
+
+### Explicit late-charge rules
+
+The existing fees module includes private Finance policy, review and history
+screens. Rule configuration requires `fee-plans-manage`; posting requires
+`fee-billing-manage`. Policies remain disabled until explicitly configured per
+school year/currency. Paused fees retain policy/invoice history without allowing
+new writes. Existing Parent statements carry each payer's own late invoice using
+the compatible adjustment description; no new payment provider or notification.
+
+### Optional wallet-payments module
+
+`wallet_payments` starts disabled and requires `wallet` and `vendors`. Existing
+legacy/standard entitlements permit explicit enablement; core does not silently
+receive it. Finance uses `vendors-manage` plus `cards-readers-manage` to register
+and revoke purpose-bound readers. SUN also requires current cards authority.
+Personal profiles use their current wallet/guardian scope; dedicated operators
+use only assigned counters. Pausing retains private original history and allows
+reader revocation and uncertain-request recovery while refusing new debits.
+No provider, notification, offline payment or Phase6 collection is activated.

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Commerce;
 
+use App\Models\Commerce\TicketEvent;
+use App\Models\Commerce\TicketType;
 use App\Models\Commerce\Vendor;
 use App\Models\Commerce\VendorCategory;
 use App\Models\Commerce\VendorProduct;
@@ -17,6 +19,7 @@ use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Ledger\AccountType;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -38,7 +41,7 @@ final class VendorCatalogues
             'vendor' => [
                 'id' => ['nullable', 'integer', 'min:1'], 'revision' => ['required', 'integer', 'min:0'],
                 'category_id' => ['required', 'integer', 'min:1'], 'name' => ['required', 'string', 'max:160'],
-                'legal_name' => ['nullable', 'string', 'max:160'], 'description' => ['nullable', 'string', 'max:2000'],
+                'legal_name' => ['nullable', 'string', 'max:160'], 'legal_address' => ['nullable', 'string', 'max:1000'], 'description' => ['nullable', 'string', 'max:2000'],
                 'kind' => ['required', Rule::in(['school', 'independent'])], 'status' => ['required', Rule::in(['draft', 'active', 'archived'])],
                 'vat_registered' => ['nullable', 'boolean'], 'vat_number' => ['nullable', 'string', 'max:40'],
                 'refund_bearer' => ['nullable', Rule::in(['school', 'vendor'])], 'chargeback_bearer' => ['nullable', Rule::in(['school', 'vendor'])],
@@ -196,7 +199,7 @@ final class VendorCatalogues
             abort_unless($data['source_reference'] === trim($data['source_reference']) && ! str_contains($data['source_reference'], '  '), 422, 'Use a canonical source reference.');
             abort_if(VendorStockMovement::where('product_id', $row->id)->where('source_reference', $data['source_reference'])->exists(), 409, 'This physical stock reference was already recorded.');
             $balance = VendorStockBalance::where('product_id', $row->id)->lockForUpdate()->sole();
-            $actual = (int) VendorStockMovement::where('product_id', $row->id)->sum('units_delta');
+            $actual = app(VendorInventory::class)->actual((int) $row->id);
             abort_unless($actual === $balance->on_hand, 409, 'Reconcile stock before changing it.');
             $after = $actual + $data['units_delta'];
             abort_unless($after >= 0 && $after <= 1000000000, 409, 'Stock cannot become negative or exceed the supported quantity.');
@@ -211,15 +214,22 @@ final class VendorCatalogues
     }
 
     /** Active school storefront details only; private legal, bank and stock reasons stay server-side. */
-    public function storefront(User $actor, int $vendorId): array
+    public function storefront(User $actor, int $vendorId, int $page = 1): array
     {
-        return DB::transaction(function () use ($actor, $vendorId): array {
+        return DB::transaction(function () use ($actor, $vendorId, $page): array {
             $fresh = app(VendorPolicy::class)->actor($actor);
             app(WalletPolicy::class)->activePerson($fresh);
             $vendor = Vendor::where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->findOrFail($vendorId);
-            $products = VendorProduct::where('vendor_id', $vendor->id)->where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->orderBy('id')->paginate(30);
+            $products = VendorProduct::where('vendor_id', $vendor->id)->where('status', 'active')->whereIn('category_id', VendorCategory::where('status', 'active')->select('id'))->where(function ($q): void {
+                $q->whereNotIn('id', TicketType::select('product_id'));
+                if (app(ModuleGate::class)->allows('ticketing')) {
+                    $q->orWhereIn('id', TicketType::where('status', 'active')->whereIn('event_id', TicketEvent::where('status', 'active')->where('ends_at', '>', now('UTC'))->select('id'))->select('product_id'));
+                }
+            })->orderBy('id')->paginate(30, ['*'], 'page', $page);
             $items = $products->map(function (VendorProduct $p): array {
-                return ['id' => (int) $p->id, 'name' => $p->name, 'description' => $p->description, 'sku' => $p->sku, 'unit_label' => $p->unit_label, 'category_key' => VendorCategory::findOrFail($p->category_id)->key, 'currency' => $p->currency, 'price_cents' => $p->price_cents, 'vat_kind' => $p->vat_kind, 'vat_rate_bps' => $p->vat_rate_bps, 'in_stock' => ! $p->tracks_stock || VendorStockBalance::where('product_id', $p->id)->where('on_hand', '>', 0)->exists()];
+                $ticket = app(TicketSales::class)->catalogue($p);
+
+                return ['id' => (int) $p->id, 'name' => $p->name, 'description' => $p->description, 'sku' => $p->sku, 'unit_label' => $p->unit_label, 'category_key' => VendorCategory::findOrFail($p->category_id)->key, 'currency' => $p->currency, 'price_cents' => $p->price_cents, 'vat_kind' => $p->vat_kind, 'vat_rate_bps' => $p->vat_rate_bps, 'in_stock' => $ticket === null ? (! $p->tracks_stock || VendorStockBalance::where('product_id', $p->id)->where('on_hand', '>', 0)->exists()) : $ticket['can_purchase']] + ($ticket === null ? [] : ['ticket' => $ticket]);
             })->all();
 
             return ['school_id' => app(CurrentSchool::class)->id(), 'vendor' => ['id' => (int) $vendor->id, 'name' => $vendor->name, 'description' => $vendor->description, 'kind' => $vendor->kind], 'items' => $items, 'page' => $products->currentPage(), 'last_page' => $products->lastPage()];

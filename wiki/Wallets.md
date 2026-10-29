@@ -28,3 +28,31 @@ Child returns require the explicit school policy in Money → Wallets. An interr
 request retains its original operation until recovery confirms the posted result
 or safely closes it; a new money intent cannot silently replace an unknown outcome.
 Parent deposits are a separate verified-receipt flow, not school master funding.
+
+## Storefront purchases and original receipts
+
+Wallets → Shop and orders exposes the selected school's active vendors. Review
+the source wallet, quantities and exact quoted total before confirming. Checkout
+rechecks current ownership/guardian approval, allowed categories, daily caps,
+prices and stock atomically. Orders debit the original wallet and credit that
+vendor; setup creates no money. Free orders still consume counted stock without
+zero ledger postings.
+
+Your orders retains private original seller/tax/item receipts and an uncollected
+order QR. The counter accepts the QR or order number once. Uncollected
+cancellation restores the original gross to its original wallet and counted
+units; collected returns are a separate process. Lost responses retain only an
+opaque operation UUID and require an outcome check before another money intent.
+Scope or approval changes clear displayed private data. Paused commerce retains
+history but prevents new financial and handover writes.
+
+## Event admission tickets
+
+When the school enables Ticketing, open **Shop and orders → Admission tickets**.
+The current holder sees private QR/typed admission credentials and original event,
+named learner and redemption details. The school's explicit transfer rule and
+current guardian checks apply. Ask the recipient for their short-lived receiving
+code and review the named recipient before confirming. Transfers rotate both
+credentials and move admission only; wallet balances do not move. The original
+Vendor counter admits each ticket once. See the Events and admission tickets
+Finance guide for configuration and paused-history behavior.

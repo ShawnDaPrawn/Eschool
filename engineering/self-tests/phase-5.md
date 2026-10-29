@@ -65,3 +65,23 @@ Finance browser and app qualification. This does not close Phase5 or increments9
 Adult withdrawal qualification is tracked in money/adult-wallet-withdrawals.md.
 Vendor implementation proceeds independently; pending external evidence does not
 freeze catalogue development.
+
+[Vendor wallet orders](money/vendor-wallet-orders.md) records quoted storefront
+checkout, original receipts, counted stock, Finance collection, cancellation,
+recovery and affected app verification. Dedicated vendor identities/scanner and
+settlement/ticket/card increments remain separate work.
+
+[Event admission tickets](money/event-tickets.md) records increment14: capacity,
+named authority, credential rotation, single-use redemption and private app/counter
+surfaces. It does not qualify online wallet QR/card spending15 or the remaining
+fee payer corrections/late charges6D.
+
+[Unpaid payer debt corrections](money/payer-debt-corrections.md) records the
+remaining6D payer correction service, Finance workflow, original VAT preservation,
+private Parent statement compatibility, races and retained upgrade evidence. Late
+charges and online spending remain separate.
+
+Remaining fee lifecycle6D: explicit one-off late charges now have Finance rule,
+review/post and compatible Parent statement surfaces. See
+[money/late-charges.md](money/late-charges.md) for actual local evidence and pending
+hosted/integration/external acceptance. Online QR/card spending15 remains next.

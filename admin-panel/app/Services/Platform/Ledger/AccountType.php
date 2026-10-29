@@ -41,6 +41,7 @@ enum AccountType: string
     {
         return match ($this) {
             self::CashDesk, self::Clearing, self::DueToSchool => ['fees', 'wallet', 'vendors', 'ticketing'],
+            self::FeeIncome, self::FeeVat => ['fees', 'vendors', 'ticketing'],
             default => [$this->module()],
         };
     }

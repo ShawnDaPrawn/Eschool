@@ -863,3 +863,115 @@ The Finance workbench works while wallet transactions are paused. No money is
 created by setup. Backend/concurrency13/95 and four responsive browser cases passed;
 remaining evidence is tracked in self-tests/money/vendor-catalogues-stock.md.
 Orders/fulfilment11B and dedicated vendor operators/scanner12 follow.
+
+## 2026-10-28 — quoted wallet purchases and vendor order fulfilment
+
+Increment11B implements active storefront API/app surfaces, integer original
+seller/tax receipts, exact wallet-to-vendor postings, atomic counted inventory,
+durable interrupted-request recovery, private collection QR/typed numbers,
+single-use Finance handover and original-wallet uncollected cancellation. Retained
+manual stock is indexed without rewriting original history. Qualification is
+tracked in self-tests/money/vendor-wallet-orders.md. Dedicated vendor identities,
+panel/native scanner12, settlements13, tickets14 and card spending15 remain;
+gateways and production activation stay deferred.
+
+## 2026-10-28 — dedicated vendor identities and counter flavour
+
+Increment12 adds explicit Finance provisioning/assignment/revocation, private
+vendor-only sign-in/panel/API, redacted counter receipts and the dedicated native
+Vendor scanner flavour. Durable interrupted collection recovery never instructs
+a second handover; assignment checks precede cached replies. Qualification is in
+self-tests/money/vendor-operator-access.md. Settlements, tickets, online card
+spending and remaining fee/cash-up work continue; gateways stay deferred.
+
+Wallets, funding/transfers/deposits, withdrawals and catalogue preparation through
+PR337 are confirmed on main at28405f10a586213270974bccb038f6c7051f9767, matching
+the qualified source tree. Storefront/order PR338 remains in hosted qualification.
+
+## 2026-10-28 — vendor settlements and original merchant reports
+
+Increment13 adds collected-order batching, independent approval, retained merchant
+instructions, exact sales/VAT recognition, verified outside payouts with shared
+disbursement identity, private Finance reporting and Vendor panel/native history.
+Qualification is recorded in self-tests/money/vendor-settlements.md. Cash-up10,
+remaining fee correction/late-charge6D, tickets14 and online card spending15 continue.
+Gateway execution and Phase6 collection remain deferred.
+
+## 2026-10-28 — actual operator cash reports and retained counts
+
+Increment10A adds custody derived from actual posted cash sources, daily opening/
+receipt/payout/closing reports, physical counts, explained differences, immutable
+corrections and private CSV. Cash/EFT and internal wallet movements are distinguished
+without inventing opening funds or adjusting the ledger. Qualification is in
+self-tests/money/daily-cashup.md. Recipient-confirmed handovers/payout custody10B,
+remaining fee correction/late charges6D, tickets14 and online spending15 continue.
+
+## 2026-10-28 — recipient-confirmed cash custody and payout availability
+
+Increment10B adds immutable proposals/reservations and independently confirmed
+cash handovers, private Finance screens, actual custodian checks on fee/wallet/
+vendor cash payouts and nightly cash source/custody reconciliation. Physical
+shortages cap usable cash; surpluses never create funds. Qualification is tracked
+in self-tests/money/cash-custody-handovers.md. Remaining fee corrections/late
+charges6D, tickets14 and online wallet/card spending15 continue. Gateway integration
+and production activation remain deferred.
+
+## 2026-10-28 — wallet event ticketing
+
+Increment14 implements explicit event windows, general/named capacity and transfer
+rules, original wallet/vendor purchase and digital fulfilment, immutable ticket
+lineage, private holder QR/typed credentials, rotation on transfer and single-use
+admission. Finance, shared personal wallets and dedicated Vendor panel/scanner
+surfaces use the same current authority. Verification is recorded in
+self-tests/money/event-tickets.md; hosted review/CI and main integration remain
+separate. Remaining payer corrections/late charges6D and online wallet QR/card
+spending15 continue. Payment gateway integration remains deferred.
+
+## 2026-10-28 — explicit unpaid payer debt corrections
+
+The remaining fee lifecycle work adds an explicitly reviewed unpaid-only credit
+and equal replacement payer invoice in the original family account. Original
+paid receipts, allocations, VAT and invoice history remain frozen. Finance forms
+and compatible private Parent statements are verified in
+self-tests/money/payer-debt-corrections.md. Late charges and online wallet QR/card
+spending remain; hosted/main integration is separate from local qualification.
+
+## 2026-10-28 — explicit one-off late charges
+
+The remaining6D work adds disabled-by-default school-year/currency rules, private
+Finance review/posting and original Parent statement views. Canonical original
+debt/payer uniqueness prevents repeated charges after payer corrections, and late
+invoices cannot compound. Gross caps, separate held credit, VAT, fresh rule/debt
+checks and immutable policy/occurrence lineage reuse existing ledger semantics.
+Verification is recorded in self-tests/money/late-charges.md. Online QR/card
+spending15 continues; hosted/main integration and external acceptance are separate.
+
+## 2026-10-28 — online wallet QR and card spending
+
+Increment15 adds exact short-lived personal QR instructions and purpose-bound
+online SUN/card spending with current private portrait review. The financial
+wallet authorizer remains distinct from the actual assigned Vendor operator.
+Existing pricing, integer-cents ledger, stock, limits and digital ticket issuance
+are committed together with an immutable final receipt. Cancellation, permanent
+operation recovery and independent reconciliation protect the original outcome.
+Finance reader management, personal wallet views and dedicated Vendor browser/
+scanner surfaces share these rules. Verification and remaining external evidence
+are recorded in self-tests/money/wallet-counter-payments.md. Hosted qualification
+and main integration remain separate; payment gateways remain deferred.
+
+Hosted-check maintenance also patches Symfony Mime to7.4.22 for CVE-2026-45070,
+uses existing Material3 fee buttons and waits for the saved asynchronous Teacher
+support conversation. The locked dependency audit and targeted checks passed.
+
+## 2026-10-28 — retain physical cash-count source boundaries
+
+A review found that a later same-day payout could erase an observed shortage and
+allow further cash to leave. Immutable per-count source boundaries now preserve
+the original shortage through payouts and handovers. Confirmed incoming handovers
+remain usable; later date-only receipts on the count day require a fresh physical
+revision before increasing the counted cash bound. Old exact fingerprints can be
+adopted before a cash movement; changed, unprovable old source sets require a fresh
+count. Original financial history and counts remain unchanged. Qualification is
+recorded in self-tests/money/cash-count-boundaries.md. This correction belongs to
+cumulative PR346; PR345 is held as a draft and must not merge independently.
+Hosted source checks, review and main integration remain pending.
