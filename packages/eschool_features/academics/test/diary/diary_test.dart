@@ -227,7 +227,9 @@ Future<void> _mount(
   Future<void> Function()? talk,
   bool Function()? canWrite,
 }) async {
-  tester.view.physicalSize = const Size(1080, 2400);
+  // Tall enough that every row of a day is on screen (rows only in a
+  // scrollable's cache count as offstage to finders).
+  tester.view.physicalSize = const Size(1080, 4800);
   tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -245,6 +247,17 @@ Future<void> _mount(
 }
 
 void main() {
+  // Name a failing widget test in a CI annotation as well as the log.
+  final report = reportTestException;
+  reportTestException = (details, description) {
+    // ignore: avoid_print
+    print(
+      '::error title=Diary test failed::$description: '
+      '${details.exceptionAsString().split('\n').first}',
+    );
+    report(details, description);
+  };
+
   group('repository', () {
     test('reads one week for the pinned learner and school only', () async {
       for (final wrong in [false, true]) {
