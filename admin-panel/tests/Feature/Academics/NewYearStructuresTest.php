@@ -14,6 +14,7 @@ use App\Models\ClassSchool;
 use App\Models\People\Enrolment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Models\User;
 use App\Services\Academics\NewYearService;
 use App\Services\Academics\TeachingGroups;
 use App\Services\Activities\ActivityGroups;
@@ -21,6 +22,7 @@ use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -125,5 +127,53 @@ class NewYearStructuresTest extends TestCase
         $this->assertTrue($options['teaching_groups']['copies']);
         $this->assertSame(1, $options['activity_groups']['source']);
         $this->assertTrue($options['activity_groups']['copies']);
+    }
+
+    public function test_same_named_sibling_groups_each_get_their_own_copy(): void
+    {
+        $parent = $this->activity(['name' => 'Athletics']);
+        $summer = $this->activity(['name' => 'Squad', 'parent_id' => $parent['id'], 'season' => 'Summer', 'starts_on' => '2026-01-25', 'ends_on' => '2026-03-31']);
+        $this->activity(['name' => 'Squad', 'parent_id' => $parent['id'], 'season' => 'Winter', 'starts_on' => '2026-04-01', 'ends_on' => '2026-06-30']);
+        $this->activity(['name' => 'Relay', 'parent_id' => $summer['id'], 'starts_on' => '2026-02-01', 'ends_on' => '2026-03-15']);
+
+        app(TransferActivityGroups::class)->execute($this->year, $this->next);
+
+        $newParent = ActivityGroup::where('session_year_id', $this->next)->whereNull('parent_id')->firstOrFail();
+        $squads = ActivityGroup::where('session_year_id', $this->next)->where('parent_id', $newParent->id)->orderBy('starts_on')->get();
+        $this->assertSame(['Summer', 'Winter'], $squads->pluck('season')->all(), 'both siblings are copied');
+        $relay = ActivityGroup::where('session_year_id', $this->next)->where('name', 'Relay')->firstOrFail();
+        $this->assertSame($squads->first()->id, (int) $relay->parent_id, 'the child follows its own parent');
+    }
+
+    public function test_people_without_the_management_permission_cannot_carry_groups(): void
+    {
+        app(TeachingGroups::class)->save($this->superAdmin(), ['name' => '8A Maths', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
+        $this->activity(['name' => 'Chess']);
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']));
+
+        foreach ([TransferTeachingGroups::class, TransferActivityGroups::class] as $action) {
+            try {
+                app($action)->execute($this->year, $this->next);
+                $this->fail("{$action} ran for a teacher");
+            } catch (HttpException $e) {
+                $this->assertSame(403, $e->getStatusCode());
+            }
+        }
+        $this->assertSame(0, TeachingGroup::where('session_year_id', $this->next)->count());
+        $this->assertSame(0, ActivityGroup::where('session_year_id', $this->next)->count());
+    }
+
+    public function test_the_wizard_cannot_switch_to_another_schools_year(): void
+    {
+        $this->activity(['name' => 'Chess']);
+        $foreignYear = (int) $this->schoolB->ids['session_year'];
+        $before = [TeachingGroup::query()->withoutGlobalScopes()->count(), ActivityGroup::query()->withoutGlobalScopes()->count()];
+        $current = (string) getSettings('session_year')['session_year'];
+
+        $response = $this->postJson(route('new-year.make-current'), ['year_id' => $foreignYear, 'carry' => ['teaching_groups', 'activity_groups']]);
+
+        $this->assertContains($response->status(), [404, 422]);
+        $this->assertSame($before, [TeachingGroup::query()->withoutGlobalScopes()->count(), ActivityGroup::query()->withoutGlobalScopes()->count()], 'nothing copied in either school');
+        $this->assertSame($current, (string) getSettings('session_year')['session_year']);
     }
 }

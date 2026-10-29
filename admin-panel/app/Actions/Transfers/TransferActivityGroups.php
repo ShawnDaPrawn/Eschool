@@ -20,8 +20,10 @@ use Illuminate\Support\Str;
  * year's Grade 8 learners are never left in this year's Grade 8 team.
  *
  * Seasons move by the gap between the two years' start dates and stay inside
- * the new year and inside their parent's season. A group the new year already
- * has (same name under the same parent) is left alone. Specification:
+ * the new year and inside their parent's season. Each source group gets its
+ * own copy, even two siblings with the same name. A new year that already has
+ * activity groups is left alone, as the wizard only copies into an empty year.
+ * Specification:
  * engineering/specs/academics/new-year-structures.md (Action Plan 1.19).
  */
 class TransferActivityGroups
@@ -38,6 +40,9 @@ class TransferActivityGroups
         $yearEnd = CarbonImmutable::parse($to->end_date)->toDateString();
 
         DB::transaction(function () use ($actor, $fromSessionId, $toSessionId, $shift, $yearStart, $yearEnd) {
+            if (ActivityGroup::query()->where('session_year_id', $toSessionId)->exists()) {
+                return;
+            }
             $groups = ActivityGroup::query()->where('session_year_id', $fromSessionId)->where('active', true)->orderBy('id')->get()->keyBy('id');
             $map = [];
             $ranges = [];
@@ -58,14 +63,6 @@ class TransferActivityGroups
                     $start = $this->clamp(CarbonImmutable::parse($group->starts_on)->addDays($shift)->toDateString(), $lowest, $highest);
                     $end = $this->clamp(CarbonImmutable::parse($group->ends_on)->addDays($shift)->toDateString(), $start, $highest);
 
-                    $existing = ActivityGroup::query()->where('session_year_id', $toSessionId)->where('name', $group->name)
-                        ->where(fn ($q) => $newParent === null ? $q->whereNull('parent_id') : $q->where('parent_id', $newParent))->first();
-                    if ($existing !== null) {
-                        $map[$id] = (int) $existing->id;
-                        $ranges[(int) $existing->id] = [$existing->starts_on->toDateString(), $existing->ends_on->toDateString()];
-
-                        continue;
-                    }
                     $saved = app(ActivityGroups::class)->save($actor, null, [
                         'operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $toSessionId, 'parent_id' => $newParent,
                         'name' => $group->name, 'discipline' => $group->discipline, 'season' => $group->season,
