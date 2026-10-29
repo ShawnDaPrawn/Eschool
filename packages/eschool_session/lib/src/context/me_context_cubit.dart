@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:eschool_core/eschool_core.dart';
+import 'package:eschool_session/src/auth/session_identity.dart';
 import 'package:eschool_session/src/context/me_context.dart';
 import 'package:eschool_session/src/context/me_context_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,10 +86,24 @@ class MeContextCubit extends Cubit<MeContextState> {
   bool _discardCache = false;
   Future<void>? _cacheWork;
 
-  bool _current(int generation, Object? identity) =>
+  bool _sameIdentity(Object? previous, Object? current, MeContext? known) =>
+      previous == current ||
+      (previous is SessionIdentity &&
+          current is SessionIdentity &&
+          previous.resolvesInitialSchool(current, known?.currentSchoolId));
+
+  Object? _readIdentity() {
+    final current = _contextIdentity?.call();
+    if (_sameIdentity(_lastIdentity, current, state.context)) {
+      _lastIdentity = current;
+    }
+    return current;
+  }
+
+  bool _current(int generation, Object? identity, [MeContext? fresh]) =>
       !isClosed &&
       generation == _generation &&
-      identity == _contextIdentity?.call();
+      _sameIdentity(identity, _contextIdentity?.call(), fresh ?? state.context);
 
   Future<void> _cacheMutation(Future<void> Function() work) {
     final previous = _cacheWork;
@@ -118,7 +133,7 @@ class MeContextCubit extends Cubit<MeContextState> {
   /// it instead of asking twice.
   Future<void> load() {
     if (isClosed) return Future<void>.value();
-    final identity = _contextIdentity?.call();
+    final identity = _readIdentity();
     if (_loading != null && identity == _lastIdentity) return _loading!;
     if (identity != _lastIdentity) {
       _discardCache = true;
@@ -142,16 +157,16 @@ class MeContextCubit extends Cubit<MeContextState> {
       if (pendingCache != null) await pendingCache;
       if (!_current(generation, identity)) return;
       final fresh = await _repository.fetchContext();
-      if (!_current(generation, identity)) return;
+      if (!_current(generation, identity, fresh)) return;
       await _cacheMutation(() async {
-        if (!_current(generation, identity)) return;
+        if (!_current(generation, identity, fresh)) return;
         if (fresh == null) {
           await _cache.clear();
         } else {
           await _cache.write(fresh, fetchedAt: _clock());
         }
       });
-      if (!_current(generation, identity)) return;
+      if (!_current(generation, identity, fresh)) return;
       if (fresh == null) {
         _unavailableAt = _clock();
         _discardCache = true;
@@ -175,7 +190,7 @@ class MeContextCubit extends Cubit<MeContextState> {
   /// Fetches the context again when the one kept is older than [maxAge]
   /// (or there is none, or the last try failed). Answers whether it did.
   Future<bool> refreshIfStale({Duration maxAge = staleAfter}) async {
-    if (_contextIdentity?.call() != _lastIdentity) {
+    if (_readIdentity() != _lastIdentity) {
       await load();
       return true;
     }

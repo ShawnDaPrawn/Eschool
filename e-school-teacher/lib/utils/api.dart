@@ -31,11 +31,13 @@ class Api {
   static final ApiClient _client = ApiClient(
     authToken: () => session.token,
     onUnauthorized: logoutUser,
-    sessionIdentity: () => (
-      session.generation,
-      session.token,
-      selection.schoolId,
-      session.mode == AuthMode.cookie ? browserSessionIdentity() : null,
+    sessionIdentity: () => SessionIdentity(
+      generation: session.generation,
+      token: session.token,
+      schoolId: selection.schoolId,
+      browserSession: session.mode == AuthMode.cookie
+          ? browserSessionIdentity()
+          : null,
     ),
     createDio: () => withSchoolHeader(
       debugCreateDio?.call() ??

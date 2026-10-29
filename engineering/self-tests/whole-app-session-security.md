@@ -50,3 +50,11 @@ Cross-subdomain comparison depends on the existing shared session-domain setting
 The marker does not replace Laravel authentication/CSRF or claim to solve all
 server Set-Cookie ordering races. Existing browser sessions obtain it on their
 next sign-in.
+
+Hosted qualification found an initial-school resolution regression: persisting
+the first school ID looked like a replacement and erased valid offline context,
+which also interfered with the existing protected-feature revocation notices.
+A typed identity now distinguishes that one resolution from a true replacement.
+The expanded shared session suite passes114 tests, covering bearer/cookie offline
+fallback and actual school/credential/browser replacement controls. Affected
+compiled browser flows and fresh hosted qualification accompany the correction.

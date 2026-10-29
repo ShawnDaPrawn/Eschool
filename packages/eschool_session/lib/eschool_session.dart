@@ -18,6 +18,7 @@ export 'src/auth/browser_session_identity.dart';
 export 'src/availability/endpoint_availability.dart';
 export 'src/auth/session_dio.dart';
 export 'src/auth/session_repository.dart';
+export 'src/auth/session_identity.dart';
 export 'src/context/me_context.dart';
 export 'src/context/me_context_cubit.dart';
 export 'src/context/me_context_refresher.dart';

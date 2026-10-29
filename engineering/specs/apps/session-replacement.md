@@ -22,3 +22,9 @@ Verification: engineering/self-tests/whole-app-session-security.md. No gateway,
 Phase6, production or spending change. Cross-domain browser comparison requires
 the existing shared session domain; existing browser sessions receive their
 marker on their next sign-in.
+
+The initial resolution of an unspecified school to the school returned by the
+successful context is the same session. It must retain fresh/offline context and
+downloads. Only this monotonic resolution may normalize identity, and only when
+credentials and the browser marker still match; actual school switches, new
+credentials and browser replacements continue to invalidate the old context.

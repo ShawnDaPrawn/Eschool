@@ -76,6 +76,68 @@ void main() {
   tearDown(() => cubit.close());
 
   group('session generation and cache ordering', () {
+    for (final cookie in [false, true]) {
+      test(
+        'initial ${cookie ? 'cookie' : 'bearer'} school resolution retains fresh and offline context',
+        () async {
+          int? school;
+          final source = FakeMeContextRepository()..answer = tara;
+          final kept = InMemoryMeContextCache();
+          final subject = MeContextCubit(
+            repository: source,
+            cache: kept,
+            contextIdentity: () => SessionIdentity(
+              generation: 1,
+              token: cookie ? '' : 'synthetic-token',
+              schoolId: school,
+              browserSession: cookie ? 'opaque-cookie' : null,
+            ),
+          );
+          await subject.load();
+          school = tara.currentSchoolId;
+          expect(await subject.refreshIfStale(), false);
+          expect(source.calls, 1);
+          expect(subject.context, tara);
+          source.error = ApiException('offline');
+          await subject.load();
+          expect(subject.state, MeContextFailure('offline', context: tara));
+          expect(kept.read(), tara);
+          await subject.close();
+        },
+      );
+    }
+    for (final replacement in ['school', 'credentials', 'browser']) {
+      test(
+        'initial resolution never hides a real $replacement replacement',
+        () async {
+          int? school;
+          var generation = 1, browser = 'opaque-cookie';
+          final source = FakeMeContextRepository()..answer = tara;
+          final kept = InMemoryMeContextCache();
+          final subject = MeContextCubit(
+            repository: source,
+            cache: kept,
+            contextIdentity: () => SessionIdentity(
+              generation: generation,
+              token: '',
+              schoolId: school,
+              browserSession: browser,
+            ),
+          );
+          await subject.load();
+          school = replacement == 'school' ? 2 : tara.currentSchoolId;
+          if (replacement == 'credentials') generation++;
+          if (replacement == 'browser') browser = 'replacement-cookie';
+          source.error = ApiException('offline');
+          final changed = subject.refreshIfStale();
+          expect(subject.context, isNull);
+          expect(await changed, true);
+          expect(kept.read(), isNull);
+          expect(subject.context, isNull);
+          await subject.close();
+        },
+      );
+    }
     MeContext person(int id) => MeContext.fromJson({
       ...contextJson,
       'user': {...contextJson['user'] as Map, 'id': id},
