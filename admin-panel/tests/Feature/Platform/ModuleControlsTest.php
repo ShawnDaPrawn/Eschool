@@ -107,7 +107,9 @@ class ModuleControlsTest extends TestCase
         $this->assertSame($count, DB::table('fees_paids')->where('school_id', 1)->count());
         $this->assertSame($entries, DB::table('ledger_entries')->where('school_id', 1)->orderBy('id')->get()->toJson());
         $this->assertSame($postings, DB::table('ledger_postings')->where('school_id', 1)->orderBy('id')->get()->toJson());
-        $this->actingAs($admin)->post('/fee-plans/new', ['expected_school_id' => 1, 'expected_account_id' => $admin->id])->assertForbidden();
+        $this->actingAs($admin)->post('/fee-plans/new', ['expected_school_id' => 1, 'expected_account_id' => $admin->id,
+            'operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->schoolA->ids['session_year'],
+            'name' => 'Refused read-only plan', 'amount' => '1.00', 'currency' => 'ZAR', 'scope' => 'all', 'target_id' => null, 'state' => 'active'])->assertForbidden();
         $this->app['auth']->forgetGuards();
         $this->withToken($this->schoolA->tokens['asha'])->getJson('/api/student/fees-paid-list')
             ->assertOk()->assertJsonPath('error', true)->assertJsonPath('code', 410)->assertJsonPath('data', null);
@@ -131,7 +133,9 @@ class ModuleControlsTest extends TestCase
         $this->assertTrue($state['enabled']);
         $this->assertTrue($state['read_only']);
         $this->get('/fee-items/tax-settings')->assertOk()->assertSee('read-only')->assertSee('SYNTHETIC-VAT')->assertDontSee('PRIVATE-FOREIGN-VAT');
-        $this->post('/fee-items/tax-settings', ['expected_school_id' => 1, 'expected_account_id' => $admin->id])->assertForbidden();
+        $this->post('/fee-items/tax-settings', ['expected_school_id' => 1, 'expected_account_id' => $admin->id,
+            'operation_id' => (string) Str::uuid(), 'revision' => 1, 'enabled' => true, 'country_code' => 'ZA',
+            'tax_registration' => 'REFUSED-VAT', 'seller_name' => 'Refused seller', 'seller_address' => 'Refused legal address'])->assertForbidden();
         $this->assertSame('SYNTHETIC-VAT', FeeTaxSetting::sole()->tax_registration);
     }
 

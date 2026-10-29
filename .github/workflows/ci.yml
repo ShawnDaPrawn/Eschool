@@ -331,7 +331,12 @@ jobs:
             command: flutter test $(cat "$RUNNER_TEMP/family-android-2.targets")
           - app: e-school-teacher
             flavor: teacher
-            command: flutter test $(find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' ! -name 'vendor*_test.dart' | sort)
+            part: 1
+            command: flutter test $(cat "$RUNNER_TEMP/teacher-android-1.targets")
+          - app: e-school-teacher
+            flavor: teacher
+            part: 2
+            command: flutter test $(cat "$RUNNER_TEMP/teacher-android-2.targets")
           - app: e-school-teacher
             flavor: vendor
             command: flutter test --flavor vendor --dart-define=FLAVOR=vendor integration_test/vendor_smoke_test.dart
@@ -357,6 +362,22 @@ jobs:
           diff -u "$RUNNER_TEMP/family-android-all.targets" "$RUNNER_TEMP/family-android-union.targets"
           test -z "$(comm -12 "$RUNNER_TEMP/family-android-1.targets" "$RUNNER_TEMP/family-android-2.targets")"
           wc -l "$RUNNER_TEMP/family-android-all.targets" "$RUNNER_TEMP/family-android-1.targets" "$RUNNER_TEMP/family-android-2.targets"
+      - name: Verify complete disjoint teacher smoke inventory
+        if: matrix.flavor == 'teacher'
+        working-directory: e-school-teacher
+        shell: bash
+        run: |
+          export LC_ALL=C
+          # Keep exactly the original Teacher discovery and exclusions.
+          find integration_test -maxdepth 1 -name '*_test.dart' ! -name 'facilitator*_test.dart' ! -name 'vendor*_test.dart' | sort > "$RUNNER_TEMP/teacher-android-all.targets"
+          awk 'NR % 2 == 1' "$RUNNER_TEMP/teacher-android-all.targets" > "$RUNNER_TEMP/teacher-android-1.targets"
+          awk 'NR % 2 == 0' "$RUNNER_TEMP/teacher-android-all.targets" > "$RUNNER_TEMP/teacher-android-2.targets"
+          test -s "$RUNNER_TEMP/teacher-android-1.targets"
+          test -s "$RUNNER_TEMP/teacher-android-2.targets"
+          cat "$RUNNER_TEMP/teacher-android-1.targets" "$RUNNER_TEMP/teacher-android-2.targets" | sort > "$RUNNER_TEMP/teacher-android-union.targets"
+          diff -u "$RUNNER_TEMP/teacher-android-all.targets" "$RUNNER_TEMP/teacher-android-union.targets"
+          test -z "$(comm -12 "$RUNNER_TEMP/teacher-android-1.targets" "$RUNNER_TEMP/teacher-android-2.targets")"
+          wc -l "$RUNNER_TEMP/teacher-android-all.targets" "$RUNNER_TEMP/teacher-android-1.targets" "$RUNNER_TEMP/teacher-android-2.targets"
       # Hardware acceleration for the emulator on GitHub's Linux runners.
       - name: Enable KVM
         run: |
@@ -403,6 +424,18 @@ jobs:
     # Keep the exact existing required Family check name. Matrix cancellation,
     # failure or skipping must never turn a partially tested family into green.
     name: Flutter smoke flows on Android (e-school family)
+    runs-on: ubuntu-latest
+    needs: apps-smoke-android
+    if: always()
+    steps:
+      - name: Require every Android smoke part to pass
+        env:
+          ANDROID_SMOKE_RESULT: ${{ needs.apps-smoke-android.result }}
+        run: test "$ANDROID_SMOKE_RESULT" = success
+
+  apps-smoke-android-teacher:
+    # Preserve the original Teacher check. Every matrix part remains required.
+    name: Flutter smoke flows on Android (e-school-teacher teacher)
     runs-on: ubuntu-latest
     needs: apps-smoke-android
     if: always()

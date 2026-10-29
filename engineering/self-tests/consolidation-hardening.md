@@ -135,3 +135,24 @@ The correction is awaiting a fresh hosted run and review. The workspace is still
 unavailable, so these last changes have not been executed locally. Earlier passing
 local cohorts and hosted jobs are historical evidence, not a claim that the full
 final suite passed. Production deployment has not started.
+
+
+## Last fixture and runner correction
+
+On041a3a5b the other three backend partitions passed and the corrected CSP,
+financial workbench and dashboard-authority browser flows passed. The remaining
+two PHP failures were new read-only tests that submitted incomplete forms, so
+validation correctly returned422 before the write policy. They now submit valid
+bound forms and still require403 and unchanged history.
+
+The custom leadership setup failed before page interaction. It now reuses the
+existing qualified fee-payment fixture in a fresh isolated synthetic school,
+records and allocates a real ZAR4.00 receipt, and retains the teacher-denial and
+responsive/currency checks. Setup failures expose their synthetic stdout/stderr.
+
+The Teacher Android runner received a shutdown signal during compilation after
+many successful flows, without a failed Dart assertion in its captured log.
+Teacher targets now use the same verified disjoint two-part pattern as Family.
+Discovery/exclusions and both original required aggregate check names are
+preserved; every part must pass. These last fixture/CI edits require a new run.
+No production application logic or migration changes accompany this correction.
