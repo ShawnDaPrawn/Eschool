@@ -8,6 +8,7 @@ import 'package:eschool/data/models/parent.dart';
 import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/repositories/settingsRepository.dart';
 import 'package:eschool/utils/api.dart';
+import 'package:eschool/utils/diaryReminders.dart';
 import 'package:eschool_core/eschool_core.dart';
 import 'package:eschool_notifications/eschool_notifications.dart';
 import 'package:eschool_people/eschool_people.dart';
@@ -2309,6 +2310,105 @@ class FamilyTutorEntry extends StatelessWidget {
               onTap: () =>
                   Navigator.of(context)
                       .pushNamed(parent ? Routes.tutorSummary : Routes.tutor),
+            ),
+          );
+        },
+      );
+}
+
+/// The learner's private diary. Only an approved learner opens it; nobody
+/// else (parents included) has a route to it.
+Route<dynamic> learnerDiaryRoute() => AdaptivePageRoute(
+  contentColumn: false,
+  builder: (context) {
+    final session = context.read<MeContextCubit>(),
+        schools = context.read<SchoolSelectionCubit>();
+    final me = session.context,
+        school = me?.currentSchoolId,
+        account = me?.user?.id;
+    if (me == null ||
+        school == null ||
+        school <= 0 ||
+        account == null ||
+        account <= 0 ||
+        !me.roles.contains('Student') ||
+        me.approval?.isApproved != true ||
+        !me.isModuleOn('diary') ||
+        !allowsSchoolModule(me, 'diary') ||
+        (schools.state.selectedId != null &&
+            schools.state.selectedId != school) ||
+        context.read<AuthCubit>().isParent()) {
+      return ScreenScaffold(
+        title: SharedUiUtils.getTranslatedLabel(context, 'My diary'),
+        body: Center(
+          child: Text(
+            SharedUiUtils.getTranslatedLabel(
+              context,
+              'Not available for this account',
+            ),
+          ),
+        ),
+      );
+    }
+    return DiarySessionBoundary(
+      pinned: me,
+      builder: (context, fresh) {
+        bool active() =>
+            fresh() &&
+            (schools.state.selectedId == null ||
+                schools.state.selectedId == school);
+        final wellbeing =
+            me.isModuleOn('wellbeing') && allowsSchoolModule(me, 'wellbeing');
+        return DiaryScreen(
+          repository: ApiDiaryRepository(
+            Api.client,
+            schoolId: school,
+            readerId: account,
+            contextActive: active,
+          ),
+          canWrite: () =>
+              active() &&
+              allowsSchoolModule(session.context, 'diary', write: true),
+          reminders: const DeviceDiaryReminders(),
+          onTalkToSomeone: wellbeing
+              ? () => Navigator.of(context).pushNamed(Routes.reportConcern)
+              : null,
+        );
+      },
+    );
+  },
+);
+
+class DiaryHomeEntry extends StatelessWidget {
+  const DiaryHomeEntry({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<MeContextCubit, MeContextState>(
+        builder: (context, state) {
+          final me = state.context;
+          if (state is! MeContextLoaded ||
+              me == null ||
+              !me.roles.contains('Student') ||
+              me.approval?.isApproved != true ||
+              !me.isModuleOn('diary') ||
+              !allowsSchoolModule(me, 'diary') ||
+              context.read<AuthCubit>().isParent()) {
+            return const SizedBox.shrink();
+          }
+          return Card(
+            child: ListTile(
+              leading: const Icon(Icons.auto_stories_outlined),
+              title: Text(
+                SharedUiUtils.getTranslatedLabel(context, 'My diary'),
+              ),
+              subtitle: Text(
+                SharedUiUtils.getTranslatedLabel(
+                  context,
+                  'Homework, to-dos and notes. Private to you.',
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).pushNamed(Routes.learnerDiary),
             ),
           );
         },

@@ -196,6 +196,8 @@ tags:
   description: Current grade-head follow-up without clinical-purpose access.
 - name: SecureCards
   description: Private school identity cards and isolated online gate readers.
+- name: Diary
+  description: The learner's private diary - notes, to-dos and the school items placed in it automatically.
 - name: Tutor
   description: Own-learner subject tutoring, approved private working crops and metadata-only guardian summaries.
 - name: FamilyForms
@@ -28723,6 +28725,215 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WalletCounterPaymentResolutionResponse'
+  /diary:
+    get:
+      operationId: getLearnerDiary
+      tags:
+      - Diary
+      summary: getLearnerDiary
+      description: The signed-in learner's own diary for a range of up to 62 days. Only a current guardian-approved Student of the
+        school reads it; parents, teachers, staff and platform staff are refused. Entries are the learner's private notes and
+        to-dos (open undated to-dos always included). School items are worked out on every read from homework, holidays and
+        school events that currently apply to the learner, with the learner's own layer on each.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      responses:
+        '200':
+          description: The learner's private diary range.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryRangeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /diary/entries:
+    post:
+      operationId: createDiaryEntry
+      tags:
+      - Diary
+      summary: createDiaryEntry
+      description: Adds a private note or to-do. Its text is encrypted with the learner's own key. Repeating the same operation_id
+        returns the original entry. Up to 2,000 entries per learner.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiaryEntryCreateInput'
+      responses:
+        '200':
+          description: The entry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryEntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /diary/entries/{entry}:
+    put:
+      operationId: updateDiaryEntry
+      tags:
+      - Diary
+      summary: updateDiaryEntry
+      description: Changes the learner's own entry. revision must be the one last read; another device's newer change is refused
+        with 409. Another learner's entry does not exist (404).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiaryEntryUpdateInput'
+      responses:
+        '200':
+          description: The entry.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryEntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The entry changed on another device; reload it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      operationId: deleteDiaryEntry
+      tags:
+      - Diary
+      summary: deleteDiaryEntry
+      description: Deletes the learner's own entry permanently. Another learner's entry does not exist (404).
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: entry
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The deleted entry's id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryDeletedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /diary/items/{source}/{item}/state:
+    put:
+      operationId: setDiaryItemState
+      tags:
+      - Diary
+      summary: setDiaryItemState
+      description: The learner's own layer on a school item that currently applies to them (404 otherwise) - done, a reminder
+        and a private note, encrypted with the learner's key. Clearing all three removes the layer.
+      parameters:
+      - $ref: '#/components/parameters/SchoolId'
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - name: source
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/DiaryItemSource'
+      - name: item
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiaryItemStateInput'
+      responses:
+        '200':
+          description: The learner's layer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiaryItemStateResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -65935,5 +66146,393 @@ components:
           maxLength: 4000
         data:
           $ref: '#/components/schemas/WalletCounterCatalogue'
+        code:
+          type: integer
+    DiaryItemSource:
+      type: string
+      enum:
+      - homework
+      - holiday
+      - event
+    DiaryLocalDateTime:
+      type: string
+      description: School-local wall time, YYYY-MM-DD HH:MM.
+      pattern: ^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$
+    DiaryEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - kind
+      - title
+      - body
+      - date
+      - remind_at
+      - done
+      - revision
+      - updated_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        kind:
+          type: string
+          enum:
+          - note
+          - todo
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type:
+          - string
+          - 'null'
+          maxLength: 10000
+        date:
+          type:
+          - string
+          - 'null'
+          format: date
+        remind_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        done:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+        updated_at:
+          type:
+          - string
+          - 'null'
+    DiaryHomework:
+      type: object
+      additionalProperties: false
+      required:
+      - submitted
+      - status
+      - points
+      - total
+      - overdue
+      properties:
+        submitted:
+          type: boolean
+        status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - in_review
+          - accepted
+          - rejected
+          - resubmitted
+          - null
+        points:
+          type:
+          - integer
+          - 'null'
+        total:
+          type:
+          - integer
+          - 'null'
+        overdue:
+          type: boolean
+    DiaryItemLayer:
+      type: object
+      additionalProperties: false
+      required:
+      - done
+      - done_at
+      - remind_at
+      - note
+      properties:
+        done:
+          type: boolean
+          description: Handed-in homework is done; otherwise the learner's own tick.
+        done_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        remind_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+    DiarySubject:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    DiarySchoolItem:
+      type: object
+      additionalProperties: false
+      required:
+      - source
+      - id
+      - title
+      - date
+      - due_at
+      - end_date
+      - subject
+      - homework
+      - state
+      properties:
+        source:
+          $ref: '#/components/schemas/DiaryItemSource'
+        id:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+        date:
+          type: string
+          format: date
+          description: The day it shows on (today for overdue homework).
+        due_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        end_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        subject:
+          oneOf:
+          - $ref: '#/components/schemas/DiarySubject'
+          - type: 'null'
+        homework:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryHomework'
+          - type: 'null'
+        state:
+          $ref: '#/components/schemas/DiaryItemLayer'
+    DiaryRange:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - today
+      - from
+      - to
+      - entries
+      - school_items
+      properties:
+        school_id:
+          type: integer
+          description: The school the diary belongs to; the app refuses a reply for another school.
+        reader_id:
+          type: integer
+          description: The signed-in learner's user id; the app refuses a reply for another account.
+        today:
+          type: string
+          format: date
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiaryEntry'
+        school_items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiarySchoolItem'
+    DiaryItemState:
+      type: object
+      additionalProperties: false
+      required:
+      - source
+      - id
+      - done
+      - remind_at
+      - note
+      properties:
+        source:
+          $ref: '#/components/schemas/DiaryItemSource'
+        id:
+          type: integer
+        done:
+          type: boolean
+        remind_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        note:
+          type:
+          - string
+          - 'null'
+    DiaryDeleted:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      properties:
+        id:
+          type: integer
+    DiaryEntryCreateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - operation_id
+      - kind
+      - title
+      properties:
+        operation_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - note
+          - todo
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type:
+          - string
+          - 'null'
+          maxLength: 10000
+        date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The day the entry belongs to. Required for a note; a to-do without a date shows until it is done.
+        remind_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        done:
+          type: boolean
+    DiaryEntryUpdateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - revision
+      - title
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type:
+          - string
+          - 'null'
+          maxLength: 10000
+        date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: The day the entry belongs to. Required for a note; a to-do without a date shows until it is done.
+        remind_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        done:
+          type: boolean
+    DiaryItemStateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - done
+      properties:
+        done:
+          type: boolean
+        remind_at:
+          oneOf:
+          - $ref: '#/components/schemas/DiaryLocalDateTime'
+          - type: 'null'
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+    DiaryRangeResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiaryRange'
+        code:
+          type: integer
+    DiaryEntryResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiaryEntry'
+        code:
+          type: integer
+    DiaryItemStateResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiaryItemState'
+        code:
+          type: integer
+    DiaryDeletedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/DiaryDeleted'
         code:
           type: integer

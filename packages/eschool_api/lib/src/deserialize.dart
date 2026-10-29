@@ -424,6 +424,21 @@ import 'package:eschool_api/src/model/curriculum_topic.dart';
 import 'package:eschool_api/src/model/curriculum_topic_write.dart';
 import 'package:eschool_api/src/model/decide_guardian_approval_request.dart';
 import 'package:eschool_api/src/model/decide_guardian_handle_proposal_request.dart';
+import 'package:eschool_api/src/model/diary_deleted.dart';
+import 'package:eschool_api/src/model/diary_deleted_response.dart';
+import 'package:eschool_api/src/model/diary_entry.dart';
+import 'package:eschool_api/src/model/diary_entry_create_input.dart';
+import 'package:eschool_api/src/model/diary_entry_response.dart';
+import 'package:eschool_api/src/model/diary_entry_update_input.dart';
+import 'package:eschool_api/src/model/diary_homework.dart';
+import 'package:eschool_api/src/model/diary_item_layer.dart';
+import 'package:eschool_api/src/model/diary_item_state.dart';
+import 'package:eschool_api/src/model/diary_item_state_input.dart';
+import 'package:eschool_api/src/model/diary_item_state_response.dart';
+import 'package:eschool_api/src/model/diary_range.dart';
+import 'package:eschool_api/src/model/diary_range_response.dart';
+import 'package:eschool_api/src/model/diary_school_item.dart';
+import 'package:eschool_api/src/model/diary_subject.dart';
 import 'package:eschool_api/src/model/discipline_acknowledge_write.dart';
 import 'package:eschool_api/src/model/discipline_acknowledgement.dart';
 import 'package:eschool_api/src/model/discipline_acknowledgement_response.dart';
@@ -2868,6 +2883,48 @@ ReturnType deserialize<ReturnType, BaseType>(
             value as Map<String, dynamic>,
           )
           as ReturnType;
+    case 'DiaryDeleted':
+      return DiaryDeleted.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'DiaryDeletedResponse':
+      return DiaryDeletedResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryEntry':
+      return DiaryEntry.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'DiaryEntryCreateInput':
+      return DiaryEntryCreateInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryEntryResponse':
+      return DiaryEntryResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryEntryUpdateInput':
+      return DiaryEntryUpdateInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryHomework':
+      return DiaryHomework.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryItemLayer':
+      return DiaryItemLayer.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryItemSource':
+    case 'DiaryItemState':
+      return DiaryItemState.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryItemStateInput':
+      return DiaryItemStateInput.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryItemStateResponse':
+      return DiaryItemStateResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiaryRange':
+      return DiaryRange.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'DiaryRangeResponse':
+      return DiaryRangeResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiarySchoolItem':
+      return DiarySchoolItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'DiarySubject':
+      return DiarySubject.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'DisciplineAcknowledgeWrite':
       return DisciplineAcknowledgeWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;

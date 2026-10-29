@@ -162,3 +162,10 @@ export 'src/peer_tutoring/peer_session_boundary.dart';
 export 'src/assistance/assistance_repository.dart';
 export 'src/assistance/assistance_screen.dart';
 export 'src/assistance/assistance_session_boundary.dart';
+
+export 'src/diary/diary_repository.dart';
+export 'src/diary/diary_session_boundary.dart';
+export 'src/diary/diary_reminders.dart';
+export 'src/diary/diary_screen.dart';
+export 'src/diary/diary_entry_editor.dart';
+export 'src/diary/diary_item_sheet.dart';
