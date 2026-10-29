@@ -41,7 +41,7 @@ notes, phone reminders and a "Talk to someone" link to wellbeing reporting.
 
 - School-local diary range boundaries and due wall times now use the same timezone as school-local today. The API regression freezes a Monday in a UTC application and an Africa/Johannesburg school, carries Sunday 23:30 homework to Monday, and preserves it on Sunday in a historical range.
 - Read-only entries now open a full-text reader without mutation controls. Widget regressions cover both long notes and long to-dos and assert that no updates or deletes occur.
-- All 13 backend diary tests passed locally (312 assertions). All 14 diary widget tests passed locally; analysis of the changed Dart files found no issues, and changed PHP passed Pint.
+- All 14 backend diary tests passed locally (332 assertions). All 18 diary widget tests passed locally; analysis of the changed Dart files found no issues, and changed PHP passed Pint.
 - The preceding head472e8b0 passed all125 CI checks, including the diary package and app-entry widget tests. The final correction head must finish its own CI before merge.
 
 ## Not yet executed
@@ -50,3 +50,5 @@ notes, phone reminders and a "Talk to someone" link to wellbeing reporting.
   Android phone, fluent Afrikaans and isiZulu labels (English fallbacks are in
   every catalogue), the school Information Officer's POPIA confirmation,
   staging and production acceptance.
+
+Save-recovery follow-up: the editor retains attempted date locations when a write reply is lost, so a changed date does not hide the saved row from recovery. Recovery also includes the known completion date and a short window covering school/device calendar differences for undated to-dos. The regression fake can enforce the server range filter; the moved-date lost-reply widget case passes with one update and no stale-revision loop. Final local qualification: 14 backend diary tests/332 assertions, 18 Flutter diary tests and clean diary analysis. Final CI remains required before merge.

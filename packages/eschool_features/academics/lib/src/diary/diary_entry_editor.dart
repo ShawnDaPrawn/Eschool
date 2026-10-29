@@ -55,6 +55,7 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
   // reply was lost is found again from it, so a retry never sends a stale
   // revision.
   late DiaryEntry? _known = widget.entry;
+  final Set<String> _recoveryDates = {};
   late bool _todo, _done;
   DateTime? _date, _remind;
   bool _busy = false;
@@ -102,6 +103,7 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
   Future<void> _save() async {
     if (_busy) return;
     final draft = _draft;
+    if (draft.date != null) _recoveryDates.add(draft.date!);
     final problem = draft.problem ?? _reminderProblem();
     if (problem != null) {
       setState(() => _error = problem);
@@ -155,14 +157,28 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
   Future<DiaryEntry?> _refetch() async {
     final known = _known;
     if (known == null || !widget.repository.isActive) return null;
-    try {
-      final day = diaryDay(diaryDate(known.date ?? DateTime.now()));
-      final range = await widget.repository.range(day, day);
-      for (final entry in range.entries) {
-        if (entry.id == known.id) return _known = entry;
+    final days = <String>{
+      ..._recoveryDates,
+      if (known.date != null) diaryDay(diaryDate(known.date!)),
+      if (known.doneOn != null) diaryDay(diaryDate(known.doneOn!)),
+    };
+    final now = diaryDate(DateTime.now());
+    final ranges = [
+      for (final day in days) (day, day),
+      // Undated completions use the school's day, which can differ from
+      // the device's day. Open undated entries appear in every range.
+      (diaryDay(diaryAddDays(now, -2)), diaryDay(diaryAddDays(now, 2))),
+    ];
+    for (final (from, to) in ranges) {
+      try {
+        final range = await widget.repository.range(from, to);
+        for (final entry in range.entries) {
+          if (entry.id == known.id) return _known = entry;
+        }
+      } catch (_) {
+        // Still unreachable: keep the draft for the next Save.
+        return null;
       }
-    } catch (_) {
-      // Still unreachable: the next Save tries again.
     }
     return null;
   }

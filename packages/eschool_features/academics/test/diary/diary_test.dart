@@ -111,6 +111,7 @@ class _FakeDiary implements DiaryRepository {
 
   /// The next update is applied but its reply is lost.
   bool loseNextUpdate = false;
+  bool filterRangeDates = false;
   final _byOperation = <String, Map<String, Object?>>{};
   final ranges = <String>[];
   final created = <(String, DiaryDraft)>[];
@@ -127,7 +128,21 @@ class _FakeDiary implements DiaryRepository {
   Future<DiaryRange> range(String from, String to) async {
     ranges.add('$from..$to');
     return DiaryRange.fromJson(
-      _range(entries: entries, items: items, from: from, to: to),
+      _range(
+        entries: filterRangeDates
+            ? entries
+                  .where(
+                    (e) =>
+                        e['date'] == null ||
+                        ((e['date'] as String).compareTo(from) >= 0 &&
+                            (e['date'] as String).compareTo(to) <= 0),
+                  )
+                  .toList()
+            : entries,
+        items: items,
+        from: from,
+        to: to,
+      ),
     );
   }
 
@@ -676,6 +691,29 @@ void main() {
       expect(diary.updated, hasLength(1));
       expect(find.byKey(const ValueKey('diary-save')), findsNothing);
       expect(find.text('Revise fractions'), findsOneWidget);
+    });
+
+    testWidgets('a lost update reply is recovered after moving the entry day', (
+      tester,
+    ) async {
+      final diary = _FakeDiary(entries: [_entry(1, title: 'Move this')])
+        ..loseNextUpdate = true
+        ..filterRangeDates = true;
+      await _mount(tester, diary);
+      await tester.tap(find.text('Move this'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.event_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('30').last);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const ValueKey('diary-save')));
+      await tester.tap(find.byKey(const ValueKey('diary-save')));
+      await tester.pumpAndSettle();
+      expect(diary.entries.single['date'], '2026-10-30');
+      expect(diary.updated, hasLength(1));
+      expect(find.byKey(const ValueKey('diary-save')), findsNothing);
+      expect(diary.ranges, contains('2026-10-30..2026-10-30'));
     });
 
     testWidgets('a change on another device is refused once, then saved over', (
