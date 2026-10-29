@@ -11,34 +11,25 @@ use App\Models\Category;
 use App\Models\ClassSection;
 use App\Models\Exam;
 use App\Models\ExamMarks;
-use App\Models\FeesClass;
-use App\Models\FeesPaid;
 use App\Models\FormField;
 use App\Models\Grade;
 use App\Models\Holiday;
-use App\Models\InstallmentFee;
 use App\Models\Leave;
 use App\Models\OnlineExam;
 use App\Models\OnlineExamQuestionChoice;
 use App\Models\OnlineExamStudentAnswer;
-use App\Models\PaidInstallmentFee;
-use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Term;
 use App\Services\OnlineExamScoringService;
-use App\Services\Platform\Ledger\CentsColumns;
-use App\Services\Platform\Ledger\LegacyAmount;
-use App\Services\Platform\Ledger\Money;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 /**
- * Admin panel: a student's report (attendance, fees, leave, assignments, exams).
+ * Admin panel: a student's report (attendance, leave, assignments, exams).
  */
 class ReportController extends Controller
 {
@@ -94,13 +85,7 @@ class ReportController extends Controller
         switch ($tab) {
 
             case 'fees':
-                return $this->feesReport(
-                    $request,
-                    $student,
-                    $studentSession,
-                    $sessionYear,
-                    $data
-                );
+                return redirect()->route('fee-accounts.index');
 
             case 'leave':
                 return $this->leaveReport(
@@ -154,7 +139,6 @@ class ReportController extends Controller
         return [
             'student' => $student,
             'attendance' => collect(),
-            'feesDetail' => collect(),
             'examDetail' => collect(),
             'leaveDetail' => collect(),
             'assignment' => collect(),
@@ -361,169 +345,6 @@ class ReportController extends Controller
         return $request->calendar_only
             ? view('students.report.calendar', $data)
             : $this->response($request, 'attendance', $data);
-    }
-
-    private function feesReport(Request $request, $student, $studentSession, $sessionYear, $data)
-    {
-        $classId = null;
-        $classSectionModel = null;
-        if ($studentSession) {
-            $classSectionModel = ClassSection::find($studentSession->class_section_id);
-            $classId = $classSectionModel->class_id ?? null;
-        } elseif ($student->class_section) {
-            $classSectionModel = $student->class_section;
-            $classId = $classSectionModel->class_id;
-        }
-
-        // Worked out in cents; the page shows currency units.
-        $baseCents = $classId
-            ? (int) FeesClass::where([
-                'class_id' => $classId,
-                'choiceable' => 0,
-                'session_year_id' => $sessionYear->id,
-            ])->sum(DB::raw(CentsColumns::sql('amount', 'amount_cents')))
-            : 0;
-        $baseAmount = LegacyAmount::fromCentsOrZero($baseCents);
-
-        $allInstallments = $classId
-            ? InstallmentFee::where([
-                'session_year_id' => $sessionYear->id,
-            ])->orderBy('due_date')->get()
-            : collect();
-
-        // installment_fees has no per-installment amount column — split baseAmount equally
-        $installmentCount = $allInstallments->count();
-        $perInstallmentAmount = $installmentCount > 0 ? LegacyAmount::fromCents(Money::ofFraction($baseCents, $installmentCount)->cents) : 0;
-
-        $installmentsPaid = collect();
-        if ($allInstallments->isNotEmpty()) {
-            $installmentsPaid = PaidInstallmentFee::where([
-                'student_id' => $student->id,
-                'class_id' => $classId,
-                'session_year_id' => $sessionYear->id,
-                'status' => 1,
-            ])->orderBy('date')->get();
-        }
-
-        $isInstallmentEnabled = $allInstallments->isNotEmpty() && $installmentsPaid->isNotEmpty();
-
-        // Fetch ALL successful transactions for this student/class/session once (avoids N+1 queries)
-        $allTransactions = PaymentTransaction::where([
-            'student_id' => $student->id,
-            'class_id' => $classId,
-            'session_year_id' => $sessionYear->id,
-            'payment_status' => 1, // succeeded only
-        ])->get();
-
-        // Helper: find the transaction matching a given amount + date + type_of_fee
-        $matchTransaction = function ($amount, $date, $typeOfFee) use ($allTransactions) {
-            if (! $date) {
-                return null;
-            }
-            $targetDate = Carbon::parse($date)->format('Y-m-d');
-
-            return $allTransactions->first(function ($txn) use ($amount, $targetDate, $typeOfFee) {
-                return $txn->type_of_fee == $typeOfFee
-                    && $txn->money('total_amount')?->cents === LegacyAmount::toCents($amount)
-                    && $txn->date
-                    && Carbon::parse($txn->date)->format('Y-m-d') === $targetDate;
-            });
-        };
-
-        $row = new \stdClass;
-        $row->total_amount = $baseAmount;
-        $row->date = null;
-        $row->mode = null;
-        $row->status_label = 'pending';
-
-        $data['isInstallmentEnabled'] = $isInstallmentEnabled;
-        $data['classSection'] = $classSectionModel;
-        $data['ledgerRows'] = collect();
-        $data['paymentHistory'] = collect();
-        $data['courseFees'] = $baseAmount;
-        $data['paidAmount'] = 0;
-        $data['outstandingAmount'] = $baseAmount;
-
-        if ($isInstallmentEnabled) {
-
-            $data['ledgerRows'] = $allInstallments->map(function ($installment) use ($installmentsPaid, $matchTransaction, $perInstallmentAmount) {
-                $paidRecord = $installmentsPaid->firstWhere('installment_fee_id', $installment->id);
-                $dueDate = Carbon::parse($installment->due_date);
-
-                // Paid installments always show the actual amount that was paid.
-                // Unpaid installments show the calculated equal share of the total course fee.
-                $amount = $paidRecord->amount ?? $perInstallmentAmount;
-                $dueCharges = $paidRecord->due_charges ?? $installment->due_charges ?? 0;
-
-                $txn = $paidRecord ? $matchTransaction($amount, $paidRecord->date, 1) : null;
-
-                return (object) [
-                    'id' => $installment->id,
-                    'amount' => $amount,
-                    'due_date' => $dueDate->format('d-m-Y'),
-                    'due_charges' => $dueCharges,
-                    'is_paid' => (bool) $paidRecord,
-                    'paid_date' => $paidRecord ? Carbon::parse($paidRecord->date)->format('d-m-Y') : null,
-                    'is_overdue' => ! $paidRecord && $dueDate->lt(now()),
-                    'mode' => $txn->mode ?? null,
-                    'transaction_id' => $txn->payment_id ?? null,
-                    'cheque_number' => $txn->cheque_no ?? null,
-                ];
-            });
-
-            $paidCount = $data['ledgerRows']->where('is_paid', true)->count();
-            $paidCents = (int) $installmentsPaid->sum(fn ($paid) => $paid->money('amount')?->cents ?? 0);
-            $totalInstallments = $allInstallments->count();
-
-            $data['courseFees'] = $baseAmount;
-            $data['paidAmount'] = LegacyAmount::fromCentsOrZero($paidCents);
-            $data['outstandingAmount'] = LegacyAmount::fromCentsOrZero(max($baseCents - $paidCents, 0));
-
-            $row->date = $installmentsPaid->last()->date;
-
-            $latestTxn = $allTransactions->where('type_of_fee', 1)->sortByDesc('date')->first();
-            $row->mode = $latestTxn->mode ?? null;
-
-            $row->status_label = ($totalInstallments > 0 && $paidCount >= $totalInstallments)
-                ? 'paid'
-                : 'partial';
-        } else {
-
-            $feesPaidHistory = FeesPaid::where([
-                'student_id' => $request->id,
-                'session_year_id' => $sessionYear->id,
-            ])->orderBy('date', 'desc')->get();
-
-            $data['paymentHistory'] = $feesPaidHistory->map(function ($payment) use ($matchTransaction) {
-                $txn = $matchTransaction($payment->total_amount, $payment->date, 0);
-
-                $payment->mode = $txn->mode ?? null;
-                $payment->transaction_id = $txn->payment_id ?? null;
-                $payment->cheque_number = $txn->cheque_no ?? null;
-
-                return $payment;
-            });
-
-            $feesPaid = $feesPaidHistory->first();
-
-            if ($feesPaid) {
-                $row->date = $feesPaid->date;
-                $row->status_label = $feesPaid->is_fully_paid ? 'paid' : 'partial';
-
-                $latestTxn = $allTransactions->sortByDesc('date')->first();
-                $row->mode = $latestTxn->mode ?? null;
-
-                $data['courseFees'] = $baseAmount;
-                $paidCents = (int) $feesPaid->money('total_amount')?->cents;
-                $data['paidAmount'] = $feesPaid->total_amount;
-                $data['outstandingAmount'] = LegacyAmount::fromCentsOrZero(max($baseCents - $paidCents, 0));
-            }
-        }
-
-        $data['feesDetail'] = collect([$row]);
-
-        return $this->response($request, 'fees', $data);
-
     }
 
     private function leaveReport(

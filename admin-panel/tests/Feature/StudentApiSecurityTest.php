@@ -55,9 +55,8 @@ class StudentApiSecurityTest extends TestCase
         $response = $this->api()->get('/api/settings', ['type' => 'app_settings']);
 
         $this->assertSame(200, $response->status());
-        $this->assertSame('pk_public', $response->json('data.payment_options.stripe.stripe_publishable_key'));
-        $this->assertArrayNotHasKey('stripe_secret_key', $response->json('data.payment_options.stripe'));
-        $this->assertArrayNotHasKey('stripe_webhook_secret', $response->json('data.payment_options.stripe'));
+        $this->assertArrayNotHasKey('stripe', $response->json('data.payment_options'));
+        $this->assertSame('0', $response->json('data.online_payment'));
         foreach (self::SECRETS as $secret) {
             $this->assertStringNotContainsString($secret, $response->body());
         }
@@ -71,20 +70,19 @@ class StudentApiSecurityTest extends TestCase
     public function test_removed_gateways_are_neither_offered_nor_accepted(): void
     {
         $options = $this->api()->get('/api/settings', ['type' => 'app_settings'])->json('data.payment_options');
-        $this->assertArrayHasKey('stripe', $options);
-        foreach (['razorpay', 'paystack', 'flutterwave'] as $gateway) {
+        foreach (['stripe', 'razorpay', 'paystack', 'flutterwave'] as $gateway) {
             $this->assertArrayNotHasKey($gateway, $options);
         }
 
         $payment = ['type_of_fee' => 2, 'is_fully_paid' => 0, 'amount' => '200.00', 'optional_fees_data' => [['id' => $this->ids['fee_sports'], 'amount' => '200.00']]];
-        foreach ([1, 3, 4] as $method) {
+        foreach ([1, 2, 3, 4] as $method) {
             foreach ([
                 [$this->api($this->token('student')), '/api/student/add-fees-transaction', []],
                 [$this->api($this->token('parent')), '/api/parent/add-fees-transaction', ['child_id' => $this->ids['student']]],
             ] as [$api, $url, $extra]) {
                 $response = $api->asForm()->post($url, ['payment_method' => $method] + $extra + $payment);
                 $this->assertTrue($response->json('error'), "$url accepted payment method $method");
-                $this->assertSame('The selected payment method is not available.', $response->json('message'));
+                $this->assertSame(410, $response->json('code'));
             }
         }
         $this->assertSame(0, PaymentTransaction::count());

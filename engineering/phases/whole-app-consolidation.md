@@ -3,7 +3,9 @@
 Owner acceptance:29 October2026. Implement the seven reviewed defects and the
 accepted UX, alignment, standardization, measured-performance and security
 recommendations. Phase6 and payment-gateway adapters/activation remain excluded.
-The review target was main1dc4d63f. No production deployment is authorized.
+The review target was main1dc4d63f. The owner subsequently authorized safely
+deploying the finished updates on29 October; follow the existing release process,
+including backup, protected approval and post-deployment verification.
 
 Retire legacy implementations when their useful behavior is fully replaced.
 Move bundled callers and required data dependencies first; do not maintain two

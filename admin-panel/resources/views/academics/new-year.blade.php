@@ -112,16 +112,6 @@
                             </div>
                         @endforeach
                     </fieldset>
-                    <div class="m3-grid">
-                        <div class="m3-col-12 m3-col-expanded-6">
-                            <x-page.field name="fee_due_date" type="date" :label="__('new_year_fee_due_date')" :value="$suggestion['fee_due_date']"
-                                :help="__('new_year_fee_due_date_hint')" required />
-                        </div>
-                        <div class="m3-col-12 m3-col-expanded-6">
-                            <x-page.field name="fee_due_charges" type="number" :label="__('new_year_fee_due_charges')" :value="$suggestion['fee_due_charges']"
-                                :help="__('new_year_fee_due_charges_hint')" min="0" max="100" step="0.01" required />
-                        </div>
-                    </div>
                 </x-page.form-card>
             @endif
         </section>

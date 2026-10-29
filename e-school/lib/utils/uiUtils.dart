@@ -491,27 +491,6 @@ class UiUtils {
     return context.read<AppConfigurationCubit>().getIsDemoModeOn();
   }
 
-  //0 = Pending , 1 = Paid, 2 = Partially Paid set according to API response.
-  static String getStudentFeesStatusKey(int status) {
-    if (status == 0) {
-      return pendingKey;
-    }
-    if (status == 1) {
-      return paidKey;
-    }
-    if (status == 2) {
-      return partiallyPaidKey;
-    }
-    return '';
-  }
-
-  static String formatAmount({
-    required String strVal,
-    required BuildContext context,
-  }) {
-    return '${context.read<AppConfigurationCubit>().getPaymentOptions().currencySymbol!} $strVal';
-  }
-
   static String getFileSizeString({required int bytes, int decimals = 0}) {
     const suffixes = ['b', 'kb', 'mb', 'gb', 'tb'];
     if (bytes == 0) return '0${suffixes[0]}';

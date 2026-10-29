@@ -1,5 +1,4 @@
 import 'package:eschool/data/models/lesson.dart';
-import 'package:eschool/data/models/student.dart';
 import 'package:eschool/data/models/subject.dart';
 import 'package:eschool_core/eschool_core.dart';
 
@@ -99,47 +98,4 @@ class PlayVideoArguments {
 
   final StudyMaterial currentlyPlayingVideo;
   final List<StudyMaterial> relatedVideos;
-}
-
-/// `Routes.feesDetails`: a learner's fees to pay. Either the learner or a
-/// parent's child is given ([FeesDetailsArguments.new]), or only a child id,
-/// from a fee reminder notification ([FeesDetailsArguments.forChildId]).
-class FeesDetailsArguments {
-  const FeesDetailsArguments({
-    required Student this.studentDetails,
-    required int this.sessionYearId,
-    this.isStudentPaying = false,
-  }) : childId = null;
-
-  const FeesDetailsArguments.forChildId(this.childId)
-    : studentDetails = null,
-      sessionYearId = null,
-      isStudentPaying = false;
-
-  final Student? studentDetails;
-  final int? sessionYearId;
-  final bool isStudentPaying;
-  final int? childId;
-}
-
-/// `Routes.paymentVerify`: what the payment returned.
-class PaymentVerificationArguments {
-  const PaymentVerificationArguments({
-    required this.studentDetails,
-    required this.transactionId,
-    required this.isStudentPaying,
-    this.status,
-    this.paymentIntentId,
-  });
-
-  final Student studentDetails;
-  final int transactionId;
-  final bool isStudentPaying;
-
-  /// 1 paid, 0 failed or cancelled; null for Stripe, whose payment intent is
-  /// checked instead.
-  final int? status;
-
-  /// Stripe's PaymentIntent id.
-  final String? paymentIntentId;
 }

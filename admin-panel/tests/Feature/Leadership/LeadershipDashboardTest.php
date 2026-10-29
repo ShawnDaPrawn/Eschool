@@ -10,7 +10,6 @@ use App\Models\Academics\AttendanceRegister;
 use App\Models\Academics\GradeLevel;
 use App\Models\Attendance;
 use App\Models\ClassSection;
-use App\Models\FeesChoiceable;
 use App\Models\FeesPaid;
 use App\Models\Leadership\LearnerActivityDay;
 use App\Models\PaymentTransaction;
@@ -33,7 +32,6 @@ use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Assert;
@@ -226,6 +224,16 @@ class LeadershipDashboardTest extends TestCase
         $this->actingAs($this->superAdmin())->get('/leadership-dashboard')->assertOk()->assertSee('Leadership dashboard');
     }
 
+    public function test_abandoned_receipts_and_balances_are_not_a_current_financial_source(): void
+    {
+        $this->enableFees();
+        $this->receipt(1001);
+        $this->feeBalance(1001);
+        $this->receipt(2002, attributes: ['school_id' => 2]);
+        $this->assertSame(0, $this->lastGrade($this->read())['fee_collection_cents']['value']);
+        $this->assertSame(1, FeesPaid::count(), 'canonical readers never import or erase abandoned records');
+    }
+
     private function enableFees(): void
     {
         config(['modules.fees.always_on' => true]);
@@ -248,92 +256,13 @@ class LeadershipDashboardTest extends TestCase
             'total_amount_cents' => $cents, 'session_year_id' => $this->year, 'date' => '2026-02-05', 'is_fully_paid' => 0]);
     }
 
-    public function test_fee_receipts_are_exact_reconciled_dated_and_not_added_to_the_running_balance(): void
-    {
-        $this->enableFees();
-        $first = $this->receipt(1001);
-        $this->receipt(2002, '2026-02-01');
-        $this->feeBalance(3003);
-        $this->receipt(90000, attributes: ['payment_status' => 2]);
-        $this->receipt(80000, attributes: ['payment_status' => 0]);
-        $this->receipt(70000)->delete();
-        // The deprecated float is deliberately contradictory. Only cents count.
-        DB::table('payment_transactions')->where('id', $first->id)->update(['total_amount' => 98765.43]);
-        $data = $this->read();
-        $this->assertSame(['status' => 'available', 'value' => 1001], $this->lastGrade($data)['fee_collection_cents']);
-        $this->assertSame(['status' => 'available', 'value' => 2002], $data['periods'][0]['grades'][0]['fee_collection_cents']);
-        $this->assertStringNotContainsString('payment_id', json_encode($data, JSON_THROW_ON_ERROR));
-        $this->assertSame(3003, (int) FeesPaid::firstOrFail()->getRawOriginal('total_amount_cents'));
-    }
-
-    public function test_inconsistent_missing_duplicate_and_unsafe_fee_amounts_are_unavailable(): void
-    {
-        $this->enableFees();
-        $receipt = $this->receipt(1234);
-        $balance = $this->feeBalance(1235);
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-        $balance->forceFill(['total_amount_cents' => 1234])->save();
-        DB::table('payment_transactions')->where('id', $receipt->id)->update(['total_amount_cents' => null]);
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-        DB::table('payment_transactions')->where('id', $receipt->id)->update(['total_amount_cents' => 1234]);
-        $duplicate = $this->feeBalance(1234);
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-        $duplicate->delete();
-        DB::table('payment_transactions')->where('id', $receipt->id)->update(['total_amount_cents' => 9007199254740992]);
-        DB::table('fees_paids')->where('id', $balance->id)->update(['total_amount_cents' => 9007199254740992]);
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-    }
-
-    public function test_known_zero_is_distinct_from_disabled_fee_source_and_retained_readonly_receipts_remain_readable(): void
-    {
-        $this->enableFees();
-        $this->assertSame(['status' => 'available', 'value' => 0], $this->lastGrade($this->read())['fee_collection_cents']);
-        config(['modules.fees.always_on' => false]);
-        SchoolModule::updateOrCreate(['module' => 'fees'], ['enabled' => false, 'in_package' => true, 'read_only' => false]);
-        app(ModuleGate::class)->forget();
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-        SchoolModule::updateOrCreate(['module' => 'fees'], ['enabled' => true, 'in_package' => true, 'read_only' => true]);
-        $this->receipt(1234);
-        $this->feeBalance(1234);
-        $this->assertSame(['status' => 'available', 'value' => 1234], $this->lastGrade($this->read())['fee_collection_cents']);
-        $this->assertFalse(app(ModuleGate::class)->writable('fees'));
-    }
-
-    public function test_fee_grade_attribution_requires_one_matching_dated_enrolment(): void
-    {
-        $this->enableFees();
-        $this->receipt(1234);
-        $this->feeBalance(1234);
-        Enrolment::where('learner_id', $this->learner)->update(['starts_on' => '2026-02-06']);
-        $this->assertSame(0, $this->lastGrade($this->read())['fee_collection_cents']['value']);
-        Enrolment::where('learner_id', $this->learner)->update(['starts_on' => '2026-01-01']);
-        Enrolment::create(['learner_id' => $this->learner, 'session_year_id' => $this->year,
-            'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-02', 'ends_on' => null, 'legacy_dates' => false]);
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-    }
-
-    public function test_undated_office_receipt_uses_only_exact_matching_settled_components(): void
-    {
-        $this->enableFees();
-        $receipt = $this->receipt(1234, null, ['type_of_fee' => 2]);
-        $this->feeBalance(1234);
-        $part = FeesChoiceable::create(['student_id' => $receipt->student_id, 'class_id' => $receipt->class_id,
-            'session_year_id' => $this->year, 'payment_transaction_id' => $receipt->id, 'total_amount_cents' => 1234,
-            'is_due_charges' => 0, 'status' => 1, 'date' => '2026-02-05']);
-        $this->assertSame(1234, $this->lastGrade($this->read())['fee_collection_cents']['value']);
-        $part->forceFill(['status' => 0])->save();
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-        $part->forceFill(['status' => 1, 'total_amount_cents' => 1233])->save();
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-    }
-
     public function test_fee_adapter_denies_other_school_staff_operators_and_revoked_principals(): void
     {
         $this->enableFees();
         $this->receipt(1234);
         $this->feeBalance(1234);
         $this->receipt(90000, attributes: ['school_id' => 2]);
-        $this->assertSame(1234, $this->lastGrade($this->read())['fee_collection_cents']['value']);
+        $this->assertSame(0, $this->lastGrade($this->read())['fee_collection_cents']['value']);
         try {
             app(LeadershipFeeCollections::class)->read(User::findOrFail($this->schoolA->ids['theo_user']), $this->year, '2026-02-01', '2026-02-10');
             $this->fail('Ordinary staff cannot read fee aggregates');
@@ -346,41 +275,6 @@ class LeadershipDashboardTest extends TestCase
             $this->fail('Revoked principal cannot read fee aggregates');
         } catch (HttpException $e) {
             $this->assertSame(403, $e->getStatusCode());
-        }
-    }
-
-    public function test_new_office_optional_receipt_records_the_actual_date_and_settled_components(): void
-    {
-        $this->enableFees();
-        $class = ClassSection::findOrFail($this->schoolA->ids['section_a'])->class_id;
-        $this->actingAs($this->superAdmin())->postJson('/fees/optional-paid/store', [
-            'date' => '2026-02-05', 'mode' => 0, 'session_year_id' => $this->year,
-            'student_id' => $this->learner, 'class_id' => $class, 'total_amount' => '12.34',
-            'optional_fees_type_data' => [['id' => $this->schoolA->ids['fees_bus'], 'amount' => '12.34']],
-        ])->assertOk()->assertJsonPath('error', false);
-        $receipt = PaymentTransaction::where('student_id', $this->learner)->where('payment_status', 1)->firstOrFail();
-        $this->assertSame('2026-02-05 00:00:00', $receipt->getRawOriginal('date'));
-        $part = FeesChoiceable::where('payment_transaction_id', $receipt->id)->firstOrFail();
-        $this->assertSame(1, (int) $part->status);
-        $this->assertSame(1234, $this->lastGrade($this->read())['fee_collection_cents']['value']);
-    }
-
-    public function test_unknown_fee_kind_and_overlapping_different_grades_are_unavailable(): void
-    {
-        $this->enableFees();
-        $receipt = $this->receipt(1234, attributes: ['type_of_fee' => 99]);
-        $this->feeBalance(1234);
-        $this->assertNull($this->lastGrade($this->read())['fee_collection_cents']['value']);
-        $receipt->forceFill(['type_of_fee' => 0])->save();
-        $other = ClassSection::with('class')->findOrFail($this->schoolA->ids['section_c']);
-        $other->class->forceFill(['grade_level_id' => GradeLevel::where('code', '6')->value('id')])->save();
-        Enrolment::create(['learner_id' => $this->learner, 'session_year_id' => $this->year,
-            'class_section_id' => $other->id, 'starts_on' => '2026-01-02', 'ends_on' => null, 'legacy_dates' => false]);
-        $data = $this->read();
-        $grades = $data['periods'][count($data['periods']) - 1]['grades'];
-        $this->assertCount(2, $grades);
-        foreach ($grades as $row) {
-            $this->assertNull($row['fee_collection_cents']['value']);
         }
     }
 }

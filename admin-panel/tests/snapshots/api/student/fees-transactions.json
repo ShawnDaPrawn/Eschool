@@ -1,62 +1,13 @@
 {
     "request": "GET /api/student/fees-transactions-list",
     "status": 200,
-    "error": false,
-    "message": "Fees Payment Transactions Fetched Successfully",
-    "code": 200,
+    "error": true,
+    "message": "Update the app to use current fee statements and receipts. Online payments are not available yet.",
+    "code": 410,
     "shape": {
         "code": "number",
-        "data": {
-            "current_page": "number",
-            "from": "number",
-            "last_page": "number",
-            "per_page": "number",
-            "to": "number",
-            "total": "number",
-            "transaction-data": [
-                {
-                    "cheque_no": "null",
-                    "class_id": "number",
-                    "date": "string",
-                    "id": "number",
-                    "mode": "number",
-                    "order_id": "string",
-                    "parent_id": "number",
-                    "payment_gateway": "number",
-                    "payment_id": "string",
-                    "payment_signature": "null",
-                    "payment_status": "number",
-                    "session_year": {
-                        "created_at": "string",
-                        "default": "number",
-                        "deleted_at": "null",
-                        "end_date": "string",
-                        "fee_due_charges": "number",
-                        "fee_due_date": "string",
-                        "free_app_use_date": "string",
-                        "id": "number",
-                        "include_fee_installments": "number",
-                        "name": "string",
-                        "start_date": "string",
-                        "updated_at": "string"
-                    },
-                    "session_year_id": "number",
-                    "student": {
-                        "id": "number",
-                        "user": {
-                            "first_name": "string",
-                            "full_name": "string",
-                            "id": "number",
-                            "last_name": "string"
-                        },
-                        "user_id": "number"
-                    },
-                    "student_id": "number",
-                    "total_amount": "number",
-                    "type_of_fee": "number"
-                }
-            ]
-        },
+        "data": "null",
+        "details": "string",
         "error": "bool",
         "message": "string"
     }

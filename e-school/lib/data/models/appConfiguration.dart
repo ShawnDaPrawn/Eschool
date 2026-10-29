@@ -1,5 +1,4 @@
 import 'package:eschool_core/eschool_core.dart';
-import 'package:eschool/data/models/paymentOptions.dart';
 import 'package:eschool/data/models/term.dart';
 import 'package:eschool/data/models/sessionYear.dart';
 
@@ -11,11 +10,8 @@ class AppConfiguration {
     required this.iosAppVersion,
     required this.forceAppUpdate,
     required this.appMaintenance,
-    required this.isCompulsoryFeePaymentMode,
     required this.isDemo,
-    required this.canStudentPayTheirFees,
     required this.currentTerm,
-    required this.paymentOptions,
     required this.termBreaks,
   });
 
@@ -32,17 +28,11 @@ class AppConfiguration {
     holidayDays =
         json['holiday_days']?.toString().toLowerCase().split(',') ?? [];
     onlineExamRules = json['online_exam_terms_condition'] ?? '';
-    isOnlineFeesPaymentEnabled = json['online_payment'] ?? 'false';
     isDemo = json['is_demo'] ?? false;
-    isCompulsoryFeePaymentMode = json['compulsory_fee_payment_mode'] == '1';
-    canStudentPayTheirFees = json['is_student_can_pay_fees'] == '1';
     chatSettings = ChatSettings.fromJson(json['chat_settings'] ?? {});
     currentTerm = json['current_term']?.isEmpty ?? true
         ? null
         : Term.fromJson(json['current_term'] ?? {});
-    paymentOptions = json.containsKey('payment_options')
-        ? PaymentOptions.fromJson(json['payment_options'])
-        : paymentOptions;
     termBreaks = json['term_breaks'] != null
         ? List<TermBreak>.from(
             (json['term_breaks'] as List).map(
@@ -65,9 +55,5 @@ class AppConfiguration {
   late final String schoolTagline;
   late final ChatSettings chatSettings;
   late final String onlineExamRules;
-  late final String isOnlineFeesPaymentEnabled;
-  late final bool isCompulsoryFeePaymentMode;
-  late final bool canStudentPayTheirFees;
-  PaymentOptions paymentOptions = PaymentOptions();
   late final List<TermBreak>? termBreaks;
 }

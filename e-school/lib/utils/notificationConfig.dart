@@ -1,4 +1,3 @@
-import 'package:eschool/app/routeArguments.dart';
 import 'dart:convert';
 
 import 'package:eschool/app/deepLinks.dart';
@@ -67,7 +66,7 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
     UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.notifications);
   } else if (notificationType ==
       NotificationUtility.onlineFeePaymentNotificationType) {
-    UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.feesTransaction);
+    UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.feeStatements);
   } else if (notificationType == NotificationUtility.feePaymentDueType) {
     final int? childId = int.tryParse('${data['child_id']}');
     //the reminder is about one child: show that child from now on
@@ -75,10 +74,7 @@ void onNotificationTap(String notificationType, Map<String, dynamic> data) {
     if (childId != null && context != null) {
       context.read<ChildSelectionCubit>().select(childId);
     }
-    UiUtils.rootNavigatorKey.currentState?.pushNamed(
-      Routes.feesDetails,
-      arguments: FeesDetailsArguments.forChildId(childId),
-    );
+    UiUtils.rootNavigatorKey.currentState?.pushNamed(Routes.feeStatements);
   } else if (notificationType == NotificationUtility.chatNotificaitonType) {
     //get off the route if already on it
     if (Routes.currentRoute == Routes.chatMessages) {

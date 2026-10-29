@@ -71,11 +71,6 @@ class ChildInformationItemsContainerState
       titleKey: reportsKey,
     ),
     MenuContainerDetails(
-      route: Routes.childFees,
-      iconPath: Assets.feesIcon,
-      titleKey: feesKey,
-    ),
-    MenuContainerDetails(
       route: Routes.manageLeaves,
       iconPath: Assets.manageLeavesIcon,
       titleKey: manageLeavesKey,
@@ -135,9 +130,8 @@ class ChildInformationItemsContainerState
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.25),
+                color: Theme.of(context).colorScheme.onSurface
+                    .withValues(alpha: 0.25),
               ),
             ),
             child: LayoutBuilder(
@@ -175,9 +169,9 @@ class ChildInformationItemsContainerState
                     ),
                     const Spacer(),
                     CircleAvatar(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.inverseSurface,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .inverseSurface,
                       radius: 17.5,
                       child: Icon(
                         Icons.arrow_forward,

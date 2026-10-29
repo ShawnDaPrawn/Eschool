@@ -53,12 +53,6 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link tab-link {{ ($tab ?? '') == 'fees' ? 'active' : '' }}"
-                            data-tab="fees" href="javascript:void(0)">
-                            {{ __('fees') }}
-                        </a>
-                    </li>
 
                     <li class="nav-item">
                         <a class="nav-link tab-link {{ ($tab ?? '') == 'exam' ? 'active' : '' }}"
@@ -87,8 +81,6 @@
             <div class="card-body" id="tab-content">
                 @if(($tab ?? 'personal') == 'attendance')
                     @include('students.report.attendance')
-                @elseif(($tab ?? '') == 'fees')
-                    @include('students.report.fees')
                 @elseif(($tab ?? '') == 'exam')
                     @include('students.report.exam')
                 @elseif(($tab ?? '') == 'leave')

@@ -28,8 +28,6 @@ class CreateNextYearRequest extends FormRequest
             'start_date' => ['required', 'date_format:Y-m-d'],
             // A year that has already ended could not be made current.
             'end_date' => ['required', 'date_format:Y-m-d', 'after:start_date', 'after_or_equal:today'],
-            'fee_due_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date', 'before_or_equal:end_date'],
-            'fee_due_charges' => ['required', 'numeric', 'min:0', 'max:100'],
             'term_template_id' => ['nullable', 'integer', 'min:1'],
             'terms.*.grade_from' => ['sometimes', 'integer', 'min:0', 'max:12'],
             'terms.*.grade_to' => ['sometimes', 'integer', 'min:0', 'max:12'],
@@ -73,8 +71,6 @@ class CreateNextYearRequest extends FormRequest
             'name' => __('new_year_name'),
             'start_date' => __('new_year_starts_on'),
             'end_date' => __('new_year_ends_on'),
-            'fee_due_date' => __('new_year_fee_due_date'),
-            'fee_due_charges' => __('new_year_fee_due_charges'),
             'terms.*.name' => __('new_year_term'),
             'terms.*.start_date' => __('new_year_term_starts_on'),
             'terms.*.end_date' => __('new_year_term_ends_on'),

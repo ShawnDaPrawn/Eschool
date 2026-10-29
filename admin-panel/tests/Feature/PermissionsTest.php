@@ -91,7 +91,8 @@ class PermissionsTest extends TestCase
 
         $response = $this->appClient()->get('/api/settings', ['type' => 'app_settings']);
 
-        $this->assertSame('pk_test_key', $response->json('data.payment_options.stripe.stripe_publishable_key'));
+        $this->assertNull($response->json('data.payment_options.stripe'));
+        $this->assertSame('0', $response->json('data.online_payment'));
         $this->assertStringNotContainsString('sk-secret-key', $response->body());
         $this->assertStringNotContainsString('webhook-signing-secret', $response->body());
     }

@@ -247,13 +247,6 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
     required double width,
     required Student student,
   }) {
-    // Inform only: opening the child's learning screens never depends on debt.
-    final showFeeReminder =
-        student.isFeePaymentDue &&
-        allowsSchoolModule(
-          context.watch<MeContextCubit>().state.context,
-          'fees',
-        );
     //each child's school, when the server says (children at two schools)
     final String schoolName = context
         .watch<ChildSelectionCubit>()
@@ -343,23 +336,6 @@ class _ParentHomeScreenState extends State<ParentHomeScreen>
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onPrimary,
                                 fontSize: 10,
-                              ),
-                            ),
-                          ],
-                          if (showFeeReminder) ...[
-                            const SizedBox(height: 5),
-                            Text(
-                              UiUtils.getTranslatedLabel(
-                                context,
-                                feePaymentDueKey,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12,
                               ),
                             ),
                           ],

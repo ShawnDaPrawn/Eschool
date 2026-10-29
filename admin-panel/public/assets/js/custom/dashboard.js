@@ -13,7 +13,6 @@
 
     var cfg = {
         sessionYearId: root.dataset.sessionYearId,
-        currency: root.dataset.currency || "",
         defaultMonth: root.dataset.defaultMonth,
         urls: {
             fees: root.dataset.urlFees,
@@ -59,10 +58,6 @@
         };
     }
 
-    function money(value) {
-        var n = Number(value) || 0;
-        return cfg.currency + n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-    }
 
     function fmtNumber(value) {
         return (Number(value) || 0).toLocaleString();
@@ -185,65 +180,19 @@
         var card = document.getElementById("fees-card");
         fetchJSON(widgetUrl(cfg.urls.fees, {}))
             .then(function (data) {
-                cfg.currency = data.currency || cfg.currency;
-                setText("fees-collected", money(data.collected));
-                setText("fees-dues", money(data.upcoming_dues));
-                setText("fees-overdue", money(data.overdue));
-
-                var colors = themeColors();
-                var sum = (Number(data.collected) || 0) + (Number(data.upcoming_dues) || 0) + (Number(data.overdue) || 0);
-                var el = document.getElementById("fees-donut");
-
-                // Nothing billed yet: show the empty state instead of a bare grey ring.
-                toggleEmpty(card, sum <= 0);
-                if (sum <= 0) {
-                    if (charts.fees) charts.fees.destroy();
-                    delete charts.fees;
-                    if (el) el.innerHTML = "";
-                    setLoaded(card);
-                    return;
-                }
-
-                renderChart("fees", el, {
-                    chart: { type: "donut", height: 240 },
-                    series: [data.collected, data.upcoming_dues, data.overdue],
-                    labels: [t("collected"), t("upcoming_dues"), t("overdue_amount")],
-                    colors: [colors.success, colors.warning, colors.danger],
-                    stroke: { width: 2, colors: [colors.surface] },
-                    legend: { show: false },
-                    dataLabels: { enabled: false },
-                    tooltip: { y: { formatter: function (v) { return money(v); } } },
-                    states: { hover: { filter: { type: "none" } } },
-                    plotOptions: {
-                        pie: {
-                            donut: {
-                                size: "74%",
-                                labels: {
-                                    show: true,
-                                    name: { offsetY: 22, color: colors.muted, fontSize: "13px" },
-                                    value: {
-                                        offsetY: -12,
-                                        color: colors.text,
-                                        fontSize: "20px",
-                                        fontWeight: 600,
-                                        formatter: function (v) { return money(v); },
-                                    },
-                                    total: {
-                                        show: true,
-                                        label: t("total"),
-                                        color: colors.muted,
-                                        fontSize: "13px",
-                                        formatter: function () { return money(sum); },
-                                    },
-                                },
-                            },
-                        },
-                    },
+                var list = card.querySelector("[data-receipt-list]");
+                list.replaceChildren();
+                (data.rows || []).forEach(function (row) {
+                    var amount = document.createElement("p");
+                    amount.className = "m3-title-large";
+                    amount.textContent = row.formatted;
+                    list.appendChild(amount);
                 });
-
+                toggleEmpty(card, !data.rows || data.rows.length === 0);
                 setLoaded(card);
             })
             .catch(function () {
+                card.querySelector("[data-receipt-list]").textContent = card.dataset.errorMessage;
                 setLoaded(card);
             });
     }

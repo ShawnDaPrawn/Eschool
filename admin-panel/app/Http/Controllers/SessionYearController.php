@@ -13,17 +13,14 @@ use App\Models\ElectiveSubjectGroup;
 use App\Models\Event;
 use App\Models\Exam;
 use App\Models\ExamResult;
-use App\Models\FeesChoiceable;
-use App\Models\FeesPaid;
 use App\Models\Grade;
 use App\Models\Holiday;
-use App\Models\InstallmentFee;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
+use App\Models\Money\FeePlan;
 use App\Models\Notification;
 use App\Models\OnlineExam;
 use App\Models\OnlineExamQuestion;
-use App\Models\PaymentTransaction;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\StudentSubject;
@@ -128,39 +125,20 @@ class SessionYearController extends Controller
         }
         $current = SessionYear::find($request->id);
         // A running year's free-app date is usually already past; keeping it must not block other edits.
-        $freeAppDateChanged = $current === null
-            || ! $request->filled('free_app_use_date')
-            || date('Y-m-d', strtotime($request->free_app_use_date)) !== $current->free_app_use_date;
         $request->validate([
             'id' => 'required|exists:session_years,id',
             'name' => ['required', Rule::unique('session_years', 'name')->ignore($request->id)->whereNull('deleted_at')],
-            'free_app_use_date' => $freeAppDateChanged ? 'nullable|date|after:today' : 'nullable|date',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'fees_due_date' => 'required|date|after_or_equal:start_date|before_or_equal:end_date',
-            'fees_due_charges' => 'required|numeric|min:0|max:100',
-            'installment_data.*.name' => 'required_if:edit_include_fee_installments,1',
-            'installment_data.*.due_date' => 'required_if:edit_include_fee_installments,1|date|after_or_equal:start_date|before_or_equal:end_date',
-            'installment_data.*.due_charges' => 'required_if:edit_include_fee_installments,1|numeric|gt:0',
         ], [
             'name.unique' => trans('session_year_name_already_exists'),
-            'installment_data.*.name.required_if' => trans('name_is_required_at_row').' :index',
-            'installment_data.*.due_date.required_if' => trans('name_is_required_at_row').' :index',
-            'installment_data.*.due_date.date' => trans('due_date_should_be_date_at_row').' :index',
-            'installment_data.*.due_date.after_or_equal' => trans('due_date_should_be_after_or_equal_session_year_start_date_at_row').' :index',
-            'installment_data.*.due_date.before_or_equal' => trans('due_date_should_be_before_or_equal_session_year_end_date_at_row').' :index',
-            'installment_data.*.due_charges.required_if' => trans('due_charges_required_at_row').' :index',
-            'installment_data.*.due_charges.numeric' => trans('due_charges_should_be_number_at_row').' :index',
         ]);
 
         try {
             $session_year = SessionYear::find($request->id);
             $session_year->name = $request->name;
-            $session_year->free_app_use_date = isset($request->free_app_use_date) ? date('Y-m-d', strtotime($request->free_app_use_date)) : null;
             $session_year->start_date = date('Y-m-d', strtotime($request->start_date));
             $session_year->end_date = date('Y-m-d', strtotime($request->end_date));
-            $session_year->fee_due_date = date('Y-m-d', strtotime($request->fees_due_date));
-            $session_year->fee_due_charges = $request->fees_due_charges;
 
             // If request asks to set this session as default, enforce rules:
             if ($request->has('default')) {
@@ -179,26 +157,6 @@ class SessionYearController extends Controller
 
             $session_year->save();
 
-            if (isset($request->installment_data) && ! empty($request->installment_data)) {
-                foreach ($request->installment_data as $data) {
-                    if ($data['id']) {
-                        $installment_update = InstallmentFee::findOrFail($data['id']);
-                        $installment_update->name = $data['name'];
-                        $installment_update->due_date = date('Y-m-d', strtotime($data['due_date']));
-                        $installment_update->due_charges = $data['due_charges'];
-                        $installment_update->save();
-                    } else {
-                        $installment_store = new InstallmentFee;
-                        $installment_store->name = $data['name'];
-                        $installment_store->due_date = date('Y-m-d', strtotime($data['due_date']));
-                        $installment_store->due_charges = $data['due_charges'];
-                        $installment_store->session_year_id = $request->id;
-                        $installment_store->save();
-                    }
-                }
-            }
-            $session_year->include_fee_installments = InstallmentFee::where('session_year_id', $session_year->id)->exists() ? 1 : 0;
-            $session_year->save();
             $response = [
                 'error' => false,
                 'message' => trans('data_update_successfully'),
@@ -250,7 +208,7 @@ class SessionYearController extends Controller
 
         $default_session_year = getSettings('session_year')['session_year'];
 
-        $sql = SessionYear::with('fee_installments')->where('id', '!=', 0);
+        $sql = SessionYear::query()->where('id', '!=', 0);
         if (isset($_GET['search']) && ! empty($_GET['search'])) {
             $search = $_GET['search'];
             $sql->where(fn ($query) => $query->where('id', 'LIKE', "%$search%")
@@ -272,6 +230,7 @@ class SessionYearController extends Controller
 
         // Batch load related data existence to avoid N+1 queries
         $sessionYearIds = $res->pluck('id')->toArray();
+        $syWithFinancialPlans = FeePlan::withTrashed()->whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->all();
         $syWithStudentSessions = StudentSessions::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithStudentSubjects = StudentSubject::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithClassTeachers = ClassTeacher::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
@@ -282,10 +241,6 @@ class SessionYearController extends Controller
         $syWithExamResults = ExamResult::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithOnlineExams = OnlineExam::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithOnlineExamQuestions = OnlineExamQuestion::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
-        $syWithFeesPaid = FeesPaid::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
-        $syWithFeesChoiceable = FeesChoiceable::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
-        $syWithPayments = PaymentTransaction::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
-        $syWithInstallments = InstallmentFee::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithGrades = Grade::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithLeaves = Leave::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
         $syWithLeaveMasters = LeaveMaster::whereIn('session_year_id', $sessionYearIds)->pluck('session_year_id')->unique()->toArray();
@@ -329,7 +284,7 @@ class SessionYearController extends Controller
                 if (in_array($row->id, $syWithOnlineExams) || in_array($row->id, $syWithOnlineExamQuestions)) {
                     $relatedData[] = 'online exams';
                 }
-                if (in_array($row->id, $syWithFeesPaid) || in_array($row->id, $syWithFeesChoiceable) || in_array($row->id, $syWithPayments) || in_array($row->id, $syWithInstallments)) {
+                if (in_array($row->id, $syWithFinancialPlans)) {
                     $relatedData[] = 'fees & payments';
                 }
                 if (in_array($row->id, $syWithGrades)) {
@@ -368,17 +323,12 @@ class SessionYearController extends Controller
             $tempRow['id'] = $row->id;
             $tempRow['no'] = $no++;
             $tempRow['name'] = $row->name;
-            $tempRow['free_app_use_date'] = isset($row->free_app_use_date) ? date($data['date_formate'], strtotime($row->free_app_use_date)) : null;
             $tempRow['default'] = $row->default;
             $tempRow['start_date'] = date($data['date_formate'], strtotime($row->start_date));
             $tempRow['end_date'] = date($data['date_formate'], strtotime($row->end_date));
-            $tempRow['fees_due_date'] = date($data['date_formate'], strtotime($row->fee_due_date));
             // Raw ISO dates for reliable JS datepicker boundary parsing (independent of display format)
             $tempRow['start_date_raw'] = date('Y-m-d', strtotime($row->start_date));
             $tempRow['end_date_raw'] = date('Y-m-d', strtotime($row->end_date));
-            $tempRow['fees_due_charges'] = $row->fee_due_charges;
-            $tempRow['include_fee_installments'] = $row->include_fee_installments;
-            $tempRow['fee_installments'] = $row->fee_installments;
             $tempRow['operate'] = $operate;
             $rows[] = $tempRow;
         }
@@ -431,6 +381,8 @@ class SessionYearController extends Controller
                 'error' => false,
                 'message' => trans('data_delete_successfully'),
             ]);
+        } catch (\DomainException $e) {
+            return response()->json(['error' => true, 'message' => $e->getMessage()], 409);
         } catch (Throwable $e) {
             report($e);
 
@@ -459,7 +411,7 @@ class SessionYearController extends Controller
                 'clear_data.*' => [
                     'required',
                     'string',
-                    'in:class_subject,class_teachers,fees_transactions,notifications,timetable,attendance,assignments,exams,grades,announcements,holidays,events,leaves,allowed_leave_days',
+                    'in:class_subject,class_teachers,notifications,timetable,attendance,assignments,exams,grades,announcements,holidays,events,leaves,allowed_leave_days',
                 ],
             ]);
 
@@ -484,37 +436,6 @@ class SessionYearController extends Controller
                 'error' => true,
                 'message' => trans('error_occurred'),
             ], 500);
-        }
-    }
-
-    public function deleteInstallmentData($id)
-    {
-        if (! Auth::user()->can('session-year-delete')) {
-            return response()->json([
-                'message' => trans('no_permission_message'),
-            ]);
-        }
-
-        try {
-            $installment = InstallmentFee::findOrFail($id);
-
-            /**
-             * Cascade deletion handled in model
-             */
-            $installment->delete();
-            if (! InstallmentFee::where('session_year_id', $installment->session_year_id)->exists()) {
-                SessionYear::where('id', $installment->session_year_id)->update(['include_fee_installments' => 0]);
-            }
-
-            return response()->json([
-                'error' => false,
-                'message' => trans('data_delete_successfully'),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'error' => true,
-                'message' => trans('error_occurred'),
-            ]);
         }
     }
 

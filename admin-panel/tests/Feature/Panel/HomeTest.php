@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Panel;
 
+use App\Models\Money\FeeAccount;
+use App\Models\Money\FeePlan;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Panel\SetupChecklist;
@@ -49,7 +51,7 @@ class HomeTest extends TestCase
         $page->assertSee(route('subject.index'), false);
         $page->assertSee(route('teachers.index'), false);
         $page->assertSee(route('students.create'), false);
-        $page->assertSee(route('fees-type.index'), false);
+        $page->assertSee(route('fee-plans.index'), false);
         $page->assertSee(__('checklist_progress', ['done' => 0, 'total' => 7]));
         // What the dashboard always showed is still there.
         $page->assertSee('id="noticeboard-card"', false);
@@ -159,7 +161,7 @@ class HomeTest extends TestCase
         $student = SchoolTable::query('students')->insertGetId(['user_id' => $learnerUser->id, 'class_id' => $class, 'class_section_id' => $homeroom, 'category_id' => $category, 'admission_no' => 'GR-1', 'roll_number' => 1, 'admission_date' => now()->toDateString(), 'father_id' => $parent] + $now);
         SchoolTable::query('student_sessions')->insert(['student_id' => $student, 'class_section_id' => $homeroom, 'session_year_id' => $this->year->id, 'status' => 1] + $now);
 
-        $type = SchoolTable::query('fees_types')->insertGetId(['name' => 'Tuition', 'description' => 'Tuition fee'] + $now);
-        SchoolTable::query('fees_classes')->insert(['session_year_id' => $this->year->id, 'class_id' => $class, 'fees_type_id' => $type, 'choiceable' => 0, 'amount' => 1000] + $now);
+        FeePlan::create(['session_year_id' => $this->year->id, 'name' => 'Tuition', 'scope' => 'all', 'currency' => 'ZAR', 'amount_cents' => 100000, 'state' => 'active', 'revision' => 1]);
+        FeeAccount::create(['reference' => 'NEF-SETUP', 'name' => 'Family', 'currency' => 'ZAR', 'active' => true, 'revision' => 1]);
     }
 }

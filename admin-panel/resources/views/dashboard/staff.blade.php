@@ -18,11 +18,11 @@
     @include('dashboard.partials.stat-cards')
 
     <div class="row">
-        @can('fees-paid')
+        @if(auth()->user()->can('fee-payments-manage') && app(\App\Services\Platform\Modules\ModuleGate::class)->allows('fees'))
             <div class="col-12 col-lg-6 mb-4">
                 @include('dashboard.partials.fees-collection')
             </div>
-        @endcan
+        @endif
 
         @can('attendance-report')
             <div class="col-12 col-lg-6 mb-4">

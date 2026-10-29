@@ -61,6 +61,7 @@ class LeadershipDashboard
                 $rows[] = ['grade_id' => (int) $grade->id, 'grade_name' => $grade->name, 'enrolled_learners' => count($rosters[$grade->id]),
                     'attendance' => ['status' => $days > 0 ? 'available' : 'unavailable', 'recorded_days' => $days, 'present_half_days' => $present, 'percentage_bp' => $days > 0 ? intdiv($present * 10000 + $days, $days * 2) : null],
                     'academic_risk' => $this->metric($risk), 'discipline' => $this->metric($discipline), 'fee_collection_cents' => $this->metric($feeCollections->amount($fees, (int) $grade->id, $from, $to)),
+                    'fee_collection_currency' => $feeCollections->currency($fees, (int) $grade->id, $from, $to),
                     'active_learners' => ['status' => ! $useKnown ? 'unavailable' : ($from < $observedSince ? 'partial' : 'available'), 'value' => $active]];
             }
             $periods[] = ['starts_on' => $from, 'ends_on' => $to, 'grades' => $rows];

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Models\Settings;
-use App\Services\Payment\PaymentService;
 use App\Services\Platform\Notifications\FcmClient;
 use App\Services\Platform\Secrets\SecretSettings;
 use App\Services\SettingsConfigService;
@@ -48,10 +47,10 @@ class SecretSettingsTest extends TestCase
             $this->assertFalse(SecretSettings::fromEnvironment($type));
             $this->assertSame($value, SecretSettings::get($type));
         }
-        $this->assertSame('whsec_row_secret', PaymentService::webhookSecret('stripe'));
+        $this->assertSame('whsec_row_secret', SecretSettings::get('stripe_webhook_secret'));
 
         config(['secrets.stripe_webhook_secret' => 'whsec_env', 'secrets.stripe_secret_key' => 'sk_env']);
-        $this->assertSame('whsec_env', PaymentService::webhookSecret('stripe'));
+        $this->assertSame('whsec_env', SecretSettings::get('stripe_webhook_secret'));
         $this->assertSame('sk_env', SecretSettings::get('stripe_secret_key'));
     }
 
@@ -74,19 +73,15 @@ class SecretSettingsTest extends TestCase
         $admin = $this->superAdmin();
         $admin->forceFill(['password' => bcrypt('Admin-pass-2026')])->save();
 
-        foreach (['/fees-config', '/email-settings', '/settings'] as $page) {
+        foreach (['/email-settings', '/settings'] as $page) {
             $html = $this->actingAs($admin)->get($page)->assertOk()->assertSee(trans('set_in_environment'))->getContent();
             foreach ([...array_values(self::ROW), 'sk_env', 'whsec_env', 'env-mail-pass', 'recaptcha-env'] as $secret) {
                 $this->assertStringNotContainsString($secret, $html, "$page shows a secret");
             }
         }
 
-        // Saving the fees page without the secret fields works, and a posted value is ignored.
-        $this->actingAs($admin)->postJson('/fees-config/update', [
-            'stripe_status' => 1, 'stripe_publishable_key' => 'pk_test', 'stripe_webhook_url' => 'https://school.example/webhook/stripe',
-            'stripe_currency_code' => 'ZAR', 'currency_code' => 'ZAR', 'currency_symbol' => 'R',
-            'compulsory_fee_payment_mode' => 0, 'is_student_can_pay_fees' => 1, 'stripe_secret_key' => 'sk_posted',
-        ])->assertJson(['error' => false]);
+        $this->actingAs($admin)->get('/fees-config')->assertRedirect('/fee-plans');
+        $this->actingAs($admin)->postJson('/fees-config/update', ['stripe_secret_key' => 'sk_posted'])->assertNotFound();
         $this->assertSame('sk_row_secret', Settings::where('type', 'stripe_secret_key')->value('message'));
 
         $this->actingAs($admin)->postJson('/email-settings', [
@@ -101,7 +96,7 @@ class SecretSettingsTest extends TestCase
         $admin = $this->superAdmin();
         $admin->forceFill(['password' => bcrypt('Admin-pass-2026')])->save();
 
-        $this->actingAs($admin)->get('/fees-config')->assertOk()->assertSee('sk_row_secret')->assertDontSee(trans('set_in_environment'));
+        $this->actingAs($admin)->get('/fees-config')->assertRedirect('/fee-plans');
         $this->actingAs($admin)->postJson('/email-settings', [
             'mail_mailer' => 'smtp', 'mail_host' => 'smtp.example.org', 'mail_port' => 587, 'mail_username' => 'mailer',
             'mail_encryption' => 'tls', 'mail_send_from' => 'office@example.org',

@@ -29,7 +29,7 @@ use App\Models\Teacher;
 use App\Models\Term;
 use App\Models\Timetable;
 use App\Models\User;
-use App\Services\FeesCollectionService;
+use App\Services\Money\FeeReceiptOverview;
 use App\Services\Panel\SetupChecklist;
 use App\Services\Panel\TodayNumbers;
 use App\Services\Platform\Files\FileNames;
@@ -202,7 +202,7 @@ class HomeController extends Controller
             'can_approve_leaves' => $user->can('leave-approve'),
         ];
 
-        if ($user->can('fees-paid')) {
+        if ($user->can('fee-payments-manage')) {
             $data['currency_symbol'] = getSettings('currency_symbol')['currency_symbol'] ?? '';
         }
 
@@ -459,13 +459,12 @@ class HomeController extends Controller
     /**
      * Fees Collection widget (donut + collected / upcoming / overdue).
      */
-    public function feesCollectionWidget(Request $request, FeesCollectionService $feesCollectionService): JsonResponse
+    public function feesCollectionWidget(Request $request, FeeReceiptOverview $receipts): JsonResponse
     {
-        ResponseService::noPermissionThenSendJson('fees-paid');
+        $request->validate(['session_year_id' => ['sometimes', 'integer', 'min:1']]);
+        $year = $request->integer('session_year_id') ?: (int) schoolSetting('session_year');
 
-        $session_year_id = (int) ($request->session_year_id ?: (getSettings('session_year')['session_year'] ?? 0));
-
-        return response()->json($feesCollectionService->summary($session_year_id));
+        return response()->json($receipts->read($request->user(), $year))->header('Cache-Control', 'no-store, private');
     }
 
     /**

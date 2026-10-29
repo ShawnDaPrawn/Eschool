@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Money;
 
+use App\Models\Academics\GradeLevel;
+use App\Models\ClassSection;
 use App\Models\Money\BillingOperation;
 use App\Models\Money\FeeAccount;
 use App\Models\Money\FeePayment;
@@ -14,6 +16,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Leadership\LeadershipFeeCollections;
 use App\Services\Money\BillRuns;
 use App\Services\Money\FeeAccounts;
 use App\Services\Money\FeeAllocations;
@@ -509,6 +512,64 @@ class FeePaymentsTest extends TestCase
         $this->get('/fee-payments/new')->assertForbidden();
         $this->post('/fee-payments/new', $input + ['expected_account_id' => $teacher->id, 'expected_school_id' => 1])->assertForbidden();
         $this->assertSame(0, FeePayment::count());
+    }
+
+    public function test_home_and_leadership_use_canonical_receipts_and_allocations_only(): void
+    {
+        $this->bill();
+        $this->policy();
+        $grade = (int) GradeLevel::where('code', '5')->value('id');
+        ClassSection::findOrFail($this->schoolA->ids['section_a'])->class->forceFill(['grade_level_id' => $grade])->save();
+        config(['modules.leadership_dashboard.always_on' => true]);
+        $payment = app(FeePayments::class)->record($this->admin, $this->receipt());
+        $this->actingAs($this->admin)->get('/home/widget/fees-collection?session_year_id='.$this->year)
+            ->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+            ->assertJsonPath('rows.0.currency', 'ZAR')->assertJsonPath('rows.0.collected_cents', 400);
+        $source = app(LeadershipFeeCollections::class);
+        $before = $source->read($this->admin, $this->year, '2026-06-01', '2026-06-30');
+        $this->assertSame(0, $source->amount($before, $grade, '2026-06-01', '2026-06-30'), 'held credit is never attributed to a grade');
+        $preview = app(FeeAllocations::class)->preview($this->admin, $payment->id);
+        app(FeeAllocations::class)->post($this->admin, $payment->id, $this->allocate($preview));
+        $after = $source->read($this->admin, $this->year, '2026-06-01', '2026-06-30');
+        $this->assertSame(400, $source->amount($after, $grade, '2026-06-01', '2026-06-30'));
+        $this->assertSame('ZAR', $source->currency($after, $grade, '2026-06-01', '2026-06-30'));
+        $this->assertSame(0, $source->amount($after, $grade, '2026-05-01', '2026-05-31'));
+        app(CurrentSchool::class)->run(2, function () use ($source): void {
+            $this->refuses(fn () => $source->read($this->admin, $this->year, '2026-06-01', '2026-06-30'), 404);
+        });
+        app(ModuleGate::class)->change('fees', false, $this->admin);
+        $retained = $source->read($this->admin, $this->year, '2026-06-01', '2026-06-30');
+        $this->assertSame(400, $source->amount($retained, $grade, '2026-06-01', '2026-06-30'));
+    }
+
+    public function test_old_collection_writes_are_gone_and_v1_has_an_explicit_upgrade_response(): void
+    {
+        $this->actingAs($this->admin);
+        foreach (['fees/optional-paid/store', 'fees/compulsory-paid/store', 'fees-config/update', 'class/fees-type'] as $url) {
+            $response = $this->post('/'.$url, ['amount' => '10.00']);
+            $this->assertContains($response->status(), [404, 405]);
+        }
+        foreach (['fees-type' => '/fee-items', 'fees/classes' => '/fee-plans', 'fees/paid' => '/fee-payments'] as $old => $current) {
+            $this->get('/'.$old)->assertRedirect($current);
+        }
+        $this->api(User::findOrFail($this->schoolA->ids['farid_user']))->postJson('/api/parent/add-fees-transaction', ['child_id' => $this->schoolA->ids['asha']])
+            ->assertOk()->assertJsonPath('error', true)->assertJsonPath('code', 410)->assertJsonPath('data', null)
+            ->assertSee('Update the app')->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertSame(0, FeePayment::count());
+    }
+
+    public function test_school_year_deletion_cannot_hide_new_financial_configuration_or_history(): void
+    {
+        $future = SessionYear::create(['name' => 'Protected financial year', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31']);
+        app(FeePlans::class)->save($this->admin, ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'name' => 'Future tuition',
+            'session_year_id' => $future->id, 'scope' => 'all', 'target_id' => null, 'currency' => 'ZAR', 'amount' => '10.00', 'state' => 'draft']);
+        try {
+            $future->delete();
+            $this->fail('Financial configuration cannot disappear through an academic-year cleanup.');
+        } catch (\DomainException $e) {
+            $this->assertStringContainsString('financial', $e->getMessage());
+        }
+        $this->assertNotNull($future->fresh());
     }
 
     private function bill(): void

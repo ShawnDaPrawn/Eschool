@@ -14,7 +14,6 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\Exam;
 use App\Http\Controllers\ExamTimetableController;
-use App\Http\Controllers\Fees;
 use App\Http\Controllers\FormFieldController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\HomeController;
@@ -128,7 +127,6 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TermController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
-use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeCardEncodingPanel;
@@ -815,7 +813,6 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('session_years_list', [SessionYearController::class, 'show']);
         Route::get('session-year/details/{id}', [SessionYearController::class, 'details']);
         Route::get('session-year/{id}/terms', [SessionYearController::class, 'terms']);
-        Route::delete('remove-installment-data/{id}', [SessionYearController::class, 'deleteInstallmentData']);
 
         Route::get('attendance-monthly', [AttendanceController::class, 'monthlyView'])->name('attendance.monthly');
         Route::get('attendance/monthly-ajax', [AttendanceController::class, 'monthlyAjax'])->name('attendance.monthly.ajax');
@@ -985,34 +982,13 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
 
         Route::get('set-language/{lang}', [LanguageController::class, 'set_language']);
 
-        // fees
-        Route::resource('fees-type', Fees\TypeController::class)->except(['create', 'edit']);
-
-        Route::get('fees/classes', [Fees\ClassController::class, 'feesClassListIndex'])->name('fees.class.index');
-        // Route::post('fees/classes/update', [Fees\ClassController::class, 'updateFeesClass'])->name('fees.class.update');
-        Route::get('fees/classes/list', [Fees\ClassController::class, 'feesClassList'])->name('fees.class.list');
-
-        Route::post('class/fees-type', [Fees\ClassController::class, 'updateFeesClass'])->name('class.fees.type.update');
-        Route::delete('class/fees-type/{fees_class_id}', [Fees\ClassController::class, 'removeFeesClass'])->name('class.fees.type.delete');
-
-        Route::get('fees/paid', [Fees\PaidController::class, 'feesPaidListIndex'])->name('fees.paid.index');
-        Route::get('fees/paid/list', [Fees\PaidController::class, 'feesPaidList'])->name('fees.paid.list');
-
-        Route::get('fees-config', [Fees\ConfigController::class, 'feesConfigIndex'])->name('fees.config.index');
-        Route::post('fees-config/update', [Fees\ConfigController::class, 'feesConfigUpdate'])->name('fees.config.udpate');
-        Route::delete('fees/paid/remove-choiceable-fees/{id}', [Fees\PaymentController::class, 'feesPaidRemoveChoiceableFees'])->name('fees.paid.remove.choiceable.fees');
-        Route::delete('fees/paid/remove-installment-fees/{id}', [Fees\PaymentController::class, 'feesPaidRemoveInstallmentFees'])->name('fees.paid.remove.installment.fees');
-        Route::delete('fees/paid/clear-data/{id}', [Fees\PaidController::class, 'clearFeesPaidData'])->name('fees.paid.clear.data');
-
-        // Installment Fees Management
-
-        Route::post('fees/optional-paid/store', [Fees\PaymentController::class, 'optionalFeesPaidStore'])->name('fees.optional-paid.store');
-        Route::post('fees/compulsory-paid/store', [Fees\PaymentController::class, 'compulsoryFeesPaidStore'])->name('fees.compulsory-paid.store');
-
-        Route::get('fees/transaction-logs', [Fees\TransactionLogController::class, 'feesTransactionsLogsIndex'])->name('fees.transactions.log.index');
-        Route::get('fees/transaction-logs/list', [Fees\TransactionLogController::class, 'feesTransactionsLogsList'])->name('fees.transactions.log.list');
-
-        Route::get('fees/paid/receipt-pdf/{id}', [Fees\PaidController::class, 'feesPaidReceiptPDF'])->middleware('throttle:heavy')->name('fees.paid.receipt.pdf');
+        // Bookmarked legacy lists lead to the canonical workflows. Old receipt
+        // IDs and writes are deliberately not mapped into unrelated ledger IDs.
+        Route::redirect('fees-type', '/fee-items')->name('fees-type.index');
+        Route::redirect('fees/classes', '/fee-plans')->name('fees.class.index');
+        Route::redirect('fees/paid', '/fee-payments')->name('fees.paid.index');
+        Route::redirect('fees/transaction-logs', '/fee-payments')->name('fees.transactions.log.index');
+        Route::redirect('fees-config', '/fee-plans')->name('fees.config.index');
 
         // Online Exam
         Route::get('online-exam/terms-conditions', [OnlineExamController::class, 'onlineExamTermsConditionIndex'])->name('online-exam.terms-conditions');
@@ -1173,8 +1149,6 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
 
 // Payment gateway webhooks. Stripe is the only gateway (Razorpay, Paystack and
 // Flutterwave were removed in Phase 0).
-// The webhook works in the school of the payment it settles (WebhookController).
-Route::post('webhook/stripe', [WebhookController::class, 'stripe'])->middleware('school.context:public');
 
 // Amazon SES bounce, complaint and delivery notices, posted by SNS (signed;
 // only the topics in services.ses_notifications.topic_arns are accepted).

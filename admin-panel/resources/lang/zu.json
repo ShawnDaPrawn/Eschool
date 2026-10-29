@@ -4038,7 +4038,7 @@
     "Holder share still due": "Holder share still due",
     "Holder whose share this pays": "Holder whose share this pays",
     "I confirm this held credit should pay the invoice shares shown above.": "I confirm this held credit should pay the invoice shares shown above.",
-    "I verified the received funds and confirm this receipt is not already recorded in legacy payment history.": "I verified the received funds and confirm this receipt is not already recorded in legacy payment history.",
+    "I verified the received funds and confirm this receipt has not already been recorded.": "I verified the received funds and confirm this receipt has not already been recorded.",
     "Invoice debt still due": "Invoice debt still due",
     "Invoice shares by learner and holder": "Invoice shares by learner and holder",
     "Keep this payment for one learner": "Keep this payment for one learner",
@@ -4204,7 +4204,7 @@
     "Exclusion retains the bank row and its reason without posting money. A resolved row cannot be edited or matched again.": "Exclusion retains the bank row and its reason without posting money. A resolved row cannot be edited or matched again.",
     "Family payment reference": "Family payment reference",
     "I confirm these bank rows should be retained for reconciliation. Importing does not record received fees.": "I confirm these bank rows should be retained for reconciliation. Importing does not record received fees.",
-    "I verified the bank evidence, payer and legacy history and confirm this resolution. Resolved bank history cannot be edited.": "I verified the bank evidence, payer and legacy history and confirm this resolution. Resolved bank history cannot be edited.",
+    "I verified the bank evidence, payer and receipt history and confirm this resolution. Resolved bank history cannot be edited.": "I verified the bank evidence, payer and receipt history and confirm this resolution. Resolved bank history cannot be edited.",
     "Import bank CSV": "Import bank CSV",
     "Import bank evidence, then review each fee receipt. Importing never posts money or settles invoices.": "Import bank evidence, then review each fee receipt. Importing never posts money or settles invoices.",
     "Import reviewed bank rows once": "Import reviewed bank rows once",
@@ -5342,5 +5342,12 @@
     "nav_group_vendors": "Abathengisi namathikithi",
     "nav_group_cash": "Ukheshi nokubuyisana kwama-akhawunti",
     "nav_group_money_configuration": "Izilungiselelo zezimali",
-    "Oldest due first allocates across eligible charges by due date. Tuition first pays annual tuition before other charges, using the oldest due date within each group. Credit stays held until you allocate it.": "Inketho yosuku oludala kuqala ikhokhela izindleko ezifanele ngokulandelana kosuku lokukhokha. Inketho yezifundo kuqala ikhokhela imali yezifundo yonyaka ngaphambi kwezinye izindleko, iqale ngosuku oludala eqenjini ngalinye. Imali esele igcinwa ize yabelwe izindleko."
+    "Oldest due first allocates across eligible charges by due date. Tuition first pays annual tuition before other charges, using the oldest due date within each group. Credit stays held until you allocate it.": "Inketho yosuku oludala kuqala ikhokhela izindleko ezifanele ngokulandelana kosuku lokukhokha. Inketho yezifundo kuqala ikhokhela imali yezifundo yonyaka ngaphambi kwezinye izindleko, iqale ngosuku oludala eqenjini ngalinye. Imali esele igcinwa ize yabelwe izindleko.",
+    "Verified fee receipts": "Amarisidi emali yesikole aqinisekisiwe",
+    "No verified receipts in this school year yet.": "Awekho amarisidi aqinisekisiwe kulo nyaka wesikole okwamanje.",
+    "Could not load current receipts. Open Fee payments to review them.": "Akukwazanga ukulayisha amarisidi amanje. Vula izinkokhelo zesikole ukuze uwabuyekeze.",
+    "Gross confirmed receipts received during the selected school year, including held credit. Refunds and current debt are shown in their own reports.": "Isamba samarisidi aqinisekisiwe atholwe ngonyaka wesikole okhethiwe, kuhlanganise nekhredithi engakabiwanga. Ukubuyiselwa kwemali nezikweletu zamanje kuboniswa emibikweni yakho.",
+    "Fee setup: :plans active plans and :accounts family accounts.": "Ukulungiselelwa kwezimali zesikole: izinhlelo ezisebenzayo ezingu-:plans nama-akhawunti emindeni angu-:accounts.",
+    "Allocated learner fees": "Izimali zabafundi ezabiwe",
+    "Allocated learner fees show current applied receipts by receipt date, after credit releases. Held credit and family charges are excluded; mixed currencies or unreconciled amounts are unavailable.": "Izimali zabafundi ezabiwe zibonisa amarisidi asetshenzisiwe ngosuku lwerisidi, ngemva kokukhululwa kwekhredithi. Ikhredithi engakabiwanga nezindleko zomndeni azifakiwe; izimali ezixubile noma ezingakabuyekezwa azitholakali."
 }

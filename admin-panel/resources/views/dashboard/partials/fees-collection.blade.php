@@ -1,33 +1,13 @@
-{{-- Fees Collection: donut + collected / upcoming dues / overdue --}}
-<div class="dash-card dash-widget h-100" id="fees-card">
-    <div class="dash-card-head">
-        <h4 class="dash-card-title">{{ __('fees_collection') }}</h4>
-    </div>
+<div class="dash-card dash-widget h-100" id="fees-card" data-error-message="{{ __('Could not load current receipts. Open Fee payments to review them.') }}">
+    <div class="dash-card-head"><h4 class="dash-card-title">{{ __('Verified fee receipts') }}</h4></div>
     <div class="dash-card-body">
         <div class="widget-skeleton" data-skeleton></div>
-
-        <div class="fees-grid" data-content hidden>
-            <div class="fees-chart">
-                <div id="fees-donut"></div>
-                <div class="dash-empty" data-empty hidden>{{ __('no_fees_found') }}</div>
-            </div>
-            <div class="fees-legend">
-                <div class="fees-legend-row">
-                    <span class="dash-dot dot-collected"></span>
-                    <span class="fees-legend-label">{{ __('collected') }}</span>
-                    <span class="fees-legend-value" id="fees-collected">&mdash;</span>
-                </div>
-                <div class="fees-legend-row">
-                    <span class="dash-dot dot-dues"></span>
-                    <span class="fees-legend-label">{{ __('upcoming_dues') }}</span>
-                    <span class="fees-legend-value" id="fees-dues">&mdash;</span>
-                </div>
-                <div class="fees-legend-row">
-                    <span class="dash-dot dot-overdue"></span>
-                    <span class="fees-legend-label">{{ __('overdue_amount') }}</span>
-                    <span class="fees-legend-value" id="fees-overdue">&mdash;</span>
-                </div>
-            </div>
+        <div data-content hidden>
+            <div data-receipt-list role="status"></div>
+            <p class="dash-empty" data-empty hidden>{{ __('No verified receipts in this school year yet.') }}</p>
         </div>
+        <p>{{ __('Gross confirmed receipts received during the selected school year, including held credit. Refunds and current debt are shown in their own reports.') }}</p>
+        <x-m3.button variant="outlined" :href="route('fee-payments.index')">{{ __('Fee payments') }}</x-m3.button>
+        <x-m3.button variant="text" :href="route('fee-reporting.index')">{{ __('Arrears and accounting') }}</x-m3.button>
     </div>
 </div>

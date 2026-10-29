@@ -8,8 +8,8 @@ use App\Models\ClassSchool;
 use App\Models\ClassSection;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
-use App\Models\FeesClass;
-use App\Models\FeesType;
+use App\Models\Money\FeeAccount;
+use App\Models\Money\FeePlan;
 use App\Models\Parents;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
@@ -136,13 +136,13 @@ class SetupChecklist
 
     private function fees(User $user, ?SessionYear $year): array
     {
-        $types = FeesType::count();
-        $gradesWithFees = $year ? FeesClass::where('session_year_id', $year->id)->distinct()->count('class_id') : 0;
+        $plans = $year ? FeePlan::where('session_year_id', $year->id)->where('state', 'active')->count() : 0;
+        $accounts = FeeAccount::count();
 
-        return $this->item($user, 'fees', $types > 0 && $gradesWithFees > 0,
-            __('checklist_fees_detail', ['types' => $types, 'grades' => $gradesWithFees]),
-            $types > 0 ? route('fees.class.index') : route('fees-type.index'),
-            $types > 0 ? ['fees-classes'] : ['fees-type']);
+        return $this->item($user, 'fees', $plans > 0 && $accounts > 0,
+            __('Fee setup: :plans active plans and :accounts family accounts.', ['plans' => $plans, 'accounts' => $accounts]),
+            $plans > 0 ? route('fee-accounts.index') : route('fee-plans.index'),
+            $plans > 0 ? ['fee-accounts-manage'] : ['fee-plans-manage']);
     }
 
     /**

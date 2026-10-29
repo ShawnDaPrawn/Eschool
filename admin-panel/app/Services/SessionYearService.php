@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Actions\Transfers\TransferClassFeeType;
 use App\Actions\Transfers\TransferClassSessionConfig;
 use App\Actions\Transfers\TransferClassSubject;
 use App\Actions\Transfers\TransferClassTeacherAndSubjectTeacher;
@@ -14,10 +13,6 @@ use App\Models\ClassSessionConfig;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Exam;
-use App\Models\FeesChoiceable;
-use App\Models\FeesClass;
-use App\Models\FeesPaid;
-use App\Models\InstallmentFee;
 use App\Models\Leave;
 use App\Models\LeaveDetail;
 use App\Models\OnlineExam;
@@ -40,34 +35,11 @@ class SessionYearService
 
             $startDate = Carbon::createFromFormat('d-m-Y', $data['start_date'])->toDateString();
             $endDate = Carbon::createFromFormat('d-m-Y', $data['end_date'])->toDateString();
-            $feesDueDate = Carbon::createFromFormat('d-m-Y', $data['fees_due_date'])->toDateString();
-
-            if ($feesDueDate < $startDate || $feesDueDate > $endDate) {
-                throw new \DomainException(
-                    trans('fees_due_date_must_be_between_session_dates')
-                );
-            }
-
             $sessionYear = SessionYear::create([
                 'name' => $data['name'],
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'fee_due_date' => $feesDueDate,
-                'fee_due_charges' => $data['fees_due_charges'],
-                'free_app_use_date' => isset($data['free_app_use_date'])
-                    ? Carbon::createFromFormat('d-m-Y', $data['free_app_use_date'])->toDateString()
-                    : null,
-                'include_fee_installments' => (int) ($data['fees_installment'] ?? 0),
             ]);
-
-            if (! empty($data['fees_installment']) && $data['fees_installment'] == '1') {
-                $this->storeInstallments(
-                    $sessionYear->id,
-                    $data['installment_data'],
-                    $startDate,
-                    $endDate
-                );
-            }
 
             if (! empty($data['term_data'])) {
                 $this->storeTerms(
@@ -135,38 +107,6 @@ class SessionYearService
         $leaving = $sessions->where('status', 0)->pluck('student_id');
         if ($leaving->isNotEmpty()) {
             User::whereIn('id', Students::whereIn('id', $leaving)->select('user_id'))->update(['status' => 0]);
-        }
-    }
-
-    protected function storeInstallments(
-        int $sessionYearId,
-        array $installments,
-        string $startDate,
-        string $endDate
-    ): void {
-        $rows = [];
-
-        foreach ($installments as $installment) {
-            $dueDate = Carbon::createFromFormat('d-m-Y', $installment['due_date'])->toDateString();
-
-            if ($dueDate < $startDate || $dueDate > $endDate) {
-                throw new \DomainException(
-                    trans('installment_due_date_must_be_within_session_dates')
-                );
-            }
-
-            $rows[] = [
-                'name' => $installment['name'],
-                'due_date' => $dueDate,
-                'due_charges' => $installment['due_charges'],
-                'session_year_id' => $sessionYearId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-
-        if (! empty($rows)) {
-            InstallmentFee::insert($rows);
         }
     }
 
@@ -256,11 +196,6 @@ class SessionYearService
                 ->execute($currentSessionId, $newSessionId);
         }
 
-        if (($data['transfer_class_fee_type'] ?? '0') == '1') {
-            app(TransferClassFeeType::class)
-                ->execute($currentSessionId, $newSessionId);
-        }
-
         if (($data['transfer_leave_settings'] ?? '0') == '1') {
             app(TransferLeaveSettings::class)
                 ->execute($currentSessionId, $newSessionId);
@@ -280,7 +215,6 @@ class SessionYearService
                 match ($type) {
                     'class_subject' => $this->deleteClassSubjects($sessionYearId),
                     'class_teachers' => $this->deleteClassTeachers($sessionYearId),
-                    'fees_transactions' => $this->deleteFeesTransactions($sessionYearId),
                     'notifications' => $this->deleteNotifications($sessionYearId),
                     'timetable' => $this->deleteTimetable($sessionYearId),
                     'attendance' => $this->deleteAttendance($sessionYearId),
@@ -306,14 +240,6 @@ class SessionYearService
     {
         ClassTeacher::where('session_year_id', $sessionYearId)->delete();
         SubjectTeacher::where('session_year_id', $sessionYearId)->delete();
-    }
-
-    private function deleteFeesTransactions(int $sessionYearId): void
-    {
-        FeesChoiceable::where('session_year_id', $sessionYearId)->delete();
-        FeesClass::where('session_year_id', $sessionYearId)->delete();
-        InstallmentFee::where('session_year_id', $sessionYearId)->delete();
-        FeesPaid::where('session_year_id', $sessionYearId)->delete();
     }
 
     private function deleteNotifications(int $sessionYearId): void

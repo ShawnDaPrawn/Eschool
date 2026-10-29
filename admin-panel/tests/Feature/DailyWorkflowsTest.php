@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Imports\AttendanceImport;
 use App\Imports\StudentsImport;
-use App\Models\FeesPaid;
 use App\Models\File;
 use App\Models\Lesson;
 use App\Models\Notification;
@@ -15,7 +14,6 @@ use App\Models\UserNotification;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -71,21 +69,6 @@ class DailyWorkflowsTest extends TestCase
         // A day that already has attendance shows what was saved (Asha was absent two days ago).
         $saved = $sheet(now(schoolSetting('time_zone', 'UTC'))->subDays(2)->format('d-m-Y'));
         $this->assertMatchesRegularExpression('/value="0" checked/', $saved[0].$saved[1]);
-    }
-
-    public function test_students_of_a_class_with_only_optional_fees_can_be_paid_for(): void
-    {
-        // Grade 6 has no fees; give it an optional one only.
-        SchoolTable::query('fees_classes')->insert([
-            'session_year_id' => 1, 'class_id' => $this->school->ids['class_c'], 'fees_type_id' => $this->school->ids['fees_bus'],
-            'choiceable' => 1, 'amount' => 200,
-        ]);
-
-        // The Fees Paid list only showed classes with compulsory fees, so Cara's bus fee couldn't be recorded.
-        $rows = $this->actingAs($this->superAdmin())->getJson('/fees/paid/list?session_year_id=1&limit=50')->assertOk()->json('rows');
-
-        $names = array_map(fn ($row) => $row['student_name'] ?? $row['full_name'] ?? null, $rows);
-        $this->assertContains('Cara Demo', $names);
     }
 
     public function test_marking_a_student_absent_in_the_panel_alerts_their_guardian(): void
@@ -178,7 +161,7 @@ class DailyWorkflowsTest extends TestCase
         // Any search that wasn't a date crashed the first lists: date() was given strtotime()'s false.
         // The others searched columns their tables don't have.
         foreach ([
-            [$this->superAdmin(), '/teacher_list'], [$this->superAdmin(), '/fees-type/1'], [$this->superAdmin(), '/exam-timetable/1'],
+            [$this->superAdmin(), '/teacher_list'], [$this->superAdmin(), '/exam-timetable/1'],
             [$tara, '/lesson/1'], [$tara, '/online-exam/1'],
             [$this->superAdmin(), '/events/1'], [$this->superAdmin(), '/notifications/1'], [$this->superAdmin(), '/photos-list'],
             [$this->superAdmin(), '/videos-list'], [$this->superAdmin(), '/leave-master/1'], [$this->superAdmin(), '/sliders/1'],
@@ -266,35 +249,6 @@ class DailyWorkflowsTest extends TestCase
 
         // The search was OR-ed with every other condition, so it listed other exams (and years).
         $this->assertSame(['Unit test'], collect($response->assertOk()->json('rows'))->pluck('exam_name')->unique()->values()->all());
-    }
-
-    public function test_a_fee_payment_that_fails_part_way_is_not_half_saved(): void
-    {
-        $id = $this->school->ids;
-        $transactions = DB::table('payment_transactions')->count();
-        Event::listen('eloquent.creating: '.FeesPaid::class, fn () => throw new \RuntimeException('Disk full'));
-
-        $this->actingAs($this->superAdmin())->postJson('/fees/compulsory-paid/store', [
-            'student_id' => $id['ben'], 'class_id' => $id['class_a'], 'session_year_id' => 1, 'date' => now()->format('d-m-Y'),
-            'mode' => 1, 'total_amount' => 1000, 'installment_mode' => 0,
-        ])->assertJson(['error' => true]);
-
-        // It rolled back a transaction it had never begun, leaving a payment with no paid row behind it.
-        $this->assertSame($transactions, DB::table('payment_transactions')->count());
-    }
-
-    public function test_an_enabled_payment_gateway_needs_a_currency_it_accepts(): void
-    {
-        $save = fn (array $stripe) => $this->actingAs($this->superAdmin())->postJson('/fees-config/update', $stripe + [
-            'currency_code' => 'ZAR', 'currency_symbol' => 'R', 'compulsory_fee_payment_mode' => 1, 'is_student_can_pay_fees' => 1,
-        ]);
-        $keys = ['stripe_status' => 1, 'stripe_secret_key' => 's', 'stripe_publishable_key' => 'k', 'stripe_webhook_secret' => 'w', 'stripe_webhook_url' => 'https://example.com/hook'];
-
-        // Any text was accepted, and the parent app's payment then failed with "Oops! Error occurred".
-        $save($keys + ['stripe_currency_code' => 'Rand'])->assertJson(['error' => true]);
-        $save($keys + ['stripe_currency_code' => 'zar'])->assertJson(['error' => false]);
-        // A gateway that is off doesn't hold up the rest of the page.
-        $save(['stripe_status' => 0, 'stripe_currency_code' => 'Test value'])->assertJson(['error' => false]);
     }
 
     public function test_deleting_a_lesson_removes_its_and_its_topics_stored_files(): void

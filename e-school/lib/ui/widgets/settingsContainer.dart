@@ -1,4 +1,3 @@
-import 'package:eschool/app/routeArguments.dart';
 import 'package:eschool/app/routes.dart';
 import 'package:eschool/app/sharedScreens.dart';
 import 'package:eschool/cubits/appConfigurationCubit.dart';
@@ -120,9 +119,8 @@ class SettingsContainer extends StatelessWidget {
                   ),
                   Icon(
                     Icons.chevron_right,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.8),
                   ),
                 ],
               ),
@@ -134,9 +132,6 @@ class SettingsContainer extends StatelessWidget {
   }
 
   Widget _buildSettingsContainer(BuildContext context) {
-    final bool isStudentLoginAndFeePaymentAllowed =
-        context.read<AppConfigurationCubit>().canStudentPayTheirFees() &&
-        !context.read<AuthCubit>().isParent();
     return Column(
       children: [
         if (context.read<AuthCubit>().isParent())
@@ -163,34 +158,11 @@ class SettingsContainer extends StatelessWidget {
                 context: context,
               ),
         ),
-        if (context.read<AuthCubit>().isParent() ||
-            isStudentLoginAndFeePaymentAllowed)
+        if (context.read<AuthCubit>().isParent())
           _buildSettingDetailsTile(
-            icon: Icons.payment,
-            title: UiUtils.getTranslatedLabel(
-              context,
-              isStudentLoginAndFeePaymentAllowed ? feesKey : feesTransactionKey,
-            ),
-            onTap: () {
-              if (isStudentLoginAndFeePaymentAllowed) {
-                Navigator.of(context).pushNamed(
-                  Routes.feesDetails,
-                  arguments: FeesDetailsArguments(
-                    studentDetails: context
-                        .read<AuthCubit>()
-                        .getStudentDetails(),
-                    sessionYearId: context
-                        .read<AppConfigurationCubit>()
-                        .getAppConfiguration()
-                        .sessionYear
-                        .id,
-                    isStudentPaying: true,
-                  ),
-                );
-              } else {
-                Navigator.of(context).pushNamed(Routes.feesTransaction);
-              }
-            },
+            icon: Icons.receipt_long_outlined,
+            title: UiUtils.getTranslatedLabel(context, 'Fee statements'),
+            onTap: () => Navigator.of(context).pushNamed(Routes.feeStatements),
             context: context,
           ),
         if (!context.read<AuthCubit>().isParent())

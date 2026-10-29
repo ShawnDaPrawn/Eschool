@@ -16,7 +16,7 @@
 <form method="post" action="{{ route('bank-statements.resolve',['line'=>$line->id]) }}" data-year-safe>
 @include('money.fee-plans.hidden',['revision'=>0])
 @foreach(['kind','fee_account_id','holder_user_id','pinned_learner_id','reason','fingerprint'] as $field)<input type="hidden" name="{{ $field }}" value="{{ $preview[$field] }}">@endforeach
-<x-m3.checkbox name="confirmed" value="1" :label="__('I verified the bank evidence, payer and legacy history and confirm this resolution. Resolved bank history cannot be edited.')" required />
+<x-m3.checkbox name="confirmed" value="1" :label="__('I verified the bank evidence, payer and receipt history and confirm this resolution. Resolved bank history cannot be edited.')" required />
 <x-m3.button type="submit">{{ __('Confirm bank resolution once') }}</x-m3.button></form>
 
 </div>
