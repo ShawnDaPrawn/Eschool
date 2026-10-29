@@ -30,7 +30,7 @@ final class FeeReceiptOverview
         $rows = [];
         foreach ($totals as $total) {
             $cents = filter_var($total->getAttribute('collected_cents'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => LedgerService::MAX_CENTS]]);
-            abort_unless($cents !== false && $cents >= 0, 409, 'Receipt totals require reconciliation.');
+            abort_unless($cents !== false, 409, 'Receipt totals require reconciliation.');
             $rows[] = ['currency' => $total->currency, 'receipt_count' => (int) $total->getAttribute('receipt_count'),
                 'collected_cents' => $cents, 'formatted' => Money::ofCents($cents, $total->currency)->format()];
         }

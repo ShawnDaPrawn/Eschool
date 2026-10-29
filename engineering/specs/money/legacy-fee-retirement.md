@@ -38,3 +38,8 @@ they are not a second supported money system. Do not delete or recalculate new
 ledger, invoice, allocation, receipt, refund or permanent outcome history.
 A later schema-contract release can remove obsolete physical structures after
 all running clients/revisions are confirmed clear of them.
+
+Obsolete fee permissions are no longer presented as current role capabilities.
+Role writes accept the current offered permissions only, without mapping retired
+grants into broader new money privileges. Historical permission definitions remain
+in the database for rollout compatibility; new authority is an explicit role choice.

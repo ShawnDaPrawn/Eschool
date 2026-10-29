@@ -74,3 +74,20 @@ A reproduced regression covers both non-Teacher staff and a teacher with a stray
 allocation to another grade's term: the wrong calendar is neither offered nor
 accepted, while the matching term works. Final homework/read-only-year suite:
 22 tests passed,127 assertions. No unrelated academic behavior is changed.
+
+## Release upgrade and final static controls
+
+An isolated MySQL rehearsal started from the production v0.1.0 migration set,
+recorded a balanced synthetic journal, and applied all ten pending migrations.
+Both accounts, the posted entry and both postings remained byte-for-byte equal;
+ledger reconciliation returned no differences. This tests upgrade preservation,
+not a production restore drill. The release still takes its real backup.
+
+Both CI analyzer configurations now pass: phpstan.neon and the stricter
+phpstan-money.neon. Receipt validation uses the integer filter's existing bounds
+without a redundant second comparison. Inert seed fee permissions are hidden from
+role creation/editing/display and cannot be posted as a substitute for current
+financial authority. Database permission definitions remain for rollout history;
+no new financial permission is implicitly granted. The final receipt, role/tenant
+and read-only-year cohort passed 37 tests (351 assertions), including role-form
+choices and a crafted legacy grant. Pint passed on the affected source.

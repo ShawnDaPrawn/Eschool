@@ -12,6 +12,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 /**
@@ -102,5 +103,25 @@ class SchoolRolesTest extends TestCase
         $this->actingAs($admin)->get("/roles-list/{$other->id}")->assertNotFound();
         // Another school may use a role name this school uses.
         $this->assertNotNull($this->current->run(2, fn () => Role::query()->create(['name' => 'Bursar A', 'custom_role' => 1])));
+    }
+
+    public function test_retired_fee_permissions_are_not_offered_or_mapped_to_new_financial_authority(): void
+    {
+        $legacy = Permission::findByName('fees-paid', 'web');
+        $current = Permission::findByName('fee-payments-manage', 'web');
+        $page = $this->actingAs($this->superAdmin())->get('/roles/create')->assertOk();
+        $document = new \DOMDocument;
+        @$document->loadHTML($page->getContent());
+        $values = [];
+        foreach ((new \DOMXPath($document))->query('//input[@name="permission[]"]/@value') as $attribute) {
+            $values[] = $attribute->nodeValue;
+        }
+        $this->assertNotContains((string) $legacy->id, $values);
+        $this->assertContains((string) $current->id, $values);
+        $this->post('/roles', ['name' => 'Current receipt team', 'permission' => [$legacy->id, $current->id]])
+            ->assertRedirect(route('roles.index'));
+        $role = Role::where('name', 'Current receipt team')->firstOrFail();
+        $this->assertSame(['fee-payments-manage'], $role->permissions->pluck('name')->all());
+        $this->assertTrue(Permission::whereKey($legacy->id)->exists(), 'Retirement does not destructively rewrite rollback metadata.');
     }
 }
