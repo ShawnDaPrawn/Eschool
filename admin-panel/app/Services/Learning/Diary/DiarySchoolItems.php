@@ -50,7 +50,7 @@ class DiarySchoolItems
     public function applies(Students $learner, string $source, int $id): bool
     {
         return match ($source) {
-            'homework' => $this->homeworkQuery($learner)->whereKey($id)->exists(),
+            'homework' => $this->forLearner($learner, $this->homeworkQuery($learner)->whereKey($id)->get())->isNotEmpty(),
             'holiday' => Holiday::query()->where('session_year_id', (int) schoolSetting('session_year'))->whereKey($id)->exists(),
             'event' => Event::query()->where('session_year_id', (int) schoolSetting('session_year'))->whereKey($id)->exists(),
             default => false,
@@ -70,7 +70,8 @@ class DiarySchoolItems
         if (($homework = $ids('homework')) !== []) {
             $handedIn = AssignmentSubmission::query()->where('student_id', $learner->id)->whereIn('assignment_id', $homework)
                 ->whereIn('status', [0, 1, 3])->pluck('assignment_id')->map(fn ($id) => (int) $id)->all();
-            foreach ($this->homeworkQuery($learner)->whereKey($homework)->get(['id', 'name']) as $row) {
+            $rows = $this->homeworkQuery($learner)->whereKey($homework)->get(['id', 'name', 'subject_id', 'class_section_id', 'term_id']);
+            foreach ($this->forLearner($learner, $rows) as $row) {
                 if (! in_array((int) $row->id, $handedIn, true)) {
                     $titles['homework:'.$row->id] = (string) $row->name;
                 }
@@ -102,6 +103,7 @@ class DiarySchoolItems
             ->orderBy('due_date')
             ->limit(500)
             ->get();
+        $rows = $this->forLearner($learner, $rows);
         $submissions = AssignmentSubmission::query()
             ->where('student_id', $learner->id)
             ->whereIn('assignment_id', $rows->pluck('id'))
@@ -143,27 +145,46 @@ class DiarySchoolItems
         })->filter()->values();
     }
 
-    /** The learner's homework: their class section(s) this session year, electives only when taken. */
+    /** Homework set for the learner's class section(s) this session year, before the elective rule. */
     private function homeworkQuery(Students $learner)
     {
         $year = (int) schoolSetting('session_year');
         $sections = StudentSessions::query()->where('student_id', $learner->id)->where('session_year_id', $year)
             ->pluck('class_section_id')->push($learner->class_section_id)->filter()->map(fn ($id) => (int) $id)->unique()->values();
-        $classes = ClassSection::query()->whereIn('id', $sections)->pluck('class_id', 'id');
-        $taken = StudentSubject::query()->where('student_id', $learner->id)->where('session_year_id', $year)->pluck('subject_id')->map(fn ($id) => (int) $id)->all();
-        $electives = ClassSubject::query()->whereIn('class_id', $classes->values())->where('session_year_id', $year)
-            ->where('type', 'Elective')->get(['class_id', 'subject_id']);
 
-        return Assignment::query()
-            ->where('session_year_id', $year)
-            ->whereIn('class_section_id', $sections)
-            ->where(function ($q) use ($classes, $electives, $taken) {
-                // An elective's homework only for learners who take that elective.
-                foreach ($classes as $sectionId => $classId) {
-                    $notTaken = $electives->where('class_id', $classId)->pluck('subject_id')->map(fn ($id) => (int) $id)->diff($taken)->values()->all();
-                    $q->orWhere(fn ($q) => $q->where('class_section_id', $sectionId)->whereNotIn('subject_id', $notTaken === [] ? [0] : $notTaken));
-                }
-            });
+        return Assignment::query()->where('session_year_id', $year)->whereIn('class_section_id', $sections);
+    }
+
+    /**
+     * The homework among [rows] this learner gets, by the rule homework
+     * notifications use: a subject that is an elective in the assignment's
+     * class (and term) only for learners who take it in that class section
+     * (and term).
+     */
+    private function forLearner(Students $learner, Collection $rows): Collection
+    {
+        if ($rows->isEmpty()) {
+            return $rows;
+        }
+        $year = (int) schoolSetting('session_year');
+        $classes = ClassSection::query()->whereIn('id', $rows->pluck('class_section_id')->unique())->pluck('class_id', 'id');
+        $offerings = ClassSubject::query()->whereIn('class_id', $classes->values()->unique())->where('session_year_id', $year)
+            ->whereIn('subject_id', $rows->pluck('subject_id')->unique())->orderBy('id')->get(['class_id', 'subject_id', 'term_id', 'type']);
+        $taken = StudentSubject::query()->where('student_id', $learner->id)->where('session_year_id', $year)
+            ->get(['subject_id', 'class_section_id', 'term_id']);
+        $sameTerm = fn ($term, $row) => $row->term_id === null || (int) $term === (int) $row->term_id;
+
+        return $rows->filter(function (Assignment $row) use ($classes, $offerings, $taken, $sameTerm) {
+            $classId = (int) $classes->get($row->class_section_id);
+            $offering = $offerings->first(fn ($o) => (int) $o->class_id === $classId
+                && (int) $o->subject_id === (int) $row->subject_id && $sameTerm($o->term_id, $row));
+            if ($offering?->type !== 'Elective') {
+                return true;
+            }
+
+            return $taken->contains(fn ($t) => (int) $t->subject_id === (int) $row->subject_id
+                && (int) $t->class_section_id === (int) $row->class_section_id && $sameTerm($t->term_id, $row));
+        })->values();
     }
 
     private function holidays(CarbonImmutable $from, CarbonImmutable $to): Collection

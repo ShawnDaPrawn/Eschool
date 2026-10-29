@@ -51,6 +51,10 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
   final String _operation = const Uuid().v4();
   // Once a create has been sent the entry may exist, so its kind is fixed.
   bool _sent = false;
+  // The newest copy of the entry the server is known to hold. A save whose
+  // reply was lost is found again from it, so a retry never sends a stale
+  // revision.
+  late DiaryEntry? _known = widget.entry;
   late bool _todo, _done;
   DateTime? _date, _remind;
   bool _busy = false;
@@ -115,31 +119,52 @@ class _DiaryEntryEditorState extends State<DiaryEntryEditor> {
       _error = null;
     });
     try {
-      final entry = widget.entry;
-      DiaryEntry saved;
-      if (entry == null) {
+      var saved = _known;
+      if (saved == null) {
         _sent = true;
-        saved = await widget.repository.create(_operation, draft);
-        // A retry after a lost reply returns the entry the first try made;
-        // anything the learner changed since then is saved onto it.
-        if (!diaryEntryMatches(saved, draft)) {
-          saved = await widget.repository.update(
-            saved.id,
-            saved.revision,
-            draft,
-          );
-        }
-      } else {
-        saved = await widget.repository.update(entry.id, entry.revision, draft);
+        // A retry after a lost reply returns the entry the first try made.
+        saved = _known = await widget.repository.create(_operation, draft);
+      }
+      // Anything the learner changed since is saved onto it.
+      if (!diaryEntryMatches(saved, draft)) {
+        saved = _known = await widget.repository.update(
+          saved.id,
+          saved.revision,
+          draft,
+        );
       }
       if (mounted) Navigator.of(context).pop(DiarySaved(saved));
     } catch (error) {
+      // The save may have reached the server, or another device may have
+      // changed the entry: read its newest copy before the learner retries.
+      final current = await _refetch();
       if (!mounted) return;
+      if (current != null && diaryEntryMatches(current, draft)) {
+        Navigator.of(context).pop(DiarySaved(current));
+        return;
+      }
       setState(() {
         _busy = false;
         _error = _message(error);
       });
     }
+  }
+
+  /// The server's newest copy of the entry being edited, or null when it
+  /// cannot be read now (or no entry exists yet).
+  Future<DiaryEntry?> _refetch() async {
+    final known = _known;
+    if (known == null || !widget.repository.isActive) return null;
+    try {
+      final day = diaryDay(diaryDate(known.date ?? DateTime.now()));
+      final range = await widget.repository.range(day, day);
+      for (final entry in range.entries) {
+        if (entry.id == known.id) return _known = entry;
+      }
+    } catch (_) {
+      // Still unreachable: the next Save tries again.
+    }
+    return null;
   }
 
   /// A newly chosen reminder must still be to come; an unchanged old one

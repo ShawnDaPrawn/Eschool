@@ -108,6 +108,9 @@ class _FakeDiary implements DiaryRepository {
 
   /// The next create is stored but its reply is lost, as on a timeout.
   bool loseNextCreate = false;
+
+  /// The next update is applied but its reply is lost.
+  bool loseNextUpdate = false;
   final _byOperation = <String, Map<String, Object?>>{};
   final ranges = <String>[];
   final created = <(String, DiaryDraft)>[];
@@ -174,6 +177,15 @@ class _FakeDiary implements DiaryRepository {
   @override
   Future<DiaryEntry> update(int id, int revision, DiaryDraft draft) async {
     updated.add((id, revision, draft));
+    // Like the server: a stale revision is refused.
+    final stored = entries.firstWhere((e) => e['id'] == id);
+    if (stored['revision'] != revision) {
+      throw ApiException(
+        'This entry changed on another device. Reload it and try again.',
+        statusCode: 409,
+        isApiMessage: true,
+      );
+    }
     final entry = _entry(
       id,
       kind: draft.todo ? 'todo' : 'note',
@@ -186,6 +198,10 @@ class _FakeDiary implements DiaryRepository {
       for (final e in entries)
         if (e['id'] == id) entry else e,
     ];
+    if (loseNextUpdate) {
+      loseNextUpdate = false;
+      throw ApiException('Connection timed out.', isTransportFailure: true);
+    }
     return DiaryEntry.fromJson(entry);
   }
 
@@ -639,6 +655,57 @@ void main() {
       expect(diary.entries, hasLength(1), reason: 'no copy');
       expect(find.text('Finished draft'), findsOneWidget);
       expect(find.text('Draft'), findsNothing);
+    });
+
+    testWidgets('a lost update reply is found again, not refused as stale', (
+      tester,
+    ) async {
+      final diary = _FakeDiary(entries: [_entry(1, title: 'Revise')])
+        ..loseNextUpdate = true;
+      await _mount(tester, diary);
+      await tester.tap(find.text('Revise'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('diary-title')),
+        'Revise fractions',
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('diary-save')));
+      await tester.tap(find.byKey(const ValueKey('diary-save')));
+      await tester.pumpAndSettle();
+      // The server had it: the editor closes as saved, with one update.
+      expect(diary.updated, hasLength(1));
+      expect(find.byKey(const ValueKey('diary-save')), findsNothing);
+      expect(find.text('Revise fractions'), findsOneWidget);
+    });
+
+    testWidgets('a change on another device is refused once, then saved over', (
+      tester,
+    ) async {
+      final diary = _FakeDiary(entries: [_entry(1, title: 'Revise')]);
+      await _mount(tester, diary);
+      await tester.tap(find.text('Revise'));
+      await tester.pumpAndSettle();
+      // Another device edits it meanwhile.
+      diary.entries = [_entry(1, title: 'Revise on tablet', revision: 2)];
+      await tester.enterText(
+        find.byKey(const ValueKey('diary-title')),
+        'Revise on phone',
+      );
+      await tester.ensureVisible(find.byKey(const ValueKey('diary-save')));
+      await tester.tap(find.byKey(const ValueKey('diary-save')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'This entry changed on another device. Reload it and try again.',
+        ),
+        findsOneWidget,
+      );
+      // Saving again uses the newest revision, so it is not refused forever.
+      await tester.ensureVisible(find.byKey(const ValueKey('diary-save')));
+      await tester.tap(find.byKey(const ValueKey('diary-save')));
+      await tester.pumpAndSettle();
+      expect(diary.updated.map((u) => u.$2), [1, 2]);
+      expect(find.text('Revise on phone'), findsOneWidget);
     });
 
     testWidgets('a note can be deleted for good after confirming', (

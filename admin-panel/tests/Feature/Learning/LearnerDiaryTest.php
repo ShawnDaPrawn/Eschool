@@ -254,6 +254,38 @@ class LearnerDiaryTest extends TestCase
         $this->assertNull(collect($this->range('ben')->json('data.school_items'))->firstWhere('source', 'homework'));
     }
 
+    public function test_a_term_elective_follows_the_assignments_term_and_section(): void
+    {
+        $term = $this->school->ids['term'];
+        $other = SchoolTable::query('terms')->insertGetId(['school_id' => 1, 'name' => 'Term 2', 'start_date' => now()->addDays(61)->toDateString(),
+            'end_date' => now()->addDays(150)->toDateString(), 'session_year_id' => $this->school->ids['session_year'], 'created_at' => now(), 'updated_at' => now()]);
+        // Maths is an elective in Term 1 only, and the worksheet belongs to Term 1.
+        SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_a_maths'])->update(['type' => 'Elective', 'term_id' => $term]);
+        SchoolTable::query('assignments')->where('id', $this->school->ids['assignment'])->update(['term_id' => $term]);
+        $take = fn (string $who, int $termId, string $section = 'section_a') => SchoolTable::query('student_subjects')->insert([
+            'student_id' => $this->school->ids[$who], 'subject_id' => $this->school->ids['maths'], 'class_section_id' => $this->school->ids[$section],
+            'term_id' => $termId, 'session_year_id' => $this->school->ids['session_year'], 'created_at' => now(), 'updated_at' => now()]);
+        $homework = fn (string $who) => collect($this->range($who)->json('data.school_items'))->firstWhere('source', 'homework');
+
+        // Ben takes it, but only in Term 2: not his Term 1 homework.
+        $take('ben', $other);
+        $this->assertNull($homework('ben'));
+        $this->as('ben')->putJson("/api/v2/diary/items/homework/{$this->school->ids['assignment']}/state", ['done' => true])->assertNotFound();
+        // Taking it in Term 1, in another section, does not count either.
+        $take('ben', $term, 'section_c');
+        $this->assertNull($homework('ben'));
+        // Taking it in Term 1 in his own section does.
+        $take('ben', $term);
+        $this->assertNotNull($homework('ben'));
+
+        // Not an elective in this term: everyone in the class gets it.
+        SchoolTable::query('class_subjects')->where('id', $this->school->ids['class_subject_a_maths'])->update(['term_id' => $other]);
+        SchoolTable::query('class_subjects')->insert(['class_id' => SchoolTable::query('class_sections')->where('id', $this->school->ids['section_a'])->value('class_id'),
+            'subject_id' => $this->school->ids['maths'], 'type' => 'Compulsory', 'term_id' => $term, 'session_year_id' => $this->school->ids['session_year'],
+            'school_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $this->assertNotNull($homework('asha'));
+    }
+
     public function test_a_learner_ticks_off_and_annotates_a_school_item_privately(): void
     {
         $path = "/api/v2/diary/items/homework/{$this->school->ids['assignment']}/state";
