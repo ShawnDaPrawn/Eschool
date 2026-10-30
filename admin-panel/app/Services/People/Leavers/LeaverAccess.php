@@ -45,7 +45,14 @@ class LeaverAccess
 
     public function assertWritable(Request $request, User $user, int $schoolId): void
     {
-        if (! LeaverState::writing()) {
+        // These exact operations only retreat from a privacy grant. Their
+        // domain services still recheck the live family relationship and
+        // operation/revision; no general leaver write permission is granted.
+        $privacyRetreat = $request->isMethod('POST') && (
+            $request->is('api/v2/gallery/tags/*/remove')
+            || ($request->is('api/v2/family-forms/consents/*/learners/*/response') && $request->input('decision') === 'no')
+        );
+        if (! LeaverState::writing() || $privacyRetreat) {
             return;
         }
         if ($this->memberships->readOnlyAt($user, $schoolId)) {

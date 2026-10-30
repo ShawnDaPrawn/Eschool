@@ -28,12 +28,12 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class GalleryAuthority
 {
-    public function actor(User $actor, bool $write = false): User
+    public function actor(User $actor, bool $write = false, bool $removal = false): User
     {
         $s = app(CurrentSchool::class);
         abort_unless($s->isSet() && ! $s->isAcrossSchools() && ! $s->isImpersonating() && $s->school()?->refresh()?->isActive(), 403);
         abort_if(PlatformStaffIdentity::where('user_id', $actor->id)->where('active', true)->exists(), 403);
-        $fresh = app(ProfilePolicy::class)->actor($actor);
+        $fresh = app(ProfilePolicy::class)->actor($actor, $removal);
         abort_if($fresh->password_change_required, 403);
         $gate = app(ModuleGate::class);
         $gate->forget();
@@ -55,8 +55,8 @@ class GalleryAuthority
     /** Staff permissions can never substitute for an actual family relationship. */
     public function family(User $actor, int $learnerId, bool $write = false, bool $approve = false, bool $removal = false): Students
     {
-        $fresh = $this->actor($actor, $write);
-        $roles = app(ProfilePolicy::class)->roles($fresh);
+        $fresh = $this->actor($actor, $write, $removal);
+        $roles = app(ProfilePolicy::class)->roles($fresh, ! $removal);
         abort_unless(array_intersect($roles, ['Parent', 'Student']) !== [], 403);
         $learner = Students::findOrFail($learnerId);
         $own = ! $approve && in_array('Student', $roles, true) && (int) $learner->user_id === (int) $fresh->id;
