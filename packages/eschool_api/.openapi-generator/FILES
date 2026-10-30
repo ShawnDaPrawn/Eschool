@@ -329,6 +329,7 @@ lib/src/model/communication_configuration_years_inner.dart
 lib/src/model/communication_contact_list.dart
 lib/src/model/communication_contact_list_response.dart
 lib/src/model/communication_decision_write.dart
+lib/src/model/communication_delivery_counts.dart
 lib/src/model/communication_effective_rules.dart
 lib/src/model/communication_message_editor.dart
 lib/src/model/communication_message_editor_response.dart
@@ -340,6 +341,10 @@ lib/src/model/communication_message_reader.dart
 lib/src/model/communication_message_reader_response.dart
 lib/src/model/communication_message_receipt.dart
 lib/src/model/communication_message_receipt_response.dart
+lib/src/model/communication_message_report.dart
+lib/src/model/communication_message_report_channels.dart
+lib/src/model/communication_message_report_items_inner.dart
+lib/src/model/communication_message_report_response.dart
 lib/src/model/communication_message_write.dart
 lib/src/model/communication_read_receipt.dart
 lib/src/model/communication_read_receipt_response.dart
