@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Academics;
 
+use App\Models\ClassTeacher;
 use App\Models\Leave;
 use App\Models\People\Enrolment;
 use App\Models\Platform\OutboxEvent;
@@ -124,6 +125,13 @@ class LeaverStateTest extends TestCase
     {
         return $this->as($who)->putJson('/api/v2/people/'.$this->schoolA->ids[$learner.'_user'].'/profile',
             ['profile_type' => 'learner', 'values' => ['transport_route' => ['text' => 'Route Seven']]]);
+    }
+
+    /** A request made by $user, for helpers that read request() (the auth rebinding resets a resolver set before binding). */
+    private function bindRequest(User $user, string $path, string $method, array $input = []): void
+    {
+        $this->app->instance('request', Request::create($path, $method, $input));
+        request()->setUserResolver(fn () => $user);
     }
 
     private function transportField(): void
@@ -317,7 +325,7 @@ class LeaverStateTest extends TestCase
         $this->assertSame(SchoolMembership::LEAVER, $this->membership('ben', 'Student')->status, 'School A\'s Ben unchanged by the refused restore');
     }
 
-    public function test_the_wizard_preview_names_the_last_day_and_late_or_mid_year_leavers_get_90_days_up_to_31_march(): void
+    public function test_the_wizard_preview_names_the_last_day_and_late_or_mid_year_leavers_get_90_days(): void
     {
         $this->actingAs($this->superAdmin())->get(route('new-year.index'))->assertOk()->assertSee('until 31 Mar 2027');
         $state = app(LeaverState::class);
@@ -326,13 +334,13 @@ class LeaverStateTest extends TestCase
         // A switch after that 31 March: 90 days from the switch, not the next March.
         $this->travelTo(now()->setDate(2027, 4, 5));
         $this->assertSame('2027-07-04', $state->untilForSwitch(SessionYear::findOrFail($this->next)));
-        // Marked as leaving mid-year: 90 days, never past the next 31 March.
+        // Marked as leaving mid-year: 90 days from that day, with no 31 March cap.
         $this->travelTo(now()->setDate(2027, 6, 1));
         $this->assertSame('2027-08-30', $state->untilMidYear());
-        $this->travelTo(now()->setDate(2027, 2, 1));
-        $this->assertSame('2027-03-31', $state->untilMidYear());
+        $this->travelTo(now()->setDate(2027, 3, 25));
+        $this->assertSame('2027-06-23', $state->untilMidYear());
         config(['leavers.access_days' => 30]);
-        $this->assertSame('2027-03-03', $state->untilMidYear());
+        $this->assertSame('2027-04-24', $state->untilMidYear());
     }
 
     public function test_writes_that_name_a_leaver_by_a_record_id_are_refused_by_the_family_helpers(): void
@@ -347,10 +355,11 @@ class LeaverStateTest extends TestCase
         $this->assertTrue(Leave::query()->whereKey($leave->id)->exists());
         // Approving, withdrawing and choosing a handle (LearnerAccessPolicy) are refused.
         $farid = User::findOrFail($ids['farid_user']);
+        $this->bindRequest($farid, '/api/v2/guardian/approvals/'.$ids['asha'], 'POST', ['decision' => 'approve']);
         $this->assertTrue(Gate::forUser($farid)->inspect('approveAccess', Students::findOrFail($ids['asha']))->denied());
         $this->assertTrue(Gate::forUser($farid)->inspect('approveAccess', Students::findOrFail($ids['cara']))->allowed());
         // ReleasedMarks::learner (discipline acknowledgements, register QR, tutors) refuses a write and allows a read.
-        $this->app->instance('request', Request::create('/api/v2/discipline/family/records/1/acknowledge', 'POST'));
+        $this->bindRequest($farid, '/api/v2/discipline/family/records/1/acknowledge', 'POST');
         try {
             app(ReleasedMarks::class)->learner($farid, $ids['asha']);
             $this->fail('A write for a leaver was allowed.');
@@ -377,9 +386,11 @@ class LeaverStateTest extends TestCase
 
         // Ben, now also staff: his learner role counts for reading, never for writing.
         $ben = User::findOrFail($ids['ben_user']);
-        $this->app->instance('request', Request::create('/api/v2/me/profile', 'PUT'));
+        $this->bindRequest($ben, '/api/v2/me/profile', 'PUT');
         $this->assertNotContains('Student', app(ProfilePolicy::class)->roles($ben));
-        $this->app->instance('request', Request::create('/api/v2/me/profile', 'GET'));
+        // Someone else's roles (staff checking a guardian) still count Ben's learner role on a write.
+        $this->assertContains('Student', app(ProfilePolicy::class)->roles($ben, false));
+        $this->bindRequest($ben, '/api/v2/me/profile', 'GET');
         $this->assertContains('Student', app(ProfilePolicy::class)->roles($ben));
     }
 
@@ -463,5 +474,44 @@ class LeaverStateTest extends TestCase
         $this->travelTo(CarbonImmutable::parse('2027-03-31 22:30:00', 'UTC'));
         $this->as('ben')->getJson('/api/v2/academics/reports/learners/'.$ids['ben'])->assertForbidden();
         $this->as('gina')->getJson('/api/v2/academics/marks/learners/'.$ids['ben'].'/periods')->assertForbidden();
+    }
+
+    public function test_a_guardian_may_still_withdraw_consent_reject_a_handle_switch_an_item_off_and_accept_the_terms(): void
+    {
+        $this->transportField();
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        // Gina's only child left: she withdraws Ben's app approval, but cannot approve it.
+        $this->as('gina')->postJson('/api/v2/guardian/approvals/'.$ids['ben'], ['decision' => 'approve', 'consent_version' => config('identity.consent_version')])->assertForbidden();
+        $this->as('gina')->postJson('/api/v2/guardian/approvals/'.$ids['ben'], ['decision' => 'withdraw', 'consent_version' => config('identity.consent_version')])->assertOk();
+        // Accepting the school's terms (every parent-app read needs it) is an acknowledgement.
+        $this->as('gina')->postJson('/api/parent/policy-acceptance', ['document' => 'navigateed', 'version' => 'x'])->assertOk();
+        // Decisions that only take access away are not writes for a leaver.
+        foreach ([['/api/v2/guardian/handle-proposals/1', ['decision' => 'reject'], false], ['/api/v2/guardian/handle-proposals/1', ['decision' => 'approve'], true],
+            ['/api/v2/parent/fees/accounts/1/optional-items/2/consents', ['active' => false], false], ['/api/v2/parent/fees/accounts/1/optional-items/2/consents', ['active' => true], true]] as [$path, $input, $writes]) {
+            $this->app->instance('request', Request::create($path, 'POST', $input));
+            $this->assertSame($writes, LeaverState::writing(), $path.' '.json_encode($input));
+        }
+    }
+
+    public function test_a_guardian_whose_other_child_starts_later_is_not_made_a_leaver(): void
+    {
+        // Cara joins (an incoming transfer or import) after the switch day.
+        SchoolMembership::query()->where('school_id', 1)->where('user_id', $this->schoolA->ids['cara_user'])->where('role', 'Student')->update(['starts_on' => '2027-01-13']);
+        $this->switchYear();
+        $this->assertSame(SchoolMembership::ACTIVE, $this->membership('farid', 'Parent')->status);
+        $this->assertSame(SchoolMembership::LEAVER, $this->membership('mona', 'Parent')->status);
+    }
+
+    public function test_a_leaver_cannot_open_an_online_exam_result_and_teachers_do_not_list_leavers_to_chat_with(): void
+    {
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        $this->as('ben')->getJson('/api/student/get-online-exam-result?online_exam_id='.$ids['past_online_exam'])->assertForbidden();
+        // Tara teaches Grade 5 A in the new year, where Cara now is; Ben's last homeroom was Grade 5 A.
+        ClassTeacher::query()->create(['class_section_id' => $ids['section_a'], 'class_teacher_id' => $ids['tara_teacher'], 'session_year_id' => $this->next]);
+        $list = $this->as('tara')->getJson('/api/teacher/get-user-list?isParent=0')->assertOk()->getContent();
+        $this->assertStringContainsString('Cara', $list);
+        $this->assertStringNotContainsString('"Ben"', $list);
     }
 }

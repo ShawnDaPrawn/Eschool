@@ -33,8 +33,9 @@ class LearnerAccessPolicy
         if (! $user->hasRole('Parent') || (int) $user->status !== 1 || $user->email_verified_at === null) {
             return Response::deny();
         }
-        // Approving, withdrawing or choosing a handle is a write: not for a leaver (Action Plan 1.21).
-        if (app(LeaverState::class)->isLeaver((int) $learner->id)) {
+        // Approving or choosing a handle is a write, not for a leaver (Action Plan 1.21);
+        // withdrawing an approval or rejecting a proposal only takes access away and stays open.
+        if (LeaverState::writing() && app(LeaverState::class)->isLeaver((int) $learner->id)) {
             return Response::deny(trans('leaver_read_only'));
         }
 

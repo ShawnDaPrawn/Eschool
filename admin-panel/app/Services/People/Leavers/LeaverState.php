@@ -23,6 +23,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -82,18 +83,11 @@ class LeaverState
 
     /**
      * The last day for a learner marked as leaving the year already in use:
-     * config('leavers.access_days') days from today, never past the next 31
-     * March.
+     * config('leavers.access_days') days from today.
      */
     public function untilMidYear(): string
     {
-        $today = CarbonImmutable::parse($this->today());
-        $march = $today->setDate((int) $today->format('Y'), self::UNTIL_MONTH, self::UNTIL_DAY);
-        if ($march->toDateString() < $today->toDateString()) {
-            $march = $march->addYear();
-        }
-
-        return min($this->afterDays(), $march->toDateString());
+        return $this->afterDays();
     }
 
     private function afterDays(): string
@@ -103,8 +97,11 @@ class LeaverState
 
     /**
      * True for a request that changes something: not a safe method, and not
-     * a read sent as POST or a read receipt (config('leavers.read_only.allow')).
-     * Outside a request (console, queue) nothing is a family write.
+     * one a leaver may still send (config('leavers.read_only.allow'): reads
+     * sent as POST, read receipts, acknowledgements), nor one that only takes
+     * access away (a guardian withdrawing an approval, rejecting a handle
+     * proposal or switching an optional fee item off). Outside a request
+     * (console, queue) nothing is a family write.
      */
     public static function writing(): bool
     {
@@ -113,18 +110,33 @@ class LeaverState
         }
         $request = request();
 
-        return ! $request->isMethodSafe() && ! $request->is(...(array) config('leavers.read_only.allow', []));
+        return ! $request->isMethodSafe() && ! $request->is(...(array) config('leavers.read_only.allow', [])) && ! self::onlyRemovesAccess($request);
+    }
+
+    /** A guardian's decision that only takes access away is never refused for a leaver. */
+    public static function onlyRemovesAccess(Request $request): bool
+    {
+        return ($request->is('api/v2/guardian/approvals/*') && $request->input('decision') === 'withdraw')
+            || ($request->is('api/v2/guardian/handle-proposals/*') && $request->input('decision') === 'reject')
+            || ($request->is('api/v2/parent/fees/accounts/*/optional-items/*/consents') && $request->has('active') && ! $request->boolean('active'));
     }
 
     /**
-     * Refuse a family write for a leaver: the learner themselves or a
-     * guardian, whatever other roles the person holds. Called by the helpers
-     * that authorise a learner or guardian for one learner (ReleasedMarks,
-     * CheckChild, ParentAccess, LearnerAccessPolicy and others), so it does
-     * not depend on how the request names the learner. Reads go on.
+     * Refuse a family write for a leaver still in their read-only period: the
+     * learner themselves or a guardian, whatever other roles they hold. Called
+     * by the helpers that authorise a learner or guardian for one learner
+     * (ReleasedMarks, CheckChild, ParentAccess and others), so it does not
+     * depend on how the request names the learner. It applies only when the
+     * person being authorised is the one making the request ($person, or the
+     * signed-in user when not given): staff preparing a transfer that checks
+     * the guardian's rights are not refused. Reads go on.
      */
-    public function guardFamilyWrite(Students|int $learner): void
+    public function guardFamilyWrite(Students|int $learner, ?User $person = null): void
     {
+        $actor = app()->bound('request') ? request()->user() : null;
+        if ($person !== null && ($actor === null || (int) $actor->getAuthIdentifier() !== (int) $person->id)) {
+            return;
+        }
         if (self::writing() && $this->isLeaver($learner instanceof Students ? (int) $learner->id : $learner)) {
             throw new AccessDeniedHttpException(trans('leaver_read_only'));
         }
@@ -300,11 +312,11 @@ class LeaverState
         return $until === null ? null : CarbonImmutable::parse((string) $until)->toDateString();
     }
 
-    /** True while the learner is a leaver: no family writes for them. */
+    /** True while the learner is a leaver reading until leaver_until: no family writes for them. Once access ends, the other gates refuse. */
     public function isLeaver(int $learnerId): bool
     {
         return Students::query()->whereKey($learnerId)
-            ->whereIn('user_id', $this->leaverMemberships()->select('user_id'))->exists();
+            ->whereIn('user_id', $this->inPeriodMemberships()->select('user_id'))->exists();
     }
 
     /** True once a leaver's access has ended (on leaver_until, or early): their guardians' rights stop. */
@@ -339,13 +351,6 @@ class LeaverState
     }
 
     /** @return Builder<SchoolMembership> */
-    private function leaverMemberships(): Builder
-    {
-        return SchoolMembership::query()->where('school_id', app(CurrentSchool::class)->id())->where('role', 'Student')
-            ->whereNotNull('leaver_until')->whereIn('status', [SchoolMembership::LEAVER, SchoolMembership::ENDED]);
-    }
-
-    /** @return Builder<SchoolMembership> */
     private function inPeriodMemberships(): Builder
     {
         return SchoolMembership::query()->where('school_id', app(CurrentSchool::class)->id())->where('role', 'Student')
@@ -372,7 +377,10 @@ class LeaverState
                 continue;
             }
             $children = fn () => $this->guardians->childrenFor($guardianUserId, (int) (Parents::query()->where('user_id', $guardianUserId)->value('id') ?? 0));
-            $current = SchoolMembership::query()->active()->where('school_id', $school)->where('role', 'Student')->select('user_id');
+            // A current child includes one whose membership starts later (an incoming transfer or import).
+            $today = $this->today();
+            $current = SchoolMembership::query()->where('school_id', $school)->where('role', 'Student')->where('status', SchoolMembership::ACTIVE)
+                ->where(fn (Builder $q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today))->select('user_id');
             if ($children()->whereIn('user_id', $current)->exists()) {
                 continue;
             }

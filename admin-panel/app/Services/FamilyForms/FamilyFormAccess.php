@@ -67,7 +67,7 @@ class FamilyFormAccess
         abort_unless(app(GuardianService::class)->childrenFor((int) $fresh->id, $parent)->whereKey($learnerId)->exists(), 404);
         // Withdrawing consent stays open for a leaver's guardian; other answers do not (1.21).
         if (($write || $attest) && ! $revocation) {
-            app(LeaverState::class)->guardFamilyWrite($learnerId);
+            app(LeaverState::class)->guardFamilyWrite($learnerId, $fresh);
         }
         if ($write || $attest) {
             abort_unless($fresh->email_verified_at !== null, 403);

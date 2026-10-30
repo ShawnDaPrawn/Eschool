@@ -35,8 +35,12 @@ class ProfilePolicy
      * for reading until their leaver_until (Action Plan 1.21), never for a
      * write: a former learner or guardian who is also staff writes as staff.
      */
-    public function roles(User $person, bool $acting = true): array
+    public function roles(User $person, ?bool $acting = null): array
     {
+        // Acting: the person is the one making the request. Checking someone else's
+        // roles (a consenting guardian, a profile's subject) always counts a leaver's.
+        $acting ??= app()->bound('request') && (int) request()->user()?->getAuthIdentifier() === (int) $person->id;
+
         return SchoolMembership::query()->when($acting && LeaverState::writing(), fn ($q) => $q->active(), fn ($q) => $q->reachable())
             ->where('school_id', app(CurrentSchool::class)->id())
             ->where('user_id', $person->id)->pluck('role')->unique()->values()->all();

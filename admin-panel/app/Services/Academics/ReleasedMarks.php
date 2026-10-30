@@ -30,7 +30,7 @@ class ReleasedMarks
         $guardian = in_array('Parent', $roles, true) && app(GuardianService::class)->guardianUserIds($learner)->contains((int) $fresh->id);
         abort_unless($own || $guardian, 404);
         // Reading a leaver's records goes on; writing for them does not (1.21).
-        app(LeaverState::class)->guardFamilyWrite($learner);
+        app(LeaverState::class)->guardFamilyWrite($learner, $fresh);
 
         return $learner;
     }

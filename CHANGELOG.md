@@ -27,7 +27,7 @@ Earlier history is kept where it was written and is not repeated here:
   locked out on the day the new year starts. Until 31 March they, and their
   guardians, can still sign in and read their final reports, marks and
   documents, but change nothing; then their access ends. A learner who leaves
-  during the year reads for 90 days (never past the next 31 March). Leavers are not in any class list, register or
+  during the year reads for 90 days. Leavers are not in any class list, register or
   group of the new year, are counted apart on the dashboard and are marked on the
   student list. The new Leavers page (Calendar and years) lets the office bring a
   leaver back as a returning learner or end their access sooner. **Deploy:** run

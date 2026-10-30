@@ -68,7 +68,7 @@ class GalleryAuthority
         abort_unless($own || $parent, 404);
         // A guardian may still remove a leaver's photo tag; nothing else is written for them (1.21).
         if ($write && ! $removal) {
-            app(LeaverState::class)->guardFamilyWrite($learner);
+            app(LeaverState::class)->guardFamilyWrite($learner, $fresh);
         }
         if ($own) {
             abort_unless(app(ApprovalService::class)->approved($learner), 403, 'Guardian approval is required.');
