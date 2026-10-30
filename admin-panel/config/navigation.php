@@ -126,6 +126,8 @@ return [
                             'keywords' => ['year end', 'rollover', 'next year', 'new school year', 'wizard', 'carry forward']],
                         ['key' => 'promote-learners', 'label' => 'nav_promote_learners', 'route' => 'promote-student.index', 'permissions' => ['promote-student-list'], 'module' => null,
                             'keywords' => ['promotion', 'next grade', 'year end', 'promote students']],
+                        ['key' => 'promote-by-grade', 'label' => 'nav_promote_by_grade', 'route' => 'promotions.by-grade', 'permissions' => ['promote-student-list'], 'module' => null,
+                            'keywords' => ['bulk promotion', 'whole school', 'next grade', 'year end', 'repeat', 'leavers']],
                         ['key' => 'holidays', 'label' => 'nav_holidays', 'route' => 'holiday.index', 'permissions' => ['holiday-list'], 'module' => null,
                             'keywords' => ['public holidays', 'school calendar', 'closed days']],
                     ],
