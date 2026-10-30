@@ -156,6 +156,11 @@
                                 </ul>
                                 <p class="new-year-note">{{ __('Only legacy timetable entries are carried forward. Build the new year academic timetable using its dated teaching groups and bell schedules.') }}</p>
                                 <p class="new-year-note">{{ __('new_year_carry_promotions') }}</p>
+                                <label class="m3-checkbox new-year-carry-check" for="new-year-welcome">
+                                    <input class="m3-checkbox__input" type="checkbox" name="welcome" value="1" id="new-year-welcome" checked>
+                                    <span class="m3-checkbox__control"></span>
+                                    <span class="new-year-carry-label">{{ __('new_year_welcome_choice', ['year' => $next->name]) }}</span>
+                                </label>
                             </fieldset>
                             <div class="page-form-actions">
                                 <button type="button" class="m3-button m3-button--outlined" data-wizard-back>{{ __('new_year_back') }}</button>

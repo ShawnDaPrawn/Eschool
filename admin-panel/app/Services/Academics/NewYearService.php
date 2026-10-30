@@ -20,6 +20,8 @@ use App\Models\Academics\BellSchedule;
 use App\Models\Academics\CurriculumPlan;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Activities\ActivityGroup;
+use App\Models\ClassSchool;
+use App\Models\ClassSection;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Discipline\DisciplineFramework;
@@ -27,15 +29,19 @@ use App\Models\Exam;
 use App\Models\Grade;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
+use App\Models\People\Enrolment;
 use App\Models\Recognition\AwardWindow;
 use App\Models\Recognition\HouseMembership;
 use App\Models\SessionYear;
+use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\TermTemplate;
 use App\Models\Timetable;
 use App\Models\User;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\SessionYearService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +85,9 @@ class NewYearService
      * service only writes to the current year.
      */
     public const AFTER_SWITCH = ['discipline'];
+
+    /** The notice families get when the new year becomes current (1.21). */
+    public const WELCOME = 'school.new_year';
 
     /** Choices that exist only while their module is switched on. */
     public const MODULES = ['houses' => 'house_points', 'award_windows' => 'awards', 'discipline' => 'discipline'];
@@ -240,6 +249,9 @@ class NewYearService
                 ->distinct()->count('student_id')
             : 0;
         $url = fn (string $route, string $permission) => Route::has($route) && $user->can($permission) ? route($route) : null;
+        // Promoting by grade needs each class's grade (1.18, 1.21).
+        $ungraded = ClassSchool::query()->whereNull('grade_level_id')
+            ->whereIn('id', ClassSection::query()->whereIn('id', Enrolment::query()->where('session_year_id', $current->id)->select('class_section_id'))->select('class_id'))->count();
 
         return [
             [
@@ -257,6 +269,13 @@ class NewYearService
                     : __('new_year_check_promotions_no_year'),
                 'ok' => $next !== null && $placed >= $learners,
                 'url' => $url('promotions.by-grade', 'promote-student-list'),
+            ],
+            [
+                'key' => 'grades',
+                'title' => __('new_year_check_grades'),
+                'detail' => $ungraded ? trans_choice('new_year_check_grades_open', $ungraded, ['count' => $ungraded]) : __('new_year_check_grades_ok'),
+                'ok' => $ungraded === 0,
+                'url' => $url('class.index', 'class-list'),
             ],
             [
                 'key' => 'leave',
@@ -280,9 +299,9 @@ class NewYearService
      * that kind yet) and make it current, in one transaction.
      *
      * @param  list<string>  $chosen
-     * @return array{copied: list<string>, skipped: list<string>}
+     * @return array{copied: list<string>, skipped: list<string>, welcomed: int}
      */
-    public function switchTo(SessionYear $from, SessionYear $to, array $chosen): array
+    public function switchTo(SessionYear $from, SessionYear $to, array $chosen, bool $welcome = false): array
     {
         if ($to->id === $from->id) {
             throw new \DomainException(__('new_year_already_current', ['year' => $to->name]));
@@ -291,7 +310,7 @@ class NewYearService
             throw new \DomainException(__('session_year_has_ended'));
         }
 
-        return DB::transaction(function () use ($from, $to, $chosen) {
+        return DB::transaction(function () use ($from, $to, $chosen, $welcome) {
             $copied = [];
             $skipped = [];
             $after = [];
@@ -319,8 +338,38 @@ class NewYearService
                 $copied[] = $key;
             }
 
-            return ['copied' => $copied, 'skipped' => $skipped];
+            $welcomed = $welcome ? $this->welcome($to) : 0;
+
+            return ['copied' => $copied, 'skipped' => $skipped, 'welcomed' => $welcomed];
         });
+    }
+
+    /**
+     * "Welcome to the new year" (Action Plan 1.21): one notice to the learners
+     * placed in the new year and their current guardians, sent after the
+     * switch commits. Names no learner and no homeroom.
+     *
+     * @return int how many people it goes to
+     */
+    public function welcome(SessionYear $year): int
+    {
+        $first = max(Carbon::parse($year->start_date)->toDateString(), now()->toDateString());
+        $learners = Enrolment::query()->where('session_year_id', $year->id)->onDate($first)->pluck('learner_id')->unique();
+        $users = [];
+        foreach (Students::query()->whereIn('id', $learners)->get() as $learner) {
+            $users[] = (int) $learner->user_id;
+            array_push($users, ...app(GuardianService::class)->guardianUserIds($learner)->all());
+        }
+        $users = array_values(array_unique(array_filter($users)));
+        if ($users === []) {
+            return 0;
+        }
+        $notifier = app(Notifier::class);
+        $notice = $notifier->makeNotice(self::WELCOME, __('new_year_welcome_title', ['year' => $year->name]),
+            __('new_year_welcome_body', ['year' => $year->name, 'date' => Carbon::parse($year->start_date)->format('j M Y')]), '/academics/timetable');
+        $notifier->assign($notice, $users);
+
+        return count($users);
     }
 
     private function count(string $key, int $yearId): int

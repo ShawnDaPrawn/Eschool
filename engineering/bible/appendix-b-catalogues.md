@@ -93,6 +93,12 @@ and the lessons' teachers when a short day is planned or cancelled. The notice
 names only the date; the outbox event carries lesson IDs, never a learner list.
 
 
+New school year: school.new_year (people module, learner and parent portals,
+standard channel preferences) welcomes the learners placed in the new year and
+their current guardians when it becomes current, if the school chooses it in the
+new-year wizard. The notice names the year and its first day, never a learner or
+homeroom.
+
 Exam changes: academics.exam_changed (academics module, learner and parent
 portals, standard channel preferences) tells the learners in a class and their
 current guardians when an upcoming exam sitting's date, time or venue changes,

@@ -28,6 +28,7 @@ return [
     'academics.marks_released' => ['label' => 'Marks released', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.content_published' => ['label' => 'Learning content published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.exam_changed' => ['label' => 'Exam changes', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.register_amended' => ['label' => 'Register amended', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'academics.timetable_changed' => ['label' => 'Timetable changes', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
