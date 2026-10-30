@@ -16,14 +16,15 @@ declare(strict_types=1);
  *  schools.modules  switch a school's modules
  *  accounts.manage  customer records: stage, contacts, contracts, notes
  *  packages.view    the product catalogue and packages
+ *  identity.review  LURITS claims between schools: see and close them
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view']],
-    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review']],
+    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review']],
     'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'audit.view', 'audit.export']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],
