@@ -73,7 +73,7 @@ final class SchoolOwnedTables
         'assessment_marks', 'question_marks', 'mark_snapshots', 'mark_releases', 'mark_release_entries', 'academic_exam_links',
         'teaching_groups', 'teaching_group_memberships', 'teaching_allocations', 'homeroom_allocations', 'academic_leaderships',
         'curriculum_plans', 'curriculum_topics', 'assessment_plans', 'assessment_tasks', 'assessment_questions',
-        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
+        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations', 'staff_invitations',
         'term_templates', 'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',

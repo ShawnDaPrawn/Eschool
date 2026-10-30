@@ -11,6 +11,15 @@
     ({{ $school['roles']['Student'] }} {{ __('learners') }}, {{ $school['roles']['Parent'] }} {{ __('parents') }}, {{ $school['roles']['Teacher'] }} {{ __('teachers') }})
 </p>
 
+@if ($pendingAdministrator)
+<h2>{{ __('First administrator') }}</h2>
+<form method="POST" action="{{ route('saas.schools.invitation', $school['id']) }}" class="saas-card">
+    @csrf
+    <p>{{ __('The first administrator has not accepted their invitation yet. Sending a new one cancels the old link.') }}</p>
+    <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Send the invitation again') }}</button></div>
+</form>
+@endif
+
 <h2>{{ __('Package') }}</h2>
 <form method="POST" action="{{ route('saas.schools.package', $school['id']) }}" class="saas-card">
     @csrf
