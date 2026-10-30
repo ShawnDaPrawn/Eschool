@@ -29,6 +29,7 @@ use App\Http\Controllers\OnlineExamController;
 use App\Http\Controllers\OnlineExamQuestionController;
 use App\Http\Controllers\Panel\Academics\ContentWorkbenchController;
 use App\Http\Controllers\Panel\Academics\CurriculumController;
+use App\Http\Controllers\Panel\Academics\ExamPeriodController;
 use App\Http\Controllers\Panel\Academics\NewYearController;
 use App\Http\Controllers\Panel\Academics\RegisterPanelController;
 use App\Http\Controllers\Panel\Academics\ReportWorkbenchController;
@@ -973,6 +974,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::delete('destroy-grades/{grade_id}', [Exam\GradeController::class, 'destroyGrades'])->name('destroy-grades');
 
         Route::resource('exam-timetable', ExamTimetableController::class);
+        // Exam mode (Action Plan 1.8): the days each grade writes exams.
+        Route::get('exam-periods', [ExamPeriodController::class, 'index'])->name('exam-periods.index');
+        Route::post('exam-periods', [ExamPeriodController::class, 'store'])->name('exam-periods.store');
+        Route::put('exam-periods/{period}', [ExamPeriodController::class, 'update'])->whereNumber('period')->name('exam-periods.update');
+        Route::delete('exam-periods/{period}', [ExamPeriodController::class, 'destroy'])->whereNumber('period')->name('exam-periods.destroy');
         Route::get('exam/get-classes/{exam_id}', [ExamTimetableController::class, 'getClassesByExam'])->name('exam-timetable.classes');
         Route::get('exam/get-subjects/{class_id}', [ExamTimetableController::class, 'getSubjectsByClass'])->name('exams.class-subjects');
         Route::get('exam/get-exams-by-session-year/{session_year_id}', [ExamTimetableController::class, 'getExamsBySessionYear'])->name('exam-timetable.exams-by-session-year');

@@ -861,6 +861,8 @@ window.examTimetableEvents = {
 
                 html.find('.edit_end_time').val(value.end_time);
 
+                html.find('.edit_venue').val(value.venue || '');
+
                 var dateParts = value.date.match(/(\d{2})-(\d{2})-(\d{4})(?: (\d{2}):(\d{2}):(\d{2}))?/);
                 var date = dateParts ? new Date(dateParts[3], dateParts[2] - 1, dateParts[1]) : new Date(value.date),
                     yr = date.getFullYear(),

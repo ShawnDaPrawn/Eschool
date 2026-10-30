@@ -102,6 +102,27 @@ for (const width of [1024, 1280]) {
   });
 }
 
+test('exam periods are added, kept accessible and removed', async ({ page, baseURL }) => {
+  await signIn(page, accounts.admin);
+  const errors = collectErrors(page, baseURL!);
+  await page.goto('/exam-periods');
+  await expect(page.getByRole('heading', { name: 'Exam periods', exact: true })).toBeVisible();
+  const form = page.getByRole('form', { name: 'Add an exam period', exact: true });
+  const name = `Browser exams ${Date.now()}`;
+  await form.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
+  await form.getByRole('combobox', { name: 'Grade', exact: true }).selectOption({ label: 'Grade 5' });
+  await form.getByRole('textbox', { name: 'First exam day', exact: true }).fill('2026-11-23');
+  await form.getByRole('textbox', { name: 'Last exam day', exact: true }).fill('2026-11-27');
+  await form.getByRole('button', { name: 'Add exam period', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Exam period saved' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: `${name} · Grade 5`, exact: true })).toBeVisible();
+  expect(await seriousViolations(page)).toEqual([]);
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+  await page.getByRole('form', { name: `Remove ${name} · Grade 5`, exact: true }).getByRole('button', { name: 'Remove exam period', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Exam period removed' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('teachers cannot open the manager workbench', async ({ page }) => {
   await signIn(page, accounts.teacher);
   expect((await page.goto('/academic-timetable'))?.status()).toBe(403);

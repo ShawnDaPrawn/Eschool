@@ -32,6 +32,11 @@ Earlier history is kept where it was written and is not repeated here:
   to which school, when and why (reasons, before and after values), filtered by
   school, action, staff member and date, and exported as CSV. A school's own
   history is never shown there, and each export is itself recorded.
+- Admin panel: exam mode. Exam periods per grade (Exams and results → Exam
+  periods) turn a learner's timetable days into exam days, leaving normal
+  lessons out unless the school keeps them. Each exam sitting can have a venue,
+  and learners and guardians are told when an upcoming sitting's date, time or
+  venue changes, or it is removed. **Deploy:** run the migrations.
 
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in

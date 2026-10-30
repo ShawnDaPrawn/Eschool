@@ -76,6 +76,8 @@ class TimetableQueries
         $engine = app(TimetableEngine::class);
         $lessons = TimetableLesson::with('period.schedule', 'room', 'teacher.user', 'group.subject', 'homeroom.class', 'homeroom.section')
             ->where('session_year_id', $year)->where('active', true)->whereDate('starts_on', '<=', $end->toDateString())->whereDate('ends_on', '>=', $start->toDateString())->get();
+        // Exam mode: a learner's exam days, and whether lessons continue on each.
+        $examDays = $learner === null ? [] : app(ExamMode::class)->days($learner, $year, $start->toDateString(), $end->toDateString());
         $rows = [];
         foreach ($lessons as $lesson) {
             if (! $manager && (($lesson->teaching_group_id !== null && $lesson->group?->active !== true) || ($lesson->class_section_id !== null && $lesson->homeroom === null))) {
@@ -87,7 +89,7 @@ class TimetableQueries
                 }
                 $cover = app(CoverTimetable::class)->assigned($lesson, $date);
                 if ($learner !== null) {
-                    if (! in_array($learner, $engine->learners($lesson->getAttributes(), $date), true)) {
+                    if (($examDays[$date] ?? true) === false || ! in_array($learner, $engine->learners($lesson->getAttributes(), $date), true)) {
                         continue;
                     }
                 } elseif (! $manager) {
@@ -109,7 +111,7 @@ class TimetableQueries
         }
         usort($rows, fn ($a, $b) => [$a['date'], $a['starts_at'], $a['id']] <=> [$b['date'], $b['starts_at'], $b['id']]);
 
-        return ['session_year_id' => $year, 'starts_on' => $start->toDateString(), 'ends_on' => $end->toDateString(), 'can_manage' => $manager, 'lessons' => $rows];
+        return ['session_year_id' => $year, 'starts_on' => $start->toDateString(), 'ends_on' => $end->toDateString(), 'can_manage' => $manager, 'lessons' => $rows, 'exam_days' => array_keys($examDays)];
     }
 
     public function next(User $actor, ?int $learner = null): array

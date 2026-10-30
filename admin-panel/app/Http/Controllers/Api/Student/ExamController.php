@@ -277,6 +277,8 @@ class ExamController extends Controller
                     'date' => $data->date,
                     'starting_time' => $data->start_time,
                     'ending_time' => $data->end_time,
+                    'venue' => $data->venue,
+                    'revision' => $data->revision,
                     'subject' => [
                         'id' => $data->subject->id,
                         'name' => $data->subject->name,

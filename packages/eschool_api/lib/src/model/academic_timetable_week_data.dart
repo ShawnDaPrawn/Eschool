@@ -26,6 +26,8 @@ class AcademicTimetableWeekData {
     required this.canManage,
 
     required this.lessons,
+
+    this.examDays,
   });
 
   // minimum: 1
@@ -44,6 +46,9 @@ class AcademicTimetableWeekData {
   @JsonKey(name: r'lessons', required: true, includeIfNull: false)
   final List<AcademicTimetableLesson> lessons;
 
+  @JsonKey(name: r'exam_days', required: false, includeIfNull: false)
+  final List<String>? examDays;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -52,7 +57,8 @@ class AcademicTimetableWeekData {
           other.startsOn == startsOn &&
           other.endsOn == endsOn &&
           other.canManage == canManage &&
-          other.lessons == lessons;
+          other.lessons == lessons &&
+          other.examDays == examDays;
 
   @override
   int get hashCode =>
@@ -60,7 +66,8 @@ class AcademicTimetableWeekData {
       startsOn.hashCode +
       endsOn.hashCode +
       canManage.hashCode +
-      lessons.hashCode;
+      lessons.hashCode +
+      examDays.hashCode;
 
   factory AcademicTimetableWeekData.fromJson(Map<String, dynamic> json) =>
       _$AcademicTimetableWeekDataFromJson(json);
