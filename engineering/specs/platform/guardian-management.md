@@ -58,6 +58,9 @@ a reason), an "Add a guardian" form, and past guardians.
 | A teacher, a parent, a learner; another school's learner or link; another learner's link | they manage guardians | 403; not found; nothing changed |
 | The panel | add, change (unticked boxes switch rights off), remove with a reason | saved; a too-short reason is refused; past guardians listed |
 
+Browser: `e2e/tests/profile-fields.spec.ts` opens the guardians page at 1024
+and 1280 pixels (accessibility and fit).
+
 ## Not yet
 
 The approving guardian managing co-guardians from the parent app (needs a v2
