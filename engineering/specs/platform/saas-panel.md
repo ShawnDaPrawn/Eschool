@@ -8,12 +8,12 @@ The panel platform staff use to see the schools on the install, set one up with 
 
 Built: school list with counts, set up a school, package, suspend/archive/restore, module switches, audited and fenced.
 
-Not built, and not implied by any screen: audited support access into a school (acting as a school user), import toolkit (CSV, SA-SAMS), usage, health and delivery views, consent/retention/personal-data tooling, and a way to give an existing account a role at a new school. Each needs its own spec; support access also needs the decision on what platform staff may see (below).
+Not built, and not implied by any screen: audited support access into a school (acting as a school user), import toolkit (CSV, SA-SAMS), usage, health and delivery views, and consent/retention/personal-data tooling. Each needs its own spec; support access also needs the decision on what platform staff may see (below). Giving an existing account a role at a new school, including as its first administrator, is built: [existing-account-invitations.md](existing-account-invitations.md) (Action Plan 1.3).
 
 ## User stories
 
 - **Platform staff:** I open `/saas`, see every school with its status, package and how many learners, parents and teachers it has, and open one.
-- **Platform staff:** I set up a new school by name, time zone and package with its first administrator, who is emailed a private link to choose their own password.
+- **Platform staff:** I set up a new school by name, time zone and package with its first administrator, who is emailed a private link to choose their own password. If their address already has an account (a principal moving schools), they are invited to join with it instead and become the administrator when they accept.
 - **Platform staff:** I move a school to another package, or switch one of its modules, and the school's apps refresh.
 - **Platform staff:** I suspend a school that has not paid, with a reason, and restore it when it has.
 - **School administrator:** I can never open `/saas`, and it never reveals whether a school exists.
@@ -43,7 +43,8 @@ The identity alone grants nothing (its spec: "not a grant of platform capabiliti
 | Staff | they set up a school | the school, its roles and profile defaults exist; the administrator has one membership, Super Admin of that school; they are sent a one-use invitation whose secret is in no audit row or session |
 | An operator with both keys and no school role | they sign in on the normal form | they land on `/saas`; they hold no membership; a role-less account without both keys is still refused |
 | The new school's administrator | they sign in and open `/home` | it opens (the school has its own current year, name, time zone and e-mail templates) and shows nothing of another school; the staff member's own session year is not changed |
-| Staff | they use an email that already has an account, a taken or malformed short name, an unknown package or time zone | nothing is created |
+| Staff | they use the email of an account that may not be a school's administrator (platform staff, a learner, inactive, or unable to sign in to a school panel), a taken or malformed short name, an unknown package or time zone | nothing is created |
+| Staff | they use the email of a teacher at another school | the school is created, no second account; the person is invited to join as Super Admin, has no role there until they accept, and keeps their password (`ExistingAccountInvitationsTest`) |
 | Staff | they change school 2's package, status or a module | school 1's rows are unchanged; the audit row names the staff member, the school and, for a status, the reason |
 | Staff | they move a school with fee records to a package without fees | fees become read-only (readable, not writable), as when the school's own admin switches them off; a school with no fee records is left alone |
 | Staff | they suspend a school | its people have no active membership (refused at the next request) and nothing is deleted; restoring undoes it |
@@ -63,7 +64,7 @@ All web, session auth, `PrivateDomainResponse`, `platform.staff`; none under `sc
 | --- | --- | --- |
 | GET, POST | `/saas/password` | fresh operator changes only their own password; pending/default password allowed for this purpose only, CSRF/throttle/no-store/no input flash; no school role or membership |
 | GET | `/saas` | schools with status, package and active people by role |
-| GET, POST | `/saas/schools/create`, `/saas/schools` | the set-up form; creates the school, emails the first administrator's invitation and shows its link once in that response (throttled 20 a minute) |
+| GET, POST | `/saas/schools/create`, `/saas/schools` | the set-up form; creates the school, emails the first administrator's invitation (to choose a password, or to join with their existing account) and shows its link once in that response (throttled 20 a minute) |
 | GET | `/saas/schools/{id}` | one school: counts, package, status, modules as the school sees them |
 | PUT | `/saas/schools/{id}/package` | package key from `config/school_packages.php`; a money module (fees) the new package leaves out stays read-only while the school has records; queues `context.changed` for that school. Moving back to a package that includes fees leaves it read-only until someone enables it (the school's own switch or `/saas`) |
 | PUT | `/saas/schools/{id}/status` | `active`, `suspended` or `archived`, with a reason of 10 to 500 characters |
@@ -80,7 +81,7 @@ Five standalone Material 3 pages (`resources/views/saas/`, `public/assets/css/sa
 
 - **First-run defaults.** Set-up gives the school what its own panel needs before anyone signs in, as the installer does for school 1: `school_name` and `time_zone` settings, the e-mail templates, and an explicitly labelled, editable January–December calendar-year setup preset in the school's timezone. This is a bootstrap default, not a Bible-mandated calendar or a published grading policy; it creates no terms, marks or released academic plans. Roles and profile defaults come from the existing seeders. Anything else (grades, classes, terms) is for the school's administrator, through the Home checklist.
 - **The first administrator's password** is random and known to nobody. They are emailed a one-use, seven-day link (`StaffInvitations`, [staff-invitations.md](staff-invitations.md)) to choose their own password. The link is also shown once in the response to the POST, never redirected, flashed or logged, as a fallback while mail is not live in an environment. The school page offers to send it again until it is accepted, without showing the person.
-- **Existing accounts** cannot be made the first administrator: a person's email already having an account is refused, so this page can never be used to add oneself or anyone else to a school that has people.
+- **Existing accounts** become the first administrator only by accepting an invitation while signed in as that account ([existing-account-invitations.md](existing-account-invitations.md)): nothing is attached to the account before then and its password is never changed, so this page cannot add anyone to a school without their consent. Platform staff identities, learner accounts, inactive accounts and accounts that cannot sign in to a school panel are refused before anything is created.
 - **The install's default school** cannot be suspended or archived: sign-in and public pages run in it.
 - **Suspension** works through `MembershipService`: a school that is not active has no active memberships, so its people are refused on their next request, including tokens. Records stay.
 - **Own password:** `/saas/password` reuses the existing old-password validation, common password policy, hash save, app-token revocation and current-session preservation. HTML-Accept validation still returns private JSON without flashing secrets. The ordinary school reset routes and role middleware are unchanged.

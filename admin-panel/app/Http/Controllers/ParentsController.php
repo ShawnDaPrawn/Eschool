@@ -8,6 +8,7 @@ use App\Models\FormField;
 use App\Models\Parents;
 use App\Models\User;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\SharedAccounts;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -208,7 +209,13 @@ class ParentsController extends Controller
                     ];
                 }
             }
-            if ($parents->user) {
+            $shared = app(SharedAccounts::class);
+            $account = $request->only(['first_name', 'last_name', 'gender', 'current_address', 'permanent_address', 'email', 'mobile', 'dob']);
+            if ($parents->user && $shared->changes($parents->user, $account) !== []) {
+                // An account that also belongs elsewhere is its owner's to change (Action Plan 1.3).
+                return response()->json(['error' => true, 'message' => $shared->message()]);
+            }
+            if ($parents->user && ! $shared->locked($parents->user)) {
                 $user = $parents->user;
                 $user->first_name = $request->first_name;
                 $user->last_name = $request->last_name;

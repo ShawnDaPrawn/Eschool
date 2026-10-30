@@ -255,3 +255,14 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Invitations to join another school
+
+`school_join_invitations` is required school-owned: the inviting school's
+invitation for an existing account to join it ([existing-account invitations](existing-account-invitations.md)).
+It is read by its secret across schools only to find the school, then checked
+inside it. Nothing reaches the account's other schools: accepting adds a
+membership and role at the inviting school only, and
+`ExistingAccountInvitationsTest` checks that the person's roles and permissions
+at their first school are exactly as before, and at the new one exactly the role
+it gave.

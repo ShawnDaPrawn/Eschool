@@ -30,6 +30,7 @@ use App\Services\MailService;
 use App\Services\People\RemoveLearner;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
@@ -1397,7 +1398,10 @@ class StudentController extends Controller
                             // Delete parent's user
                             if ($parent->user_id) {
                                 $parentUser = User::find($parent->user_id);
-                                if ($parentUser) {
+                                if ($parentUser && app(SharedAccounts::class)->shared((int) $parentUser->id)) {
+                                    // The account also belongs elsewhere: only the Parent role here ends (Action Plan 1.3).
+                                    $parentUser->unsetRelation('roles')->removeRole('Parent');
+                                } elseif ($parentUser) {
                                     if ($parentUser->image && Storage::disk('public')->exists($parentUser->image)) {
                                         Storage::disk('public')->delete($parentUser->image);
                                     }
