@@ -27,6 +27,10 @@ Earlier history is kept where it was written and is not repeated here:
   societies) into the next year empty, with their tree, rules and seasons moved to
   the new year, so learners and staff are allocated afresh and nobody is left in
   last year's groups.
+- Developers: school permissions are now described as modules with access levels
+  (view, contribute, manage) and named special abilities, in
+  `config/module_access.php`, as the foundation for a simpler role editor. No
+  permission changes for anyone.
 
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
