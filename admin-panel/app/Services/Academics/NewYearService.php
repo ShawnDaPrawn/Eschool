@@ -5,28 +5,37 @@ declare(strict_types=1);
 namespace App\Services\Academics;
 
 use App\Actions\Transfers\TransferActivityGroups;
+use App\Actions\Transfers\TransferAwardWindows;
+use App\Actions\Transfers\TransferBellSchedules;
 use App\Actions\Transfers\TransferClassSubject;
 use App\Actions\Transfers\TransferClassTeacherAndSubjectTeacher;
 use App\Actions\Transfers\TransferClassTimetable;
 use App\Actions\Transfers\TransferCurriculumPlans;
+use App\Actions\Transfers\TransferDisciplineFramework;
 use App\Actions\Transfers\TransferExamGrades;
+use App\Actions\Transfers\TransferHouseMemberships;
 use App\Actions\Transfers\TransferLeaveSettings;
 use App\Actions\Transfers\TransferTeachingGroups;
+use App\Models\Academics\BellSchedule;
 use App\Models\Academics\CurriculumPlan;
 use App\Models\Academics\TeachingGroup;
 use App\Models\Activities\ActivityGroup;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
+use App\Models\Discipline\DisciplineFramework;
 use App\Models\Exam;
 use App\Models\Grade;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
+use App\Models\Recognition\AwardWindow;
+use App\Models\Recognition\HouseMembership;
 use App\Models\SessionYear;
 use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\TermTemplate;
 use App\Models\Timetable;
 use App\Models\User;
+use App\Services\Platform\Modules\ModuleGate;
 use App\Services\SessionYearService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +68,20 @@ class NewYearService
         'leave' => ['new_year_carry_leave', TransferLeaveSettings::class],
         'teaching_groups' => ['new_year_carry_teaching_groups', TransferTeachingGroups::class],
         'activity_groups' => ['new_year_carry_activity_groups', TransferActivityGroups::class],
+        'bell_schedules' => ['new_year_carry_bell_schedules', TransferBellSchedules::class],
+        'houses' => ['new_year_carry_houses', TransferHouseMemberships::class],
+        'award_windows' => ['new_year_carry_award_windows', TransferAwardWindows::class],
+        'discipline' => ['new_year_carry_discipline', TransferDisciplineFramework::class],
     ];
+
+    /**
+     * Choices written just after the new year becomes current, because their
+     * service only writes to the current year.
+     */
+    public const AFTER_SWITCH = ['discipline'];
+
+    /** Choices that exist only while their module is switched on. */
+    public const MODULES = ['houses' => 'house_points', 'award_windows' => 'awards', 'discipline' => 'discipline'];
 
     /**
      * Choices that need another: a lesson belongs to a subject teacher, so
@@ -272,6 +294,7 @@ class NewYearService
         return DB::transaction(function () use ($from, $to, $chosen) {
             $copied = [];
             $skipped = [];
+            $after = [];
             foreach ($this->carryOptions($from, $to, $chosen) as $option) {
                 if (! $option['chosen']) {
                     continue;
@@ -281,11 +304,20 @@ class NewYearService
 
                     continue;
                 }
+                if (in_array($option['key'], self::AFTER_SWITCH, true)) {
+                    $after[] = $option['key'];
+
+                    continue;
+                }
                 app(self::CARRY[$option['key']][1])->execute($from->id, $to->id);
                 $copied[] = $option['key'];
             }
 
             $this->years->makeCurrent($to);
+            foreach ($after as $key) {
+                app(self::CARRY[$key][1])->execute($from->id, $to->id);
+                $copied[] = $key;
+            }
 
             return ['copied' => $copied, 'skipped' => $skipped];
         });
@@ -293,6 +325,10 @@ class NewYearService
 
     private function count(string $key, int $yearId): int
     {
+        if (isset(self::MODULES[$key]) && ! app(ModuleGate::class)->allows(self::MODULES[$key])) {
+            return 0;
+        }
+
         return match ($key) {
             'curriculum' => CurriculumPlan::where('session_year_id', $yearId)->count(),
             'subjects' => ClassSubject::where('session_year_id', $yearId)->count(),
@@ -302,6 +338,10 @@ class NewYearService
             'leave' => LeaveMaster::where('session_year_id', $yearId)->count(),
             'teaching_groups' => TeachingGroup::where('session_year_id', $yearId)->where('active', true)->count(),
             'activity_groups' => ActivityGroup::where('session_year_id', $yearId)->where('active', true)->count(),
+            'bell_schedules' => BellSchedule::where('session_year_id', $yearId)->count(),
+            'houses' => HouseMembership::where('session_year_id', $yearId)->where('active', true)->count(),
+            'award_windows' => AwardWindow::where('session_year_id', $yearId)->count(),
+            'discipline' => DisciplineFramework::where('session_year_id', $yearId)->count(),
         };
     }
 
