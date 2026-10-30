@@ -6,6 +6,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Classes;
 use App\Http\Controllers\ClassTeacherController;
@@ -253,6 +254,12 @@ Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainRespo
 Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::get('invite/staff/{token}', [StaffInvitationController::class, 'show'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:30,1')->name('staff-invitation.show');
     Route::post('invite/staff/{token}', [StaffInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:password')->name('staff-invitation.accept');
+});
+
+// A learner's calendar subscription (Action Plan 1.10). The secret token is
+// the only key; the calendar app fetches it without signing in.
+Route::middleware([PrivateDomainResponse::class])->group(function () {
+    Route::get('calendar/{token}.ics', CalendarFeedController::class)->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:60,1')->name('calendar.feed');
 });
 
 // An operator's own password has a separate purpose: pending accounts may
