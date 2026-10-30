@@ -5885,5 +5885,9 @@
     "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "'n Deel van die konsep het nie aangekom nie, dus is niks toegepas nie. Laai die konsep weer en pas dit weer toe.",
     "Offered once the rows above are applied.": "Word aangebied sodra die rye hierbo toegepas is.",
     "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Hierdie konsep is te groot om in een slag te stuur. Pas dit toe, dan bied die bladsy die oorblywende :waiting aan.",
-    "Every group and homeroom here already has a teacher for this year: there is nothing to apply.": "Elke groep en registerklas hier het reeds ’n onderwyser vir hierdie jaar: daar is niks om toe te pas nie."
+    "Every group and homeroom here already has a teacher for this year: there is nothing to apply.": "Elke groep en registerklas hier het reeds ’n onderwyser vir hierdie jaar: daar is niks om toe te pas nie.",
+    "Start of draft": "Start of draft",
+    "Next draft rows": "Next draft rows",
+    "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
 }

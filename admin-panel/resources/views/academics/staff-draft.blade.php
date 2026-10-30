@@ -15,9 +15,13 @@
 
     <form method="POST" action="{{ route('academic-allocations.draft.apply') }}" aria-label="{{ __('Staff draft') }}">@csrf
         <input type="hidden" name="year" value="{{ $plan['to']->id }}">
+        <input type="hidden" name="offset" value="{{ $plan['offset'] }}">
         <input type="hidden" name="fingerprint" value="{{ $plan['fingerprint'] }}">
         <p>{{ __('Applying writes each chosen teacher for the whole year, :start to :end.', ['start' => $plan['starts_on'], 'end' => $plan['ends_on']]) }}</p>
-        @if ($plan['waiting'] > 0)<p>{{ __('This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.', ['waiting' => $plan['waiting']]) }}</p>@endif
+        @if ($plan['waiting'] > 0)<p>{{ __('This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.', ['waiting' => $plan['waiting']]) }}</p>@endif
+
+        @if ($plan['offset'] > 0)<p><a href="{{ route('academic-allocations.draft', ['year' => $plan['to']->id]) }}">{{ __('Start of draft') }}</a></p>@endif
+        @if ($plan['next_offset'] !== null)<p><a href="{{ route('academic-allocations.draft', ['year' => $plan['to']->id, 'offset' => $plan['next_offset']]) }}">{{ __('Next draft rows') }}</a></p>@endif
 
         @foreach (['groups' => __('Teaching groups'), 'homerooms' => __('Homeroom teachers')] as $kind => $heading)
             <section class="page-section" aria-labelledby="staff-draft-{{ $kind }}">
@@ -33,7 +37,7 @@
                             <p>{{ __('Already allocated: :names', ['names' => collect($row['staffed'])->pluck('name')->join(', ')]) }}</p>
                             @if ($kind === 'groups')<a href="{{ route('teaching-groups.show', $row['id']) }}">{{ __('Open the group') }}</a>@endif
                         @elseif (! $row['in_form'])
-                            <p>{{ __('Offered once the rows above are applied.') }}</p>
+                            <p>{{ __('Use the batch links to choose this allocation.') }}</p>
                         @else
                             @if ($row['last_year'] === [])
                                 <p>{{ $kind === 'groups' && $row['source_id'] === null ?__('New this year: there was no such group last year.') : __('Nobody held it at the end of last year.') }}</p>

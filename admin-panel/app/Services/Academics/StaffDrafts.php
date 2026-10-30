@@ -68,9 +68,9 @@ class StaffDrafts
      * each either already staffed (left alone) or open, with last year's
      * teachers suggested where they are still on the staff.
      *
-     * @return array{to: SessionYear, from: SessionYear, starts_on: string, ends_on: string, groups: list<array<string, mixed>>, homerooms: list<array<string, mixed>>, teachers: array<int, string>, waiting: int, fingerprint: string}
+     * @return array{to: SessionYear, from: SessionYear, starts_on: string, ends_on: string, groups: list<array<string, mixed>>, homerooms: list<array<string, mixed>>, teachers: array<int, string>, waiting: int, offset: int, next_offset: ?int, fingerprint: string}
      */
-    public function plan(User $actor, SessionYear $to): array
+    public function plan(User $actor, SessionYear $to, int $offset = 0): array
     {
         app(AcademicAuthority::class)->manage($actor);
         $startsOn = substr((string) $to->start_date, 0, 10);
@@ -112,23 +112,32 @@ class StaffDrafts
             $homerooms[] = ['id' => $id, 'name' => trim($rooms[$id]->class?->name.' '.$rooms[$id]->section?->name)] + $this->row($staffed, $last, $teachers);
         }
 
-        // One field per drafted teacher, or one for a row with none, until the budget runs out.
+        // Positions include allocated rows, so applying or leaving Nobody in
+        // this batch cannot shift or hide the rows reached by its next link.
+        $offset = max(0, $offset);
+        $position = 0;
         $fields = 0;
         $waiting = 0;
+        $nextOffset = null;
         foreach (['groups', 'homerooms'] as $kind) {
             foreach ($$kind as &$row) {
                 $needs = max(1, count($row['draft']));
-                $row['in_form'] = $row['staffed'] === [] && $fields + $needs <= self::FIELDS_PER_SUBMISSION;
+                $open = $row['staffed'] === [] && $position >= $offset;
+                $row['in_form'] = $open && $nextOffset === null && $fields + $needs <= self::FIELDS_PER_SUBMISSION;
                 $fields += $row['in_form'] ? $needs : 0;
-                $waiting += $row['staffed'] === [] && ! $row['in_form'] ? 1 : 0;
+                if ($open && ! $row['in_form']) {
+                    $nextOffset ??= $position;
+                    $waiting++;
+                }
+                $position++;
             }
             unset($row);
         }
 
         return [
             'to' => $to, 'from' => $from, 'starts_on' => $startsOn, 'ends_on' => $endsOn,
-            'groups' => $groups, 'homerooms' => $homerooms, 'teachers' => $teachers, 'waiting' => $waiting,
-            'fingerprint' => $this->fingerprint($to, $from, $groups, $homerooms, $teachers),
+            'groups' => $groups, 'homerooms' => $homerooms, 'teachers' => $teachers, 'waiting' => $waiting, 'offset' => $offset, 'next_offset' => $nextOffset,
+            'fingerprint' => $this->fingerprint($to, $from, $groups, $homerooms, $teachers, $offset),
         ];
     }
 
@@ -141,13 +150,13 @@ class StaffDrafts
      * @param  array{groups?: array<int|string, list<int|string|null>>, homerooms?: array<int|string, list<int|string|null>>}  $choices
      * @return array{teachers: int, homerooms: int}
      */
-    public function apply(User $actor, SessionYear $to, array $choices, string $fingerprint): array
+    public function apply(User $actor, SessionYear $to, array $choices, string $fingerprint, int $offset = 0): array
     {
         app(AcademicAuthority::class)->manage($actor);
 
-        return DB::transaction(function () use ($actor, $to, $choices, $fingerprint) {
+        return DB::transaction(function () use ($actor, $to, $choices, $fingerprint, $offset) {
             School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
-            $plan = $this->plan($actor, $to);
+            $plan = $this->plan($actor, $to, $offset);
             if (! hash_equals($plan['fingerprint'], $fingerprint)) {
                 throw ValidationException::withMessages(['fingerprint' => __('Allocations changed since this draft was built. Check the draft again, then apply it.')]);
             }
@@ -260,7 +269,7 @@ class StaffDrafts
      * @param  list<array<string, mixed>>  $homerooms
      * @param  array<int, string>  $teachers
      */
-    private function fingerprint(SessionYear $to, SessionYear $from, array $groups, array $homerooms, array $teachers): string
+    private function fingerprint(SessionYear $to, SessionYear $from, array $groups, array $homerooms, array $teachers, int $offset): string
     {
         $state = fn (array $rows) => array_map(fn (array $row) => [$row['id'], $row['revision'] ?? null, $row['source_id'] ?? null,
             array_map(fn ($s) => [$s['id'], $s['revision'], $s['teacher_id']], $row['staffed']),
@@ -268,7 +277,7 @@ class StaffDrafts
         $ids = array_keys($teachers);
         sort($ids);
 
-        return hash('sha256', json_encode([(int) $to->id, (int) $from->id, substr((string) $to->start_date, 0, 10), substr((string) $to->end_date, 0, 10),
+        return hash('sha256', json_encode([$offset, (int) $to->id, (int) $from->id, substr((string) $to->start_date, 0, 10), substr((string) $to->end_date, 0, 10),
             $state($groups), $state($homerooms), $ids], JSON_THROW_ON_ERROR));
     }
 }

@@ -83,16 +83,16 @@ class TeachingGroupController extends Controller
             return redirect()->route('academic-allocations.index')->withErrors(['year' => __('There is no school year to draft for.')]);
         }
 
-        return view('academics.staff-draft', ['plan' => $drafts->plan($request->user(), $year), 'years' => $drafts->years()]);
+        return view('academics.staff-draft', ['plan' => $drafts->plan($request->user(), $year, (int) $request->validated('offset', 0)), 'years' => $drafts->years()]);
     }
 
     public function applyDraft(StaffDraftRequest $request, StaffDrafts $drafts): RedirectResponse
     {
         $data = $request->validated();
         $year = SessionYear::query()->findOrFail((int) $data['year']);
-        $done = $drafts->apply($request->user(), $year, ['groups' => $data['groups'] ?? [], 'homerooms' => $data['homerooms'] ?? []], $data['fingerprint']);
+        $done = $drafts->apply($request->user(), $year, ['groups' => $data['groups'] ?? [], 'homerooms' => $data['homerooms'] ?? []], $data['fingerprint'], (int) ($data['offset'] ?? 0));
 
-        return redirect()->route('academic-allocations.draft', ['year' => $year->id])
+        return redirect()->route('academic-allocations.draft', ['year' => $year->id] + (empty($data['offset']) ? [] : ['offset' => (int) $data['offset']]))
             ->with('success', __(':teachers teaching allocations and :homerooms homeroom allocations written for :year.', $done + ['year' => $year->name]));
     }
 

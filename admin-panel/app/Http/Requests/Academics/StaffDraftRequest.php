@@ -15,11 +15,12 @@ class StaffDraftRequest extends TeachingGroupRequest
     {
         $year = ['integer', 'min:1'];
         if ($this->isMethodSafe()) {
-            return ['year' => ['sometimes', ...$year]];
+            return ['year' => ['sometimes', ...$year], 'offset' => ['sometimes', 'integer', 'min:0']];
         }
 
         return [
             'year' => ['required', ...$year],
+            'offset' => ['sometimes', 'integer', 'min:0'],
             'fingerprint' => ['required', 'string', 'size:64'],
             // The form's last field: missing means the server dropped trailing choices.
             'complete' => ['required', 'accepted'],

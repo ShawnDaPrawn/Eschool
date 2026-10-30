@@ -197,6 +197,43 @@ class StaffDraftTest extends TestCase
             ->assertSee('there is nothing to apply')->assertDontSee('Apply the draft');
     }
 
+    public function test_leaving_the_first_900_fields_empty_does_not_hide_later_homerooms(): void
+    {
+        $attributes = $this->maths->getAttributes();
+        unset($attributes['id']);
+        // There are already two groups; make exactly 900 before the homerooms.
+        for ($index = 2; $index < StaffDrafts::FIELDS_PER_SUBMISSION; $index++) {
+            $attributes['name'] = 'Synthetic batch group '.$index;
+            DB::table('teaching_groups')->insert($attributes);
+        }
+        $drafts = app(StaffDrafts::class);
+        $first = $drafts->plan($this->superAdmin(), $this->next);
+        $this->assertCount(900, $first['groups']);
+        $this->assertSame(900, $first['next_offset']);
+        $room = $this->schoolA->ids['section_a'];
+        $this->assertFalse($this->row($first, 'homerooms', $room)['in_form']);
+        $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))
+            ->assertOk()->assertSee(route('academic-allocations.draft', ['year' => $this->next->id, 'offset' => 900]));
+        $nobody = array_fill_keys(array_column($first['groups'], 'id'), ['']);
+        $drafts->apply($this->superAdmin(), $this->next, ['groups' => $nobody], $first['fingerprint']);
+        $this->assertSame(0, $this->nextYearAllocations());
+
+        $second = $drafts->plan($this->superAdmin(), $this->next, 900);
+        $this->assertTrue($this->row($second, 'homerooms', $room)['in_form']);
+        $this->assertNull($second['next_offset']);
+        $this->assertNotSame($first['fingerprint'], $second['fingerprint'], 'the fingerprint binds the batch');
+        $page = $this->get(route('academic-allocations.draft', ['year' => $this->next->id, 'offset' => 900]))->assertOk();
+        $page->assertSee('name="offset" value="900"', false)->assertSee('name="homerooms['.$room.'][]"', false);
+        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'offset' => 900, 'complete' => 1,
+            'fingerprint' => $first['fingerprint'], 'homerooms' => [$room => [$this->tara]]])->assertSessionHasErrors('fingerprint');
+        $this->assertSame(0, $this->nextYearAllocations());
+        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'offset' => 900, 'complete' => 1,
+            'fingerprint' => $second['fingerprint'], 'homerooms' => [$room => [$this->tara]]])
+            ->assertRedirect(route('academic-allocations.draft', ['year' => $this->next->id, 'offset' => 900]));
+        $this->assertSame(1, $this->nextYearAllocations());
+        $this->assertSame(0, TeachingAllocation::whereIn('teaching_group_id', array_column($first['groups'], 'id'))->count());
+    }
+
     public function test_a_draft_cut_short_in_transit_is_refused_and_nothing_is_written(): void
     {
         $page = $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertOk();
