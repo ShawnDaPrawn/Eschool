@@ -5605,5 +5605,21 @@
     "Pages in their menu": "Amakhasi ohlwini lwabo",
     "Pages marked “depends on appointment” also need a grade, class, caseload or other appointment.": "Amakhasi amakwe ngokuthi “kuncike ekuqokweni” adinga nebanga, ikilasi, amacala noma okunye ukuqokwa.",
     "depends on appointment": "kuncike ekuqokweni",
-    "No panel pages": "Awekho amakhasi ephaneli"
+    "No panel pages": "Awekho amakhasi ephaneli",
+    "nav_family_reach": "Ukufinyelela emindenini",
+    "Family reach": "Ukufinyelela emindenini",
+    "Current learners with a guardian the school can reach: in the parent app, or by a verified email address.": "Abafundi bamanje abanomgcini isikole esingamfinyelela: ku-app yabazali, noma ngekheli le-imeyili eliqinisekisiwe.",
+    ":reached of :total learners reached (:percent%)": "Abafundi abangu-:reached kwabangu-:total bafinyelelwe (:percent%)",
+    "Parent app": "I-app yabazali",
+    "Verified email only": "I-imeyili eqinisekisiwe kuphela",
+    "Guardians cannot be reached yet": "Abagcini abakakwazi ukufinyelelwa",
+    "No guardian recorded": "Akekho umgcini obhaliwe",
+    "Reach by homeroom": "Ukufinyelela ngekilasi lasekhaya",
+    "Reached": "Bafinyelelwe",
+    "No current learners": "Abekho abafundi bamanje",
+    "Learners to follow up": "Abafundi okufanele balandelelwe",
+    "Every current learner has a guardian the school can reach.": "Wonke umfundi wamanje unomgcini isikole esingamfinyelela.",
+    "Invite a guardian, or ask them to verify their email address or sign in to the parent app.": "Mema umgcini, noma umcele ukuthi aqinisekise ikheli lakhe le-imeyili noma angene ku-app yabazali.",
+    "Learners without a reachable guardian": "Abafundi abangenamgcini ofinyelelekayo",
+    "No homeroom": "Alikho ikilasi lasekhaya"
 }

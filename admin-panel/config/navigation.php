@@ -268,6 +268,8 @@ return [
                     'label' => 'nav_group_messages',
                     'items' => [
                         ['key' => 'school-messages', 'communication_author' => true, 'label' => 'School messages', 'route' => 'communication-centre.index', 'permissions' => [], 'module' => 'communication', 'keywords' => ['audiences', 'messages', 'approval', 'scheduled message']],
+                        ['key' => 'family-reach', 'label' => 'nav_family_reach', 'route' => 'family-reach.index', 'permissions' => ['student-list'], 'module' => null,
+                            'keywords' => ['reach', 'unreachable families', 'parents without app', 'verified email']],
                         ['key' => 'notices', 'label' => 'nav_notices', 'route' => 'announcement.index', 'permissions' => ['announcement-create'], 'module' => null,
                             'keywords' => ['send a notice', 'announcement', 'notice board', 'message parents', 'newsletter']],
                         ['key' => 'push-notifications', 'label' => 'nav_push_notifications', 'route' => 'notifications.index', 'permissions' => ['notification-create'], 'module' => null,

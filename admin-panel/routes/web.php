@@ -47,6 +47,7 @@ use App\Http\Controllers\Panel\Assistance\AssistancePanelController;
 use App\Http\Controllers\Panel\Cards\CardEncodingPanelController;
 use App\Http\Controllers\Panel\Cards\CardPanelController;
 use App\Http\Controllers\Panel\Classroom\FoundationPanelController;
+use App\Http\Controllers\Panel\Communication\FamilyReachController;
 use App\Http\Controllers\Panel\Communication\MessageWorkbenchController;
 use App\Http\Controllers\Panel\Consultations\ConsultationPanelController;
 use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
@@ -1233,6 +1234,7 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::put('/learners/{learner}/guardians/{link}', [LearnerGuardiansController::class, 'update'])->whereNumber(['learner', 'link'])->name('learner-guardians.update');
     Route::post('/learners/{learner}/guardians/{link}/end', [LearnerGuardiansController::class, 'end'])->whereNumber(['learner', 'link'])->name('learner-guardians.end');
     Route::get('/access-review', AccessReviewController::class)->name('access-review.index');
+    Route::get('/family-reach', FamilyReachController::class)->name('family-reach.index');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
     Route::post('/people-profiles/{person}/invitation', [ProfileFormController::class, 'invite'])->whereNumber('person')->middleware('throttle:20,1')->name('people-profiles.invitation');
     Route::get('/people-profiles/{person?}', [ProfileFormController::class, 'index'])->whereNumber('person')->name('people-profiles.index');

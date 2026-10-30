@@ -5605,5 +5605,21 @@
     "Pages in their menu": "Bladsye in hul kieslys",
     "Pages marked “depends on appointment” also need a grade, class, caseload or other appointment.": "Bladsye gemerk “hang af van aanstelling” het ook 'n graad, klas, gevallelading of ander aanstelling nodig.",
     "depends on appointment": "hang af van aanstelling",
-    "No panel pages": "Geen paneelbladsye nie"
+    "No panel pages": "Geen paneelbladsye nie",
+    "nav_family_reach": "Gesinsbereik",
+    "Family reach": "Gesinsbereik",
+    "Current learners with a guardian the school can reach: in the parent app, or by a verified email address.": "Huidige leerders met 'n voog wat die skool kan bereik: in die ouer-app, of per geverifieerde e-posadres.",
+    ":reached of :total learners reached (:percent%)": ":reached van :total leerders bereik (:percent%)",
+    "Parent app": "Ouer-app",
+    "Verified email only": "Slegs geverifieerde e-pos",
+    "Guardians cannot be reached yet": "Voogde kan nog nie bereik word nie",
+    "No guardian recorded": "Geen voog aangeteken nie",
+    "Reach by homeroom": "Bereik per registerklas",
+    "Reached": "Bereik",
+    "No current learners": "Geen huidige leerders nie",
+    "Learners to follow up": "Leerders om op te volg",
+    "Every current learner has a guardian the school can reach.": "Elke huidige leerder het 'n voog wat die skool kan bereik.",
+    "Invite a guardian, or ask them to verify their email address or sign in to the parent app.": "Nooi 'n voog, of vra hulle om hul e-posadres te verifieer of by die ouer-app aan te meld.",
+    "Learners without a reachable guardian": "Leerders sonder 'n bereikbare voog",
+    "No homeroom": "Geen registerklas nie"
 }
