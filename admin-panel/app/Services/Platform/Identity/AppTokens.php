@@ -53,12 +53,21 @@ final class AppTokens
      * in on its other devices (a parent's phone and tablet), up to
      * MAX_DEVICES_PER_APP; the oldest beyond that are revoked. Unnamed tokens
      * from before app names are still removed when they can only be this app's.
+     * The facilitator and vendor profiles keep one session that each sign-in
+     * replaces.
      */
     public static function issue(User $user, string $app): string
     {
         app(ApprovalService::class)->assertAccess($user);
         if ($app === self::STUDENT) {
             app(LearnerAcademicAccess::class)->assertUser($user);
+        }
+        if (in_array($app, [self::FACILITATOR, self::VENDOR], true)) {
+            // Dedicated profiles (counselling, counter devices) keep one session:
+            // a new sign-in rotates it, as before.
+            self::revokeApp($user, $app);
+
+            return $user->createToken($app)->plainTextToken;
         }
         self::revokeLegacy($user, $app);
         $keep = $user->tokens()->where('name', $app)->orderByDesc('id')->limit(self::MAX_DEVICES_PER_APP - 1)->pluck('id');

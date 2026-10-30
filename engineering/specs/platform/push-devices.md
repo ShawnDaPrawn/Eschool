@@ -11,7 +11,9 @@ device must receive notifications. This supersedes the earlier token rule
 - **Several devices per app.** Signing in to an app on a new device keeps the
   account's other devices of that app signed in, up to
   `AppTokens::MAX_DEVICES_PER_APP` (5). Signing in beyond that signs the oldest
-  device of that app out.
+  device of that app out. The learner, parent and teacher apps work this way.
+  The dedicated facilitator and vendor profiles keep one session, as before: a
+  new sign-in replaces it (`FacilitatorAccessTest`, `VendorOperatorAccessTest`).
 - **One push registration per device.** `user_devices` holds one row per FCM
   token: the human it belongs to, platform (`android`, `ios`), app, the app
   sign-in token (`personal_access_tokens.id`) that registered it, last seen and
