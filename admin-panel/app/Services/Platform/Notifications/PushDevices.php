@@ -152,7 +152,6 @@ class PushDevices
         User::acrossSchools()->whereKey($device->user_id)->where('fcm_id', $token)->update(['fcm_id' => null]);
     }
 
-
     private function prune(int $userId): void
     {
         $keep = $this->activeQuery($userId)->orderByDesc('last_seen_at')->orderByDesc('id')->limit(self::MAX_ACTIVE)->pluck('id');
