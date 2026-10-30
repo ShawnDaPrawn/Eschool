@@ -234,7 +234,7 @@ class NewYearService
                     ? __('new_year_check_promotions_detail', ['placed' => $placed, 'learners' => $learners, 'year' => $next->name])
                     : __('new_year_check_promotions_no_year'),
                 'ok' => $next !== null && $placed >= $learners,
-                'url' => $url('promote-student.index', 'promote-student-list'),
+                'url' => $url('promotions.by-grade', 'promote-student-list'),
             ],
             [
                 'key' => 'leave',

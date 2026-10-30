@@ -98,6 +98,7 @@ use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
+use App\Http\Controllers\Panel\People\GradePromotionController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
@@ -1029,6 +1030,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::resource('promote-student', StudentSessionController::class)->except(['create', 'edit', 'update', 'destroy']);
         Route::get('getPromoteData', [StudentSessionController::class, 'getPromoteData']);
         Route::get('promote-student-list', [StudentSessionController::class, 'show']);
+        // Bulk promotion by grade (Action Plan 1.18), written to dated enrolments.
+        Route::get('promotions/by-grade', [GradePromotionController::class, 'index'])->name('promotions.by-grade');
+        Route::post('promotions/by-grade/check', [GradePromotionController::class, 'preview'])->name('promotions.by-grade.preview');
+        Route::post('promotions/by-grade', [GradePromotionController::class, 'store'])->name('promotions.by-grade.store');
 
         Route::get('resetpassword', [HomeController::class, 'resetpassword'])->name('resetpassword');
         // POST so the password isn't written to access logs with the URL.
