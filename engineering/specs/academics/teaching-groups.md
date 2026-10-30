@@ -69,4 +69,13 @@ Acceptance tests (`Academics/TeachingGroupFillTest`):
 - An elective group, or a 2027 start date: refused.
 - The page offers it and fills with the chosen rule. A teacher gets 403 from both the service and the route, and nothing changes.
 
-Still to come in 1.20: "last year's eligible members" per activity group, staff drafts and caseload renewals.
+Still to come in 1.20: staff drafts and caseload renewals.
+
+## Activity groups: last year's members (Action Plan 1.20, second part)
+
+On an activity group in the workbench, **In this group last year** lists the learners who were members of last year's group with the same name (under a parent of the same name) on that group's last day. To appear, a learner must also:
+- be at the school this year,
+- not already be in this group, and
+- meet its gender, grade and age rules now (the same check as adding a member).
+
+Each name has an **Add as member** button, which posts the ordinary membership save. Nothing is added by itself, and a closed (read-only) year shows no suggestions. Tests: `Activities/ActivitySuggestionsTest`. A learner who left the group early, left the school, no longer meets a rule or is already a member is not suggested, and a teacher is refused.

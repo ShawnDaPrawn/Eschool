@@ -5797,5 +5797,9 @@
     "Members from": "Amalungu kusukela",
     "Add the homeroom": "Engeza ikilasi",
     ":added learners added from the homeroom; :skipped were already members.": "Abafundi abangu-:added bengeziwe besuka ekilasini; abangu-:skipped bebevele bengamalungu.",
-    "Only a group for one homeroom can be filled from it.": "Yiqembu lekilasi elilodwa kuphela elingagcwaliswa ngalo."
+    "Only a group for one homeroom can be filled from it.": "Yiqembu lekilasi elilodwa kuphela elingagcwaliswa ngalo.",
+    "In this group last year": "Ebelikuleli qembu ngonyaka odlule",
+    "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Laba bafundi bebeseqenjini ekupheleni konyaka odlule, basesikoleni futhi bayayihlangabezana nemithetho yalo manje. Engeza labo abaqhubekayo.",
+    "Add :name": "Engeza u-:name",
+    "Add as member": "Engeza njengelungu"
 }
