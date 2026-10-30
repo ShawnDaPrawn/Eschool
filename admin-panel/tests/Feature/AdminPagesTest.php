@@ -58,7 +58,8 @@ class AdminPagesTest extends TestCase
         $broken = [];
         foreach ($this->pageUris() as $uri) {
             $status = $client->get('/'.$uri)->status();
-            if (in_array($uri, self::PURPOSE_RESTRICTED, true)) {
+            // Every platform area page (/saas) is for platform staff only.
+            if (in_array($uri, self::PURPOSE_RESTRICTED, true) || str_starts_with($uri, 'saas/')) {
                 $this->assertSame(403, $status, 'School admin acquired a separate purpose: '.$uri);
 
                 continue;
