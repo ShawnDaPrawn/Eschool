@@ -71,7 +71,10 @@ class SendPush implements ShouldBeEncrypted, ShouldQueue
         }
         // Quiet hours (1.5): hold the push until they end, as a fresh job for
         // the same delivery, so the wait never uses up a retry.
-        $until = $type === null || $row?->recipient_user_id === null ? null : app(QuietHours::class)->holdUntil((int) $row->recipient_user_id, (string) $type);
+        // A synchronous queue cannot wait: re-dispatching would run at once and
+        // hold again forever, so there the push goes now.
+        $connection = $this->job?->getConnectionName() ?? $this->connection ?? config('queue.default');
+        $until = $type === null || $row?->recipient_user_id === null || $connection === 'sync' ? null : app(QuietHours::class)->holdUntil((int) $row->recipient_user_id, (string) $type);
         if ($until !== null) {
             self::dispatch($this->message, $this->deliveryKey)->delay($until);
             Log::info('notification_held_for_quiet_hours', ['delivery_key' => $this->deliveryKey, 'user_id' => $row?->recipient_user_id, 'until' => $until->utc()->toIso8601String()]);

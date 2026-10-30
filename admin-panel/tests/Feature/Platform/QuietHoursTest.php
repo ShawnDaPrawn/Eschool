@@ -72,6 +72,7 @@ class QuietHoursTest extends TestCase
 
     public function test_a_push_in_quiet_hours_waits_until_they_end_then_is_sent_once(): void
     {
+        config(['queue.default' => 'database']);
         $this->travelTo(CarbonImmutable::parse('2026-03-02 22:15', 'Africa/Johannesburg'));
         $user = $this->parent();
         $this->quiet($user);
@@ -93,6 +94,7 @@ class QuietHoursTest extends TestCase
 
     public function test_safety_notices_and_people_without_quiet_hours_are_never_held(): void
     {
+        config(['queue.default' => 'database']);
         $this->travelTo(CarbonImmutable::parse('2026-03-02 23:00', 'Africa/Johannesburg'));
         $quiet = $this->parent();
         $this->quiet($quiet);
@@ -161,5 +163,26 @@ class QuietHoursTest extends TestCase
         [$alert] = $this->queue($ios, 'attendance');
         $this->assertSame('attendance', $alert->message['message']['data']['channel']);
         $this->assertSame('time-sensitive', $alert->message['message']['apns']['payload']['aps']['interruption-level']);
+    }
+
+    public function test_a_synchronous_queue_sends_at_once_instead_of_holding_forever(): void
+    {
+        config(['queue.default' => 'sync']);
+        $this->travelTo(CarbonImmutable::parse('2026-03-02 22:15', 'Africa/Johannesburg'));
+        $user = $this->parent();
+        $this->quiet($user);
+        [$job] = $this->queue($user, 'notice');
+        $job->handle(app(FcmClient::class));
+        Http::assertSentCount(1);
+        $this->assertCount(1, Queue::pushed(SendPush::class), 'nothing re-queued');
+    }
+
+    public function test_an_overnight_end_is_set_on_the_release_day_across_a_clock_change(): void
+    {
+        $user = $this->parent();
+        app(QuietHours::class)->save($user, ['enabled' => true, 'starts_at' => '21:00', 'ends_at' => '01:30', 'timezone' => 'Europe/London']);
+        // 29 March 2026: British clocks go forward at 01:00, so 01:30 does not exist that night's morning, but does on 30 March.
+        $release = app(QuietHours::class)->holdUntil($user->id, 'comms.notice', CarbonImmutable::parse('2026-03-29 22:00', 'Europe/London'));
+        $this->assertSame('2026-03-30 01:30', $release->setTimezone('Europe/London')->format('Y-m-d H:i'));
     }
 }

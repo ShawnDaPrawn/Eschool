@@ -88,9 +88,10 @@ class QuietHours
             // Same-day hours, such as 13:00 to 14:00.
             return $local >= $start && $local < $end ? $end : null;
         }
-        // Overnight, such as 21:00 to 06:30.
+        // Overnight, such as 21:00 to 06:30. The end is set on the release
+        // day itself, so a clock change tonight cannot shift tomorrow's time.
         if ($local >= $start) {
-            return $end->addDay();
+            return $local->startOfDay()->addDay()->setTimeFromTimeString($row->ends_at);
         }
 
         return $local < $end ? $end : null;
