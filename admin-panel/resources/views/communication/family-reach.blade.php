@@ -36,6 +36,7 @@
             <p>{{ __('Every current learner has a guardian the school can reach.') }}</p>
         @else
             <p>{{ __('Invite a guardian, or ask them to verify their email address or sign in to the parent app.') }}</p>
+            <div class="m3-card m3-card--outlined"><div class="m3-card__content">
             <table class="table">
                 <caption>{{ __('Learners without a reachable guardian') }}</caption>
                 <thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Homeroom') }}</th><th scope="col">{{ __('Reason') }}</th></tr></thead>
@@ -45,6 +46,7 @@
                 @endforeach
                 </tbody>
             </table>
+            </div></div>
         @endif
     </section>
 </div>
