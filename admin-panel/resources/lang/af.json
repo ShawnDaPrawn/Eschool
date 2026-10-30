@@ -5881,5 +5881,8 @@
     "Something in the draft is not open for drafting. Check the draft again, then apply it.": "Iets in die konsep is nie oop vir 'n konsep nie. Gaan die konsep weer na en pas dit dan toe.",
     "Choose teachers who are on the staff.": "Kies onderwysers wat op die personeel is.",
     "There is no school year to draft for.": "Daar is geen skooljaar om 'n konsep voor te maak nie.",
-    ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": ":teachers onderrigtoekennings en :homerooms registerklastoekennings vir :year ingeskryf."
+    ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": ":teachers onderrigtoekennings en :homerooms registerklastoekennings vir :year ingeskryf.",
+    "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "'n Deel van die konsep het nie aangekom nie, dus is niks toegepas nie. Laai die konsep weer en pas dit weer toe.",
+    "Offered once the rows above are applied.": "Word aangebied sodra die rye hierbo toegepas is.",
+    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Hierdie konsep is te groot om in een slag te stuur. Pas dit toe, dan bied die bladsy die oorblywende :waiting aan."
 }

@@ -5881,5 +5881,8 @@
     "Something in the draft is not open for drafting. Check the draft again, then apply it.": "Okuthile ohlakeni akuvulekile ukuthi kwakhiwe. Hlola uhlaka futhi, bese uyalusebenzisa.",
     "Choose teachers who are on the staff.": "Khetha othisha abasebasebenzi.",
     "There is no school year to draft for.": "Awukho unyaka wesikole wokwakhela uhlaka.",
-    ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": "Izabelo zokufundisa ezingu-:teachers nezabelo zamakilasi ezingu-:homerooms zibhalelwe u-:year."
+    ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": "Izabelo zokufundisa ezingu-:teachers nezabelo zamakilasi ezingu-:homerooms zibhalelwe u-:year.",
+    "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "Enye ingxenye yohlaka ayifikanga, ngakho akukho okusetshenzisiwe. Layisha kabusha uhlaka bese uyalusebenzisa futhi.",
+    "Offered once the rows above are applied.": "Kuzonikezwa uma imigqa engenhla isisetshenzisiwe.",
+    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Lolu hlaka lukhulu kakhulu ukuthi luthunyelwe kanye. Lusebenzise, bese ikhasi linikeza ezingu-:waiting ezisele."
 }

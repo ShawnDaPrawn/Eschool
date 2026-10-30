@@ -175,11 +175,26 @@ class StaffDraftTest extends TestCase
         preg_match('/name="fingerprint" value="([a-f0-9]{64})"/', $page->getContent(), $match);
         $this->assertNotEmpty($match);
 
-        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'fingerprint' => $match[1],
+        $this->post(route('academic-allocations.draft.apply'), ['complete' => 1, 'year' => $this->next->id, 'fingerprint' => $match[1],
             'groups' => [$this->maths->id => [$this->tara]], 'homerooms' => [$this->schoolA->ids['section_a'] => [$this->tara]]])
             ->assertRedirect(route('academic-allocations.draft', ['year' => $this->next->id]))->assertSessionHas('success');
         $this->assertSame(2, $this->nextYearAllocations());
         $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertOk()->assertSee('Already allocated');
+    }
+
+    public function test_a_draft_cut_short_in_transit_is_refused_and_nothing_is_written(): void
+    {
+        $page = $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertOk();
+        preg_match('/name="fingerprint" value="([a-f0-9]{64})"/', $page->getContent(), $match);
+        // One field per drafted teacher, one empty field for a row with none, and the marker last.
+        $this->assertSame(1, substr_count($page->getContent(), 'name="groups['.$this->maths->id.'][]"'));
+        $this->assertSame(1, substr_count($page->getContent(), 'name="groups['.$this->science->id.'][]"'));
+        $this->assertGreaterThan(strrpos($page->getContent(), 'name="homerooms['), strpos($page->getContent(), 'name="complete"'));
+
+        // Past the server's input limit the trailing fields, the marker first, are dropped.
+        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'fingerprint' => $match[1],
+            'groups' => [$this->maths->id => [$this->tara]]])->assertSessionHasErrors('complete');
+        $this->assertSame(0, $this->nextYearAllocations());
     }
 
     public function test_a_teacher_cannot_build_or_apply_a_draft(): void
@@ -196,7 +211,7 @@ class StaffDraftTest extends TestCase
         }
         $this->actingAs($this->teacher());
         $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertForbidden();
-        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
+        $this->post(route('academic-allocations.draft.apply'), ['complete' => 1, 'year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
             'groups' => [$this->maths->id => [$this->tara]]])->assertForbidden();
         $this->assertSame(0, $this->nextYearAllocations());
     }
@@ -222,8 +237,8 @@ class StaffDraftTest extends TestCase
             }
         }
         $this->get(route('academic-allocations.draft', ['year' => $b['session_year']]))->assertNotFound();
-        $this->post(route('academic-allocations.draft.apply'), ['year' => $b['session_year'], 'fingerprint' => $plan['fingerprint']])->assertNotFound();
-        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
+        $this->post(route('academic-allocations.draft.apply'), ['complete' => 1, 'year' => $b['session_year'], 'fingerprint' => $plan['fingerprint']])->assertNotFound();
+        $this->post(route('academic-allocations.draft.apply'), ['complete' => 1, 'year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
             'groups' => [$foreign->id => [$this->tara]]])->assertSessionHasErrors('groups');
         $this->assertSame($before, [DB::table('teaching_allocations')->count(), DB::table('homeroom_allocations')->count()], 'Neither school gains an allocation');
         $this->assertSame(0, app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => TeachingAllocation::where('teaching_group_id', $foreign->id)->count()));
@@ -242,7 +257,7 @@ class StaffDraftTest extends TestCase
             $this->assertArrayHasKey('fingerprint', $e->errors());
         }
         $this->assertSame(1, $this->nextYearAllocations(), 'only the allocation made by hand');
-        $this->post(route('academic-allocations.draft.apply'), ['year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
+        $this->post(route('academic-allocations.draft.apply'), ['complete' => 1, 'year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
             'groups' => [$this->maths->id => [$this->tara]]])->assertSessionHasErrors('fingerprint');
         $this->assertSame(1, $this->nextYearAllocations());
     }

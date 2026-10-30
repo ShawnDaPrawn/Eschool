@@ -4808,5 +4808,8 @@
     "Something in the draft is not open for drafting. Check the draft again, then apply it.": "Something in the draft is not open for drafting. Check the draft again, then apply it.",
     "Choose teachers who are on the staff.": "Choose teachers who are on the staff.",
     "There is no school year to draft for.": "There is no school year to draft for.",
-    ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": ":teachers teaching allocations and :homerooms homeroom allocations written for :year."
+    ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": ":teachers teaching allocations and :homerooms homeroom allocations written for :year.",
+    "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.",
+    "Offered once the rows above are applied.": "Offered once the rows above are applied.",
+    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting."
 }

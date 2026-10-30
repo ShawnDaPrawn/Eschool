@@ -21,6 +21,8 @@ class StaffDraftRequest extends TeachingGroupRequest
         return [
             'year' => ['required', ...$year],
             'fingerprint' => ['required', 'string', 'size:64'],
+            // The form's last field: missing means the server dropped trailing choices.
+            'complete' => ['required', 'accepted'],
             'groups' => ['sometimes', 'array', 'max:2000'],
             'groups.*' => ['array', 'max:20'],
             'groups.*.*' => ['nullable', 'integer', 'min:1'],
@@ -28,5 +30,11 @@ class StaffDraftRequest extends TeachingGroupRequest
             'homerooms.*' => ['array', 'max:20'],
             'homerooms.*.*' => ['nullable', 'integer', 'min:1'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return ['complete.required' => __('Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.'),
+            'complete.accepted' => __('Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.')];
     }
 }

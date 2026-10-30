@@ -34,6 +34,12 @@ class StaffDrafts
 {
     public const REASON = 'Drafted from last year';
 
+    /**
+     * Teacher fields in one submission, well within PHP's default
+     * max_input_vars (1000); later rows are offered once these are applied.
+     */
+    public const FIELDS_PER_SUBMISSION = 900;
+
     /** The year a draft goes into: next year while it is being prepared, otherwise the current one. */
     public function defaultYear(): ?SessionYear
     {
@@ -62,7 +68,7 @@ class StaffDrafts
      * each either already staffed (left alone) or open, with last year's
      * teachers suggested where they are still on the staff.
      *
-     * @return array{to: SessionYear, from: SessionYear, starts_on: string, ends_on: string, groups: list<array<string, mixed>>, homerooms: list<array<string, mixed>>, teachers: array<int, string>, fingerprint: string}
+     * @return array{to: SessionYear, from: SessionYear, starts_on: string, ends_on: string, groups: list<array<string, mixed>>, homerooms: list<array<string, mixed>>, teachers: array<int, string>, waiting: int, fingerprint: string}
      */
     public function plan(User $actor, SessionYear $to): array
     {
@@ -106,9 +112,22 @@ class StaffDrafts
             $homerooms[] = ['id' => $id, 'name' => trim($rooms[$id]->class?->name.' '.$rooms[$id]->section?->name)] + $this->row($staffed, $last, $teachers);
         }
 
+        // One field per drafted teacher, or one for a row with none, until the budget runs out.
+        $fields = 0;
+        $waiting = 0;
+        foreach (['groups', 'homerooms'] as $kind) {
+            foreach ($$kind as &$row) {
+                $needs = max(1, count($row['draft']));
+                $row['in_form'] = $row['staffed'] === [] && $fields + $needs <= self::FIELDS_PER_SUBMISSION;
+                $fields += $row['in_form'] ? $needs : 0;
+                $waiting += $row['staffed'] === [] && ! $row['in_form'] ? 1 : 0;
+            }
+            unset($row);
+        }
+
         return [
             'to' => $to, 'from' => $from, 'starts_on' => $startsOn, 'ends_on' => $endsOn,
-            'groups' => $groups, 'homerooms' => $homerooms, 'teachers' => $teachers,
+            'groups' => $groups, 'homerooms' => $homerooms, 'teachers' => $teachers, 'waiting' => $waiting,
             'fingerprint' => $this->fingerprint($to, $from, $groups, $homerooms, $teachers),
         ];
     }
@@ -166,7 +185,7 @@ class StaffDrafts
      */
     private function chosen(array $submitted, array $rows, array $teachers, string $field): array
     {
-        $open = collect($rows)->filter(fn (array $row) => $row['staffed'] === [])->pluck('id')->flip();
+        $open = collect($rows)->filter(fn (array $row) => $row['in_form'])->pluck('id')->flip();
         $result = [];
         foreach ($submitted as $id => $people) {
             if (! ctype_digit((string) $id) || ! $open->has((int) $id)) {

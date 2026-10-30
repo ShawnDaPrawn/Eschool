@@ -98,6 +98,7 @@ Rules:
 - The draft is not stored. Before applying, nothing is written, so no teacher can see the year's groups through it.
 - The page carries a fingerprint of the draft's allocations (this year's and last year's, and who is on the staff). Applying recomputes it and refuses, writing nothing, if anything changed. Applying the same draft twice therefore writes nothing the second time; the new draft shows those rows as already allocated.
 - A row that is not open in the draft (another school's group or homeroom, or one already allocated) and a teacher who is not on this school's staff are refused, with nothing written.
+- The form stays within PHP's input limit (`max_input_vars`, 1000 by default): one field per drafted teacher, or a single field for a row with none, and at most 900 such fields per submission (`StaffDrafts::FIELDS_PER_SUBMISSION`). Any later rows are offered once these are applied. The form's last field is a completeness marker. A submission without it, which is what happens when the server drops trailing fields, is refused with nothing applied.
 
 Data: no new table. It reads and writes `teaching_allocations` and `homeroom_allocations`.
 
@@ -108,6 +109,7 @@ Acceptance tests (`Academics/StaffDraftTest`):
 | `test_the_draft_prefills_last_years_staff_and_applying_writes_the_new_year` | Maths 7A (Theo until June, then Tara) drafts Tara; Science 7 is new and empty; 7A and 7C draft their homeroom teachers. Nothing is written and a teacher cannot open the group before applying. The edited draft writes 2027 allocations; applying it again is refused and writes nothing. |
 | `test_a_teacher_who_left_the_staff_is_shown_but_not_drafted` | Theo is shown for 7C as no longer on the staff, not drafted, and cannot be chosen. |
 | `test_the_allocations_page_builds_and_applies_the_draft` | The page offers the step, shows the draft and applies it. |
+| `test_a_draft_cut_short_in_transit_is_refused_and_nothing_is_written` | The page sends one field per row here and the marker last. A submission without the marker is refused and writes nothing. |
 | `test_a_teacher_cannot_build_or_apply_a_draft` | 403 from the service and both routes; nothing written. |
 | `test_another_schools_groups_teachers_and_years_are_refused` | School B's group, teacher, homeroom or year from School A: refused (validation error or 404); neither school gains an allocation. |
 | `test_a_draft_built_before_allocations_changed_is_refused` | An allocation made by hand after the draft was built makes applying it fail, through the service and the page. |
