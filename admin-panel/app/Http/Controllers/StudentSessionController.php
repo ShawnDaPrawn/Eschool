@@ -125,7 +125,7 @@ class StudentSessionController extends Controller
                 }
                 $session->save();
                 if ($status == 0 && $takesEffectNow) {
-                    app(LeaverState::class)->begin([$student->id], SessionYear::query()->findOrFail($newSessionYear));
+                    app(LeaverState::class)->begin([$student->id], SessionYear::query()->findOrFail($newSessionYear), midYear: true);
                 }
             }
 

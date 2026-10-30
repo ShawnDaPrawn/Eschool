@@ -170,7 +170,7 @@ class GradePromotion
                     Students::query()->whereIn('id', $learners)->update(['class_section_id' => $room]);
                 }
                 if ($leavers !== []) {
-                    app(LeaverState::class)->begin($leavers, $to);
+                    app(LeaverState::class)->begin($leavers, $to, midYear: true);
                 }
             }
             Audit::record('people.grade_promotion_committed', $to, [], ['from_year' => $from->id, 'to_year' => $to->id, 'counts' => $done, 'by' => $actor->id]);

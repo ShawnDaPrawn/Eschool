@@ -229,7 +229,7 @@ class NewYearService
             'leaving' => StudentSessions::where('session_year_id', $to->id)->where('status', 0)->count(),
             'learners' => StudentSessions::where('session_year_id', $from->id)->where('status', 1)->distinct()->count('student_id'),
             // Leavers read their records until then (LeaverState, 1.21).
-            'leaver_until' => app(LeaverState::class)->defaultUntil($to),
+            'leaver_until' => app(LeaverState::class)->untilForSwitch($to),
         ];
     }
 

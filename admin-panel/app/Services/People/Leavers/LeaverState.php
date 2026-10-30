@@ -13,6 +13,9 @@ use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\People\EnrolmentService;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Events\ContextChanged;
+use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -22,12 +25,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * The leaver state (Action Plan 1.21). A learner marked as leaving a year
  * does not lose their account when that year becomes current: their Student
  * membership at the school becomes a leaver membership until leaver_until
- * (31 March by default). Until the end of that day they, and their guardians,
+ * (31 March after a switch; see untilForSwitch and untilMidYear). Until the end of that day they, and their guardians,
  * may read the school's records about them and write nothing for them there;
  * then their access to those records stops.
  *
@@ -60,39 +64,97 @@ class LeaverState
 
     public function today(): string
     {
-        return now(app(CurrentSchool::class)->school()?->timezone ?? config('app.timezone', 'UTC'))->toDateString();
+        return now(app(CurrentSchool::class)->school()?->timezone ?? 'Africa/Johannesburg')->toDateString();
     }
 
     /**
-     * The default last day: the first 31 March on or after the later of today
-     * and the new year's first day (31 March 2027 for a year starting in
-     * January 2027, whether the switch is in December or January).
+     * The last day for learners leaving at the switch into $year: 31 March of
+     * the calendar year the new year starts in (31 March 2027 for a year
+     * starting in January 2027). If that day has already passed when the
+     * switch happens, access lasts config('leavers.access_days') days.
      */
-    public function defaultUntil(SessionYear $year): string
+    public function untilForSwitch(SessionYear $year): string
     {
-        $from = max($this->today(), CarbonImmutable::parse((string) $year->start_date)->toDateString());
-        $until = CarbonImmutable::parse($from)->setDate((int) substr($from, 0, 4), self::UNTIL_MONTH, self::UNTIL_DAY);
+        $until = CarbonImmutable::parse((string) $year->start_date)->setDate((int) CarbonImmutable::parse((string) $year->start_date)->format('Y'), self::UNTIL_MONTH, self::UNTIL_DAY)->toDateString();
 
-        return ($until->toDateString() < $from ? $until->addYear() : $until)->toDateString();
+        return $until >= $this->today() ? $until : $this->afterDays();
+    }
+
+    /**
+     * The last day for a learner marked as leaving the year already in use:
+     * config('leavers.access_days') days from today, never past the next 31
+     * March.
+     */
+    public function untilMidYear(): string
+    {
+        $today = CarbonImmutable::parse($this->today());
+        $march = $today->setDate((int) $today->format('Y'), self::UNTIL_MONTH, self::UNTIL_DAY);
+        if ($march->toDateString() < $today->toDateString()) {
+            $march = $march->addYear();
+        }
+
+        return min($this->afterDays(), $march->toDateString());
+    }
+
+    private function afterDays(): string
+    {
+        return CarbonImmutable::parse($this->today())->addDays(max(1, (int) config('leavers.access_days', 90)))->toDateString();
+    }
+
+    /**
+     * True for a request that changes something: not a safe method, and not
+     * a read sent as POST or a read receipt (config('leavers.read_only.allow')).
+     * Outside a request (console, queue) nothing is a family write.
+     */
+    public static function writing(): bool
+    {
+        if (! app()->bound('request')) {
+            return false;
+        }
+        $request = request();
+
+        return ! $request->isMethodSafe() && ! $request->is(...(array) config('leavers.read_only.allow', []));
+    }
+
+    /**
+     * Refuse a family write for a leaver: the learner themselves or a
+     * guardian, whatever other roles the person holds. Called by the helpers
+     * that authorise a learner or guardian for one learner (ReleasedMarks,
+     * CheckChild, ParentAccess, LearnerAccessPolicy and others), so it does
+     * not depend on how the request names the learner. Reads go on.
+     */
+    public function guardFamilyWrite(Students|int $learner): void
+    {
+        if (self::writing() && $this->isLeaver($learner instanceof Students ? (int) $learner->id : $learner)) {
+            throw new AccessDeniedHttpException(trans('leaver_read_only'));
+        }
     }
 
     /**
      * Learners marked as leaving a year that is now current enter the leaver
      * state; so does each of their guardians who has no current child left at
      * the school. Learners already in it (a second switch) are left alone.
-     * Called by the switch (SessionYearService::applyPromotions) and the
-     * promotion pages, which check their own permissions.
+     * Called by the switch (SessionYearService::applyPromotions, $midYear
+     * false) and by the promotion pages when the year is already in use
+     * ($midYear true), which check their own permissions.
      *
      * @param  iterable<int|string>  $learnerIds
      * @return int how many learners entered the leaver state
      */
-    public function begin(iterable $learnerIds, SessionYear $year): int
+    public function begin(iterable $learnerIds, SessionYear $year, bool $midYear = false): int
     {
         $ids = collect($learnerIds)->map(fn ($id) => (int) $id)->unique()->values();
         if ($ids->isEmpty()) {
             return 0;
         }
-        $until = $this->defaultUntil($year);
+
+        // One transaction (a savepoint inside the switch's), so the outbox event commits with the change.
+        return DB::transaction(fn () => $this->enter($ids->all(), $midYear ? $this->untilMidYear() : $this->untilForSwitch($year)));
+    }
+
+    /** @param  list<int>  $ids */
+    private function enter(array $ids, string $until): int
+    {
         $entered = 0;
         $guardians = [];
         foreach (Students::query()->with('user')->whereIn('id', $ids)->get() as $learner) {
@@ -108,8 +170,9 @@ class LeaverState
             }
             app(AlumniInvitations::class)->leaverStarted($learner, $membership);
         }
-        foreach (array_unique($guardians) as $guardianId) {
-            $this->settleGuardian((int) $guardianId);
+        $this->settleGuardians($guardians);
+        if ($entered > 0) {
+            Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'people.leavers_changed'));
         }
 
         return $entered;
@@ -120,6 +183,11 @@ class LeaverState
      * learners, "continue") is a current learner again, with their guardians.
      */
     public function cancel(Students $learner): void
+    {
+        DB::transaction(fn () => $this->reinstate($learner));
+    }
+
+    private function reinstate(Students $learner): void
     {
         $membership = $this->studentMembership($learner)->whereNotNull('leaver_until')
             ->whereIn('status', [SchoolMembership::LEAVER, SchoolMembership::ENDED])->lockForUpdate()->first();
@@ -136,6 +204,7 @@ class LeaverState
         if ($learner->user !== null) {
             $this->memberships->forget($learner->user);
         }
+        Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'people.leavers_changed'));
     }
 
     /**
@@ -172,7 +241,8 @@ class LeaverState
     /**
      * The office ends a leaver's access today, before leaver_until. Their
      * guardians lose it too unless another of their children at the school is
-     * still a current learner or a leaver.
+     * still a current learner or a leaver. Anyone left with no active
+     * membership anywhere is signed out of the apps and the portals.
      */
     public function endAccess(User $actor, int $learnerId): void
     {
@@ -187,12 +257,11 @@ class LeaverState
             $guardians = $this->guardians->guardianUserIds($learner)->all();
             $before = ['leaver_until' => $membership->leaver_until?->toDateString()];
             $membership->fill(['status' => SchoolMembership::ENDED, 'ends_on' => $this->today()])->save();
-            foreach ($guardians as $guardianId) {
-                $this->settleGuardian((int) $guardianId);
+            $this->settleGuardians($guardians);
+            foreach ([(int) $learner->user_id, ...array_map('intval', $guardians)] as $userId) {
+                $this->signOutIfNoAccessLeft($userId);
             }
-            if ($learner->user !== null) {
-                $this->memberships->forget($learner->user);
-            }
+            Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'people.leavers_changed'));
             Audit::record('people.leaver_access_ended', $learner, $before, ['ends_on' => $this->today(), 'by' => $actor->id]);
         });
     }
@@ -284,30 +353,52 @@ class LeaverState
     }
 
     /**
-     * A guardian whose children at the school are all leavers becomes a
-     * leaver too, until the last of their leaver_until dates; one with none
-     * left reading loses access today. One with a current child is unchanged.
+     * Settle each guardian's membership after one of their children left, was
+     * removed or transferred out: a guardian with a current child here is
+     * unchanged; one whose children here are all leavers still reading is a
+     * leaver until the last of their dates; one with neither loses access
+     * today. Called by begin and endAccess, RemoveLearner and the outgoing
+     * transfer (TransferEnrollment::closeSource).
+     *
+     * @param  iterable<int|string>  $guardianUserIds
      */
-    private function settleGuardian(int $guardianUserId): void
+    public function settleGuardians(iterable $guardianUserIds): void
     {
         $school = app(CurrentSchool::class)->id();
-        $membership = SchoolMembership::query()->where('school_id', $school)->where('user_id', $guardianUserId)->where('role', 'Parent')
-            ->whereIn('status', [SchoolMembership::ACTIVE, SchoolMembership::LEAVER])->lockForUpdate()->first();
-        if ($membership === null) {
+        foreach (collect($guardianUserIds)->map(fn ($id) => (int) $id)->unique() as $guardianUserId) {
+            $membership = SchoolMembership::query()->where('school_id', $school)->where('user_id', $guardianUserId)->where('role', 'Parent')
+                ->whereIn('status', [SchoolMembership::ACTIVE, SchoolMembership::LEAVER])->lockForUpdate()->first();
+            if ($membership === null) {
+                continue;
+            }
+            $children = fn () => $this->guardians->childrenFor($guardianUserId, (int) (Parents::query()->where('user_id', $guardianUserId)->value('id') ?? 0));
+            $current = SchoolMembership::query()->active()->where('school_id', $school)->where('role', 'Student')->select('user_id');
+            if ($children()->whereIn('user_id', $current)->exists()) {
+                continue;
+            }
+            $until = $this->inPeriodMemberships()->whereIn('user_id', $children()->select('user_id'))->max('leaver_until');
+            if ($until !== null) {
+                $last = CarbonImmutable::parse((string) $until)->toDateString();
+                $membership->fill(['status' => SchoolMembership::LEAVER, 'leaver_until' => $last, 'ends_on' => $last])->save();
+            } else {
+                $membership->fill(['status' => SchoolMembership::ENDED, 'ends_on' => $this->today()])->save();
+            }
+            $this->forget($guardianUserId);
+        }
+    }
+
+    /** No active membership left anywhere: end the person's app tokens and portal sessions. */
+    private function signOutIfNoAccessLeft(int $userId): void
+    {
+        $user = User::acrossSchools()->find($userId);
+        if ($user === null) {
             return;
         }
-        $children = fn () => $this->guardians->childrenFor($guardianUserId, (int) (Parents::query()->where('user_id', $guardianUserId)->value('id') ?? 0));
-        $current = SchoolMembership::query()->active()->where('school_id', $school)->where('role', 'Student')->select('user_id');
-        if ($children()->whereIn('user_id', $current)->exists()) {
-            return;
+        $this->memberships->forget($user);
+        if ($this->memberships->active($user)->isEmpty()) {
+            AppTokens::revokeAll($user);
+            DB::table('sessions')->where('user_id', $user->id)->delete();
         }
-        $until = $this->inPeriodMemberships()->whereIn('user_id', $children()->select('user_id'))->max('leaver_until');
-        if ($until !== null) {
-            $membership->fill(['status' => SchoolMembership::LEAVER, 'leaver_until' => CarbonImmutable::parse((string) $until)->toDateString(), 'ends_on' => CarbonImmutable::parse((string) $until)->toDateString()])->save();
-        } elseif ($membership->status === SchoolMembership::LEAVER) {
-            $membership->fill(['status' => SchoolMembership::ENDED, 'ends_on' => $this->today()])->save();
-        }
-        $this->forget($guardianUserId);
     }
 
     private function forget(int $userId): void

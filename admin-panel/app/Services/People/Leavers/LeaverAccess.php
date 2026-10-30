@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\People\Leavers;
 
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
@@ -13,34 +14,54 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 /**
  * Read-only for leavers (Action Plan 1.21), checked by the school.context
  * middleware once it has chosen the school, on every signed-in panel, v1 and
- * v2 request:
+ * v2 request. It applies to the role being used, not to the whole person:
  *
  * - a person whose every membership at the school is a leaver one (a leaver,
  *   or a guardian whose children there all left) may read and may not write;
- * - a learner or guardian with a current membership (a guardian with another
- *   child still at the school) may not write for a leaver: a write that names
- *   one (the learner, person, child_id, learner_id or student_id of the
- *   route or request) is refused. Staff act as staff and are not affected.
+ * - on a family route (the parent and learner APIs, v1 and v2) a write is
+ *   refused when the person's membership for that route's role is a leaver
+ *   one, even if they are also staff (a teacher whose only child left);
+ * - on a family route, or for someone who holds only family roles, a write
+ *   that names a leaver (route learner or person, learner_id, child_id or
+ *   student_id) is refused.
  *
- * Reads go on through the usual checks, which give a leaver's records to the
- * leaver and their guardians until leaver_until (see LeaverState).
+ * This is the outer check. The helpers that authorise a learner or guardian
+ * for one learner refuse family writes for a leaver themselves, however the
+ * request names the learner (LeaverState::guardFamilyWrite). Reads go on
+ * through the usual checks until leaver_until.
  */
 class LeaverAccess
 {
     /** Route parameters and request fields that name a learner (students.id). */
     private const LEARNER_FIELDS = ['learner', 'learner_id', 'child_id', 'student_id'];
 
+    /** Family routes and the role each one acts with. */
+    private const FAMILY_ROUTES = [
+        'Parent' => ['api/parent/*', 'api/v2/parent/*', 'api/v2/guardian/*'],
+        'Student' => ['api/student/*', 'api/v2/student/*'],
+    ];
+
     public function __construct(private readonly MembershipService $memberships) {}
 
     public function assertWritable(Request $request, User $user, int $schoolId): void
     {
-        if ($request->isMethodSafe() || $request->is(...(array) config('leavers.read_only.allow', []))) {
+        if (! LeaverState::writing()) {
             return;
         }
         if ($this->memberships->readOnlyAt($user, $schoolId)) {
             throw new AccessDeniedHttpException(trans('leaver_read_only'));
         }
-        if (! $this->memberships->familyOnlyAt($user, $schoolId)) {
+        $role = null;
+        foreach (self::FAMILY_ROUTES as $name => $patterns) {
+            if ($request->is(...$patterns)) {
+                $role = $name;
+            }
+        }
+        $here = $this->memberships->active($user)->where('school_id', $schoolId);
+        if ($role !== null && $here->where('role', $role)->isNotEmpty() && $here->where('role', $role)->every(fn ($m) => $m->status === SchoolMembership::LEAVER)) {
+            throw new AccessDeniedHttpException(trans('leaver_read_only'));
+        }
+        if ($role === null && ! $this->memberships->familyOnlyAt($user, $schoolId)) {
             return;
         }
         $state = app(LeaverState::class);

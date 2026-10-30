@@ -6,22 +6,32 @@ namespace Tests\Feature\Academics;
 
 use App\Models\Leave;
 use App\Models\People\Enrolment;
+use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\ProfileFieldValue;
+use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Models\StudentOnlineExamStatus;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\NewYearService;
+use App\Services\Academics\ReleasedMarks;
 use App\Services\People\Leavers\AlumniInvitations;
 use App\Services\People\Leavers\LeaverState;
 use App\Services\People\Profiles\ProfileDefinitions;
 use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Identity\GuardianService;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
@@ -307,11 +317,151 @@ class LeaverStateTest extends TestCase
         $this->assertSame(SchoolMembership::LEAVER, $this->membership('ben', 'Student')->status, 'School A\'s Ben unchanged by the refused restore');
     }
 
-    public function test_the_wizard_preview_names_the_last_day_and_a_late_switch_moves_it_to_next_march(): void
+    public function test_the_wizard_preview_names_the_last_day_and_late_or_mid_year_leavers_get_90_days_up_to_31_march(): void
     {
         $this->actingAs($this->superAdmin())->get(route('new-year.index'))->assertOk()->assertSee('until 31 Mar 2027');
-        $this->travelTo(now()->setDate(2027, 5, 2));
+        $state = app(LeaverState::class);
         app(CurrentSchool::class)->set(1);
-        $this->assertSame('2028-03-31', app(LeaverState::class)->defaultUntil(SessionYear::findOrFail($this->next)));
+        $this->assertSame('2027-03-31', $state->untilForSwitch(SessionYear::findOrFail($this->next)));
+        // A switch after that 31 March: 90 days from the switch, not the next March.
+        $this->travelTo(now()->setDate(2027, 4, 5));
+        $this->assertSame('2027-07-04', $state->untilForSwitch(SessionYear::findOrFail($this->next)));
+        // Marked as leaving mid-year: 90 days, never past the next 31 March.
+        $this->travelTo(now()->setDate(2027, 6, 1));
+        $this->assertSame('2027-08-30', $state->untilMidYear());
+        $this->travelTo(now()->setDate(2027, 2, 1));
+        $this->assertSame('2027-03-31', $state->untilMidYear());
+        config(['leavers.access_days' => 30]);
+        $this->assertSame('2027-03-03', $state->untilMidYear());
+    }
+
+    public function test_writes_that_name_a_leaver_by_a_record_id_are_refused_by_the_family_helpers(): void
+    {
+        $this->transportField();
+        $ids = $this->schoolA->ids;
+        $leave = Leave::query()->create(['user_id' => $ids['asha_user'], 'reason' => 'Dentist', 'from_date' => '2027-02-01', 'to_date' => '2027-02-01', 'status' => 0, 'session_year_id' => $this->year]);
+        $this->switchYear();
+
+        // v1: the leave is found through the parent's children, not a learner field.
+        $this->as('farid')->postJson('/api/parent/delete-leave', ['leave_id' => $leave->id])->assertForbidden();
+        $this->assertTrue(Leave::query()->whereKey($leave->id)->exists());
+        // Approving, withdrawing and choosing a handle (LearnerAccessPolicy) are refused.
+        $farid = User::findOrFail($ids['farid_user']);
+        $this->assertTrue(Gate::forUser($farid)->inspect('approveAccess', Students::findOrFail($ids['asha']))->denied());
+        $this->assertTrue(Gate::forUser($farid)->inspect('approveAccess', Students::findOrFail($ids['cara']))->allowed());
+        // ReleasedMarks::learner (discipline acknowledgements, register QR, tutors) refuses a write and allows a read.
+        $this->app->instance('request', Request::create('/api/v2/discipline/family/records/1/acknowledge', 'POST'));
+        try {
+            app(ReleasedMarks::class)->learner($farid, $ids['asha']);
+            $this->fail('A write for a leaver was allowed.');
+        } catch (AccessDeniedHttpException) {
+        }
+        $this->assertSame($ids['cara'], (int) app(ReleasedMarks::class)->learner($farid, $ids['cara'])->id);
+        $this->app->instance('request', Request::create('/api/v2/academics/reports/learners/'.$ids['asha'], 'GET'));
+        $this->assertSame($ids['asha'], (int) app(ReleasedMarks::class)->learner($farid, $ids['asha'])->id);
+    }
+
+    public function test_a_guardian_or_former_learner_who_is_also_staff_writes_nothing_for_a_leaver(): void
+    {
+        app(CurrentSchool::class)->set(1);
+        User::findOrFail($this->schoolA->ids['gina_user'])->assignRole('Teacher');
+        User::findOrFail($this->schoolA->ids['ben_user'])->assignRole('Teacher');
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        $this->assertSame([SchoolMembership::LEAVER, SchoolMembership::ACTIVE], [$this->membership('gina', 'Parent')->status, $this->membership('gina', 'Teacher')->status]);
+
+        $leaves = Leave::query()->count();
+        $this->as('gina')->postJson('/api/parent/apply-leave', ['child_id' => $ids['ben'], 'reason' => 'Trip', 'leave_details' => []])->assertForbidden();
+        $this->assertSame($leaves, Leave::query()->count());
+        $this->as('gina')->getJson('/api/v2/academics/marks/learners/'.$ids['ben'].'/periods')->assertOk();
+
+        // Ben, now also staff: his learner role counts for reading, never for writing.
+        $ben = User::findOrFail($ids['ben_user']);
+        $this->app->instance('request', Request::create('/api/v2/me/profile', 'PUT'));
+        $this->assertNotContains('Student', app(ProfilePolicy::class)->roles($ben));
+        $this->app->instance('request', Request::create('/api/v2/me/profile', 'GET'));
+        $this->assertContains('Student', app(ProfilePolicy::class)->roles($ben));
+    }
+
+    public function test_leavers_and_their_guardians_sign_in_and_read_through_the_v1_apps(): void
+    {
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        $this->fresh();
+        $login = $this->postJson('/api/student/login', ['gr_number' => User::findOrFail($ids['ben_user'])->email, 'password' => 'secret123'])->assertOk()->assertJsonPath('error', false);
+        $token = (string) $login->json('token');
+        $this->assertNotSame('', $token);
+
+        $learner = fn () => tap($this, fn () => $this->fresh())->withToken($token);
+        $learner()->getJson('/api/student/get-profile-data')->assertOk()->assertJsonPath('error', false)->assertJsonPath('data.class_section_id', $ids['section_a']);
+        $learner()->postJson('/api/student/get-leave-list', [])->assertOk();
+        $learner()->getJson('/api/student/timetable')->assertForbidden();
+        $statuses = StudentOnlineExamStatus::query()->count();
+        $learner()->getJson('/api/student/get-online-exam-questions?exam_id='.$ids['past_online_exam'].'&exam_key=1')->assertForbidden();
+        $this->assertSame($statuses, StudentOnlineExamStatus::query()->count());
+        $learner()->postJson('/api/student/apply-leave', ['reason' => 'Trip', 'leave_details' => []])->assertForbidden();
+
+        // Gina's only child left; Farid has one current child and one leaver.
+        foreach (['gina', 'farid'] as $guardian) {
+            $this->fresh();
+            $this->postJson('/api/parent/login', ['email' => User::findOrFail($ids[$guardian.'_user'])->email, 'password' => 'secret123'])->assertOk()->assertJsonPath('error', false);
+        }
+    }
+
+    public function test_after_expiry_the_context_lists_no_leaver_and_a_leaver_elsewhere_lands_on_their_current_school(): void
+    {
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        $children = fn () => collect($this->as('farid')->getJson('/api/v2/me/context')->assertOk()->json('data.children'))->pluck('id')->all();
+        $this->assertContains($ids['asha'], $children());
+        $this->travelTo(now()->setDate(2027, 4, 1));
+        $this->assertSame([$ids['cara']], $children());
+
+        // Ben a leaver at School A, a current member of School B.
+        SchoolMembership::query()->insert(['user_id' => $ids['ben_user'], 'school_id' => self::SCHOOL_B_ID, 'role' => 'Parent', 'status' => SchoolMembership::ACTIVE, 'starts_on' => '2026-01-01', 'created_at' => now(), 'updated_at' => now()]);
+        $this->travelTo(now()->setDate(2027, 2, 1));
+        $this->fresh();
+        $this->assertSame(self::SCHOOL_B_ID, (int) app(MembershipService::class)->defaultSchool(User::findOrFail($ids['ben_user']))?->id);
+    }
+
+    public function test_guardians_settle_when_a_current_child_goes_and_ending_access_signs_people_out(): void
+    {
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        // Cara removed: Farid's only child here is Asha, a leaver.
+        app(MembershipService::class)->end(User::findOrFail($ids['cara_user']), 1, 'Student');
+        app(LeaverState::class)->settleGuardians([$ids['farid_user']]);
+        $this->assertSame([SchoolMembership::LEAVER, '2027-03-31'], [$this->membership('farid', 'Parent')->status, $this->membership('farid', 'Parent')->leaver_until->toDateString()]);
+
+        $events = OutboxEvent::query()->where('type', 'context.changed')->count();
+        $this->actingAs($this->superAdmin())->post(route('leavers.end', $ids['asha']), ['confirm' => 1])->assertRedirect();
+        $this->assertSame(SchoolMembership::ENDED, $this->membership('farid', 'Parent')->status);
+        $this->assertSame(SchoolMembership::ENDED, $this->membership('mona', 'Parent')->status);
+        $this->assertSame($events + 1, OutboxEvent::query()->where('type', 'context.changed')->count());
+        foreach (['asha', 'mona', 'farid'] as $who) {
+            $this->assertSame(0, DB::table('personal_access_tokens')->where('tokenable_id', $ids[$who.'_user'])->count(), $who.' signed out');
+        }
+        $this->assertGreaterThan(0, DB::table('personal_access_tokens')->where('tokenable_id', $ids['ben_user'])->count());
+    }
+
+    public function test_former_learners_are_not_offered_as_current_learners(): void
+    {
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        $this->actingAs($this->superAdmin())->get(route('teaching-groups.create'))->assertOk()
+            ->assertViewHas('learners', fn (array $learners) => ! array_key_exists($ids['ben'], $learners) && array_key_exists($ids['cara'], $learners));
+    }
+
+    public function test_expiry_follows_the_school_calendar_in_south_africa(): void
+    {
+        School::query()->whereKey(1)->update(['timezone' => 'Africa/Johannesburg']);
+        $this->switchYear();
+        $ids = $this->schoolA->ids;
+        $this->travelTo(CarbonImmutable::parse('2027-03-31 21:30:00', 'UTC'));
+        $this->as('ben')->getJson('/api/v2/academics/reports/learners/'.$ids['ben'])->assertOk();
+        // 22:30 UTC on 31 March is 00:30 on 1 April in Johannesburg.
+        $this->travelTo(CarbonImmutable::parse('2027-03-31 22:30:00', 'UTC'));
+        $this->as('ben')->getJson('/api/v2/academics/reports/learners/'.$ids['ben'])->assertForbidden();
+        $this->as('gina')->getJson('/api/v2/academics/marks/learners/'.$ids['ben'].'/periods')->assertForbidden();
     }
 }

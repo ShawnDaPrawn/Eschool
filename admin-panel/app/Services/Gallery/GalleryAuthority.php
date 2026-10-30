@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Activities\CommunityAuthority;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Modules\ModuleGate;
@@ -65,6 +66,10 @@ class GalleryAuthority
             $parent = $parent && GuardianLink::where('learner_id', $learnerId)->where('guardian_user_id', $fresh->id)->where('status', 'active')->where('can_approve', true)->exists();
         }
         abort_unless($own || $parent, 404);
+        // A guardian may still remove a leaver's photo tag; nothing else is written for them (1.21).
+        if ($write && ! $removal) {
+            app(LeaverState::class)->guardFamilyWrite($learner);
+        }
         if ($own) {
             abort_unless(app(ApprovalService::class)->approved($learner), 403, 'Guardian approval is required.');
         }

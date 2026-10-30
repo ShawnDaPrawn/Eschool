@@ -7,6 +7,7 @@ namespace App\Policies\Platform;
 use App\Models\Platform\GuardianLink;
 use App\Models\Students;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use Illuminate\Auth\Access\Response;
 
 class LearnerAccessPolicy
@@ -31,6 +32,10 @@ class LearnerAccessPolicy
     {
         if (! $user->hasRole('Parent') || (int) $user->status !== 1 || $user->email_verified_at === null) {
             return Response::deny();
+        }
+        // Approving, withdrawing or choosing a handle is a write: not for a leaver (Action Plan 1.21).
+        if (app(LeaverState::class)->isLeaver((int) $learner->id)) {
+            return Response::deny(trans('leaver_read_only'));
         }
 
         return GuardianLink::query()->where('learner_id', $learner->id)->where('guardian_user_id', $user->id)

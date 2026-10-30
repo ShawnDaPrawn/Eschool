@@ -15,6 +15,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Identity\GuardianService;
@@ -64,6 +65,10 @@ class FamilyFormAccess
         $this->learner($learnerId, ! $revocation);
         $parent = (int) (Parents::where('user_id', $fresh->id)->value('id') ?? 0);
         abort_unless(app(GuardianService::class)->childrenFor((int) $fresh->id, $parent)->whereKey($learnerId)->exists(), 404);
+        // Withdrawing consent stays open for a leaver's guardian; other answers do not (1.21).
+        if (($write || $attest) && ! $revocation) {
+            app(LeaverState::class)->guardFamilyWrite($learnerId);
+        }
         if ($write || $attest) {
             abort_unless($fresh->email_verified_at !== null, 403);
             $link = GuardianLink::where('learner_id', $learnerId)->where('guardian_user_id', $fresh->id)->first();

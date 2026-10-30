@@ -30,17 +30,23 @@ class ProfilePolicy
         return $fresh;
     }
 
-    /** Roles that may reach the school's records today: a leaver's count until their leaver_until (Action Plan 1.21). */
-    public function roles(User $person): array
+    /**
+     * Roles that may reach the school's records today. A leaver's role counts
+     * for reading until their leaver_until (Action Plan 1.21), never for a
+     * write: a former learner or guardian who is also staff writes as staff.
+     */
+    public function roles(User $person, bool $acting = true): array
     {
-        return SchoolMembership::query()->reachable()->where('school_id', app(CurrentSchool::class)->id())
+        return SchoolMembership::query()->when($acting && LeaverState::writing(), fn ($q) => $q->active(), fn ($q) => $q->reachable())
+            ->where('school_id', app(CurrentSchool::class)->id())
             ->where('user_id', $person->id)->pluck('role')->unique()->values()->all();
     }
 
+    /** The profiles a person has here (a leaver's learner profile stays one, for the office to read and edit). */
     public function types(User $person): array
     {
         $types = [];
-        foreach ($this->roles($person) as $role) {
+        foreach ($this->roles($person, false) as $role) {
             $types[] = self::typeForRole($role);
         }
 

@@ -116,10 +116,13 @@ class MembershipService
         return $this->active($user)->contains('school_id', $schoolId);
     }
 
-    /** The school a user works in when they have not chosen one: their first. */
+    /** The school a user works in when they have not chosen one: their first current one, else their first. */
     public function defaultSchool(User $user): ?School
     {
-        return $this->active($user)->first()?->school;
+        // A school where the person is a current member comes before one where they are only a leaver.
+        $active = $this->active($user);
+
+        return ($active->firstWhere('status', SchoolMembership::ACTIVE) ?? $active->first())?->school;
     }
 
     /**
