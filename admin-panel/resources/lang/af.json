@@ -1911,6 +1911,8 @@
     "Map the existing school subject instead of creating a duplicate.": "Karteer die bestaande skoolvak in plaas daarvan om 'n duplikaat te skep.",
     "Curriculum plans": "Kurrikulumplanne",
     "new_year_carry_curriculum": "Kopieer kurrikulumdefinisiegeskiedenis as konsepte (geen punte of verslae nie)",
+    "new_year_carry_teaching_groups": "Onderriggroepe per vak en graad (leeg: leerders en onderwysers word opnuut toegeken)",
+    "new_year_carry_activity_groups": "Aktiwiteitsgroepe, spanne en klubs (leeg: lede en personeel word opnuut toegeken)",
     "Teaching groups": "Onderriggroepe",
     "Academic allocations": "Akademiese toekennings",
     "Academic timetable": "Akademiese rooster",

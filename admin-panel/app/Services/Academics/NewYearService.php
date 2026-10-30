@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services\Academics;
 
+use App\Actions\Transfers\TransferActivityGroups;
 use App\Actions\Transfers\TransferClassSubject;
 use App\Actions\Transfers\TransferClassTeacherAndSubjectTeacher;
 use App\Actions\Transfers\TransferClassTimetable;
 use App\Actions\Transfers\TransferCurriculumPlans;
 use App\Actions\Transfers\TransferExamGrades;
 use App\Actions\Transfers\TransferLeaveSettings;
+use App\Actions\Transfers\TransferTeachingGroups;
 use App\Models\Academics\CurriculumPlan;
+use App\Models\Academics\TeachingGroup;
+use App\Models\Activities\ActivityGroup;
 use App\Models\ClassSubject;
 use App\Models\ClassTeacher;
 use App\Models\Exam;
@@ -53,6 +57,8 @@ class NewYearService
         'timetable' => ['new_year_carry_timetable', TransferClassTimetable::class],
         'grading' => ['new_year_carry_grading', TransferExamGrades::class],
         'leave' => ['new_year_carry_leave', TransferLeaveSettings::class],
+        'teaching_groups' => ['new_year_carry_teaching_groups', TransferTeachingGroups::class],
+        'activity_groups' => ['new_year_carry_activity_groups', TransferActivityGroups::class],
     ];
 
     /**
@@ -294,6 +300,8 @@ class NewYearService
             'timetable' => Timetable::where('session_year_id', $yearId)->whereNull('timetable_lesson_id')->count(),
             'grading' => Grade::where('session_year_id', $yearId)->count(),
             'leave' => LeaveMaster::where('session_year_id', $yearId)->count(),
+            'teaching_groups' => TeachingGroup::where('session_year_id', $yearId)->where('active', true)->count(),
+            'activity_groups' => ActivityGroup::where('session_year_id', $yearId)->where('active', true)->count(),
         };
     }
 

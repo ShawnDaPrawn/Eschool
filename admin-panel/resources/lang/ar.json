@@ -1723,6 +1723,8 @@
     "File": "ملف",
     "Curriculum plans": "خطط المناهج الدراسية",
     "new_year_carry_curriculum": "نسخ سجل تعريفات المناهج كمسودات دون علامات أو تقارير",
+    "new_year_carry_teaching_groups": "مجموعات التدريس لكل مادة وصف (فارغة: يُعاد توزيع المتعلمين والمعلمين)",
+    "new_year_carry_activity_groups": "مجموعات الأنشطة والفرق والأندية (فارغة: يُعاد توزيع الأعضاء والموظفين)",
     "Subject standards": "معايير المواد الدراسية",
     "Teaching groups": "مجموعات التدريس",
     "Academic allocations": "التكليفات الأكاديمية",
