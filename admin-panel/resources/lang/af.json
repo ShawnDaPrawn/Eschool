@@ -5791,5 +5791,22 @@
     "Guardian :n needs a first name and surname.": "Voog :n het 'n voornaam en van nodig.",
     "Guardian :n's mobile number is not valid.": "Voog :n se selfoonnommer is nie geldig nie.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "Die rekening vir :email kan nie gekoppel word nie. Gaan dit met die voog na voordat jy hierdie leerder invoer.",
-    "The account for :email cannot be linked.": "Die rekening vir :email kan nie gekoppel word nie."
+    "The account for :email cannot be linked.": "Die rekening vir :email kan nie gekoppel word nie.",
+    "nav_activity_seasons": "Begin 'n nuwe seisoen",
+    "Start a new season": "Begin 'n nuwe seisoen",
+    "Copy one season's teams and groups into the next season, for example summer to winter. The new groups keep their place, their sport or activity and their eligibility rules, but nobody is in them: members, captains and staff are chosen again. The old season's groups stay as they are.": "Kopieer een seisoen se spanne en groepe na die volgende seisoen, byvoorbeeld somer na winter. Die nuwe groepe behou hul plek, hul sport of aktiwiteit en hul geskiktheidsreëls, maar niemand is in hulle nie: lede, kapteins en personeel word weer gekies. Die ou seisoen se groepe bly soos hulle is.",
+    "Seasons in :year": "Seisoene in :year",
+    "No activity groups yet": "Nog geen aktiwiteitsgroepe nie",
+    "Add groups under Activity groups first.": "Voeg eers groepe onder Aktiwiteitsgroepe by.",
+    ":season: :count active group|:season: :count active groups": ":season: :count aktiewe groep|:season: :count aktiewe groepe",
+    "Start the next season": "Begin die volgende seisoen",
+    "Copy the groups of": "Kopieer die groepe van",
+    "New season": "Nuwe seisoen",
+    "First day": "Eerste dag",
+    "Last day": "Laaste dag",
+    "Start the season": "Begin die seisoen",
+    ":created groups started for :season; :skipped were already there or did not fit their parent's dates.": ":created groepe vir :season begin; :skipped was reeds daar of het nie binne hul ouergroep se datums gepas nie.",
+    "Name the new season, different from the one it follows.": "Gee die nuwe seisoen 'n naam wat verskil van die een wat dit volg.",
+    "The new season must start before it ends, within :year.": "Die nuwe seisoen moet begin voordat dit eindig, binne :year.",
+    "No active groups in the season \":season\".": "Geen aktiewe groepe in die seisoen \":season\" nie."
 }

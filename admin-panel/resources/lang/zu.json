@@ -5791,5 +5791,22 @@
     "Guardian :n needs a first name and surname.": "Umnakekeli :n udinga igama nesibongo.",
     "Guardian :n's mobile number is not valid.": "Inombolo yeselula yomnakekeli :n ayivumelekile.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "I-akhawunti ye-:email ayikwazi ukuxhunywa. Yihlole nomnakekeli ngaphambi kokungenisa lo mfundi.",
-    "The account for :email cannot be linked.": "I-akhawunti ye-:email ayikwazi ukuxhunywa."
+    "The account for :email cannot be linked.": "I-akhawunti ye-:email ayikwazi ukuxhunywa.",
+    "nav_activity_seasons": "Qala isizini entsha",
+    "Start a new season": "Qala isizini entsha",
+    "Copy one season's teams and groups into the next season, for example summer to winter. The new groups keep their place, their sport or activity and their eligibility rules, but nobody is in them: members, captains and staff are chosen again. The old season's groups stay as they are.": "Kopisha amaqembu esizini eyodwa uwayise esizinini elandelayo, isibonelo ihlobo liye ebusika. Amaqembu amasha agcina indawo yawo, umdlalo noma umsebenzi wawo nemithetho yokufaneleka, kodwa akekho kuwo: amalungu, okaputeni nabasebenzi bayakhethwa futhi. Amaqembu esizini endala ahlala enjalo.",
+    "Seasons in :year": "Amasizini ku-:year",
+    "No activity groups yet": "Awekho amaqembu emisebenzi okwamanje",
+    "Add groups under Activity groups first.": "Engeza amaqembu kuqala ngaphansi kokuthi Amaqembu emisebenzi.",
+    ":season: :count active group|:season: :count active groups": ":season: iqembu elisebenzayo elingu-:count|:season: amaqembu asebenzayo angu-:count",
+    "Start the next season": "Qala isizini elandelayo",
+    "Copy the groups of": "Kopisha amaqembu e-",
+    "New season": "Isizini entsha",
+    "First day": "Usuku lokuqala",
+    "Last day": "Usuku lokugcina",
+    "Start the season": "Qala isizini",
+    ":created groups started for :season; :skipped were already there or did not fit their parent's dates.": "Amaqembu angu-:created aqalisiwe ku-:season; angu-:skipped abesevele ekhona noma awazange angene ezinsukwini zeqembu labo elikhulu.",
+    "Name the new season, different from the one it follows.": "Nikeza isizini entsha igama elihlukile kwelalokho elilandelayo.",
+    "The new season must start before it ends, within :year.": "Isizini entsha kufanele iqale ngaphambi kokuthi iphele, phakathi ku-:year.",
+    "No active groups in the season \":season\".": "Awekho amaqembu asebenzayo esizinini ethi \":season\"."
 }

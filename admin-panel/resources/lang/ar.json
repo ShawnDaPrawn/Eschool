@@ -4718,5 +4718,22 @@
     "Guardian :n needs a first name and surname.": "Guardian :n needs a first name and surname.",
     "Guardian :n's mobile number is not valid.": "Guardian :n's mobile number is not valid.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "The account for :email cannot be linked. Check it with the guardian before importing this learner.",
-    "The account for :email cannot be linked.": "The account for :email cannot be linked."
+    "The account for :email cannot be linked.": "The account for :email cannot be linked.",
+    "nav_activity_seasons": "Start a new season",
+    "Start a new season": "Start a new season",
+    "Copy one season's teams and groups into the next season, for example summer to winter. The new groups keep their place, their sport or activity and their eligibility rules, but nobody is in them: members, captains and staff are chosen again. The old season's groups stay as they are.": "Copy one season's teams and groups into the next season, for example summer to winter. The new groups keep their place, their sport or activity and their eligibility rules, but nobody is in them: members, captains and staff are chosen again. The old season's groups stay as they are.",
+    "Seasons in :year": "Seasons in :year",
+    "No activity groups yet": "No activity groups yet",
+    "Add groups under Activity groups first.": "Add groups under Activity groups first.",
+    ":season: :count active group|:season: :count active groups": ":season: :count active group|:season: :count active groups",
+    "Start the next season": "Start the next season",
+    "Copy the groups of": "Copy the groups of",
+    "New season": "New season",
+    "First day": "First day",
+    "Last day": "Last day",
+    "Start the season": "Start the season",
+    ":created groups started for :season; :skipped were already there or did not fit their parent's dates.": ":created groups started for :season; :skipped were already there or did not fit their parent's dates.",
+    "Name the new season, different from the one it follows.": "Name the new season, different from the one it follows.",
+    "The new season must start before it ends, within :year.": "The new season must start before it ends, within :year.",
+    "No active groups in the season \":season\".": "No active groups in the season \":season\"."
 }

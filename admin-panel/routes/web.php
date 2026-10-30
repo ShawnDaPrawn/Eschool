@@ -39,6 +39,7 @@ use App\Http\Controllers\Panel\Academics\TeachingGroupController;
 use App\Http\Controllers\Panel\Academics\TimetableWorkbenchController;
 use App\Http\Controllers\Panel\Academics\TransitionWorkbenchController;
 use App\Http\Controllers\Panel\Activities\ActivityFilePanelController;
+use App\Http\Controllers\Panel\Activities\ActivitySeasonController;
 use App\Http\Controllers\Panel\Activities\ActivityWorkbenchController;
 use App\Http\Controllers\Panel\Activities\GroupChatPanelController;
 use App\Http\Controllers\Panel\Admissions\IntakePanelController;
@@ -412,6 +413,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::get('{file}/content', [$c, 'read'])->whereUuid('file')->name('read');
                 Route::post('{file}/remove', [$c, 'write'])->whereUuid('file')->name('remove');
             });
+        // Season rollover (Action Plan 1.22): next season's groups, empty.
+        Route::middleware(['module:groups', 'can:activity-groups-manage'])->group(function () {
+            Route::get('activity-seasons', [ActivitySeasonController::class, 'index'])->name('activity-seasons.index');
+            Route::post('activity-seasons', [ActivitySeasonController::class, 'store'])->middleware('throttle:20,1')->name('activity-seasons.store');
+        });
         Route::prefix('activity-groups')->name('activity-groups.')->middleware(['module:groups', 'cache.headers:private;no_store'])->group(function () {
             $c = ActivityWorkbenchController::class;
             Route::get('/', [$c, 'index'])->name('index');
