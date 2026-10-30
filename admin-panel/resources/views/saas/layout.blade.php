@@ -14,6 +14,7 @@
     <a href="{{ route('saas.index') }}">{{ __('NavigateEd platform') }}</a>
     <nav aria-label="{{ __('Platform') }}">
         <a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>
+        <a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>
     </nav>
     <form method="POST" action="{{ route('logout') }}">
         @csrf
