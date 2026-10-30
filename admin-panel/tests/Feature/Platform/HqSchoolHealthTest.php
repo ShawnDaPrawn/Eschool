@@ -76,11 +76,12 @@ class HqSchoolHealthTest extends TestCase
             'status' => $status, 'attempt' => 1, 'created_at' => now()->subDays($daysAgo), 'updated_at' => now()]);
     }
 
-    private function aiUsage(int $school, int $userId, string $date, int $cents, int $reserved = 0): void
+    private function aiUsage(int $school, int $userId, string $date, int $cents, int $reserved = 0, ?string $currency = null): void
     {
+        $currency ??= (string) config('ai.billing_currency', 'USD');
         DB::table('ai_usage')->insert(['school_id' => $school, 'user_id' => $userId, 'feature' => 'teaching_assistant', 'provider' => 'openai', 'operation_id' => (string) Str::uuid(),
             'request_hash' => str_repeat('a', 64), 'usage_date' => $date, 'unit' => 'tokens', 'state' => 'completed', 'cost_cents' => $cents, 'reserved_cost_cents' => $reserved,
-            'created_at' => now(), 'updated_at' => now()]);
+            'billing_currency' => $currency, 'created_at' => now(), 'updated_at' => now()]);
     }
 
     private function failedJob(?int $school): void
@@ -172,6 +173,25 @@ class HqSchoolHealthTest extends TestCase
         $this->assertSame(['spent_cents' => 200, 'cap_cents' => 500 * $daysInMonth, 'daily_cap_cents' => 500], array_intersect_key($m['ai'], array_flip(['spent_cents', 'cap_cents', 'daily_cap_cents'])));
         $this->assertSame(['count' => 1, 'by_job' => ['SendMail' => 1]], $m['failed_jobs']);
         $this->assertNull($m['storage']);
+    }
+
+    public function test_ai_spend_in_another_billing_currency_is_never_added_to_the_cap(): void
+    {
+        $this->seedSchoolA();
+        $other = config('ai.billing_currency', 'USD') === 'ZAR' ? 'USD' : 'ZAR';
+        $local = CarbonImmutable::now('Africa/Johannesburg');
+        $before = app(PlatformSchoolHealth::class)->compute(1)['ai'];
+        $this->assertFalse($before['other_currency']);
+
+        // Receipts from before a change of billing currency, and one with none recorded.
+        $this->aiUsage(1, $this->person('tara'), $local->toDateString(), 40000, 0, $other);
+        DB::table('ai_usage')->where('cost_cents', 40000)->update(['billing_currency' => null]);
+        $this->aiUsage(1, $this->person('tara'), $local->toDateString(), 30000, 0, $other);
+
+        $after = app(PlatformSchoolHealth::class)->compute(1)['ai'];
+        $this->assertSame([200, true], [$after['spent_cents'], $after['other_currency']]);
+        $this->actingAs($this->staff('owner'))->get('/saas/schools/1/health')->assertOk()
+            ->assertSee('Spend recorded in another billing currency this month is not included.');
     }
 
     public function test_school_b_activity_never_counts_for_school_a(): void

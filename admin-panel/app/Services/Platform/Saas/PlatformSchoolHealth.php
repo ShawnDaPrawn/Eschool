@@ -501,13 +501,18 @@ class PlatformSchoolHealth
      * school's own daily cap where it set one, never above the largest
      * feature's, times the days in the month.
      *
-     * @return array{spent_cents: int, cap_cents: ?int, daily_cap_cents: ?int, currency: string, paused: bool, enabled: bool}
+     * @return array{spent_cents: int, cap_cents: ?int, daily_cap_cents: ?int, currency: string, other_currency: bool, paused: bool, enabled: bool}
      */
     private function ai(int $schoolId, CarbonImmutable $local): array
     {
-        $spent = (int) DB::table('ai_usage')->where('school_id', $schoolId)
-            ->whereBetween('usage_date', [$local->startOfMonth()->toDateString(), $local->toDateString()])
-            ->sum(DB::raw('cost_cents + reserved_cost_cents'));
+        // Only spend in the cap's currency counts against it: receipts from before a change of
+        // billing currency (or with none recorded) are never added to it, only noted.
+        $currency = (string) config('ai.billing_currency', 'USD');
+        $month = DB::table('ai_usage')->where('school_id', $schoolId)
+            ->whereBetween('usage_date', [$local->startOfMonth()->toDateString(), $local->toDateString()]);
+        $spent = (int) (clone $month)->where('billing_currency', $currency)->sum(DB::raw('cost_cents + reserved_cost_cents'));
+        $otherCurrency = (clone $month)->where(fn ($q) => $q->whereNull('billing_currency')->orWhere('billing_currency', '!=', $currency))
+            ->where(fn ($q) => $q->where('cost_cents', '>', 0)->orWhere('reserved_cost_cents', '>', 0))->exists();
         $configured = null;
         foreach ((array) config('ai.inference.features', []) as $feature) {
             $value = is_array($feature) ? ($feature['school_daily_cents'] ?? null) : null;
@@ -524,7 +529,8 @@ class PlatformSchoolHealth
             'spent_cents' => $spent,
             'cap_cents' => $daily === null ? null : $daily * $local->daysInMonth,
             'daily_cap_cents' => $daily,
-            'currency' => (string) config('ai.billing_currency', 'USD'),
+            'currency' => $currency,
+            'other_currency' => $otherCurrency,
             'paused' => (bool) ($row->paused ?? false),
             'enabled' => (bool) config('ai.inference.enabled', false),
         ];

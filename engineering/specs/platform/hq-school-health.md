@@ -43,7 +43,7 @@ Rules and thresholds are in `config/school_health.php`; each rule is *at risk*, 
 | Bounces (`bounce_rate`) | bounced emails 5% or more of emails sent in 30 days | at least 20 sent |
 | Complaints (`complaint_rate`) | complaints 0.1% or more of emails sent | at least 100 sent |
 | Push failures (`push_failure_rate`) | failed push attempts 10% or more | at least 20 attempts |
-| AI spend (`ai_spend`) | 90% or more of this month's cap used | a cap |
+| AI spend (`ai_spend`) | 90% or more of this month's cap used, counting only spend in the cap's billing currency (spend recorded in another currency, or none, is noted on the page, never added) | a cap |
 | Failed jobs (`failed_jobs`) | 10 or more of the school's jobs failed in 30 days | none |
 
 The flags do not change the school's stage on its HQ record (SA.4); staff decide that.
@@ -70,6 +70,7 @@ Read-only: no form, nothing written by either page. `sort` is `flags` (default: 
 | Test | Given | Then |
 | --- | --- | --- |
 | `test_the_figures_come_from_the_schools_own_data` | School A: one guardian signed in this week with a verified email, one used the app 10 days ago with a phone, one unreachable; a teacher and a learner signed in; 19 delivered, 1 bounced, 1 complaint, 1 unsent email and an older bounce; 6 pushes, 1 failed, one a safeguarding alert; AI 150 + 50 reserved this month and 9000 last month under a 500 a day cap; a failed job of School A and one with no school | 1 of 3 guardians active; 2 of 3 learners reached (2 by email, 1 by push); parents 1 in 7 days and 2 in 30; learners and teachers 1 each; emails 21 sent, 1 bounced, 1 complaint, 1 unsent; push 6 and 1; communication 22 messages, chat 5, teaching assistant 2 AI requests, wellbeing activity not counted; AI 200 of 500 × days in the month; 1 failed job (SendMail); storage not available |
+| `test_ai_spend_in_another_billing_currency_is_never_added_to_the_cap` | School A plus receipts in another currency and with none | spend unchanged; the page notes the other currency |
 | `test_school_b_activity_never_counts_for_school_a` | then School B: every person signed in with a phone and a verified email, 30 bounces, 30 push failures, large AI spend, two failed jobs | School A's figures are identical; School B's carry its own activity |
 | `test_flags_trigger_at_and_above_their_thresholds` | figures at, just below and above each threshold, and below each minimum sample | each rule at risk at and above its threshold (reach: below 60%, 60% is OK), OK below, not enough data below the minimum; a changed config threshold applies |
 | `test_the_trend_reads_only_the_schools_nightly_figures_of_the_four_weeks_before` | nightly rows for School A 6, 7, 14, 21, 28 and 29 days back, and School B's | School A's trend uses the 7 to 28 day rows only; School B's are its own |

@@ -96,6 +96,7 @@
     @else
         {{ __('No cap is set.') }}
     @endif
+    @if ($m['ai']['other_currency'] ?? false) {{ __('Spend recorded in another billing currency this month is not included.') }}@endif
     @if ($m['ai']['paused']) <span class="saas-badge saas-badge--warn">{{ __('Paused by the school') }}</span>@endif
     @if (! $m['ai']['enabled']) <span class="saas-badge">{{ __('AI is switched off on the platform') }}</span>@endif
 </p>
