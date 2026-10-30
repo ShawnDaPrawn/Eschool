@@ -73,10 +73,10 @@ class ShortDaysTest extends TestCase
         Enrolment::create(['learner_id' => $this->schoolA->ids['asha'], 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Short day rehearsal']);
         $this->group = $this->makeGroup('Maths 7A', $this->schoolA->ids['maths']);
         $this->room = (int) app(TimetableConfiguration::class)->room($this->superAdmin(), ['name' => 'Room 1', 'capacity' => 35, 'type' => 'classroom', 'active' => true])->id;
-        $normal = $this->bells('Normal Senior', [['P1', '08:00', '08:45', false], ['Break', '08:45', '09:00', true], ['P2', '09:00', '09:45', false], ['P3', '09:45', '10:30', false]]);
+        $normal = $this->bells('Normal Senior', [['P1', '07:00', '07:40', false], ['Break', '07:40', '07:50', true], ['P2', '07:50', '08:20', false], ['P3', '08:20', '08:55', false]]);
         $this->normal = (int) $normal->id;
         $this->periods = $normal->periods->where('is_break', false)->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
-        $this->short = (int) $this->bells('Short Senior', [['S1', '08:00', '08:30', false], ['Short break', '08:30', '08:40', true], ['S2', '08:40', '09:10', false]])->id;
+        $this->short = (int) $this->bells('Short Senior', [['S1', '07:00', '07:25', false], ['Short break', '07:25', '07:35', true], ['S2', '07:35', '08:00', false]])->id;
         $saved = $this->place(array_map(fn ($period) => $this->row(['bell_period_id' => $period]), $this->periods));
         $this->lessons = array_map(fn ($lesson) => (int) $lesson['id'], $saved['lessons']);
     }
@@ -133,11 +133,11 @@ class ShortDaysTest extends TestCase
         $parent = User::findOrFail($this->schoolA->ids['farid_user']);
 
         $short = $this->day($parent, '2026-02-17', $this->schoolA->ids['asha']);
-        $this->assertSame([['08:00', '08:30', 'S1', 'Short Senior'], ['08:40', '09:10', 'S2', 'Short Senior']],
+        $this->assertSame([['07:00', '07:25', 'S1', 'Short Senior'], ['07:35', '08:00', 'S2', 'Short Senior']],
             array_map(fn ($lesson) => [$lesson['starts_at'], $lesson['ends_at'], $lesson['period_name'], $lesson['day_pattern']], $short));
         $this->assertSame(array_slice($this->lessons, 0, 2), array_column($short, 'id'), 'each lesson keeps its identity');
         $normal = $this->day($parent, '2026-02-24', $this->schoolA->ids['asha']);
-        $this->assertSame(['08:00', '09:00', '09:45'], array_column($normal, 'starts_at'), 'other weeks keep the normal bells');
+        $this->assertSame(['07:00', '07:50', '08:20'], array_column($normal, 'starts_at'), 'other weeks keep the normal bells');
         $this->assertArrayNotHasKey('day_pattern', $normal[0]);
 
         $engine = app(TimetableEngine::class);
@@ -148,8 +148,8 @@ class ShortDaysTest extends TestCase
         $this->assertFalse($engine->occursOn($third, '2026-02-17'));
 
         // The next-lesson card uses the short-day time.
-        $this->travelTo(CarbonImmutable::parse('2026-02-17 08:35:00', 'Africa/Johannesburg'));
-        $this->assertSame('08:40', app(TimetableQueries::class)->next($parent, $this->schoolA->ids['asha'])['lesson']['starts_at']);
+        $this->travelTo(CarbonImmutable::parse('2026-02-17 07:30:00', 'Africa/Johannesburg'));
+        $this->assertSame('07:35', app(TimetableQueries::class)->next($parent, $this->schoolA->ids['asha'])['lesson']['starts_at']);
     }
 
     public function test_the_learner_parent_and_teacher_are_told_without_personal_details(): void
@@ -174,7 +174,7 @@ class ShortDaysTest extends TestCase
 
         app(DayPatterns::class)->remove($this->superAdmin(), (int) $override->id, $override->revision);
 
-        $this->assertSame(['08:00', '09:00', '09:45'], array_column($this->day($this->superAdmin(), '2026-02-17'), 'starts_at'));
+        $this->assertSame(['07:00', '07:50', '08:20'], array_column($this->day($this->superAdmin(), '2026-02-17'), 'starts_at'));
         $this->assertSame(0, BellScheduleOverride::count());
         $this->assertSame('Normal bells on 17 Feb 2026', Notification::where('type', 'academics.timetable_changed')->latest('id')->firstOrFail()->title);
         $this->expectException(ModelNotFoundException::class);
@@ -184,15 +184,15 @@ class ShortDaysTest extends TestCase
     public function test_bells_that_move_a_lesson_onto_another_one_are_refused_and_nothing_is_saved(): void
     {
         $junior = app(TimetableConfiguration::class)->bells($this->superAdmin(), ['name' => 'Junior', 'section' => 'Junior', 'session_year_id' => $this->year,
-            'periods' => [['name' => 'J1', 'starts_at' => '08:45', 'ends_at' => '09:00', 'is_break' => false]]])->periods->sole();
+            'periods' => [['name' => 'J1', 'starts_at' => '07:40', 'ends_at' => '07:50', 'is_break' => false]]])->periods->sole();
         $this->place([$this->row(['teaching_group_id' => $this->makeGroup('Science 7A', $this->schoolA->ids['science']), 'bell_period_id' => $junior->id])]);
-        $assembly = $this->bells('Assembly Senior', [['A1', '08:40', '09:20', false]]);
+        $assembly = $this->bells('Assembly Senior', [['A1', '07:35', '08:15', false]]);
 
         try {
             $this->shortDay('2026-02-17', (int) $assembly->id);
             $this->fail('A clashing short day was saved');
         } catch (ValidationException $error) {
-            $this->assertStringContainsString('teacher', $error->errors()['short_day'][0]);
+            $this->assertStringContainsStringIgnoringCase('teacher', $error->errors()['short_day'][0]);
         }
         $this->assertSame(0, BellScheduleOverride::count());
         $this->assertSame(0, Notification::where('type', 'academics.timetable_changed')->count());
@@ -203,18 +203,18 @@ class ShortDaysTest extends TestCase
     {
         $engine = app(TimetableEngine::class);
         $junior = app(TimetableConfiguration::class)->bells($this->superAdmin(), ['name' => 'Junior', 'section' => 'Junior', 'session_year_id' => $this->year,
-            'periods' => [['name' => 'J1', 'starts_at' => '08:30', 'ends_at' => '08:40', 'is_break' => false]]])->periods->sole();
+            'periods' => [['name' => 'J1', 'starts_at' => '07:25', 'ends_at' => '07:35', 'is_break' => false]]])->periods->sole();
         $candidate = $this->row(['teaching_group_id' => $this->makeGroup('Science 7A', $this->schoolA->ids['science']), 'bell_period_id' => $junior->id, 'starts_on' => '2026-02-17', 'ends_on' => '2026-02-17']);
         $stale = $engine->preview($this->superAdmin(), [$candidate]);
-        $this->assertFalse($stale['can_save'], 'normal bells: P1 runs until 08:45');
+        $this->assertFalse($stale['can_save'], 'normal bells: P1 runs until 07:40');
 
         $this->shortDay();
         $preview = app(TimetableEngine::class)->preview($this->superAdmin(), [$candidate]);
-        $this->assertTrue($preview['can_save'], 'on the short day the teacher is on break from 08:30 to 08:40');
+        $this->assertTrue($preview['can_save'], 'on the short day the teacher is on break from 07:25 to 07:35');
         $this->assertNotSame($stale['fingerprint'], $preview['fingerprint']);
         $this->place([$candidate]);
 
-        $later = $this->bells('Later Senior', [['L1', '08:20', '09:00', false]]);
+        $later = $this->bells('Later Senior', [['L1', '07:20', '08:00', false]]);
         $this->expectException(ValidationException::class);
         app(DayPatterns::class)->save($this->superAdmin(), ['on_date' => '2026-02-17', 'reason' => 'Changed again',
             'replacements' => [['bell_schedule_id' => $this->normal, 'replacement_bell_schedule_id' => $later->id]]]);
@@ -263,7 +263,7 @@ class ShortDaysTest extends TestCase
         $this->post(route('academic-timetable.short-day'), $context + ['on_date' => '2026-02-17', 'reason' => 'Sports day',
             'replacements' => [['bell_schedule_id' => $this->normal, 'replacement_bell_schedule_id' => $this->short], ['bell_schedule_id' => $this->short, 'replacement_bell_schedule_id' => null]]])->assertRedirect();
         $override = BellScheduleOverride::sole();
-        $this->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Short day: Short Senior instead of Normal Senior')->assertSee('08:40–09:10');
+        $this->get(route('academic-timetable.index', $context))->assertOk()->assertSee('Short day: Short Senior instead of Normal Senior')->assertSee('07:35–08:00');
         foreach (['tara_user', 'farid_user'] as $person) {
             $write = $this->actingAs(User::findOrFail($this->schoolA->ids[$person]), 'web')->post(route('academic-timetable.short-day-remove'), $context + ['override_id' => $override->id, 'revision' => $override->revision]);
             $this->assertContains($write->getStatusCode(), [302, 403]);
@@ -284,6 +284,6 @@ class ShortDaysTest extends TestCase
             ->getJson('/api/v2/academics/timetable/week?session_year_id='.$this->year.'&starts_on=2026-02-16&learner_id='.$this->schoolA->ids['asha'])
             ->assertOk()->json('data.lessons');
 
-        $this->assertSame([['08:00', 'Short Senior'], ['08:40', 'Short Senior']], array_map(fn ($lesson) => [$lesson['starts_at'], $lesson['day_pattern']], $lessons));
+        $this->assertSame([['07:00', 'Short Senior'], ['07:35', 'Short Senior']], array_map(fn ($lesson) => [$lesson['starts_at'], $lesson['day_pattern']], $lessons));
     }
 }

@@ -27,8 +27,8 @@ return new class extends Migration
             $t->string('reason', 191);
             $t->unsignedInteger('revision')->default(1);
             $t->timestamps();
-            $t->unique(['school_id', 'bell_schedule_id', 'on_date']);
-            $t->index(['school_id', 'on_date']);
+            $t->unique(['school_id', 'bell_schedule_id', 'on_date'], 'bell_overrides_schedule_date_unique');
+            $t->index(['school_id', 'on_date'], 'bell_overrides_school_date_index');
         });
     }
 
