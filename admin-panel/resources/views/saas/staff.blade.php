@@ -6,7 +6,8 @@
 <h1>{{ __('Platform staff') }}</h1>
 <p class="saas-lead">{{ __('Who can use the platform area, in which role, and until when. Platform staff hold no role at any school. Every change is kept in the audit log with its reason.') }}</p>
 
-<div class="saas-card">
+{{-- Scrolls sideways on a narrow screen, so it takes keyboard focus. --}}
+<div class="saas-card" tabindex="0" role="region" aria-label="{{ __('Platform staff and their access') }}">
     <table class="saas-table">
         <caption>{{ __('Platform staff and their access') }}</caption>
         <thead>
