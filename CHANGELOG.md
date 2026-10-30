@@ -23,6 +23,14 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Staff invitations: a new school's first Super Admin is emailed a one-use
+  link to choose their own password instead of being handed a one-time
+  password, and the platform can send it again until it is accepted. School
+  staff can send a colleague a sign-in invitation from their profile.
+  Accepting verifies the email address and signs out every other session.
+  **Deploy:** run the additive `staff_invitations` migration; mail must be
+  configured for the emails to arrive (the link is also shown once).
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.

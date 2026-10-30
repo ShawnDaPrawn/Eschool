@@ -9,6 +9,7 @@ use App\Http\Requests\Saas\SchoolModuleRequest;
 use App\Http\Requests\Saas\SchoolPackageRequest;
 use App\Http\Requests\Saas\SchoolStatusRequest;
 use App\Http\Requests\Saas\StoreSchoolRequest;
+use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Saas\PlatformSchools;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -34,12 +35,20 @@ class SaasController extends Controller
         return view('saas.create', $this->formChoices());
     }
 
-    /** Shows the one-time password in this response; it is never stored or flashed. */
+    /** The administrator is emailed their link; it is also shown once here, never flashed. */
     public function store(StoreSchoolRequest $request): View
     {
         $created = $this->schools->create($request->validated(), $request->user());
 
-        return view('saas.created', ['school' => $created['school'], 'admin' => $created['admin'], 'password' => $created['password']]);
+        return view('saas.created', ['school' => $created['school'], 'admin' => $created['admin'], 'invitationUrl' => $created['invitation_url']]);
+    }
+
+    public function resendInvitation(Request $request, int $school): RedirectResponse
+    {
+        abort_if($this->schools->find($school) === null, 404);
+        $sent = app(StaffInvitations::class)->resendAdministrator($school, $request->user());
+
+        return redirect()->route('saas.schools.show', $school)->with('success', $sent ? __('Invitation sent again.') : __('The administrator has already accepted their invitation.'));
     }
 
     public function show(Request $request, int $school): View
@@ -49,6 +58,7 @@ class SaasController extends Controller
 
         return view('saas.show', [
             'school' => $row,
+            'pendingAdministrator' => app(StaffInvitations::class)->pendingAdministrator($school) !== null,
             'modules' => $this->schools->modules($school),
             'packages' => array_keys($this->schools->packages()),
         ]);

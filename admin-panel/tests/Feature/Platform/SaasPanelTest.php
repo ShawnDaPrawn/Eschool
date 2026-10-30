@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Jobs\Platform\SendMail;
+use App\Mail\Platform\StaffInvitationMail;
 use App\Models\Platform\AuditLog;
 use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
+use App\Models\Platform\StaffInvitation;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Identity\MembershipService;
+use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Ledger\AccountType;
 use App\Services\Platform\Ledger\LedgerService;
 use App\Services\Platform\Ledger\Money;
@@ -24,7 +28,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\SettingsConfigService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
@@ -217,7 +221,7 @@ class SaasPanelTest extends TestCase
             $this->assertContains('auth', $middleware, $route->uri());
             $this->assertNotContains('school.context', $middleware, $route->uri());
         }
-        $this->assertSame(9, $count);
+        $this->assertSame(10, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void
@@ -275,25 +279,47 @@ class SaasPanelTest extends TestCase
         }
     }
 
-    public function test_the_created_school_admin_can_finish_the_forced_password_change_and_open_their_home(): void
+    public function test_the_created_school_admin_chooses_a_password_from_their_invitation_and_opens_their_home(): void
     {
         $response = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
-        $password = $response->viewData('password');
+        $path = (string) parse_url($response->viewData('invitationUrl'), PHP_URL_PATH);
         $admin = $response->viewData('admin');
         auth()->forgetGuards();
         app(CurrentSchool::class)->forget();
 
-        $this->post('/login', ['email' => $admin->email, 'password' => $password])->assertRedirect('/home');
-        $this->assertAuthenticatedAs($admin);
-        $this->get('/home')->assertRedirect('/resetpassword');
-        $this->postJson('/changePassword', ['old_password' => $password, 'new_password' => 'Synthetic-new-school-password-746!', 'confirm_password' => 'Synthetic-new-school-password-746!'])->assertOk()->assertJsonPath('error', false);
+        $this->get($path)->assertOk()->assertSee('Marula Primary');
+        $this->post($path, ['password' => 'Synthetic-new-school-password-746!', 'password_confirmation' => 'Synthetic-new-school-password-746!'])->assertRedirect(route('login'));
         $this->assertFalse($admin->fresh()->password_change_required);
+        $this->assertNotNull($admin->fresh()->email_verified_at);
+        $this->post('/login', ['email' => $admin->email, 'password' => 'Synthetic-new-school-password-746!'])->assertRedirect('/home');
+        $this->assertAuthenticatedAs($admin);
         $this->get('/home')->assertOk();
         $this->getJson('/home/widget/fees-collection')->assertNotFound();
         foreach (['attendance', 'assessment', 'leaves', 'events'] as $widget) {
             $this->getJson('/home/widget/'.$widget)->assertOk();
         }
         $this->get('/saas')->assertForbidden();
+    }
+
+    public function test_staff_can_resend_an_unaccepted_administrator_invitation_but_not_after_acceptance(): void
+    {
+        $response = $this->actingAs($this->staff())->post('/saas/schools', $this->newSchool())->assertOk();
+        $first = (string) parse_url($response->viewData('invitationUrl'), PHP_URL_PATH);
+        $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
+        $this->get('/saas/schools/'.$school->id)->assertOk()->assertSee('Send the invitation again')->assertDontSee('lerato@marula.example');
+
+        $this->post('/saas/schools/'.$school->id.'/administrator-invitation')->assertRedirect('/saas/schools/'.$school->id);
+        $this->assertSame(2, StaffInvitation::acrossSchools()->where('school_id', $school->id)->count());
+        auth()->forgetGuards();
+        $this->get($first)->assertNotFound();
+        $latest = StaffInvitation::acrossSchools()->where('school_id', $school->id)->latest('id')->firstOrFail();
+        $second = (string) parse_url(app(StaffInvitations::class)->url((string) $latest->encrypted_token), PHP_URL_PATH);
+        $this->post($second, ['password' => 'Synthetic-new-school-password-746!', 'password_confirmation' => 'Synthetic-new-school-password-746!'])->assertRedirect(route('login'));
+
+        $this->actingAs($this->staff())->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->post('/saas/schools/'.$school->id.'/administrator-invitation')->assertRedirect();
+        $this->assertSame(2, StaffInvitation::acrossSchools()->where('school_id', $school->id)->count());
+        $this->post('/saas/schools/999999/administrator-invitation')->assertNotFound();
     }
 
     public function test_school_counts_only_include_current_memberships_of_active_people(): void
@@ -341,22 +367,32 @@ class SaasPanelTest extends TestCase
 
     public function test_a_school_is_set_up_with_roles_and_its_first_administrator(): void
     {
+        Queue::fake();
         $staff = $this->staff();
         $before = [1 => $this->moduleRows(1), 2 => $this->moduleRows(2), 'members' => SchoolMembership::query()->count()];
 
         $response = $this->actingAs($staff)->post('/saas/schools', $this->newSchool())->assertOk()
             ->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Marula Primary');
-        $password = $response->viewData('password');
+        $url = $response->viewData('invitationUrl');
+        $token = basename((string) parse_url($url, PHP_URL_PATH));
 
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
         $this->assertSame('core', $school->package_key);
         $this->assertSame('active', $school->status);
 
         $admin = User::query()->where('email', 'lerato@marula.example')->firstOrFail();
+        // Nobody knows the starting password: the administrator chooses one from the emailed link.
         $this->assertTrue($admin->password_change_required);
-        $this->assertTrue(Hash::check($password, $admin->password));
-        $response->assertSee($password);
+        $response->assertSee($url, false)->assertDontSee('One-time password');
+        $invitation = StaffInvitation::acrossSchools()->where('user_id', $admin->id)->sole();
+        $this->assertSame([(int) $school->id, StaffInvitation::SCHOOL_ADMIN], [(int) $invitation->school_id, $invitation->purpose]);
+        $this->assertSame(hash('sha256', $token), $invitation->token_hash);
+        // The test transaction never commits, so the after-commit send is replayed.
+        app(StaffInvitations::class)->deliver($invitation);
+        $mail = Queue::pushed(SendMail::class)->first(fn ($job) => $job->mailable instanceof StaffInvitationMail);
+        $this->assertSame('lerato@marula.example', $mail->mailable->to[0]['address']);
+        $this->assertTrue($mail->mailable->firstAdministrator);
 
         // One membership: Super Admin of the new school only.
         $this->assertSame(1, SchoolMembership::query()->where('user_id', $admin->id)->count());
@@ -373,13 +409,13 @@ class SaasPanelTest extends TestCase
         $this->assertSame($before[1], $this->moduleRows(1));
         $this->assertSame($before[2], $this->moduleRows(2));
 
-        // Audited with the staff member, and the password is nowhere in the log.
+        // Audited with the staff member, and the link's secret is nowhere in the log.
         $row = AuditLog::query()->where('action', 'platform_school_created')->latest('id')->firstOrFail();
         $this->assertSame($staff->id, $row->actor_id);
         $this->assertSame($school->id, $row->school_id);
         $this->assertSame($admin->id, $row->after['first_admin_user_id']);
-        $this->assertStringNotContainsString($password, json_encode(AuditLog::query()->get()->toArray()));
-        $this->assertStringNotContainsString($password, json_encode(DB::table('sessions')->get()));
+        $this->assertStringNotContainsString($token, json_encode(AuditLog::query()->get()->toArray()));
+        $this->assertStringNotContainsString($token, json_encode(DB::table('sessions')->get()));
     }
 
     public function test_the_new_administrator_sees_only_their_own_school_and_never_the_platform(): void

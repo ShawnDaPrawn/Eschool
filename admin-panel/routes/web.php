@@ -110,6 +110,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\SaasController;
+use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
@@ -230,6 +231,13 @@ Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainRespo
     });
 });
 
+// Staff invitations: the emailed one-use link chooses a password before any
+// sign-in. The token is the only key, so both routes are rate limited.
+Route::middleware([PrivateDomainResponse::class])->group(function () {
+    Route::get('invite/staff/{token}', [StaffInvitationController::class, 'show'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:30,1')->name('staff-invitation.show');
+    Route::post('invite/staff/{token}', [StaffInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:password')->name('staff-invitation.accept');
+});
+
 // An operator's own password has a separate purpose: pending accounts may
 // settle it, but cannot enter /saas or any school through this route.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:password'])->group(function () {
@@ -247,6 +255,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->whereNumber('school')->name('schools.modules');
+    Route::post('/schools/{school}/administrator-invitation', [SaasController::class, 'resendInvitation'])->whereNumber('school')->middleware('throttle:20,1')->name('schools.invitation');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
@@ -1198,6 +1207,7 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::put('/profile-configuration/definitions/{definition}', [ProfileFieldController::class, 'field'])->whereNumber('definition')->name('profile-configuration.definitions.update');
     Route::delete('/profile-configuration/definitions/{definition}', [ProfileFieldController::class, 'removeField'])->whereNumber('definition')->name('profile-configuration.definitions.destroy');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
+    Route::post('/people-profiles/{person}/invitation', [ProfileFormController::class, 'invite'])->whereNumber('person')->middleware('throttle:20,1')->name('people-profiles.invitation');
     Route::get('/people-profiles/{person?}', [ProfileFormController::class, 'index'])->whereNumber('person')->name('people-profiles.index');
     Route::put('/people-profiles/{person?}', [ProfileFormController::class, 'update'])->whereNumber('person')->name('people-profiles.update');
     Route::get('/notification-rules', [NotificationRuleController::class, 'index'])->name('notification-rules.index');
