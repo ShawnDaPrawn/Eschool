@@ -29,8 +29,8 @@ class GalleryRequest extends FormRequest
     {
         $a = app(GalleryAuthority::class);
         $actor = $this->user();
-        $a->actor($actor, ! $this->isMethodSafe());
         $method = $this->route()->getActionMethod();
+        $a->actor($actor, ! $this->isMethodSafe(), removal: $method === 'remove');
         if ($method === 'settings') {
             $a->manage($actor, true);
         } elseif ($this->route('tag') !== null) {

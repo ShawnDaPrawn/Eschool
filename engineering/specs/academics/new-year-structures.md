@@ -174,3 +174,20 @@ No API change.
 - **The alumni network** (Phase 4, Idea 10): only the hook exists.
 - **Tidying ended leavers.** Nothing runs on 1 April; the dates decide. A later retention job may end lapsed leaver memberships (status `ended`) for reporting.
 - Legacy pages that list learners by `students.class_section_id` without a year still list a leaver under their last homeroom, as they did when leavers were deactivated.
+
+### Privacy retreats during leaver access
+
+A guardian whose only child left may still remove that child's gallery tag or
+withdraw an existing consent with a negative (`no`) response while leaver access
+lasts. The middleware exception is restricted to those POST operations, not
+consent approval, tag approval/proposals, health/profile changes or other writes.
+The domain rechecks reachable membership and the current guardian relationship
+before a change and before replaying an operation receipt. Consent withdrawal
+does not require current-year enrolment. Ended/revoked guardian links, expired
+leaver access, wrong families and other schools remain refused. Ordinary role
+checks and `LeaverState::writing()` remain unchanged for every other operation.
+
+Regression coverage: the private-gallery and family-consent feature suites test
+a guardian with one leaver child through direct services on POST and through
+HTTP, replay after revocation, expired access, foreign families/schools, and
+refusal of approval/proposal/health writes.

@@ -21,6 +21,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Fixed
+
+- API: guardians with leaver-only access can remove a child's photo tag and
+  withdraw existing consent without regaining any other write access. Revoked
+  relationships and expired access still stop changes and receipt replay.
+
 ### Added
 
 - Admin panel and apps: learners who leave at the end of the year are no longer

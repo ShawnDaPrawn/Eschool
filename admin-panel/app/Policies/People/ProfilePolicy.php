@@ -22,10 +22,11 @@ use Carbon\CarbonImmutable;
 /** Resolve person/role authority before any field values are loaded. */
 class ProfilePolicy
 {
-    public function actor(User $actor): User
+    public function actor(User $actor, bool $revocation = false): User
     {
         $fresh = User::query()->where('status', 1)->findOrFail($actor->id);
-        abort_unless($this->roles($fresh) !== [], 403);
+        // Only explicit domain revocations may use a reachable leaver role on a write.
+        abort_unless($this->roles($fresh, ! $revocation) !== [], 403);
 
         return $fresh;
     }
