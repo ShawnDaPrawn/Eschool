@@ -126,7 +126,7 @@ class TeachingDraftsTest extends TestCase
         $input = $this->input();
         $service = app(TeachingDrafts::class);
         $draft = $service->generate($this->actor(), $this->group, $input);
-        $this->assertSame('ready', $draft['state']);
+        $this->assertSame('ready', $draft['state'], (string) TeachingDraft::findOrFail($draft['id'])->failure_code);
         $this->assertSame(['support', 'core', 'extension'], array_column($draft['definition']['sections'], 'level'));
         $this->assertSame($draft, $service->generate($this->actor(), $this->group, $input));
         $this->assertSame(1, $this->completions);
@@ -150,7 +150,7 @@ class TeachingDraftsTest extends TestCase
     public function test_practice_is_added_only_after_separate_explicit_teacher_confirmation(): void
     {
         $draft = app(TeachingDrafts::class)->generate($this->actor(), $this->group, $this->input(['kind' => 'practice', 'topic_ids' => [$this->nodes[$this->keys[1]]]]));
-        $this->assertSame('ready', $draft['state']);
+        $this->assertSame('ready', $draft['state'], (string) TeachingDraft::findOrFail($draft['id'])->failure_code);
         $this->assertSame(0, PracticeItem::count());
         $approved = $this->change($draft, 'approve');
         $this->refuses(fn () => $this->change($approved, 'publish_practice'), 422);
@@ -237,7 +237,7 @@ class TeachingDraftsTest extends TestCase
                 'session_year_id' => $this->year, 'author_id' => $this->actor()->id, 'visibility' => $visibility, 'body' => $body]);
         }
         $draft = app(TeachingDrafts::class)->generate($this->actor(), $this->group, $this->input(['kind' => 'report_comment', 'learner_id' => $this->schoolA->ids['asha'], 'brief' => 'Draft a report comment for Asha.']));
-        $this->assertSame('ready', $draft['state']);
+        $this->assertSame('ready', $draft['state'], (string) TeachingDraft::findOrFail($draft['id'])->failure_code);
         $input = json_encode($this->providerInputs, JSON_THROW_ON_ERROR);
         $this->assertStringContainsString('equal fraction parts', $input);
         $this->assertStringNotContainsString('Asha', $input);
@@ -282,7 +282,7 @@ class TeachingDraftsTest extends TestCase
         $this->assertSame([240, 60], [$dimensions[0], $dimensions[1]]);
         $draft = app(TeachingDrafts::class)->generate($this->actor(), $this->group, $this->input(['operation_id' => $operation,
             'kind' => 'script_marks', 'learner_id' => $this->schoolA->ids['asha'], 'task_id' => $this->task, 'photo_ids' => [$photo['id']]]));
-        $this->assertSame('ready', $draft['state']);
+        $this->assertSame('ready', $draft['state'], (string) TeachingDraft::findOrFail($draft['id'])->failure_code);
         $this->assertSame(0, AssessmentMark::count());
         $this->assertCount(2, $draft['definition']['question_marks']);
         $this->assertSame(8000, $draft['definition']['question_marks'][0]['confidence_bp']);
