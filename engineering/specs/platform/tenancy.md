@@ -248,6 +248,14 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### HQ incident register
+
+`platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
+own register, read and written only from `/saas`. `platform_incident_schools` is
+required school-owned (a foreign key to the school) so each affected school, and
+when it was told, is one row per school; HQ reads it across schools and no school
+reads it ([HQ incidents](hq-incidents.md)).
+
 ### HQ school health
 
 `school_health_snapshots` is required school-owned: each row is one school's

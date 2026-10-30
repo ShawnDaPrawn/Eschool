@@ -78,7 +78,7 @@ Read-only: no form, nothing written by either page. `sort` is `flags` (default: 
 | `test_each_allowed_role_sees_the_pages_and_others_are_refused` | Owner, Operations, Support, Finance; Sales, Content; a school Super Admin and a teacher | the first four see the link and both pages (unknown school 404); Sales and Content get no link and 403 (also for an unknown school); school accounts 403; the service refuses Sales itself; nothing written |
 | `test_the_pages_show_counts_and_never_a_person` | both schools seeded and computed | no learner, guardian or teacher name, no email address, no learner number, no failed job's exception text on School A's page, the comparison or School B's page; School A's page shows no School B text |
 
-`SaasPanelTest` counts 31 `/saas` routes, each naming its ability.
+`SaasPanelTest` counts 38 `/saas` routes, each naming its ability.
 
 ## Security notes
 

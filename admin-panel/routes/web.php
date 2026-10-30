@@ -118,6 +118,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
@@ -300,6 +301,16 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     // LURITS claims for support (1.0f): schools and dates, never a learner.
     Route::get('/lurits', [PlatformLuritsController::class, 'index'])->middleware('platform.can:identity.review')->name('lurits');
     Route::post('/lurits/{conflict}/close', [PlatformLuritsController::class, 'resolve'])->middleware(['platform.can:identity.review', 'throttle:30,1'])->whereNumber('conflict')->name('lurits.resolve');
+    // The breach and incident register (SA.12): incidents, the schools they affect and when each was told.
+    Route::prefix('/incidents')->middleware('platform.can:incidents.manage')->name('incidents.')->group(function () {
+        Route::get('/', [PlatformIncidentController::class, 'index'])->name('index');
+        Route::post('/', [PlatformIncidentController::class, 'store'])->middleware('throttle:20,1')->name('store');
+        Route::get('/{incident}', [PlatformIncidentController::class, 'show'])->whereNumber('incident')->name('show');
+        Route::put('/{incident}', [PlatformIncidentController::class, 'update'])->whereNumber('incident')->name('update');
+        Route::post('/{incident}/schools', [PlatformIncidentController::class, 'school'])->whereNumber('incident')->name('schools.store');
+        Route::put('/{incident}/schools/{school}', [PlatformIncidentController::class, 'notified'])->whereNumber(['incident', 'school'])->name('schools.notified');
+        Route::post('/{incident}/entries', [PlatformIncidentController::class, 'entry'])->middleware('throttle:60,1')->whereNumber('incident')->name('entries.store');
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
