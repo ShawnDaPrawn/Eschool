@@ -5884,5 +5884,6 @@
     ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": "Izabelo zokufundisa ezingu-:teachers nezabelo zamakilasi ezingu-:homerooms zibhalelwe u-:year.",
     "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "Enye ingxenye yohlaka ayifikanga, ngakho akukho okusetshenzisiwe. Layisha kabusha uhlaka bese uyalusebenzisa futhi.",
     "Offered once the rows above are applied.": "Kuzonikezwa uma imigqa engenhla isisetshenzisiwe.",
-    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Lolu hlaka lukhulu kakhulu ukuthi luthunyelwe kanye. Lusebenzise, bese ikhasi linikeza ezingu-:waiting ezisele."
+    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Lolu hlaka lukhulu kakhulu ukuthi luthunyelwe kanye. Lusebenzise, bese ikhasi linikeza ezingu-:waiting ezisele.",
+    "Every group and homeroom here already has a teacher for this year: there is nothing to apply.": "Wonke amaqembu namakilasi okubhalisa lapha asenathisha walo nyaka: akukho okufanele kusetshenziswe."
 }

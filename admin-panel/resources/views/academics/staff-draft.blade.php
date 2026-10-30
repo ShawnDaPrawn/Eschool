@@ -51,9 +51,13 @@
             </section>
         @endforeach
 
-        {{-- Last on purpose: if the server drops trailing fields, this goes first and nothing is applied. --}}
-        <input type="hidden" name="complete" value="1">
-        <button class="m3-button m3-button--filled" type="submit">{{ __('Apply the draft') }}</button>
+        @if (collect($plan['groups'])->merge($plan['homerooms'])->contains(fn ($row) => $row['staffed'] === [] && $row['in_form']))
+            {{-- Last on purpose: if the server drops trailing fields, this goes first and nothing is applied. --}}
+            <input type="hidden" name="complete" value="1">
+            <button class="m3-button m3-button--filled" type="submit">{{ __('Apply the draft') }}</button>
+        @else
+            <p>{{ __('Every group and homeroom here already has a teacher for this year: there is nothing to apply.') }}</p>
+        @endif
     </form>
 </div>
 @endsection

@@ -5884,5 +5884,6 @@
     ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": ":teachers onderrigtoekennings en :homerooms registerklastoekennings vir :year ingeskryf.",
     "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "'n Deel van die konsep het nie aangekom nie, dus is niks toegepas nie. Laai die konsep weer en pas dit weer toe.",
     "Offered once the rows above are applied.": "Word aangebied sodra die rye hierbo toegepas is.",
-    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Hierdie konsep is te groot om in een slag te stuur. Pas dit toe, dan bied die bladsy die oorblywende :waiting aan."
+    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "Hierdie konsep is te groot om in een slag te stuur. Pas dit toe, dan bied die bladsy die oorblywende :waiting aan.",
+    "Every group and homeroom here already has a teacher for this year: there is nothing to apply.": "Elke groep en registerklas hier het reeds ’n onderwyser vir hierdie jaar: daar is niks om toe te pas nie."
 }

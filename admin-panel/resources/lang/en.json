@@ -5884,5 +5884,6 @@
     ":teachers teaching allocations and :homerooms homeroom allocations written for :year.": ":teachers teaching allocations and :homerooms homeroom allocations written for :year.",
     "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.": "Some of the draft did not arrive, so nothing was applied. Reload the draft and apply it again.",
     "Offered once the rows above are applied.": "Offered once the rows above are applied.",
-    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting."
+    "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.": "This draft is too large to send at once. Apply it, then the page offers the remaining :waiting.",
+    "Every group and homeroom here already has a teacher for this year: there is nothing to apply.": "Every group and homeroom here already has a teacher for this year: there is nothing to apply."
 }

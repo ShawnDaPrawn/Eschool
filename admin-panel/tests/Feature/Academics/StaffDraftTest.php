@@ -179,7 +179,22 @@ class StaffDraftTest extends TestCase
             'groups' => [$this->maths->id => [$this->tara]], 'homerooms' => [$this->schoolA->ids['section_a'] => [$this->tara]]])
             ->assertRedirect(route('academic-allocations.draft', ['year' => $this->next->id]))->assertSessionHas('success');
         $this->assertSame(2, $this->nextYearAllocations());
-        $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertOk()->assertSee('Already allocated');
+        $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertOk()->assertSee('Already allocated')->assertSee('Apply the draft');
+
+        // Once every row has a teacher, the page says so instead of offering an empty apply.
+        $drafts = app(StaffDrafts::class);
+        $plan = $drafts->plan($this->superAdmin(), $this->next);
+        $choices = [];
+        foreach (['groups', 'homerooms'] as $kind) {
+            foreach ($plan[$kind] as $row) {
+                if ($row['staffed'] === [] && $row['in_form']) {
+                    $choices[$kind][$row['id']] = [$this->tara];
+                }
+            }
+        }
+        $drafts->apply($this->superAdmin(), $this->next, $choices, $plan['fingerprint']);
+        $this->get(route('academic-allocations.draft', ['year' => $this->next->id]))->assertOk()
+            ->assertSee('there is nothing to apply')->assertDontSee('Apply the draft');
     }
 
     public function test_a_draft_cut_short_in_transit_is_refused_and_nothing_is_written(): void
