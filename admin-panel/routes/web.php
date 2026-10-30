@@ -107,21 +107,21 @@ use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
-use App\Http\Controllers\People\LearnerGuardiansController;
 use App\Http\Controllers\People\AccessReviewController;
+use App\Http\Controllers\People\LearnerGuardiansController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
-use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformStaffController;
+use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
-use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
@@ -266,13 +266,14 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
 // The platform admin area: active platform staff identities only, in no school
 // (no school.context). It lists schools and their counts, never their people.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
-    Route::get('/', [SaasController::class, 'index'])->name('index');
-    Route::get('/packages', ProductCatalogueController::class)->name('packages');
-    Route::get('/schools/create', [SaasController::class, 'create'])->name('schools.create');
-    Route::post('/schools', [SaasController::class, 'store'])->middleware('throttle:20,1')->name('schools.store');
-    Route::get('/schools/{school}', [SaasController::class, 'show'])->whereNumber('school')->name('schools.show');
+    // Every route names the ability its role must hold (platform.can, SA.1).
+    Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
+    Route::get('/packages', ProductCatalogueController::class)->middleware('platform.can:packages.view')->name('packages');
+    Route::get('/schools/create', [SaasController::class, 'create'])->middleware('platform.can:schools.create')->name('schools.create');
+    Route::post('/schools', [SaasController::class, 'store'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->name('schools.store');
+    Route::get('/schools/{school}', [SaasController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.show');
     // HQ's own record of the school (contacts, stage, contracts, timeline): never the school's people.
-    Route::prefix('/schools/{school}')->whereNumber('school')->name('schools.')->group(function () {
+    Route::prefix('/schools/{school}')->whereNumber('school')->middleware('platform.can:accounts.manage')->name('schools.')->group(function () {
         Route::get('account', [SchoolAccountController::class, 'show'])->name('account');
         Route::put('account', [SchoolAccountController::class, 'save'])->name('account.save');
         Route::post('contacts', [SchoolAccountController::class, 'contact'])->name('contacts.store');
@@ -281,20 +282,12 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('contracts', [SchoolAccountController::class, 'contract'])->name('contracts.store');
         Route::post('notes', [SchoolAccountController::class, 'note'])->name('notes.store');
     });
-    Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->whereNumber('school')->name('schools.package');
-    Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->whereNumber('school')->name('schools.status');
-    Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->whereNumber('school')->name('schools.modules');
-    Route::post('/schools/{school}/administrator-invitation', [SaasController::class, 'resendInvitation'])->whereNumber('school')->middleware('throttle:20,1')->name('schools.invitation');
-    Route::get('/audit', [PlatformAuditController::class, 'index'])->name('audit');
-    Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware('throttle:10,1')->name('audit.export');
-    // Every route names the ability its role must hold (platform.can, SA.1).
-    Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
-    Route::get('/schools/create', [SaasController::class, 'create'])->middleware('platform.can:schools.create')->name('schools.create');
-    Route::post('/schools', [SaasController::class, 'store'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->name('schools.store');
-    Route::get('/schools/{school}', [SaasController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.show');
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->middleware('platform.can:schools.package')->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->middleware('platform.can:schools.modules')->whereNumber('school')->name('schools.modules');
+    Route::post('/schools/{school}/administrator-invitation', [SaasController::class, 'resendInvitation'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->whereNumber('school')->name('schools.invitation');
+    Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
+    Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
     Route::post('/staff', [PlatformStaffController::class, 'store'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->name('staff.store');
     Route::put('/staff/{user}', [PlatformStaffController::class, 'update'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.update');
