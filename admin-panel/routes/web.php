@@ -866,6 +866,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::post('teaching-groups/{group}/{kind}', [TeachingGroupController::class, 'row'])->whereNumber('group')->whereIn('kind', ['memberships', 'teachers'])->name('teaching-groups.rows.store');
         Route::put('teaching-groups/{group}/{kind}/{entry}', [TeachingGroupController::class, 'row'])->whereNumber('group')->whereNumber('entry')->whereIn('kind', ['memberships', 'teachers'])->name('teaching-groups.rows.update');
         Route::get('academic-allocations', [TeachingGroupController::class, 'allocations'])->name('academic-allocations.index');
+        // Staff drafts from last year's allocations (Action Plan 1.20).
+        Route::get('academic-allocations/draft', [TeachingGroupController::class, 'draft'])->name('academic-allocations.draft');
+        Route::post('academic-allocations/draft', [TeachingGroupController::class, 'applyDraft'])->middleware('throttle:20,1')->name('academic-allocations.draft.apply');
         Route::post('academic-allocations/{kind}', [TeachingGroupController::class, 'row'])->whereIn('kind', ['homerooms', 'leadership'])->name('academic-allocations.store');
         Route::put('academic-allocations/{kind}/{entry}', [TeachingGroupController::class, 'row'])->whereNumber('entry')->whereIn('kind', ['homerooms', 'leadership'])->name('academic-allocations.update');
         Route::put('academic-structure/classes/{class}', [TeachingGroupController::class, 'map'])->whereNumber('class')->name('academic-structure.map');
