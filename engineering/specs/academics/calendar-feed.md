@@ -16,6 +16,8 @@ A learner or a guardian can subscribe their phone or desktop calendar to the lea
 - **The link.** `POST /api/v2/academics/calendar-feeds` returns `…/calendar/{token}.ics` once. The token is 48 random letters and digits; only its SHA-256 is stored. At most five live links per person and learner (422). Listing shows only your own live links, without their URLs.
 - **Fetching.** The calendar app fetches the link with no sign-in and no school header. Each fetch finds the link by its hash, runs inside the link's school, and checks again that the person who made it is an active member of that school, their account is enabled, the school is active, the academics module is on, and they may still see the learner's timetable. Otherwise it is 404 (a notice is logged with the link id and reason, never the token). A school header on the request changes nothing. Fetches are limited to 60 a minute.
 - **What is in it.** Every exam sitting of the classes the learner is placed in for the school years around today, from 30 days ago (title "Exam: subject", venue as location, exam name as description). When lessons were asked for: the learner's lessons for the next four weeks, exactly as the app's week view shows them (short days, exam days and relief cover included). Times are written in UTC from the school's timezone. Calendar apps are asked to refresh every six hours.
+- **No replay.** Making a link is not idempotent: the response carries the secret, so it is never stored for replay (no `idempotent` middleware). A retry makes another link, within the limit of five, and the extra one can be revoked.
+- **Not exams.** Exam rows that only project released assessment results (linked through `academic_exam_links`) are not sittings and are left out.
 - **Revoking.** `DELETE /api/v2/academics/calendar-feeds/{id}` by the person who made it; anyone else gets 404. A revoked link is 404 at once.
 - **Audit.** Making and revoking a link are audited with the learner id and the lessons choice.
 
@@ -32,6 +34,7 @@ A learner or a guardian can subscribe their phone or desktop calendar to the lea
 | Farid's guardian link ends; Asha's membership ends; Asha's account is disabled | the links are fetched | 404 each time; Asha's own link keeps working until her own access ends |
 | School B | lists, revokes, or makes a link for a School B learner through School A; a fetch says School B | nothing listed; 404; refused; the same calendar as without the header |
 | Five live links | a sixth is made; a made-up or malformed token is fetched | 422; 404 |
+| The same creation sent twice with one Idempotency-Key; a released-results exam row | made; fetched | two different links, no idempotency row holds the token; the projection is not in the feed |
 
 ## Not in this step
 

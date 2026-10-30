@@ -331,8 +331,9 @@ Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.
     });
     Route::prefix('calendar-feeds')->name('calendar-feeds.')->group(function () {
         Route::get('/', [CalendarFeedController::class, 'index'])->name('index');
-        Route::post('/', [CalendarFeedController::class, 'store'])->middleware('idempotent')->name('store');
-        Route::delete('{feed}', [CalendarFeedController::class, 'destroy'])->whereNumber('feed')->middleware('idempotent')->name('destroy');
+        // No idempotency replay: the response holds the link's secret, which must never be stored or replayed.
+        Route::post('/', [CalendarFeedController::class, 'store'])->name('store');
+        Route::delete('{feed}', [CalendarFeedController::class, 'destroy'])->whereNumber('feed')->name('destroy');
     });
     Route::prefix('timetable')->name('timetable.')->group(function () {
         $controller = TimetableController::class;

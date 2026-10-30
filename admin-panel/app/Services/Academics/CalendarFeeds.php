@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Academics;
 
+use App\Models\Academics\AcademicExamLink;
 use App\Models\Academics\CalendarFeed;
 use App\Models\ExamTimetable;
 use App\Models\People\Enrolment;
@@ -166,7 +167,10 @@ class CalendarFeeds
             return [];
         }
 
+        // Released assessment results are projected into exam rows for the old
+        // results API; they are not sittings and stay out of the calendar.
         return ExamTimetable::query()->with('subject', 'exam')->whereIn('class_id', $classes)->where('session_year_id', $yearId)->whereDate('date', '>=', $from->toDateString())
+            ->whereNotIn('exam_id', AcademicExamLink::query()->select('exam_id'))
             ->orderBy('date')->limit(500)->get()->map(fn (ExamTimetable $sitting) => [
                 'uid' => 'exam-'.$sitting->id,
                 'start' => CarbonImmutable::parse(CarbonImmutable::parse($sitting->date)->toDateString().' '.substr((string) $sitting->start_time, 0, 5), $zone),

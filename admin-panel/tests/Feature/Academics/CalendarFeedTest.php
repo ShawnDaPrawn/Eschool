@@ -199,6 +199,30 @@ class CalendarFeedTest extends TestCase
         $this->assertSame('SUMMARY:'.str_repeat('é', 60), str_replace("\r\n ", '', $folded));
     }
 
+    public function test_creation_is_never_replayed_or_stored_and_result_projections_are_not_exams(): void
+    {
+        $key = (string) Str::uuid();
+        $first = $this->postJson('/api/v2/academics/calendar-feeds', ['learner_id' => $this->schoolA->ids['asha']], ['Idempotency-Key' => $key] + $this->api('farid'))->assertOk();
+        $second = $this->postJson('/api/v2/academics/calendar-feeds', ['learner_id' => $this->schoolA->ids['asha']], ['Idempotency-Key' => $key] + $this->api('farid'))->assertOk();
+        $this->assertNotSame($first->json('data.url'), $second->json('data.url'), 'a retry makes a new link, never a stored reply');
+        $token = basename((string) parse_url((string) $first->json('data.url'), PHP_URL_PATH), '.ics');
+        foreach (DB::table('idempotency_keys')->get() as $row) {
+            $this->assertStringNotContainsString($token, json_encode($row));
+        }
+
+        // Released assessment results are projected into an exam row at midnight; it is not a sitting.
+        $exam = DB::table('exams')->insertGetId(['name' => 'Term 1 results', 'session_year_id' => $this->year, 'publish' => 1, 'school_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        (new ExamTimetable)->forceFill(['exam_id' => $exam, 'class_id' => $this->schoolA->ids['class_a'], 'subject_id' => $this->schoolA->ids['science'], 'total_marks' => 100, 'passing_marks' => 50,
+            'date' => '2026-02-25', 'start_time' => '00:00:00', 'end_time' => '00:00:00', 'session_year_id' => $this->year])->save();
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('academic_exam_links')->insert(['school_id' => 1, 'subject_id' => $this->schoolA->ids['science'], 'grade_level_id' => (int) GradeLevel::where('code', '7')->value('id'),
+            'session_year_id' => $this->year, 'term_id' => null, 'period_key' => 'term-1', 'exam_id' => $exam, 'mark_release_id' => 999999, 'created_at' => now(), 'updated_at' => now()]);
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        $ics = $this->fetch((string) $first->json('data.url'))->assertOk()->getContent();
+        $this->assertStringContainsString('Exam: Maths', $ics);
+        $this->assertStringNotContainsString('20260225', $ics);
+    }
+
     private function refused(callable $fn): int
     {
         try {
