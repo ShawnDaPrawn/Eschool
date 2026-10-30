@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models\Platform;
 
+use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 /**
  * One request by a Navigate Ed staff member for audited, time-limited access
@@ -22,14 +23,14 @@ use Illuminate\Support\Carbon;
  * @property string $scope
  * @property int $minutes
  * @property string $status
- * @property Carbon $requested_at
+ * @property CarbonImmutable $requested_at
  * @property int|null $decided_by
- * @property Carbon|null $decided_at
+ * @property CarbonImmutable|null $decided_at
  * @property bool $emergency
  * @property string|null $emergency_reason
- * @property Carbon|null $starts_at
- * @property Carbon|null $expires_at
- * @property Carbon|null $ended_at
+ * @property CarbonImmutable|null $starts_at
+ * @property CarbonImmutable|null $expires_at
+ * @property CarbonImmutable|null $ended_at
  * @property int|null $ended_by
  * @property string|null $ended_side
  */
@@ -56,11 +57,11 @@ class SupportAccessGrant extends Model
         return [
             'minutes' => 'integer',
             'emergency' => 'boolean',
-            'requested_at' => 'datetime',
-            'decided_at' => 'datetime',
-            'starts_at' => 'datetime',
-            'expires_at' => 'datetime',
-            'ended_at' => 'datetime',
+            'requested_at' => UtcInstant::class,
+            'decided_at' => UtcInstant::class,
+            'starts_at' => UtcInstant::class,
+            'expires_at' => UtcInstant::class,
+            'ended_at' => UtcInstant::class,
         ];
     }
 

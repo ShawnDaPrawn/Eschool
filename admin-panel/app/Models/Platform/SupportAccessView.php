@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models\Platform;
 
+use App\Casts\UtcInstant;
 use App\Services\Platform\Tenancy\BelongsToSchool;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 /**
  * One page a Navigate Ed staff member viewed in a support session: when, the
@@ -21,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $record_type
  * @property int|null $record_id
  * @property list<int>|null $listed
- * @property Carbon $viewed_at
+ * @property CarbonImmutable $viewed_at
  */
 class SupportAccessView extends Model
 {
@@ -35,6 +36,6 @@ class SupportAccessView extends Model
 
     protected function casts(): array
     {
-        return ['grant_id' => 'integer', 'user_id' => 'integer', 'record_id' => 'integer', 'listed' => 'array', 'viewed_at' => 'datetime'];
+        return ['grant_id' => 'integer', 'user_id' => 'integer', 'record_id' => 'integer', 'listed' => 'array', 'viewed_at' => UtcInstant::class];
     }
 }

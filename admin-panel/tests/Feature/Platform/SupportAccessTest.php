@@ -11,6 +11,7 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolModule;
 use App\Models\Platform\SupportAccessGrant;
+use App\Models\Settings;
 use App\Models\User;
 use App\Policies\Growth\LearnerNotesPolicy;
 use App\Services\Discipline\DisciplineAuthority;
@@ -155,7 +156,7 @@ class SupportAccessTest extends TestCase
         $this->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access')->assertSessionHas('success');
         $grant = $this->grant($id);
         $this->assertSame(['active', (int) $admin->id], [$grant->state(), $grant->decided_by]);
-        $this->assertSame(now()->addHour()->format('Y-m-d H:i'), $grant->expires_at?->format('Y-m-d H:i'));
+        $this->assertSame(now()->utc()->addHour()->format('Y-m-d H:i'), $grant->expires_at?->format('Y-m-d H:i'));
         // The staff member gains no membership and no role in the school.
         $this->assertSame(0, DB::table('school_memberships')->where('user_id', $support->id)->count());
         $this->assertSame(0, DB::table('model_has_roles')->where('model_id', $support->id)->count());
@@ -288,7 +289,7 @@ class SupportAccessTest extends TestCase
         $this->assertSame('withdrawn', $this->grant($third)->state());
         $this->actingAs($admin)->post('/support-access/'.$third.'/approve')->assertStatus(409);
         $this->assertSame('withdrawn', $this->grant($third)->state());
-        $this->assertSame(1, DB::table('audit_log')->where('action', 'platform_support_access_ended')->where('after', 'like', '%"side":"school"%')->count());
+        $this->assertSame(1, DB::table('audit_log')->where('action', 'platform_support_access_ended')->where('after->side', 'school')->count());
     }
 
     public function test_without_an_open_grant_of_ones_own_nothing_opens_and_nothing_is_written(): void
@@ -777,6 +778,109 @@ class SupportAccessTest extends TestCase
         } finally {
             $school->reset();
         }
+    }
+
+    public function test_a_later_school_termination_controls_the_cooldown_and_override_audit_not_its_earlier_approval(): void
+    {
+        // Keep a request issued before either refusal pending for the override checks.
+        config(['support_access.pending_hours' => 48]);
+        $support = $this->staff('support', 'ended');
+        $other = $this->staff('support', 'declined');
+        $waiting = $this->staff('support', 'waiting');
+        $owner = $this->staff('owner');
+        $admin = $this->superAdmin();
+        $this->travelTo(CarbonImmutable::parse('2026-10-30T06:00:00Z'));
+        $this->actingAs($support);
+        $ended = $this->ask(1, ['minutes' => 240]);
+        $this->actingAs($other);
+        $declined = $this->ask();
+        $this->actingAs($waiting);
+        $pending = $this->ask();
+        $this->actingAs($admin)->post('/support-access/'.$ended.'/approve')->assertRedirect();
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-30T07:00:00Z'));
+        $this->post('/support-access/'.$declined.'/decline')->assertRedirect();
+        $this->travelTo(CarbonImmutable::parse('2026-10-30T09:00:00Z'));
+        $this->post('/support-access/'.$ended.'/end')->assertRedirect();
+        $this->assertSame('ended', $this->grant($ended)->state());
+
+        // The decline's cooldown has expired, but the later termination still stands.
+        $this->travelTo(CarbonImmutable::parse('2026-10-31T07:30:00Z'));
+        $input = ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
+        $override = ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'];
+        $before = $this->state();
+        $this->actingAs($support)->post('/saas/support', $input)->assertStatus(409);
+        $this->actingAs($owner)->post('/saas/support/'.$pending.'/emergency', $override)->assertStatus(409);
+        $this->assertSame($before, $this->state());
+        $earlier = app(SupportAccess::class)->hqShow($owner, $pending)['grant']['earlier_refusal'];
+        $this->assertSame($ended, $earlier['id']);
+        $this->assertSame('2026-10-30 11:00', $earlier['at']);
+
+        // At exactly 24 hours after the termination both actions are permitted.
+        $this->travelTo(CarbonImmutable::parse('2026-10-31T09:00:00Z'));
+        $this->actingAs($support)->post('/saas/support', $input)->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAs($owner)->post('/saas/support/'.$pending.'/emergency', $override)->assertRedirect('/saas/support/'.$pending);
+        $this->assertSame('active', $this->grant($pending)->state());
+        $audit = json_decode((string) DB::table('audit_log')->where('action', 'platform_support_access_emergency')->sole()->after, true);
+        $this->assertSame($ended, $audit['earlier_refusal']['grant_id']);
+        $this->assertSame('2026-10-30T09:00:00+00:00', $audit['earlier_refusal']['at']);
+    }
+
+    private function schoolInAuckland(): void
+    {
+        // Keep the default school (and HQ) in Johannesburg; only School B changes.
+        app(CurrentSchool::class)->run(1, fn () => Settings::query()->updateOrCreate(['type' => 'time_zone'], ['message' => SupportAccess::TIMEZONE]));
+        DB::table('schools')->where('id', self::SCHOOL_B_ID)->update(['timezone' => 'Pacific/Auckland']);
+        app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => Settings::query()->updateOrCreate(['type' => 'time_zone'], ['message' => 'Pacific/Auckland']));
+        app(CurrentSchool::class)->forget();
+        $this->travelTo(CarbonImmutable::parse('2026-10-30T06:00:00Z'));
+    }
+
+    public function test_approval_and_session_expiry_use_the_same_instant_in_hq_and_a_different_school_timezone(): void
+    {
+        $this->schoolInAuckland();
+        $support = $this->staff('support');
+        $admin = $this->adminB;
+        $this->actingAs($support);
+        $id = $this->ask(self::SCHOOL_B_ID);
+        $this->assertSame(SupportAccess::TIMEZONE, config('app.timezone'), 'HQ retains its own clock');
+        $this->assertSame('2026-10-30 06:00:00', DB::table('support_access_grants')->where('id', $id)->value('requested_at'));
+
+        $this->actingAs($admin)->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access');
+        $row = DB::table('support_access_grants')->where('id', $id)->first();
+        $this->assertSame('2026-10-30 06:00:00', $row->starts_at);
+        $this->assertSame('2026-10-30 07:00:00', $row->expires_at);
+        $this->get('/support-access/'.$id)->assertOk()->assertSee('2026-10-30 20:00');
+
+        // HQ checks the grant before entering the school's timezone: it opens immediately, never hours later.
+        $this->actingAs($support)->get('/support-session/'.$id)->assertOk();
+        $this->assertSame('2026-10-30 06:00:00', DB::table('support_access_views')->where('grant_id', $id)->value('viewed_at'));
+        $this->assertSame([$id], array_column(app(SupportAccess::class)->hqList($support)['open'], 'id'));
+        $this->travelTo(CarbonImmutable::parse('2026-10-30T06:59:59Z'));
+        $this->get('/support-session/'.$id)->assertOk();
+        $this->travelTo(CarbonImmutable::parse('2026-10-30T07:00:00Z'));
+        $before = $this->state();
+        $this->get('/support-session/'.$id)->assertForbidden();
+        $this->assertSame($before, $this->state());
+        $this->assertSame([], app(SupportAccess::class)->hqList($support)['open']);
+    }
+
+    public function test_request_lifetime_and_refusal_cooldown_do_not_change_with_the_schools_timezone(): void
+    {
+        $this->schoolInAuckland();
+        $support = $this->staff('support');
+        $admin = $this->adminB;
+        $this->actingAs($support);
+        $id = $this->ask(self::SCHOOL_B_ID);
+        $this->travelTo(CarbonImmutable::parse('2026-10-31T05:59:59Z'));
+        // The school's clock is already thirteen hours ahead, but this request has not waited 24 real hours.
+        $this->actingAs($admin)->post('/support-access/'.$id.'/decline')->assertRedirect('/support-access');
+        $this->assertSame('2026-10-31 05:59:59', DB::table('support_access_grants')->where('id', $id)->value('decided_at'));
+        $this->travelTo(CarbonImmutable::parse('2026-11-01T05:59:58Z'));
+        $input = ['school_id' => self::SCHOOL_B_ID, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
+        $this->actingAs($support)->post('/saas/support', $input)->assertStatus(409);
+        $this->travelTo(CarbonImmutable::parse('2026-11-01T05:59:59Z'));
+        $this->post('/saas/support', $input)->assertRedirect()->assertSessionHasNoErrors();
     }
 
     public function test_open_requests_stay_listed_however_many_old_grants_exist(): void

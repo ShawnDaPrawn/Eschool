@@ -37,7 +37,7 @@ use Illuminate\Validation\Rule;
  */
 class SupportAccess
 {
-    /** HQ works in South African time; rows are stored in the app's timezone. */
+    /** HQ displays South African time; all support access instants are stored in UTC. */
     public const TIMEZONE = 'Africa/Johannesburg';
 
     public const REQUESTED = 'support_access.requested';
@@ -148,7 +148,7 @@ class SupportAccess
             Audit::record('platform_support_access_emergency', $grant, ['status' => SupportAccessGrant::PENDING], [
                 'grant_id' => $grant->id, 'status' => SupportAccessGrant::ACTIVE, 'expires_at' => $grant->expires_at?->toIso8601String(),
                 'requested_by' => $grant->requested_by, 'reason' => $grant->emergency_reason,
-                'earlier_refusal' => $earlier === null ? null : ['grant_id' => (int) $earlier->id, 'status' => $earlier->status, 'at' => ($earlier->decided_at ?? $earlier->ended_at)?->toIso8601String()],
+                'earlier_refusal' => $earlier === null ? null : ['grant_id' => (int) $earlier->id, 'status' => $earlier->status, 'at' => $this->refusalAt($earlier)?->toIso8601String()],
                 'changed_by' => $actor->id,
             ], $grant->school_id);
             $this->notify($grant->school_id, self::EMERGENCY, __('Navigate Ed opened emergency support access'), __('Open Support access to see who, why and until when, or to end it now.'));
@@ -183,7 +183,7 @@ class SupportAccess
 
         return $this->currentSchool->acrossSchools(function (): array {
             // The open time windows are applied in SQL before the limit, so old rows that expired or lapsed never crowd out open ones.
-            $now = now();
+            $now = now()->utc();
             $open = SupportAccessGrant::acrossSchools()->where(fn ($q) => $q
                 ->where(fn ($pending) => $pending->where('status', SupportAccessGrant::PENDING)->where('requested_at', '>', $now->copy()->subHours((int) config('support_access.pending_hours', 24))))
                 ->orWhere(fn ($active) => $active->where('status', SupportAccessGrant::ACTIVE)->whereNull('ended_at')->where('starts_at', '<=', $now)->where('expires_at', '>', $now)))
@@ -465,14 +465,20 @@ class SupportAccess
         return SupportAccessGrant::acrossSchools()->where('school_id', $schoolId)
             ->where(fn ($q) => $q->where(fn ($d) => $d->where('status', SupportAccessGrant::DECLINED)->whereNotNull('decided_at'))
                 ->orWhere(fn ($e) => $e->where('status', SupportAccessGrant::ENDED)->where('ended_side', 'school')))
-            ->get()->sortByDesc(fn (SupportAccessGrant $g) => ($g->decided_at ?? $g->ended_at)?->getTimestamp() ?? 0)->first();
+            ->get()->sortByDesc(fn (SupportAccessGrant $g) => $this->refusalAt($g)?->getTimestamp() ?? 0)->first();
+    }
+
+    /** An ended session was refused when the school ended it, not when it was approved. */
+    private function refusalAt(SupportAccessGrant $grant): ?CarbonImmutable
+    {
+        return $grant->status === SupportAccessGrant::DECLINED ? $grant->decided_at : $grant->ended_at;
     }
 
     /** The school's decline or early end within the cool-down, if any. */
     private function recentRefusal(int $schoolId): ?SupportAccessGrant
     {
         $refusal = $this->lastRefusal($schoolId);
-        $at = $refusal === null ? null : ($refusal->status === SupportAccessGrant::DECLINED ? $refusal->decided_at : $refusal->ended_at);
+        $at = $refusal === null ? null : $this->refusalAt($refusal);
 
         return $at !== null && $at->copy()->addHours((int) config('support_access.refusal_cooldown_hours', 24))->isFuture() ? $refusal : null;
     }
@@ -481,7 +487,7 @@ class SupportAccess
     private function hqExtras(SupportAccessGrant $grant): array
     {
         $earlier = $this->lastRefusal($grant->school_id);
-        $at = $earlier === null ? null : ($earlier->status === SupportAccessGrant::DECLINED ? $earlier->decided_at : $earlier->ended_at);
+        $at = $earlier === null ? null : $this->refusalAt($earlier);
 
         return [
             'no_approver' => $grant->state() === 'pending' && $this->superAdmins($grant->school_id) === [],
