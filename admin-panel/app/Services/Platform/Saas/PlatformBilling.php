@@ -217,27 +217,36 @@ class PlatformBilling
 
     /**
      * Issue every draft of a month that can be issued. A draft with no price
-     * or nothing to bill stays a draft.
+     * or nothing to bill stays a draft (left). A draft of a school that is no
+     * longer active stays a draft too (skipped): HQ issues it by hand if it
+     * should still be billed. A draft another request issued or discarded
+     * meanwhile is counted as changed, and the batch carries on.
      *
-     * @return array{issued: int, left: int}
+     * @return array{issued: int, left: int, skipped: int, changed: int}
      */
     public function issueMonth(array $input, User $actor): array
     {
         $this->authorise($actor);
         $slot = $this->period(Validator::make($input, self::runRules())->validate()['period'])->format('Y-m');
         $drafts = $this->currentSchool->acrossSchools(fn () => PlatformInvoice::acrossSchools()->where('slot', $slot)->where('status', PlatformInvoice::DRAFT)->orderBy('school_id')->get(['id', 'school_id']));
-        $result = ['issued' => 0, 'left' => 0];
+        $result = ['issued' => 0, 'left' => 0, 'skipped' => 0, 'changed' => 0];
         foreach ($drafts as $draft) {
-            $issued = $this->inSchool((int) $draft->school_id, function () use ($draft, $actor): bool {
-                $locked = $this->lockDraft((int) $draft->id);
+            $outcome = $this->inSchool((int) $draft->school_id, function (object $school) use ($draft, $actor): string {
+                if ($school->status !== School::ACTIVE) {
+                    return 'skipped';
+                }
+                $locked = PlatformInvoice::query()->whereKey((int) $draft->id)->lockForUpdate()->first();
+                if ($locked === null || ! $locked->isDraft()) {
+                    return 'changed';
+                }
                 if ($this->issueProblem($locked) !== null) {
-                    return false;
+                    return 'left';
                 }
                 $this->issueDraft($locked, $actor);
 
-                return true;
+                return 'issued';
             });
-            $result[$issued ? 'issued' : 'left']++;
+            $result[$outcome]++;
         }
 
         return $result;
@@ -290,8 +299,11 @@ class PlatformBilling
             if ($original->kind !== PlatformInvoice::INVOICE || ! $original->isIssued()) {
                 throw ValidationException::withMessages(['invoice' => __('Only an issued invoice can be credited.')]);
             }
-            $credited = (int) -PlatformInvoice::query()->where('credits_invoice_id', $original->id)->where('status', PlatformInvoice::ISSUED)->lockForUpdate()->get(['total_cents'])->sum('total_cents');
+            $earlier = PlatformInvoice::query()->where('credits_invoice_id', $original->id)->where('status', PlatformInvoice::ISSUED)->lockForUpdate()->get(['subtotal_cents', 'total_cents']);
+            $credited = (int) -$earlier->sum('total_cents');
             $creditable = (int) $original->total_cents - $credited;
+            // Each partial credit rounds its own VAT, so cap the amount excluding VAT as well as the total.
+            $creditableExVat = (int) $original->subtotal_cents + (int) $earlier->sum('subtotal_cents');
             if ($full && $credited > 0) {
                 throw ValidationException::withMessages(['full' => __('Part of this invoice was credited already. Credit an amount instead.')]);
             }
@@ -303,8 +315,8 @@ class PlatformBilling
                 : [['kind' => 'credit', 'product_module' => null, 'description' => __('Credit: :reason', ['reason' => mb_substr($data['reason'], 0, 150)]),
                     'learners' => null, 'unit_cents' => null, 'amount_cents' => -(int) $amount, 'vat_cents' => self::lineVat(-(int) $amount, (int) $original->vat_rate_bp)]];
             $total = array_sum(array_column($lines, 'amount_cents')) + array_sum(array_column($lines, 'vat_cents'));
-            if (-$total > $creditable) {
-                throw ValidationException::withMessages(['amount' => __('Only :amount (including VAT) is left to credit on this invoice.', ['amount' => self::rands($creditable)])]);
+            if (-$total > $creditable || -array_sum(array_column($lines, 'amount_cents')) > $creditableExVat) {
+                throw ValidationException::withMessages(['amount' => __('Only :amount excluding VAT (:total including VAT) is left to credit on this invoice.', ['amount' => self::rands($creditableExVat), 'total' => self::rands($creditable)])]);
             }
             $today = self::today();
             $note = PlatformInvoice::query()->create([
@@ -561,9 +573,9 @@ class PlatformBilling
 
         return $this->currentSchool->run($schoolId, fn () => DB::transaction(function () use ($schoolId, $change) {
             // Serialize mutations of an account before any balance snapshot.
-            DB::table('schools')->where('id', $schoolId)->lockForUpdate()->first();
+            $school = DB::table('schools')->where('id', $schoolId)->lockForUpdate()->first(['id', 'name', 'status']);
 
-            return $change();
+            return $change($school);
         }, 3));
     }
 

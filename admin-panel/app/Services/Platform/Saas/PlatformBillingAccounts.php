@@ -332,50 +332,98 @@ class PlatformBillingAccounts
         });
     }
 
+    public static function reminderRules(): array
+    {
+        return ['idempotency_key' => ['required', 'uuid']];
+    }
+
     /**
-     * Remind a school that invoices are overdue: a notice to its active Super
-     * Admins (Notifier, billing.overdue) and an email to the bursar contact
-     * HQ holds for it. Recorded on each overdue invoice and audited.
+     * Remind a school that invoices are overdue: a short notice to its active
+     * Super Admins (Notifier, billing.overdue: the amount, how many invoices
+     * and the oldest reference, within the notice's 128 characters) and an
+     * email with every reference to the bursar contacts HQ holds for it.
+     * Runs under the school's account lock with current reads of what is
+     * unpaid. The form's key makes a repeated request return the first
+     * reminder without sending anything again; the bursar emails are queued
+     * only after the reminder commits (deliverBursarEmails), once.
      *
-     * @return array{super_admins: int, bursars: int}
+     * @return array{super_admins: int, bursars: int, repeated: bool}
      */
-    public function remind(int $schoolId, User $actor): array
+    public function remind(int $schoolId, array $input, User $actor): array
     {
         $this->billing->authorise($actor);
-        $school = $this->billing->school($schoolId);
+        $key = strtolower(Validator::make($input, self::reminderRules())->validate()['idempotency_key']);
         $today = PlatformBilling::today();
 
-        return $this->currentSchool->run($schoolId, function () use ($school, $today, $actor): array {
+        return $this->billing->inSchool($schoolId, function (object $school) use ($key, $today, $actor): array {
+            $replay = DB::table('platform_billing_reminders')->where('school_id', $school->id)->where('request_key', $key)->lockForUpdate()->first();
+            if ($replay !== null) {
+                return ['super_admins' => (int) $replay->super_admins, 'bursars' => count((array) json_decode((string) $replay->bursar_contact_ids, true)), 'repeated' => true];
+            }
             $overdue = PlatformInvoice::query()->where('kind', PlatformInvoice::INVOICE)->where('status', PlatformInvoice::ISSUED)
-                ->where('due_on', '<', $today)->orderBy('due_on')->get()->filter(fn (PlatformInvoice $invoice): bool => $this->outstanding($invoice) > 0)->values();
+                ->where('due_on', '<', $today)->orderBy('due_on')->orderBy('id')->lockForUpdate()->get()
+                ->map(fn (PlatformInvoice $invoice): array => [$invoice, $this->outstanding($invoice, true)])
+                ->filter(fn (array $pair): bool => $pair[1] > 0)->values();
             if ($overdue->isEmpty()) {
                 throw ValidationException::withMessages(['school' => __('Nothing is overdue for this school.')]);
             }
-            $amount = $overdue->sum(fn (PlatformInvoice $invoice): int => $this->outstanding($invoice));
-            $references = $overdue->pluck('reference')->implode(', ');
+            $amount = (int) $overdue->sum(fn (array $pair): int => $pair[1]);
+            $invoices = $overdue->map(fn (array $pair): PlatformInvoice => $pair[0]);
             $title = __('Navigate Ed account overdue');
-            $body = __(':amount is overdue on :references. Please pay by EFT with the invoice reference.', ['amount' => PlatformBilling::rands($amount), 'references' => $references]);
+            $notice = trans_choice('{1} :amount is overdue on Navigate Ed invoice :oldest. Please pay by EFT quoting the invoice reference.|[2,*] :amount is overdue on :count Navigate Ed invoices, the oldest :oldest. Please pay by EFT quoting each reference.',
+                $invoices->count(), ['amount' => PlatformBilling::rands($amount), 'oldest' => (string) $invoices->first()->reference]);
+            $email = __(':amount is overdue to Navigate Ed on :references. Please pay by EFT, quoting each invoice reference.', [
+                'amount' => PlatformBilling::rands($amount),
+                'references' => $overdue->map(fn (array $pair): string => $pair[0]->reference.' ('.PlatformBilling::rands($pair[1]).', due '.$pair[0]->due_on?->toDateString().')')->implode(', ')]);
             $admins = $this->superAdmins((int) $school->id);
-            $bursars = DB::table('school_contacts')->where('school_id', $school->id)->where('role', 'bursar')->whereNotNull('email')->orderBy('id')->get(['id', 'email']);
+            $bursars = DB::table('school_contacts')->where('school_id', $school->id)->where('role', 'bursar')->whereNotNull('email')->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
 
-            DB::transaction(function () use ($overdue, $admins, $bursars, $title, $body, $school, $amount, $actor): void {
+            if ($admins !== []) {
                 $notifier = app(Notifier::class);
-                if ($admins !== []) {
-                    $notifier->assign($notifier->makeNotice(self::NOTICE_TYPE, $title, $body, '/home'), $admins);
-                }
-                foreach ($bursars as $bursar) {
-                    MailService::queue(new NotificationMail((string) $bursar->email, self::NOTICE_TYPE, $title, $body, rtrim((string) config('identity.portal_url', config('app.url')), '/').'/', (string) $school->name), null);
-                }
-                foreach ($overdue as $invoice) {
-                    $invoice->forceFill(['reminded_at' => now(), 'reminders' => (int) $invoice->reminders + 1])->save();
-                }
-                Audit::record('platform_billing_reminder_sent', null, [], [
-                    'invoices' => $overdue->pluck('id')->map(fn ($id) => (int) $id)->all(), 'overdue_cents' => $amount,
-                    'super_admins' => count($admins), 'bursar_contacts' => $bursars->pluck('id')->map(fn ($id) => (int) $id)->all(), 'changed_by' => $actor->id,
-                ], (int) $school->id);
-            }, 3);
+                $notifier->assign($notifier->makeNotice(self::NOTICE_TYPE, $title, $notice, '/home'), $admins);
+            }
+            foreach ($invoices as $invoice) {
+                $invoice->forceFill(['reminded_at' => now(), 'reminders' => (int) $invoice->reminders + 1])->save();
+            }
+            $reminderId = (int) DB::table('platform_billing_reminders')->insertGetId([
+                'school_id' => $school->id, 'request_key' => $key, 'invoice_ids' => json_encode($invoices->pluck('id')->map(fn ($id) => (int) $id)->all(), JSON_THROW_ON_ERROR),
+                'overdue_cents' => $amount, 'super_admins' => count($admins), 'bursar_contact_ids' => json_encode($bursars, JSON_THROW_ON_ERROR),
+                'email_title' => $title, 'email_body' => $email, 'created_by' => $actor->id, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+            Audit::record('platform_billing_reminder_sent', null, [], [
+                'reminder_id' => $reminderId, 'invoices' => $invoices->pluck('id')->map(fn ($id) => (int) $id)->all(), 'overdue_cents' => $amount,
+                'super_admins' => count($admins), 'bursar_contacts' => $bursars, 'changed_by' => $actor->id,
+            ], (int) $school->id);
+            $schoolId = (int) $school->id;
+            DB::afterCommit(fn () => $this->deliverBursarEmails($schoolId, $reminderId));
 
-            return ['super_admins' => count($admins), 'bursars' => $bursars->count()];
+            return ['super_admins' => count($admins), 'bursars' => count($bursars), 'repeated' => false];
+        });
+    }
+
+    /**
+     * Queue a committed reminder's emails to the school's bursar contacts,
+     * once: the reminder row is claimed first, so a retry or a second call
+     * sends nothing. Called after the reminder commits.
+     */
+    public function deliverBursarEmails(int $schoolId, int $reminderId): int
+    {
+        return $this->currentSchool->run($schoolId, function () use ($schoolId, $reminderId): int {
+            $claimed = DB::table('platform_billing_reminders')->where('id', $reminderId)->where('school_id', $schoolId)->whereNull('mailed_at')->update(['mailed_at' => now(), 'updated_at' => now()]);
+            if ($claimed === 0) {
+                return 0;
+            }
+            $reminder = DB::table('platform_billing_reminders')->where('id', $reminderId)->first();
+            $school = (string) DB::table('schools')->where('id', $schoolId)->value('name');
+            $emails = DB::table('school_contacts')->where('school_id', $schoolId)->whereIn('id', (array) json_decode((string) $reminder->bursar_contact_ids, true))
+                ->whereNotNull('email')->orderBy('id')->pluck('email');
+            $queued = 0;
+            foreach ($emails as $address) {
+                $queued += MailService::queue(new NotificationMail((string) $address, self::NOTICE_TYPE, (string) $reminder->email_title, (string) $reminder->email_body,
+                    rtrim((string) config('identity.portal_url', config('app.url')), '/').'/', $school), null) ? 1 : 0;
+            }
+
+            return $queued;
         });
     }
 

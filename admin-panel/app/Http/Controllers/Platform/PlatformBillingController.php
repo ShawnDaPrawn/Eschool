@@ -36,7 +36,7 @@ class PlatformBillingController extends Controller
     {
         $result = $this->billing->issueMonth($request->validated(), $request->user());
 
-        return redirect()->route('saas.billing', ['month' => $request->validated('period')])->with('success', __(':issued invoices issued; :left drafts still need attention.', $result));
+        return redirect()->route('saas.billing', ['month' => $request->validated('period')])->with('success', __(':issued invoices issued; :left drafts still need attention; :skipped left as drafts because the school is no longer active; :changed already issued or discarded meanwhile.', $result));
     }
 
     public function statement(int $school): View
@@ -100,7 +100,7 @@ class PlatformBillingController extends Controller
 
     public function remind(BillingRequest $request, int $school): RedirectResponse
     {
-        $sent = $this->accounts->remind($school, $request->user());
+        $sent = $this->accounts->remind($school, $request->validated(), $request->user());
 
         return redirect()->back(fallback: route('saas.billing.statement', $school))->with('success', __('Reminder sent to :admins Super Admins and :bursars bursar contacts.', ['admins' => $sent['super_admins'], 'bursars' => $sent['bursars']]));
     }

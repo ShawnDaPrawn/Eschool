@@ -73,6 +73,7 @@
 @if ($canManage && collect($open)->contains('overdue', true))
 <form method="POST" action="{{ route('saas.billing.reminders.store', $school['id']) }}" class="saas-card saas-print-hide" aria-label="{{ __('Send a reminder') }}">
     @csrf
+    <input type="hidden" name="idempotency_key" value="{{ (string) Illuminate\Support\Str::uuid() }}">
     <p>{{ __('Sends a notice to the school\'s Super Admins in NavigateEd and an email to the bursar contact on HQ\'s school record.') }}</p>
     @if ($contacts === [])<p>{{ __('No bursar contact is recorded, so only the Super Admins are told.') }}</p>@endif
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Send a reminder') }}</button></div>

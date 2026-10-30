@@ -40,7 +40,9 @@ Earlier history is kept where it was written and is not repeated here:
   14-day grace period the school is listed as due for suspension, which an Owner
   or Operations still decides with the existing suspend form. The page also
   shows the month's invoiced, collected and overdue totals and monthly recurring
-  revenue. Operations can look; Sales, Content and Support cannot.
+  revenue. Operations can look; Sales, Content and Support cannot. Issued
+  invoices, their lines and payments are also protected in the database itself,
+  and pressing "Send a reminder" twice sends one reminder.
   **Deploy:** run the migrations.
 
 - Platform: packages and prices are edited at `/saas/packages` instead of being
