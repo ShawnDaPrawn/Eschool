@@ -217,7 +217,7 @@ class SaasPanelTest extends TestCase
             $this->assertContains('auth', $middleware, $route->uri());
             $this->assertNotContains('school.context', $middleware, $route->uri());
         }
-        $this->assertSame(9, $count);
+        $this->assertSame(16, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void

@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- HQ school records: platform staff keep each customer school's stage (lead to
+  live, at risk, churned), profile, contacts, contracts with the POPIA operator
+  agreement, and a timeline of notes, on a new page in `/saas`. The school list
+  shows each school's stage. Schools never see it, and it shows none of a
+  school's people. **Deploy:** run the additive `school_accounts` migration.
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.
