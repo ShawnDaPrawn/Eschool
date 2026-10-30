@@ -151,7 +151,7 @@ class SchoolImports
         $import = $this->kind($kind);
         abort_unless($actor->can($import->permission()), 403);
 
-        return $import;
+        return $import instanceof StaffImport ? new StaffImport($actor) : $import;
     }
 
     /**

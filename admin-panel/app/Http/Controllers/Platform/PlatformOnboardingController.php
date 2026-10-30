@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Saas\TrainingRequest;
 use App\Services\Platform\Saas\PlatformOnboarding;
 use App\Services\Platform\Saas\PlatformSchools;
 use App\Services\Platform\Saas\PlatformStaffAccess;
@@ -29,9 +30,9 @@ class PlatformOnboardingController extends Controller
         ]);
     }
 
-    public function training(Request $request, int $school): RedirectResponse
+    public function training(TrainingRequest $request, int $school): RedirectResponse
     {
-        $this->onboarding->recordTraining($school, $request->only(['held_on', 'topic', 'attendees']), $request->user());
+        $this->onboarding->recordTraining($school, $request->validated(), $request->user());
 
         return redirect()->route('saas.schools.onboarding', $school)->with('success', __('Training session recorded.'));
     }

@@ -221,6 +221,75 @@ class SchoolImportsTest extends TestCase
         $this->assertSame(['exists', 'exists', 'exists', 'exists'], array_column($again['rows'], 'status'));
     }
 
+    private function staffWriteCounts(): array
+    {
+        return array_map(fn (string $table) => DB::table($table)->count(), ['users', 'school_memberships', 'staff_invitations', 'teachers', 'staffs']);
+    }
+
+    public function test_staff_create_alone_cannot_import_teachers(): void
+    {
+        $actor = User::query()->findOrFail($this->schoolA->ids['tara_user']);
+        $actor->givePermissionTo('staff-create');
+        $this->assertFalse($actor->can('teacher-create'));
+        $csv = "First Name,Surname,Email,Role\nThandi,Test,restricted-teacher@example.com,Teacher\n";
+        $before = $this->staffWriteCounts();
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($actor, 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame('error', $check['rows'][0]['status']);
+        try {
+            $imports->commit($actor, 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
+            $this->fail('Imported a teacher without teacher-create.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('rows', $e->errors());
+        }
+        $this->assertSame($before, $this->staffWriteCounts());
+    }
+
+    public function test_a_foreign_schools_custom_role_cannot_be_imported(): void
+    {
+        app(CurrentSchool::class)->run(2, fn () => Role::query()->create(['name' => 'Foreign role', 'guard_name' => 'web', 'custom_role' => 1]));
+        $before = $this->staffWriteCounts();
+        $csv = "First Name,Surname,Email,Role\nThandi,Test,foreign-role@example.com,Foreign role\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame('error', $check['rows'][0]['status']);
+        try {
+            $imports->commit($this->superAdmin(), 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
+            $this->fail('Granted another school role.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('rows', $e->errors());
+        }
+        $this->assertSame($before, $this->staffWriteCounts());
+    }
+
+    public function test_a_staff_import_check_cannot_be_replayed_by_another_actor_or_school(): void
+    {
+        Role::query()->create(['name' => 'Import helper', 'guard_name' => 'web', 'custom_role' => 1]);
+        app(CurrentSchool::class)->run(2, fn () => Role::query()->create(['name' => 'Import helper', 'guard_name' => 'web', 'custom_role' => 1]));
+        $actor = User::query()->findOrFail($this->schoolA->ids['tara_user']);
+        $actor->givePermissionTo('staff-create');
+        $other = app(CurrentSchool::class)->run(2, function () {
+            $user = User::query()->findOrFail($this->schoolB->ids['tara_user']);
+            $user->givePermissionTo('staff-create');
+
+            return $user;
+        });
+        $csv = "First Name,Surname,Email,Role\nThandi,Test,replayed-import@example.com,Import helper\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame('create', $check['rows'][0]['status']);
+        $before = $this->staffWriteCounts();
+        foreach ([$actor, $other] as $index => $caller) {
+            try {
+                app(CurrentSchool::class)->run($index === 0 ? 1 : 2, fn () => $imports->commit($caller, 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']));
+                $this->fail('Replayed another actor/school check.');
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey('fingerprint', $e->errors());
+            }
+            $this->assertSame($before, $this->staffWriteCounts());
+        }
+    }
+
     public function test_a_check_that_no_longer_matches_is_refused(): void
     {
         $imports = app(SchoolImports::class);

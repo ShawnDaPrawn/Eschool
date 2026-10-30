@@ -28,6 +28,8 @@ use Illuminate\Support\Collection;
  */
 final class StaffImport implements OnboardingImport
 {
+    public function __construct(private readonly ?User $actor = null) {}
+
     public function key(): string
     {
         return 'staff';
@@ -53,7 +55,7 @@ final class StaffImport implements OnboardingImport
 
     public function plan(CsvSheet $sheet, array $mapping, array $options): array
     {
-        $actor = auth()->user();
+        $actor = $this->actor ?? auth()->user();
         $roles = $this->roles();
         $school = app(CurrentSchool::class)->id();
         $seen = [];

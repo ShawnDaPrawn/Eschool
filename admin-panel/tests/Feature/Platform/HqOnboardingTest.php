@@ -11,6 +11,7 @@ use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolAccountEvent;
 use App\Models\Platform\SchoolContract;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\StaffInvitation;
 use App\Models\Students;
 use App\Models\User;
@@ -113,6 +114,37 @@ class HqOnboardingTest extends TestCase
         $this->assertSame(0, app(CurrentSchool::class)->run(2, fn () => SchoolAccountEvent::query()->where('kind', 'training')->count()));
         $this->assertSame('done', $this->steps(1)['training']['status']);
         $this->get('/saas/schools/999/onboarding')->assertNotFound();
+    }
+
+    public function test_training_accepts_an_omitted_attendee_count(): void
+    {
+        $this->actingAs($this->staff('operations'));
+        $this->post('/saas/schools/1/training', ['held_on' => now()->toDateString(), 'topic' => 'Safe onboarding'])
+            ->assertRedirect('/saas/schools/1/onboarding');
+        $event = app(CurrentSchool::class)->run(1, fn () => SchoolAccountEvent::query()->where('kind', 'training')->sole());
+        $this->assertStringContainsString('Safe onboarding', $event->body);
+        $this->assertSame(0, app(CurrentSchool::class)->run(2, fn () => SchoolAccountEvent::query()->where('kind', 'training')->count()));
+    }
+
+    public function test_departed_staff_acceptances_do_not_complete_current_staff_onboarding(): void
+    {
+        app(CurrentSchool::class)->run(1, function () {
+            $former = User::query()->findOrFail($this->schoolA->ids['tara_user']);
+            $current = User::query()->findOrFail($this->schoolA->ids['theo_user']);
+            SchoolMembership::query()->where('school_id', 1)->update(['status' => SchoolMembership::ENDED]);
+            SchoolMembership::query()->updateOrCreate(['school_id' => 1, 'user_id' => $current->id, 'role' => 'Teacher'], ['status' => SchoolMembership::ACTIVE, 'starts_on' => null, 'ends_on' => null]);
+            $admin = $this->superAdmin();
+            SchoolMembership::query()->updateOrCreate(['school_id' => 1, 'user_id' => $admin->id, 'role' => 'Super Admin'], ['status' => SchoolMembership::ACTIVE, 'starts_on' => null, 'ends_on' => null]);
+            foreach ([$admin, $former] as $index => $user) {
+                StaffInvitation::query()->create(['user_id' => $user->id, 'purpose' => StaffInvitation::STAFF,
+                    'token_hash' => hash('sha256', 'onboarding-'.$index), 'encrypted_token' => 'synthetic',
+                    'email_hash' => hash('sha256', $user->email), 'expires_at' => now()->addDay(), 'accepted_at' => now()]);
+            }
+        });
+        $step = $this->steps(1)['staff'];
+        $this->assertSame('started', $step['status']);
+        $this->assertStringContainsString('2 staff', $step['detail']);
+        $this->assertStringContainsString('1 signed in', $step['detail']);
     }
 
     public function test_school_staff_cannot_open_it(): void

@@ -80,7 +80,7 @@ class PlatformOnboarding
     {
         $data = Validator::make($input, self::trainingRules())->validate();
         School::query()->findOrFail($schoolId);
-        $body = $data['attendees'] !== null && $data['attendees'] !== ''
+        $body = ($data['attendees'] ?? null) !== null && $data['attendees'] !== ''
             ? __('Training on :date: :topic (:count people)', ['date' => $data['held_on'], 'topic' => $data['topic'], 'count' => $data['attendees']])
             : __('Training on :date: :topic', ['date' => $data['held_on'], 'topic' => $data['topic']]);
         $this->currentSchool->run($schoolId, fn () => DB::transaction(function () use ($body, $actor, $data) {
@@ -157,11 +157,12 @@ class PlatformOnboarding
 
     private function staff(): array
     {
-        $staff = SchoolMembership::query()->where('school_id', $this->currentSchool->id())->where('status', SchoolMembership::ACTIVE)
-            ->whereNotIn('role', ['Student', 'Parent'])->distinct()->count('user_id');
-        $invited = StaffInvitation::query()->where('purpose', StaffInvitation::STAFF)->distinct()->count('user_id');
-        $accepted = StaffInvitation::query()->whereNotNull('accepted_at')->distinct()->count('user_id');
-        $status = $staff <= 1 ? self::TODO : ($accepted >= $staff ? self::DONE : self::STARTED);
+        $staffIds = SchoolMembership::query()->where('school_id', $this->currentSchool->id())->active()
+            ->whereNotIn('role', ['Student', 'Parent'])->distinct()->pluck('user_id');
+        $staff = $staffIds->count();
+        $invited = StaffInvitation::query()->whereIn('user_id', $staffIds)->where('purpose', StaffInvitation::STAFF)->distinct()->count('user_id');
+        $accepted = StaffInvitation::query()->whereIn('user_id', $staffIds)->whereNotNull('accepted_at')->distinct()->count('user_id');
+        $status = $staff <= 1 ? self::TODO : ($accepted === $staff ? self::DONE : self::STARTED);
 
         return $this->step('staff', 'Staff invited and signed in', $status,
             __(':staff staff with a role; :invited invited, :accepted signed in.', ['staff' => $staff, 'invited' => $invited, 'accepted' => $accepted]),
