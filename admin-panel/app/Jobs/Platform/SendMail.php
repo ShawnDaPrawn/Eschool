@@ -9,6 +9,7 @@ use App\Mail\Platform\NotificationMail;
 use App\Mail\Platform\ViewMail;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\User;
+use App\Services\Platform\Mail\SendingDomains;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -82,6 +83,15 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
             if (User::acrossSchools()->whereKey($row->recipient_user_id)->value('email_verified_at') === null) {
                 $this->mailable->noticeTitle = __('School notification');
                 $this->mailable->noticeBody = __('Open NavigateEd to view this notice.');
+            }
+            // A school notice comes from the school's own verified domain
+            // (Action Plan 2.2), decided now and only for the delivery's own
+            // school; otherwise the platform From address. Account mail
+            // (passwords, invitations) is never a NotificationMail.
+            $this->mailable->from = [];
+            $from = app(SendingDomains::class)->noticeAddress($row?->school_id === null ? null : (int) $row->school_id);
+            if ($from !== null) {
+                $this->mailable->from($from, $this->mailable->schoolName !== '' ? $this->mailable->schoolName : null);
             }
         }
 

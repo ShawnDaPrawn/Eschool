@@ -23,6 +23,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: schools can send their notices from their own domain. Under
+  Settings, "Email from your domain", the school's Super Admin enters the domain,
+  sees the exact DNS records to add (three DKIM records, the bounce MX and SPF
+  records and a recommended DMARC record), and presses "Check now" or waits for
+  the automatic check. Once Amazon SES has verified it, the school's notices come
+  from "<school name> <notices@that domain>"; until then, and always for password
+  and invitation emails, from the NavigateEd address. Disconnecting goes back to
+  the NavigateEd address at once. Each domain belongs to one school, and every
+  connect, verification change and disconnect is in the audit log. HQ's onboarding
+  checklist shows whether the school's domain is verified. Off until
+  `MAIL_SENDING_DOMAINS=true`. **Deploy:** run the migrations; to switch it on, give
+  the SES keys the identity permissions listed in
+  `engineering/specs/platform/sending-domains.md` and set `MAIL_SENDING_DOMAINS=true`.
+
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

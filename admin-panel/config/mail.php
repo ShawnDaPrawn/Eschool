@@ -105,6 +105,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | School sending domains (Action Plan 2.2)
+    |--------------------------------------------------------------------------
+    |
+    | A school connects its own domain under Settings, adds the DNS records the
+    | page shows, and once Amazon SES has verified it the school's notices are
+    | sent From "<school name> <notices@that domain>". Account mail (passwords,
+    | invitations) keeps the platform address above. Off by default: while off
+    | the page only explains it, nothing is sent to SES and no SES client is
+    | built. The SES keys and region are services.ses.
+    | engineering/specs/platform/sending-domains.md.
+    |
+    */
+
+    'sending_domains' => [
+        'enabled' => (bool) env('MAIL_SENDING_DOMAINS', false),
+
+        // The address a school's notices come from, at its own domain.
+        'local_part' => 'notices',
+
+        // The custom MAIL FROM (bounce) subdomain of the school's domain.
+        'mail_from_label' => 'bounce',
+
+        // Domains no school may connect, besides the platform's own (the hosts
+        // of APP_URL and the learner portal, and the platform From address),
+        // comma separated. Their subdomains and parents are refused too.
+        'reserved' => array_values(array_filter(array_map('trim', explode(',', (string) env('MAIL_SENDING_DOMAINS_RESERVED', 'navigateed.co.za,amazonses.com'))))),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
     |

@@ -255,3 +255,13 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### School sending domains
+
+`school_sending_domains` is required school-owned, with a unique school foreign
+key (one domain per school) and a unique domain (one school per domain). Its model
+uses BelongsToSchool. Two reads cross schools on purpose and say only yes or no or
+use the delivery's own school: the connect check that no other school has the
+domain, a subdomain or a parent of it, and the From address a queued notice uses,
+read by the school the delivery row names. The scheduled poll lists due domains
+across schools and checks each inside its own school ([sending domains](sending-domains.md)).
