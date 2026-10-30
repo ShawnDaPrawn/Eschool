@@ -5353,5 +5353,21 @@
     "Set the school currency first": "Stel eers die skool se geldeenheid in",
     "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "Finansies moet die beursie se geldeenheid kies voordat verskaffers of produkte gestoor kan word. Kategorieë kan reeds voorberei word.",
     "Open wallet settings": "Maak beursie-instellings oop",
-    "Ask Finance to configure the school wallet currency.": "Vra Finansies om die skool se beursiegeldeenheid in te stel."
+    "Ask Finance to configure the school wallet currency.": "Vra Finansies om die skool se beursiegeldeenheid in te stel.",
+    "nav_family_reach": "Gesinsbereik",
+    "Family reach": "Gesinsbereik",
+    "Current learners with a guardian the school can reach: in the parent app, or by a verified email address.": "Huidige leerders met 'n voog wat die skool kan bereik: in die ouer-app, of per geverifieerde e-posadres.",
+    ":reached of :total learners reached (:percent%)": ":reached van :total leerders bereik (:percent%)",
+    "Parent app": "Ouer-app",
+    "Verified email only": "Slegs geverifieerde e-pos",
+    "Guardians cannot be reached yet": "Voogde kan nog nie bereik word nie",
+    "No guardian recorded": "Geen voog aangeteken nie",
+    "Reach by homeroom": "Bereik per registerklas",
+    "Reached": "Bereik",
+    "No current learners": "Geen huidige leerders nie",
+    "Learners to follow up": "Leerders om op te volg",
+    "Every current learner has a guardian the school can reach.": "Elke huidige leerder het 'n voog wat die skool kan bereik.",
+    "Invite a guardian, or ask them to verify their email address or sign in to the parent app.": "Nooi 'n voog, of vra hulle om hul e-posadres te verifieer of by die ouer-app aan te meld.",
+    "Learners without a reachable guardian": "Leerders sonder 'n bereikbare voog",
+    "No homeroom": "Geen registerklas nie"
 }

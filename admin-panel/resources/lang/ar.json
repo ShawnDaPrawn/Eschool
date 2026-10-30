@@ -4277,5 +4277,21 @@
     "Set the school currency first": "حدد عملة المدرسة أولاً",
     "Finance must choose the wallet currency before vendors or products can be saved. You can prepare categories now.": "يجب على مسؤول المالية اختيار عملة المحفظة قبل حفظ البائعين أو المنتجات. يمكنك إعداد الفئات الآن.",
     "Open wallet settings": "افتح إعدادات المحفظة",
-    "Ask Finance to configure the school wallet currency.": "اطلب من مسؤول المالية إعداد عملة محفظة المدرسة."
+    "Ask Finance to configure the school wallet currency.": "اطلب من مسؤول المالية إعداد عملة محفظة المدرسة.",
+    "nav_family_reach": "Family reach",
+    "Family reach": "Family reach",
+    "Current learners with a guardian the school can reach: in the parent app, or by a verified email address.": "Current learners with a guardian the school can reach: in the parent app, or by a verified email address.",
+    ":reached of :total learners reached (:percent%)": ":reached of :total learners reached (:percent%)",
+    "Parent app": "Parent app",
+    "Verified email only": "Verified email only",
+    "Guardians cannot be reached yet": "Guardians cannot be reached yet",
+    "No guardian recorded": "No guardian recorded",
+    "Reach by homeroom": "Reach by homeroom",
+    "Reached": "Reached",
+    "No current learners": "No current learners",
+    "Learners to follow up": "Learners to follow up",
+    "Every current learner has a guardian the school can reach.": "Every current learner has a guardian the school can reach.",
+    "Invite a guardian, or ask them to verify their email address or sign in to the parent app.": "Invite a guardian, or ask them to verify their email address or sign in to the parent app.",
+    "Learners without a reachable guardian": "Learners without a reachable guardian",
+    "No homeroom": "No homeroom"
 }

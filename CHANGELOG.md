@@ -23,6 +23,10 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Family reach: a page for the school office shows how many current learners
+  have a guardian the school can reach in the parent app or by verified email,
+  reach by homeroom, and which learners to follow up.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
