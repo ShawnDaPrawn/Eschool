@@ -35,7 +35,7 @@
         <x-page.field name="name" id="role-name" :label="__('Role name')" :value="$role['name'] ?? (isset($editor['template']) ? __($editor['template']['label']) : null)" maxlength="125" required />
 
         <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
-            <table class="table">
+            <div class="page-table__scroll" role="region" aria-label="{{ __('Access level in each module the school has switched on') }}" tabindex="0"><table class="page-table__table">
                 <caption>{{ __('Access level in each module the school has switched on') }}</caption>
                 <thead><tr><th scope="col">{{ __('Module') }}</th>@foreach ($levels as $label)<th scope="col">{{ $label }}</th>@endforeach</tr></thead>
                 <tbody>
@@ -44,7 +44,7 @@
                         <th scope="row">{{ __($module['name']) }}</th>
                         @foreach ($levels as $level => $label)
                             <td><label><input type="radio" name="levels[{{ $key }}]" value="{{ $level }}" @checked(old('levels.'.$key, $module['level']) === $level)>
-                                <span class="sr-only">{{ __($module['name']) }}: {{ $label }}</span></label></td>
+                                <span class="m3-visually-hidden">{{ __($module['name']) }}: {{ $label }}</span></label></td>
                         @endforeach
                     </tr>
                     @php $ordinary = collect($module['abilities'])->reject(fn ($a) => $a['sensitive']); @endphp
@@ -57,7 +57,7 @@
                     @endif
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
         </div></div>
 
         @if ($sensitive->isNotEmpty())
