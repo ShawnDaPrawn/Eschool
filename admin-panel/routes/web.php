@@ -100,6 +100,7 @@ use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
+use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
@@ -117,6 +118,7 @@ use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
+use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
@@ -290,6 +292,9 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->middleware('platform.can:schools.modules')->whereNumber('school')->name('schools.modules');
     Route::post('/schools/{school}/administrator-invitation', [SaasController::class, 'resendInvitation'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->whereNumber('school')->name('schools.invitation');
+    // LURITS claims for support (1.0f): schools and dates, never a learner.
+    Route::get('/lurits', [PlatformLuritsController::class, 'index'])->middleware('platform.can:identity.review')->name('lurits');
+    Route::post('/lurits/{conflict}/close', [PlatformLuritsController::class, 'resolve'])->middleware(['platform.can:identity.review', 'throttle:30,1'])->whereNumber('conflict')->name('lurits.resolve');
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -892,6 +897,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('students.store-bulk-data');
         Route::resource('students', Student\StudentController::class)->except(['edit']);
         // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
+        // The office's LURITS numbers (Action Plan 1.0e).
+        Route::get('learners/lurits', [LuritsOfficeController::class, 'index'])->name('lurits-office.index');
+        Route::post('learners/lurits', [LuritsOfficeController::class, 'store'])->middleware('throttle:60,1')->name('lurits-office.store');
         // School onboarding imports (Action Plan 0.11): homerooms, learners and guardians from CSV.
         Route::get('school-imports', [SchoolImportController::class, 'index'])->name('school-imports.index');
         Route::get('school-imports/templates/{kind}', [SchoolImportController::class, 'template'])->where('kind', 'homerooms|learners|staff')->name('school-imports.template');

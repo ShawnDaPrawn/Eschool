@@ -38,8 +38,35 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 
 1. Panel and app display: LURITS first on learner profiles, report cards, transfer and exit packages; the NavigateEd number labelled temporary when no LURITS exists.
 2. API: additive `lurits_number` and `primary_identifier` on v2 learner resources (OpenAPI and generated SDK).
-3. Entry and edit in the panel learner profile (staff with profile permission), with conflict messages that say only "this number is already registered; start a transfer request".
+3. ~~Entry and edit in the panel~~: done, see "School office and HQ claims" below (a page by admission number; the learner profile screen remains).
 4. Admissions, mid-year Join and onboarding imports match on LURITS before creating a learner.
 5. SA-SAMS exports keyed on LURITS, replacing the manual `learner_refs` map.
-6. A "learners missing LURITS" list for the school office, and the conflict resolution screen in Navigate Ed HQ.
+6. ~~A "learners missing LURITS" list for the school office, and the conflict resolution screen in Navigate Ed HQ~~: done, see below.
 7. Confirm the official LURITS format and tighten `identity.lurits.pattern`.
+
+## School office and HQ claims (Action Plan 1.0e and 1.0f)
+
+**LURITS numbers** (`/learners/lurits`, People, `student-edit`):
+- How many of the school's learners have a number, and how many still use the temporary NavigateEd number.
+- The learners without one, by surname, with admission number and homeroom, 50 to a page.
+- Recording or correcting a number by admission number (`LuritsNumbers::record`, source `school_entry`). A correction replaces the number; the audit keeps the hashes before and after.
+- A number another learner holds is not written. The office is told only that it is already registered, with the advice to start a transfer request if the learner is joining, and that Navigate Ed support will check it otherwise. It never learns who holds the number or where.
+- The school's own open claims (learner, admission number, date).
+- Another school's learner is not found by admission number.
+
+**LURITS claims** in HQ (`/saas/lurits`, new ability `identity.review` for Owner, Operations and Support):
+- Each open claim shows the claiming school, the school or schools where the number's holder is a learner, the source and the date, never a learner's name or the number.
+- Support works it out with the schools and closes it:
+  - *a school corrected the number* (`resolved`)
+  - *the learner is moving: transfer started* (`resolved`)
+  - *the claim was wrong* (`rejected`)
+- Closing records who closed it and when, is audited (`platform_lurits_claim_closed`, with the claiming school), and cannot be done twice (409). Nothing is merged automatically.
+- Recently closed claims are listed below the open ones.
+
+### Acceptance tests (`People/LuritsOfficeTest`)
+
+| Given | When | Then |
+| --- | --- | --- |
+| No numbers; Ben at School B holds 8800000002 | the office opens the page, records Asha's number with spaces, records it again, claims Ben's number for Cara, uses an unknown admission number, a too-short number, a School B admission number | 0 of 3, Asha listed; recorded and normalised; "already has"; a warning, not written, the claim listed without naming School B; errors for the rest |
+| A teacher | the page or a record | 403; nothing written |
+| Cara's claim on Ben's number | Support opens HQ; closes it as corrected; closes it again; Sales opens HQ | both school names, the source, no learner name, number or admission number; closed and audited; 409; 403 |
