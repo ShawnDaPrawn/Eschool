@@ -29,6 +29,10 @@ Earlier history is kept where it was written and is not repeated here:
   are refused, and affected learners, guardians and teachers are notified. The
   v2 week adds an optional `day_pattern`. **Deploy:** run the additive
   `bell_schedule_overrides` migration.
+- Developers: school permissions are now described as modules with access levels
+  (view, contribute, manage) and named special abilities, in
+  `config/module_access.php`, as the foundation for a simpler role editor. No
+  permission changes for anyone.
 
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
