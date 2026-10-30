@@ -34,6 +34,9 @@ class ExamMode
 {
     public const NOTICE = 'academics.exam_changed';
 
+    /** Where a tapped notice opens in the learner and parent app: the academic calendar, which lists exam sittings. */
+    public const LINK = '/calendar';
+
     /** The sitting fields whose change is news to families. */
     public const WATCHED = ['date', 'start_time', 'end_time', 'venue'];
 
@@ -169,7 +172,7 @@ class ExamMode
         $subject = $this->subject($sitting);
         $when = $this->when($sitting);
         $notifier = app(Notifier::class);
-        $notice = $notifier->makeNotice(self::NOTICE, __('Exam changed: :subject', ['subject' => $subject]), __(':subject is now on :when.', ['subject' => $subject, 'when' => $when]), '/exams');
+        $notice = $notifier->makeNotice(self::NOTICE, __('Exam changed: :subject', ['subject' => $subject]), __(':subject is now on :when.', ['subject' => $subject, 'when' => $when]), self::LINK);
         $notifier->assign($notice, $this->recipients($sitting));
     }
 
@@ -180,7 +183,7 @@ class ExamMode
         }
         $subject = $this->subject($sitting);
         $notifier = app(Notifier::class);
-        $notice = $notifier->makeNotice(self::NOTICE, __('Exam removed: :subject', ['subject' => $subject]), __('The :subject sitting on :date was removed from the exam timetable.', ['subject' => $subject, 'date' => CarbonImmutable::parse($sitting->date)->format('j M Y')]), '/exams');
+        $notice = $notifier->makeNotice(self::NOTICE, __('Exam removed: :subject', ['subject' => $subject]), __('The :subject sitting on :date was removed from the exam timetable.', ['subject' => $subject, 'date' => CarbonImmutable::parse($sitting->date)->format('j M Y')]), self::LINK);
         $notifier->assign($notice, $this->recipients($sitting));
     }
 

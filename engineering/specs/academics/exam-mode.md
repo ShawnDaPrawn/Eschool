@@ -38,12 +38,15 @@ A saved change to a sitting's date, start or end time, or venue raises its
 revision and tells the learners currently in that class, and their current
 guardians, through the notification outbox: type `academics.exam_changed`
 ("Exam changes", academics module, learner and parent portals, standard
-channel preferences). Removing a sitting sends "Exam removed". Only upcoming
+channel preferences). Removing a sitting sends "Exam removed", including each
+sitting removed when its whole exam is deleted (`Exam::booted` deletes the
+sittings one by one, so their model events run). Only upcoming
 sittings (today or later, in school time, before or after the change) are
 announced. Times are compared as HH:MM, so a time written another way is not a
 change, and neither is a change to marks. Rows written by the mark projection
 (`MarkExamProjection`) are never announced. The notice names the subject, the
-new date, times and venue, and no learner.
+new date, times and venue, and no learner. Its link is `/calendar`, the
+learner and parent app's academic calendar, which lists exam sittings.
 
 ## Tests
 
@@ -52,7 +55,8 @@ continue, and other grades and staff views are unaffected; periods stay inside
 the year and never overlap for a grade; a venue or time change tells the class
 and its guardians once and bumps the revision, while an equal time or a marks
 change does not; past sittings change quietly and a removed upcoming one is
-announced; the legacy form saves a trimmed venue; the panel page manages
+announced; deleting a whole exam announces each upcoming sitting and not the
+past ones; the legacy form saves a trimmed venue; the panel page manages
 periods for its own school only and refuses teachers; the family week API
 returns `exam_days` within the OpenAPI contract. `academic-timetable.spec.ts`
 adds and removes a period in the browser with axe and an overflow check.

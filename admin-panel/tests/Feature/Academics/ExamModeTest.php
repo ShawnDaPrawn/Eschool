@@ -176,6 +176,30 @@ class ExamModeTest extends TestCase
         $this->sitting()->delete();
         $notice = Notification::where('type', ExamMode::NOTICE)->sole();
         $this->assertStringStartsWith('Exam removed', $notice->title);
+        $this->assertSame('/calendar', $notice->delivery_payload['link'], 'a path the learner and parent app opens');
+    }
+
+    public function test_deleting_the_whole_exam_announces_each_upcoming_sitting(): void
+    {
+        DB::table('exam_timetables')->insert([
+            'school_id' => 1, 'exam_id' => $this->schoolA->ids['exam'], 'class_id' => $this->schoolA->ids['class_a'], 'subject_id' => $this->schoolA->ids['maths'],
+            'total_marks' => 100, 'passing_marks' => 35, 'date' => '2026-02-03', 'start_time' => '09:00:00', 'end_time' => '11:00:00', 'session_year_id' => $this->year,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->actingAs($this->superAdmin())->deleteJson('/exams/'.$this->schoolA->ids['exam'])->assertOk()->assertJson(['error' => false]);
+
+        $this->assertSame(0, ExamTimetable::where('exam_id', $this->schoolA->ids['exam'])->count());
+        // The exam's upcoming sittings (two from the fixture, 24 Feb here) are announced; the past one is not.
+        $notices = Notification::where('type', ExamMode::NOTICE)->orderBy('id')->get();
+        $this->assertCount(3, $notices);
+        $this->assertSame(1, $notices->filter(fn ($notice) => str_contains($notice->message, '24 Feb 2026'))->count());
+        $this->assertSame(0, $notices->filter(fn ($notice) => str_contains($notice->message, 'on 3 Feb 2026'))->count());
+        $notice = $notices->last();
+        $this->assertStringStartsWith('Exam removed', $notice->title);
+        $this->assertSame('/calendar', $notice->delivery_payload['link']);
+        $users = OutboxEvent::where('type', 'notification.requested')->where('payload->notification_id', $notice->id)->sole()->payload['user_ids'];
+        $this->assertContains((int) $this->schoolA->ids['farid_user'], $users);
     }
 
     public function test_the_exam_timetable_form_saves_a_venue_and_announces_the_change(): void
