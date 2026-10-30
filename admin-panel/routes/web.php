@@ -122,6 +122,7 @@ use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
+use App\Http\Controllers\Platform\PlatformPackageController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
@@ -274,6 +275,17 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     // Every route names the ability its role must hold (platform.can, SA.1).
     Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
     Route::get('/packages', ProductCatalogueController::class)->middleware('platform.can:packages.view')->name('packages');
+    // The package and price editor (SA.7): packages.view reads, packages.manage changes.
+    Route::get('/packages/{package}', [PlatformPackageController::class, 'show'])->middleware('platform.can:packages.view')->whereNumber('package')->name('packages.show');
+    Route::prefix('/packages')->middleware(['platform.can:packages.manage', 'throttle:30,1'])->name('packages.')->group(function () {
+        Route::post('/', [PlatformPackageController::class, 'store'])->name('store');
+        Route::put('/{package}', [PlatformPackageController::class, 'update'])->whereNumber('package')->name('update');
+        Route::put('/{package}/modules', [PlatformPackageController::class, 'modules'])->whereNumber('package')->name('modules');
+        Route::put('/{package}/status', [PlatformPackageController::class, 'status'])->whereNumber('package')->name('status');
+        Route::post('/{package}/prices', [PlatformPackageController::class, 'price'])->whereNumber('package')->name('prices.store');
+        Route::post('/{package}/prices/{price}/withdraw', [PlatformPackageController::class, 'withdraw'])->whereNumber(['package', 'price'])->name('prices.withdraw');
+        Route::post('/{package}/reapply', [PlatformPackageController::class, 'reapply'])->whereNumber('package')->name('reapply');
+    });
     Route::get('/schools/create', [SaasController::class, 'create'])->middleware('platform.can:schools.create')->name('schools.create');
     Route::post('/schools', [SaasController::class, 'store'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->name('schools.store');
     Route::get('/schools/{school}', [SaasController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.show');
