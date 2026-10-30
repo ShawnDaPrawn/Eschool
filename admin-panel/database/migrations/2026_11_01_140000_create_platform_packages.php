@@ -115,7 +115,8 @@ return new class extends Migration
         $added = DB::table('platform_prices')->exists()
             || DB::table('platform_package_modules')->where('version', '>', 1)->exists()
             || DB::table('platform_packages')->whereNotIn('package_key', array_keys((array) config('school_packages')))->exists()
-            || DB::table('schools')->whereNotNull('package_version')->exists();
+            || DB::table('schools')->whereNotNull('package_version')->exists()
+            || $this->seedChanged();
         if ($added) {
             throw new RuntimeException('Restore a tested backup to retain the package and price history.');
         }
@@ -125,5 +126,25 @@ return new class extends Migration
         Schema::dropIfExists('platform_prices');
         Schema::dropIfExists('platform_package_modules');
         Schema::dropIfExists('platform_packages');
+    }
+
+    /**
+     * Whether any seeded package differs from what up() wrote: a renamed,
+     * re-described, retired or re-timed package, a new module version, or
+     * any save after seeding (the editor always moves updated_at).
+     */
+    private function seedChanged(): bool
+    {
+        foreach (DB::table('platform_packages')->get() as $row) {
+            [$name, $description] = self::NAMES[$row->package_key] ?? [ucfirst((string) $row->package_key), null];
+            $seeded = [$row->name === $name, $row->description === $description, $row->status === 'active',
+                (int) $row->trial_days === 0, (int) $row->modules_version === 1, $row->retired_at === null,
+                $row->created_by === null, (string) $row->updated_at === (string) $row->created_at];
+            if (in_array(false, $seeded, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 };

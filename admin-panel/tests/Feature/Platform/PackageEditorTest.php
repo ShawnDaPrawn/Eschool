@@ -19,6 +19,7 @@ use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -111,6 +112,43 @@ class PackageEditorTest extends TestCase
         sort($values);
 
         return $values;
+    }
+
+    public function test_rolling_back_refuses_once_hq_changed_a_seeded_package(): void
+    {
+        $migration = require database_path('migrations/2026_11_01_140000_create_platform_packages.php');
+        $refuses = function (string $why) use ($migration): void {
+            $refusal = null;
+            try {
+                $migration->down();
+            } catch (\RuntimeException $e) {
+                $refusal = $e->getMessage();
+            }
+            $this->assertStringContainsString('Restore a tested backup', (string) $refusal, "down() refuses after {$why}");
+            foreach (self::TABLES as $table) {
+                $this->assertTrue(Schema::hasTable($table), "{$table} kept after {$why}");
+            }
+            $this->assertTrue(Schema::hasColumn('schools', 'package_version'));
+        };
+
+        // HQ renames a seeded package through the editor.
+        $id = $this->packageId('standard');
+        $this->packages()->update($id, ['name' => 'Standard (2027)', 'description' => 'Every product module.', 'trial_days' => 0], $this->staff('finance'));
+        $refuses('a name change');
+
+        // Every other column the seed set counts too, as does a later save.
+        $seeded = (array) DB::table('platform_packages')->where('package_key', 'core')->first();
+        foreach ([
+            'a retirement' => ['status' => 'retired', 'retired_at' => now()],
+            'a description change' => ['description' => 'Changed'],
+            'a trial change' => ['trial_days' => 30],
+            'a version change' => ['modules_version' => 2],
+            'a later save' => ['updated_at' => CarbonImmutable::parse($seeded['created_at'])->addMinute()],
+        ] as $why => $change) {
+            DB::table('platform_packages')->where('package_key', 'core')->update($change);
+            $refuses($why);
+            DB::table('platform_packages')->where('package_key', 'core')->update($seeded);
+        }
     }
 
     public function test_finance_creates_edits_and_activates_a_draft_package(): void
