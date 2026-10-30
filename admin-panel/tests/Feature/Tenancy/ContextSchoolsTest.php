@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Tenancy;
 
 use App\Models\Platform\School;
+use App\Models\SessionYear;
 use App\Models\Settings;
+use App\Models\Term;
 use App\Models\User;
 use App\Services\Platform\Context\ContextContributor;
 use App\Services\Platform\Context\ContextScope;
@@ -86,6 +88,47 @@ class ContextSchoolsTest extends TestCase
             ->assertJsonPath('data.current_school.branding.theme_color', '#000001')
             ->assertJsonPath('data.current_school.branding.secondary_color', $before['current_school']['branding']['secondary_color'])
             ->assertJsonPath('data.feature_flags', ['new_switch' => true]);
+    }
+
+    public function test_calendar_terms_remain_ordered_and_deleted_terms_do_not_hide_an_empty_year(): void
+    {
+        $year = SessionYear::query()->create(['name' => 'Context calendar', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31']);
+        $common = ['session_year_id' => $year->id, 'grade_from' => 0, 'grade_to' => 12];
+        $later = Term::query()->create(['name' => 'Later term', 'start_date' => '2027-04-01', 'end_date' => '2027-06-30'] + $common);
+        $first = Term::query()->create(['name' => 'First term', 'start_date' => '2027-01-01', 'end_date' => '2027-03-31', 'marks_lock_on' => '2027-04-02', 'reports_on' => '2027-04-05'] + $common);
+        $tie = Term::query()->create(['name' => 'Same start', 'start_date' => '2027-01-01', 'end_date' => '2027-03-31'] + $common);
+        $deleted = Term::query()->create(['name' => 'Deleted term', 'start_date' => '2027-07-01', 'end_date' => '2027-09-30'] + $common);
+        $deleted->delete();
+        Settings::query()->updateOrCreate(['type' => 'session_year'], ['message' => (string) $year->id]);
+
+        $terms = $this->withToken($this->token)->getJson('/api/v2/me/context')->assertOk()->json('data.current_school.session_year.terms');
+        $this->assertSame([$first->id, $tie->id, $later->id], array_column($terms, 'id'));
+        $this->assertSame(['2027-01-01', '2027-04-02', '2027-04-05', 0, 12], [$terms[0]['start_date'], $terms[0]['marks_lock_on'], $terms[0]['reports_on'], $terms[0]['grade_from'], $terms[0]['grade_to']]);
+        $first->delete();
+        $tie->delete();
+        $later->delete();
+        $this->withToken($this->token)->getJson('/api/v2/me/context')->assertOk()
+            ->assertJsonPath('data.current_school.session_year.id', $year->id)
+            ->assertJsonPath('data.current_school.session_year.terms', []);
+    }
+
+    public function test_a_foreign_configured_calendar_never_exposes_another_schools_year_or_terms(): void
+    {
+        $year = app(CurrentSchool::class)->run(2, function (): SessionYear {
+            $year = SessionYear::query()->create(['name' => 'Baobab calendar', 'start_date' => '2027-01-01', 'end_date' => '2027-12-31']);
+            Term::query()->create(['session_year_id' => $year->id, 'name' => 'Baobab term', 'start_date' => '2027-01-01', 'end_date' => '2027-03-31', 'grade_from' => 0, 'grade_to' => 12]);
+            Settings::query()->updateOrCreate(['type' => 'session_year'], ['message' => (string) $year->id]);
+
+            return $year;
+        });
+        Settings::query()->updateOrCreate(['type' => 'session_year'], ['message' => (string) $year->id]);
+        $this->withToken($this->token)->getJson('/api/v2/me/context')->assertOk()
+            ->assertJsonPath('data.current_school.id', 1)
+            ->assertJsonPath('data.current_school.session_year', null);
+        $this->withToken($this->token)->getJson('/api/v2/me/context', ['X-School-Id' => '2'])->assertOk()
+            ->assertJsonPath('data.current_school.id', 2)
+            ->assertJsonPath('data.current_school.session_year.id', $year->id)
+            ->assertJsonPath('data.current_school.session_year.terms.0.name', 'Baobab term');
     }
 }
 

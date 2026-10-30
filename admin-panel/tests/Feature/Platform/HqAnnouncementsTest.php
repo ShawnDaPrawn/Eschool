@@ -164,7 +164,7 @@ class HqAnnouncementsTest extends TestCase
         $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => app(NotificationRules::class)->offered($this->superAdmin(), PlatformAnnouncements::TYPE)));
 
         $audit = AuditLog::query()->where('action', 'platform_announcement_published')->sole();
-        $this->assertSame(['announcement_id' => $id, 'schools' => 2, 'recipients' => 2], array_intersect_key($audit->after, array_flip(['announcement_id', 'schools', 'recipients'])));
+        $this->assertSame([$id, 2, 2], [$audit->after['announcement_id'], $audit->after['schools'], $audit->after['recipients']]);
         $this->assertStringNotContainsString('term marks', (string) $audit->toJson());
         $this->get('/saas/audit')->assertOk()->assertSee('Announcement published');
         $this->get('/saas/announcements')->assertOk()->assertSee('Showing now')->assertSee('0 of 2');

@@ -50,9 +50,11 @@ class SupportAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Seed dated memberships under the same clock used by the requests.
+        // Freezing after seeding can leave every membership in the future.
+        $this->travelTo(CarbonImmutable::parse('2026-10-30 08:00', SupportAccess::TIMEZONE));
         $this->setUpTwoSchools();
         app(CurrentSchool::class)->forget();
-        $this->travelTo(CarbonImmutable::parse('2026-10-30 08:00', SupportAccess::TIMEZONE));
         $this->adminB = app(CurrentSchool::class)->run(self::SCHOOL_B_ID, function (): User {
             $user = User::query()->create(['first_name' => 'Baobab', 'last_name' => 'Principal', 'email' => 'principal@baobab.example', 'mobile' => '', 'password' => 'Synthetic-support-password-731!', 'status' => 1]);
             $user->assignRole('Super Admin');
