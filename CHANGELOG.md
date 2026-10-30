@@ -23,6 +23,17 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: a school can add a teacher or staff member who already uses
+  NavigateEd at another school (or a principal moving schools) without a second
+  login. They are emailed an invitation, sign in with their usual password and
+  accept or decline; their password and their other schools stay as they are.
+  Adding them reads the same as adding a new person, so the school never learns
+  that the address was in use or where. Waiting invitations are under Staff,
+  Invitations to join, where they can be withdrawn. The staff import now invites
+  such people instead of giving them the role straight away. Platform: HQ can
+  set up a school whose first administrator already has an account the same way.
+  Learner and platform staff accounts are never invited.
+  **Deploy:** run the migrations (`school_join_invitations`).
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

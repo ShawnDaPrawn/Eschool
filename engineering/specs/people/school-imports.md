@@ -46,13 +46,15 @@ Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role:
 **Staff**: first name, surname, email and role (required), mobile, gender, qualification (teachers).
 - The role is Teacher or one of the school's own roles (`custom_role`), by name in any case. Never Super Admin, nor a dedicated profile (Parent, Student, Facilitator, Vendor, Counsellor, Safeguarding). Teacher rows also need `teacher-create`.
 - The email is required, because staff set their password from an emailed link; a repeated email is an error.
-- Someone already on the staff here (an active non-learner, non-parent membership) is *already here*. A deleted, inactive or suspended account is an error, without saying more.
+- Someone already on the staff here (an active non-learner, non-parent membership), or with an invitation to join here still waiting, is *already here*. A deleted, inactive or suspended account this school already knows is an error, without saying more.
+- An account with no link to this school reads exactly like a new person (*will be imported*, the same notes and counts), whatever its state, so the check never says that an address has an account elsewhere.
 - **Writes**:
   - an account found by email or created with no usable password and `password_change_required`;
   - the role, whose membership follows through `MembershipService`;
   - a `teachers` row (qualification, or "Not recorded") or a `staffs` row.
-  - An existing account elsewhere (for example a parent here who also teaches) is given the role, not duplicated.
-- When chosen, each person added gets a staff invitation (`StaffInvitations::issue`, #358) to set their own password.
+  - An existing account that already belongs here (for example a parent here who also teaches) is given the role, not duplicated.
+  - An account with no link to this school is **invited to join** instead ([existing-account-invitations.md](../platform/existing-account-invitations.md), Action Plan 1.3): no role until its owner accepts, and an account that may not join (a learner, platform staff, inactive) is silently not invited.
+- When chosen, each person added gets a staff invitation (`StaffInvitations::issue`, #358) to set their own password, except someone who also belongs to another school (they already have one).
 
 **Audit**: `people.onboarding_import_committed` with the kind, the file's SHA-256, row and skipped counts and the result counts. No row contents.
 

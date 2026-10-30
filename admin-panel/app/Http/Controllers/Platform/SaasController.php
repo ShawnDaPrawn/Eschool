@@ -9,6 +9,7 @@ use App\Http\Requests\Saas\SchoolModuleRequest;
 use App\Http\Requests\Saas\SchoolPackageRequest;
 use App\Http\Requests\Saas\SchoolStatusRequest;
 use App\Http\Requests\Saas\StoreSchoolRequest;
+use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Saas\PlatformSchools;
 use Illuminate\Contracts\View\View;
@@ -40,13 +41,14 @@ class SaasController extends Controller
     {
         $created = $this->schools->create($request->validated(), $request->user());
 
-        return view('saas.created', ['school' => $created['school'], 'admin' => $created['admin'], 'invitationUrl' => $created['invitation_url']]);
+        return view('saas.created', ['school' => $created['school'], 'admin' => $created['admin'], 'invitationUrl' => $created['invitation_url'], 'existingAccount' => $created['existing_account']]);
     }
 
     public function resendInvitation(Request $request, int $school): RedirectResponse
     {
         abort_if($this->schools->find($school) === null, 404);
-        $sent = app(StaffInvitations::class)->resendAdministrator($school, $request->user());
+        $sent = app(StaffInvitations::class)->resendAdministrator($school, $request->user())
+            || app(SchoolJoinInvitations::class)->resendAdministrator($school, $request->user());
 
         return redirect()->route('saas.schools.show', $school)->with('success', $sent ? __('Invitation sent again.') : __('The administrator has already accepted their invitation.'));
     }
@@ -58,7 +60,8 @@ class SaasController extends Controller
 
         return view('saas.show', [
             'school' => $row,
-            'pendingAdministrator' => app(StaffInvitations::class)->pendingAdministrator($school) !== null,
+            'pendingAdministrator' => app(StaffInvitations::class)->pendingAdministrator($school) !== null
+                || app(SchoolJoinInvitations::class)->pendingAdministrator($school) !== null,
             'modules' => $this->schools->modules($school),
             'packages' => array_keys($this->schools->packages()),
         ]);

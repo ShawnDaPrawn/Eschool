@@ -100,6 +100,7 @@ use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
+use App\Http\Controllers\Panel\People\JoinInvitationOfficeController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
@@ -126,6 +127,7 @@ use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
@@ -253,6 +255,14 @@ Route::prefix('vendor-counter')->name('vendor.')->middleware([PrivateDomainRespo
 Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::get('invite/staff/{token}', [StaffInvitationController::class, 'show'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:30,1')->name('staff-invitation.show');
     Route::post('invite/staff/{token}', [StaffInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:password')->name('staff-invitation.accept');
+});
+
+// An invitation to join another school with an existing account (Action Plan 1.3):
+// answered only while signed in as the invited account; guests are sent to sign in.
+Route::middleware([PrivateDomainResponse::class])->group(function () {
+    Route::get('invite/join/{token}', [SchoolJoinInvitationController::class, 'show'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:30,1')->name('join-invitation.show');
+    Route::post('invite/join/{token}/accept', [SchoolJoinInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware(['auth', 'throttle:20,1'])->name('join-invitation.accept');
+    Route::post('invite/join/{token}/decline', [SchoolJoinInvitationController::class, 'decline'])->where('token', '[A-Za-z0-9]{64}')->middleware(['auth', 'throttle:20,1'])->name('join-invitation.decline');
 });
 
 // An operator's own password has a separate purpose: pending accounts may
@@ -917,6 +927,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::resource('students', Student\StudentController::class)->except(['edit']);
         // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
         // The office's LURITS numbers (Action Plan 1.0e).
+        // Invitations for people who already have an account to join this school (Action Plan 1.3).
+        Route::get('join-invitations', [JoinInvitationOfficeController::class, 'index'])->name('join-invitations.index');
+        Route::post('join-invitations/{invitation}/withdraw', [JoinInvitationOfficeController::class, 'withdraw'])->whereNumber('invitation')->middleware('throttle:30,1')->name('join-invitations.withdraw');
         Route::get('learners/lurits', [LuritsOfficeController::class, 'index'])->name('lurits-office.index');
         Route::post('learners/lurits', [LuritsOfficeController::class, 'store'])->middleware('throttle:60,1')->name('lurits-office.store');
         // School onboarding imports (Action Plan 0.11): homerooms, learners and guardians from CSV.

@@ -142,14 +142,30 @@ class StaffInvitations
         return true;
     }
 
-    /** Sends a staff member their invitation from the school panel. */
-    public function inviteFromSchool(User $actor, int $personId): array
+    /**
+     * Sends a staff member their invitation from the school panel. Someone who
+     * also belongs to another school chose their password there: nothing is
+     * sent (and their password is never reset from here), but the school is
+     * answered as if it was, so it does not learn that they work elsewhere.
+     */
+    public function inviteFromSchool(User $actor, int $personId): ?array
     {
         $person = User::query()->findOrFail($personId);
         abort_unless($this->isStaff(app(CurrentSchool::class)->id(), (int) $person->id), 404);
         abort_unless($this->mayInvite($actor, $person), 403);
+        if ($this->belongsElsewhere((int) $person->id)) {
+            Audit::record('staff_invitation_withheld', $person, [], ['user_id' => (int) $person->id, 'reason' => 'other_school', 'created_by' => (int) $actor->id], app(CurrentSchool::class)->id());
+
+            return null;
+        }
 
         return $this->issue($person, $actor, StaffInvitation::STAFF);
+    }
+
+    /** Whether the person has a membership (of any status) at a school other than the current one. */
+    public function belongsElsewhere(int $userId): bool
+    {
+        return SchoolMembership::query()->where('user_id', $userId)->where('school_id', '!=', app(CurrentSchool::class)->id())->exists();
     }
 
     /** The current school's first administrator invitation that nobody has accepted yet. */

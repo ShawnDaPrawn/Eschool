@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -92,13 +93,25 @@ class PlatformSchools
      * password (StaffInvitations). Their starting password is random and known
      * to nobody. The link is also returned, to show once if the email is late.
      *
+     * When the administrator's address already has an account (a principal
+     * moving schools), no second account is made: they are invited to join
+     * (SchoolJoinInvitations), sign in with their own password and accept,
+     * and only then become the school's Super Admin. An account that may not
+     * be one is refused before anything is created.
+     *
      * @param  array{name: string, slug: ?string, timezone: string, package_key: string, admin_first_name: string, admin_last_name: string, admin_email: string, admin_mobile: ?string}  $data
-     * @return array{school: School, admin: User, invitation_url: string}
+     * @return array{school: School, admin: User, invitation_url: string, existing_account: bool}
      */
     public function create(array $data, User $actor): array
     {
         return $this->currentSchool->acrossSchools(function () use ($data, $actor): array {
             return DB::transaction(function () use ($data, $actor): array {
+                $joins = app(SchoolJoinInvitations::class);
+                $existing = User::acrossSchools()->withTrashed()->where('email', strtolower(trim($data['admin_email'])))->lockForUpdate()->first();
+                if ($existing !== null) {
+                    // Refused before the school exists, so nothing is created.
+                    $joins->assertMayBeFirstAdministrator($existing);
+                }
                 $school = School::query()->create([
                     'name' => $data['name'],
                     'slug' => ($data['slug'] ?? null) ?: $this->uniqueSlug($data['name']),
@@ -109,26 +122,34 @@ class PlatformSchools
                 app(SchoolRoles::class)->seed($school);
                 $this->currentSchool->run($school, fn () => $this->firstRunDefaults($school));
 
-                $admin = User::query()->create([
-                    'first_name' => $data['admin_first_name'],
-                    'last_name' => $data['admin_last_name'],
-                    'email' => strtolower(trim($data['admin_email'])),
-                    'mobile' => $data['admin_mobile'] ?? '',
-                    'password' => Str::password(32),
-                    'status' => 1,
-                ]);
-                $admin->forceFill(['password_change_required' => true])->save();
-                // The role grant creates the membership (MembershipService).
-                $this->currentSchool->run($school, fn () => $admin->assignRole(SchoolRoles::SUPER_ADMIN));
-                $invitation = $this->currentSchool->run($school, fn () => app(StaffInvitations::class)->issue($admin, $actor, StaffInvitation::SCHOOL_ADMIN));
+                if ($existing !== null) {
+                    // Nothing is attached to the account until its owner accepts.
+                    $admin = $existing;
+                    $typed = trim($data['admin_first_name'].' '.$data['admin_last_name']);
+                    $invitation = $this->currentSchool->run($school, fn () => $joins->inviteFirstAdministrator($existing, $actor, $typed));
+                } else {
+                    $admin = User::query()->create([
+                        'first_name' => $data['admin_first_name'],
+                        'last_name' => $data['admin_last_name'],
+                        'email' => strtolower(trim($data['admin_email'])),
+                        'mobile' => $data['admin_mobile'] ?? '',
+                        'password' => Str::password(32),
+                        'status' => 1,
+                    ]);
+                    $admin->forceFill(['password_change_required' => true])->save();
+                    // The role grant creates the membership (MembershipService).
+                    $this->currentSchool->run($school, fn () => $admin->assignRole(SchoolRoles::SUPER_ADMIN));
+                    $invitation = $this->currentSchool->run($school, fn () => app(StaffInvitations::class)->issue($admin, $actor, StaffInvitation::SCHOOL_ADMIN));
+                }
 
                 Audit::record('platform_school_created', $school, [], [
                     'package_key' => $school->package_key,
                     'first_admin_user_id' => $admin->id,
+                    'first_admin_existing_account' => $existing !== null,
                     'created_by' => $actor->id,
                 ], (int) $school->id);
 
-                return ['school' => $school, 'admin' => $admin, 'invitation_url' => $invitation['url']];
+                return ['school' => $school, 'admin' => $admin, 'invitation_url' => $invitation['url'], 'existing_account' => $existing !== null];
             });
         });
     }
