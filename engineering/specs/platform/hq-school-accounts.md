@@ -29,6 +29,10 @@ row and audit entry carries the school:
   deleted; a change is a new contract. The operator agreement must already be
   signed (not a future date), the end date is after the start, and a rand price
   with at most two decimals becomes integer cents without floating point.
+  The record page lists every contract with its renewal date, data processing
+  addendum date and notes.
+- **Timeline actors** are named even when the operator is not a member of the
+  school (they are looked up across schools, including removed accounts).
 - **A contact needs a way to reach them:** an email address or a phone number.
 - **Isolation:** each id resolves inside the school in the URL, so another
   school's contact is "not found". Only an active platform staff identity with a
@@ -49,8 +53,9 @@ row and audit entry carries the school:
 
 | Given | When | Then |
 | --- | --- | --- |
-| Platform staff | they record profile, a contact, a contract and a note | saved, R24.50 stored as 2450 cents, timeline has stage, contact, contract and note, the list shows Live, the contract is audited, nothing reaches the other school |
+| Platform staff | they record profile, a contact, a contract and a note | saved, R24.50 stored as 2450 cents, timeline has stage, contact, contract and note, the list shows Live, the contract is audited, its renewal date, addendum and notes are shown, nothing reaches the other school |
 | A saved profile | a stale save; an unknown stage or province; a contact with no email or phone; a three-decimal price; an end before the start; a future agreement date | 409 or validation errors, nothing changed; contracts have no edit or delete route |
+| Platform staff who are members of another school | they add a note | the timeline names them, not "System" |
 | Another school's contact | edited or removed through this school's URL | not found; the right school's URL works |
 | A school Super Admin, a teacher, a guest | they open or write the record | 403, or sign-in |
 

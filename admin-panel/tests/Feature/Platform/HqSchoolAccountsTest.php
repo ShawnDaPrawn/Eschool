@@ -77,10 +77,28 @@ class HqSchoolAccountsTest extends TestCase
             $this->assertSame(['contact', 'contract', 'note', 'stage'], SchoolAccountEvent::query()->orderBy('kind')->pluck('kind')->all());
         });
         $this->get('/saas/schools/1/account')->assertOk()->assertSee('Nomsa Khumalo')->assertSee('R 24.50')->assertSee('OA-2026.1')
-            ->assertSee('Stage changed from Onboarding to Live')->assertSee('asked for the Afrikaans parent app');
+            ->assertSee('Stage changed from Onboarding to Live')->assertSee('asked for the Afrikaans parent app')
+            ->assertSee('2027-10-01')->assertSee('Pilot pricing')->assertSee('Not signed');
         $this->get('/saas')->assertOk()->assertSee('Live');
         $this->assertSame(1, AuditLog::query()->where('action', 'platform_school_contract_recorded')->where('school_id', 1)->count());
         $this->assertSame(0, $this->inSchool(2, fn () => SchoolContact::query()->count() + SchoolAccountEvent::query()->count()), 'nothing reached the other school');
+
+        // A later contract with the addendum signed shows that date.
+        $this->post('/saas/schools/1/contracts', $this->contract(['starts_on' => '2028-01-01', 'ends_on' => null, 'renewal_on' => null, 'notes' => null,
+            'data_processing_signed_on' => now('Africa/Johannesburg')->toDateString()]))->assertRedirect();
+        $this->get('/saas/schools/1/account')->assertOk()->assertSee('Signed '.now('Africa/Johannesburg')->toDateString());
+    }
+
+    public function test_the_timeline_names_staff_who_are_not_members_of_the_school(): void
+    {
+        $staff = $this->staff();
+        $this->assertSame(0, DB::table('school_memberships')->where('school_id', 2)->where('user_id', $staff->id)->count(), 'the operator belongs to another school');
+        $this->actingAs($staff);
+
+        $this->post('/saas/schools/2/notes', ['body' => 'Called the Baobab bursar.'])->assertRedirect();
+
+        $name = trim($staff->first_name.' '.$staff->last_name);
+        $this->get('/saas/schools/2/account')->assertOk()->assertSee($name.': Called the Baobab bursar.')->assertDontSee('System: Called the Baobab bursar.');
     }
 
     public function test_stale_edits_bad_values_and_one_way_contracts_are_refused(): void

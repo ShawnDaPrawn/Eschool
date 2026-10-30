@@ -202,7 +202,8 @@ class PlatformSchoolAccounts
         if ($id === null) {
             return null;
         }
-        $user = User::query()->withTrashed()->find($id);
+        // Platform staff may belong to another school, or none, so look past this school's members.
+        $user = User::acrossSchools()->withTrashed()->find($id);
 
         return $user === null ? null : trim($user->first_name.' '.$user->last_name);
     }

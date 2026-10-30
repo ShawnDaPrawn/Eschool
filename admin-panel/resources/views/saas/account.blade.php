@@ -99,16 +99,17 @@
 <div class="saas-card">
     <table class="saas-table">
         <caption>{{ __('Contracts are kept as history: a change is recorded as a new contract') }}</caption>
-        <thead><tr><th scope="col">{{ __('From') }}</th><th scope="col">{{ __('Until') }}</th><th scope="col" class="num">{{ __('Learners') }}</th><th scope="col" class="num">{{ __('Per learner per month') }}</th><th scope="col">{{ __('Operator agreement') }}</th><th scope="col">{{ __('Signed by') }}</th></tr></thead>
+        <thead><tr><th scope="col">{{ __('From') }}</th><th scope="col">{{ __('Until') }}</th><th scope="col" class="num">{{ __('Learners') }}</th><th scope="col" class="num">{{ __('Per learner per month') }}</th><th scope="col">{{ __('Operator agreement') }}</th><th scope="col">{{ __('Signed by') }}</th><th scope="col">{{ __('Renewal reminder') }}</th><th scope="col">{{ __('Data processing addendum') }}</th><th scope="col">{{ __('Notes') }}</th></tr></thead>
         <tbody>
         @forelse ($contracts as $contract)
             <tr>
                 <th scope="row">{{ $contract['starts_on'] }}</th><td>{{ $contract['ends_on'] ?? __('Open-ended') }}</td>
                 <td class="num">{{ $contract['contracted_learners'] }}</td><td class="num">{{ $money($contract['price_per_learner_cents']) }}</td>
                 <td>{{ $contract['operator_agreement_version'] }} · {{ $contract['operator_agreement_signed_on'] }}</td><td>{{ $contract['signatory'] }}</td>
+                <td>{{ $contract['renewal_on'] ?? '—' }}</td><td>{{ $contract['data_processing_signed_on'] === null ? __('Not signed') : __('Signed :date', ['date' => $contract['data_processing_signed_on']]) }}</td><td>{{ $contract['notes'] ?? '—' }}</td>
             </tr>
         @empty
-            <tr><td colspan="6">{{ __('No contract recorded yet.') }}</td></tr>
+            <tr><td colspan="9">{{ __('No contract recorded yet.') }}</td></tr>
         @endforelse
         </tbody>
     </table>
