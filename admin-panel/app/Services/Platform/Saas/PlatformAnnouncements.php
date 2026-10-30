@@ -30,8 +30,27 @@ use Illuminate\Validation\ValidationException;
  */
 class PlatformAnnouncements
 {
-    /** HQ works in South African time; rows are stored in the app's timezone. */
+    /** HQ works in South African time. */
     public const TIMEZONE = 'Africa/Johannesburg';
+
+    /**
+     * Announcement times are stored and compared in UTC, never in the app's
+     * timezone: inside a school, the school's own time zone setting becomes
+     * the app's (SettingsConfigService), so "now" would mean a different
+     * clock at each school.
+     */
+    public const STORAGE_TIMEZONE = 'UTC';
+
+    public static function now(): CarbonImmutable
+    {
+        return CarbonImmutable::now(self::STORAGE_TIMEZONE);
+    }
+
+    /** A stored announcement time, read as UTC. */
+    public static function stored(mixed $value): CarbonImmutable
+    {
+        return CarbonImmutable::parse((string) $value, self::STORAGE_TIMEZONE);
+    }
 
     public const TYPE = 'platform.announcement';
 
@@ -92,7 +111,7 @@ class PlatformAnnouncements
     public function list(): array
     {
         return $this->currentSchool->acrossSchools(function (): array {
-            $now = now();
+            $now = self::now()->format('Y-m-d H:i:s');
             $drafts = DB::table('platform_announcements')->where('status', 'draft')->orderByDesc('updated_at')->limit(100)->get();
             $live = DB::table('platform_announcements')->where('status', 'published')
                 ->where(fn ($q) => $q->whereNull('shows_until')->orWhere('shows_until', '>', $now))->orderBy('shows_from')->limit(100)->get();
@@ -196,7 +215,7 @@ class PlatformAnnouncements
 
         return $this->currentSchool->acrossSchools(fn (): array => DB::transaction(function () use ($id, $data, $actor): array {
             $row = $this->lockDraft($id, (int) $data['revision']);
-            if ($row->shows_until !== null && CarbonImmutable::parse($row->shows_until)->lessThanOrEqualTo(now())) {
+            if ($row->shows_until !== null && self::stored($row->shows_until)->lessThanOrEqualTo(self::now())) {
                 throw ValidationException::withMessages(['shows_until' => __('This announcement would already have stopped showing. Change its dates first.')]);
             }
             $schoolIds = $this->audienceSchools((string) $row->audience, $this->values($row));
@@ -218,7 +237,7 @@ class PlatformAnnouncements
                 $total += count($recipients);
             }
             DB::table('platform_announcements')->where('id', $id)->update([
-                'status' => 'published', 'published_at' => now(), 'published_by' => $actor->id, 'revision' => (int) $row->revision + 1, 'updated_at' => now(),
+                'status' => 'published', 'published_at' => self::now()->format('Y-m-d H:i:s'), 'published_by' => $actor->id, 'revision' => (int) $row->revision + 1, 'updated_at' => now(),
             ]);
             Audit::record('platform_announcement_published', null, ['status' => 'draft'], [
                 'announcement_id' => $id, 'status' => 'published', 'kind' => $row->kind, 'severity' => $row->severity, 'audience' => $row->audience,
@@ -240,7 +259,7 @@ class PlatformAnnouncements
             abort_if($row === null, 404);
             abort_if($row->status !== 'published', 409, __('Only a published announcement can be withdrawn.'));
             DB::table('platform_announcements')->where('id', $id)->update([
-                'status' => 'withdrawn', 'withdrawn_at' => now(), 'withdrawn_by' => $actor->id, 'withdrawn_reason' => $data['reason'],
+                'status' => 'withdrawn', 'withdrawn_at' => self::now()->format('Y-m-d H:i:s'), 'withdrawn_by' => $actor->id, 'withdrawn_reason' => $data['reason'],
                 'revision' => (int) $row->revision + 1, 'updated_at' => now(),
             ]);
             Audit::record('platform_announcement_withdrawn', null, ['status' => 'published'], ['announcement_id' => $id, 'status' => 'withdrawn', 'changed_by' => $actor->id]);
@@ -330,7 +349,7 @@ class PlatformAnnouncements
         return $reach;
     }
 
-    /** The validated form as columns, with its times checked and stored in the app's timezone. */
+    /** The validated form as columns, with its times checked and stored in UTC. */
     private function fields(array $data): array
     {
         $from = $this->parse($data['shows_from']);
@@ -386,9 +405,9 @@ class PlatformAnnouncements
 
     private function summary(object $row): array
     {
-        $now = now();
-        $from = CarbonImmutable::parse($row->shows_from);
-        $until = $row->shows_until === null ? null : CarbonImmutable::parse($row->shows_until);
+        $now = self::now();
+        $from = self::stored($row->shows_from);
+        $until = $row->shows_until === null ? null : self::stored($row->shows_until);
         $showing = match (true) {
             $row->status !== 'published' => $row->status,
             $from->greaterThan($now) => 'upcoming',
@@ -419,17 +438,17 @@ class PlatformAnnouncements
             throw ValidationException::withMessages(['shows_from' => __('Enter a date and time.')]);
         }
 
-        return $at->setTimezone((string) config('app.timezone'));
+        return $at->setTimezone(self::STORAGE_TIMEZONE);
     }
 
     private function local(mixed $value): ?string
     {
-        return $value === null ? null : CarbonImmutable::parse($value, (string) config('app.timezone'))->setTimezone(self::TIMEZONE)->format('Y-m-d H:i');
+        return $value === null ? null : self::stored($value)->setTimezone(self::TIMEZONE)->format('Y-m-d H:i');
     }
 
     private function input(mixed $value): ?string
     {
-        return $value === null ? null : CarbonImmutable::parse($value, (string) config('app.timezone'))->setTimezone(self::TIMEZONE)->format('Y-m-d\TH:i');
+        return $value === null ? null : self::stored($value)->setTimezone(self::TIMEZONE)->format('Y-m-d\TH:i');
     }
 
     /** @return array<int, string> */

@@ -18,7 +18,12 @@ class SchoolAnnouncementController extends Controller
 
     public function index(Request $request): View
     {
-        return view('platform.announcements', ['announcements' => $this->announcements->page($request->user())]);
+        return view('platform.announcements', ['announcements' => $this->announcements->page($request->user(), (int) $request->query('page', 1))]);
+    }
+
+    public function show(Request $request, int $announcement): View
+    {
+        return view('platform.announcement', ['announcement' => $this->announcements->one($request->user(), $announcement)]);
     }
 
     public function read(DismissAnnouncementRequest $request, int $announcement): RedirectResponse

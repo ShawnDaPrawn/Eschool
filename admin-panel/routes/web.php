@@ -1388,6 +1388,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
 // a banner is allowed while a past year is open, so it sits outside EnforceReadOnlyYears.
 Route::middleware(['Role', 'auth', 'school.context'])->prefix('navigate-ed-announcements')->name('platform-announcements.')->group(function () {
     Route::get('/', [SchoolAnnouncementController::class, 'index'])->name('index');
+    Route::get('/{announcement}', [SchoolAnnouncementController::class, 'show'])->whereNumber('announcement')->name('show');
     Route::post('/{announcement}/read', [SchoolAnnouncementController::class, 'read'])->middleware('throttle:60,1')->whereNumber('announcement')->name('read');
 });
 

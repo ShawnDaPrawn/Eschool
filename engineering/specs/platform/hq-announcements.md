@@ -72,3 +72,8 @@ Every `/saas` route carries `platform.can:announcements.manage`; every HQ write 
 - Announcements in the apps or the v2 API, and to other school roles (principal, bursar) than Super Admins.
 - Translating announcements: HQ writes in English; the banner and page around them are translated.
 - Deleting drafts, combining package and stage in one audience, and adding schools that join after publication.
+
+## Time zones and paging (review fixes)
+
+- Announcement times (`shows_from`, `shows_until`, the maintenance window, `published_at`, `withdrawn_at`, `read_at`) are stored and compared in **UTC** (`PlatformAnnouncements::STORAGE_TIMEZONE`). Inside a school, the app's time zone becomes the school's own setting (`SettingsConfigService`), so "now" must never come from `now()`. HQ enters and reads times in South African time; a school reads them in its own time zone. Test: `test_a_school_in_another_time_zone_sees_the_banner_on_the_same_clock`.
+- The school's announcements page shows 25 a page, with newer and older links. Each announcement also has its own page, `GET /navigate-ed-announcements/{id}` (`platform-announcements.show`): a banner's "Read in full" opens it, and an announcement not published to the school, or not published at all, answers 404. Test: `test_every_announcement_stays_readable_a_page_at_a_time_and_on_its_own`.

@@ -9,6 +9,7 @@ use App\Models\Platform\AuditLog;
 use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
+use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Announcements\AnnouncementText;
 use App\Services\Platform\Notifications\NotificationRules;
@@ -152,8 +153,8 @@ class HqAnnouncementsTest extends TestCase
 
         $row = DB::table('platform_announcements')->where('id', $id)->first();
         $this->assertSame(['published', $ops->id], [$row->status, (int) $row->published_by]);
-        // Shows from 07:00 South African time, stored in the app's timezone.
-        $this->assertSame(CarbonImmutable::parse('2026-11-02 07:00', PlatformAnnouncements::TIMEZONE)->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'), (string) $row->shows_from);
+        // Shows from 07:00 South African time, stored in UTC whatever the app's or a school's time zone.
+        $this->assertSame('2026-11-02 05:00:00', (string) $row->shows_from);
         $this->assertSame([1 => [$this->superAdmin()->id], 2 => [$this->schoolBAdmin->id]], $this->recipients($id));
         $this->assertSame([1, 2], DB::table('platform_announcement_schools')->where('announcement_id', $id)->orderBy('school_id')->pluck('school_id')->map(fn ($v) => (int) $v)->all());
         $notice = Notification::acrossSchools()->where('type', PlatformAnnouncements::TYPE)->where('school_id', 1)->sole();
@@ -229,7 +230,7 @@ class HqAnnouncementsTest extends TestCase
         $id = $this->published(['kind' => 'maintenance', 'severity' => 'warning', 'title' => 'Planned maintenance on Saturday',
             'shows_from' => '2026-11-03T08:00', 'shows_until' => '', 'window_starts_at' => '2026-11-07T22:00', 'window_ends_at' => '2026-11-07T23:30']);
         // A maintenance banner stops when its window ends.
-        $this->assertSame(CarbonImmutable::parse('2026-11-07 23:30', PlatformAnnouncements::TIMEZONE)->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
+        $this->assertSame(CarbonImmutable::parse('2026-11-07 23:30', PlatformAnnouncements::TIMEZONE)->setTimezone('UTC')->format('Y-m-d H:i:s'),
             (string) DB::table('platform_announcements')->where('id', $id)->value('shows_until'));
         $this->assertStringContainsString('Maintenance from 2026-11-07 22:00 to 2026-11-07 23:30', Notification::acrossSchools()->where('type', PlatformAnnouncements::TYPE)->where('school_id', 1)->sole()->message);
         $banner = 'data-platform-announcement="'.$id.'"';
@@ -252,6 +253,51 @@ class HqAnnouncementsTest extends TestCase
         $this->get('/navigate-ed-announcements')->assertOk()->assertDontSee('Planned maintenance on Saturday');
         $this->post('/navigate-ed-announcements/'.$id.'/read')->assertNotFound();
         $this->assertSame(0, DB::table('platform_announcement_reads')->count());
+    }
+
+    public function test_a_school_in_another_time_zone_sees_the_banner_on_the_same_clock(): void
+    {
+        // School A keeps its clock in Auckland (13 hours ahead of UTC in November); HQ works in South African time.
+        app(CurrentSchool::class)->run(1, fn () => Settings::query()->updateOrCreate(['type' => 'time_zone'], ['message' => 'Pacific/Auckland']));
+        app(CurrentSchool::class)->forget();
+        $id = $this->published(['title' => 'Showing for one hour', 'shows_from' => '2026-11-02T07:59', 'shows_until' => '2026-11-02T09:00']);
+        $this->assertSame('2026-11-02 05:59:00', (string) DB::table('platform_announcements')->where('id', $id)->value('shows_from'), 'stored in UTC');
+        $banner = 'data-platform-announcement="'.$id.'"';
+
+        $this->actingAs($this->superAdmin());
+        $this->get('/home')->assertOk()->assertSee($banner, false);
+        $this->travelTo(CarbonImmutable::parse('2026-11-02 09:01', PlatformAnnouncements::TIMEZONE));
+        $this->get('/home')->assertOk()->assertDontSee($banner, false);
+        // Its times read in the school's own zone: 07:59 in Johannesburg is 18:59 in Auckland.
+        $this->get('/navigate-ed-announcements/'.$id)->assertOk()->assertSee('From 2026-11-02 18:59');
+
+        $this->post('/navigate-ed-announcements/'.$id.'/read')->assertRedirect();
+        $this->assertSame('2026-11-02 07:01:00', (string) DB::table('platform_announcement_reads')->where('announcement_id', $id)->value('read_at'), 'reads are in UTC too');
+    }
+
+    public function test_every_announcement_stays_readable_a_page_at_a_time_and_on_its_own(): void
+    {
+        $ids = [];
+        foreach (range(1, 26) as $n) {
+            $ids[] = $this->published(['title' => sprintf('Release note number %02d', $n), 'shows_from' => sprintf('2026-11-01T%02d:00', $n % 24), 'shows_until' => '2026-12-31T07:00']);
+        }
+        $this->actingAs($this->superAdmin());
+        $this->get('/navigate-ed-announcements')->assertOk()->assertSee('Older')->assertDontSee('Release note number 24');
+        $this->get('/navigate-ed-announcements?page=2')->assertOk()->assertSee('Newer')->assertSee('Release note number 24');
+        // A banner's "Read in full" opens the announcement itself, wherever it falls in the list.
+        $this->get('/home')->assertOk()->assertSee('/navigate-ed-announcements/', false);
+        $this->get('/navigate-ed-announcements/'.$ids[23])->assertOk()->assertSee('Release note number 24');
+
+        // Not published to this school, or not published at all: not found.
+        $this->actingAs($this->staff('operations'));
+        $onlyB = $this->draft(['title' => 'Only for Baobab', 'audience' => 'schools', 'schools' => [2]]);
+        $this->publish($onlyB);
+        $draft = $this->draft(['title' => 'Still a draft']);
+        $this->actingAs($this->superAdmin());
+        $this->get('/navigate-ed-announcements/'.$onlyB)->assertNotFound();
+        $this->get('/navigate-ed-announcements/'.$draft)->assertNotFound();
+        $this->actingAs($this->teacher());
+        $this->get('/navigate-ed-announcements/'.$ids[0])->assertForbidden();
     }
 
     public function test_dismissing_records_one_read_and_hq_sees_how_many_schools_and_admins_read_it(): void

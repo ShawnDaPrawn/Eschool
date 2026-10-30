@@ -16,7 +16,7 @@
                 <span>{{ __('Maintenance from :from to :to.', ['from' => $banner['window_starts_at'], 'to' => $banner['window_ends_at']]) }}</span>
             @endif
             <span>{{ $banner['excerpt'] }}</span>
-            <a href="{{ route('platform-announcements.index') }}#announcement-{{ $banner['id'] }}">{{ __('Read in full') }}</a>
+            <a href="{{ route('platform-announcements.show', $banner['id']) }}">{{ __('Read in full') }}</a>
         </p>
         <form method="POST" action="{{ route('platform-announcements.read', $banner['id']) }}" data-year-safe>
             @csrf
