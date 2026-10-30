@@ -37,6 +37,8 @@ class GradePromotionRequest extends FormRequest
             'learners' => ['nullable', 'array', 'max:5000'],
             'learners.*.outcome' => ['nullable', Rule::in(GradePromotion::OUTCOMES)],
             'learners.*.homeroom' => ['nullable', 'string', 'max:191'],
+            'homerooms' => ['nullable', 'array', 'max:2000'],
+            'homerooms.*' => ['nullable', 'string', 'max:191'],
             'complete' => ['nullable', 'boolean'],
             'sheet' => ['nullable', 'string', 'max:200000'],
             'fingerprint' => [$this->routeIs('promotions.by-grade.store') ? 'required' : 'nullable', 'string', 'size:64'],

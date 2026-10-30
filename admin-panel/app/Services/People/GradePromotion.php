@@ -43,11 +43,13 @@ class GradePromotion
 
     /**
      * The promotion for every learner in $from, with $exceptions applied.
+     * $moves sends a whole homeroom somewhere other than its default.
      *
      * @param  array<int, array{outcome?: string, homeroom_id?: int|string|null}>  $exceptions  learner id => choice
+     * @param  array<int, int>  $moves  homeroom id => next year's homeroom id
      * @return array{homerooms: list<array<string, mixed>>, totals: array<string, int>, unresolved: int, fingerprint: string}
      */
-    public function plan(SessionYear $from, SessionYear $to, array $exceptions = []): array
+    public function plan(SessionYear $from, SessionYear $to, array $exceptions = [], array $moves = []): array
     {
         $this->assertYears($from, $to);
         $rooms = $this->homerooms();
@@ -63,6 +65,10 @@ class GradePromotion
         foreach ($enrolments->sortBy(fn ($row) => $rooms[$row->class_section_id]['name'] ?? '') as $enrolment) {
             $source = (int) $enrolment->class_section_id;
             $default = $this->defaultTarget($source, $rooms, $nextGrade);
+            $moved = isset($moves[$source], $rooms[$moves[$source]]) ? (int) $moves[$source] : null;
+            if ($moved !== null) {
+                $default = ['target' => $moved, 'last_grade' => false, 'grade_unset' => $default['grade_unset']];
+            }
             $learnerId = (int) $enrolment->learner_id;
             $choice = $exceptions[$learnerId] ?? [];
             $outcome = in_array($choice['outcome'] ?? null, self::OUTCOMES, true) ? $choice['outcome'] : ($default['last_grade'] ? self::LEAVE : self::PROMOTE);
@@ -79,7 +85,8 @@ class GradePromotion
             $groups[$source] ??= [
                 'id' => $source, 'name' => $rooms[$source]['name'] ?? '#'.$source,
                 'default_target' => $default['target'], 'default_target_name' => $default['target'] !== null ? $rooms[$default['target']]['name'] : null,
-                'last_grade' => $default['last_grade'], 'learners' => [],
+                'last_grade' => $default['last_grade'], 'grade_unset' => $default['grade_unset'],
+                'moved' => $moved, 'learners' => [],
             ];
             $groups[$source]['learners'][] = [
                 'id' => $learnerId,
@@ -108,14 +115,15 @@ class GradePromotion
      * and leavers' rows. Refused if anything changed since the preview.
      *
      * @param  array<int, array{outcome?: string, homeroom_id?: int|string|null}>  $exceptions
+     * @param  array<int, int>  $moves
      * @return array<string, int>
      */
-    public function commit(User $actor, SessionYear $from, SessionYear $to, array $exceptions, string $fingerprint): array
+    public function commit(User $actor, SessionYear $from, SessionYear $to, array $exceptions, string $fingerprint, array $moves = []): array
     {
-        return DB::transaction(function () use ($actor, $from, $to, $exceptions, $fingerprint): array {
+        return DB::transaction(function () use ($actor, $from, $to, $exceptions, $fingerprint, $moves): array {
             // Serialise promotions of the same year.
             SessionYear::query()->whereKey($to->id)->lockForUpdate()->first();
-            $plan = $this->plan($from, $to, $exceptions);
+            $plan = $this->plan($from, $to, $exceptions, $moves);
             if (! hash_equals($plan['fingerprint'], $fingerprint)) {
                 throw ValidationException::withMessages(['fingerprint' => __('Learners or placements changed since the preview. Check the promotion again.')]);
             }
@@ -229,22 +237,22 @@ class GradePromotion
      *
      * @param  array<int, array<string, mixed>>  $rooms
      * @param  array<int, int|null>  $nextGrade
-     * @return array{target: int|null, last_grade: bool}
+     * @return array{target: int|null, last_grade: bool, grade_unset: bool}
      */
     private function defaultTarget(int $source, array $rooms, array $nextGrade): array
     {
         $room = $rooms[$source] ?? null;
         if ($room === null || $room['grade_level_id'] === null) {
-            return ['target' => null, 'last_grade' => false];
+            return ['target' => null, 'last_grade' => false, 'grade_unset' => true];
         }
         $next = $nextGrade[$room['grade_level_id']] ?? null;
         if ($next === null) {
-            return ['target' => null, 'last_grade' => true];
+            return ['target' => null, 'last_grade' => true, 'grade_unset' => false];
         }
         $candidates = collect($rooms)->filter(fn (array $other) => $other['grade_level_id'] === $next && $other['section_id'] === $room['section_id'] && $other['medium_id'] === $room['medium_id']);
         $best = $candidates->sortBy(fn (array $other) => [($other['stream_id'] === $room['stream_id'] ? 0 : 1) + ($other['shift_id'] === $room['shift_id'] ? 0 : 1), $other['id']])->first();
 
-        return ['target' => $best['id'] ?? null, 'last_grade' => false];
+        return ['target' => $best['id'] ?? null, 'last_grade' => false, 'grade_unset' => false];
     }
 
     /** @return array<int, array{id: int, name: string, grade_level_id: int|null, section_id: int, medium_id: int|null, stream_id: int|null, shift_id: int|null}> */

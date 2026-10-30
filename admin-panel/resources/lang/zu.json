@@ -5399,5 +5399,10 @@
     "Row :row: the outcome must be promote, repeat, leave or place.": "Umugqa :row: umphumela kufanele ube ngu-promote, repeat, leave noma place.",
     "Row :row: no homeroom called \":room\".": "Umugqa :row: alikho ikilasi elibizwa ngokuthi \":room\".",
     "Promote into a school year that starts after this one ends.": "Khuphulela onyakeni wesikole oqala ngemva kokuphela kwalo.",
-    "Too many choices arrived at once and some were lost. Paste the changes as a sheet instead.": "Kufike izinqumo eziningi kakhulu ngesikhathi esisodwa ezinye zalahleka. Kunalokho namathisela izinguquko njengeshidi."
+    "Too many choices arrived at once and some were lost. Paste the changes as a sheet instead.": "Kufike izinqumo eziningi kakhulu ngesikhathi esisodwa ezinye zalahleka. Kunalokho namathisela izinguquko njengeshidi.",
+    ":room: its grade is not set": ":room: ibanga lalo alisethiwe",
+    "Set the grade of :room under Grades and homerooms, or choose next year's homeroom for everyone in it below.": "Setha ibanga lika-:room ngaphansi kokuthi Amabanga nezindlu zasekhaya, noma ukhethe ikilasi lonyaka ozayo lawo wonke umuntu okulo ngezansi.",
+    "Next year's homeroom for :room": "Ikilasi lonyaka ozayo lika-:room",
+    "Leave empty for the default. Learners you change below keep their own choice.": "Shiya kungenalutho ukuze kusetshenziswe okuzenzakalelayo. Abafundi obashintsha ngezansi bagcina okwabo ukukhetha.",
+    "No homeroom called \":room\".": "Alikho ikilasi elibizwa ngokuthi \":room\"."
 }

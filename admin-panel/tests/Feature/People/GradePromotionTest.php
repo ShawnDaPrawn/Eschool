@@ -146,6 +146,34 @@ class GradePromotionTest extends TestCase
         $service->commit($this->superAdmin(), $this->from, $this->to, [], $plan['fingerprint']);
     }
 
+    public function test_a_whole_homeroom_can_be_sent_somewhere_else(): void
+    {
+        $ids = $this->schoolA->ids;
+        // Grade 5's grade is not set, so it has no default; Grade 12 C is moved too.
+        ClassSchool::query()->whereKey($ids['class_a'])->update(['grade_level_id' => null]);
+        $service = app(GradePromotion::class);
+        $this->assertTrue($service->plan($this->from, $this->to)['homerooms'][0]['grade_unset']);
+        $moves = [$ids['section_a'] => $this->nextRoom, $ids['section_c'] => $this->nextRoom];
+        $choices = [$ids['ben'] => ['outcome' => GradePromotion::LEAVE]];
+        $plan = $service->plan($this->from, $this->to, $choices, $moves);
+        $this->assertSame(['promote' => 2, 'repeat' => 0, 'leave' => 1, 'place' => 0, 'already' => 0], $plan['totals']);
+        $this->assertSame(0, $plan['unresolved']);
+
+        // Promoting without the moves the page showed is refused.
+        try {
+            $service->commit($this->superAdmin(), $this->from, $this->to, $choices, $plan['fingerprint']);
+            $this->fail('Promoted without the homeroom moves.');
+        } catch (ValidationException) {
+        }
+        $service->commit($this->superAdmin(), $this->from, $this->to, $choices, $plan['fingerprint'], $moves);
+        $this->assertSame(2, Enrolment::query()->where('session_year_id', $this->to->id)->where('class_section_id', $this->nextRoom)->count());
+
+        // On the page, homerooms are named; a name that matches none is reported.
+        $this->actingAs($this->superAdmin())->post('/promotions/by-grade/check', [
+            'from' => $this->from->id, 'to' => $this->to->id, 'complete' => 1, 'homerooms' => [$ids['section_c'] => 'Grade 9 Z'],
+        ])->assertOk()->assertSee('No homeroom called &quot;Grade 9 Z&quot;.', false);
+    }
+
     public function test_promoting_into_a_year_that_has_not_started_after_this_one_is_refused(): void
     {
         $this->expectException(ValidationException::class);

@@ -37,7 +37,7 @@ class GradePromotionController extends Controller
             return redirect()->route('new-year.index')->withErrors(['message' => __('Create next school year first, then promote learners into it.')]);
         }
 
-        return $this->page($request, $years[0], $years[1], []);
+        return $this->page($request, $years[0], $years[1], [], []);
     }
 
     /** "Check changes": the promotion with the choices on the page and any pasted sheet. */
@@ -45,30 +45,32 @@ class GradePromotionController extends Controller
     {
         [$from, $to] = $this->years($request) ?? abort(404);
         if (! $request->boolean('complete')) {
-            return response($this->page($request, $from, $to, [], ['complete' => [self::TRUNCATED]]), 422);
+            return response($this->page($request, $from, $to, [], [], ['complete' => [self::TRUNCATED]]), 422);
         }
-        $exceptions = $this->exceptions($request);
-        $errors = [];
+        [$exceptions, $moves, $errors] = $this->choices($request);
         if (trim((string) $request->validated('sheet')) !== '') {
             $sheet = $this->promotion->parseSheet($from, (string) $request->validated('sheet'));
             $exceptions = $sheet['exceptions'] + $exceptions;
-            $errors = $sheet['errors'] !== [] ? ['sheet' => $sheet['errors']] : [];
+            $errors = [...$errors, ...$sheet['errors']];
         }
 
-        return $this->page($request, $from, $to, $exceptions, $errors);
+        return $this->page($request, $from, $to, $exceptions, $moves, $errors === [] ? [] : ['choices' => $errors]);
     }
 
     public function store(GradePromotionRequest $request): Response|RedirectResponse
     {
         [$from, $to] = $this->years($request) ?? abort(404);
         if (! $request->boolean('complete')) {
-            return response($this->page($request, $from, $to, [], ['complete' => [self::TRUNCATED]]), 422);
+            return response($this->page($request, $from, $to, [], [], ['complete' => [self::TRUNCATED]]), 422);
         }
-        $exceptions = $this->exceptions($request);
+        [$exceptions, $moves, $errors] = $this->choices($request);
+        if ($errors !== []) {
+            return response($this->page($request, $from, $to, $exceptions, $moves, ['choices' => $errors]), 422);
+        }
         try {
-            $done = $this->promotion->commit($request->user(), $from, $to, $exceptions, (string) $request->validated('fingerprint'));
+            $done = $this->promotion->commit($request->user(), $from, $to, $exceptions, (string) $request->validated('fingerprint'), $moves);
         } catch (ValidationException $e) {
-            return response($this->page($request, $from, $to, $exceptions, $e->errors()), 422);
+            return response($this->page($request, $from, $to, $exceptions, $moves, $e->errors()), 422);
         }
 
         return redirect()->route('promotions.by-grade', ['from' => $from->id, 'to' => $to->id])->with('success', __(':promoted promoted, :repeated repeating, :placed placed and :left leaving, for :year.', [
@@ -79,12 +81,13 @@ class GradePromotionController extends Controller
 
     /**
      * @param  array<int, array{outcome?: string, homeroom_id?: int|null}>  $exceptions
+     * @param  array<int, int>  $moves
      * @param  array<string, list<string>>  $errors
      */
-    private function page(GradePromotionRequest $request, SessionYear $from, SessionYear $to, array $exceptions, array $errors = []): View
+    private function page(GradePromotionRequest $request, SessionYear $from, SessionYear $to, array $exceptions, array $moves, array $errors = []): View
     {
         try {
-            $plan = $this->promotion->plan($from, $to, $exceptions);
+            $plan = $this->promotion->plan($from, $to, $exceptions, $moves);
         } catch (ValidationException $e) {
             $plan = null;
             $errors += $e->errors();
@@ -115,26 +118,46 @@ class GradePromotionController extends Controller
     }
 
     /**
-     * The choices on the page: learner id => outcome, with the homeroom (as
-     * named on the page) for "place".
+     * The choices on the page: learner id => outcome, with the homeroom for
+     * "place", and homerooms moved somewhere other than their default, both
+     * naming homerooms as the page does. Names that match no homeroom are
+     * reported.
      *
-     * @return array<int, array{outcome: string, homeroom_id: int|null}>
+     * @return array{0: array<int, array{outcome: string, homeroom_id: int|null}>, 1: array<int, int>, 2: list<string>}
      */
-    private function exceptions(GradePromotionRequest $request): array
+    private function choices(GradePromotionRequest $request): array
     {
-        $byName = collect($this->promotion->homeroomChoices())->mapWithKeys(fn (string $name, int $id) => [mb_strtolower($name) => $id]);
+        $names = $this->promotion->homeroomChoices();
+        $byName = collect($names)->mapWithKeys(fn (string $name, int $id) => [mb_strtolower($name) => $id]);
+        $errors = [];
+        $find = function (string $typed) use ($byName, &$errors): ?int {
+            $typed = trim(preg_replace('/\s+/', ' ', $typed) ?? $typed);
+            if ($typed === '') {
+                return null;
+            }
+            $id = $byName[mb_strtolower($typed)] ?? null;
+            if ($id === null) {
+                $errors[] = __('No homeroom called ":room".', ['room' => $typed]);
+            }
+
+            return $id;
+        };
         $choices = [];
         foreach ((array) $request->validated('learners', []) as $learner => $choice) {
+            $room = $find((string) ($choice['homeroom'] ?? ''));
             if (($choice['outcome'] ?? null) === null) {
                 continue;
             }
-            $room = trim((string) ($choice['homeroom'] ?? ''));
-            $choices[(int) $learner] = [
-                'outcome' => (string) $choice['outcome'],
-                'homeroom_id' => $room !== '' ? ($byName[mb_strtolower(preg_replace('/\s+/', ' ', $room) ?? $room)] ?? null) : null,
-            ];
+            $choices[(int) $learner] = ['outcome' => (string) $choice['outcome'], 'homeroom_id' => $room];
+        }
+        $moves = [];
+        foreach ((array) $request->validated('homerooms', []) as $source => $typed) {
+            $room = $find((string) $typed);
+            if ($room !== null) {
+                $moves[(int) $source] = $room;
+            }
         }
 
-        return $choices;
+        return [$choices, $moves, array_values(array_unique($errors))];
     }
 }

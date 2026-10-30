@@ -4323,5 +4323,10 @@
     "Row :row: the outcome must be promote, repeat, leave or place.": "Row :row: the outcome must be promote, repeat, leave or place.",
     "Row :row: no homeroom called \":room\".": "Row :row: no homeroom called \":room\".",
     "Promote into a school year that starts after this one ends.": "Promote into a school year that starts after this one ends.",
-    "Too many choices arrived at once and some were lost. Paste the changes as a sheet instead.": "Too many choices arrived at once and some were lost. Paste the changes as a sheet instead."
+    "Too many choices arrived at once and some were lost. Paste the changes as a sheet instead.": "Too many choices arrived at once and some were lost. Paste the changes as a sheet instead.",
+    ":room: its grade is not set": ":room: its grade is not set",
+    "Set the grade of :room under Grades and homerooms, or choose next year's homeroom for everyone in it below.": "Set the grade of :room under Grades and homerooms, or choose next year's homeroom for everyone in it below.",
+    "Next year's homeroom for :room": "Next year's homeroom for :room",
+    "Leave empty for the default. Learners you change below keep their own choice.": "Leave empty for the default. Learners you change below keep their own choice.",
+    "No homeroom called \":room\".": "No homeroom called \":room\"."
 }

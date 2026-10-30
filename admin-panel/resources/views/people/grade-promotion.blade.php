@@ -41,10 +41,18 @@
                                 {{ __(':room: last grade, leaving the school', ['room' => $homeroom['name']]) }}
                             @elseif ($homeroom['default_target_name'] !== null)
                                 {{ __(':room to :next', ['room' => $homeroom['name'], 'next' => $homeroom['default_target_name']]) }}
+                            @elseif ($homeroom['grade_unset'])
+                                {{ __(':room: its grade is not set', ['room' => $homeroom['name']]) }}
                             @else
                                 {{ __(':room: no homeroom with the same letter in the next grade', ['room' => $homeroom['name']]) }}
                             @endif
                         </h3>
+                        @if ($homeroom['grade_unset'] && $homeroom['moved'] === null)
+                            <p>{{ __('Set the grade of :room under Grades and homerooms, or choose next year\'s homeroom for everyone in it below.', ['room' => $homeroom['name']]) }}</p>
+                        @endif
+                        <x-page.field :name="'homerooms['.$homeroom['id'].']'" :id="'promotion-move-'.$homeroom['id']" :label="__('Next year\'s homeroom for :room', ['room' => $homeroom['name']])"
+                            :value="$homeroom['moved'] !== null ? $homeroom['default_target_name'] : ''" :restore-old-input="false" list="promotion-rooms" maxlength="191" data-default=""
+                            :help="__('Leave empty for the default. Learners you change below keep their own choice.')" />
                         <div class="page-table__scroll" role="region" aria-label="{{ __('Learners in :room', ['room' => $homeroom['name']]) }}" tabindex="0"><table class="page-table__table">
                             <caption class="m3-visually-hidden">{{ __('Learners in :room', ['room' => $homeroom['name']]) }}</caption>
                             <thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Admission number') }}</th><th scope="col">{{ __('Next year') }}</th><th scope="col">{{ __('Homeroom') }}</th></tr></thead>
