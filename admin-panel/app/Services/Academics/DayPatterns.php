@@ -297,7 +297,8 @@ class DayPatterns
             if ($period === null) {
                 continue;
             }
-            $substitute = $cover->assigned($lesson, $date)?->substitute_teacher_id;
+            // Not assigned(): the new times make the cover snapshot stale, yet its substitute still expects to teach.
+            $substitute = $cover->reserved($lesson, $date);
             $index = count($items);
             $items[] = ['id' => (int) $lesson->id, 'starts' => (string) $period->starts_at, 'ends' => (string) $period->ends_at,
                 'changed' => $schedules === null || in_array((int) $lesson->period?->bell_schedule_id, $schedules, true)];

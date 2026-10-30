@@ -29,6 +29,12 @@ bells are an ordinary bell schedule in the same school year (for example
   on top of each other is refused and nothing is saved. Placement previews use
   short-day times on short-day dates, and a preview made before a short day
   changed can no longer be committed (the fingerprint includes the overrides).
+  An assigned relief teacher counts even when the short day makes the cover's
+  snapshot stale. Bells used by a short day (either side) cannot be edited;
+  copy them instead, as for bells used by lessons.
+- **Relief cover follows the short day.** Cover snapshots carry the short-day
+  times, so planning or removing a short day marks assigned cover on that date
+  "needs review" until it is refreshed and reassigned.
 - **Forward only.** Short days are planned or removed for today or later. A
   short day that would remove a lesson whose register was already taken is
   refused.
@@ -67,6 +73,9 @@ date, never the reason or other people. The outbox event
 | The same | a short day is planned | the learner, parent and teacher are notified; another learner is not; the reason is not in the notice |
 | A planned short day | it is removed | normal times return; "Normal bells" notice; a second removal finds nothing |
 | A Junior lesson that the new bells would overlap | the short day is saved | refused with a teacher clash; nothing saved; no notice |
+| A covered lesson; a substitute whose own lesson the short times would overlap | the short day is saved | refused with a teacher clash; the cover stays assigned |
+| Cover assigned before a short day | the short day is planned, then the cover refreshed | "needs review", then the short-day times; the dropped lesson's cover is cancelled |
+| Short-day bells in use | they are edited | 409; times unchanged |
 | A placement that clashes on normal bells but not on the short day | previewed before and after | refused before, allowed after with a new fingerprint; later bells that would clash with it are refused |
 | A teacher, parent or learner; a past date; the same or no replacement; another school's bells | a short day is saved | 403; 422; 422; 404 |
 | The workbench | a manager plans, views and removes; others try to remove; a stale revision | saved and shown; refused; error kept on the page |
@@ -81,3 +90,5 @@ accessibility and fit at 1024 and 1280 pixels.
 - Whole-school presets ("apply to every Senior schedule") beyond choosing each
   schedule on one form.
 - A v2 write API for short days; the panel is the only writer for now.
+- Telling the relief teacher and office when a short day puts assigned cover
+  into "needs review"; for now the cover panel shows it.

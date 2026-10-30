@@ -5383,5 +5383,6 @@
     ":replacement instead of :schedule": ":replacement instead of :schedule",
     "Remove short day": "Remove short day",
     "No short days planned": "No short days planned",
-    "Timetable changes": "Timetable changes"
+    "Timetable changes": "Timetable changes",
+    "Copy a bell schedule already used by short days, then choose the copy for those days.": "Copy a bell schedule already used by short days, then choose the copy for those days."
 }

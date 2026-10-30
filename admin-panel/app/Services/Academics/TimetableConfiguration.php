@@ -6,6 +6,7 @@ namespace App\Services\Academics;
 
 use App\Models\Academics\BellPeriod;
 use App\Models\Academics\BellSchedule;
+use App\Models\Academics\BellScheduleOverride;
 use App\Models\Academics\Room;
 use App\Models\Academics\TimetableLesson;
 use App\Models\Platform\School;
@@ -84,6 +85,8 @@ class TimetableConfiguration
             abort_if($id !== null && $schedule->revision !== $data['revision'], 409, __('This bell schedule changed. Reload before saving.'));
             if ($id !== null) {
                 abort_if(TimetableLesson::whereIn('bell_period_id', BellPeriod::where('bell_schedule_id', $id)->select('id'))->exists(), 409, __('Copy a bell schedule already used by lessons, then move the lessons to the new periods.'));
+                // Short-day bells are only checked for clashes when a short day is saved.
+                abort_if(BellScheduleOverride::where(fn ($q) => $q->where('bell_schedule_id', $id)->orWhere('replacement_bell_schedule_id', $id))->exists(), 409, __('Copy a bell schedule already used by short days, then choose the copy for those days.'));
             }
             $last = null;
             foreach ($data['periods'] as $period) {

@@ -5383,5 +5383,6 @@
     ":replacement instead of :schedule": ":replacement esikhundleni se-:schedule",
     "Remove short day": "Susa usuku olufushane",
     "No short days planned": "Azikho izinsuku ezifushane ezihleliwe",
-    "Timetable changes": "Izinguquko zethayimthebula"
+    "Timetable changes": "Izinguquko zethayimthebula",
+    "Copy a bell schedule already used by short days, then choose the copy for those days.": "Kopisha ishejuli yensimbi esetshenziswe kakade ezinsukwini ezifushane, bese ukhetha ikhophi yalezo zinsuku."
 }

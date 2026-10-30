@@ -6,6 +6,7 @@ namespace App\Services\Pastoral;
 
 use App\Models\Academics\BellPeriod;
 use App\Models\Academics\TimetableLesson;
+use App\Models\Pastoral\CoverAbsence;
 use App\Models\Pastoral\CoverAssignment;
 use App\Models\Teacher;
 use App\Services\Academics\TimetableEngine;
@@ -33,6 +34,23 @@ class CoverTimetable
         }
 
         return null;
+    }
+
+    /**
+     * The substitute holding an assigned cover for the occurrence, whether or
+     * not its snapshot is still current: a stale assignment keeps its teacher
+     * reserved until someone refreshes or cancels it.
+     */
+    public function reserved(TimetableLesson $lesson, string $date): ?int
+    {
+        if (! $this->enabled()) {
+            return null;
+        }
+        $id = CoverAssignment::where('timetable_lesson_id', $lesson->id)->whereDate('on_date', $date)->where('state', 'assigned')
+            ->whereNotNull('substitute_teacher_id')->whereIn('cover_absence_id', CoverAbsence::where('state', 'requested')->select('id'))
+            ->orderBy('id')->value('substitute_teacher_id');
+
+        return $id === null ? null : (int) $id;
     }
 
     public function display(array $row, CoverAssignment $cover): array

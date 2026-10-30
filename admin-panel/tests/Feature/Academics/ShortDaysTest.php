@@ -10,6 +10,8 @@ use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TimetableLesson;
 use App\Models\ClassSchool;
 use App\Models\Notification;
+use App\Models\Pastoral\CoverAbsence;
+use App\Models\Pastoral\CoverAssignment;
 use App\Models\People\Enrolment;
 use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\SchoolMembership;
@@ -21,9 +23,13 @@ use App\Services\Academics\TeachingGroups;
 use App\Services\Academics\TimetableConfiguration;
 use App\Services\Academics\TimetableEngine;
 use App\Services\Academics\TimetableQueries;
+use App\Services\Pastoral\CoverQueries;
+use App\Services\Pastoral\ReliefCover;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -81,13 +87,15 @@ class ShortDaysTest extends TestCase
         $this->lessons = array_map(fn ($lesson) => (int) $lesson['id'], $saved['lessons']);
     }
 
-    private function makeGroup(string $name, int $subject): int
+    private function makeGroup(string $name, int $subject, ?int $teacher = null): int
     {
         $service = app(TeachingGroups::class);
         $group = $service->save($this->superAdmin(), ['name' => $name, 'subject_id' => $subject, 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
         $dates = ['starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Short day allocation'];
-        $service->dated($this->superAdmin(), 'teachers', $dates + ['teacher_id' => $this->teacher], $group->id);
-        $service->dated($this->superAdmin(), 'memberships', $dates + ['learner_id' => $this->schoolA->ids['asha'], 'mark_rule' => 'catch_up'], $group->id);
+        $service->dated($this->superAdmin(), 'teachers', $dates + ['teacher_id' => $teacher ?? $this->teacher], $group->id);
+        if ($teacher === null) {
+            $service->dated($this->superAdmin(), 'memberships', $dates + ['learner_id' => $this->schoolA->ids['asha'], 'mark_rule' => 'catch_up'], $group->id);
+        }
 
         return (int) $group->id;
     }
@@ -197,6 +205,77 @@ class ShortDaysTest extends TestCase
         $this->assertSame(0, BellScheduleOverride::count());
         $this->assertSame(0, Notification::where('type', 'academics.timetable_changed')->count());
         $this->assertSame([], app(DayPatterns::class)->clashesOn('2026-02-17'), 'the saved timetable is unchanged');
+    }
+
+    public function test_bells_used_by_a_short_day_cannot_be_edited_without_the_clash_check(): void
+    {
+        $this->shortDay();
+        $schedule = BellSchedule::findOrFail($this->short);
+
+        try {
+            app(TimetableConfiguration::class)->bells($this->superAdmin(), ['name' => 'Short Senior', 'section' => 'Senior', 'session_year_id' => $this->year,
+                'revision' => $schedule->revision, 'periods' => [['name' => 'S1', 'starts_at' => '06:30', 'ends_at' => '09:00', 'is_break' => false]]], $this->short);
+            $this->fail('The bells of a planned short day were edited');
+        } catch (HttpException $error) {
+            $this->assertSame(409, $error->getStatusCode());
+        }
+        $this->assertSame(['07:00', '07:35'], array_column($this->day($this->superAdmin(), '2026-02-17'), 'starts_at'));
+        $spare = $this->bells('Spare Senior', [['X1', '07:00', '07:30', false]]);
+        $edited = app(TimetableConfiguration::class)->bells($this->superAdmin(), ['name' => 'Spare Senior', 'section' => 'Senior', 'session_year_id' => $this->year,
+            'revision' => $spare->revision, 'periods' => [['name' => 'X1', 'starts_at' => '07:05', 'ends_at' => '07:30', 'is_break' => false]]], (int) $spare->id);
+        $this->assertSame(2, $edited->revision, 'unused bells can still be edited');
+    }
+
+    public function test_relief_cover_snapshots_use_short_day_times_and_go_stale_when_a_short_day_is_planned(): void
+    {
+        $absence = $this->coverFor($this->lessons[1]);
+        $this->shortDay();
+
+        $this->assertSame('needs_review', app(CoverQueries::class)->occurrence($this->superAdmin(), $this->coverId($this->lessons[1]))['state'], 'the substitute was told the normal time');
+        $absence->refresh();
+        app(ReliefCover::class)->change($this->superAdmin(), (int) $absence->id, $absence->revision, 'refresh', 'Short day', (string) Str::uuid());
+        $source = app(CoverQueries::class)->occurrence($this->superAdmin(), $this->coverId($this->lessons[1]))['source'];
+        $this->assertSame(['07:35', '08:00'], [$source['starts_at'], $source['ends_at']]);
+        $this->assertSame('cancelled', CoverAssignment::where('timetable_lesson_id', $this->lessons[2])->sole()->state, 'the lesson that drops off needs no cover');
+    }
+
+    public function test_a_short_day_that_moves_covered_lessons_onto_the_substitutes_own_lesson_is_refused(): void
+    {
+        $substitute = (int) Teacher::where('user_id', $this->schoolA->ids['theo_user'])->value('id');
+        $junior = app(TimetableConfiguration::class)->bells($this->superAdmin(), ['name' => 'Junior', 'section' => 'Junior', 'session_year_id' => $this->year,
+            'periods' => [['name' => 'J1', 'starts_at' => '07:40', 'ends_at' => '07:50', 'is_break' => false]]])->periods->sole();
+        $room = (int) app(TimetableConfiguration::class)->room($this->superAdmin(), ['name' => 'Room 2', 'capacity' => 35, 'type' => 'classroom', 'active' => true])->id;
+        $this->place([$this->row(['teaching_group_id' => $this->makeGroup('Science 6B', $this->schoolA->ids['science'], $substitute), 'teacher_id' => $substitute,
+            'room_id' => $room, 'bell_period_id' => $junior->id])]);
+        $this->coverFor($this->lessons[1], $substitute);
+
+        try {
+            $this->shortDay();
+            $this->fail('The short day moved the covered lesson onto the substitute\'s own lesson');
+        } catch (ValidationException $error) {
+            $this->assertStringContainsStringIgnoringCase('teacher', $error->errors()['short_day'][0]);
+        }
+        $this->assertSame(0, BellScheduleOverride::count());
+        $this->assertSame('assigned', CoverAssignment::findOrFail($this->coverId($this->lessons[1]))->state);
+    }
+
+    /** Requests cover for the teacher on 17 February and assigns one lesson to a substitute (Theo by default). */
+    private function coverFor(int $lesson, ?int $substitute = null): CoverAbsence
+    {
+        config(['modules.relief_cover' => ['always_on' => true]]);
+        SchoolTable::query('timetables')->delete();
+        $absence = app(ReliefCover::class)->request($this->superAdmin(), ['session_year_id' => $this->year, 'teacher_id' => $this->teacher,
+            'starts_on' => '2026-02-17', 'ends_on' => '2026-02-17', 'reason' => 'Course'], (string) Str::uuid());
+        $cover = CoverAssignment::findOrFail($this->coverId($lesson));
+        app(ReliefCover::class)->assign($this->superAdmin(), (int) $cover->id, $substitute ?? (int) Teacher::where('user_id', $this->schoolA->ids['theo_user'])->value('id'),
+            $cover->revision, (string) Str::uuid());
+
+        return $absence;
+    }
+
+    private function coverId(int $lesson): int
+    {
+        return (int) CoverAssignment::where('timetable_lesson_id', $lesson)->whereDate('on_date', '2026-02-17')->value('id');
     }
 
     public function test_placements_are_checked_against_short_day_times_and_stale_previews_are_refused(): void
