@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Saas\AcceptPlatformInvitationRequest;
+use App\Http\Requests\Platform\AcceptStaffInvitationRequest;
 use App\Services\Platform\Saas\PlatformStaff;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +25,7 @@ class PlatformInvitationController extends Controller
         return view('saas.invitation', ['invitation' => $this->staff->preview($token), 'token' => $token]);
     }
 
-    public function accept(AcceptPlatformInvitationRequest $request, string $token): RedirectResponse
+    public function accept(AcceptStaffInvitationRequest $request, string $token): RedirectResponse
     {
         $this->staff->accept($token, $request->validated());
         Auth::guard('web')->logout();

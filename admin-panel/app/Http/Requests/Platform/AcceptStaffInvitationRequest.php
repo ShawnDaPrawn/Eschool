@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Saas;
+namespace App\Http\Requests\Platform;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
-class AcceptPlatformInvitationRequest extends FormRequest
+class AcceptStaffInvitationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // The service verifies and consumes the one-time invitation under lock.
+        // The services verify and consume one-time invitations under lock.
         return true;
     }
 
