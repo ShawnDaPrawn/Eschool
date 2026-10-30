@@ -89,7 +89,7 @@ Every write uses `PackageRequest`, and `PlatformPackages` validates the same rul
 
 ## Not in this step
 
-- Invoices, payments and VAT amounts (SA.8, 1.17). Billing reads `priceOn()`; how a school's contract price and the list price combine is decided there.
+- Invoices, payments and VAT amounts: built in [HQ billing](hq-billing.md) (SA.8, 1.17), which reads `quote()`. A school's current contract price wins over the list price.
 - Giving one school an add-on module outside its package. Entitlements still come only from the package; add-on prices are recorded for billing and sales.
 - Volume or percentage discounts: a discount is a fixed amount per learner per month.
 - Re-applying a package to some of its schools only: re-apply brings every school on an earlier version up to date.

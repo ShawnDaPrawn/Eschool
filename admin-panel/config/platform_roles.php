@@ -18,6 +18,10 @@ declare(strict_types=1);
  *  packages.view    the product catalogue, packages and prices (read-only)
  *  packages.manage  create, edit, activate and retire packages; set their
  *                   modules and prices; re-apply a package to its schools
+ *  billing.view     the billing page, statements and invoices (read-only)
+ *  billing.manage   run, recompute, issue and discard invoices; credit notes;
+ *                   record and reverse EFT payments; apply account credit;
+ *                   send overdue reminders
  *  identity.review  LURITS claims between schools: see and close them
  *  incidents.manage the breach and incident register: record, update, close
  *  audit.view       the platform audit log
@@ -26,9 +30,9 @@ declare(strict_types=1);
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage']],
     'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage']],
-    'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'audit.view', 'audit.export']],
+    'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'billing.view', 'billing.manage', 'audit.view', 'audit.export']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],
 ];

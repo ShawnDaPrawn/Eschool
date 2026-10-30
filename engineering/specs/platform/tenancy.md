@@ -263,3 +263,14 @@ Navigate Ed's own package list and price list, written only from `/saas`. They
 name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
+
+### HQ billing
+
+`platform_invoices`, `platform_invoice_lines`, `platform_payments` and
+`platform_payment_allocations` are required school-owned: each invoice, credit
+note, line, EFT payment and allocation is about one school's account with
+Navigate Ed, so it carries the school (not null, indexed, a foreign key) and is
+written inside that school from `/saas`. The models use `BelongsToSchool`, so
+another school's invoice or payment id resolves to "not found". HQ reads them
+across schools; no school reads them in this step
+([HQ billing](hq-billing.md)).

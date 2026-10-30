@@ -19,6 +19,7 @@
     <nav aria-label="{{ __('Platform') }}">
         @if ($platformCan('schools.create'))<a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>@endif
         @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
+        @if ($platformCan('billing.view'))<a href="{{ route('saas.billing') }}">{{ __('Billing') }}</a>@endif
         @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
         @if ($platformCan('incidents.manage'))<a href="{{ route('saas.incidents.index') }}">{{ __('Incidents') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif

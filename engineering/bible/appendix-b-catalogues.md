@@ -469,3 +469,13 @@ Personal profiles use their current wallet/guardian scope; dedicated operators
 use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
+
+### Navigate Ed account overdue (HQ billing)
+
+`billing.overdue` (school module, admin portal; in-app and email mandatory,
+push on by default; locked) tells a school's Super Admins that its own account
+with Navigate Ed is overdue, when HQ sends a reminder from `/saas/billing`. The
+bursar contact on HQ's school record gets the same text by email. The notice
+names the overdue amount and invoice references only; no learner or person.
+No payment provider is involved: schools pay by EFT
+([HQ billing](../specs/platform/hq-billing.md)).
