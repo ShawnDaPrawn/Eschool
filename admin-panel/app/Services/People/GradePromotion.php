@@ -12,6 +12,7 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Audit\Audit;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -169,7 +170,7 @@ class GradePromotion
                     Students::query()->whereIn('id', $learners)->update(['class_section_id' => $room]);
                 }
                 if ($leavers !== []) {
-                    User::query()->whereIn('id', Students::query()->whereIn('id', $leavers)->select('user_id'))->update(['status' => 0]);
+                    app(LeaverState::class)->begin($leavers, $to);
                 }
             }
             Audit::record('people.grade_promotion_committed', $to, [], ['from_year' => $from->id, 'to_year' => $to->id, 'counts' => $done, 'by' => $actor->id]);

@@ -23,6 +23,14 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel and apps: learners who leave at the end of the year are no longer
+  locked out on the day the new year starts. Until 31 March they, and their
+  guardians, can still read their final reports, marks and documents, but change
+  nothing; then their access ends. Leavers are not in any class list, register or
+  group of the new year, are counted apart on the dashboard and are marked on the
+  student list. The new Leavers page (Calendar and years) lets the office bring a
+  leaver back as a returning learner or end their access sooner. **Deploy:** run
+  the additive `school_memberships.leaver_until` migration.
 - Notifications now reach every device a person is signed in on, not only the last
   one: a parent's phone and tablet, or a teacher's two devices, all receive them.
   Signing in to an app on another device no longer signs the first one out (up to

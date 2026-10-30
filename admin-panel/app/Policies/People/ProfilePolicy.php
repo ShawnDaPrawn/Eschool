@@ -15,6 +15,7 @@ use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 
@@ -29,9 +30,10 @@ class ProfilePolicy
         return $fresh;
     }
 
+    /** Roles that may reach the school's records today: a leaver's count until their leaver_until (Action Plan 1.21). */
     public function roles(User $person): array
     {
-        return SchoolMembership::query()->active()->where('school_id', app(CurrentSchool::class)->id())
+        return SchoolMembership::query()->reachable()->where('school_id', app(CurrentSchool::class)->id())
             ->where('user_id', $person->id)->pluck('role')->unique()->values()->all();
     }
 
@@ -74,6 +76,7 @@ class ProfilePolicy
         $actor = $this->actor($actor); // Never use roles cached under another school.
         $person = User::query()->where('status', 1)->findOrFail($person->id);
         abort_unless(in_array($profile, $this->types($person), true), 404);
+        $learner = null;
         $role = null;
         $write = false;
         $sensitive = false;
@@ -107,6 +110,11 @@ class ProfilePolicy
             }
         }
         abort_unless($role !== null, 404);
+        // A leaver's profile is read-only to the leaver and their guardians.
+        if ($write && $profile === 'learner' && in_array($role, ['owner', 'guardian'], true)) {
+            $learner ??= Students::query()->where('user_id', $person->id)->first();
+            $write = $learner === null || ! app(LeaverState::class)->isLeaver((int) $learner->id);
+        }
 
         return ['actor' => $actor, 'person' => $person, 'role' => $role, 'write' => $write,
             'sensitive' => $sensitive && ! app(CurrentSchool::class)->isImpersonating()];

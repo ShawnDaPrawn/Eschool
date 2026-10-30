@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\StudentSessions;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
+use App\Services\People\Leavers\LeaverState;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +24,9 @@ class EnsureParentChildrenSessionIsActive
 
         // Fresh GuardianLinks override old parent columns, including ended rights.
         $children = $user->parent->children()->get();
-        $hasRetainedDeparture = $children->contains(fn ($child) => app(LearnerAcademicAccess::class)->departed($child));
+        $hasRetainedDeparture = $children->contains(fn ($child) => app(LearnerAcademicAccess::class)->departed($child))
+            // A year-end leaver's guardians read until leaver_until (Action Plan 1.21).
+            || $children->contains(fn ($child) => app(LeaverState::class)->until($child) !== null);
 
         $hasAnyValidSession = false;
         $hasAnyActiveChild = false;
