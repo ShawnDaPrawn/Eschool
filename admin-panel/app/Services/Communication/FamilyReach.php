@@ -53,12 +53,15 @@ class FamilyReach
             ->pluck('user_id');
         $learners = Students::query()->with('user')->whereIn('user_id', $learnerUsers)->whereHas('user', fn ($q) => $q->where('status', 1))->get();
         $guardians = $this->guardians($learners);
-        $people = User::query()->whereIn('id', array_unique(array_merge([], ...array_values($guardians))))->get()->keyBy('id');
+        $people = User::query()->whereIn('id', array_unique(array_merge([], ...array_values($guardians))))
+            ->whereIn('id', SchoolMembership::query()->active()->where('school_id', $school)->select('user_id'))
+            ->get()->keyBy('id');
         // A sign-in is current only while Sanctum would still accept the token:
         // younger than the configured expiration and before its own expires_at.
         $expiration = config('sanctum.expiration');
         $withApp = DB::table('personal_access_tokens')->where('tokenable_type', User::class)->where('name', AppTokens::PARENT)
             ->whereIn('tokenable_id', $people->keys())
+            ->whereIn('tokenable_id', SchoolMembership::query()->active()->where('school_id', $school)->where('role', 'Parent')->select('user_id'))
             ->when($expiration, fn ($q) => $q->where('created_at', '>', now()->subMinutes((int) $expiration)))
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->distinct()->pluck('tokenable_id')->map(fn ($id) => (int) $id)->flip();
         $rooms = ClassSection::with('class', 'section')->whereIn('id', $learners->pluck('class_section_id')->filter()->unique())->get()

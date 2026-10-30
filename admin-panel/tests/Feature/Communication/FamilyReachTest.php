@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Communication;
 
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Communication\FamilyReach;
@@ -75,6 +76,28 @@ class FamilyReachTest extends TestCase
         $this->assertSame([], app(GuardianService::class)->guardianUserIds($asha)->all());
 
         $this->assertSame('no_guardian', $this->reason($this->report(), 'asha'), 'ended links override the legacy parent fields');
+    }
+
+    public function test_reach_requires_current_membership_and_a_current_parent_role_for_the_app(): void
+    {
+        $gina = User::findOrFail($this->schoolA->ids['gina_user']);
+        $gina->forceFill(['email_verified_at' => now()])->save();
+        $gina->createToken(AppTokens::PARENT);
+        $this->assertSame(1, $this->report()['counts']['app']);
+
+        SchoolMembership::query()->where('school_id', 1)->where('user_id', $gina->id)->where('role', 'Parent')->update(['status' => SchoolMembership::SUSPENDED]);
+        $this->assertSame('unreachable', $this->reason($this->report(), 'ben'), 'The delivery guard also refuses a suspended school membership');
+
+        // Another current role allows email delivery, but cannot make an old
+        // parent-app sign-in usable after the local Parent role has ended.
+        $gina->assignRole('Teacher');
+        SchoolMembership::query()->updateOrCreate(['school_id' => 1, 'user_id' => $gina->id, 'role' => 'Teacher'],
+            ['status' => SchoolMembership::ACTIVE, 'starts_on' => now()->toDateString()]);
+        SchoolMembership::query()->where('school_id', 1)->where('user_id', $gina->id)->where('role', 'Parent')->update(['status' => SchoolMembership::ENDED]);
+        $this->assertSame(0, $this->report()['counts']['app']);
+        $this->assertNull($this->reason($this->report(), 'ben'), 'An active school member with verified email remains reachable by email');
+        $gina->forceFill(['email_verified_at' => null])->save();
+        $this->assertSame('unreachable', $this->reason($this->report(), 'ben'), 'The still-existing token cannot substitute for a current Parent role');
     }
 
     public function test_only_the_office_sees_it(): void

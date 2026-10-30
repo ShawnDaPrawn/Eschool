@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Platform\AcceptStaffInvitationRequest;
 use App\Services\Platform\Identity\PasswordPolicy;
 use App\Services\Platform\Identity\StaffInvitations;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -20,9 +20,9 @@ class StaffInvitationController extends Controller
         return view('invitations.staff', ['invitation' => app(StaffInvitations::class)->preview($token), 'token' => $token, 'minimum' => PasswordPolicy::MIN_LENGTH]);
     }
 
-    public function accept(Request $request, string $token): RedirectResponse
+    public function accept(AcceptStaffInvitationRequest $request, string $token): RedirectResponse
     {
-        $staff = app(StaffInvitations::class)->accept($token, $request->only(['password', 'password_confirmation']));
+        $staff = app(StaffInvitations::class)->accept($token, $request->validated());
         // Whoever was signed in on this browser is not the person who just chose a password.
         if (Auth::check()) {
             Auth::guard('web')->logout();
