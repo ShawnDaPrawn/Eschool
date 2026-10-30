@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Caseload renewals for a new school year: in Early warning and interventions,
+  **Renew caseloads for a new year** lists last year's open risk caseload grants
+  for learners placed in the new year. A principal (or the learner's grade head)
+  keeps the same counsellor, chooses another one, or lets the grant end. Ended
+  grants are never carried, and only caseload administrators see the page.
+
 - Notifications now reach every device a person is signed in on, not only the last
   one: a parent's phone and tablet, or a teacher's two devices, all receive them.
   Signing in to an app on another device no longer signs the first one out (up to
