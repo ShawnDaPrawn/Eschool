@@ -19,6 +19,7 @@ use App\Services\Academics\NewYearService;
 use App\Services\Academics\TeachingGroups;
 use App\Services\Activities\ActivityGroups;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -161,6 +162,27 @@ class NewYearStructuresTest extends TestCase
         }
         $this->assertSame(0, TeachingGroup::where('session_year_id', $this->next)->count());
         $this->assertSame(0, ActivityGroup::where('session_year_id', $this->next)->count());
+    }
+
+    public function test_the_wizard_refuses_the_whole_switch_when_the_actor_cannot_manage_activity_groups(): void
+    {
+        app(TeachingGroups::class)->save($this->superAdmin(), ['name' => '8A Maths', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
+        $this->activity(['name' => 'Chess']);
+        // May switch years and manage teaching groups, but not activity groups.
+        $planner = User::findOrFail($this->schoolA->ids['tara_user']);
+        $planner->givePermissionTo(['session-year-edit', 'academic-structure-manage']);
+        $this->assertFalse($planner->fresh()->can('activity-groups-manage'));
+        $current = (string) getSettings('session_year')['session_year'];
+        $schoolB = fn () => app(CurrentSchool::class)->run(2, fn () => [TeachingGroup::query()->count(), ActivityGroup::query()->count()]);
+        $schoolBBefore = $schoolB();
+
+        $this->actingAs($planner)->postJson(route('new-year.make-current'), ['year_id' => $this->next, 'carry' => ['teaching_groups', 'activity_groups']])
+            ->assertForbidden();
+
+        $this->assertSame(0, TeachingGroup::where('session_year_id', $this->next)->count(), 'the teaching groups copied first are rolled back');
+        $this->assertSame(0, ActivityGroup::where('session_year_id', $this->next)->count());
+        $this->assertSame($current, (string) getSettings('session_year')['session_year'], 'the year did not change');
+        $this->assertSame($schoolBBefore, $schoolB(), 'School B is untouched');
     }
 
     public function test_the_wizard_cannot_switch_to_another_schools_year(): void
