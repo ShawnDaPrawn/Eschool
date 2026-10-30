@@ -255,3 +255,8 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Notification quiet hours
+
+`notification_quiet_hours` is global, like `notification_preferences`: one
+person chooses their push quiet hours once for every school ([quiet hours](quiet-hours.md)).

@@ -9,6 +9,7 @@ use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\FcmClient;
 use App\Services\Platform\Notifications\PushDevices;
+use App\Services\Platform\Notifications\QuietHours;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -65,6 +66,15 @@ class SendPush implements ShouldBeEncrypted, ShouldQueue
         $type = $this->message['message']['data']['notice_type'] ?? null;
         if ($type !== null && ! app(DeliveryGuard::class)->allows($row, $type, 'push', $this->message['message']['token'] ?? '', $this->message['message']['data'] ?? [])) {
             DeliveryLog::suppressed($row);
+
+            return;
+        }
+        // Quiet hours (1.5): hold the push until they end, as a fresh job for
+        // the same delivery, so the wait never uses up a retry.
+        $until = $type === null || $row?->recipient_user_id === null ? null : app(QuietHours::class)->holdUntil((int) $row->recipient_user_id, (string) $type);
+        if ($until !== null) {
+            self::dispatch($this->message, $this->deliveryKey)->delay($until);
+            Log::info('notification_held_for_quiet_hours', ['delivery_key' => $this->deliveryKey, 'user_id' => $row?->recipient_user_id, 'until' => $until->utc()->toIso8601String()]);
 
             return;
         }

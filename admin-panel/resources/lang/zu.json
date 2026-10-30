@@ -5854,5 +5854,8 @@
     "In this group last year": "Ebelikuleli qembu ngonyaka odlule",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Laba bafundi bebeseqenjini ekupheleni konyaka odlule, basesikoleni futhi bayayihlangabezana nemithetho yalo manje. Engeza labo abaqhubekayo.",
     "Add :name": "Engeza u-:name",
-    "Add as member": "Engeza njengelungu"
+    "Add as member": "Engeza njengelungu",
+    "Choose a real time zone.": "Khetha indawo yesikhathi yangempela.",
+    "Use a time such as 21:00.": "Sebenzisa isikhathi esifana no-21:00.",
+    "Quiet hours must end at a different time from when they start.": "Amahora athule kufanele aphele ngesikhathi esihlukile kunalapho eqala khona."
 }

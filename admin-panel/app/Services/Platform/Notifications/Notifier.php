@@ -158,6 +158,8 @@ class Notifier
         $data['school_id'] = (string) app(CurrentSchool::class)->id();
         $data['click_action'] ??= 'FLUTTER_NOTIFICATION_CLICK';
         $data['notice_type'] = NotificationTypes::legacy($deliveryType);
+        // The app's notification channel (Android) is the type's area: comms, academics, wellbeing and so on (1.5).
+        $data['channel'] = Str::before(NotificationTypes::legacy($deliveryType), '.');
         $payload = array_map(fn ($value) => $value === null ? '' : (is_string($value) ? $value : (is_scalar($value) ? (string) $value : (json_encode($value) ?: ''))), $data);
         // One job per signed-in device, so a retry never repeats a message
         // another device already received.
@@ -165,6 +167,9 @@ class Notifier
             $message = ['token' => $device['token'], 'data' => $payload];
             if ($device['platform'] === 'ios') {
                 $message['notification'] = ['title' => $title, 'body' => $body];
+                // Safety notices break through Focus; notices about one child group together (1.5).
+                $message['apns'] = ['payload' => ['aps' => ['interruption-level' => QuietHours::exempt($deliveryType) ? 'time-sensitive' : 'active',
+                    'thread-id' => isset($data['learner_id']) && is_scalar($data['learner_id']) ? 'learner-'.$data['learner_id'] : $data['channel']]]];
             }
             PushQueue::toDevice($deliveryType, (int) $user->id, $device['token'], ['message' => $message]);
         }

@@ -217,13 +217,14 @@ class QueuedDeliveryTest extends TestCase
             'body' => 'Hello',
             'type' => 'chat',
             'image' => '',
-            'school_id' => '1', 'link' => '/chat', 'notice_type' => 'comms.message',
+            'school_id' => '1', 'link' => '/chat', 'notice_type' => 'comms.message', 'channel' => 'comms',
             'sender_info' => json_encode(['id' => 7]),
         ];
         $messages = Queue::pushed(SendPush::class)->map->message->sortBy(fn ($m) => $m['message']['token'])->values()->all();
         $this->assertEquals([
             ['message' => ['token' => 'token-android', 'data' => $data]],
-            ['message' => ['token' => 'token-ios', 'notification' => ['title' => 'New message', 'body' => 'Hello'], 'data' => $data]],
+            ['message' => ['token' => 'token-ios', 'notification' => ['title' => 'New message', 'body' => 'Hello'], 'data' => $data,
+                'apns' => ['payload' => ['aps' => ['interruption-level' => 'active', 'thread-id' => 'comms']]]]],
         ], $messages);
 
         $rows = NotificationDelivery::orderBy('recipient_user_id')->get();
