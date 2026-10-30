@@ -224,13 +224,17 @@ class SchoolImports
     }
 
     /**
-     * The file as the browser sends it back from the page: forms turn line
-     * ends into CRLF and requests are trimmed, so neither may change the check.
+     * The file as the page holds it and the browser sends it back: UTF-8
+     * (spreadsheet programs often save Windows-1252), LF line ends (forms send
+     * CRLF) and trimmed (requests are), so none of these changes the check.
      */
-    private static function normalise(string $csv): string
+    public static function normalise(string $csv): string
     {
         if (str_starts_with($csv, "\xEF\xBB\xBF")) {
             $csv = substr($csv, 3);
+        }
+        if (! mb_check_encoding($csv, 'UTF-8')) {
+            $csv = mb_convert_encoding($csv, 'UTF-8', 'Windows-1252');
         }
 
         return trim(str_replace(["\r\n", "\r"], "\n", $csv));

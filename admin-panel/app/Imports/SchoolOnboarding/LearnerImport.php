@@ -21,6 +21,7 @@ use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Learners from a sheet (the school's SA-SAMS learner list or its own), each
@@ -209,8 +210,14 @@ final class LearnerImport implements OnboardingImport
                 $counts['guardians_linked']++;
             }
             app(EnrolmentService::class)->place((int) $learner->id, (int) $room->id, (int) $year->id, $startsOn, 'School onboarding import');
-            if ($data['lurits'] !== null && app(LuritsNumbers::class)->record($learner, $data['lurits'], 'onboarding_import', $actor) === LuritsNumbers::RECORDED) {
-                $counts['lurits_recorded']++;
+            if ($data['lurits'] !== null) {
+                $claimed = app(LuritsNumbers::class)->record($learner, $data['lurits'], 'onboarding_import', $actor);
+                // Claimed elsewhere since the check: the learner already has a
+                // record, so nothing of this import may stand (1.0c).
+                if ($claimed === LuritsNumbers::CONFLICT) {
+                    throw ValidationException::withMessages(['fingerprint' => __('The school\'s records changed since this check. Check the file again, then import.')]);
+                }
+                $counts['lurits_recorded'] += $claimed === LuritsNumbers::RECORDED ? 1 : 0;
             }
             $counts['created']++;
         }
