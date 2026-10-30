@@ -31,6 +31,13 @@ Earlier history is kept where it was written and is not repeated here:
   student list. The new Leavers page (Calendar and years) lets the office bring a
   leaver back as a returning learner or end their access sooner. **Deploy:** run
   the additive `school_memberships.leaver_until` migration.
+- Platform: a breach and incident register at `/saas/incidents` for Owner,
+  Operations and Support. Each incident records the schools it affects and
+  when, how and whom at each school Navigate Ed told, whether the Information
+  Regulator must be told and when it was, a timeline and a closing review. An
+  incident that may involve personal information cannot close until every
+  school has been told and the Regulator decision is recorded. **Deploy:** run
+  the migrations.
 - Notifications now reach every device a person is signed in on, not only the last
   one: a parent's phone and tablet, or a teacher's two devices, all receive them.
   Signing in to an app on another device no longer signs the first one out (up to
