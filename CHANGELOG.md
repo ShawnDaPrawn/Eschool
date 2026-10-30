@@ -23,16 +23,6 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
-- Role templates: the role editor can start a new role from nine templates
-  for common school jobs (principal, deputy, office, bursar, head of
-  department, grade head, activities coordinator, reception, IT). Sensitive
-  abilities are never part of a template.
-
-- Role editor by module: school administrators can create and edit custom
-  roles by choosing a level (no access, view, contribute, manage) for each
-  module that is switched on, plus named abilities. Sensitive abilities need a
-  confirmation and are audited. The old checkbox editor is still available.
-
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
@@ -65,7 +55,17 @@ Earlier history is kept where it was written and is not repeated here:
 
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.
 
+- Role editor by module: school administrators can create and edit custom
+  roles by choosing a level (no access, view, contribute, manage) for each
+  module that is switched on, plus named abilities. Sensitive abilities need a
+  confirmation and are audited. The old checkbox editor is still available.
+
 - School staff can edit app contacts and branding under Settings → School information, publish PDF policies and schedules, and show current-year term dates in both apps’ My school screen. School selection is explicit on each request. Unlisting removes a publication from the screen while its public link remains valid.
+
+- Role templates: the role editor can start a new role from nine templates
+  for common school jobs (principal, deputy, office, bursar, head of
+  department, grade head, activities coordinator, reception, IT). Sensitive
+  abilities are never part of a template.
 
 - Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. School admins can arrange fields in Settings, and authorised people use the same form metadata in the panel and both apps. Saves update changed fields only. Permitted CSV exports filter sensitive values before decryption; private drafts stay out of browser/session storage. Private file fields accept encrypted PDF/PNG/JPEG attachments with authenticated previews and preserve unrelated edits. Legacy migration remains in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values, attachment metadata and private ciphertext before rolling it back.
 
@@ -76,7 +76,6 @@ Earlier history is kept where it was written and is not repeated here:
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 
 - Guardian access approvals and one-use emailed invitations, including email verification, withdrawal, separate fee access and versioned consent. Existing family relationships are migrated without inventing approval. The shared approval screen uses generated API models.
-
 
 ### Developers
 
