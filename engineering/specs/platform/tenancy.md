@@ -255,3 +255,10 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Calendar feeds
+
+`calendar_feeds` is required school-owned: each link belongs to the school whose
+timetable it serves. The public `.ics` endpoint has no school header; it finds
+the link by its token hash, then runs inside the link's school and rechecks the
+owner's access there ([calendar feed](../academics/calendar-feed.md)).

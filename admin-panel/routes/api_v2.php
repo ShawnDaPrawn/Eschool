@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V2\Academics\AcademicReferenceController;
+use App\Http\Controllers\Api\V2\Academics\CalendarFeedController;
 use App\Http\Controllers\Api\V2\Academics\ContentController;
 use App\Http\Controllers\Api\V2\Academics\CurriculumController;
 use App\Http\Controllers\Api\V2\Academics\MarkController;
@@ -327,6 +328,11 @@ Route::prefix('academics')->middleware(['auth:sanctum', 'school.context', 'role.
         Route::get('{register}', [$controller, 'show'])->whereNumber('register')->middleware($policy.':read')->name('show');
         // The durable operation UUID is the sync idempotency key. Fresh policy runs first.
         Route::post('{register}/sync', [$controller, 'sync'])->whereNumber('register')->middleware($policy.':sync')->name('sync');
+    });
+    Route::prefix('calendar-feeds')->name('calendar-feeds.')->group(function () {
+        Route::get('/', [CalendarFeedController::class, 'index'])->name('index');
+        Route::post('/', [CalendarFeedController::class, 'store'])->middleware('idempotent')->name('store');
+        Route::delete('{feed}', [CalendarFeedController::class, 'destroy'])->whereNumber('feed')->middleware('idempotent')->name('destroy');
     });
     Route::prefix('timetable')->name('timetable.')->group(function () {
         $controller = TimetableController::class;
