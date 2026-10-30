@@ -40,3 +40,6 @@
 .saas-audit small { color: var(--md-sys-color-on-surface-variant); }
 .saas-audit-changes { margin: 0; overflow-wrap: anywhere; padding-inline-start: 18px; }
 .saas-audit-reason { margin: 0 0 4px; overflow-wrap: anywhere; }
+.saas-onboarding { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.saas-onboarding__step h2 { font-size: 1.05rem; margin: 0 0 6px; }
+.saas-onboarding__step p { margin: 4px 0; }

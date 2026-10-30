@@ -117,6 +117,7 @@ use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
+use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
@@ -272,6 +273,9 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/schools/create', [SaasController::class, 'create'])->middleware('platform.can:schools.create')->name('schools.create');
     Route::post('/schools', [SaasController::class, 'store'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->name('schools.store');
     Route::get('/schools/{school}', [SaasController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.show');
+    // The onboarding checklist (SA.6): counts from the school's live data, never a person.
+    Route::get('/schools/{school}/onboarding', [PlatformOnboardingController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.onboarding');
+    Route::post('/schools/{school}/training', [PlatformOnboardingController::class, 'training'])->middleware(['platform.can:accounts.manage', 'throttle:20,1'])->whereNumber('school')->name('schools.training');
     // HQ's own record of the school (contacts, stage, contracts, timeline): never the school's people.
     Route::prefix('/schools/{school}')->whereNumber('school')->middleware('platform.can:accounts.manage')->name('schools.')->group(function () {
         Route::get('account', [SchoolAccountController::class, 'show'])->name('account');
