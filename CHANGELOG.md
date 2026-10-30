@@ -30,6 +30,10 @@ Earlier history is kept where it was written and is not repeated here:
   Accepting verifies the email address and signs out every other session.
   **Deploy:** run the additive `staff_invitations` migration; mail must be
   configured for the emails to arrive (the link is also shown once).
+- Developers: school permissions are now described as modules with access levels
+  (view, contribute, manage) and named special abilities, in
+  `config/module_access.php`, as the foundation for a simpler role editor. No
+  permission changes for anyone.
 
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
