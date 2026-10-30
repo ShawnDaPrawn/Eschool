@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Jobs\Platform;
 
 use App\Models\Platform\NotificationDelivery;
-use App\Models\User;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\FcmClient;
+use App\Services\Platform\Notifications\PushDevices;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -85,8 +85,7 @@ class SendPush implements ShouldBeEncrypted, ShouldQueue
 
         DeliveryLog::failed($row, 'fcm', $result['error'] ?? $result['status']);
         if (str_contains($result['error'] ?? '', 'UNREGISTERED') && $row?->recipient_user_id && isset($this->message['message']['token'])) {
-            // Do not clear a newer token installed while this job waited.
-            User::acrossSchools()->whereKey($row->recipient_user_id)->where('fcm_id', $this->message['message']['token'])->update(['fcm_id' => null]);
+            app(PushDevices::class)->forget((int) $row->recipient_user_id, (string) $this->message['message']['token']);
         }
     }
 

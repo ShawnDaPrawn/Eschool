@@ -23,6 +23,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Notifications now reach every device a person is signed in on, not only the last
+  one: a parent's phone and tablet, or a teacher's two devices, all receive them.
+  Signing in to an app on another device no longer signs the first one out (up to
+  five devices per app), and signing out ends only that device. **Deploy:** run the
+  additive `user_devices` migration, which copies each existing push registration.
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
