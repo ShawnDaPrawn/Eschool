@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: platform staff roles (Owner, Operations, Support, Finance, Content,
+  Sales read-only). Every HQ page and action checks the role. Owners invite
+  staff by email from `/saas/staff`; the invited person chooses their own
+  password. Access is time-limited and every change is audited with its reason.
+  Existing grants became Owner. **Deploy:** run the migrations.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No

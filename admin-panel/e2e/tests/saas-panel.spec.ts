@@ -58,6 +58,14 @@ for (const width of [390, 820, 1280]) {
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 
+    // An Owner manages platform staff and their roles.
+    await page.getByRole('link', { name: 'Platform staff', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Platform staff', exact: true })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'Invite a staff member', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.goBack();
+
     // A separate cookie jar proves actual first sign-in, forced password
     // replacement and the school's empty-year setup screen. No password is logged.
     const context = await browser.newContext({ viewport: { width, height: 1000 } });

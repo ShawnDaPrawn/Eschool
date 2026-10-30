@@ -34,5 +34,7 @@
         </tbody>
     </table>
 </div>
+@if (app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), 'schools.create'))
 <p class="saas-actions"><a class="saas-btn" href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a></p>
+@endif
 @endsection

@@ -34,3 +34,4 @@
 .saas-card > h2:first-of-type { margin-top: 0; }
 .saas h1, .saas h2 { font-weight: 600; }
 .saas-field select, .saas-field input, .saas-field textarea { font-family: inherit; }
+.saas-bar nav { display: flex; flex-wrap: wrap; gap: 16px; }
