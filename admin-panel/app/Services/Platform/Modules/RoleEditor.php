@@ -20,7 +20,7 @@ use Spatie\Permission\PermissionRegistrar;
  * The role editor (Action Plan 1.13): a custom role is described as a level
  * per module (none, view, contribute, manage) and named abilities, and saved as
  * the mapped permissions (ModuleAccess). Modules the school has switched off
- * are hidden and keep whatever the role already holds there. Permissions a
+ * are hidden and keep every permission the role already holds there. Permissions a
  * role holds that no level or ability explains (from the old checkbox editor)
  * are kept unless the editor is asked to drop them. Sensitive abilities need an
  * explicit confirmation and every grant or removal of one is audited.
@@ -99,8 +99,10 @@ class RoleEditor
             $gate = app(ModuleGate::class);
             $levels = [];
             $abilities = [];
+            $hidden = [];
             foreach ($modules as $module) {
                 if (! $gate->allows($module)) {
+                    $hidden[] = $module;
                     // A module that is off is not shown, so the role keeps what it had there.
                     $levels[$module] = $before['modules'][$module]['level'];
                     $abilities[$module] = array_keys(array_filter($before['modules'][$module]['abilities'], fn ($a) => $a['held']));
@@ -122,6 +124,11 @@ class RoleEditor
             if ($data['keep_extras'] ?? true) {
                 $permissions = [...$permissions, ...$before['extras']];
             }
+            // Whatever the role holds in a hidden module stays, even a partial
+            // grant no level or ability explains, whatever happens to the extras.
+            $owners = $this->access->owners();
+            $held = $role === null ? [] : $role->permissions()->pluck('name')->all();
+            $permissions = [...$permissions, ...array_filter($held, fn (string $name) => array_intersect($owners[$name] ?? [], $hidden) !== [])];
             $permissions = array_values(array_intersect(array_unique($permissions), $this->assignable()));
 
             $role ??= Role::query()->create(['name' => $data['name'], 'custom_role' => 1, 'guard_name' => 'web']);
