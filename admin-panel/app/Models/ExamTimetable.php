@@ -17,7 +17,8 @@ class ExamTimetable extends Model
 {
     use BelongsToSchool, HasFactory, ProtectsMarkProjection, SoftDeletes;
 
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at'];
+    // revision only numbers change notices; the apps never see it.
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'revision'];
 
     /**
      * Both apps read the times as starting_time / ending_time (the student
