@@ -109,6 +109,7 @@ use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
+use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
@@ -241,6 +242,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
 // (no school.context). It lists schools and their counts, never their people.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
     Route::get('/', [SaasController::class, 'index'])->name('index');
+    Route::get('/packages', ProductCatalogueController::class)->name('packages');
     Route::get('/schools/create', [SaasController::class, 'create'])->name('schools.create');
     Route::post('/schools', [SaasController::class, 'store'])->middleware('throttle:20,1')->name('schools.store');
     Route::get('/schools/{school}', [SaasController::class, 'show'])->whereNumber('school')->name('schools.show');
