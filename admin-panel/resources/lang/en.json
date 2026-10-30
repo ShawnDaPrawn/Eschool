@@ -5881,5 +5881,8 @@
     ":renewed caseloads renewed and :reassigned reassigned for :year.": ":renewed caseloads renewed and :reassigned reassigned for :year.",
     "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.": "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.",
     "Offered once the cases above are renewed.": "Offered once the cases above are renewed.",
-    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting."
+    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.",
+    "Choose grant dates within the school year.": "Choose grant dates within the school year.",
+    "The school year before this one was deleted, so its caseloads cannot be renewed.": "The school year before this one was deleted, so its caseloads cannot be renewed.",
+    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it"
 }

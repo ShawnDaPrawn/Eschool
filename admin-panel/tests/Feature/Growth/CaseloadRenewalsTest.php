@@ -23,6 +23,7 @@ use App\Services\Platform\Tenancy\SchoolRoles;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Tests\Concerns\UsesMasteryScenario;
@@ -226,13 +227,23 @@ class CaseloadRenewalsTest extends TestCase
         $this->assertSame(0, RiskCaseload::where('session_year_id', $this->next->id)->where('professional_id', $this->actor('theo')->id)->count());
     }
 
-    public function test_a_grade_head_renews_before_the_new_year_starts_from_its_future_enrolments(): void
+    /** Still last year (10 December): the new year's enrolments start on 1 January. Theo heads grade 7 now. */
+    private function beforeTheNewYear(bool $appointedNextYear): void
     {
-        // Still last year: the new year's enrolments start on 1 January.
         $this->travelTo(now()->setDate(2026, 12, 10));
         Settings::updateOrCreate(['type' => 'session_year'], ['message' => (string) $this->year]);
-        AcademicLeadership::create(['user_id' => $this->actor('theo')->id, 'kind' => 'grade_head', 'grade_level_id' => (int) GradeLevel::where('code', '7')->value('id'),
+        $grade = (int) GradeLevel::where('code', '7')->value('id');
+        AcademicLeadership::create(['user_id' => $this->actor('theo')->id, 'kind' => 'grade_head', 'grade_level_id' => $grade,
             'session_year_id' => $this->year, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic grade head']);
+        if ($appointedNextYear) {
+            AcademicLeadership::create(['user_id' => $this->actor('theo')->id, 'kind' => 'grade_head', 'grade_level_id' => $grade,
+                'session_year_id' => $this->next->id, 'starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'reason' => 'Synthetic grade head next year']);
+        }
+    }
+
+    public function test_a_grade_head_renews_before_the_new_year_starts_from_its_future_enrolments(): void
+    {
+        $this->beforeTheNewYear(true);
 
         $plan = app(CaseloadRenewals::class)->plan($this->actor('theo'), $this->next);
         $this->assertSame([$this->cases['asha']], array_column($plan['cases'], 'id'), 'Asha is in grade 7 on the new year\'s first day');
@@ -245,7 +256,94 @@ class CaseloadRenewalsTest extends TestCase
         RiskCaseload::where('session_year_id', $this->next->id)->delete();
         $this->assertSame([], app(CaseloadRenewals::class)->plan($this->actor('theo'), $this->next)['cases']);
         $this->denied(fn () => app(Interventions::class)->assign($this->actor('theo'), $this->schoolA->ids['asha'], $this->next->id, $this->actor()->id,
-            ['starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'expected_revision' => 0]));
+            ['starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'expected_revision' => 0], '2027-01-01'));
+    }
+
+    public function test_a_grade_head_whose_appointment_ends_with_this_year_renews_nothing_into_the_next(): void
+    {
+        $this->beforeTheNewYear(false);
+
+        $plan = app(CaseloadRenewals::class)->plan($this->actor('theo'), $this->next);
+        $this->assertSame([], $plan['cases'], 'the appointment ends on 31 December');
+        try {
+            app(CaseloadRenewals::class)->apply($this->actor('theo'), $this->next, [$this->cases['asha'] => $this->actor()->id], $plan['fingerprint']);
+            $this->fail('Renewed past the end of the appointment');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('cases', $e->errors());
+        }
+        $this->denied(fn () => app(Interventions::class)->assign($this->actor('theo'), $this->schoolA->ids['asha'], $this->next->id, $this->actor()->id,
+            ['starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'expected_revision' => 0], '2027-01-01'));
+        $this->assertSame(0, $this->nextYearGrants());
+    }
+
+    public function test_the_existing_assignment_endpoints_still_refuse_a_grade_head_for_a_year_to_come(): void
+    {
+        // Appointed for both years: the renewal page works, the ordinary assignment paths do not change.
+        $this->beforeTheNewYear(true);
+        $asha = $this->schoolA->ids['asha'];
+        $dates = ['starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'expected_revision' => 0];
+        $this->actingAs($this->actor('theo'));
+        $this->post(route('risk-interventions.assign', ['learner' => $asha]), $dates + ['operation_id' => (string) Str::uuid(),
+            'expected_account_id' => $this->actor('theo')->id, 'expected_school_id' => app(CurrentSchool::class)->id(),
+            'session_year_id' => $this->next->id, 'mode' => 'assignments', 'professional_id' => $this->actor()->id])->assertNotFound();
+        $base = '/api/v2/growth/risk/learners/'.$asha;
+        $this->putJson($base.'/assignments/'.$this->actor()->id, $dates + ['operation_id' => (string) Str::uuid(), 'session_year_id' => $this->next->id])->assertNotFound();
+        $this->getJson($base.'/assignments?session_year_id='.$this->next->id)->assertNotFound();
+        $this->getJson($base.'/professionals?session_year_id='.$this->next->id)->assertNotFound();
+        $this->denied(fn () => app(Interventions::class)->assign($this->actor('theo'), $asha, $this->next->id, $this->actor()->id, $dates), 404);
+        $this->assertSame(0, $this->nextYearGrants());
+    }
+
+    public function test_a_grant_outside_its_school_year_is_refused(): void
+    {
+        foreach ([['2026-12-31', '2027-12-31'], ['2027-01-11', '2028-01-31']] as [$start, $end]) {
+            try {
+                app(Interventions::class)->assign($this->superAdmin(), $this->schoolA->ids['asha'], $this->next->id, $this->actor()->id,
+                    ['starts_on' => $start, 'ends_on' => $end, 'expected_revision' => 0]);
+                $this->fail('A grant ran outside its year');
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey('starts_on', $e->errors());
+            }
+        }
+        $this->assertSame(0, $this->nextYearGrants());
+    }
+
+    public function test_a_lapsed_grant_is_offered_but_not_kept_by_default(): void
+    {
+        // 11 January: last year's grants ended on 31 December.
+        $page = $this->get(route('risk-interventions.renewals', ['year' => $this->next->id]))->assertOk()->assertSee('ended on 2026-12-31');
+        $this->assertTrue(app(CaseloadRenewals::class)->plan($this->superAdmin(), $this->next)['cases'][0]['lapsed']);
+        preg_match('/<select id="renewal-case-'.$this->cases['asha'].'".*?<\/select>/s', $page->getContent(), $select);
+        $this->assertStringNotContainsString('selected', $select[0], 'Do not renew, the first choice, is the default');
+
+        // Before the year ends the same grant is still running and is kept by default.
+        $this->beforeTheNewYear(true);
+        $this->actingAs($this->actor('theo'));
+        $page = $this->get(route('risk-interventions.renewals', ['year' => $this->next->id]))->assertOk()->assertDontSee('ended on 2026-12-31');
+        preg_match('/<select id="renewal-case-'.$this->cases['asha'].'".*?<\/select>/s', $page->getContent(), $select);
+        $this->assertMatchesRegularExpression('/<option value="'.$this->actor()->id.'"\s+selected/', $select[0]);
+    }
+
+    public function test_the_page_defaults_to_the_year_being_prepared(): void
+    {
+        $this->beforeTheNewYear(true);
+        $this->actingAs($this->actor('theo'));
+        $this->get(route('risk-interventions.renewals'))->assertOk()->assertSee('Renew caseloads for Next year');
+    }
+
+    public function test_a_deleted_year_just_before_is_not_replaced_by_an_older_one(): void
+    {
+        $older = SessionYear::create(['name' => 'Older year', 'start_date' => '2025-01-01', 'end_date' => '2025-12-31']);
+        RiskCaseload::create(['learner_id' => $this->schoolA->ids['asha'], 'session_year_id' => $older->id, 'professional_id' => $this->actor()->id,
+            'starts_on' => '2025-02-01', 'ends_on' => '2025-12-31', 'revision' => 1]);
+        SessionYear::whereKey($this->year)->delete();
+
+        try {
+            app(CaseloadRenewals::class)->plan($this->superAdmin(), $this->next);
+            $this->fail('An older year stood in for the deleted one');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('year', $e->errors());
+        }
     }
 
     public function test_a_renewal_cut_short_in_transit_is_refused_and_nothing_is_renewed(): void

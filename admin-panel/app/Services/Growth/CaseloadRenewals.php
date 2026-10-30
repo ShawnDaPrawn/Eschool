@@ -60,9 +60,13 @@ class CaseloadRenewals
         if ($endsOn < $today) {
             throw ValidationException::withMessages(['year' => __('Caseloads cannot be renewed into a school year that has ended.')]);
         }
-        $from = SessionYear::query()->where('start_date', '<', $to->start_date)->whereKeyNot($to->id)->orderByDesc('start_date')->first();
+        // Last year is the year just before, even if it was deleted: an older year never stands in for it.
+        $from = SessionYear::withTrashed()->where('start_date', '<', $to->start_date)->whereKeyNot($to->id)->orderByDesc('start_date')->first();
         if ($from === null) {
             throw ValidationException::withMessages(['year' => __('There is no earlier school year to renew caseloads from.')]);
+        }
+        if ($from->trashed()) {
+            throw ValidationException::withMessages(['year' => __('The school year before this one was deleted, so its caseloads cannot be renewed.')]);
         }
         $startsOn = max(CarbonImmutable::parse($to->start_date)->toDateString(), $today);
         // Open: not ended early, and running now or until the end of last year.
@@ -79,7 +83,7 @@ class CaseloadRenewals
         $allowed = [];
         foreach ($grants as $grant) {
             $learner = (int) $grant->learner_id;
-            $allowed[$learner] ??= $this->administers($fresh, $learner, (int) $from->id) && (! $placed->has($learner) || $this->administers($fresh, $learner, (int) $to->id));
+            $allowed[$learner] ??= $this->administers($fresh, $learner, (int) $from->id) && (! $placed->has($learner) || $this->administers($fresh, $learner, (int) $to->id, $startsOn));
             if (! $allowed[$learner]) {
                 continue;
             }
@@ -97,6 +101,8 @@ class CaseloadRenewals
                 'professional' => $person ? trim($person->first_name.' '.$person->last_name) : __('Previously assigned professional'),
                 'starts_on' => $grant->starts_on->toDateString(), 'ends_on' => $grant->ends_on->toDateString(),
                 'still_eligible' => isset($professionals[(int) $grant->professional_id]),
+                // Already over: offered, but not kept unless chosen again.
+                'lapsed' => $grant->ends_on->toDateString() < $today,
                 'renewed' => $renewed->map(fn (RiskCaseload $row) => ['id' => (int) $row->id, 'revision' => (int) $row->revision,
                     'professional_id' => (int) $row->professional_id, 'revoked' => $row->revoked_at !== null])->all(),
             ];
@@ -154,7 +160,7 @@ class CaseloadRenewals
             $done = ['renewed' => 0, 'reassigned' => 0];
             foreach ($writes as [$case, $professional]) {
                 app(Interventions::class)->assign($actor, $case['learner_id'], (int) $to->id, $professional,
-                    ['starts_on' => $plan['starts_on'], 'ends_on' => $plan['ends_on'], 'expected_revision' => 0]);
+                    ['starts_on' => $plan['starts_on'], 'ends_on' => $plan['ends_on'], 'expected_revision' => 0], $plan['starts_on']);
                 $done[$professional === $case['professional_id'] ? 'renewed' : 'reassigned']++;
             }
             Audit::record('growth.risk_caseloads_renewed', $to, [], ['from_year' => (int) $plan['from']->id, 'to_year' => (int) $to->id, 'counts' => $done, 'by' => (int) $actor->id]);
@@ -172,10 +178,11 @@ class CaseloadRenewals
         return app(RiskAuthority::class)->actor($actor);
     }
 
-    private function administers(User $actor, int $learner, int $year): bool
+    /** Without $on: administers the year as of today; with it, a grant in the year starting on $on. */
+    private function administers(User $actor, int $learner, int $year, ?string $on = null): bool
     {
         try {
-            app(RiskAuthority::class)->administer($actor, $learner, $year);
+            $on === null ? app(RiskAuthority::class)->administer($actor, $learner, $year) : app(RiskAuthority::class)->administerOn($actor, $learner, $year, $on);
 
             return true;
         } catch (HttpExceptionInterface|ModelNotFoundException) {

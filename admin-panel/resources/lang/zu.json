@@ -5881,5 +5881,8 @@
     ":renewed caseloads renewed and :reassigned reassigned for :year.": "Imithwalo yamacala engu-:renewed ivuselelwe kanti engu-:reassigned yabelwe kabusha ku-:year.",
     "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.": "Enye ingxenye yokuvuselelwa ayifikanga, ngakho akukho okuvuselelwe. Layisha kabusha ikhasi bese uvuselela futhi.",
     "Offered once the cases above are renewed.": "Kuzonikezwa uma amacala angenhla esevuselelwe.",
-    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Leli khasi linikeza imithwalo yamacala evulekile engu-:count ngesikhathi. Vuselela le, bese ikhasi linikeza elandelayo engu-:waiting."
+    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Leli khasi linikeza imithwalo yamacala evulekile engu-:count ngesikhathi. Vuselela le, bese ikhasi linikeza elandelayo engu-:waiting.",
+    "Choose grant dates within the school year.": "Khetha izinsuku zemvume ezingaphakathi konyaka wesikole.",
+    "The school year before this one was deleted, so its caseloads cannot be renewed.": "Unyaka wesikole ongaphambi kwalona wasuswa, ngakho imithwalo yawo yamacala ayikwazi ukuvuselelwa.",
+    "ended on :date, so it is not kept unless you choose it": "yaphela ngo-:date, ngakho ayigcinwa ngaphandle uma uyikhetha"
 }

@@ -5881,5 +5881,8 @@
     ":renewed caseloads renewed and :reassigned reassigned for :year.": ":renewed gevallelaste hernu en :reassigned heraangewys vir :year.",
     "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.": "'n Deel van die hernuwings het nie aangekom nie, dus is niks hernu nie. Laai die bladsy weer en hernu weer.",
     "Offered once the cases above are renewed.": "Word aangebied sodra die gevalle hierbo hernu is.",
-    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Hierdie bladsy bied :count oop gevallelaste op 'n slag aan. Hernu hierdie, dan bied die bladsy die volgende :waiting aan."
+    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Hierdie bladsy bied :count oop gevallelaste op 'n slag aan. Hernu hierdie, dan bied die bladsy die volgende :waiting aan.",
+    "Choose grant dates within the school year.": "Kies toekenningsdatums binne die skooljaar.",
+    "The school year before this one was deleted, so its caseloads cannot be renewed.": "Die skooljaar voor hierdie een is uitgevee, dus kan sy gevallelaste nie hernu word nie.",
+    "ended on :date, so it is not kept unless you choose it": "het op :date geëindig, dus word dit nie behou tensy jy dit kies nie"
 }

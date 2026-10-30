@@ -34,14 +34,14 @@
                 @foreach ($plan['cases'] as $case)
                     <article class="note-list-item">
                         <h3>{{ $case['learner'] }}</h3>
-                        <p>{{ __('Last year: :name, :start to :end', ['name' => $case['professional'], 'start' => $case['starts_on'], 'end' => $case['ends_on']]) }}@if (! $case['still_eligible']) · {{ __('no longer has restricted pastoral access') }}@endif</p>
+                        <p>{{ __('Last year: :name, :start to :end', ['name' => $case['professional'], 'start' => $case['starts_on'], 'end' => $case['ends_on']]) }}@if (! $case['still_eligible']) · {{ __('no longer has restricted pastoral access') }}@endif @if ($case['lapsed']) · {{ __('ended on :date, so it is not kept unless you choose it', ['date' => $case['ends_on']]) }}@endif</p>
                         @if ($case['renewed'] !== [])
                             <p>{{ __('Already has a caseload grant in :year.', ['year' => $plan['to']->name]) }}</p>
                         @elseif (! $case['in_form'])
                             <p>{{ __('Offered once the cases above are renewed.') }}</p>
                         @else
                             <label for="renewal-case-{{ $case['id'] }}">{{ __('Holds the caseload in :year', ['year' => $plan['to']->name]) }}
-                                <select id="renewal-case-{{ $case['id'] }}" name="cases[{{ $case['id'] }}]">@foreach ($choices as $id => $name)<option value="{{ $id }}" @selected($case['still_eligible'] && (string) $id === (string) $case['professional_id'])>{{ $name }}</option>@endforeach</select>
+                                <select id="renewal-case-{{ $case['id'] }}" name="cases[{{ $case['id'] }}]">@foreach ($choices as $id => $name)<option value="{{ $id }}" @selected($case['still_eligible'] && ! $case['lapsed'] && (string) $id === (string) $case['professional_id'])>{{ $name }}</option>@endforeach</select>
                             </label>
                         @endif
                     </article>

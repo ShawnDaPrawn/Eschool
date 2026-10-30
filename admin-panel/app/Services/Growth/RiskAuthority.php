@@ -126,11 +126,32 @@ class RiskAuthority
         }
         $grade = RiskObservation::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id')
             ?? Intervention::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id');
-        // A year still to come has no enrolment today: its grade is the one on its first day
-        // (caseload renewals before the switch, Action Plan 1.20). Other years read today.
-        $start = SessionYear::withTrashed()->findOrFail($year)->start_date;
-        $grade ??= $this->gradeOn($learner, $year, max(substr((string) $start, 0, 10), $authority->today()));
+        $grade ??= $this->currentGrade($learner, $year);
         abort_unless($authority->currentLeadership($fresh, 'grade_head', (int) $grade), 403);
+
+        return $fresh;
+    }
+
+    /**
+     * administer() for a grant that starts on $date in $year, used only by
+     * caseload renewals (Action Plan 1.20). The principal or grade-head
+     * appointment must belong to $year and cover $date, and without early-warning
+     * history in $year the learner's grade is read on $date. Every other caller
+     * keeps administer(), which reads today.
+     */
+    public function administerOn(User $actor, int $learner, int $year, string $date): User
+    {
+        $fresh = $this->actor($actor);
+        $this->year($year);
+        Students::findOrFail($learner);
+        $authority = app(AcademicAuthority::class);
+        if ($authority->leads($fresh, 'principal', 0, $year, $date)) {
+            return $fresh;
+        }
+        $grade = RiskObservation::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id')
+            ?? Intervention::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id')
+            ?? $this->gradeOn($learner, $year, $date);
+        abort_unless($authority->leads($fresh, 'grade_head', (int) $grade, $year, $date), 403);
 
         return $fresh;
     }
