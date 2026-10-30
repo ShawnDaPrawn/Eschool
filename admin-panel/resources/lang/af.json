@@ -5791,5 +5791,18 @@
     "Guardian :n needs a first name and surname.": "Voog :n het 'n voornaam en van nodig.",
     "Guardian :n's mobile number is not valid.": "Voog :n se selfoonnommer is nie geldig nie.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "Die rekening vir :email kan nie gekoppel word nie. Gaan dit met die voog na voordat jy hierdie leerder invoer.",
-    "The account for :email cannot be linked.": "Die rekening vir :email kan nie gekoppel word nie."
+    "The account for :email cannot be linked.": "Die rekening vir :email kan nie gekoppel word nie.",
+    "Qualification (teachers)": "Kwalifikasie (onderwysers)",
+    "One row per staff member: names, email address and role (Teacher or one of the school's own roles), and optionally mobile number, gender and, for teachers, qualification. Nobody gets a password: each sets their own from an emailed invitation. People already on the staff are left alone.": "Een ry per personeellid: name, e-posadres en rol (Teacher of een van die skool se eie rolle), en as jy wil selfoonnommer, geslag en, vir onderwysers, kwalifikasie. Niemand kry 'n wagwoord nie: elkeen stel hul eie vanaf 'n uitnodiging per e-pos. Mense wat reeds op die personeel is, word onveranderd gelaat.",
+    "Email each new staff member an invitation to set their password now": "E-pos nou aan elke nuwe personeellid 'n uitnodiging om hul wagwoord te stel",
+    ":created staff added and :invited invited to set their password.": ":created personeel bygevoeg en :invited uitgenooi om hul wagwoord te stel.",
+    "A valid email address is needed: staff set their password from an emailed link.": "'n Geldige e-posadres is nodig: personeel stel hul wagwoord vanaf 'n skakel per e-pos.",
+    "This email address is already on line :line.": "Hierdie e-posadres is reeds op reël :line.",
+    "No role \":role\". Use Teacher or one of the school's own roles: :roles.": "Geen rol \":role\" nie. Gebruik Teacher of een van die skool se eie rolle: :roles.",
+    "You may not add teachers.": "Jy mag nie onderwysers byvoeg nie.",
+    "The mobile number is not valid.": "Die selfoonnommer is nie geldig nie.",
+    "The qualification is too long.": "Die kwalifikasie is te lank.",
+    "Already on the staff.": "Reeds op die personeel.",
+    "The account for :email cannot be added. Check it with the person first.": "Die rekening vir :email kan nie bygevoeg word nie. Gaan dit eers met die persoon na.",
+    "The account for :email cannot be added.": "Die rekening vir :email kan nie bygevoeg word nie."
 }

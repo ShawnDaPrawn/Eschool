@@ -890,7 +890,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
         // School onboarding imports (Action Plan 0.11): homerooms, learners and guardians from CSV.
         Route::get('school-imports', [SchoolImportController::class, 'index'])->name('school-imports.index');
-        Route::get('school-imports/templates/{kind}', [SchoolImportController::class, 'template'])->where('kind', 'homerooms|learners')->name('school-imports.template');
+        Route::get('school-imports/templates/{kind}', [SchoolImportController::class, 'template'])->where('kind', 'homerooms|learners|staff')->name('school-imports.template');
         Route::post('school-imports/check', [SchoolImportController::class, 'check'])->middleware('throttle:30,1')->name('school-imports.check');
         Route::post('school-imports', [SchoolImportController::class, 'store'])->middleware('throttle:10,1')->name('school-imports.store');
         Route::post('students/{id}/invite-guardians', [LearnerInvitationController::class, 'invite'])->whereNumber('id')->name('students.invite-guardians');

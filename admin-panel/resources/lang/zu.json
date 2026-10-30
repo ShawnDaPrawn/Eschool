@@ -5791,5 +5791,18 @@
     "Guardian :n needs a first name and surname.": "Umnakekeli :n udinga igama nesibongo.",
     "Guardian :n's mobile number is not valid.": "Inombolo yeselula yomnakekeli :n ayivumelekile.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "I-akhawunti ye-:email ayikwazi ukuxhunywa. Yihlole nomnakekeli ngaphambi kokungenisa lo mfundi.",
-    "The account for :email cannot be linked.": "I-akhawunti ye-:email ayikwazi ukuxhunywa."
+    "The account for :email cannot be linked.": "I-akhawunti ye-:email ayikwazi ukuxhunywa.",
+    "Qualification (teachers)": "Iziqu (othisha)",
+    "One row per staff member: names, email address and role (Teacher or one of the school's own roles), and optionally mobile number, gender and, for teachers, qualification. Nobody gets a password: each sets their own from an emailed invitation. People already on the staff are left alone.": "Umugqa owodwa kumsebenzi ngamunye: amagama, ikheli le-imeyili nendima (Teacher noma enye yezindima zesikole), futhi uma uthanda inombolo yeselula, ubulili, kanti kothisha iziqu. Akekho othola iphasiwedi: ngamunye usetha eyakhe kusuka esimemweni esithunyelwe nge-imeyili. Abantu asebevele bengabasebenzi bashiywa benjalo.",
+    "Email each new staff member an invitation to set their password now": "Thumela manje umsebenzi omusha ngamunye isimemo sokusetha iphasiwedi yakhe nge-imeyili",
+    ":created staff added and :invited invited to set their password.": "Abasebenzi abangu-:created bengeziwe kanti abangu-:invited bamenyiwe ukuthi basethe iphasiwedi yabo.",
+    "A valid email address is needed: staff set their password from an emailed link.": "Kudingeka ikheli le-imeyili elivumelekile: abasebenzi basetha iphasiwedi yabo kusuka kusixhumanisi esithunyelwe nge-imeyili.",
+    "This email address is already on line :line.": "Leli kheli le-imeyili selivele lisemugqeni :line.",
+    "No role \":role\". Use Teacher or one of the school's own roles: :roles.": "Ayikho indima ethi \":role\". Sebenzisa u-Teacher noma enye yezindima zesikole: :roles.",
+    "You may not add teachers.": "Awuvunyelwe ukwengeza othisha.",
+    "The mobile number is not valid.": "Inombolo yeselula ayivumelekile.",
+    "The qualification is too long.": "Iziqu zinde kakhulu.",
+    "Already on the staff.": "Usevele ungumsebenzi.",
+    "The account for :email cannot be added. Check it with the person first.": "I-akhawunti ye-:email ayikwazi ukwengezwa. Yihlole nalowo muntu kuqala.",
+    "The account for :email cannot be added.": "I-akhawunti ye-:email ayikwazi ukwengezwa."
 }

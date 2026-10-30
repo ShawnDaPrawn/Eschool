@@ -8,6 +8,7 @@ use App\Imports\SchoolOnboarding\CsvSheet;
 use App\Imports\SchoolOnboarding\HomeroomImport;
 use App\Imports\SchoolOnboarding\LearnerImport;
 use App\Imports\SchoolOnboarding\OnboardingImport;
+use App\Imports\SchoolOnboarding\StaffImport;
 use App\Models\Category;
 use App\Models\Platform\School;
 use App\Models\SessionYear;
@@ -33,7 +34,7 @@ class SchoolImports
     /** @return array<string, OnboardingImport> */
     public function kinds(): array
     {
-        return ['homerooms' => new HomeroomImport, 'learners' => new LearnerImport];
+        return ['homerooms' => new HomeroomImport, 'learners' => new LearnerImport, 'staff' => new StaffImport];
     }
 
     public function kind(string $key): OnboardingImport
@@ -186,6 +187,9 @@ class SchoolImports
      */
     private function options(OnboardingImport $import, array $options): array
     {
+        if ($import instanceof StaffImport) {
+            return ['invite' => ! empty($options['invite'])];
+        }
         if ($import instanceof HomeroomImport) {
             return isset($options['medium_id']) && $options['medium_id'] !== '' ? ['medium_id' => (int) $options['medium_id']] : [];
         }
