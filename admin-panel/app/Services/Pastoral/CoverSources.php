@@ -44,7 +44,8 @@ class CoverSources
             ->whereDate('starts_on', '<=', $date)->whereDate('ends_on', '>=', $date)->exists()) {
             return null;
         }
-        $view = app(TimetableQueries::class)->data($lesson, $date);
+        // A short day changes the times, so the snapshot (and its hash) needs review.
+        $view = app(TimetableEngine::class)->patterns()->display(app(TimetableQueries::class)->data($lesson, $date), (int) $lesson->bell_period_id, $date);
 
         return ['lesson_id' => (int) $lesson->id, 'lesson_revision' => $lesson->revision,
             'session_year_id' => (int) $lesson->session_year_id, 'teacher_id' => (int) $lesson->teacher_id,

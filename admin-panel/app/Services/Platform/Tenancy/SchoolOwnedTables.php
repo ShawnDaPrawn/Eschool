@@ -69,7 +69,7 @@ final class SchoolOwnedTables
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
         'report_templates', 'report_comment_banks', 'report_batches', 'report_cards', 'report_comments', 'report_recipients',
         'attendance_registers', 'attendance_entries', 'attendance_operations', 'attendance_notices',
-        'rooms', 'bell_schedules', 'bell_periods', 'timetable_lessons',
+        'rooms', 'bell_schedules', 'bell_periods', 'bell_schedule_overrides', 'timetable_lessons',
         'assessment_marks', 'question_marks', 'mark_snapshots', 'mark_releases', 'mark_release_entries', 'academic_exam_links',
         'teaching_groups', 'teaching_group_memberships', 'teaching_allocations', 'homeroom_allocations', 'academic_leaderships',
         'curriculum_plans', 'curriculum_topics', 'assessment_plans', 'assessment_tasks', 'assessment_questions',

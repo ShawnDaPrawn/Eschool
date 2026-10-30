@@ -775,7 +775,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('occurrences/{occurrence}/assignment', [$c, 'write'])->whereNumber('occurrence')->name('assign');
         });
         Route::get('academic-timetable', [TimetableWorkbenchController::class, 'index'])->name('academic-timetable.index');
-        foreach (['room' => 'room', 'bells' => 'bells', 'preview' => 'preview', 'commit' => 'commit', 'import-map' => 'mapImport', 'import-preview' => 'previewImport'] as $path => $action) {
+        foreach (['room' => 'room', 'bells' => 'bells', 'preview' => 'preview', 'commit' => 'commit', 'import-map' => 'mapImport', 'import-preview' => 'previewImport', 'short-day' => 'shortDay', 'short-day-remove' => 'removeShortDay'] as $path => $action) {
             Route::post('academic-timetable/'.$path, [TimetableWorkbenchController::class, $action])->name('academic-timetable.'.$path);
         }
         Route::get('teaching-groups', [TeachingGroupController::class, 'index'])->name('teaching-groups.index');

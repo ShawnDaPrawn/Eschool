@@ -87,6 +87,11 @@ when a placement batch commits. It contains no learner list. The normal schedule
 refreshes compatible v1 current-week projections; the canonical timetable remains
 authoritative while a projection refresh is delayed.
 
+Notification type academics.timetable_changed (academics module, every portal,
+standard channel preferences) tells affected learners, their current guardians
+and the lessons' teachers when a short day is planned or cancelled. The notice
+names only the date; the outbox event carries lesson IDs, never a learner list.
+
 
 Academic register amendment: academics.register_amended (academics module),
 current guardians, standard channel preferences; attendance.absence retains its
