@@ -192,7 +192,7 @@ class PlatformIncidents
             foreach ($schoolIds as $schoolId) {
                 DB::table('platform_incident_schools')->insert(['incident_id' => $id, 'school_id' => $schoolId, 'created_at' => now(), 'updated_at' => now()]);
             }
-            $this->entry($id, 'opened', __('Incident recorded: :severity, :schools affected school(s).', ['severity' => __(self::SEVERITIES[$data['severity']]), 'schools' => count($schoolIds)]), $actor);
+            $this->entry($id, 'opened', trans_choice('{0} Incident recorded: :severity, no affected school known yet.|{1} Incident recorded: :severity, one affected school.|[2,*] Incident recorded: :severity, :count affected schools.', count($schoolIds), ['severity' => __(self::SEVERITIES[$data['severity']])]), $actor);
             Audit::record('platform_incident_opened', null, [], ['incident_id' => $id, 'category' => $data['category'], 'severity' => $data['severity'],
                 'personal_information' => $data['personal_information'], 'schools' => $schoolIds, 'changed_by' => $actor->id]);
 
