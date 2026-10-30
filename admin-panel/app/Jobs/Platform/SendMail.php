@@ -11,6 +11,7 @@ use App\Models\Platform\NotificationDelivery;
 use App\Models\User;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
+use App\Services\Platform\Notifications\EmailContent;
 use App\Services\Platform\Notifications\EmailUnsubscribe;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
@@ -87,6 +88,11 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
             }
             // An optional notice carries a one-click unsubscribe link (2.4); a required one never does.
             $this->mailable->unsubscribeUrl = $recipient === null ? null : app(EmailUnsubscribe::class)->url($recipient, $this->mailable->notificationType);
+            // The school's branding, and the full content where the type allows it (2.1), read now for this recipient.
+            $this->mailable->brand = app(EmailContent::class)->branding();
+            $full = $recipient === null ? null : app(EmailContent::class)->full($recipient, $this->mailable->notificationType, $this->mailable->deliveryContext);
+            $this->mailable->contentHtml = $full['html'] ?? null;
+            $this->mailable->contentText = $full['text'] ?? null;
         }
 
         try {
