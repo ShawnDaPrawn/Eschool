@@ -189,6 +189,9 @@ class ActivityGroups
             ->whereDate('ends_on', '>=', $lastDay)->pluck('learner_id')->unique();
         $current = ActivityMembership::query()->where('activity_group_id', $group->id)->where('active', true)->pluck('learner_id');
         $window = ['starts_on' => max($group->starts_on->toDateString(), now()->toDateString()), 'ends_on' => $group->ends_on->toDateString()];
+        if (! $group->active || $window['starts_on'] > $window['ends_on']) {
+            return [];
+        }
         $suggestions = [];
         foreach (Students::query()->with('user')->whereIn('id', $former->diff($current))->get() as $learner) {
             try {

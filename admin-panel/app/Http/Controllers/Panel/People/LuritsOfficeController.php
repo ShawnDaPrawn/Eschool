@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Panel\People;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\People\RecordLuritsRequest;
 use App\Services\People\LuritsOffice;
 use App\Services\Platform\Identity\LuritsNumbers;
 use Illuminate\Contracts\View\View;
@@ -25,9 +26,9 @@ class LuritsOfficeController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(RecordLuritsRequest $request): RedirectResponse
     {
-        $data = $request->validate(['admission_no' => ['required', 'string', 'max:64'], 'lurits' => ['required', 'string', 'max:32']]);
+        $data = $request->validated();
         $result = $this->office->record($request->user(), $data['admission_no'], $data['lurits']);
         $message = match ($result) {
             LuritsNumbers::RECORDED => __('LURITS number recorded for :number.', ['number' => $data['admission_no']]),

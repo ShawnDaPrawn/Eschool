@@ -72,6 +72,16 @@ class LuritsOfficeTest extends TestCase
         $this->assertSame(0, DB::table('learner_identifiers')->whereNotNull('lurits_hash')->count());
     }
 
+    public function test_an_archived_claimant_does_not_break_the_offices_open_claims_page(): void
+    {
+        app(CurrentSchool::class)->run(2, fn () => app(LuritsNumbers::class)->record(Students::query()->findOrFail($this->schoolB->ids['ben']), '8800000002', 'sasams_import'));
+        app(LuritsNumbers::class)->record(Students::query()->findOrFail($this->schoolA->ids['cara']), '8800000002', 'school_entry');
+        DB::table('students')->where('id', $this->schoolA->ids['cara'])->update(['deleted_at' => now()]);
+
+        $this->actingAs($this->superAdmin())->get('/learners/lurits')->assertOk()->assertSee('Numbers waiting for Navigate Ed support')
+            ->assertDontSee(self::SCHOOL_B_MARKER)->assertDontSee('GR-CARA');
+    }
+
     public function test_support_sees_claims_by_school_only_and_closes_them(): void
     {
         app(CurrentSchool::class)->run(2, fn () => app(LuritsNumbers::class)->record(Students::query()->findOrFail($this->schoolB->ids['ben']), '8800000002', 'sasams_import'));

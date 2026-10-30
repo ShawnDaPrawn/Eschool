@@ -13,6 +13,9 @@ use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Academics\TeachingGroups;
+use App\Services\Platform\Tenancy\CurrentSchool;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -99,5 +102,24 @@ class TeachingGroupFillTest extends TestCase
         }
         $this->actingAs($teacher)->post(route('teaching-groups.fill', $group->id), ['starts_on' => '2026-03-01', 'mark_rule' => 'catch_up'])->assertForbidden();
         $this->assertSame(2, TeachingGroupMembership::where('teaching_group_id', $group->id)->count());
+    }
+
+    public function test_foreign_school_groups_cannot_be_filled_through_the_service_or_panel(): void
+    {
+        $foreign = app(CurrentSchool::class)->run(2, fn () => TeachingGroup::query()->create([
+            'name' => 'Baobab Maths', 'subject_id' => $this->schoolB->ids['maths'],
+            'grade_level_id' => (int) GradeLevel::where('code', '7')->value('id'),
+            'session_year_id' => $this->schoolB->ids['session_year'],
+            'class_section_id' => $this->schoolB->ids['section_a'], 'active' => true,
+        ]));
+        $before = DB::table('teaching_group_memberships')->count();
+        try {
+            app(TeachingGroups::class)->fillFromHomeroom($this->superAdmin(), $foreign->id, '2026-02-10', 'catch_up');
+            $this->fail('Filled another school\'s group');
+        } catch (ModelNotFoundException) {
+            $this->assertSame($before, DB::table('teaching_group_memberships')->count());
+        }
+        $this->post(route('teaching-groups.fill', $foreign->id), ['starts_on' => '2026-02-10', 'mark_rule' => 'catch_up'])->assertNotFound();
+        $this->assertSame($before, DB::table('teaching_group_memberships')->count(), 'Neither school receives a membership');
     }
 }

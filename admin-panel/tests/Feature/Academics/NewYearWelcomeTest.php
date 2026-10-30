@@ -11,6 +11,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
+use App\Models\StudentSessions;
 use App\Services\Academics\NewYearService;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Tests\Concerns\UsesTwoSchools;
@@ -67,6 +68,19 @@ class NewYearWelcomeTest extends TestCase
     public function test_no_welcome_unless_chosen(): void
     {
         $result = app(NewYearService::class)->switchTo(SessionYear::findOrFail($this->year), SessionYear::findOrFail($this->next), []);
+
+        $this->assertSame(0, $result['welcomed']);
+        $this->assertSame(0, Notification::where('type', NewYearService::WELCOME)->count());
+    }
+
+    public function test_a_promoted_learner_later_marked_as_leaving_and_their_guardians_are_not_welcomed(): void
+    {
+        StudentSessions::withoutEvents(fn () => StudentSessions::query()->updateOrCreate(
+            ['student_id' => $this->schoolA->ids['asha'], 'session_year_id' => $this->next],
+            ['class_section_id' => null, 'previous_session_year_id' => $this->year]));
+        StudentSessions::query()->where('student_id', $this->schoolA->ids['asha'])->where('session_year_id', $this->next)->update(['status' => 0]);
+
+        $result = app(NewYearService::class)->switchTo(SessionYear::findOrFail($this->year), SessionYear::findOrFail($this->next), [], true);
 
         $this->assertSame(0, $result['welcomed']);
         $this->assertSame(0, Notification::where('type', NewYearService::WELCOME)->count());

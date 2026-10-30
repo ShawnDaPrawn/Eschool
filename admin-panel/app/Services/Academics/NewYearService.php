@@ -354,7 +354,9 @@ class NewYearService
     public function welcome(SessionYear $year): int
     {
         $first = max(Carbon::parse($year->start_date)->toDateString(), now()->toDateString());
-        $learners = Enrolment::query()->where('session_year_id', $year->id)->onDate($first)->pluck('learner_id')->unique();
+        $leaving = StudentSessions::query()->where('session_year_id', $year->id)->where('status', 0)->select('student_id');
+        $learners = Enrolment::query()->where('session_year_id', $year->id)->onDate($first)
+            ->whereNotIn('learner_id', $leaving)->pluck('learner_id')->unique();
         $users = [];
         foreach (Students::query()->whereIn('id', $learners)->get() as $learner) {
             $users[] = (int) $learner->user_id;

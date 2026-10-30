@@ -63,8 +63,8 @@ class LuritsOffice
 
         return $rows->map(fn (object $row) => [
             'id' => (int) $row->id,
-            'learner' => trim(($learners[$row->learner_id]?->user?->first_name ?? '').' '.($learners[$row->learner_id]?->user?->last_name ?? '')),
-            'admission_no' => (string) ($learners[$row->learner_id]?->admission_no ?? ''),
+            'learner' => trim(($learners->get($row->learner_id)?->user?->first_name ?? '').' '.($learners->get($row->learner_id)?->user?->last_name ?? '')),
+            'admission_no' => (string) ($learners->get($row->learner_id)?->admission_no ?? ''),
             'source' => (string) $row->source,
             'raised_at' => substr((string) $row->created_at, 0, 10),
         ])->values()->all();

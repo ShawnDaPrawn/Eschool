@@ -101,4 +101,15 @@ class ActivitySuggestionsTest extends TestCase
         $this->expectException(HttpException::class);
         app(ActivityGroups::class)->lastYearSuggestions(User::findOrFail($this->schoolA->ids['tara_user']), $new['id']);
     }
+
+    public function test_an_ended_season_does_not_offer_allocations_with_an_inverted_date_range(): void
+    {
+        $old = $this->group($this->last, 'Netball');
+        $this->member($old, 'asha', '2025-06-30');
+        $new = $this->group($this->year, 'Netball');
+        $this->travelTo(now()->setDate(2026, 7, 1));
+
+        $this->assertSame([], app(ActivityGroups::class)->lastYearSuggestions($this->superAdmin(), $new['id']));
+        $this->assertSame(0, ActivityMembership::where('activity_group_id', $new['id'])->count());
+    }
 }

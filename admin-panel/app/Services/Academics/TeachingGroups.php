@@ -196,6 +196,8 @@ class TeachingGroups
         }
 
         return DB::transaction(function () use ($actor, $group, $startsOn, $markRule, $yearEnd) {
+            School::query()->lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
+            app(AcademicAuthority::class)->manage($actor);
             $added = 0;
             $skipped = 0;
             $enrolments = Enrolment::query()->where('class_section_id', $group->class_section_id)->where('session_year_id', $group->session_year_id)

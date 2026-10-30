@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Activities;
 
 use App\Models\Activities\ActivityGroup;
+use App\Models\Platform\School;
 use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -62,6 +64,11 @@ class ActivitySeasons
         }
 
         return DB::transaction(function () use ($actor, $year, $from, $to, $start, $end) {
+            // Activity operation receipts belong to one actor. Lock before
+            // checking destinations so different administrators cannot copy
+            // the same season into duplicate trees.
+            School::whereKey(app(CurrentSchool::class)->id())->lockForUpdate()->firstOrFail();
+            $this->access->manage($actor);
             $groups = ActivityGroup::query()->where('session_year_id', $year->id)->where('active', true)->where('season', $from)->orderBy('id')->get()->keyBy('id');
             if ($groups->isEmpty()) {
                 throw ValidationException::withMessages(['from' => __('No active groups in the season ":season".', ['season' => $from])]);
@@ -119,7 +126,7 @@ class ActivitySeasons
             }
 
             return ['created' => $created, 'skipped' => $skipped];
-        });
+        }, 3);
     }
 
     /** @return array{0: string, 1: string} */

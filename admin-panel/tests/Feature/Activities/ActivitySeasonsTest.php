@@ -111,6 +111,16 @@ class ActivitySeasonsTest extends TestCase
         $this->assertSame(0, ActivityGroup::where('season', 'Winter')->count());
     }
 
+    public function test_existing_long_season_labels_can_be_rolled_over_from_the_panel(): void
+    {
+        $label = str_repeat('S', 90);
+        $this->group(['season' => $label]);
+
+        $this->post('/activity-seasons', ['from' => $label, 'to' => 'Winter', 'starts_on' => '2026-07-15', 'ends_on' => '2026-11-30'])
+            ->assertRedirect('/activity-seasons')->assertSessionHasNoErrors()->assertSessionHas('success');
+        $this->assertSame(1, ActivityGroup::where('season', 'Winter')->count());
+    }
+
     public function test_the_panel_starts_a_season_and_others_cannot(): void
     {
         $this->group();
