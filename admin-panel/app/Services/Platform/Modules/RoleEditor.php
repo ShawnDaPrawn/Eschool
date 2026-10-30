@@ -149,6 +149,35 @@ class RoleEditor
         }, 3);
     }
 
+    /** @return array<string, array{label: string, description: string}> */
+    public function templates(): array
+    {
+        return array_map(fn ($template) => ['label' => $template['label'], 'description' => $template['description']], (array) config('role_templates'));
+    }
+
+    /** The editor for a new role started from a template: its levels and abilities ticked, nothing saved. */
+    public function fromTemplate(string $key): array
+    {
+        $template = config('role_templates.'.$key);
+        abort_unless(is_array($template), 404);
+        $editor = $this->describe(null);
+        foreach ($template['levels'] as $module => $level) {
+            if (isset($editor['modules'][$module])) {
+                $editor['modules'][$module]['level'] = $level;
+            }
+        }
+        foreach ($template['abilities'] as $module => $keys) {
+            foreach ($keys as $ability) {
+                if (isset($editor['modules'][$module]['abilities'][$ability])) {
+                    $editor['modules'][$module]['abilities'][$ability]['held'] = true;
+                }
+            }
+        }
+        $editor['template'] = ['key' => $key, 'label' => $template['label']];
+
+        return $editor;
+    }
+
     public function editable(Role $role): bool
     {
         return (int) $role->custom_role === 1 && ! in_array($role->name, self::BUILT_IN, true);

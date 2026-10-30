@@ -190,6 +190,24 @@ class RoleEditorTest extends TestCase
         $this->assertSame('Baobab office', app(CurrentSchool::class)->run(2, fn () => Role::query()->findOrFail($foreign)->name));
     }
 
+    public function test_a_role_can_start_from_a_template_and_is_saved_only_when_submitted(): void
+    {
+        $roles = Role::query()->count();
+        $this->actingAs($this->superAdmin(), 'web')->get(route('role-access.create', ['template' => 'bursar']))->assertOk()
+            ->assertSee('Started from Bursar or finance officer')->assertSee('value="Bursar or finance officer"', false);
+        $this->assertSame($roles, Role::query()->count(), 'opening a template saves nothing');
+        $editor = $this->editor()->fromTemplate('bursar');
+        $this->assertSame(['manage', 'manage', 'view'], [$editor['modules']['fees']['level'], $editor['modules']['wallet']['level'], $editor['modules']['people']['level']]);
+        $this->assertFalse($editor['modules']['fees']['abilities']['fee_billing']['held'], 'approvals are never in a template');
+        $this->get(route('role-access.create', ['template' => 'not-a-template']))->assertNotFound();
+
+        $template = config('role_templates.bursar');
+        $role = $this->editor()->save($this->superAdmin(), null, ['name' => 'Bursar', 'levels' => $template['levels'], 'abilities' => $template['abilities']]);
+        // Modules the school has switched off are not granted from the template.
+        $on = array_filter($template['levels'], fn ($level, $module) => app(ModuleGate::class)->allows($module), ARRAY_FILTER_USE_BOTH);
+        $this->assertSame($this->expected($on, $template['abilities']), $this->names($role));
+    }
+
     public function test_the_panel_editor_creates_and_updates_a_role(): void
     {
         $this->actingAs($this->superAdmin(), 'web')->get(route('role-access.create'))->assertOk()->assertSee('Create a role by module')->assertSee('People and guardian approval');
