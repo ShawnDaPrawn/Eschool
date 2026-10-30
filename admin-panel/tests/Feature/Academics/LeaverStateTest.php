@@ -194,6 +194,11 @@ class LeaverStateTest extends TestCase
         $this->as('mona')->getJson('/api/parent/get-profile-data')->assertOk()->assertJsonPath('error', false);
         $leaves = Leave::query()->count();
         $this->as('farid')->postJson('/api/parent/apply-leave', ['child_id' => $ids['asha'], 'reason' => 'Trip', 'leave_details' => []])->assertForbidden();
+        // The same id written the other ways downstream code accepts is refused too.
+        foreach (['+'.$ids['asha'], ' '.$ids['asha'], (string) $ids['asha'].' '] as $spelling) {
+            $this->as('farid')->postJson('/api/parent/apply-leave', ['child_id' => $spelling, 'reason' => 'Trip', 'leave_details' => []])->assertForbidden();
+        }
+        $this->as('farid')->postJson('/api/parent/apply-leave', ['child_id' => [$ids['cara'], $ids['asha']], 'reason' => 'Trip', 'leave_details' => []])->assertForbidden();
         $this->assertSame($leaves, Leave::query()->count());
     }
 

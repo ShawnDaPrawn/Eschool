@@ -57,18 +57,36 @@ class LeaverAccess
         $ids = [];
         foreach (self::LEARNER_FIELDS as $field) {
             $value = $request->route($field) ?? $request->input($field);
-            if (is_int($value) || (is_string($value) && ctype_digit($value))) {
-                $ids[] = (int) $value;
+            // Read ids the way the controllers downstream do (FILTER_VALIDATE_INT, as in CheckChild),
+            // so "+123", " 123" or a list of ids cannot slip a leaver past this check.
+            foreach (is_array($value) ? $value : [$value] as $one) {
+                $id = self::id($one);
+                if ($id !== null) {
+                    $ids[] = $id;
+                }
             }
         }
-        $person = $request->route('person');
-        if (is_string($person) && ctype_digit($person)) {
-            $learner = Students::query()->where('user_id', (int) $person)->value('id');
+        $person = self::id($request->route('person'));
+        if ($person !== null) {
+            $learner = Students::query()->where('user_id', $person)->value('id');
             if ($learner !== null) {
                 $ids[] = (int) $learner;
             }
         }
 
         return array_values(array_unique($ids));
+    }
+
+    private static function id(mixed $value): ?int
+    {
+        if (is_int($value)) {
+            return $value > 0 ? $value : null;
+        }
+        if (! is_string($value) && ! is_float($value)) {
+            return null;
+        }
+        $id = filter_var(is_string($value) ? trim($value) : $value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        return $id === false ? null : $id;
     }
 }
