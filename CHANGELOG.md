@@ -23,12 +23,6 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
-- The learner's LURITS number can be recorded as their primary identifier, once per
-  learner across all schools, encrypted, and never written twice: a number another
-  learner already holds opens a conflict for review instead. The NavigateEd number
-  remains the temporary identifier for learners without one (ADR 0007). Screens,
-  API fields, imports and SA-SAMS keying follow. **Deploy:** run the additive
-  `learner_identifiers` LURITS migration.
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
@@ -41,6 +35,13 @@ Earlier history is kept where it was written and is not repeated here:
   **Deploy:** rehearse the additive payment migration and reconciliation on isolated
   staging, explicitly assign `fee-payments-manage` to real Finance roles, and
   confirm the school allocation rule before allocating.
+
+- The learner's LURITS number can be recorded as their primary identifier, once per
+  learner across all schools, encrypted, and never written twice: a number another
+  learner already holds opens a conflict for review instead. The NavigateEd number
+  remains the temporary identifier for learners without one (ADR 0007). Screens,
+  API fields, imports and SA-SAMS keying follow. **Deploy:** run the additive
+  `learner_identifiers` LURITS migration.
 
 - Internal school ledger foundation with balanced immutable integer-cents postings,
   permanent receipt identities, protected wallet balances and nightly reconciliation.
@@ -72,7 +73,6 @@ Earlier history is kept where it was written and is not repeated here:
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 
 - Guardian access approvals and one-use emailed invitations, including email verification, withdrawal, separate fee access and versioned consent. Existing family relationships are migrated without inventing approval. The shared approval screen uses generated API models.
-
 
 ### Developers
 
