@@ -534,6 +534,7 @@ Route::prefix('communication')->middleware(['auth:sanctum', 'school.context', 'r
     Route::get('drafts/{message}', [$c, 'editor'])->whereNumber('message')->name('editor');
     Route::put('drafts/{message}', [$c, 'save'])->whereNumber('message')->name('save');
     Route::get('drafts/{message}/preview', [$c, 'preview'])->whereNumber('message')->name('preview');
+    Route::get('drafts/{message}/report', [$c, 'report'])->whereNumber('message')->name('report');
     foreach (['submit', 'decision', 'withdraw'] as $action) {
         Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
     }
