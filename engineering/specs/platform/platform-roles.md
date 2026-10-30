@@ -12,15 +12,15 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log |
-| Support | see schools; audit log |
-| Finance | see schools; change package; customer records; packages; audit log and its export |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; school health |
+| Support | see schools; audit log; school health |
+| Finance | see schools; change package; customer records; packages; audit log and its export; school health |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
-`audit.view`, `audit.export`, `staff.manage`. A role that is no longer in the
+`audit.view`, `audit.export`, `health.view`, `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with
