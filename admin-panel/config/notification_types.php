@@ -57,4 +57,6 @@ return [
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    // Navigate Ed tells a school's Super Admins that its own account with Navigate Ed is overdue (HQ billing, SA.8).
+    'billing.overdue' => ['label' => 'Navigate Ed account overdue', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'default_on', 'email' => 'mandatory', 'in_app' => 'mandatory'], 'locked' => ['admin']],
 ];

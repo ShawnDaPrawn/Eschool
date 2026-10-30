@@ -23,6 +23,28 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: Navigate Ed bills its schools from `/saas/billing`. Each month
+  Finance (or an Owner) creates draft invoices for every active school in one
+  run: learners are counted that day (leavers and other schools' learners are
+  not), and the price per learner is the school's contract price, or else its
+  package's list price with any discount and the add-on modules it has switched
+  on. VAT (15 %, set in config) is worked out on each line and the invoice adds
+  the lines. Drafts are reviewed and then issued with a reference such as
+  NE-2026-0001 and a due date 30 days later; an issued invoice never changes,
+  and a mistake is corrected with a credit note. EFT payments are recorded with
+  the bank reference and the invoices they settle; part-payments are fine, an
+  over-payment becomes credit on the school's account, and a mistaken payment is
+  reversed with a reason rather than deleted. Each school has a printable
+  statement and each invoice a printable page. Overdue invoices are listed, a
+  reminder goes to the school's Super Admins and its bursar contact, and after a
+  14-day grace period the school is listed as due for suspension, which an Owner
+  or Operations still decides with the existing suspend form. The page also
+  shows the month's invoiced, collected and overdue totals and monthly recurring
+  revenue. Operations can look; Sales, Content and Support cannot. Issued
+  invoices, their lines and payments are also protected in the database itself,
+  and pressing "Send a reminder" twice sends one reminder.
+  **Deploy:** run the migrations.
+
 - Platform: packages and prices are edited at `/saas/packages` instead of being
   fixed in the code. Owner and Finance create draft packages from the product
   modules, set trial days, activate and retire them, and add prices per learner
