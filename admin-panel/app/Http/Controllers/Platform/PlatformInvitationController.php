@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Saas\AcceptPlatformInvitationRequest;
 use App\Services\Platform\Saas\PlatformStaff;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -25,9 +25,9 @@ class PlatformInvitationController extends Controller
         return view('saas.invitation', ['invitation' => $this->staff->preview($token), 'token' => $token]);
     }
 
-    public function accept(Request $request, string $token): RedirectResponse
+    public function accept(AcceptPlatformInvitationRequest $request, string $token): RedirectResponse
     {
-        $this->staff->accept($token, $request->only('password', 'password_confirmation'));
+        $this->staff->accept($token, $request->validated());
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
