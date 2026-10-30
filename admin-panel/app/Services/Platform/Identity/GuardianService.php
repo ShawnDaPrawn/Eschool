@@ -62,8 +62,10 @@ class GuardianService
                 $link->fill(['relationship' => $relationship, 'status' => 'active'])->save();
             }
         }
+        // Only links that came from these fields end with them; guardians the
+        // office manages directly (GuardianLinks) are never ended by a legacy edit.
         GuardianLink::query()->where('learner_id', $learner->id)->whereIn('relationship', ['father', 'mother', 'guardian'])
-            ->whereNotIn('guardian_user_id', $ids)->where('status', 'active')->get()
+            ->where('source', GuardianLinks::LEGACY)->whereNotIn('guardian_user_id', $ids)->where('status', 'active')->get()
             ->each(fn (GuardianLink $link) => $link->update(['status' => 'ended']));
     }
 }

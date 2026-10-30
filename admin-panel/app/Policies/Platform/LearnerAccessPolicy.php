@@ -21,6 +21,12 @@ class LearnerAccessPolicy
         return $user->hasRole('Super Admin') || (! $user->hasAnyRole(['Student', 'Parent', 'Teacher']) && $user->can('student-edit'));
     }
 
+    /** The school office adds, changes and ends a learner's guardians. */
+    public function manageGuardians(User $user, Students $learner): bool
+    {
+        return $user->hasRole('Super Admin') || (! $user->hasAnyRole(['Student', 'Parent', 'Teacher']) && $user->can('student-edit'));
+    }
+
     public function approveAccess(User $user, Students $learner): Response
     {
         if (! $user->hasRole('Parent') || (int) $user->status !== 1 || $user->email_verified_at === null) {

@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Guardian management: the school office can give a learner any number of
+  guardians, each with a relationship and the rights to approve and to see
+  fees, from "Manage guardians" on the learner's profile. A learner always keeps
+  at least one approving guardian, and removing a guardian ends their access at
+  once. **Deploy:** run the additive `guardian_links` migration.
+
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
   statements showing their charges, applied payments and held credit separately.
