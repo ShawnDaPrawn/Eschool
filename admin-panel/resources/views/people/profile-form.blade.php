@@ -8,6 +8,13 @@
         <button class="m3-button m3-button--outlined" type="submit">{{ __('View profile') }}</button>
     </form>
     <a class="m3-button m3-button--outlined" href="{{ route('people-profiles.export', ['person' => $subject->id, 'profile_type' => $form['profile_type']]) }}">{{ __('Export permitted fields') }}</a>
+    @if ($canInvite)
+        <form method="POST" action="{{ route('people-profiles.invitation', $subject->id) }}" aria-label="{{ __('Send sign-in invitation') }}">
+            @csrf
+            <p>{{ __('Emails :name a private link to choose their own password. Any earlier link stops working.', ['name' => $subject->full_name]) }}</p>
+            <button class="m3-button m3-button--outlined" type="submit">{{ __('Send sign-in invitation') }}</button>
+        </form>
+    @endif
     <x-page.form-card id="person-profile" :action="route('people-profiles.update', $subject->id)" method="PUT" :title="__('Profile details')" :draft="false" :submit-label="__('Save profile')">
         <input type="hidden" name="profile_type" value="{{ $form['profile_type'] }}">
         @foreach ($form['categories'] as $category)
@@ -79,6 +86,10 @@
             @endif
         @endforeach
     @endforeach
+    @php $learnerRecord = \App\Models\Students::query()->where('user_id', $subject->id)->first(); @endphp
+    @if ($learnerRecord !== null && \Illuminate\Support\Facades\Gate::allows('manageGuardians', $learnerRecord))
+        <p><a class="m3-button m3-button--outlined" href="{{ route('learner-guardians.index', $learnerRecord->id) }}">{{ __('Manage guardians') }}</a></p>
+    @endif
 </div>
 @endsection
 @section('script')

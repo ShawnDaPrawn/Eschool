@@ -32,6 +32,7 @@ class SwitchToNewYearRequest extends FormRequest
             'year_id' => ['required', 'integer', Rule::exists('session_years', 'id')->whereNull('deleted_at')],
             'carry' => ['nullable', 'array'],
             'carry.*' => ['string', Rule::in(array_keys(NewYearService::CARRY))],
+            'welcome' => ['nullable', 'boolean'],
         ];
     }
 

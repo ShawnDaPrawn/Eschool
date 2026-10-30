@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -503,7 +504,9 @@ class StaffController extends Controller
             'role_id' => ['required', 'numeric', $this->assignableRoleRule()],
             'first_name' => 'required',
             'last_name' => 'required',
-            'email' => 'required|email|unique:users,email',
+            // An address this school already knows is a duplicate; one with an
+            // account elsewhere is invited below, answering the same as a new one.
+            'email' => ['required', 'email', app(SchoolJoinInvitations::class)->notKnownHereRule()],
             'gender' => 'required',
             'mobile' => 'required|numeric|regex:/^[0-9]{7,16}$/',
             'image' => 'mimes:jpeg,png,jpg|image|max:2048',
@@ -519,6 +522,15 @@ class StaffController extends Controller
         }
         try {
             $role = Role::findOrFail($request->role_id);
+            $joins = app(SchoolJoinInvitations::class);
+
+            [$kind, $account] = $joins->classify((string) $request->email);
+            if ($kind === SchoolJoinInvitations::ELSEWHERE && $account !== null) {
+                // An existing account is invited, never given a second login (Action Plan 1.3).
+                $joins->inviteFromSchool(Auth::user(), $account, $role, ['name' => trim($request->first_name.' '.$request->last_name)]);
+
+                return ResponseService::successResponse(trans('data_store_successfully'));
+            }
 
             $check_user = User::where('email', $request->email)->onlyTrashed();
             if ($check_user->count()) {
@@ -711,6 +723,7 @@ class StaffController extends Controller
 
                 MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             }
+            $joins->recordAdded(Auth::user(), $role);
 
             return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {

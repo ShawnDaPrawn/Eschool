@@ -87,7 +87,7 @@ class NewYearController extends Controller
         $target = SessionYear::findOrFail($request->validated('year_id'));
 
         try {
-            $result = $this->newYear->switchTo($current, $target, $request->carry());
+            $result = $this->newYear->switchTo($current, $target, $request->carry(), $request->boolean('welcome'));
         } catch (\DomainException $e) {
             return response()->json(['error' => true, 'message' => $e->getMessage()], 422);
         }

@@ -9,6 +9,7 @@ use App\Listeners\RotateBrowserSessionIdentity;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Cookie\CookieValuePrefix;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
@@ -44,11 +45,22 @@ class PortalSignInTest extends TestCase
         parent::setUp();
         $this->seedLikeInstaller();
         $this->buildSignInSchool();
+        $sessions = sys_get_temp_dir().'/portal-sign-in-'.bin2hex(random_bytes(12));
+        mkdir($sessions, 0700, true);
+        $this->beforeApplicationDestroyed(fn () => (new Filesystem)->deleteDirectory($sessions));
         config([
+            'session.driver' => 'file',
+            'session.files' => $sessions,
             'session.cookie' => self::SESSION_COOKIE,
             'sanctum.stateful' => ['app.navigateed.co.za', 'teach.navigateed.co.za'],
             'cors.allowed_origins' => ['http://localhost', self::APP_PORTAL, self::TEACH_PORTAL],
         ]);
+        // Seed observers may resolve a session before this fixture chooses its
+        // cookie name. Rebuild both drivers so the configured portal cookie is
+        // exercised rather than a cached store from the seeding step.
+        $this->app['session']->forgetDrivers();
+        $this->app->forgetInstance('session.store');
+        $this->app['auth']->forgetGuards();
         $this->app->bind(VerifyCsrfToken::class, fn ($app) => new class($app, $app['encrypter']) extends VerifyCsrfToken
         {
             protected function runningUnitTests()
@@ -274,7 +286,10 @@ class PortalSignInTest extends TestCase
         // auth:sanctum switches the default guard for the rest of the test.
         $this->app['auth']->shouldUse('web');
         $this->app['auth']->forgetGuards();
-        $this->flushSession();
+        // Each real request gets a new store. Only a stateful request with
+        // the browser's cookie may reload the persisted portal session.
+        $this->app['session']->forgetDrivers();
+        $this->app->forgetInstance('session.store');
         $this->defaultHeaders = [];
         $this->unencryptedCookies = [];
     }

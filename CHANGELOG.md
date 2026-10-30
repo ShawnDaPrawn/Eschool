@@ -21,7 +21,163 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Fixed
+
+- API: guardians with leaver-only access can remove a child's photo tag and
+  withdraw existing consent without regaining any other write access. Revoked
+  relationships and expired access still stop changes and receipt replay.
+
 ### Added
+
+- Platform: Navigate Ed bills its schools from `/saas/billing`. Each month
+  Finance (or an Owner) creates draft invoices for every active school in one
+  run: learners are counted that day (leavers and other schools' learners are
+  not), and the price per learner is the school's contract price, or else its
+  package's list price with any discount and the add-on modules it has switched
+  on. VAT (15 %, set in config) is worked out on each line and the invoice adds
+  the lines. Drafts are reviewed and then issued with a reference such as
+  NE-2026-0001 and a due date 30 days later; an issued invoice never changes,
+  and a mistake is corrected with a credit note. EFT payments are recorded with
+  the bank reference and the invoices they settle; part-payments are fine, an
+  over-payment becomes credit on the school's account, and a mistaken payment is
+  reversed with a reason rather than deleted. Each school has a printable
+  statement and each invoice a printable page. Overdue invoices are listed, a
+  reminder goes to the school's Super Admins and its bursar contact, and after a
+  14-day grace period the school is listed as due for suspension, which an Owner
+  or Operations still decides with the existing suspend form. The page also
+  shows the month's invoiced, collected and overdue totals and monthly recurring
+  revenue. Operations can look; Sales, Content and Support cannot.
+  **Deploy:** run the migrations.
+
+- Platform: packages and prices are edited at `/saas/packages` instead of being
+  fixed in the code. Owner and Finance create draft packages from the product
+  modules, set trial days, activate and retire them, and add prices per learner
+  per month (excluding VAT) from a date: a base price, add-on prices for product
+  modules and discounts. Past prices are kept and never changed, overlapping
+  dates are refused, and the page shows the price on any date. Changing an
+  active package's modules does not change what schools already on it can use
+  until HQ re-applies the package to them, with a reason. Other HQ roles can
+  only look. The four existing packages are copied over unchanged, so no school
+  notices anything. **Deploy:** run the migrations.
+
+
+- Admin panel: a school can add a teacher or staff member who already uses
+  NavigateEd at another school (or a principal moving schools) without a second
+  login. They are emailed an invitation, sign in with their usual password and
+  accept or decline; their password and their other schools stay as they are.
+  Adding them reads the same as adding a new person, so the school never learns
+  that the address was in use or where. Waiting invitations are under Staff,
+  Invitations to join, where they can be withdrawn. The staff import now invites
+  such people instead of giving them the role straight away. Platform: HQ can
+  set up a school whose first administrator already has an account the same way.
+  Learner and platform staff accounts are never invited.
+  **Deploy:** run the migrations (`school_join_invitations`).
+
+- Staff drafts for a new school year: on Academic allocations, **Draft from last
+  year** fills in each teaching group's teachers and each homeroom's teacher from
+  last year wherever the group or homeroom carried over. Change what is different
+  and apply it in one step; teachers see nothing until then, and a draft is refused
+  if allocations changed after it was built.
+
+- Caseload renewals for a new school year: in Early warning and interventions,
+  **Renew caseloads for a new year** lists last year's open risk caseload grants
+  for learners placed in the new year. A principal (or the learner's grade head)
+  keeps the same counsellor, chooses another one, or lets the grant end. Ended
+  grants are never carried, and only caseload administrators see the page.
+
+- HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
+  families, how many learners have a guardian the school can reach, sign-ins by
+  role, module use, email bounces and complaints, push failures, AI spend against
+  the month's cap and failed jobs, counts only and never a person. `/saas/health`
+  compares every school from nightly figures, schools at risk first; the at-risk
+  rules (activity down 30%, reach under 60%, bounces at 5% and others) are in
+  `config/school_health.php`. Owner, Operations, Support and Finance can see it.
+  **Deploy:** run the `school_health_snapshots` migration; the scheduler runs
+  `platform:school-health` nightly (run it once by hand to fill the comparison).
+
+
+- Admin panel and apps: learners who leave at the end of the year are no longer
+  locked out on the day the new year starts. Until 31 March they, and their
+  guardians, can still sign in and read their final reports, marks and
+  documents, but change nothing; then their access ends. A learner who leaves
+  during the year reads for 90 days (never past the next 31 March). Leavers are not in any class list, register or
+  group of the new year, are counted apart on the dashboard and are marked on the
+  student list. The new Leavers page (Calendar and years) lets the office bring a
+  leaver back as a returning learner or end their access sooner. **Deploy:** run
+  the additive `school_memberships.leaver_until` migration.
+
+- Platform: announcements to schools at `/saas/announcements` for Owner and
+  Operations. Write release notes, a maintenance window or a policy change, aim
+  it at every school, at schools on a package or at a lifecycle stage, or at
+  chosen schools, see how many schools and Super Admins it reaches, then
+  publish. Each school's Super Admins get a notice and a banner in their panel
+  while it is current; dismissing the banner counts as read, and HQ sees how
+  many schools and Super Admins have read it. A published announcement never
+  changes: withdraw it and publish a new one. Super Admins find every
+  announcement for their school under Settings, Navigate Ed announcements.
+  **Deploy:** run the migrations.
+
+- Platform and Admin panel: audited support access. Navigate Ed Support,
+  Operations and Owner staff ask a school for access at `/saas/support`, with a
+  reason and a length of up to four hours. The school's Super Admins are told
+  at once and approve or decline under Settings, "Navigate Ed support access";
+  when the school cannot be reached, another Owner can open a request that has
+  waited at least 15 minutes, with a recorded reason, and the school is told
+  immediately. A school's decline stands: nobody can ask again or override for
+  a day. While it is open, the staff member sees a read-only view of the
+  school's set-up and accounts (learners and parents only by exact email),
+  never wellbeing, counselling, health, safeguarding, discipline,
+  early-warning or support-plan records. Every page they open, and every
+  account a list or search showed, is listed for the school and in the HQ
+  audit log. It ends by itself, or earlier when the school or the staff member
+  ends it. **Deploy:** run the migrations.
+
+
+- Platform: feature flags at `/saas/flags` for Owner and Operations. A new
+  feature can be switched on for chosen pilot schools first (beta), then for
+  everyone, with single schools switched on or off by name, and a kill switch
+  that turns it off everywhere at once. The apps receive the result in their
+  existing feature switches. A flag can switch a feature that is already in the
+  apps off for a school, but never on where the app does not offer it.
+  **Deploy:** run the migrations.
+
+
+- Notifications: optional school notice emails have a one-click unsubscribe
+  (in the email client and as a footer link) that switches that notice's email
+  off. Required notices, such as absence alerts and urgent notices, never
+  carry it.
+
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
+- Platform: a breach and incident register at `/saas/incidents` for Owner,
+  Operations and Support. Each incident records the schools it affects and
+  when, how and whom at each school Navigate Ed told, whether the Information
+  Regulator must be told and when it was, a timeline and a closing review. An
+  incident that may involve personal information cannot close until every
+  school has been told and the Regulator decision is recorded. **Deploy:** run
+  the migrations.
+- Notifications now reach every device a person is signed in on, not only the last
+  one: a parent's phone and tablet, or a teacher's two devices, all receive them.
+  Signing in to an app on another device no longer signs the first one out (up to
+  five devices per app), and signing out ends only that device. **Deploy:** run the
+  additive `user_devices` migration, which copies each existing push registration.
+- Platform: an HQ audit log at `/saas/audit` shows who at Navigate Ed did what
+  to which school, when and why (reasons, before and after values), filtered by
+  school, action, staff member and date, and exported as CSV. A school's own
+  history is never shown there, and each export is itself recorded.
+- Admin panel: exam mode. Exam periods per grade (Exams and results → Exam
+  periods) turn a learner's timetable days into exam days, leaving normal
+  lessons out unless the school keeps them. Each exam sitting can have a venue,
+  and learners and guardians are told when an upcoming sitting's date, time or
+  venue changes, or it is removed. **Deploy:** run the migrations.
+- Platform: platform staff roles (Owner, Operations, Support, Finance, Content,
+  Sales read-only). Every HQ page and action checks the role. Owners invite
+  staff by email from `/saas/staff`; the invited person chooses their own
+  password. Access is time-limited and every change is audited with its reason.
+  Existing grants became Owner. **Deploy:** run the migrations.
 
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
@@ -35,6 +191,13 @@ Earlier history is kept where it was written and is not repeated here:
   **Deploy:** rehearse the additive payment migration and reconciliation on isolated
   staging, explicitly assign `fee-payments-manage` to real Finance roles, and
   confirm the school allocation rule before allocating.
+
+- The learner's LURITS number can be recorded as their primary identifier, once per
+  learner across all schools, encrypted, and never written twice: a number another
+  learner already holds opens a conflict for review instead. The NavigateEd number
+  remains the temporary identifier for learners without one (ADR 0007). Screens,
+  API fields, imports and SA-SAMS keying follow. **Deploy:** run the additive
+  `learner_identifiers` LURITS migration.
 
 - Internal school ledger foundation with balanced immutable integer-cents postings,
   permanent receipt identities, protected wallet balances and nightly reconciliation.
@@ -52,21 +215,71 @@ Earlier history is kept where it was written and is not repeated here:
   fees, including saved links to the former fee-lock screen. Guardian fee privacy
   and approval checks continue to apply.
 
+- Short days: the timetable workbench can replace a bell schedule on one date
+  with short-day bells. Lessons keep their order and take the short times;
+  lessons past the last short period do not run that day. Clashing short days
+  are refused, and affected learners, guardians and teachers are notified. The
+  v2 week adds an optional `day_pattern`. **Deploy:** run the additive
+  `bell_schedule_overrides` migration.
+
 - **Platform admin area (`/saas`), first version.** Platform staff can see every school with its package and counts of learners, parents and teachers, set up a school with its first administrator (a one-time password, shown once), change its package and modules, and suspend, archive or restore it with a reason. It reads no person's record and is closed to school administrators. Opening it needs both a platform staff identity and an expiring grant set from the operator console. Support access into a school, imports and usage/health views are not part of this version. **Deploy:** run the migration, then `php artisan platform:staff-identity <user_id>` and `php artisan platform:admin-access <user_id> --hours=8` for each operator.
+
+- Staff invitations: a new school's first Super Admin is emailed a one-use
+  link to choose their own password instead of being handed a one-time
+  password, and the platform can send it again until it is accepted. School
+  staff can send a colleague a sign-in invitation from their profile.
+  Accepting verifies the email address and signs out every other session.
+  **Deploy:** run the additive `staff_invitations` migration; mail must be
+  configured for the emails to arrive (the link is also shown once).
 
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
 
+- HQ school records: platform staff keep each customer school's stage (lead to
+  live, at risk, churned), profile, contacts, contracts with the POPIA operator
+  agreement, and a timeline of notes, on a new page in `/saas`. The school list
+  shows each school's stage. Schools never see it, and it shows none of a
+  school's people. **Deploy:** run the additive `school_accounts` migration.
+
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
+
+- Guardian management: the school office can give a learner any number of
+  guardians, each with a relationship and the rights to approve and to see
+  fees, from "Manage guardians" on the learner's profile. A learner always keeps
+  at least one approving guardian, and removing a guardian ends their access at
+  once. **Deploy:** run the additive `guardian_links` migration.
 
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.
 
+- Role editor by module: school administrators can create and edit custom
+  roles by choosing a level (no access, view, contribute, manage) for each
+  module that is switched on, plus named abilities. Sensitive abilities need a
+  confirmation and are audited. The old checkbox editor is still available.
+
 - School staff can edit app contacts and branding under Settings → School information, publish PDF policies and schedules, and show current-year term dates in both apps’ My school screen. School selection is explicit on each request. Unlisting removes a publication from the screen while its public link remains valid.
+
+- Role templates: the role editor can start a new role from nine templates
+  for common school jobs (principal, deputy, office, bursar, head of
+  department, grade head, activities coordinator, reception, IT). Sensitive
+  abilities are never part of a template.
 
 - Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. School admins can arrange fields in Settings, and authorised people use the same form metadata in the panel and both apps. Saves update changed fields only. Permitted CSV exports filter sensitive values before decryption; private drafts stay out of browser/session storage. Private file fields accept encrypted PDF/PNG/JPEG attachments with authenticated previews and preserve unrelated edits. Legacy migration remains in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values, attachment metadata and private ciphertext before rolling it back.
 
+- Who can see what: a read-only page shows one person's or one role's level in
+  each module, their abilities (sensitive ones marked), any stray permissions,
+  and the pages in their menu, exactly as that person's own sidebar for a
+  person.
+
 - People can choose a global handle in the shared app settings. Learners under 18 need a verified guardian to approve the proposal; adults choose directly. Handles avoid personal identifiers, changes are limited per term, and old names remain reserved for 90 days. Approved handles work alongside existing sign-in names. Existing app/API responses remain compatible.
 
+- Product catalogue: the 44 module switches are grouped into ten product
+  modules with a readiness level and a price placeholder, shown to platform
+  staff at `/saas/packages`, and a new `pilot` package includes them all.
+
 - School admins can control included features under Settings → School modules. Disabled features disappear from navigation and app context, and their routes refuse access. Required features stay on; fees with retained records become read-only. Existing schools retain their seed features, while new explicitly packaged schools start fees off. Native apps refresh on a queued school-specific context change.
+
+- Family reach: a page for the school office shows how many current learners
+  have a guardian the school can reach in the parent app or by verified email,
+  reach by homeroom, and which learners to follow up.
 
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 

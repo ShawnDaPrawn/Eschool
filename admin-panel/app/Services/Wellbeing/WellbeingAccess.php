@@ -30,6 +30,8 @@ class WellbeingAccess
         $context = app(CurrentSchool::class);
         $context->school()?->refresh();
         abort_unless($context->isSet() && ! $context->isAcrossSchools() && ! $context->isImpersonating() && $context->school()?->isActive(), 403);
+        // Never in a Navigate Ed support session (SA.9), whatever its scope.
+        abort_if($context->isSupportSession(), 403);
         $gate = app(ModuleGate::class);
         $gate->forget();
         abort_unless($write ? $gate->writable('wellbeing') : $gate->allows('wellbeing'), 404);

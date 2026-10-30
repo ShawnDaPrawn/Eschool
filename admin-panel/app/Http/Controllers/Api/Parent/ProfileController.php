@@ -60,7 +60,8 @@ class ProfileController extends Controller
                 $child->permanent_address = $child->user->permanent_address;
 
                 $studentSession = StudentSessions::where('session_year_id', $session_year_id)->where('student_id', $child->id)->first();
-                $class_id = $studentSession ? $studentSession->class_section->class_id : $child->class_section->class_id;
+                // A leaver's row this year has no homeroom (Action Plan 1.21): their last one is on the learner.
+                $class_id = $studentSession?->class_section?->class_id ?? $child->class_section?->class_id;
 
                 $child->is_fee_payment_due = 0; // Retired v1 hint; statements are authoritative.
 
@@ -83,7 +84,7 @@ class ProfileController extends Controller
 
                 unset($child->user);
 
-                if ($studentSession) {
+                if ($studentSession?->class_section) {
                     // Set Class Section name
                     $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
                     $child->is_term_on_in_class = $studentSession->class_section->class->getIncludeTermsForSession($session_year_id);

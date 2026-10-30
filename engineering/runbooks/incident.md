@@ -10,6 +10,7 @@ What to do when an alert fires or a school reports a problem: confirm, contain, 
 2. **Note the time** and keep a running log (what you saw, what you did, with times) in the incident issue.
 3. **Contain** if users are hurt now: a bad release is rolled back first and investigated after ([rollback.md](rollback.md)).
 4. **Tell the product owner** for anything users notice; production fixes are reported the same day.
+5. **Security or personal information?** Record it in the HQ incident register (`/saas/incidents`) at once, with the schools it affects. If personal information was, or may have been, reached by someone not authorised, tell each affected school (its Information Officer, by phone first) immediately and record when and whom; each school decides whether to notify the Information Regulator and the people affected. See [HQ incidents](../specs/platform/hq-incidents.md).
 
 ## Alerts and what they mean
 
@@ -77,7 +78,7 @@ Other useful ones: `--args=queue:failed`, `--args=migrate:status`, `--args=sched
 
 ## Afterwards
 
-Within two working days, write a short review in the incident issue: what happened, the impact (schools, profiles, duration), the timeline, the cause, what fixed it, and the follow-up issues (a test, an alert, a runbook change). Update this runbook if a step was missing. No blame; the aim is the next fix being faster.
+Within two working days, write a short review in the incident issue (and, for a security incident, as the closing review in the HQ register): what happened, the impact (schools, profiles, duration), the timeline, the cause, what fixed it, and the follow-up issues (a test, an alert, a runbook change). Update this runbook if a step was missing. No blame; the aim is the next fix being faster.
 
 ## See also
 

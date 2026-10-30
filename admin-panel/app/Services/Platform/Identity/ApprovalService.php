@@ -77,12 +77,24 @@ class ApprovalService
         });
     }
 
+    /** How many of the school's learners hold a current guardian approval (for HQ onboarding). */
+    public function approvedLearnerCount(): int
+    {
+        return $this->activeApprovalsQuery()->whereIn('learner_id', Students::query()->select('id'))->distinct()->count('learner_id');
+    }
+
     /** @return Builder<LearnerApproval> */
     private function activeApprovals(Students $learner): Builder
     {
+        return $this->activeApprovalsQuery()->where('learner_id', $learner->id);
+    }
+
+    /** @return Builder<LearnerApproval> */
+    private function activeApprovalsQuery(): Builder
+    {
         $schoolId = app(CurrentSchool::class)->id();
 
-        return LearnerApproval::query()->where('learner_id', $learner->id)->whereNull('withdrawn_at')
+        return LearnerApproval::query()->whereNull('withdrawn_at')
             ->whereExists(fn ($query) => $query->selectRaw('1')->from('guardian_links')
                 ->join('users', 'users.id', '=', 'guardian_links.guardian_user_id')
                 ->whereColumn('guardian_links.guardian_user_id', 'learner_approvals.guardian_user_id')

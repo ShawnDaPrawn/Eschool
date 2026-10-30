@@ -22,6 +22,8 @@ class AcademicTimetableLesson {
 
     this.originalTeacherName,
 
+    this.dayPattern,
+
     required this.id,
 
     required this.revision,
@@ -85,6 +87,9 @@ class AcademicTimetableLesson {
     includeIfNull: false,
   )
   final String? originalTeacherName;
+
+  @JsonKey(name: r'day_pattern', required: false, includeIfNull: false)
+  final String? dayPattern;
 
   // minimum: 1
   @JsonKey(name: r'id', required: true, includeIfNull: false)
@@ -182,6 +187,7 @@ class AcademicTimetableLesson {
           other.coverId == coverId &&
           other.originalTeacherId == originalTeacherId &&
           other.originalTeacherName == originalTeacherName &&
+          other.dayPattern == dayPattern &&
           other.id == id &&
           other.revision == revision &&
           other.sessionYearId == sessionYearId &&
@@ -212,6 +218,7 @@ class AcademicTimetableLesson {
       coverId.hashCode +
       originalTeacherId.hashCode +
       originalTeacherName.hashCode +
+      dayPattern.hashCode +
       id.hashCode +
       revision.hashCode +
       sessionYearId.hashCode +

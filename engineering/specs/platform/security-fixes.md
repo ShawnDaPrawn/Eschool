@@ -20,9 +20,9 @@ Phase 0, feature 0.7. Owner role: Backend (security). Work stream S6. Build Bibl
 
 ### The token rule
 
-- Signing in to an app revokes the account's earlier tokens for that same app, so an account is signed in on one device per app. Tokens of the account's other apps are left alone: a teacher who is also a parent stays signed in to the teacher app when signing in to the parent side.
+- Superseded 30 October 2026 by [push-devices.md](push-devices.md): an account can be signed in to the same app on up to five devices; signing in beyond that signs the oldest out. (Previously: signing in to an app revoked the account's earlier tokens for that same app, so an account was signed in on one device per app.) Tokens of the account's other apps are left alone: a teacher who is also a parent stays signed in to the teacher app when signing in to the parent side.
 - Tokens issued before tokens carried an app name are treated as this app's when the account can use only this app; otherwise they expire (30 days).
-- Signing out revokes the account's tokens for that app.
+- Signing out ends only that device's token (previously all of that app's tokens).
 - A web portal in cookie mode holds a session, not a token: signing in or out of a portal leaves the phone apps' tokens (and their FCM id) alone, and signing out ends the session.
 - Changing the password in an app revokes every other token of the account; the device that made the change stays signed in. Changing it in the panel, a reset by email, deactivating a teacher and the learner set-up revoke all of them.
 
@@ -46,7 +46,7 @@ Phase 0, feature 0.7. Owner role: Backend (security). Work stream S6. Build Bibl
 | A teacher with `users.status` 0 | they sign in to the app or the panel | refused with "deactivated", no token | `Platform/TeacherStatusTest` |
 | A teacher deactivated after signing in | they call any teacher route with the old token, or open a panel page | 401 with code 401 (apps sign out); panel signs out | `TeacherStatusTest` |
 | A teacher (no `teacher-edit`) | they change a teacher's status | refused; the Super Admin can, and deactivation revokes the tokens | `TeacherStatusTest` |
-| Any app account | it signs in twice | the first token stops working; one token named for the app remains | `Platform/AppTokensTest` |
+| Any app account | it signs in on a second device | both stay signed in (up to five per app; the oldest beyond that is signed out) | `Platform/AppTokensTest` |
 | A teacher who is also a parent | they sign in to the parent side, or sign out of the teacher app | the other app stays signed in | `AppTokensTest` |
 | A password change | in the app / in the panel | every other token / every token is revoked | `AppTokensTest` |
 | A browser on a portal origin / on any other origin | it calls the API | CORS headers / none; native apps without an Origin keep working | `Platform/CorsTest` |

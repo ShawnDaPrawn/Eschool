@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Parent\Concerns;
 
 use App\Models\Students;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\ResponseService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
@@ -31,6 +32,8 @@ trait ParentAccess
 
         if ($parent && $child instanceof Students
             && in_array((int) $parent->id, [(int) $child->father_id, (int) $child->mother_id, (int) $child->guardian_id], true)) {
+            app(LeaverState::class)->guardFamilyWrite($child);
+
             return $child;
         }
 
@@ -43,6 +46,7 @@ trait ParentAccess
         if (! $child) {
             throw new HttpResponseException(ResponseService::errorResponse('Invalid Child ID Passed.', null, $errorCode));
         }
+        app(LeaverState::class)->guardFamilyWrite($child);
 
         return $child;
     }

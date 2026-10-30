@@ -55,12 +55,13 @@ class Exam extends Model
 
             if ($exam->isForceDeleting()) {
                 ExamMarks::whereIn('exam_timetable_id', $timetableIds)->forceDelete();
-                ExamTimetable::whereIn('id', $timetableIds)->forceDelete();
+                // One by one, so each upcoming sitting's removal is announced (ExamTimetable::booted).
+                ExamTimetable::whereIn('id', $timetableIds)->get()->each->forceDelete();
                 ExamResult::where('exam_id', $exam->id)->forceDelete();
                 ExamClass::where('exam_id', $exam->id)->forceDelete();
             } else {
                 ExamMarks::whereIn('exam_timetable_id', $timetableIds)->delete();
-                ExamTimetable::whereIn('id', $timetableIds)->delete();
+                ExamTimetable::whereIn('id', $timetableIds)->get()->each->delete();
                 ExamResult::where('exam_id', $exam->id)->delete();
                 ExamClass::where('exam_id', $exam->id)->delete();
             }

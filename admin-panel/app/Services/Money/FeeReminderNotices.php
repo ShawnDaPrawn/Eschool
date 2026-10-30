@@ -13,6 +13,7 @@ use App\Policies\Money\ParentFeePolicy;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\PrivateNoticeDelivery;
 use App\Services\Platform\Notifications\PrivateNoticeScope;
+use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -33,13 +34,12 @@ final class FeeReminderNotices implements PrivateNoticeDelivery, PrivateNoticeSc
         }
         $school = app(CurrentSchool::class)->id();
         // Keep prepared count/list queries scoped after authority changes.
-        $packages = array_keys(array_filter(config('school_packages', []), fn ($modules) => in_array('fees', $modules, true)));
         $authority = DB::table('users as parent')->where('parent.id', $actor->id)->where('parent.status', 1)->where('parent.password_change_required', false)->whereNull('parent.deleted_at')
             ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('platform_staff_identities as support')->where('support.user_id', $actor->id)->where('support.active', true))
             ->whereExists(fn ($q) => $q->selectRaw('1')->from('model_has_roles as mr')->join('roles as r', 'r.id', '=', 'mr.role_id')
                 ->where('mr.school_id', $school)->where('r.school_id', $school)->where('mr.model_id', $actor->id)->where('mr.model_type', $actor->getMorphClass())->where('r.name', 'Parent'))
-            ->whereExists(fn ($q) => $q->selectRaw('1')->from('schools as school')->where('school.id', $school)->where('school.status', 'active')
-                ->where(fn ($q) => $q->whereNull('school.package_key')->orWhereIn('school.package_key', $packages)))
+            ->whereExists(fn ($q) => app(PlatformPackages::class)->whereSchoolPackageIncludes(
+                $q->selectRaw('1')->from('schools as school')->where('school.id', $school)->where('school.status', 'active'), 'school', 'fees'))
             ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('school_modules as module')->where('module.school_id', $school)->where('module.module', 'fees')
                 ->where(fn ($q) => $q->where('module.enabled', false)->orWhere('module.read_only', true)->orWhere('module.in_package', false)));
         $reminders = FeeReminder::whereExists($authority->selectRaw('1'))->where('recipient_id', $actor->id)->where('expires_at', '>', now('UTC'))->whereNotNull('notification_id')

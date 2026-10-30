@@ -52,12 +52,9 @@ The page is **System Settings > Notification Setting**: `GET fcm-settings` (`Set
 
 ### Device tokens
 
-| Column | Type | Set by |
-|---|---|---|
-| `users.fcm_id` | `string(1024)`, nullable | `fcm_id` sent with `POST /api/student/login`, `/api/parent/login`, `/api/teacher/login` (saved only after a successful login) |
-| `users.device_type` | `string(128)`, `android` or `ios` | `device_type` sent with the same login calls |
+Each signed-in device has its own push registration in `user_devices` (one row per FCM token: the person, `android` or `ios`, the app, and the sign-in token that registered it; the FCM token is encrypted). `PushDevices` lists a person's active devices and `Notifier` queues one `SendPush` per device, each with its own `notification_deliveries` row. A device stops receiving pushes when it signs out, when its sign-in token is revoked (password change, deactivation), when FCM reports the token `UNREGISTERED`, or when another account signs in on the same phone. Specification: [push devices](https://github.com/ShawnDaPrawn/Eschool/blob/main/engineering/specs/platform/push-devices.md).
 
-There is no separate "update token" endpoint; the apps send `fcm_id` and `device_type` (from `Platform.isAndroid`) only when logging in (`lib/data/repositories/authRepository.dart`). `POST /api/logout` (`ApiController::logout`) sets `fcm_id` to `''` and deletes the current Sanctum token. A user has one token, so the last device to log in receives that user's pushes. Users whose `device_type` is neither value receive nothing.
+The apps still send `fcm_id` and `device_type` with the sign-in calls (`POST /api/student/login`, `/api/parent/login`, `/api/teacher/login`, the facilitator and vendor sign-ins and guardian invitation acceptance); `PortalSession::signIn` registers the device. `users.fcm_id` / `device_type` remain a compatibility projection of the most recent registration. A token-refresh endpoint is a planned follow-up.
 
 The apps also subscribe to topics: the student/parent app to `studentsAndroid`/`studentsIOS` or `parentsAndroid`/`parentsIOS` plus `allAndroid`/`allIOS`; the teacher app to `teachersAndroid`/`teachersIOS` plus `allAndroid`/`allIOS`.
 

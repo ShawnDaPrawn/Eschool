@@ -51,36 +51,62 @@ for (const width of [390, 820, 1280]) {
     const response = await responsePromise;
     expect(response.status()).toBe(200);
     expect(response.headers()['cache-control']).toBe('no-store, private');
-    const password = (await page.locator('.saas-secret').innerText()).trim();
-    expect(password).toHaveLength(16);
+    const invitation = (await page.locator('.saas-secret').innerText()).trim();
+    expect(new URL(invitation).pathname).toMatch(/^\/invite\/staff\/[A-Za-z0-9]{64}$/);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     await page.getByRole('link', { name: 'Open the school', exact: true }).click();
     await expect(page.getByRole('heading', { name: `Synthetic platform school ${width}`, exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Send the invitation again', exact: true })).toBeVisible();
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 
-    // A separate cookie jar proves actual first sign-in, forced password
-    // replacement and the school's empty-year setup screen. No password is logged.
+    // The HQ audit log shows the set-up, filtered to this school.
+    await page.getByRole('link', { name: 'Audit log for this school', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Audit log', exact: true })).toBeVisible();
+    await expect(page.locator('.saas-audit tbody tr').filter({ hasText: 'School set up' })).toHaveCount(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.goBack();
+
+    // An Owner manages platform staff and their roles.
+    await page.getByRole('link', { name: 'Platform staff', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Platform staff', exact: true })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'Invite a staff member', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.goBack();
+
+    // A separate cookie jar proves the emailed link: the administrator chooses
+    // their own password, then signs in. Nobody else ever knew a password.
     const context = await browser.newContext({ viewport: { width, height: 1000 } });
     const admin = await context.newPage();
     admin.on('pageerror', error => errors.push(error.message));
     admin.on('response', response => { if (response.status() >= 500) errors.push(`HTTP ${response.status()}: ${new URL(response.url()).pathname}`); });
-    await admin.goto(new URL('/login', page.url()).toString());
+    await admin.goto(new URL(new URL(invitation).pathname, page.url()).toString());
+    await expect(admin.getByRole('heading', { name: `Welcome to Synthetic platform school ${width}`, exact: true })).toBeVisible();
+    expect(await seriousViolations(admin)).toEqual([]);
+    expect(await horizontalOverflow(admin)).toBeLessThanOrEqual(1);
+    await admin.getByLabel('New password', { exact: true }).fill(PASSWORD);
+    await admin.getByLabel('Confirm new password', { exact: true }).fill(PASSWORD);
+    await admin.getByRole('button', { name: 'Set password', exact: true }).click();
+    await expect(admin).toHaveURL(/\/login$/);
+    await expect(admin.getByRole('status').filter({ hasText: 'Your password is set.' })).toBeVisible();
     await admin.locator('[name=email]').fill(email);
-    await admin.locator('[name=password]').fill(password);
+    await admin.locator('[name=password]').fill(PASSWORD);
     await admin.locator('form button[type=submit], form input[type=submit]').first().click();
-    await expect(admin).toHaveURL(/\/resetpassword$/);
-    const token = await admin.locator('meta[name=csrf-token]').getAttribute('content');
-    const changed = await admin.request.post(new URL('/changePassword', page.url()).toString(), {
-      headers: { 'X-CSRF-TOKEN': token!, Accept: 'application/json' },
-      data: { old_password: password, new_password: PASSWORD, confirm_password: PASSWORD },
-    });
-    expect(changed.status()).toBe(200);
-    expect((await changed.json()).error).toBe(false);
+    await expect(admin).not.toHaveURL(/\/resetpassword$/);
     const home = await admin.goto(new URL('/home', page.url()).toString());
     expect(home?.status()).toBe(200);
     const denied = await admin.goto(new URL('/saas', page.url()).toString());
     expect(denied?.status()).toBe(403);
     await context.close();
+
+    // HQ's own record of the school: profile, contacts, contracts and timeline.
+    await page.getByRole('link', { name: 'School record, contacts and contracts', exact: true }).click();
+    await expect(page.getByRole('heading', { name: `Synthetic platform school ${width}`, exact: true })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'School profile and stage', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 
     fixture('revoke');
     const retired = await page.reload();

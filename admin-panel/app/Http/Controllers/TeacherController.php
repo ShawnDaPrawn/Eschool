@@ -8,6 +8,7 @@ use App\Mail\Platform\TemplateMail;
 use App\Models\ClassTeacher;
 use App\Models\EmailTemplate;
 use App\Models\FormField;
+use App\Models\Platform\Role;
 use App\Models\Settings;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
@@ -15,6 +16,7 @@ use App\Models\User;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Exception;
@@ -83,7 +85,9 @@ class TeacherController extends Controller
                 'first_name' => 'required',
                 'last_name' => 'required',
                 'gender' => 'required',
-                'email' => 'required|email|unique:users,email,NULL,id,deleted_at,NULL',
+                // An address this school already knows is a duplicate; one with an
+                // account elsewhere is invited below, answering the same as a new one.
+                'email' => ['required', 'email', app(SchoolJoinInvitations::class)->notKnownHereRule()],
                 'mobile' => 'required|numeric|regex:/^[0-9]{7,16}$/',
                 'dob' => 'required|date',
                 'qualification' => 'required',
@@ -104,6 +108,15 @@ class TeacherController extends Controller
             return response()->json($response);
         }
         try {
+            $joins = app(SchoolJoinInvitations::class);
+            [$kind, $account] = $joins->classify((string) $request->email);
+            if ($kind === SchoolJoinInvitations::ELSEWHERE && $account !== null) {
+                // An existing account is invited, never given a second login (Action Plan 1.3).
+                $joins->inviteFromSchool(Auth::user(), $account, Role::query()->where('name', 'Teacher')->firstOrFail(),
+                    ['name' => trim($request->first_name.' '.$request->last_name), 'qualification' => (string) $request->qualification]);
+
+                return response()->json(['error' => false, 'message' => trans('data_store_successfully')]);
+            }
             // check if email exists in deleted_at records
             $check_user = User::where('email', $request->email)->onlyTrashed();
             if ($check_user->count()) {
@@ -382,6 +395,7 @@ class TeacherController extends Controller
                     ]);
                 }
             }
+            $joins->recordAdded(Auth::user(), 'Teacher');
             $response = [
                 'error' => false,
                 'message' => trans('data_store_successfully'),

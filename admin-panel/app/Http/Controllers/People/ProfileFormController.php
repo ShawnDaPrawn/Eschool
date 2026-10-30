@@ -6,13 +6,16 @@ namespace App\Http\Controllers\People;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\People\ProfilePanelRequest;
+use App\Http\Requests\People\StaffInvitationRequest;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -34,7 +37,9 @@ class ProfileFormController extends Controller
         Gate::authorize('profile.view', [$subject, $type]);
         $form = $forms->schema($request->user(), $subject, $type);
 
-        return response()->view('people.profile-form', compact('form', 'subject'))->header('Cache-Control', 'private, no-store');
+        $canInvite = app(StaffInvitations::class)->mayInvite($request->user(), $subject);
+
+        return response()->view('people.profile-form', compact('form', 'subject', 'canInvite'))->header('Cache-Control', 'private, no-store');
     }
 
     public function update(ProfilePanelRequest $request, ProfileForms $forms, ?int $person = null): JsonResponse
@@ -48,6 +53,14 @@ class ProfileFormController extends Controller
         }
 
         return ResponseService::successResponse('data_update_successfully');
+    }
+
+    /** Emails a staff member a one-use link to choose their password. */
+    public function invite(StaffInvitationRequest $request, int $person): RedirectResponse
+    {
+        app(StaffInvitations::class)->inviteFromSchool($request->user(), $person);
+
+        return redirect()->route('people-profiles.index', $person)->with('success', __('Invitation sent'));
     }
 
     public function export(ProfilePanelRequest $request, ProfileForms $forms, int $person): StreamedResponse

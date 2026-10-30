@@ -13,6 +13,7 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
 use App\Policies\Money\ParentFeePolicy;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 
@@ -55,6 +56,10 @@ final class ParentFeeItemScope
         }
         if ($write) {
             abort_unless($canApprove, 403);
+            // No optional fee item is chosen for a leaver (Action Plan 1.21).
+            foreach ($ids as $id) {
+                app(LeaverState::class)->guardFamilyWrite((int) $id);
+            }
         }
         $learners = Students::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get(['id', 'user_id']);
         $people = User::whereIn('id', $learners->pluck('user_id'))->lockForUpdate()->get(['id', 'first_name', 'last_name'])->keyBy('id');

@@ -25,12 +25,32 @@
 .saas-btn--quiet { background: transparent; border: 1px solid var(--md-sys-color-outline); color: var(--md-sys-color-primary); }
 .saas-btn--danger { background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); }
 .saas-actions { align-items: end; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
-.saas-secret { background: var(--md-sys-color-inverse-surface); border-radius: 8px; color: var(--md-sys-color-inverse-on-surface, var(--md-sys-color-on-inverse-surface)); font-family: ui-monospace, monospace; font-size: 1.25rem; letter-spacing: .05em; padding: 12px 16px; user-select: all; }
+.saas-secret { background: var(--md-sys-color-inverse-surface); border-radius: 8px; overflow-wrap: anywhere; color: var(--md-sys-color-inverse-on-surface, var(--md-sys-color-on-inverse-surface)); font-family: ui-monospace, monospace; font-size: 1.25rem; letter-spacing: .05em; padding: 12px 16px; user-select: all; }
 .saas-inline { display: inline; margin: 0; }
 @media (max-width: 600px) { .saas-bar { padding: 12px 16px; } }
 
 .saas-table a { color: var(--md-sys-color-primary); font-weight: 600; }
 .saas-table th.num { text-align: end; }
 .saas-card > h2:first-of-type { margin-top: 0; }
-.saas h1, .saas h2 { font-weight: 600; }
+.saas h1, .saas h2 { font-weight: 600; overflow-wrap: anywhere; }
 .saas-field select, .saas-field input, .saas-field textarea { font-family: inherit; }
+.saas-timeline { display: grid; gap: 6px; margin: 16px 0 0; padding-inline-start: 20px; }
+.saas-bar nav { display: flex; flex-wrap: wrap; gap: 16px; }
+.saas-audit td { vertical-align: top; }
+.saas-audit small { color: var(--md-sys-color-on-surface-variant); }
+.saas-audit-changes { margin: 0; overflow-wrap: anywhere; padding-inline-start: 18px; }
+.saas-audit-reason { margin: 0 0 4px; overflow-wrap: anywhere; }
+.saas-table-wrap { overflow-x: auto; }
+.saas-onboarding { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.saas-onboarding__step h2 { font-size: 1.05rem; margin: 0 0 6px; }
+.saas-onboarding__step p { margin: 4px 0; }
+
+/* HQ billing (1.17, SA.8): summary figures and the printable invoice and statement. */
+.saas-figure { font-size: 1.5rem; font-weight: 600; margin: 4px 0; overflow-wrap: anywhere; }
+.saas-invoice tfoot th, .saas-invoice tfoot td { border-top: 1px solid var(--md-sys-color-outline-variant, var(--md-sys-color-outline)); }
+@media print {
+    .saas-bar, .saas-print-hide, .saas-ok, .saas-error { display: none !important; }
+    .saas-main { max-width: none; padding: 0; }
+    .saas-card { border: 0; box-shadow: none; padding: 0; }
+    .saas-table-wrap { overflow: visible; }
+}

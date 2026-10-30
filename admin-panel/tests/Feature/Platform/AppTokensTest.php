@@ -10,9 +10,9 @@ use Tests\Support\SignInFixtures;
 use Tests\TestCase;
 
 /**
- * App tokens are named after their app. Signing in revokes the account's
- * earlier tokens for the same app only; signing out revokes that app's tokens;
- * a password change revokes every other token.
+ * App tokens are named after their app. An account can be signed in to the
+ * same app on several devices (up to AppTokens::MAX_DEVICES_PER_APP); signing
+ * out ends only that device; a password change revokes every other token.
  */
 class AppTokensTest extends TestCase
 {
@@ -26,7 +26,7 @@ class AppTokensTest extends TestCase
         $this->buildSignInSchool();
     }
 
-    public function test_signing_in_again_revokes_the_previous_token_of_each_app(): void
+    public function test_signing_in_on_another_device_keeps_the_first_device_signed_in(): void
     {
         foreach ([
             ['student/login', ['gr_number' => 'GR-LEO', 'password' => 'secret123'], 'learner', AppTokens::STUDENT, 'student/get-profile-data'],
@@ -39,10 +39,10 @@ class AppTokensTest extends TestCase
             $second = $this->postJson('/api/'.$login, $credentials)->assertJson(['error' => false])->json('token');
 
             $tokens = $this->person($person)->tokens()->get();
-            $this->assertSame([$app], $tokens->pluck('name')->all(), "$login keeps one token, named for the app");
+            $this->assertSame([$app, $app], $tokens->pluck('name')->all(), "$login keeps a token per device, named for the app");
 
             $this->anotherDevice();
-            $this->withToken($first)->getJson('/api/'.$profile)->assertUnauthorized();
+            $this->withToken($first)->getJson('/api/'.$profile)->assertOk()->assertJson(['error' => false]);
             $this->anotherDevice();
             $this->withToken($second)->getJson('/api/'.$profile)->assertOk()->assertJson(['error' => false]);
         }
@@ -60,10 +60,11 @@ class AppTokensTest extends TestCase
         AppTokens::issue($teacher, AppTokens::PARENT);
 
         $names = $teacher->tokens()->pluck('name')->sort()->values()->all();
-        $this->assertSame(['Tom', AppTokens::PARENT, AppTokens::TEACHER], $names);
+        $this->assertSame(['Tom', AppTokens::PARENT, AppTokens::PARENT, AppTokens::TEACHER], $names);
         $this->assertNotNull($teacher->tokens()->find($teacherApp->accessToken->id));
         $this->assertNotNull($teacher->tokens()->find($legacy->accessToken->id), 'an unnamed token may belong to the other app');
-        $this->assertNull($teacher->tokens()->find($oldParentApp->accessToken->id));
+        // Each phone keeps its own sign-in (up to AppTokens::MAX_DEVICES_PER_APP per app).
+        $this->assertNotNull($teacher->tokens()->find($oldParentApp->accessToken->id));
     }
 
     public function test_tokens_from_before_app_names_go_when_the_account_has_only_this_app(): void
@@ -77,18 +78,32 @@ class AppTokensTest extends TestCase
         $this->assertSame([AppTokens::PARENT], $parent->tokens()->pluck('name')->all());
     }
 
-    public function test_signing_out_revokes_that_apps_tokens_only(): void
+    public function test_signing_out_ends_only_that_device(): void
     {
         $teacher = $this->person('teacher');
         $teacher->assignRole('Parent');
         $parentToken = $teacher->createToken(AppTokens::PARENT);
         $teacherToken = $teacher->createToken(AppTokens::TEACHER)->plainTextToken;
-        $teacher->createToken(AppTokens::TEACHER);
+        $tablet = $teacher->createToken(AppTokens::TEACHER);
 
         $this->withToken($teacherToken)->postJson('/api/logout')->assertOk()->assertJson(['error' => false]);
 
-        $this->assertSame([AppTokens::PARENT], $teacher->tokens()->pluck('name')->all());
+        $this->assertSame([AppTokens::PARENT, AppTokens::TEACHER], $teacher->tokens()->orderBy('id')->pluck('name')->all());
         $this->assertNotNull($teacher->tokens()->find($parentToken->accessToken->id));
+        $this->assertNotNull($teacher->tokens()->find($tablet->accessToken->id), 'the teacher stays signed in on the other device');
+    }
+
+    public function test_signing_in_beyond_the_device_limit_signs_the_oldest_device_out(): void
+    {
+        $parent = $this->person('parent');
+        $old = collect(range(1, AppTokens::MAX_DEVICES_PER_APP))->map(fn () => $parent->createToken(AppTokens::PARENT)->accessToken->id);
+
+        AppTokens::issue($parent, AppTokens::PARENT);
+
+        $ids = $parent->tokens()->where('name', AppTokens::PARENT)->pluck('id');
+        $this->assertCount(AppTokens::MAX_DEVICES_PER_APP, $ids);
+        $this->assertFalse($ids->contains($old->first()), 'the oldest device is signed out');
+        $this->assertTrue($ids->contains($old->last()));
     }
 
     public function test_a_password_change_revokes_every_other_token(): void
