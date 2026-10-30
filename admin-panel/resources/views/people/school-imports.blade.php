@@ -27,8 +27,8 @@
             @else
                 {{ __('One row per learner: admission number, names, and the homeroom (for example Grade 8 B, or the grade and letter). Add the LURITS number, date of birth, gender and up to two guardians with their email addresses when you have them. Learners already at the school are left alone, so you can import the same file again.') }}
             @endif
-            <a href="{{ route('school-imports.template', $kind) }}">{{ __('Download a template') }}</a>
         </p>
+        <p><a class="m3-button m3-button--text" href="{{ route('school-imports.template', $kind) }}">{{ __('Download a template') }}</a></p>
         <form method="POST" action="{{ route('school-imports.check') }}" enctype="multipart/form-data" aria-label="{{ __('Choose the file') }}">
             @csrf
             <input type="hidden" name="kind" value="{{ $kind }}">
