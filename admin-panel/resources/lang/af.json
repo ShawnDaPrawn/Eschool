@@ -5854,5 +5854,15 @@
     "In this group last year": "Verlede jaar in hierdie groep",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Hierdie leerders was aan die einde van verlede jaar in hierdie groep, is by die skool en voldoen nou aan sy reëls. Voeg dié by wat aanhou.",
     "Add :name": "Voeg :name by",
-    "Add as member": "Voeg by as lid"
+    "Add as member": "Voeg by as lid",
+    "Email notices": "E-poskennisgewings",
+    "You will no longer get emails about \":label\" from :school.": "Jy sal nie meer e-posse oor \":label\" van :school kry nie.",
+    "You still see these notices in the NavigateEd app, and you can turn the emails back on in your notification settings there.": "Jy sien hierdie kennisgewings steeds in die NavigateEd-toep, en jy kan die e-posse weer aanskakel in jou kennisgewinginstellings daar.",
+    ":school needs to send you \":label\" by email, so it cannot be switched off here.": ":school moet \":label\" per e-pos aan jou stuur, so dit kan nie hier afgeskakel word nie.",
+    "Emails about \":label\" from :school are already off.": "E-posse oor \":label\" van :school is reeds af.",
+    "Stop emails about \":label\" from :school?": "Stop e-posse oor \":label\" van :school?",
+    "Stop these emails": "Stop hierdie e-posse",
+    "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.": "Jy sal hierdie kennisgewings steeds in die NavigateEd-toep sien. Kennisgewings wat die skool aan jou moet stuur, soos rekening- en veiligheidskennisgewings, kom steeds per e-pos.",
+    "Open NavigateEd": "Maak NavigateEd oop",
+    "You can change all your notices in the NavigateEd app.": "Jy kan al jou kennisgewings in die NavigateEd-toep verander."
 }

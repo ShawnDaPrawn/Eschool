@@ -5854,5 +5854,15 @@
     "In this group last year": "Ebelikuleli qembu ngonyaka odlule",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Laba bafundi bebeseqenjini ekupheleni konyaka odlule, basesikoleni futhi bayayihlangabezana nemithetho yalo manje. Engeza labo abaqhubekayo.",
     "Add :name": "Engeza u-:name",
-    "Add as member": "Engeza njengelungu"
+    "Add as member": "Engeza njengelungu",
+    "Email notices": "Izaziso ze-imeyili",
+    "You will no longer get emails about \":label\" from :school.": "Ngeke usathola ama-imeyili mayelana ne-\":label\" avela ku-:school.",
+    "You still see these notices in the NavigateEd app, and you can turn the emails back on in your notification settings there.": "Usazibona lezi zaziso ku-app ye-NavigateEd, futhi ungavula futhi ama-imeyili kuzilungiselelo zakho zezaziso lapho.",
+    ":school needs to send you \":label\" by email, so it cannot be switched off here.": ":school kudingeka ikuthumelele i-\":label\" nge-imeyili, ngakho ngeke kuvalwe lapha.",
+    "Emails about \":label\" from :school are already off.": "Ama-imeyili mayelana ne-\":label\" avela ku-:school asevaliwe.",
+    "Stop emails about \":label\" from :school?": "Misa ama-imeyili mayelana ne-\":label\" avela ku-:school?",
+    "Stop these emails": "Misa lawa ma-imeyili",
+    "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.": "Usazozibona lezi zaziso ku-app ye-NavigateEd. Izaziso isikole okufanele sikuthumelele zona, njengezaziso ze-akhawunti nezokuphepha, ziyaqhubeka zifika nge-imeyili.",
+    "Open NavigateEd": "Vula i-NavigateEd",
+    "You can change all your notices in the NavigateEd app.": "Ungashintsha zonke izaziso zakho ku-app ye-NavigateEd."
 }
