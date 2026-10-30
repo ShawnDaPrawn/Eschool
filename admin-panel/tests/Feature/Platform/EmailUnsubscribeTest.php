@@ -7,6 +7,7 @@ namespace Tests\Feature\Platform;
 use App\Jobs\Platform\SendMail;
 use App\Mail\Platform\NotificationMail;
 use App\Models\User;
+use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Notifications\EmailUnsubscribe;
 use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Notifications\Notifier;
@@ -97,15 +98,36 @@ class EmailUnsubscribeTest extends TestCase
 
         // A person opening the link sees what it does and confirms.
         app(CurrentSchool::class)->forget();
-        $this->get($mail->unsubscribeUrl)->assertOk()->assertSee('Stop emails about "School notice" from');
+        $this->get($mail->unsubscribeUrl)->assertOk()->assertSee('Stop optional emails about "School notice" at every school?');
         $this->assertTrue($this->emailOn($parent, 'comms.notice'), 'opening the link changes nothing');
 
         // A mail provider's one-click POST: no session, no CSRF token, the signature is the authority.
-        $this->post($mail->unsubscribeUrl, ['List-Unsubscribe' => 'One-Click'])->assertOk()->assertSee('You will no longer get emails about');
+        $this->post($mail->unsubscribeUrl, ['List-Unsubscribe' => 'One-Click'])->assertOk()->assertSee('Optional emails about');
         $this->assertFalse($this->emailOn($parent, 'comms.notice'));
         $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => app(NotificationRules::class)->allows($parent, 'comms.notice', 'push')), 'only email is switched off');
-        $this->post($mail->unsubscribeUrl)->assertOk()->assertSee('You will no longer get emails about');
+        $this->post($mail->unsubscribeUrl)->assertOk()->assertSee('Optional emails about');
         $this->assertSame(1, DB::table('notification_preferences')->where('user_id', $parent->id)->where('type', 'comms.notice')->where('channel', 'email')->where('enabled', false)->count());
+    }
+
+    public function test_the_confirmation_discloses_the_global_preference_and_required_notices_still_arrive(): void
+    {
+        $parent = $this->parent();
+        app(MembershipService::class)->grant($parent, 2, 'Parent');
+        app(NotificationRules::class)->choose($parent, 'comms.notice', 'email', true);
+        $url = app(CurrentSchool::class)->run(1, fn () => app(EmailUnsubscribe::class)->url($parent, 'comms.notice'));
+        app(CurrentSchool::class)->forget();
+
+        $this->get($url)->assertOk()
+            ->assertSee('at every school?')
+            ->assertSee('This preference applies at every school you belong to. Required notices keep coming by email.');
+        $this->post($url)->assertOk()->assertSee('are now off at every school.');
+        foreach ([1, 2] as $school) {
+            app(CurrentSchool::class)->run($school, function () use ($parent) {
+                app(NotificationRules::class)->forget();
+                $this->assertFalse(app(NotificationRules::class)->allows($parent, 'comms.notice', 'email'));
+                $this->assertTrue(app(NotificationRules::class)->allows($parent, 'attendance.absence', 'email'));
+            });
+        }
     }
 
     public function test_a_required_notice_never_carries_it_and_cannot_be_switched_off_through_a_link(): void
