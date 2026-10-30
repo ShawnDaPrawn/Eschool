@@ -98,6 +98,45 @@ class RoleEditorTest extends TestCase
         $this->assertSame($this->expected(['groups' => 'manage', 'people' => 'view']), $this->names($role));
     }
 
+    public function test_a_partial_grant_in_a_switched_off_module_is_kept_even_when_extras_are_dropped(): void
+    {
+        app(ModuleGate::class)->change('cards', false, $this->superAdmin());
+        $role = Role::query()->create(['name' => 'Card clerk', 'custom_role' => 1, 'guard_name' => 'web']);
+        $role->givePermissionTo('cards-manage', 'student-list');
+        $described = $this->editor()->describe($role->fresh());
+        $this->assertSame([false, 'none'], [$described['modules']['cards']['visible'], $described['modules']['cards']['level']]);
+        $this->assertSame(['cards-manage', 'student-list'], $described['extras']);
+
+        $this->editor()->save($this->superAdmin(), $role->fresh(), ['name' => 'Card clerk', 'levels' => ['communication' => 'view'], 'keep_extras' => false]);
+
+        $expected = collect([...$this->expected(['communication' => 'view']), 'cards-manage'])->sort()->values()->all();
+        $this->assertSame($expected, $this->names($role), 'the hidden Cards grant stays; the visible People leftover goes');
+    }
+
+    public function test_a_failed_save_shows_unticked_abilities_as_unticked(): void
+    {
+        $choices = ['name' => 'Registrar', 'levels' => [], 'abilities' => ['people' => ['sensitive_profiles'], 'academics' => ['marks_view_all']], 'confirm_sensitive' => true];
+        $role = $this->editor()->save($this->superAdmin(), null, $choices);
+        $this->editor()->save($this->superAdmin(), null, ['name' => 'Taken', 'levels' => []]);
+        $role->givePermissionTo('student-list');
+        $edit = route('role-access.edit', $role->id);
+        $checked = fn (string $module, string $value) => '/name="abilities\\['.$module.'\\]\\[\\]" value="'.$value.'" checked/';
+
+        $this->actingAs($this->superAdmin(), 'web');
+        $page = $this->get($edit)->getContent();
+        $this->assertMatchesRegularExpression($checked('people', 'sensitive_profiles'), $page, 'held abilities start ticked');
+        $this->assertMatchesRegularExpression($checked('academics', 'marks_view_all'), $page);
+        $this->assertMatchesRegularExpression('/name="keep_extras" value="1" checked/', $page);
+        // Nothing ticked in People, "Keep them" unticked, and a name that is taken.
+        $this->from($edit)->put(route('role-access.update', $role->id), ['name' => 'Taken', 'levels' => ['people' => 'view'], 'keep_extras' => '0'])
+            ->assertRedirect($edit)->assertSessionHasErrors('name');
+        $page = $this->get($edit)->assertOk()->getContent();
+        $this->assertDoesNotMatchRegularExpression($checked('people', 'sensitive_profiles'), $page);
+        $this->assertDoesNotMatchRegularExpression($checked('academics', 'marks_view_all'), $page);
+        $this->assertDoesNotMatchRegularExpression('/name="keep_extras" value="1" checked/', $page);
+        $this->assertContains('marks-view-all', $this->names($role), 'nothing was saved');
+    }
+
     public function test_permissions_from_the_old_editor_are_kept_unless_dropped(): void
     {
         $role = Role::query()->create(['name' => 'Legacy clerk', 'custom_role' => 1, 'guard_name' => 'web']);

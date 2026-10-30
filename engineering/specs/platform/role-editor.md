@@ -20,9 +20,13 @@ stays available for now.
   `ModuleAccess::permissionsForChoices`, limited to what a custom role may hold
   (the Super Admin set less retired permissions). Policies keep checking the
   same permission names.
-- **Modules the school has switched off are hidden** and keep whatever the
-  role already holds in them, so switching a module off and editing a role does
-  not silently remove access the school will want back.
+- **Modules the school has switched off are hidden** and keep every
+  permission the role already holds in them (even a partial grant no level
+  explains, and whether or not "Keep them" is ticked), so switching a module off
+  and editing a role does not silently remove access the school will want back.
+- **A failed save shows what was sent.** After a validation error the form
+  re-ticks only the abilities (and "Keep them") that were submitted; an
+  ability group with nothing ticked counts as empty, not as the held abilities.
 - **Permissions no level explains** (from the checkbox editor, such as two of
   the six People view permissions) are listed and kept unless the
   administrator unticks "Keep them".
@@ -43,6 +47,8 @@ stays available for now.
 | No role | People at Contribute and Communication at View are saved | exactly the mapped permissions; the editor reads the levels back; audited; lowering People to View removes the higher grants |
 | A sensitive ability | saved without, then with, the confirmation; then removed | refused and nothing saved; granted and audited; removed and audited |
 | A role with Groups at Manage | Groups is switched off and the role edited | Groups permissions kept |
+| A role holding only `cards-manage` (Cards off) | edited with "Keep them" unticked | `cards-manage` kept |
+| A role holding an ordinary and a sensitive ability | saved with both unticked under a taken name | refused; the form shows both unticked |
 | A checkbox-editor role with two People permissions | edited with and without "Keep them" | listed as individual permissions; kept; then dropped |
 | Teacher or Super Admin; a built-in name; an unknown module; another school's role; a teacher user | they edit or create | 403, validation errors, not found, 403; nothing changed |
 | The panel | create, open, rename and raise a level | saved and redirected; the roles list offers "Access by module" |

@@ -5,6 +5,11 @@
     $role = $editor['role'];
     $levels = ['none' => __('No access'), 'view' => __('View'), 'contribute' => __('Contribute'), 'manage' => __('Manage')];
     $visible = collect($editor['modules'])->where('visible', true);
+    // After a failed submission the form shows what was sent: an ability group
+    // with nothing ticked is not sent at all, so it counts as empty, not as held.
+    $submitted = session()->hasOldInput();
+    $ticked = fn (string $module, string $ability, bool $held) => in_array($ability, $submitted ? (array) old('abilities.'.$module, []) : ($held ? [$ability] : []), true);
+    $keepExtras = ! $submitted || filter_var(old('keep_extras', true), FILTER_VALIDATE_BOOLEAN);
     $sensitive = $visible->flatMap(fn ($module, $key) => collect($module['abilities'])->filter(fn ($a) => $a['sensitive'])->map(fn ($a, $ability) => $a + ['module' => $key, 'key' => $ability, 'module_name' => $module['name']]));
 @endphp
 <div class="content-wrapper m3 page-content">
@@ -46,7 +51,7 @@
                     @if ($ordinary->isNotEmpty())
                         <tr><td colspan="5">
                             @foreach ($ordinary as $ability => $definition)
-                                <label><input type="checkbox" name="abilities[{{ $key }}][]" value="{{ $ability }}" @checked(in_array($ability, old('abilities.'.$key, $definition['held'] ? [$ability] : []), true))> {{ __($definition['label']) }}</label>
+                                <label><input type="checkbox" name="abilities[{{ $key }}][]" value="{{ $ability }}" @checked($ticked($key, $ability, $definition['held']))> {{ __($definition['label']) }}</label>
                             @endforeach
                         </td></tr>
                     @endif
@@ -60,7 +65,7 @@
                 <h2>{{ __('Sensitive abilities') }}</h2>
                 <p>{{ __('These open records about children’s health, wellbeing or identity, or approve money. Every grant is recorded in the audit log.') }}</p>
                 @foreach ($sensitive as $ability)
-                    <label><input type="checkbox" name="abilities[{{ $ability['module'] }}][]" value="{{ $ability['key'] }}" @checked(in_array($ability['key'], old('abilities.'.$ability['module'], $ability['held'] ? [$ability['key']] : []), true))>
+                    <label><input type="checkbox" name="abilities[{{ $ability['module'] }}][]" value="{{ $ability['key'] }}" @checked($ticked($ability['module'], $ability['key'], $ability['held']))>
                         {{ __($ability['module_name']) }}: {{ __($ability['label']) }}</label>
                 @endforeach
                 <p><label><input type="checkbox" name="confirm_sensitive" value="1"> {{ __('I confirm this role may open the sensitive records I have ticked') }}</label></p>
@@ -73,7 +78,7 @@
                 <p>{{ __('This role also holds :count permissions from the earlier editor that no level or ability above explains.', ['count' => count($editor['extras'])]) }}</p>
                 <ul>@foreach ($editor['extras'] as $permission)<li>{{ $permission }}</li>@endforeach</ul>
                 <input type="hidden" name="keep_extras" value="0">
-                <label><input type="checkbox" name="keep_extras" value="1" checked> {{ __('Keep them') }}</label>
+                <label><input type="checkbox" name="keep_extras" value="1" @checked($keepExtras)> {{ __('Keep them') }}</label>
             </div></div>
         @else
             <input type="hidden" name="keep_extras" value="1">
