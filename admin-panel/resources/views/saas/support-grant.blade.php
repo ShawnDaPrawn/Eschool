@@ -27,11 +27,20 @@
     @endif
 </div>
 
-@if ($grant['state'] === 'pending' && $canOverride)
+@if ($grant['no_approver'] ?? false)
+    <p class="saas-error" role="alert">{{ __('Nobody at this school can approve it: the school has no active Super Admin. It cannot be opened in an emergency either; contact the school.') }}</p>
+@endif
+
+@if ($grant['state'] === 'pending' && $canOverride && $grant['requester_id'] !== $me)
 <h2>{{ __('Emergency override') }}</h2>
 <form method="POST" action="{{ route('saas.support.emergency', $grant['id']) }}" class="saas-card" aria-label="{{ __('Emergency override') }}">
     @csrf
     <p>{{ __('Only when the school cannot be reached and waiting would cause harm. Access opens now, for the length asked, and the school\'s Super Admins are told at once. The reason is recorded and shown to the school.') }}</p>
+    <p>{{ __('The request must have waited :minutes minutes; you cannot override your own request; and a school that declined or ended support access in the last :hours hours is not overridden.', ['minutes' => config('support_access.override_after_minutes'), 'hours' => config('support_access.refusal_cooldown_hours')]) }}</p>
+    @if ($grant['earlier_refusal'])
+        <p class="saas-error" role="alert">{{ __('This school declined or ended a support request on :date (request #:id). The override records this.', ['date' => $grant['earlier_refusal']['at'], 'id' => $grant['earlier_refusal']['id']]) }}</p>
+    @endif
+    @unless ($grant['override_ready'])<p>{{ __('Not yet: the school has not had time to answer.') }}</p>@endunless
     <div class="saas-field">
         <label for="emergency-reason">{{ __('Why this cannot wait') }}</label>
         <textarea id="emergency-reason" name="emergency_reason" required minlength="20" maxlength="500" rows="3">{{ old('emergency_reason') }}</textarea>
@@ -49,7 +58,8 @@
         <thead><tr><th scope="col">{{ __('When (South African time)') }}</th><th scope="col">{{ __('Page') }}</th><th scope="col">{{ __('Route') }}</th><th scope="col">{{ __('Record') }}</th></tr></thead>
         <tbody>
         @foreach ($views as $view)
-            <tr><td>{{ $view['at'] }}</td><th scope="row">{{ $view['page'] }}</th><td><code>{{ $view['route'] }}</code></td><td>{{ $view['record'] ?? '—' }}</td></tr>
+            <tr><td>{{ $view['at'] }}</td><th scope="row">{{ $view['page'] }}</th><td><code>{{ $view['route'] }}</code></td>
+                <td>@if ($view['listed'] !== null){{ trans_choice('{0} No accounts listed|{1} 1 account listed|[2,*] :count accounts listed', count($view['listed']), ['count' => count($view['listed'])]) }}@if ($view['listed'] !== []) (#{{ implode(', #', $view['listed']) }})@endif @else{{ $view['record'] ?? '—' }}@endif</td></tr>
         @endforeach
         </tbody>
     </table>

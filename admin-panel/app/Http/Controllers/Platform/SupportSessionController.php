@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Platform\SupportSessionSearchRequest;
 use App\Models\Platform\SupportAccessGrant;
 use App\Services\Platform\Saas\SupportSessionPages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 
 /** The read-only pages of a support session (SA.9); support.session has already checked the grant and set the school. */
 class SupportSessionController extends Controller
@@ -21,11 +21,16 @@ class SupportSessionController extends Controller
         return view('saas.support-session.overview', $this->pages->overview() + $this->session($grant));
     }
 
-    public function people(Request $request, int $grant): View
+    /** The staff list; a query string never searches. */
+    public function people(int $grant): View
     {
-        $q = $request->query('q');
+        return view('saas.support-session.people', $this->pages->people(null) + $this->session($grant));
+    }
 
-        return view('saas.support-session.people', $this->pages->people(is_string($q) ? mb_substr($q, 0, 100) : null) + $this->session($grant));
+    /** The people search, read from a POST body so the words stay out of URLs and logs. */
+    public function search(SupportSessionSearchRequest $request, int $grant): View
+    {
+        return view('saas.support-session.people', $this->pages->people((string) $request->validated('q')) + $this->session($grant));
     }
 
     public function person(int $grant, int $person): View

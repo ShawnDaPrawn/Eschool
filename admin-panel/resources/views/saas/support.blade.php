@@ -20,7 +20,8 @@
             <tr>
                 <th scope="row"><a href="{{ route('saas.support.show', $grant['id']) }}">{{ $grant['school'] }}</a></th>
                 <td>{{ $grant['requester'] }} · {{ $grant['role'] }}</td>
-                <td><span class="saas-badge">{{ $grant['state_label'] }}</span>@if ($grant['emergency']) {{ __('(emergency)') }}@endif</td>
+                <td><span class="saas-badge">{{ $grant['state_label'] }}</span>@if ($grant['emergency']) {{ __('(emergency)') }}@endif
+                    @if ($grant['no_approver'])<br>{{ __('Nobody at this school can approve it') }}@endif</td>
                 <td>{{ $grant['requested_at'] }}</td>
                 <td>{{ $grant['expires_at'] ?? __(':minutes minutes once approved', ['minutes' => $grant['minutes']]) }}</td>
                 <td>{{ $grant['views'] }}</td>

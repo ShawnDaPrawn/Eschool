@@ -18,6 +18,7 @@ use App\Services\Platform\Tenancy\SchoolRoles;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -103,6 +104,8 @@ class SupportAccess
                 ->whereIn('status', [SupportAccessGrant::PENDING, SupportAccessGrant::ACTIVE])->lockForUpdate()->get()
                 ->contains(fn (SupportAccessGrant $grant) => in_array($grant->state(), ['pending', 'active'], true));
             abort_if($open, 409, __('You already have an open request or session for this school.'));
+            // The school's answer stands for a while: nobody asks again straight after a decline or an ended session.
+            abort_if($this->recentRefusal($schoolId) !== null, 409, __('This school declined or ended support access recently. Ask again after the cool-down, or contact the school.'));
 
             $grant = new SupportAccessGrant;
             $grant->forceFill([
@@ -132,10 +135,21 @@ class SupportAccess
         return $this->currentSchool->acrossSchools(fn (): SupportAccessGrant => DB::transaction(function () use ($actor, $grantId, $data): SupportAccessGrant {
             $grant = $this->lockAcross($grantId);
             abort_unless($grant->state() === 'pending', 409, __('Only a request still waiting for the school can be opened in an emergency.'));
+            // Two people: an Owner never overrides their own request.
+            abort_if($grant->requested_by === $actor->id, 403, __('Another Owner must decide on your own request.'));
+            // An override is for a school that cannot be reached, not a way to skip its answer.
+            $wait = (int) config('support_access.override_after_minutes', 15);
+            abort_if($grant->requested_at->copy()->addMinutes($wait)->isFuture(), 409, __('Give the school :minutes minutes to answer before an emergency override.', ['minutes' => $wait]));
+            abort_if($this->recentRefusal($grant->school_id) !== null, 409, __('This school declined or ended support access recently: its answer stands.'));
+            // Nobody to tell means nobody to see it happen: refused.
+            abort_if($this->superAdmins($grant->school_id) === [], 409, __('This school has no active Super Admin to tell, so access cannot be opened in an emergency.'));
+            $earlier = $this->lastRefusal($grant->school_id);
             $this->open($grant, $actor, ['emergency' => true, 'emergency_reason' => $data['emergency_reason']]);
             Audit::record('platform_support_access_emergency', $grant, ['status' => SupportAccessGrant::PENDING], [
                 'grant_id' => $grant->id, 'status' => SupportAccessGrant::ACTIVE, 'expires_at' => $grant->expires_at?->toIso8601String(),
-                'requested_by' => $grant->requested_by, 'reason' => $grant->emergency_reason, 'changed_by' => $actor->id,
+                'requested_by' => $grant->requested_by, 'reason' => $grant->emergency_reason,
+                'earlier_refusal' => $earlier === null ? null : ['grant_id' => (int) $earlier->id, 'status' => $earlier->status, 'at' => ($earlier->decided_at ?? $earlier->ended_at)?->toIso8601String()],
+                'changed_by' => $actor->id,
             ], $grant->school_id);
             $this->notify($grant->school_id, self::EMERGENCY, __('Navigate Ed opened emergency support access'), __('Open Support access to see who, why and until when, or to end it now.'));
 
@@ -168,13 +182,18 @@ class SupportAccess
         $this->staff($actor);
 
         return $this->currentSchool->acrossSchools(function (): array {
-            $candidates = SupportAccessGrant::acrossSchools()->whereIn('status', [SupportAccessGrant::PENDING, SupportAccessGrant::ACTIVE])->orderBy('requested_at')->limit(500)->get();
-            $open = $candidates->filter(fn (SupportAccessGrant $g) => in_array($g->state(), ['pending', 'active'], true));
+            // The open time windows are applied in SQL before the limit, so old rows that expired or lapsed never crowd out open ones.
+            $now = now();
+            $open = SupportAccessGrant::acrossSchools()->where(fn ($q) => $q
+                ->where(fn ($pending) => $pending->where('status', SupportAccessGrant::PENDING)->where('requested_at', '>', $now->copy()->subHours((int) config('support_access.pending_hours', 24))))
+                ->orWhere(fn ($active) => $active->where('status', SupportAccessGrant::ACTIVE)->whereNull('ended_at')->where('starts_at', '<=', $now)->where('expires_at', '>', $now)))
+                ->orderBy('requested_at')->orderBy('id')->limit(500)->get()
+                ->filter(fn (SupportAccessGrant $g) => in_array($g->state(), ['pending', 'active'], true));
             $recent = SupportAccessGrant::acrossSchools()->whereNotIn('id', $open->pluck('id'))->orderByDesc('requested_at')->orderByDesc('id')->limit(50)->get();
             $names = $this->names($open->merge($recent));
 
             return [
-                'open' => $open->map(fn (SupportAccessGrant $g) => $this->present($g, $names, self::TIMEZONE))->values()->all(),
+                'open' => $open->map(fn (SupportAccessGrant $g) => $this->present($g, $names, self::TIMEZONE) + $this->hqExtras($g))->values()->all(),
                 'recent' => $recent->map(fn (SupportAccessGrant $g) => $this->present($g, $names, self::TIMEZONE))->values()->all(),
             ];
         });
@@ -189,8 +208,10 @@ class SupportAccess
             $grant = SupportAccessGrant::acrossSchools()->find($grantId);
             abort_if($grant === null, 404);
             $views = SupportAccessView::acrossSchools()->where('grant_id', $grant->id);
+            $detail = $this->detail($grant, $views, $page, self::TIMEZONE, route('saas.support.show', $grant->id));
+            $detail['grant'] += $this->hqExtras($grant);
 
-            return $this->detail($grant, $views, $page, self::TIMEZONE, route('saas.support.show', $grant->id));
+            return $detail;
         });
     }
 
@@ -211,32 +232,56 @@ class SupportAccess
      */
     public function session(?User $user, int $grantId): SupportAccessGrant
     {
-        $this->staff($user);
+        if ($user === null || ! app(PlatformStaffAccess::class)->can($user, 'support.access')) {
+            self::refused($grantId, $user, 'not_support_staff');
+            abort(403);
+        }
 
         return $this->currentSchool->acrossSchools(function () use ($user, $grantId): SupportAccessGrant {
             $grant = SupportAccessGrant::acrossSchools()->find($grantId);
             // Another person's grant is the same as no grant: nothing about it is revealed.
-            abort_if($grant === null || $grant->requested_by !== (int) $user?->id, 404);
-            abort_unless($grant->isOpen(), 403, __('This support session is not open: it was not approved, it was ended, or it expired.'));
-            abort_unless($grant->scope === 'read', 403);
-            abort_unless(School::query()->whereKey($grant->school_id)->where('status', School::ACTIVE)->exists(), 403);
+            if ($grant === null || $grant->requested_by !== (int) $user->id) {
+                self::refused($grantId, $user, 'not_found');
+                abort(404);
+            }
+            if (! $grant->isOpen()) {
+                self::refused($grantId, $user, 'not_open');
+                abort(403, __('This support session is not open: it was not approved, it was ended, or it expired.'));
+            }
+            if ($grant->scope !== 'read') {
+                self::refused($grantId, $user, 'scope');
+                abort(403);
+            }
+            if (! School::query()->whereKey($grant->school_id)->where('status', School::ACTIVE)->exists()) {
+                self::refused($grantId, $user, 'school_inactive');
+                abort(403);
+            }
 
             return $grant;
         });
     }
 
+    /** A refused session attempt leaves a trace in the application log (no database write). */
+    public static function refused(?int $grantId, mixed $user, string $reason): void
+    {
+        Log::notice('support_session_refused', ['grant_id' => $grantId, 'user_id' => $user instanceof User ? (int) $user->id : null, 'reason' => $reason]);
+    }
+
     /** A page viewed in the session: its route name and the record id from its route, never its content. */
-    public function recordView(SupportAccessGrant $grant, User $user, string $route, ?string $recordType, ?int $recordId): void
+    /** @param  list<int>|null  $listed  the ids of the accounts a list or search showed */
+    public function recordView(SupportAccessGrant $grant, User $user, string $route, ?string $recordType, ?int $recordId, ?array $listed = null): void
     {
         abort_unless($this->currentSchool->supportGrantId() === $grant->id && $this->currentSchool->id() === $grant->school_id, 403);
         $view = new SupportAccessView;
         $view->forceFill([
             'school_id' => $grant->school_id, 'grant_id' => $grant->id, 'user_id' => $user->id, 'route_name' => mb_substr($route, 0, 191),
-            'record_type' => $recordType === null ? null : mb_substr($recordType, 0, 32), 'record_id' => $recordId, 'viewed_at' => now(),
+            'record_type' => $recordType === null ? null : mb_substr($recordType, 0, 32), 'record_id' => $recordId,
+            'listed' => $listed === null ? null : array_values(array_map('intval', $listed)), 'viewed_at' => now(),
         ])->save();
-        Audit::record('platform_support_page_viewed', null, [], [
-            'grant_id' => $grant->id, 'route' => $view->route_name, 'record' => $view->record_type, 'record_id' => $recordId, 'changed_by' => $user->id,
-        ], $grant->school_id);
+        Audit::record('platform_support_page_viewed', null, [], array_filter([
+            'grant_id' => $grant->id, 'route' => $view->route_name, 'record' => $view->record_type, 'record_id' => $recordId,
+            'listed' => $view->listed, 'changed_by' => $user->id,
+        ], fn ($value) => $value !== null), $grant->school_id);
     }
 
     // ------------------------------------------------------------ School
@@ -297,6 +342,7 @@ class SupportAccess
 
         return DB::transaction(function () use ($actor, $grantId): SupportAccessGrant {
             $grant = $this->lockOwn($grantId);
+            abort_if($grant->requested_by === $actor->id, 403);
             abort_unless($grant->state() === 'pending', 409, __('This request is no longer waiting for a decision.'));
             $this->open($grant, $actor, []);
             Audit::record('platform_support_access_approved', $grant, ['status' => SupportAccessGrant::PENDING], [
@@ -313,6 +359,7 @@ class SupportAccess
 
         return DB::transaction(function () use ($actor, $grantId): SupportAccessGrant {
             $grant = $this->lockOwn($grantId);
+            abort_if($grant->requested_by === $actor->id, 403);
             abort_unless($grant->state() === 'pending', 409, __('This request is no longer waiting for a decision.'));
             $grant->forceFill(['status' => SupportAccessGrant::DECLINED, 'decided_by' => $actor->id, 'decided_at' => now()])->save();
             Audit::record('platform_support_access_declined', $grant, ['status' => SupportAccessGrant::PENDING], [
@@ -328,7 +375,12 @@ class SupportAccess
     {
         $actor = $this->schoolAdmin($actor);
 
-        return DB::transaction(fn (): SupportAccessGrant => $this->close($this->lockOwn($grantId), $actor, 'school'), 3);
+        return DB::transaction(function () use ($actor, $grantId): SupportAccessGrant {
+            $grant = $this->lockOwn($grantId);
+            abort_if($grant->requested_by === $actor->id, 403);
+
+            return $this->close($grant, $actor, 'school');
+        }, 3);
     }
 
     // ----------------------------------------------------------- Helpers
@@ -383,17 +435,61 @@ class SupportAccess
     /** The school's Super Admins are told in the school, as the school's own notices are. */
     private function notify(int $schoolId, string $type, string $title, string $body): void
     {
-        $this->currentSchool->run($schoolId, function () use ($schoolId, $type, $title, $body): void {
-            $admins = SchoolMembership::query()->active()->where('school_id', $schoolId)->where('role', SchoolRoles::SUPER_ADMIN)
-                ->whereHas('user', fn ($user) => $user->where('status', 1))
-                ->whereNotIn('user_id', PlatformStaffIdentity::query()->where('active', true)->select('user_id'))
-                ->pluck('user_id')->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $admins = $this->superAdmins($schoolId);
+        $this->currentSchool->run($schoolId, function () use ($admins, $type, $title, $body): void {
             if ($admins === []) {
                 return;
             }
             $notifier = app(Notifier::class);
             $notifier->assign($notifier->makeNotice($type, $title, $body, self::LINK), $admins);
         });
+    }
+
+    /**
+     * The school's active Super Admins who can be told and can decide: never
+     * a platform staff account that also holds the role.
+     *
+     * @return list<int>
+     */
+    private function superAdmins(int $schoolId): array
+    {
+        return $this->currentSchool->run($schoolId, fn (): array => SchoolMembership::query()->active()->where('school_id', $schoolId)->where('role', SchoolRoles::SUPER_ADMIN)
+            ->whereHas('user', fn ($user) => $user->where('status', 1))
+            ->whereNotIn('user_id', PlatformStaffIdentity::query()->where('active', true)->select('user_id'))
+            ->pluck('user_id')->map(fn ($id) => (int) $id)->unique()->values()->all());
+    }
+
+    /** The school's latest decline or early end, at any time (shown with an override). */
+    private function lastRefusal(int $schoolId): ?SupportAccessGrant
+    {
+        return SupportAccessGrant::acrossSchools()->where('school_id', $schoolId)
+            ->where(fn ($q) => $q->where(fn ($d) => $d->where('status', SupportAccessGrant::DECLINED)->whereNotNull('decided_at'))
+                ->orWhere(fn ($e) => $e->where('status', SupportAccessGrant::ENDED)->where('ended_side', 'school')))
+            ->get()->sortByDesc(fn (SupportAccessGrant $g) => ($g->decided_at ?? $g->ended_at)?->getTimestamp() ?? 0)->first();
+    }
+
+    /** The school's decline or early end within the cool-down, if any. */
+    private function recentRefusal(int $schoolId): ?SupportAccessGrant
+    {
+        $refusal = $this->lastRefusal($schoolId);
+        $at = $refusal === null ? null : ($refusal->status === SupportAccessGrant::DECLINED ? $refusal->decided_at : $refusal->ended_at);
+
+        return $at !== null && $at->copy()->addHours((int) config('support_access.refusal_cooldown_hours', 24))->isFuture() ? $refusal : null;
+    }
+
+    /** What HQ needs beside a grant: whether anyone can approve it, and the school's last refusal. */
+    private function hqExtras(SupportAccessGrant $grant): array
+    {
+        $earlier = $this->lastRefusal($grant->school_id);
+        $at = $earlier === null ? null : ($earlier->status === SupportAccessGrant::DECLINED ? $earlier->decided_at : $earlier->ended_at);
+
+        return [
+            'no_approver' => $grant->state() === 'pending' && $this->superAdmins($grant->school_id) === [],
+            'earlier_refusal' => $earlier === null || $earlier->id === $grant->id ? null : [
+                'id' => (int) $earlier->id, 'status' => $earlier->status, 'at' => $this->local($at, self::TIMEZONE),
+            ],
+            'override_ready' => $grant->state() === 'pending' && ! $grant->requested_at->copy()->addMinutes((int) config('support_access.override_after_minutes', 15))->isFuture(),
+        ];
     }
 
     private function detail(SupportAccessGrant $grant, mixed $views, int $page, string $timezone, string $path): array
@@ -411,6 +507,7 @@ class SupportAccess
             'views' => $paginator->through(fn (SupportAccessView $view) => [
                 'at' => $this->local($view->viewed_at, $timezone, 'Y-m-d H:i:s'), 'page' => self::pageLabel($view->route_name),
                 'route' => $view->route_name, 'record' => $view->record_type === null ? null : $view->record_type.' #'.$view->record_id,
+                'listed' => $view->listed,
             ]),
             'timezone' => $timezone,
         ];
@@ -425,7 +522,7 @@ class SupportAccess
             'role' => (string) (config('platform_roles.'.$grant->requester_role.'.label') ?? $grant->requester_role),
             'reason' => $grant->reason, 'scope' => (string) (config('support_access.scopes.'.$grant->scope) ?? $grant->scope),
             'minutes' => (int) $grant->minutes, 'state' => $grant->state(), 'state_label' => __(self::STATES[$grant->state()] ?? $grant->state()),
-            'emergency' => (bool) $grant->emergency,
+            'emergency' => (bool) $grant->emergency, 'emergency_reason' => $grant->emergency_reason,
             'requested_at' => $this->local($grant->requested_at, $timezone), 'starts_at' => $this->local($grant->starts_at, $timezone),
             'expires_at' => $this->local($grant->expires_at, $timezone),
             'views' => (int) SupportAccessView::acrossSchools()->where('grant_id', $grant->id)->count(),
@@ -457,7 +554,8 @@ class SupportAccess
     {
         return match ($route) {
             'support-session.show' => __('School overview'),
-            'support-session.people' => __('People search'),
+            'support-session.people' => __('Staff list'),
+            'support-session.people.search' => __('People search'),
             'support-session.person' => __('One account'),
             default => $route,
         };

@@ -5908,5 +5908,7 @@
     "Navigate Ed asks for support access": "I-Navigate Ed icela ukufinyelela kokusekela",
     "Open Support access to approve or decline the request.": "Vula Ukufinyelela kokusekela ukuze uvume noma wenqabe isicelo.",
     "Navigate Ed opened emergency support access": "I-Navigate Ed ivule ukufinyelela kokusekela okuphuthumayo",
-    "Open Support access to see who, why and until when, or to end it now.": "Vula Ukufinyelela kokusekela ukuze ubone ukuthi ubani, kungani futhi kuze kube nini, noma ukuqede manje."
+    "Open Support access to see who, why and until when, or to end it now.": "Vula Ukufinyelela kokusekela ukuze ubone ukuthi ubani, kungani futhi kuze kube nini, noma ukuqede manje.",
+    "Staff list": "Uhlu lwabasebenzi",
+    "{0} No accounts listed|{1} 1 account listed|[2,*] :count accounts listed": "{0} Awekho ama-akhawunti abhaliwe|{1} I-akhawunti eli-1 libhaliwe|[2,*] Ama-akhawunti angu-:count abhaliwe"
 }

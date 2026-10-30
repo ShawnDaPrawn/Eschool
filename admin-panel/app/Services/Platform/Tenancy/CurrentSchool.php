@@ -88,8 +88,29 @@ class CurrentSchool
         $this->applied();
     }
 
-    /** Forget the school: back to the rules above for "nothing set". */
+    /**
+     * Forget the school: back to the rules above for "nothing set". Refused
+     * inside a support session, which only the request boundary ends
+     * (reset()). Jobs and the console never hold one, so they are unaffected.
+     */
     public function forget(): void
+    {
+        if ($this->supportGrant !== null) {
+            throw new LogicException('A support session ends only with its request.');
+        }
+        $this->clear();
+    }
+
+    /**
+     * Nothing set, support session included: for ResetSchoolContext at the
+     * start of each request (and tests), never for code inside a request.
+     */
+    public function reset(): void
+    {
+        $this->clear();
+    }
+
+    private function clear(): void
     {
         $this->id = null;
         $this->school = null;

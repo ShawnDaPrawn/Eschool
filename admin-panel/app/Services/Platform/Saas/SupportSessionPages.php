@@ -33,6 +33,9 @@ class SupportSessionPages
     /** Staff accounts the people page lists at most. */
     public const STAFF_LIMIT = 200;
 
+    /** The request attribute that carries the ids a page listed to the session log. */
+    public const LISTED = 'support_session.listed';
+
     public function __construct(private readonly CurrentSchool $currentSchool) {}
 
     /** The school's set-up: status, year, modules, structure and people counts. */
@@ -66,9 +69,11 @@ class SupportSessionPages
     }
 
     /**
-     * Staff accounts at the school, or the accounts whose name or email
-     * matches a search of at least three characters (learners and parents are
-     * found only by searching).
+     * Staff accounts at the school (any role but Parent and Student) when
+     * there is no search. With a search of at least three characters: staff
+     * whose name or email contains it, and any account at the school whose
+     * email is exactly it. A learner or parent is never found by a fragment.
+     * The ids shown are handed to the session log (LISTED); the words are not.
      *
      * @return array{query: string, people: list<array<string, mixed>>, searched: bool}
      */
@@ -78,21 +83,24 @@ class SupportSessionPages
         $search = trim((string) $search);
         $searched = mb_strlen($search) >= 3;
         $schoolId = $this->currentSchool->id();
-        $members = fn (Builder $q) => $q->where('school_id', $schoolId);
-        $query = User::query()->withTrashed()->whereHas('memberships', $members)->orderBy('first_name')->orderBy('last_name');
+        $staff = fn (Builder $q) => $q->where('school_id', $schoolId)->whereNotIn('role', [SchoolRoles::PARENT, SchoolRoles::STUDENT]);
+        $query = User::query()->withTrashed()->whereHas('memberships', fn (Builder $q) => $q->where('school_id', $schoolId))->orderBy('first_name')->orderBy('last_name');
         if ($searched) {
             $like = '%'.addcslashes($search, '%_\\').'%';
-            $query->where(fn (Builder $q) => $q->where('first_name', 'like', $like)->orWhere('last_name', 'like', $like)->orWhere('email', 'like', $like))
+            $query->where(fn (Builder $q) => $q
+                ->where(fn (Builder $staffMatch) => $staffMatch->whereHas('memberships', $staff)
+                    ->where(fn (Builder $words) => $words->where('first_name', 'like', $like)->orWhere('last_name', 'like', $like)->orWhere('email', 'like', $like)))
+                ->orWhereRaw('LOWER(email) = ?', [mb_strtolower($search)]))
                 ->limit(self::SEARCH_LIMIT);
         } else {
-            $query->whereHas('memberships', fn (Builder $q) => $q->where('school_id', $schoolId)->whereNotIn('role', [SchoolRoles::PARENT, SchoolRoles::STUDENT]))
-                ->limit(self::STAFF_LIMIT);
+            $query->whereHas('memberships', $staff)->limit(self::STAFF_LIMIT);
         }
         $people = $query->get(['id', 'first_name', 'last_name', 'email', 'status', 'deleted_at']);
         $roles = SchoolMembership::query()->where('school_id', $schoolId)->whereIn('user_id', $people->pluck('id'))->get(['user_id', 'role', 'status'])->groupBy('user_id');
+        request()->attributes->set(self::LISTED, $people->pluck('id')->map(fn ($id) => (int) $id)->values()->all());
 
         return [
-            'query' => $search,
+            'query' => $searched ? $search : '',
             'searched' => $searched,
             'people' => $people->map(fn (User $user) => [
                 'id' => (int) $user->id, 'name' => trim($user->first_name.' '.$user->last_name), 'email' => (string) $user->email,

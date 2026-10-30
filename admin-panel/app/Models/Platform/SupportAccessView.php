@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property string $route_name
  * @property string|null $record_type
  * @property int|null $record_id
+ * @property list<int>|null $listed
  * @property Carbon $viewed_at
  */
 class SupportAccessView extends Model
@@ -34,6 +35,6 @@ class SupportAccessView extends Model
 
     protected function casts(): array
     {
-        return ['grant_id' => 'integer', 'user_id' => 'integer', 'record_id' => 'integer', 'viewed_at' => 'datetime'];
+        return ['grant_id' => 'integer', 'user_id' => 'integer', 'record_id' => 'integer', 'listed' => 'array', 'viewed_at' => 'datetime'];
     }
 }

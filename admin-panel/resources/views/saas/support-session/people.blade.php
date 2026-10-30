@@ -4,10 +4,11 @@
 
 @section('content')
 <h1>{{ __('People') }}</h1>
-<form method="GET" action="{{ route('support-session.people', $session['grant']) }}" class="saas-card" role="search" aria-label="{{ __('Find an account') }}">
+<form method="POST" action="{{ route('support-session.people.search', $session['grant']) }}" class="saas-card" role="search" aria-label="{{ __('Find an account') }}">
+    @csrf
     <div class="saas-field">
-        <label for="people-q">{{ __('Name or email (at least three characters). Your search is not logged; the page is.') }}</label>
-        <input id="people-q" name="q" type="search" minlength="3" maxlength="100" value="{{ $query }}">
+        <label for="people-q">{{ __('A staff member\'s name or email, or the exact email address of a learner or parent. Your words are not logged; the accounts shown are, and the school sees them.') }}</label>
+        <input id="people-q" name="q" type="search" minlength="3" maxlength="191" required value="{{ $query }}">
     </div>
     <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Find') }}</button></div>
 </form>

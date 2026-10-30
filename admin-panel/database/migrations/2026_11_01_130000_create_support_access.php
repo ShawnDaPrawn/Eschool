@@ -56,6 +56,8 @@ return new class extends Migration
             // The record the page showed, from its route: parameter name and id. Never content.
             $t->string('record_type', 32)->nullable();
             $t->unsignedBigInteger('record_id')->nullable();
+            // The ids of the accounts a list or search showed (never the search words).
+            $t->json('listed')->nullable();
             $t->timestamp('viewed_at');
             $t->index(['grant_id', 'viewed_at'], 'support_access_views_grant_index');
         });

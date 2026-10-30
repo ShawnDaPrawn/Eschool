@@ -5908,5 +5908,7 @@
     "Navigate Ed asks for support access": "Navigate Ed vra vir ondersteuningstoegang",
     "Open Support access to approve or decline the request.": "Maak Ondersteuningstoegang oop om die versoek goed te keur of te weier.",
     "Navigate Ed opened emergency support access": "Navigate Ed het noodondersteuningstoegang oopgemaak",
-    "Open Support access to see who, why and until when, or to end it now.": "Maak Ondersteuningstoegang oop om te sien wie, hoekom en tot wanneer, of om dit nou te beëindig."
+    "Open Support access to see who, why and until when, or to end it now.": "Maak Ondersteuningstoegang oop om te sien wie, hoekom en tot wanneer, of om dit nou te beëindig.",
+    "Staff list": "Personeellys",
+    "{0} No accounts listed|{1} 1 account listed|[2,*] :count accounts listed": "{0} Geen rekeninge gelys nie|{1} 1 rekening gelys|[2,*] :count rekeninge gelys"
 }

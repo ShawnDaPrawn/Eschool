@@ -25,7 +25,8 @@
                 <thead><tr><th scope="col">{{ __('When') }}</th><th scope="col">{{ __('Page') }}</th><th scope="col">{{ __('Record') }}</th></tr></thead>
                 <tbody>
                 @foreach ($views as $view)
-                    <tr><td>{{ $view['at'] }}</td><th scope="row">{{ $view['page'] }}</th><td>{{ $view['record'] ?? '—' }}</td></tr>
+                    <tr><td>{{ $view['at'] }}</td><th scope="row">{{ $view['page'] }}</th>
+                        <td>@if ($view['listed'] !== null){{ trans_choice('{0} No accounts listed|{1} 1 account listed|[2,*] :count accounts listed', count($view['listed']), ['count' => count($view['listed'])]) }}@if ($view['listed'] !== []) (#{{ implode(', #', $view['listed']) }})@endif @else{{ $view['record'] ?? '—' }}@endif</td></tr>
                 @endforeach
                 </tbody>
             </table></div>

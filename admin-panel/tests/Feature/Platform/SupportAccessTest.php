@@ -24,6 +24,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Wellbeing\WellbeingAccess;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -64,7 +65,7 @@ class SupportAccessTest extends TestCase
     {
         $user = app(CurrentSchool::class)->acrossSchools(fn () => User::query()->create(['first_name' => ucfirst($role).$name, 'last_name' => 'Operator', 'email' => $role.$name.'@platform.example', 'mobile' => '', 'password' => 'Synthetic-support-password-582!', 'status' => 1]));
         PlatformStaffIdentity::query()->create(['user_id' => $user->id]);
-        PlatformAdminGrant::query()->create(['user_id' => $user->id, 'active' => true, 'role' => $role, 'expires_at' => now()->addDay()]);
+        PlatformAdminGrant::query()->create(['user_id' => $user->id, 'active' => true, 'role' => $role, 'expires_at' => now()->addDays(7)]);
 
         return $user;
     }
@@ -90,6 +91,7 @@ class SupportAccessTest extends TestCase
             'school_id' => 1, 'requested_by' => $staff->id, 'requester_role' => 'support', 'reason' => self::REASON, 'scope' => 'read', 'minutes' => 60,
             'status' => $status, 'requested_at' => now(),
             'starts_at' => $status === 'active' ? now() : null, 'expires_at' => $status === 'active' ? now()->addHour() : null,
+            'decided_at' => $status === 'declined' ? now() : null,
         ])->save();
 
         return (int) $grant->id;
@@ -162,7 +164,8 @@ class SupportAccessTest extends TestCase
         $this->get('/support-session/'.$id)->assertOk()->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Read-only support session')->assertSee((string) DB::table('schools')->where('id', 1)->value('name'))->assertDontSee(self::SCHOOL_B_MARKER);
         $this->get('/support-session/'.$id.'/people')->assertOk()->assertSee('Tara')->assertDontSee(self::SCHOOL_B_MARKER);
-        $this->get('/support-session/'.$id.'/people?q=Farid')->assertOk()->assertSee('Farid');
+        $faridEmail = User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email;
+        $this->post('/support-session/'.$id.'/people', ['q' => $faridEmail])->assertOk()->assertSee('Farid');
         // The school comes from the grant alone: neither a header nor a chosen school changes it.
         $this->withHeader('X-School-Id', '2')->withSession([(string) config('tenancy.session_key') => 2])
             ->get('/support-session/'.$id.'/people/'.$tara)->assertOk()->assertSee('Roles at this school')->assertDontSee(self::SCHOOL_B_MARKER);
@@ -170,8 +173,9 @@ class SupportAccessTest extends TestCase
         $this->assertSame(0, DB::table('school_memberships')->where('user_id', $support->id)->count());
 
         $views = DB::table('support_access_views')->where('grant_id', $id)->orderBy('id')->get();
-        $this->assertSame(['support-session.show', 'support-session.people', 'support-session.people', 'support-session.person'], $views->pluck('route_name')->all());
+        $this->assertSame(['support-session.show', 'support-session.people', 'support-session.people.search', 'support-session.person'], $views->pluck('route_name')->all());
         $this->assertSame([null, null, null, 'person'], $views->pluck('record_type')->all());
+        $this->assertSame([(int) $this->schoolA->ids['farid_user']], json_decode((string) $views[2]->listed, true));
         $this->assertSame((int) $tara, (int) $views->last()->record_id);
         $this->assertSame([1], $views->pluck('school_id')->unique()->map(fn ($v) => (int) $v)->values()->all());
         // Never content: the search words are stored nowhere.
@@ -187,7 +191,7 @@ class SupportAccessTest extends TestCase
         $this->actingAs($admin);
         $this->get('/support-access')->assertOk()->assertSee('Open now')->assertSee('See the 4 pages viewed');
         $this->get('/support-access/'.$id)->assertOk()->assertSee('One account')->assertSee('person #'.$tara)->assertSee('People search')
-            ->assertDontSee('Farid');
+            ->assertSee('1 account listed')->assertDontSee('Farid');
 
         // It expires by itself: refused afterwards, and nothing more is logged.
         $this->travel(61)->minutes();
@@ -218,6 +222,7 @@ class SupportAccessTest extends TestCase
         $this->assertSame($before, $this->state());
 
         $this->get('/saas/support/'.$id)->assertOk()->assertSee('Emergency override');
+        $this->travel(16)->minutes();
         $this->post('/saas/support/'.$id.'/emergency', ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'])
             ->assertRedirect('/saas/support/'.$id)->assertSessionHas('success');
         $grant = $this->grant($id);
@@ -235,7 +240,8 @@ class SupportAccessTest extends TestCase
         $this->get('/support-session/'.$id)->assertOk()->assertSee('Opened by emergency override.');
 
         $this->actingAs($admin);
-        $this->get('/support-access')->assertOk()->assertSee('Opened by a Navigate Ed emergency override, without your approval.');
+        $this->get('/support-access')->assertOk()->assertSee('Opened by a Navigate Ed emergency override, without your approval.')
+            ->assertSee('Emergency reason: The school office cannot be reached');
         $this->get('/support-access/'.$id)->assertOk()->assertSee('Emergency reason: The school office cannot be reached');
 
         // A request the school declined cannot be overridden.
@@ -264,7 +270,12 @@ class SupportAccessTest extends TestCase
         $this->actingAs($support)->get('/support-session/'.$id)->assertForbidden();
         $this->actingAs($admin)->post('/support-access/'.$id.'/end')->assertStatus(409);
 
+        // Ending it starts the school's cool-down: no new request for a day.
         $this->actingAs($support);
+        $before = $this->state();
+        $this->post('/saas/support', ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'])->assertStatus(409);
+        $this->assertSame($before, $this->state());
+        $this->travel(25)->hours();
         $second = $this->ask();
         $this->actingAs($admin)->post('/support-access/'.$second.'/approve')->assertRedirect();
         $this->actingAs($support)->post('/saas/support/'.$second.'/end')->assertRedirect('/saas/support/'.$second);
@@ -326,10 +337,11 @@ class SupportAccessTest extends TestCase
         $this->get('/support-session/'.$id.'/people/'.$support->id)->assertNotFound();
         $this->assertSame($before, $this->state());
 
-        $search = $this->get('/support-session/'.$id.'/people?q=Farid')->assertOk();
-        $search->assertSee(User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email);
-        $search->assertDontSee(User::acrossSchools()->findOrFail($baobabFarid)->email);
-        $this->get('/support-session/'.$id.'/people?q=principal@baobab')->assertOk()->assertSee('No account at this school matches.');
+        $this->post('/support-session/'.$id.'/people', ['q' => User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email])->assertOk()
+            ->assertSee(User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email);
+        $this->post('/support-session/'.$id.'/people', ['q' => User::acrossSchools()->findOrFail($baobabFarid)->email])->assertOk()
+            ->assertSee('No account at this school matches.')->assertDontSee(self::SCHOOL_B_MARKER);
+        $this->post('/support-session/'.$id.'/people', ['q' => 'principal@baobab'])->assertOk()->assertSee('No account at this school matches.');
 
         // School B's own grant to another staff member gives this one nothing in either school.
         $grantB = $this->forced($this->staff('support', 'b'), 'active', ['school_id' => 2]);
@@ -355,7 +367,7 @@ class SupportAccessTest extends TestCase
             }
             $this->assertSame(1, $school->id());
         } finally {
-            $school->forget();
+            $school->reset();
         }
     }
 
@@ -441,7 +453,7 @@ class SupportAccessTest extends TestCase
                 }
             }
         } finally {
-            $school->forget();
+            $school->reset();
         }
     }
 
@@ -539,5 +551,250 @@ class SupportAccessTest extends TestCase
         $state = $this->state();
         $this->post('/saas/support', $valid)->assertStatus(409);
         $this->assertSame($state, $this->state());
+    }
+
+    public function test_a_school_decline_cannot_be_defeated_by_a_new_request_or_an_override(): void
+    {
+        $support = $this->staff('support');
+        $other = $this->staff('support', 'two');
+        $owner = $this->staff('owner');
+        $admin = $this->superAdmin();
+        $valid = ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
+        $override = ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'];
+        $this->actingAs($support);
+        $first = $this->ask();
+        $this->actingAs($admin)->post('/support-access/'.$first.'/decline')->assertRedirect();
+
+        // (a) Nobody may ask the school again during the cool-down.
+        $before = $this->state();
+        foreach ([$other, $owner, $support] as $staff) {
+            $this->actingAs($staff)->post('/saas/support', $valid)->assertStatus(409);
+        }
+        $this->assertSame($before, $this->state());
+
+        $this->travel((int) config('support_access.refusal_cooldown_hours') + 1)->hours();
+        $this->actingAs($other);
+        $second = $this->ask();
+        $this->actingAs($owner);
+        $own = $this->ask();
+
+        // (b) An override needs the request to have waited for the school first.
+        $before = $this->state();
+        $this->post('/saas/support/'.$second.'/emergency', $override)->assertStatus(409);
+        $this->assertSame($before, $this->state());
+        $this->travel((int) config('support_access.override_after_minutes') + 1)->minutes();
+
+        // (c) An Owner cannot override their own request.
+        $this->post('/saas/support/'.$own.'/emergency', $override)->assertForbidden();
+        $this->assertSame($before, $this->state());
+
+        // (d) The earlier decline is shown on the override form and recorded with the override.
+        $this->get('/saas/support/'.$second)->assertOk()->assertSee('This school declined or ended a support request on');
+        $this->post('/saas/support/'.$second.'/emergency', $override)->assertRedirect('/saas/support/'.$second);
+        $this->assertSame('active', $this->grant($second)->state());
+        $audit = json_decode((string) DB::table('audit_log')->where('action', 'platform_support_access_emergency')->sole()->after, true);
+        $this->assertSame($first, $audit['earlier_refusal']['grant_id']);
+
+        // (a) An override is refused too while the school's refusal is recent.
+        $this->actingAs($support);
+        $third = $this->ask();
+        $this->actingAs($admin)->post('/support-access/'.$own.'/decline')->assertRedirect();
+        $this->travel((int) config('support_access.override_after_minutes') + 1)->minutes();
+        $before = $this->state();
+        $this->actingAs($owner)->post('/saas/support/'.$third.'/emergency', $override)->assertStatus(409);
+        $this->assertSame($before, $this->state());
+    }
+
+    public function test_people_search_logs_who_was_listed_and_finds_families_only_by_exact_email(): void
+    {
+        $support = $this->staff('support');
+        $id = $this->forced($support, 'active');
+        $farid = User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user']);
+        $asha = User::acrossSchools()->findOrFail($this->schoolA->ids['asha_user']);
+        $this->actingAs($support);
+
+        // Staff by part of a name; learners and parents never by a fragment.
+        $this->post('/support-session/'.$id.'/people', ['q' => 'Tar'])->assertOk()->assertSee('Tara');
+        $this->post('/support-session/'.$id.'/people', ['q' => 'Far'])->assertOk()->assertDontSee($farid->email)->assertSee('No account at this school matches.');
+        $this->post('/support-session/'.$id.'/people', ['q' => substr($asha->email, 0, 6)])->assertOk()->assertDontSee($asha->email);
+        $this->post('/support-session/'.$id.'/people', ['q' => strtoupper($farid->email)])->assertOk()->assertSee($farid->email);
+        // A query string never searches.
+        $this->get('/support-session/'.$id.'/people?q='.urlencode($farid->email))->assertOk()->assertDontSee($farid->email);
+
+        $views = DB::table('support_access_views')->where('grant_id', $id)->orderBy('id')->get();
+        $this->assertSame(['support-session.people.search', 'support-session.people.search', 'support-session.people.search', 'support-session.people.search', 'support-session.people'], $views->pluck('route_name')->all());
+        $this->assertSame([(int) $this->schoolA->ids['tara_user']], json_decode((string) $views[0]->listed, true));
+        $this->assertSame([], json_decode((string) $views[1]->listed, true));
+        $this->assertSame([(int) $farid->id], json_decode((string) $views[3]->listed, true));
+        // The staff list logs every account it showed.
+        $this->assertContains((int) $this->schoolA->ids['tara_user'], json_decode((string) $views[4]->listed, true));
+        $this->assertNotContains((int) $farid->id, json_decode((string) $views[4]->listed, true));
+        // Never the search words.
+        $stored = DB::table('support_access_views')->where('grant_id', $id)->get()->map(fn ($row) => json_encode($row))->implode(' ')
+            .DB::table('audit_log')->where('action', 'platform_support_page_viewed')->pluck('after')->implode(' ');
+        $this->assertStringNotContainsString(strtolower($farid->email), strtolower($stored));
+        $this->assertStringNotContainsString('"Tar"', $stored);
+        $this->assertStringNotContainsString(substr($asha->email, 0, 6), $stored);
+        $this->assertStringContainsString((string) $farid->id, (string) DB::table('audit_log')->where('action', 'platform_support_page_viewed')->orderBy('id')->skip(3)->first()->after);
+
+        $this->actingAs($this->superAdmin())->get('/support-access/'.$id)->assertOk()->assertSee('1 account listed')->assertSee('No accounts listed');
+    }
+
+    public function test_refused_session_attempts_are_logged_and_cross_site_requests_refused(): void
+    {
+        $support = $this->staff('support');
+        $pending = $this->forced($support, 'pending');
+        $open = $this->forced($support, 'active');
+        $this->actingAs($support);
+        Log::spy();
+
+        $before = $this->state();
+        $this->get('/support-session/'.$pending)->assertForbidden();
+        $this->get('/support-session/999999')->assertNotFound();
+        // A link followed from another site cannot plant a page view.
+        $this->withHeader('Sec-Fetch-Site', 'cross-site')->get('/support-session/'.$open)->assertForbidden();
+        $this->flushHeaders();
+        $this->assertSame($before, $this->state());
+        $this->withHeader('Sec-Fetch-Site', 'same-origin')->get('/support-session/'.$open)->assertOk();
+        $this->flushHeaders();
+
+        $logged = fn (string $reason, ?int $grant) => Log::shouldHaveReceived('notice')->withArgs(fn ($message, $context = []) => $message === 'support_session_refused'
+            && ($context['reason'] ?? null) === $reason && ($context['grant_id'] ?? null) === $grant && ($context['user_id'] ?? null) === (int) $support->id);
+        $logged('not_open', $pending);
+        $logged('not_found', 999999);
+        $logged('cross_site', $open);
+    }
+
+    public function test_an_override_is_refused_when_nobody_at_the_school_can_be_told(): void
+    {
+        DB::table('school_memberships')->where('school_id', self::SCHOOL_B_ID)->where('role', 'Super Admin')->update(['status' => 'ended']);
+        $support = $this->staff('support');
+        $owner = $this->staff('owner');
+        $this->actingAs($support);
+        $id = $this->ask(self::SCHOOL_B_ID);
+        $this->get('/saas/support/'.$id)->assertOk()->assertSee('Nobody at this school can approve it');
+        $this->get('/saas/support')->assertOk()->assertSee('Nobody at this school can approve it');
+
+        $this->travel((int) config('support_access.override_after_minutes') + 1)->minutes();
+        $before = $this->state();
+        $this->actingAs($owner)->post('/saas/support/'.$id.'/emergency', ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'])->assertStatus(409);
+        $this->assertSame($before, $this->state());
+        $this->assertSame('pending', $this->grant($id)->state());
+    }
+
+    public function test_the_session_lock_is_lifted_only_by_the_request_reset(): void
+    {
+        $support = $this->staff('support');
+        $id = $this->forced($support, 'active');
+        $school = app(CurrentSchool::class);
+        $school->supportSession(School::findOrFail(1), $id);
+        try {
+            $school->forget();
+            $this->fail('forget() lifted a support session.');
+        } catch (LogicException) {
+        }
+        $this->assertTrue($school->isSupportSession());
+        $this->assertSame(1, $school->id());
+        $school->reset();
+        $this->assertFalse($school->isSupportSession());
+        $this->assertFalse($school->isSet());
+        // Without a session, forget() works as before (jobs, the console).
+        $school->set(1);
+        $school->forget();
+        $this->assertFalse($school->isSet());
+
+        // A request after a session starts clean.
+        $this->actingAs($support)->get('/support-session/'.$id)->assertOk();
+        $this->assertFalse(app(CurrentSchool::class)->isSupportSession());
+    }
+
+    public function test_the_requester_can_never_decide_their_own_request(): void
+    {
+        $support = $this->staff('support');
+        $this->actingAs($support);
+        $id = $this->ask();
+        // No longer platform staff, and now a Super Admin of the school.
+        PlatformStaffIdentity::query()->where('user_id', $support->id)->update(['active' => false]);
+        app(CurrentSchool::class)->run(1, fn () => $support->assignRole('Super Admin'));
+        app(CurrentSchool::class)->forget();
+
+        $before = $this->state();
+        $this->actingAs($support)->post('/support-access/'.$id.'/approve')->assertForbidden();
+        $this->post('/support-access/'.$id.'/decline')->assertForbidden();
+        $this->assertSame($before, $this->state());
+        $this->assertSame('pending', $this->grant($id)->state());
+    }
+
+    public function test_restricted_authorities_refuse_a_support_session_without_the_impersonation_flag(): void
+    {
+        $support = $this->staff('support');
+        $id = $this->forced($support, 'active');
+        foreach (['wellbeing', 'early_warning', 'support_plans', 'discipline', 'family_forms'] as $module) {
+            app(CurrentSchool::class)->run(1, fn () => SchoolModule::query()->updateOrCreate(['module' => $module], ['enabled' => true, 'in_package' => true, 'read_only' => false]));
+        }
+        $counsellor = app(CurrentSchool::class)->run(1, function (): User {
+            $user = User::query()->create(['first_name' => 'Cleo', 'last_name' => 'Counsellor', 'email' => 'cleo@jacaranda.example', 'mobile' => '', 'password' => 'Synthetic-support-password-913!', 'status' => 1]);
+            $user->assignRole('Counsellor');
+
+            return $user;
+        });
+        app(CurrentSchool::class)->forget();
+        $tara = User::acrossSchools()->findOrFail($this->schoolA->ids['tara_user']);
+        $admin = $this->superAdmin();
+        $calls = [
+            'wellbeing' => fn () => app(WellbeingAccess::class)->environment(),
+            'risk' => fn () => app(RiskAuthority::class)->enabled(),
+            'risk-actor' => fn () => app(RiskAuthority::class)->actor($tara),
+            'support-plans' => fn () => app(SupportAuthority::class)->actor($tara),
+            'counselling' => fn () => app(SensitiveRecordsAccess::class)->actor($counsellor),
+            'discipline' => fn () => app(DisciplineAuthority::class)->enabled(),
+            'learner-notes' => fn () => app(LearnerNotesPolicy::class)->enabled(),
+            'health' => fn () => app(HealthForms::class)->person($admin, (int) $this->schoolA->ids['asha']),
+        ];
+        $school = app(CurrentSchool::class);
+
+        // Control: in the school itself, each of these lets these people through.
+        $school->set(1);
+        foreach ($calls as $kind => $call) {
+            if ($kind !== 'health') {
+                $call();
+            }
+        }
+
+        // A support session with the impersonation flag forced off: the support check alone refuses.
+        $school->supportSession(School::findOrFail(1), $id);
+        (new \ReflectionProperty(CurrentSchool::class, 'impersonating'))->setValue($school, false);
+        try {
+            $this->assertFalse($school->isImpersonating());
+            foreach ($calls as $kind => $call) {
+                try {
+                    $call();
+                    $this->fail($kind.' let a support session through.');
+                } catch (HttpException $e) {
+                    $this->assertSame(403, $e->getStatusCode(), $kind);
+                }
+            }
+        } finally {
+            $school->reset();
+        }
+    }
+
+    public function test_open_requests_stay_listed_however_many_old_grants_exist(): void
+    {
+        $support = $this->staff('support');
+        $other = $this->staff('support', 'two');
+        $old = now()->subDays(3);
+        $rows = [];
+        for ($i = 0; $i < 510; $i++) {
+            $rows[] = ['school_id' => 1, 'requested_by' => $support->id, 'requester_role' => 'support', 'reason' => self::REASON, 'scope' => 'read', 'minutes' => 60,
+                'status' => $i % 2 === 0 ? 'active' : 'pending', 'requested_at' => $old, 'starts_at' => $i % 2 === 0 ? $old : null,
+                'expires_at' => $i % 2 === 0 ? $old->copy()->addHour() : null, 'created_at' => $old, 'updated_at' => $old];
+        }
+        DB::table('support_access_grants')->insert($rows);
+        $this->actingAs($other);
+        $id = $this->ask();
+
+        $open = app(SupportAccess::class)->hqList($other)['open'];
+        $this->assertSame([$id], array_column($open, 'id'));
     }
 }

@@ -5908,5 +5908,7 @@
     "Navigate Ed asks for support access": "Navigate Ed asks for support access",
     "Open Support access to approve or decline the request.": "Open Support access to approve or decline the request.",
     "Navigate Ed opened emergency support access": "Navigate Ed opened emergency support access",
-    "Open Support access to see who, why and until when, or to end it now.": "Open Support access to see who, why and until when, or to end it now."
+    "Open Support access to see who, why and until when, or to end it now.": "Open Support access to see who, why and until when, or to end it now.",
+    "Staff list": "Staff list",
+    "{0} No accounts listed|{1} 1 account listed|[2,*] :count accounts listed": "{0} No accounts listed|{1} 1 account listed|[2,*] :count accounts listed"
 }

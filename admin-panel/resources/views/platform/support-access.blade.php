@@ -37,7 +37,8 @@
             @foreach ($open as $grant)
                 <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
                     <h3>{{ __(':person (Navigate Ed :role) until :time', ['person' => $grant['requester'], 'role' => $grant['role'], 'time' => $grant['expires_at']]) }}</h3>
-                    @if ($grant['emergency'])<p role="alert">{{ __('Opened by a Navigate Ed emergency override, without your approval.') }}</p>@endif
+                    @if ($grant['emergency'])<p role="alert">{{ __('Opened by a Navigate Ed emergency override, without your approval.') }}</p>
+                        <p>{{ __('Emergency reason: :reason', ['reason' => $grant['emergency_reason']]) }}</p>@endif
                     <p>{{ __('Reason: :reason', ['reason' => $grant['reason']]) }}</p>
                     <p><a href="{{ route('support-access.show', $grant['id']) }}">{{ trans_choice('{0} No pages viewed yet|{1} See the 1 page viewed|[2,*] See the :count pages viewed', $grant['views'], ['count' => $grant['views']]) }}</a></p>
                     <form method="POST" action="{{ route('support-access.end', $grant['id']) }}" aria-label="{{ __('End it now') }}">
@@ -62,7 +63,7 @@
                     <tr>
                         <td>{{ $grant['requested_at'] }}</td>
                         <th scope="row">{{ $grant['requester'] }}</th>
-                        <td>{{ $grant['state_label'] }}@if ($grant['emergency']) · {{ __('Emergency override') }}@endif</td>
+                        <td>{{ $grant['state_label'] }}@if ($grant['emergency']) · {{ __('Emergency override') }}: {{ $grant['emergency_reason'] }}@endif</td>
                         <td><a href="{{ route('support-access.show', $grant['id']) }}">{{ $grant['views'] }}</a></td>
                     </tr>
                 @endforeach
