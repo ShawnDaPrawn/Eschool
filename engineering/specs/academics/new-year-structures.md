@@ -75,3 +75,17 @@ Rules:
 | Asha promoted and then marked as leaving on the legacy page | houses carried | nothing |
 | A teacher | each action, discipline included | 403; nothing copied |
 | School B's year as the new year | each action | not found; no rows change in either school |
+
+## Switch day (Action Plan 1.21, first part)
+
+- **Welcome.** The wizard's carry step has a choice, ticked by default: "Welcome families to *year* in the app when it becomes current". After the switch, in the same transaction, one `school.new_year` notice goes to the learners enrolled in the new year on its first day (or today, if later) and their current guardians (`GuardianService::guardianUserIds`). It says "Welcome to *year*", gives the first day and links to the timetable (`/academics/timetable`). It names no learner or homeroom. Leavers and their families get nothing. The result reports how many people it went to.
+- **Year-end check: every class has a grade.** It counts the classes of this year's homerooms that have no grade, because promoting by grade (1.18) needs them, and links to the classes page.
+- **Deferred:** the leaver state (read-only access until 31 March, `leaver_until` on the membership, replacing deactivation at the switch) and the alumni invitation hook. Changing what a leaver can do touches every sign-in path, so it is its own piece of work.
+
+### Acceptance tests (`Academics/NewYearWelcomeTest`)
+
+| Given | When | Then |
+| --- | --- | --- |
+| Asha placed in 2027, Ben (leaving) not | switch with the welcome | one notice, "Welcome to 2027", with 13 Jan 2027 and the timetable link, to Asha, Farid and Mona only; 3 reported |
+| The same | switch without it | no notice |
+| Grade 5 without a grade | year-end checks; set the grade; the wizard page; make current with `welcome` | "1 class has no grade" then done; the choice is on the page; 3 welcomed |
