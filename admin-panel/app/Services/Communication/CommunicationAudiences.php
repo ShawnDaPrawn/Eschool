@@ -114,10 +114,26 @@ class CommunicationAudiences
         return array_diff($row->definition['user_ids'], array_keys($allowed)) === [];
     }
 
-    /** How many people a smart group reaches today (the preview before saving or sending). */
+    /**
+     * How many people a smart group reaches today (the preview before saving
+     * or sending), or null when one of its rules names a group that is no
+     * longer active: the group stays editable so the rule can be removed, and
+     * sending still refuses it.
+     */
     public function count(Audience $row): ?int
     {
-        return $row->isSmart() ? count(app(CommunicationRecipients::class)->smart($row->definition, app(AcademicAuthority::class)->today())) : null;
+        if (! $row->isSmart()) {
+            return null;
+        }
+        try {
+            return count(app(CommunicationRecipients::class)->smart($row->definition, app(AcademicAuthority::class)->today()));
+        } catch (HttpExceptionInterface|ModelNotFoundException $error) {
+            if ($error instanceof HttpExceptionInterface && $error->getStatusCode() !== 404) {
+                throw $error;
+            }
+
+            return null;
+        }
     }
 
     public function listing(User $actor, int $year): array

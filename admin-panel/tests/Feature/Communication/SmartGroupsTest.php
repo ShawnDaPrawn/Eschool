@@ -6,6 +6,7 @@ namespace Tests\Feature\Communication;
 
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingAllocation;
+use App\Models\Academics\TeachingGroup;
 use App\Models\ClassSchool;
 use App\Models\Communication\Audience;
 use App\Models\Communication\Message;
@@ -264,5 +265,15 @@ class SmartGroupsTest extends TestCase
         $this->actingAs($this->person('theo'), 'web')->get('/communication-centre?audience_id='.$panel->id)->assertNotFound();
         $this->post('/communication-centre/audiences', ['operation_id' => (string) Str::uuid(), 'revision' => 0, 'session_year_id' => $this->year,
             'kind' => 'smart', 'name' => 'Bad', 'active' => '1', 'match' => 'any', 'parents' => '0', 'rule_selectors' => ['school:0']])->assertStatus(422);
+    }
+
+    public function test_a_group_whose_rule_was_deactivated_stays_editable_but_cannot_be_sent(): void
+    {
+        $group = $this->smart(null, ['parents' => false]);
+        TeachingGroup::whereKey($this->group)->update(['active' => false]);
+        $this->assertNull(app(CommunicationAudiences::class)->count($group));
+        $this->actingAs($this->teacher(), 'web')->get('/communication-centre?audience_id='.$group->id)->assertOk()
+            ->assertSee('A rule names a group that is no longer active.')->assertSee('Save smart group');
+        $this->denied(fn () => $this->toGroup($group), 404);
     }
 }

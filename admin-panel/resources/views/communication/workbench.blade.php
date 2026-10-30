@@ -79,7 +79,7 @@
     <details class="message-panel" @if($smart) open @endif><summary>{{ __('Smart groups') }}</summary>
         <p>{{ __('A smart group keeps rules, not names. It reaches whoever is in its grades, homerooms or groups when a message is previewed and again when it is sent.') }}</p>
         <a href="{{ route('communication-centre.index',['session_year_id'=>$configuration['session_year_id']]) }}">{{ __('New smart group') }}</a>
-        @if($smart)<p role="status">{{ __('People this group reaches today') }}: {{ $smartCount }}</p>@endif
+        @if($smart)<p role="status">@if($smartCount === null){{ __('A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.') }}@else{{ __('People this group reaches today') }}: {{ $smartCount }}@endif</p>@endif
         @php($ruleOptions = array_values(array_filter($configuration['scopes'], fn ($s) => in_array($s['kind'], \App\Models\Communication\Audience::RULE_KINDS, true))))
         @php($chosenRules = $smart ? array_map(fn ($rule) => $rule['kind'].':'.$rule['target_id'], $smart->definition['rules']) : [])
         @if($ruleOptions || $smart)
