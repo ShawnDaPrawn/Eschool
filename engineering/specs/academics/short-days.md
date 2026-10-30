@@ -72,7 +72,7 @@ date, never the reason or other people. The outbox event
 | The workbench | a manager plans, views and removes; others try to remove; a stale revision | saved and shown; refused; error kept on the page |
 | The family v2 week | read on the short day | matches `openapi.yaml` with `day_pattern` |
 
-Browser: `e2e/tests/academic-short-days.spec.ts` checks the form's labels,
+Browser: `e2e/tests/academic-timetable.spec.ts` checks the short-day form's labels,
 accessibility and fit at 1024 and 1280 pixels.
 
 ## Not yet
