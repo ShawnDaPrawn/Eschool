@@ -5854,5 +5854,16 @@
     "In this group last year": "In this group last year",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.",
     "Add :name": "Add :name",
-    "Add as member": "Add as member"
+    "Add as member": "Add as member",
+    "Email notices": "Email notices",
+    "You still see these notices in the NavigateEd app, and you can turn the emails back on in your notification settings there.": "You still see these notices in the NavigateEd app, and you can turn the emails back on in your notification settings there.",
+    ":school needs to send you \":label\" by email, so it cannot be switched off here.": ":school needs to send you \":label\" by email, so it cannot be switched off here.",
+    "Stop these emails": "Stop these emails",
+    "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.": "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.",
+    "Open NavigateEd": "Open NavigateEd",
+    "You can change all your notices in the NavigateEd app.": "You can change all your notices in the NavigateEd app.",
+    "Optional emails about \":label\" are now off at every school.": "Optional emails about \":label\" are now off at every school.",
+    "Optional emails about \":label\" are already off at every school.": "Optional emails about \":label\" are already off at every school.",
+    "Stop optional emails about \":label\" at every school?": "Stop optional emails about \":label\" at every school?",
+    "This preference applies at every school you belong to. Required notices keep coming by email.": "This preference applies at every school you belong to. Required notices keep coming by email."
 }
