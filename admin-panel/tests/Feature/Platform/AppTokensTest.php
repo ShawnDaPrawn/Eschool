@@ -60,10 +60,11 @@ class AppTokensTest extends TestCase
         AppTokens::issue($teacher, AppTokens::PARENT);
 
         $names = $teacher->tokens()->pluck('name')->sort()->values()->all();
-        $this->assertSame(['Tom', AppTokens::PARENT, AppTokens::TEACHER], $names);
+        $this->assertSame(['Tom', AppTokens::PARENT, AppTokens::PARENT, AppTokens::TEACHER], $names);
         $this->assertNotNull($teacher->tokens()->find($teacherApp->accessToken->id));
         $this->assertNotNull($teacher->tokens()->find($legacy->accessToken->id), 'an unnamed token may belong to the other app');
-        $this->assertNull($teacher->tokens()->find($oldParentApp->accessToken->id));
+        // Each phone keeps its own sign-in (up to AppTokens::MAX_DEVICES_PER_APP per app).
+        $this->assertNotNull($teacher->tokens()->find($oldParentApp->accessToken->id));
     }
 
     public function test_tokens_from_before_app_names_go_when_the_account_has_only_this_app(): void
