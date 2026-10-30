@@ -60,7 +60,7 @@
             <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
                 <h2>{{ __('Individual permissions') }}</h2>
                 <p>{{ __('This role also holds :count permissions from the earlier editor that no level or ability above explains.', ['count' => count($editor['extras'])]) }}</p>
-                <ul>@foreach ($editor['extras'] as $permission)<li><code>{{ $permission }}</code></li>@endforeach</ul>
+                <ul>@foreach ($editor['extras'] as $permission)<li>{{ $permission }}</li>@endforeach</ul>
                 <input type="hidden" name="keep_extras" value="0">
                 <label><input type="checkbox" name="keep_extras" value="1" checked> {{ __('Keep them') }}</label>
             </div></div>
