@@ -28,6 +28,10 @@ Earlier history is kept where it was written and is not repeated here:
   agreement, and a timeline of notes, on a new page in `/saas`. The school list
   shows each school's stage. Schools never see it, and it shows none of a
   school's people. **Deploy:** run the additive `school_accounts` migration.
+- Developers: school permissions are now described as modules with access levels
+  (view, contribute, manage) and named special abilities, in
+  `config/module_access.php`, as the foundation for a simpler role editor. No
+  permission changes for anyone.
 
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
