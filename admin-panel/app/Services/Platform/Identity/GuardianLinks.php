@@ -92,6 +92,10 @@ class GuardianLinks
             app(MembershipService::class)->forget($guardian);
             Parents::query()->firstOrCreate(['user_id' => $guardian->id], ['first_name' => $guardian->first_name, 'last_name' => $guardian->last_name,
                 'email' => $guardian->email, 'mobile' => $guardian->mobile ?? '', 'gender' => $guardian->gender ?? 'Not specified']);
+            if (! $data['can_approve']) {
+                // Adding or reactivating a guardian without the right still leaves the learner an approver.
+                $this->keepAnApprover((int) $learner->id, $existing?->id);
+            }
             $before = $existing?->getAttributes() ?? [];
             $link = $existing ?? new GuardianLink(['learner_id' => $learner->id, 'guardian_user_id' => $guardian->id]);
             $link->fill(['relationship' => $data['relationship'], 'can_approve' => (bool) $data['can_approve'], 'can_see_fees' => (bool) $data['can_see_fees'],
@@ -118,7 +122,7 @@ class GuardianLinks
             $link = GuardianLink::query()->where('status', 'active')->lockForUpdate()->findOrFail($linkId);
             $this->learner($actor, (int) $link->learner_id);
             if ($link->can_approve && ! $data['can_approve']) {
-                $this->keepAnApprover($link);
+                $this->keepAnApprover((int) $link->learner_id, (int) $link->id);
             }
             $before = $link->getAttributes();
             $link->fill(['relationship' => $data['relationship'], 'can_approve' => (bool) $data['can_approve'], 'can_see_fees' => (bool) $data['can_see_fees']])->save();
@@ -137,7 +141,7 @@ class GuardianLinks
             $link = GuardianLink::query()->where('status', 'active')->lockForUpdate()->findOrFail($linkId);
             $this->learner($actor, (int) $link->learner_id);
             if ($link->can_approve) {
-                $this->keepAnApprover($link);
+                $this->keepAnApprover((int) $link->learner_id, (int) $link->id);
             }
             $before = $link->getAttributes();
             $link->fill(['status' => 'ended', 'ended_at' => now(), 'ended_by' => $actor->id, 'ended_reason' => $data['reason']])->save();
@@ -158,10 +162,11 @@ class GuardianLinks
         }, 3);
     }
 
-    private function keepAnApprover(GuardianLink $link): void
+    /** Refuses unless the learner has an active approving guardian other than link $except. */
+    private function keepAnApprover(int $learnerId, ?int $except): void
     {
-        $others = GuardianLink::query()->where('learner_id', $link->learner_id)->where('status', 'active')->where('can_approve', true)
-            ->whereKeyNot($link->id)->lockForUpdate()->count();
+        $others = GuardianLink::query()->where('learner_id', $learnerId)->where('status', 'active')->where('can_approve', true)
+            ->when($except !== null, fn ($query) => $query->whereKeyNot($except))->lockForUpdate()->count();
         if ($others === 0) {
             throw ValidationException::withMessages(['guardian' => __('A learner must keep at least one guardian who can approve. Add another approving guardian first.')]);
         }

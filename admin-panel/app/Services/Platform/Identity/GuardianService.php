@@ -58,13 +58,17 @@ class GuardianService
             }
             $ids[] = $parent->user_id;
             $link = GuardianLink::query()->firstOrNew(['learner_id' => $learner->id, 'guardian_user_id' => $parent->user_id]);
+            if (! $link->exists) {
+                $link->source = GuardianLinks::LEGACY;
+            }
             if (! $link->exists || $learner->wasChanged($field)) {
                 $link->fill(['relationship' => $relationship, 'status' => 'active'])->save();
             }
         }
-        // Only links that came from these fields end with them; guardians the
-        // office manages directly (GuardianLinks) are never ended by a legacy edit.
-        GuardianLink::query()->where('learner_id', $learner->id)->whereIn('relationship', ['father', 'mother', 'guardian'])
+        // Only links that came from these fields end with them, whatever their
+        // relationship has since been changed to; guardians the office manages
+        // directly (GuardianLinks) are never ended by a legacy edit.
+        GuardianLink::query()->where('learner_id', $learner->id)
             ->where('source', GuardianLinks::LEGACY)->whereNotIn('guardian_user_id', $ids)->where('status', 'active')->get()
             ->each(fn (GuardianLink $link) => $link->update(['status' => 'ended']));
     }

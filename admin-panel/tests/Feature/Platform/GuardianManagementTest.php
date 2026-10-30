@@ -129,6 +129,35 @@ class GuardianManagementTest extends TestCase
 
         $this->assertSame('active', $link->fresh()->status);
         $this->assertSame('ended', $this->link($asha, 'mona')->status, 'the legacy field still governs its own link');
+
+        // An office edit of a legacy link's relationship does not detach it from its field.
+        $farid = $this->link($asha, 'farid');
+        $this->links()->update($this->superAdmin(), $farid->id, ['relationship' => 'caregiver', 'can_approve' => true, 'can_see_fees' => true]);
+        $learner->refresh()->forceFill(['father_id' => null])->save();
+        $this->assertSame(['ended', 'legacy'], [$farid->fresh()->status, $farid->fresh()->source]);
+        $this->assertNotContains($this->schoolA->ids['farid_user'], app(GuardianService::class)->guardianUserIds($learner->refresh())->all());
+    }
+
+    public function test_a_guardian_added_or_reactivated_without_approval_needs_another_approver(): void
+    {
+        $ben = $this->schoolA->ids['ben'];
+        $this->links()->list($this->superAdmin(), $ben);
+        Students::findOrFail($ben)->forceFill(['guardian_id' => null])->save();
+        $this->assertSame('ended', $this->link($ben, 'gina')->status, 'Ben has no guardian left');
+        $gina = User::findOrFail($this->schoolA->ids['gina_user']);
+        foreach ([$this->grandmother(['can_approve' => false]), ['email' => $gina->email, 'first_name' => 'Gina', 'last_name' => 'Demo', 'relationship' => 'guardian', 'can_approve' => false, 'can_see_fees' => true]] as $input) {
+            try {
+                $this->links()->add($this->superAdmin(), $ben, $input);
+                $this->fail('a learner was left without an approving guardian');
+            } catch (ValidationException $error) {
+                $this->assertArrayHasKey('guardian', $error->errors());
+            }
+        }
+        $this->assertSame(0, GuardianLink::query()->where('learner_id', $ben)->where('status', 'active')->count());
+
+        $this->links()->add($this->superAdmin(), $ben, $this->grandmother());
+        $this->assertSame([false, 'active'], [$this->links()->add($this->superAdmin(), $ben, ['email' => $gina->email, 'first_name' => 'Gina', 'last_name' => 'Demo',
+            'relationship' => 'guardian', 'can_approve' => false, 'can_see_fees' => true])->can_approve, $this->link($ben, 'gina')->status], 'with an approver, a guardian without the right can be added');
     }
 
     public function test_only_the_office_manages_guardians_and_only_for_learners_and_links_of_its_school(): void
