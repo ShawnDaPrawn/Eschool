@@ -105,8 +105,8 @@ class SchoolImportController extends Controller
     private function csv(SchoolImportRequest $request): string
     {
         $file = $request->file('file');
-        $csv = $file !== null ? (string) file_get_contents($file->getRealPath()) : (string) $request->validated('csv');
-        if (trim($csv) === '') {
+        $csv = SchoolImports::normalise($file !== null ? (string) file_get_contents($file->getRealPath()) : (string) $request->validated('csv'));
+        if ($csv === '') {
             throw ValidationException::withMessages(['csv' => __('Choose a CSV file, or paste its contents.')]);
         }
 

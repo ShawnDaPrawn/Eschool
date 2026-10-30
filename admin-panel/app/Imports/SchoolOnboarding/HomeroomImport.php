@@ -50,6 +50,8 @@ final class HomeroomImport implements OnboardingImport
         $sections = Section::query()->get();
         $rooms = ClassSection::query()->get(['class_id', 'section_id']);
         $seen = [];
+        // Classes this file makes, so two rows cannot give one class two grades.
+        $planned = [];
         $rows = [];
         foreach ($sheet->rows as $source) {
             $value = fn (string $field) => isset($mapping[$field]) ? trim((string) ($source[$mapping[$field]] ?? '')) : '';
@@ -82,7 +84,9 @@ final class HomeroomImport implements OnboardingImport
             if ($notes === []) {
                 $class = $classes->first(fn ($row) => mb_strtolower((string) $row->name) === mb_strtolower((string) $name) && (int) $row->medium_id === (int) $medium->id);
                 $section = $sections->first(fn ($row) => mb_strtoupper((string) $row->name) === $letter);
-                if ($class !== null && $class->grade_level_id !== null && (int) $class->grade_level_id !== (int) $grade->id) {
+                $classKey = mb_strtolower($name.'|'.$medium->id);
+                $plannedGrade = $class?->grade_level_id ?? ($planned[$classKey] ?? null);
+                if ($plannedGrade !== null && (int) $plannedGrade !== (int) $grade->id) {
                     $row['status'] = 'error';
                     $row['notes'][] = __(':class is already set up as a different grade. Use another class name.', ['class' => $name]);
                 } elseif ($class !== null && $section !== null && $rooms->contains(fn ($room) => (int) $room->class_id === (int) $class->id && (int) $room->section_id === (int) $section->id)) {
@@ -91,6 +95,7 @@ final class HomeroomImport implements OnboardingImport
                     if ($class !== null && $class->grade_level_id === null) {
                         $row['notes'][] = __(':class will be set to :grade.', ['class' => $name, 'grade' => $grade->name]);
                     }
+                    $planned[$classKey] = (int) $grade->id;
                     $row['data'] = ['name' => $name, 'letter' => $letter, 'grade_level_id' => (int) $grade->id, 'medium_id' => (int) $medium->id, 'class_id' => $class?->id];
                 }
             }

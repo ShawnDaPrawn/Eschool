@@ -16,7 +16,7 @@ Action Plan step 0.11 (homerooms, learners and guardians; staff follows once sta
 2. **Match the columns.** Each NavigateEd field is matched to the column whose header names it, ignoring case, spaces, underscores and dots, including common SA-SAMS and Afrikaans names ("Admission No", "Surname", "First Names", "Date of Birth", "Class", "LURITS Number", "Parent Email", "Van", "Geboortedatum"). The school can change any match. A column can serve only one field.
 3. **Settings.** Homerooms: the medium for rows that name none (defaults to the only medium). Learners: the school year (current), the date they are in their homerooms from (today, or the year's first day if it has not started), the learner category (the first), and whether to email guardians their invitations now (off).
 4. **Check the rows.** Each row is *will be imported*, *already here, left alone*, *start a transfer* or *fix this row*, with notes. Problems are listed first.
-5. **Import.** Only when no row needs fixing. Everything is written in one transaction, with the school row locked so two imports cannot run at once, after the file is checked again. If anything differs from the check the school saw (a fingerprint of the file, matches, settings and every row's result), nothing is written and the school checks again. The fingerprint ignores CRLF line ends and surrounding whitespace, which browsers and request trimming add.
+5. **Import.** Only when no row needs fixing. Everything is written in one transaction, with the school row locked so two imports cannot run at once, after the file is checked again. If anything differs from the check the school saw (a fingerprint of the file, matches, settings and every row's result), nothing is written and the school checks again. The file is kept as UTF-8 (a Windows-1252 file is converted on upload) with LF line ends, and the fingerprint ignores the CRLF line ends and surrounding whitespace that browsers and request trimming add.
 
 ## Rows
 
@@ -37,7 +37,7 @@ Action Plan step 0.11 (homerooms, learners and guardians; staff follows once sta
 - A `students` row (admission date = the start date, the first guardian as the legacy guardian).
 - An active `guardian_links` row per guardian (`can_approve`, `can_see_fees`; relationship mother, father, guardian, grandmother, grandfather, aunt, uncle, sister, brother, foster parent or other).
 - `EnrolmentService::place` in the homeroom from the start date, which assigns the NavigateEd student number.
-- `LuritsNumbers::record` with source `onboarding_import`.
+- `LuritsNumbers::record` with source `onboarding_import`. If another school claims the number between the check and this write, the whole import is rolled back and the school checks again, so no duplicate identity stands.
 - Guardians get the Parent role and a `parents` row.
 - Invitations are `GuardianInvitations::issue`, once per guardian, only when chosen. Learner approval is never granted by an import.
 - One `academics.learner_changed` outbox event.
@@ -54,6 +54,9 @@ Action Plan step 0.11 (homerooms, learners and guardians; staff follows once sta
 | Learners: new with two guardians (one existing account) and a LURITS number; "6C" with a guardian without email; an existing admission number; 31 February; an unknown homeroom; a LURITS number held at School B; a repeated admission number | check | create, create with a note, already here, error, error, start a transfer (School B not named), error |
 | The two good rows | import with invitations | two learners, enrolled in the right homerooms; the LURITS number recorded; the new guardian created with the Parent role and relationship; the existing guardian linked, not duplicated; two invitations; School B untouched; importing again leaves everything alone |
 | A learner added by hand with the same admission number after the check | import | refused |
+| Two rows giving the class "Junior" grades 8 and 9 | check | the second is an error |
+| The LURITS number claimed elsewhere between the check and the write | import | refused, nothing written |
+| A Windows-1252 upload with "Zoë" | check, then import from the page | the name shows and is saved as UTF-8; the fingerprint matches |
 | A file with a BOM, semicolons, CRLF and a blank line; a Windows-1252 file; 9.3.2015, 42072, 2015-02-30; 1,001 rows | read | read as expected; the bad date refused; too many rows refused |
 | A school administrator | open, download a template, upload, import (CRLF as a browser sends it), choose a missing column | page, CSV header, rows checked, learner imported, the missing column reported |
 | A teacher without the permissions | open, check, or call the service | 403 |

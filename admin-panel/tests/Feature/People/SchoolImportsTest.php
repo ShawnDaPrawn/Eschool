@@ -71,6 +71,32 @@ class SchoolImportsTest extends TestCase
         $this->assertSame(['exists', 'exists', 'exists', 'exists'], array_column($again['rows'], 'status'));
     }
 
+    public function test_one_class_cannot_get_two_grades_from_the_same_file(): void
+    {
+        $check = app(SchoolImports::class)->check($this->superAdmin(), 'homerooms', "Grade,Letter,Class name\n8,A,Junior\n9,B,Junior\n", null, []);
+
+        $this->assertSame(['create', 'error'], array_column($check['rows'], 'status'));
+        $this->assertStringContainsString('already set up as a different grade', implode(' ', $check['rows'][1]['notes']));
+    }
+
+    public function test_a_lurits_number_claimed_elsewhere_during_the_import_rolls_it_back(): void
+    {
+        $csv = "admission_no,first_name,last_name,homeroom,lurits\nA400,Sizwe,Ndlovu,Grade 5 A,7700000099\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'learners', $csv, null, []);
+        $this->assertSame('create', $check['rows'][0]['status']);
+        // Another school records the number between the check and the write.
+        $this->partialMock(LuritsNumbers::class, fn ($mock) => $mock->shouldReceive('record')->andReturn(LuritsNumbers::CONFLICT));
+
+        try {
+            $imports->commit($this->superAdmin(), 'learners', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
+            $this->fail('Imported a learner whose LURITS number was claimed elsewhere.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('fingerprint', $e->errors());
+        }
+        $this->assertFalse(Students::query()->where('admission_no', 'A400')->exists());
+    }
+
     public function test_sa_sams_style_headers_are_recognised(): void
     {
         $import = new LearnerImport;
@@ -202,6 +228,16 @@ class SchoolImportsTest extends TestCase
         $form['csv'] = str_replace("\n", "\r\n", $form['csv']);
         $this->actingAs($admin)->post('/school-imports', $form)->assertRedirect()->assertSessionHas('success');
         $this->assertTrue(Students::query()->where('admission_no', 'A300')->exists());
+
+        // A Windows-1252 file comes back from the page as UTF-8 and still matches its check.
+        $latin = mb_convert_encoding("Admission No,First Name,Surname,Homeroom\nA301,Zoë,Smit,Grade 5 A\n", 'Windows-1252', 'UTF-8');
+        $page = $this->actingAs($admin)->post('/school-imports/check', ['kind' => 'learners', 'file' => UploadedFile::fake()->createWithContent('latin.csv', $latin)])
+            ->assertOk()->assertSee('Zoë Smit (A301)');
+        preg_match('/<textarea name="csv"[^>]*>([^<]*)<\/textarea>/', $page->getContent(), $hidden);
+        preg_match('/name="fingerprint" value="([0-9a-f]{64})"/', $page->getContent(), $latinFingerprint);
+        $this->actingAs($admin)->post('/school-imports', ['csv' => str_replace("\n", "\r\n", html_entity_decode($hidden[1], ENT_QUOTES)), 'fingerprint' => $latinFingerprint[1]] + $form)
+            ->assertRedirect()->assertSessionHas('success');
+        $this->assertSame('Zoë', Students::query()->where('admission_no', 'A301')->firstOrFail()->user->first_name);
 
         // A wrong column choice is reported, not guessed.
         $this->actingAs($admin)->post('/school-imports/check', ['mapping' => ['admission_no' => 'Nope']] + $form)
