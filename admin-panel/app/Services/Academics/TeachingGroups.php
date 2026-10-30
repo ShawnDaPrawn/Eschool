@@ -173,6 +173,54 @@ class TeachingGroups
         }, 3);
     }
 
+    /**
+     * Fills a homeroom's teaching group with the learners in that homeroom
+     * (Action Plan 1.20): each learner enrolled there on the start date
+     * becomes a member from that date until their time in the homeroom or
+     * the year ends, through the same dated membership as one at a time.
+     * Learners who are already members over that time are left alone.
+     *
+     * @return array{added: int, skipped: int}
+     */
+    public function fillFromHomeroom(User $actor, int $groupId, string $startsOn, string $markRule): array
+    {
+        app(AcademicAuthority::class)->manage($actor);
+        $group = TeachingGroup::query()->findOrFail($groupId);
+        if ($group->class_section_id === null) {
+            throw ValidationException::withMessages(['group' => __('Only a group for one homeroom can be filled from it.')]);
+        }
+        $year = SessionYear::query()->findOrFail($group->session_year_id);
+        $yearEnd = substr((string) $year->end_date, 0, 10);
+        if ($startsOn < substr((string) $year->start_date, 0, 10) || $startsOn > $yearEnd) {
+            throw ValidationException::withMessages(['starts_on' => __('Choose an effective interval within the school year.')]);
+        }
+
+        return DB::transaction(function () use ($actor, $group, $startsOn, $markRule, $yearEnd) {
+            $added = 0;
+            $skipped = 0;
+            $enrolments = Enrolment::query()->where('class_section_id', $group->class_section_id)->where('session_year_id', $group->session_year_id)
+                ->whereDate('starts_on', '<=', $startsOn)->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $startsOn))
+                ->orderBy('learner_id')->get();
+            foreach ($enrolments as $enrolment) {
+                $endsOn = min($yearEnd, $enrolment->ends_on?->toDateString() ?? $yearEnd);
+                $member = TeachingGroupMembership::query()->where('teaching_group_id', $group->id)->where('learner_id', $enrolment->learner_id)
+                    ->whereDate('starts_on', '<=', $endsOn)->whereDate('ends_on', '>=', $startsOn)->exists();
+                if ($member) {
+                    $skipped++;
+
+                    continue;
+                }
+                $this->dated($actor, 'memberships', [
+                    'learner_id' => (int) $enrolment->learner_id, 'starts_on' => $startsOn, 'ends_on' => $endsOn,
+                    'mark_rule' => $markRule, 'reason' => 'Added with the homeroom',
+                ], (int) $group->id);
+                $added++;
+            }
+
+            return ['added' => $added, 'skipped' => $skipped];
+        }, 3);
+    }
+
     public function room(int $id, ?int $gradeId = null): ClassSection
     {
         $room = ClassSection::query()->with('class')->findOrFail($id);

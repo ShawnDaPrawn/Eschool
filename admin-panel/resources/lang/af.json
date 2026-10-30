@@ -5821,5 +5821,15 @@
     ":created groups started for :season; :skipped were already there or did not fit their parent's dates.": ":created groepe vir :season begin; :skipped was reeds daar of het nie binne hul ouergroep se datums gepas nie.",
     "Name the new season, different from the one it follows.": "Gee die nuwe seisoen 'n naam wat verskil van die een wat dit volg.",
     "The new season must start before it ends, within :year.": "Die nuwe seisoen moet begin voordat dit eindig, binne :year.",
-    "No active groups in the season \":season\".": "Geen aktiewe groepe in die seisoen \":season\" nie."
+    "No active groups in the season \":season\".": "Geen aktiewe groepe in die seisoen \":season\" nie.",
+    "Add everyone in the homeroom": "Voeg almal in die registerklas by",
+    "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.": "Elke leerder wat op die begindatum in die registerklas is, word 'n lid totdat hulle die registerklas verlaat of die jaar eindig. Leerders wat reeds lede is, word onveranderd gelaat.",
+    "Members from": "Lede vanaf",
+    "Add the homeroom": "Voeg die registerklas by",
+    ":added learners added from the homeroom; :skipped were already members.": ":added leerders uit die registerklas bygevoeg; :skipped was reeds lede.",
+    "Only a group for one homeroom can be filled from it.": "Slegs 'n groep vir een registerklas kan daaruit gevul word.",
+    "In this group last year": "Verlede jaar in hierdie groep",
+    "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Hierdie leerders was aan die einde van verlede jaar in hierdie groep, is by die skool en voldoen nou aan sy reëls. Voeg dié by wat aanhou.",
+    "Add :name": "Voeg :name by",
+    "Add as member": "Voeg by as lid"
 }

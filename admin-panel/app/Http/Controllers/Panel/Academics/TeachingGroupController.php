@@ -23,6 +23,7 @@ use App\Services\Academics\TeachingGroupQueries;
 use App\Services\Academics\TeachingGroups;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TeachingGroupController extends Controller
@@ -77,6 +78,14 @@ class TeachingGroupController extends Controller
         $service->dated($request->user(), (string) $request->route('kind'), $request->validated(), $group, $id);
 
         return ($group === null ? redirect()->route('academic-allocations.index') : redirect()->route('teaching-groups.show', $group))->with('success', __('Dated assignment saved'));
+    }
+
+    public function fill(Request $request, TeachingGroups $service, int $group): RedirectResponse
+    {
+        $data = $request->validate(['starts_on' => ['required', 'date_format:Y-m-d'], 'mark_rule' => ['required', 'in:catch_up,excused,carried']]);
+        $result = $service->fillFromHomeroom($request->user(), $group, $data['starts_on'], $data['mark_rule']);
+
+        return redirect()->route('teaching-groups.show', $group)->with('success', __(':added learners added from the homeroom; :skipped were already members.', $result));
     }
 
     public function map(ClassGradeRequest $request, AcademicReferences $references, int $class): RedirectResponse

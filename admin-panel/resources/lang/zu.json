@@ -5821,5 +5821,15 @@
     ":created groups started for :season; :skipped were already there or did not fit their parent's dates.": "Amaqembu angu-:created aqalisiwe ku-:season; angu-:skipped abesevele ekhona noma awazange angene ezinsukwini zeqembu labo elikhulu.",
     "Name the new season, different from the one it follows.": "Nikeza isizini entsha igama elihlukile kwelalokho elilandelayo.",
     "The new season must start before it ends, within :year.": "Isizini entsha kufanele iqale ngaphambi kokuthi iphele, phakathi ku-:year.",
-    "No active groups in the season \":season\".": "Awekho amaqembu asebenzayo esizinini ethi \":season\"."
+    "No active groups in the season \":season\".": "Awekho amaqembu asebenzayo esizinini ethi \":season\".",
+    "Add everyone in the homeroom": "Engeza wonke umuntu osekilasini",
+    "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.": "Umfundi ngamunye osekilasini ngosuku lokuqala uba yilungu aze ashiye ikilasi noma unyaka uphele. Abafundi asebevele bengamalungu bashiywa benjalo.",
+    "Members from": "Amalungu kusukela",
+    "Add the homeroom": "Engeza ikilasi",
+    ":added learners added from the homeroom; :skipped were already members.": "Abafundi abangu-:added bengeziwe besuka ekilasini; abangu-:skipped bebevele bengamalungu.",
+    "Only a group for one homeroom can be filled from it.": "Yiqembu lekilasi elilodwa kuphela elingagcwaliswa ngalo.",
+    "In this group last year": "Ebelikuleli qembu ngonyaka odlule",
+    "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Laba bafundi bebeseqenjini ekupheleni konyaka odlule, basesikoleni futhi bayayihlangabezana nemithetho yalo manje. Engeza labo abaqhubekayo.",
+    "Add :name": "Engeza u-:name",
+    "Add as member": "Engeza njengelungu"
 }

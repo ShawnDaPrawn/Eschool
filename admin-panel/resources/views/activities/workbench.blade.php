@@ -55,6 +55,18 @@
 <x-page.field :id="'activity-'.\Illuminate\Support\Str::uuid()" :restore-old-input="false" name="reason" :label="__('Reason')" :value="$draft['reason'] ?? ''" required minlength="3" maxlength="2000" />
 <x-m3.button type="submit">{{ __('Save allocation') }}</x-m3.button>
 </form>
+@if($kind==='membership' && $suggestions !== [])
+<h3>{{ __('In this group last year') }}</h3>
+<p>{{ __('These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.') }}</p>
+<ul class="activity-suggestions">@foreach($suggestions as $learnerId => $learnerName)<li>
+<form method="POST" action="{{ route('activity-groups.membership-save',['group'=>$group['id']]) }}" aria-label="{{ __('Add :name', ['name' => $learnerName]) }}">@csrf
+<input type="hidden" name="operation_id" value="{{ \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="revision" value="0">
+<input type="hidden" name="learner_id" value="{{ $learnerId }}"><input type="hidden" name="role" value="member">
+<input type="hidden" name="starts_on" value="{{ max($group['starts_on'], now()->toDateString()) }}"><input type="hidden" name="ends_on" value="{{ $group['ends_on'] }}">
+<input type="hidden" name="reason" value="{{ __('In this group last year') }}">
+{{ $learnerName }} <x-m3.button type="submit" variant="text">{{ __('Add as member') }}<span class="m3-visually-hidden">: {{ $learnerName }}</span></x-m3.button>
+</form></li>@endforeach</ul>
+@endif
 <ul>@foreach($kind==='staff' ? $roster['staff'] : $roster['memberships'] as $row)<li><a href="{{ route('activity-groups.index',['group_id'=>$group['id'],'edit'=>$kind,'record_id'=>$row['id']]) }}">{{ $kind==='staff' ? ($staffNames[$row['user_id']] ?? __('Former school member')) : $row['learner_name'] }} · {{ __($row['role']) }} · {{ $row['starts_on'] }}–{{ $row['ends_on'] }} @if(!$row['active'])({{ __('Cancelled') }})@endif</a></li>@endforeach</ul>
 @endforeach
 </x-m3.card>

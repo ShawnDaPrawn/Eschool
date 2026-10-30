@@ -22,9 +22,11 @@ use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ActivityGroups
 {
@@ -157,6 +159,48 @@ class ActivityGroups
 
             return $this->audit('activity.group_saved', $row, $before);
         });
+    }
+
+    /**
+     * Re-assignment suggestions (Action Plan 1.20): the learners who were in
+     * the group of the same name last school year at its end, are at the
+     * school this year, are not in this group yet and meet its rules now.
+     * Nothing is added until staff choose to.
+     *
+     * @return array<int, string> learner id => name
+     */
+    public function lastYearSuggestions(User $actor, int $groupId): array
+    {
+        $this->access->manage($actor);
+        $group = ActivityGroup::query()->findOrFail($groupId);
+        $year = SessionYear::query()->findOrFail($group->session_year_id);
+        $previous = SessionYear::query()->whereDate('end_date', '<', CarbonImmutable::parse($year->start_date)->toDateString())->orderByDesc('end_date')->first();
+        if ($previous === null) {
+            return [];
+        }
+        $parentName = $group->parent_id === null ? null : ActivityGroup::query()->whereKey($group->parent_id)->value('name');
+        $matches = ActivityGroup::query()->where('session_year_id', $previous->id)->where('name', $group->name)->get()
+            ->filter(fn (ActivityGroup $old) => ($old->parent_id === null ? null : ActivityGroup::query()->whereKey($old->parent_id)->value('name')) === $parentName);
+        if ($matches->isEmpty()) {
+            return [];
+        }
+        $lastDay = $matches->map(fn (ActivityGroup $old) => $old->ends_on->toDateString())->max();
+        $former = ActivityMembership::query()->whereIn('activity_group_id', $matches->pluck('id'))->where('active', true)
+            ->whereDate('ends_on', '>=', $lastDay)->pluck('learner_id')->unique();
+        $current = ActivityMembership::query()->where('activity_group_id', $group->id)->where('active', true)->pluck('learner_id');
+        $window = ['starts_on' => max($group->starts_on->toDateString(), now()->toDateString()), 'ends_on' => $group->ends_on->toDateString()];
+        $suggestions = [];
+        foreach (Students::query()->with('user')->whereIn('id', $former->diff($current))->get() as $learner) {
+            try {
+                $this->eligible($group, $learner, $window);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                continue;
+            }
+            $suggestions[(int) $learner->id] = trim(($learner->user?->first_name ?? '').' '.($learner->user?->last_name ?? ''));
+        }
+        asort($suggestions);
+
+        return $suggestions;
     }
 
     private function eligible(ActivityGroup $group, Students $learner, array $data): void

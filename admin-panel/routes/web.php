@@ -845,6 +845,8 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('teaching-groups/{group}', [TeachingGroupController::class, 'show'])->whereNumber('group')->name('teaching-groups.show');
         Route::get('teaching-groups/{group}/edit', [TeachingGroupController::class, 'edit'])->whereNumber('group')->name('teaching-groups.edit');
         Route::put('teaching-groups/{group}', [TeachingGroupController::class, 'save'])->whereNumber('group')->name('teaching-groups.update');
+        // Fill a homeroom's group with the homeroom (Action Plan 1.20).
+        Route::post('teaching-groups/{group}/fill', [TeachingGroupController::class, 'fill'])->whereNumber('group')->middleware('throttle:20,1')->name('teaching-groups.fill');
         Route::post('teaching-groups/{group}/{kind}', [TeachingGroupController::class, 'row'])->whereNumber('group')->whereIn('kind', ['memberships', 'teachers'])->name('teaching-groups.rows.store');
         Route::put('teaching-groups/{group}/{kind}/{entry}', [TeachingGroupController::class, 'row'])->whereNumber('group')->whereNumber('entry')->whereIn('kind', ['memberships', 'teachers'])->name('teaching-groups.rows.update');
         Route::get('academic-allocations', [TeachingGroupController::class, 'allocations'])->name('academic-allocations.index');

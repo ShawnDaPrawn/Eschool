@@ -4748,5 +4748,15 @@
     ":created groups started for :season; :skipped were already there or did not fit their parent's dates.": ":created groups started for :season; :skipped were already there or did not fit their parent's dates.",
     "Name the new season, different from the one it follows.": "Name the new season, different from the one it follows.",
     "The new season must start before it ends, within :year.": "The new season must start before it ends, within :year.",
-    "No active groups in the season \":season\".": "No active groups in the season \":season\"."
+    "No active groups in the season \":season\".": "No active groups in the season \":season\".",
+    "Add everyone in the homeroom": "Add everyone in the homeroom",
+    "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.": "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.",
+    "Members from": "Members from",
+    "Add the homeroom": "Add the homeroom",
+    ":added learners added from the homeroom; :skipped were already members.": ":added learners added from the homeroom; :skipped were already members.",
+    "Only a group for one homeroom can be filled from it.": "Only a group for one homeroom can be filled from it.",
+    "In this group last year": "In this group last year",
+    "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.",
+    "Add :name": "Add :name",
+    "Add as member": "Add as member"
 }
