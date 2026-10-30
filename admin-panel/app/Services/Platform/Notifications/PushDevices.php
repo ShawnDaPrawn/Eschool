@@ -115,20 +115,32 @@ class PushDevices
         return $devices->count();
     }
 
+    /** Whether a device was ever registered by this sign-in token (revoked or not). */
+    public function boundTo(int $accessTokenId): bool
+    {
+        return UserDevice::query()->where('personal_access_token_id', $accessTokenId)->exists();
+    }
+
     /**
-     * Signing out of a sign-in from before device registrations existed: that
-     * sign-in has no bound device, and the account then had one device per app,
-     * the one in users.fcm_id. End that device as sign-out always did.
+     * Signing out of a sign-in that registered no device (one from before
+     * device registrations existed): the account then had one device, the one
+     * the migration copied from users.fcm_id, bound to no sign-in. End it, as
+     * sign-out always did, even when users.fcm_id has since moved to a device
+     * signed in later.
      */
     public function revokeLegacy(User $user): void
     {
-        $legacy = is_string($user->fcm_id) ? trim($user->fcm_id) : '';
-        if ($legacy !== '') {
-            UserDevice::query()->where('user_id', $user->id)->where('token_hash', hash('sha256', $legacy))
-                ->whereNull('personal_access_token_id')->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        $unbound = UserDevice::query()->where('user_id', $user->id)->whereNull('personal_access_token_id')->whereNull('revoked_at')->get();
+        foreach ($unbound as $device) {
+            $this->revoke($device);
         }
-        User::acrossSchools()->whereKey($user->id)->update(['fcm_id' => '']);
-        $user->forceFill(['fcm_id' => ''])->syncOriginalAttributes(['fcm_id']);
+        // A legacy value with no registration is that same old device. One that
+        // names a device signed in later stays its projection.
+        $legacy = is_string($user->fcm_id) ? trim($user->fcm_id) : '';
+        if ($legacy === '' || ! UserDevice::query()->where('token_hash', hash('sha256', $legacy))->exists()) {
+            User::acrossSchools()->whereKey($user->id)->update(['fcm_id' => '']);
+        }
+        $user->forceFill(['fcm_id' => User::acrossSchools()->whereKey($user->id)->value('fcm_id')])->syncOriginalAttributes(['fcm_id']);
     }
 
     /** FCM says the token no longer exists: forget it for this account. */
@@ -163,9 +175,16 @@ class PushDevices
     {
         return UserDevice::query()->where('user_id', $userId)->whereNull('revoked_at')->whereIn('platform', self::PLATFORMS)
             ->where(function ($query) {
-                $query->whereNull('personal_access_token_id')
-                    ->orWhereExists(fn ($tokens) => $tokens->selectRaw('1')->from('personal_access_tokens')
-                        ->whereColumn('personal_access_tokens.id', 'user_devices.personal_access_token_id'));
+                $query->whereExists(fn ($tokens) => $tokens->selectRaw('1')->from('personal_access_tokens')
+                    ->whereColumn('personal_access_tokens.id', 'user_devices.personal_access_token_id'))
+                    // A registration bound to no sign-in (copied by the migration
+                    // from users.fcm_id) lives only while a sign-in from before
+                    // it survives: one of those sessions is that device's.
+                    ->orWhere(fn ($unbound) => $unbound->whereNull('personal_access_token_id')
+                        ->whereExists(fn ($tokens) => $tokens->selectRaw('1')->from('personal_access_tokens')
+                            ->where('personal_access_tokens.tokenable_type', (new User)->getMorphClass())
+                            ->whereColumn('personal_access_tokens.tokenable_id', 'user_devices.user_id')
+                            ->whereColumn('personal_access_tokens.created_at', '<=', 'user_devices.created_at')));
             });
     }
 }

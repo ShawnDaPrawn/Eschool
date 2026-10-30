@@ -35,9 +35,13 @@ device must receive notifications. This supersedes the earlier token rule
 - **Compatibility.** `users.fcm_id` / `device_type` remain a projection of the
   latest registration for installed clients and older code. An account with a
   legacy value and no matching registration still receives pushes there, unless
-  that token has since been registered by another account or revoked. The
-  migration copies each existing legacy value into `user_devices` (unbound to a
-  sign-in token) so nobody stops receiving notifications at deploy.
+  that token has been registered at all (a registration, active or not,
+  decides). The migration copies each existing legacy value into
+  `user_devices` (unbound to a sign-in token) so nobody stops receiving
+  notifications at deploy. Such an unbound device stays active only while the
+  account still holds a sign-in from before it was copied, and signing out of
+  a sign-in that registered no device ends the account's unbound devices, even
+  when `users.fcm_id` has since moved to a device signed in later.
 - **The worker rechecks the device.** `DeliveryGuard` refuses a queued push whose
   token is no longer one of the recipient's active devices.
 
@@ -68,6 +72,8 @@ token-refresh endpoint, and app changes to call it, are a follow-up.
 | Any registration | stored | token encrypted and not serialised | `PushDevicesTest::test_tokens_are_stored_encrypted_and_never_serialised` |
 | More than 10 registrations | registered | the 10 most recent stay active | `PushDevicesTest::test_only_the_most_recent_devices_are_kept` |
 | An installed client with only `users.fcm_id` | a notification is sent | it still receives it | `PushDevicesTest::test_an_account_without_a_device_registration_still_uses_its_legacy_token` |
+| A client signed in before deploy, then a new phone signs in | the old client signs out | the old phone stops receiving pushes; the new phone keeps them | `PushDevicesTest::test_signing_out_an_old_client_ends_its_device_after_another_device_signed_in` |
+| A client signed in before deploy, then a new phone signs in | the password is changed from the new phone | the old phone stops receiving pushes | `PushDevicesTest::test_an_old_clients_device_ends_when_its_sign_in_is_revoked` |
 | An app signed in on a second device | the first device calls the API | it is still signed in | `AppTokensTest::test_signing_in_on_another_device_keeps_the_first_device_signed_in` |
 | Five devices signed in to one app | a sixth signs in | the oldest is signed out | `AppTokensTest::test_signing_in_beyond_the_device_limit_signs_the_oldest_device_out` |
 | An account on two devices of one app | one signs out | the other stays signed in | `AppTokensTest::test_signing_out_ends_only_that_device` |

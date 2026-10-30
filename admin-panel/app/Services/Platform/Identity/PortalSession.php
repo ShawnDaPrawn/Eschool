@@ -116,9 +116,11 @@ final class PortalSession
             // Only this device stops receiving notifications; the account's
             // other signed-in devices keep theirs. A sign-in from before device
             // registrations has none bound, so its single legacy device ends.
-            $revoked = app(PushDevices::class)->revokeForAccessToken((int) $token->getKey());
-            if ($revoked === 0 && ! in_array($token->name, [AppTokens::FACILITATOR, AppTokens::VENDOR], true)) {
-                app(PushDevices::class)->revokeLegacy($user);
+            $devices = app(PushDevices::class);
+            $bound = $devices->boundTo((int) $token->getKey());
+            $devices->revokeForAccessToken((int) $token->getKey());
+            if (! $bound && ! in_array($token->name, [AppTokens::FACILITATOR, AppTokens::VENDOR], true)) {
+                $devices->revokeLegacy($user);
             }
             AppTokens::signOut($user, $token);
         }

@@ -47,6 +47,25 @@ class PushDevicesTest extends TestCase
         return (int) $access;
     }
 
+    /** A client signed in before deploy, as the migration leaves it: registered, bound to no sign-in. */
+    private function clientFromBeforeRegistrations(User $user, string $token): string
+    {
+        $plain = $user->createToken(AppTokens::PARENT)->plainTextToken;
+        $user->forceFill(['fcm_id' => $token, 'device_type' => 'android'])->save();
+        UserDevice::query()->create(['user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'token' => $token, 'platform' => 'android', 'last_seen_at' => now()]);
+
+        return $plain;
+    }
+
+    /** @return list<string> */
+    private function tokensOf(User $user): array
+    {
+        $tokens = array_column(app(PushDevices::class)->destinations($user->fresh()), 'token');
+        sort($tokens);
+
+        return $tokens;
+    }
+
     public function test_every_signed_in_device_receives_the_notification(): void
     {
         $parent = $this->parent();
@@ -103,6 +122,36 @@ class PushDevicesTest extends TestCase
         $this->assertSame('', (string) $parent->fresh()->fcm_id);
     }
 
+    public function test_signing_out_an_old_client_ends_its_device_after_another_device_signed_in(): void
+    {
+        $parent = $this->parent();
+        $oldSignIn = $this->clientFromBeforeRegistrations($parent, 'old-phone');
+        $this->travel(1)->minutes();
+        // A new phone signs in after deploy: users.fcm_id now names it, not the old phone.
+        $this->signedInDevice($parent, 'new-phone');
+        $this->assertSame(['new-phone', 'old-phone'], $this->tokensOf($parent));
+
+        $this->withToken($oldSignIn)->postJson('/api/logout')->assertOk();
+
+        $this->assertSame(['new-phone'], $this->tokensOf($parent));
+        $this->assertFalse(app(PushDevices::class)->isCurrent($parent->fresh(), 'old-phone'));
+        $this->assertSame('new-phone', $parent->fresh()->fcm_id);
+    }
+
+    public function test_an_old_clients_device_ends_when_its_sign_in_is_revoked(): void
+    {
+        $parent = $this->parent();
+        $this->clientFromBeforeRegistrations($parent, 'old-phone');
+        $this->travel(1)->minutes();
+        $newPhone = $this->signedInDevice($parent, 'new-phone');
+
+        // A password change from the new phone signs every other device out.
+        AppTokens::revokeAll($parent, $parent->tokens()->findOrFail($newPhone));
+
+        $this->assertSame(['new-phone'], $this->tokensOf($parent));
+        $this->assertFalse(app(PushDevices::class)->isCurrent($parent->fresh(), 'old-phone'));
+    }
+
     public function test_a_shared_phone_moves_to_the_account_that_signed_in_last(): void
     {
         $first = $this->parent();
@@ -110,7 +159,7 @@ class PushDevicesTest extends TestCase
         $this->assertNotSame($first->id, $second->id);
 
         $this->signedInDevice($first, 'family-phone');
-        app(PushDevices::class)->register($second, 'family-phone', 'android');
+        $this->signedInDevice($second, 'family-phone');
 
         $this->assertSame([], array_column(app(PushDevices::class)->destinations($first->fresh()), 'token'));
         $this->assertContains('family-phone', array_column(app(PushDevices::class)->destinations($second->fresh()), 'token'));
@@ -157,7 +206,7 @@ class PushDevicesTest extends TestCase
     {
         $parent = $this->parent();
         foreach (range(1, PushDevices::MAX_ACTIVE + 2) as $n) {
-            app(PushDevices::class)->register($parent, 'device-'.$n, 'android');
+            $this->signedInDevice($parent, 'device-'.$n);
             $this->travel(1)->minutes();
         }
 
