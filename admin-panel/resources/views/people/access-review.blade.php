@@ -22,7 +22,7 @@
             <h2 id="review-title">{{ $result['subject']['name'] }}</h2>
             <p>{{ $result['subject']['kind'] === 'person' ? __('Roles at this school: :roles', ['roles' => implode(', ', array_map(fn ($r) => __($r), $result['subject']['roles']))]) : __('Role') }}</p>
             <div class="m3-card m3-card--outlined"><div class="m3-card__content">
-                <table class="table">
+                <div class="page-table__scroll" role="region" aria-label="{{ __('Access in each module') }}" tabindex="0"><table class="page-table__table">
                     <caption>{{ __('Access in each module') }}</caption>
                     <thead><tr><th scope="col">{{ __('Module') }}</th><th scope="col">{{ __('Level') }}</th><th scope="col">{{ __('Abilities') }}</th></tr></thead>
                     <tbody>
@@ -34,7 +34,7 @@
                         </tr>
                     @endforeach
                     </tbody>
-                </table>
+                </table></div>
             </div></div>
             @if ($result['other'] !== [])
                 <h3>{{ __('Other permissions') }}</h3>
