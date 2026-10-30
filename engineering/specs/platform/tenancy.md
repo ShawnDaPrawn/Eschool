@@ -248,6 +248,13 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
+
 ### HQ incident register
 
 `platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
