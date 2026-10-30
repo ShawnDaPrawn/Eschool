@@ -86,6 +86,10 @@
             @endif
         @endforeach
     @endforeach
+    @php $learnerRecord = \App\Models\Students::query()->where('user_id', $subject->id)->first(); @endphp
+    @if ($learnerRecord !== null && \Illuminate\Support\Facades\Gate::allows('manageGuardians', $learnerRecord))
+        <p><a class="m3-button m3-button--outlined" href="{{ route('learner-guardians.index', $learnerRecord->id) }}">{{ __('Manage guardians') }}</a></p>
+    @endif
 </div>
 @endsection
 @section('script')

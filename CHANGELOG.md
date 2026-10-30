@@ -91,6 +91,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
 
+- Guardian management: the school office can give a learner any number of
+  guardians, each with a relationship and the rights to approve and to see
+  fees, from "Manage guardians" on the learner's profile. A learner always keeps
+  at least one approving guardian, and removing a guardian ends their access at
+  once. **Deploy:** run the additive `guardian_links` migration.
+
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.
 
 - School staff can edit app contacts and branding under Settings → School information, publish PDF policies and schedules, and show current-year term dates in both apps’ My school screen. School selection is explicit on each request. Unlisting removes a publication from the screen while its public link remains valid.

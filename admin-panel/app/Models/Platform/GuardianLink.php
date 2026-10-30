@@ -16,6 +16,6 @@ class GuardianLink extends Model
 
     protected function casts(): array
     {
-        return ['can_see_fees' => 'boolean', 'can_approve' => 'boolean'];
+        return ['can_see_fees' => 'boolean', 'can_approve' => 'boolean', 'ended_at' => 'datetime'];
     }
 }
