@@ -10,7 +10,7 @@
     <p>{{ __('Risk caseload grants end with the school year. Each open grant from :from is offered here: keep the same professional, choose another one with restricted pastoral access, or do not renew. Ended grants are not offered.', ['from' => $plan['from']->name]) }}</p>
     @if ($errors->any())<div role="alert" class="m3 m3-banner m3-banner--warning"><ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
     @if (session('success'))<p role="status" class="m3 m3-banner m3-banner--success">{{ session('success') }}</p>@endif
-    <a href="{{ route('risk-interventions.index', ['mode' => 'assignments']) }}">{{ __('Risk caseload assignments') }}</a>
+    <nav class="note-tabs" aria-label="{{ __('Intervention workbench') }}"><a href="{{ route('risk-interventions.index', ['mode' => 'assignments']) }}">{{ __('Risk caseload assignments') }}</a><a href="{{ route('risk-interventions.renewals') }}" aria-current="page">{{ __('Renew caseloads for a new year') }}</a></nav>
 
     <section class="note-card"><h2>{{ __('Choose the year to renew into') }}</h2>
         <form method="get" action="{{ route('risk-interventions.renewals') }}" class="note-filters">
