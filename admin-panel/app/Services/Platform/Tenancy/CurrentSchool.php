@@ -8,6 +8,7 @@ use App\Models\Platform\School;
 use App\Services\Platform\RequestContext;
 use App\Services\SettingsConfigService;
 use Illuminate\Support\Facades\Context;
+use LogicException;
 use Throwable;
 
 /**
@@ -22,7 +23,11 @@ use Throwable;
  * - console commands and jobs: run($school, fn () => ...); a job queued in a
  *   school carries the school's id in its context and runs in it again;
  * - platform code that must see every school: acrossSchools(fn () => ...);
- * - audited impersonation (stream T4): impersonate($school).
+ * - audited impersonation (stream T4): impersonate($school);
+ * - an audited support session (SA.9): supportSession($school, $grant), set
+ *   only by the support.session middleware. It is impersonation that cannot
+ *   leave its school: set() to another school and allowAcrossSchools() are
+ *   refused for the rest of the request.
  *
  * With nothing set, the scope never fails open:
  * - a signed-in request without a school (a route missing school.context)
@@ -47,6 +52,9 @@ class CurrentSchool
 
     private bool $impersonating = false;
 
+    /** The support access grant of the support session this request is in. */
+    private ?int $supportGrant = null;
+
     private bool $migrating = false;
 
     /**
@@ -64,7 +72,16 @@ class CurrentSchool
     /** Work for this school from now on (and use its roles and settings). */
     public function set(School|int $school): void
     {
-        $this->id = $school instanceof School ? (int) $school->getKey() : $school;
+        $id = $school instanceof School ? (int) $school->getKey() : $school;
+        if ($this->supportGrant !== null) {
+            // A support session never leaves its school, and stays one inside it (run() included).
+            if ($id !== $this->id) {
+                throw new LogicException('A support session stays in the school it was granted.');
+            }
+
+            return;
+        }
+        $this->id = $id;
         $this->school = $school instanceof School ? $school : null;
         $this->acrossSchools = false;
         $this->impersonating = false;
@@ -78,6 +95,7 @@ class CurrentSchool
         $this->school = null;
         $this->acrossSchools = false;
         $this->impersonating = false;
+        $this->supportGrant = null;
         $this->applied();
     }
 
@@ -96,9 +114,36 @@ class CurrentSchool
         return $this->impersonating;
     }
 
+    /**
+     * An audited support session (SA.9) in the school of an open grant: the
+     * school with the impersonation flag, so every authority that refuses
+     * impersonation refuses here too, and never another school or every
+     * school until the request ends. Only EnsureSupportSession calls it,
+     * after checking the grant.
+     */
+    public function supportSession(School $school, int $grantId): void
+    {
+        $this->supportGrant = null;
+        $this->impersonate($school);
+        $this->supportGrant = $grantId;
+    }
+
+    public function isSupportSession(): bool
+    {
+        return $this->supportGrant !== null;
+    }
+
+    public function supportGrantId(): ?int
+    {
+        return $this->supportGrant;
+    }
+
     /** No scope for the rest of this request or job: platform code that works across schools. */
     public function allowAcrossSchools(): void
     {
+        if ($this->supportGrant !== null) {
+            throw new LogicException('A support session never reads across schools.');
+        }
         $this->forget();
         $this->acrossSchools = true;
     }
@@ -266,19 +311,20 @@ class CurrentSchool
         return (int) config('tenancy.default_school_id', self::DEFAULT_ID);
     }
 
-    /** @return array{id: ?int, school: ?School, across: bool, impersonating: bool} */
+    /** @return array{id: ?int, school: ?School, across: bool, impersonating: bool, support?: ?int} */
     public function snapshot(): array
     {
-        return ['id' => $this->id, 'school' => $this->school, 'across' => $this->acrossSchools, 'impersonating' => $this->impersonating];
+        return ['id' => $this->id, 'school' => $this->school, 'across' => $this->acrossSchools, 'impersonating' => $this->impersonating, 'support' => $this->supportGrant];
     }
 
-    /** @param  array{id: ?int, school: ?School, across: bool, impersonating: bool}  $snapshot */
+    /** @param  array{id: ?int, school: ?School, across: bool, impersonating: bool, support?: ?int}  $snapshot */
     public function restore(array $snapshot): void
     {
         $this->id = $snapshot['id'];
         $this->school = $snapshot['school'];
         $this->acrossSchools = $snapshot['across'];
         $this->impersonating = $snapshot['impersonating'];
+        $this->supportGrant = $snapshot['support'] ?? null;
         $this->applied();
     }
 
