@@ -6,6 +6,7 @@ namespace Tests\Feature\Academics;
 
 use App\Actions\Transfers\TransferAwardWindows;
 use App\Actions\Transfers\TransferBellSchedules;
+use App\Actions\Transfers\TransferDisciplineFramework;
 use App\Actions\Transfers\TransferHouseMemberships;
 use App\Models\Academics\BellSchedule;
 use App\Models\Academics\GradeLevel;
@@ -18,12 +19,14 @@ use App\Models\Recognition\AwardWindow;
 use App\Models\Recognition\House;
 use App\Models\Recognition\HouseMembership;
 use App\Models\SessionYear;
+use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\Academics\NewYearService;
 use App\Services\Academics\TimetableConfiguration;
 use App\Services\Discipline\DisciplineFrameworks;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\SchoolTable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
@@ -114,6 +117,19 @@ class NewYearCarryTest extends TestCase
         $this->assertSame(3, HouseMembership::where('session_year_id', $this->year)->count(), 'last year keeps its history');
     }
 
+    public function test_a_learner_promoted_and_then_marked_as_leaving_is_not_carried(): void
+    {
+        $this->member($this->house('Red'), 'asha');
+        // The legacy promotion page records the leaving decision without ending the enrolment.
+        StudentSessions::withoutEvents(fn () => StudentSessions::query()->updateOrCreate(
+            ['student_id' => $this->schoolA->ids['asha'], 'session_year_id' => $this->next], ['class_section_id' => null, 'previous_session_year_id' => $this->year]));
+        StudentSessions::query()->where('student_id', $this->schoolA->ids['asha'])->where('session_year_id', $this->next)->update(['status' => 0]);
+
+        app(TransferHouseMemberships::class)->execute($this->year, $this->next);
+
+        $this->assertSame(0, HouseMembership::where('session_year_id', $this->next)->count());
+    }
+
     public function test_a_closed_house_or_an_ungraded_homeroom_is_not_carried(): void
     {
         $old = $this->house('Old house');
@@ -196,7 +212,8 @@ class NewYearCarryTest extends TestCase
         $this->member($this->house('Red'), 'asha');
         $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']));
 
-        foreach ([TransferBellSchedules::class, TransferHouseMemberships::class, TransferAwardWindows::class] as $action) {
+        $this->framework();
+        foreach ([TransferBellSchedules::class, TransferHouseMemberships::class, TransferAwardWindows::class, TransferDisciplineFramework::class] as $action) {
             try {
                 app($action)->execute($this->year, $this->next);
                 $this->fail("{$action} ran for a teacher");
@@ -206,5 +223,33 @@ class NewYearCarryTest extends TestCase
         }
         $this->assertSame(0, BellSchedule::where('session_year_id', $this->next)->count());
         $this->assertSame(0, HouseMembership::where('session_year_id', $this->next)->count());
+    }
+
+    public function test_nothing_is_carried_into_another_schools_year(): void
+    {
+        $this->bells();
+        $this->member($this->house('Red'), 'asha');
+        $this->framework();
+        $category = AwardCategory::query()->create(['name' => 'Academic honours', 'scope_kind' => 'school', 'active' => true, 'revision' => 1]);
+        AwardWindow::query()->create(['award_category_id' => $category->id, 'session_year_id' => $this->year, 'opens_on' => '2026-10-01', 'closes_on' => '2026-10-31', 'status' => 'closed']);
+        $foreign = (int) $this->schoolB->ids['session_year'];
+        $before = $this->everywhere();
+
+        foreach ([TransferBellSchedules::class, TransferHouseMemberships::class, TransferAwardWindows::class, TransferDisciplineFramework::class] as $action) {
+            try {
+                app($action)->execute($this->year, $foreign);
+                $this->fail("{$action} wrote into another school's year");
+            } catch (ModelNotFoundException) {
+                // The other school's year does not exist here.
+            }
+        }
+        $this->assertSame($before, $this->everywhere(), 'nothing changed in either school');
+    }
+
+    /** @return list<int> rows of each carried kind, across both schools */
+    private function everywhere(): array
+    {
+        return [BellSchedule::query()->withoutGlobalScopes()->count(), HouseMembership::query()->withoutGlobalScopes()->count(),
+            AwardWindow::query()->withoutGlobalScopes()->count(), DisciplineFramework::query()->withoutGlobalScopes()->count()];
     }
 }

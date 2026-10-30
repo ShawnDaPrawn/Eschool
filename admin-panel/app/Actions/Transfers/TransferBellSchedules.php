@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Transfers;
 
 use App\Models\Academics\BellSchedule;
+use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Academics\TimetableConfiguration;
@@ -24,6 +25,9 @@ class TransferBellSchedules
         $actor = auth()->user();
         abort_unless($actor instanceof User, 403);
         app(AcademicAuthority::class)->manage($actor);
+        // Both years must be this school's.
+        SessionYear::query()->findOrFail($fromSessionId);
+        SessionYear::query()->findOrFail($toSessionId);
 
         DB::transaction(function () use ($actor, $fromSessionId, $toSessionId) {
             if (BellSchedule::query()->where('session_year_id', $toSessionId)->exists()) {
