@@ -10,6 +10,7 @@
              {{__('role_management')}}
         </h3>
         @can('role-create')
+            <a class="btn btn-theme" href="{{ route('role-access.create') }}">{{ __('Create a role by module') }}</a>
             <a class="btn btn-theme" href="{{ route('roles.create') }}">{{ __('create_new_role') }}</a>
         @endcan
     </div>

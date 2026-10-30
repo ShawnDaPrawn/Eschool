@@ -23,6 +23,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Role editor by module: school administrators can create and edit custom
+  roles by choosing a level (no access, view, contribute, manage) for each
+  module that is switched on, plus named abilities. Sensitive abilities need a
+  confirmation and are audited. The old checkbox editor is still available.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No

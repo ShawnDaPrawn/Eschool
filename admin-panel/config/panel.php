@@ -85,6 +85,8 @@ return [
             'form-fields/*',
             'roles',
             'roles/*',
+            'roles-by-module',
+            'roles-by-module/*',
             'online-exam/store-terms-conditions',
 
             // The public website's content and the app banners.

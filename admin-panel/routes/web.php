@@ -110,6 +110,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\SaasController;
+use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
@@ -289,6 +290,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
 
         Route::get('roles-list/{id}', [RoleController::class, 'showList'])->name('roles-list');
         Route::get('roles-data', [RoleController::class, 'show'])->name('roles.data');
+        // The role editor by module and level; the checkbox editor above stays for now.
+        Route::get('roles-by-module/new', [RoleAccessController::class, 'create'])->name('role-access.create');
+        Route::post('roles-by-module', [RoleAccessController::class, 'store'])->name('role-access.store');
+        Route::get('roles-by-module/{role}', [RoleAccessController::class, 'edit'])->whereNumber('role')->name('role-access.edit');
+        Route::put('roles-by-module/{role}', [RoleAccessController::class, 'update'])->whereNumber('role')->name('role-access.update');
         Route::resource('roles', RoleController::class);
 
         Route::get('settings', [SettingController::class, 'index']);
