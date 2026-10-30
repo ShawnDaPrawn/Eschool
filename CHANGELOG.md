@@ -23,6 +23,9 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Academics: the learner and family week view shows named breaks and the
+  learner's activity sessions next to lessons. Activity sessions can now have
+  a start and end time. **Deploy:** run the migrations.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

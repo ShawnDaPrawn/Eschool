@@ -45,7 +45,8 @@ class ActivityGroups
                 'minimum_age' => ['nullable', 'integer', 'between:0,25'], 'maximum_age' => ['nullable', 'integer', 'between:0,25'], 'active' => ['required', 'boolean']],
             'membership-save' => $base + $dates + $reason + ['active' => ['sometimes', 'boolean'], 'learner_id' => ['required', 'integer', 'min:1'], 'role' => ['required', Rule::in(['member', 'captain'])]],
             'staff-save' => $base + $dates + $reason + ['active' => ['sometimes', 'boolean'], 'user_id' => ['required', 'integer', 'min:1'], 'role' => ['required', Rule::in(['admin', 'facilitator'])], 'cascade' => ['required', 'boolean']],
-            'session-save' => $base + ['on_date' => ['required', 'date_format:Y-m-d'], 'name' => ['required', 'string', 'max:191'], 'venue' => ['required', 'string', 'max:191'], 'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])]],
+            'session-save' => $base + ['on_date' => ['required', 'date_format:Y-m-d'], 'name' => ['required', 'string', 'max:191'], 'venue' => ['required', 'string', 'max:191'], 'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])],
+                'starts_at' => ['nullable', 'date_format:H:i', 'required_with:ends_at'], 'ends_at' => ['nullable', 'date_format:H:i', 'required_with:starts_at', 'after:starts_at']],
             'attendance-save' => $base + $reason + ['entries' => ['required', 'array', 'min:1', 'max:500'], 'entries.*' => ['required', 'array:learner_id,status,revision'], 'entries.*.learner_id' => ['required', 'integer', 'min:1', 'distinct'], 'entries.*.status' => ['required', Rule::in(['present', 'absent', 'late', 'excused'])], 'entries.*.revision' => ['required', 'integer', 'min:0']],
             'roster' => ['session_id' => ['sometimes', 'integer', 'min:1']],
             'material-save' => $base + ['title' => ['required', 'string', 'max:191'], 'markdown' => ['required', 'string', 'max:20000'], 'published' => ['required', 'boolean']],
@@ -59,7 +60,7 @@ class ActivityGroups
             'activity_groups' => ['id', 'school_id', 'session_year_id', 'parent_id', 'name', 'discipline', 'season', 'starts_on', 'ends_on', 'gender', 'minimum_grade', 'maximum_grade', 'minimum_age', 'maximum_age', 'active', 'revision'],
             'activity_group_memberships' => ['id', 'activity_group_id', 'learner_id', 'role', 'active', 'starts_on', 'ends_on', 'reason', 'revision'],
             'activity_group_staff' => ['id', 'activity_group_id', 'user_id', 'role', 'cascade', 'active', 'starts_on', 'ends_on', 'reason', 'revision'],
-            'activity_sessions' => ['id', 'activity_group_id', 'on_date', 'name', 'venue', 'status', 'revision'],
+            'activity_sessions' => ['id', 'activity_group_id', 'on_date', 'starts_at', 'ends_at', 'name', 'venue', 'status', 'revision'],
             'activity_attendance' => ['id', 'activity_session_id', 'learner_id', 'status', 'recorded_by', 'reason', 'revision'],
             'activity_materials' => ['id', 'activity_group_id', 'author_id', 'title', 'markdown', 'published', 'revision'],
         };
@@ -67,6 +68,8 @@ class ActivityGroups
         foreach ($out as $key => $value) {
             if ($value instanceof \DateTimeInterface) {
                 $out[$key] = $value->format('Y-m-d');
+            } elseif ($value !== null && in_array($key, ['starts_at', 'ends_at'], true)) {
+                $out[$key] = substr((string) $value, 0, 5);
             } elseif ($value !== null && ($key === 'id' || str_ends_with($key, '_id') || in_array($key, ['revision', 'minimum_grade', 'maximum_grade', 'minimum_age', 'maximum_age'], true))) {
                 $out[$key] = (int) $value;
             }
@@ -262,6 +265,9 @@ class ActivityGroups
             $before = $row->exists ? $this->present($row) : [];
             $values = $data;
             unset($values['operation_id']);
+            // Times are optional (1.6); a session without them is all day.
+            $values['starts_at'] = ($data['starts_at'] ?? null) === null ? null : $data['starts_at'].':00';
+            $values['ends_at'] = ($data['ends_at'] ?? null) === null ? null : $data['ends_at'].':00';
             $values['activity_group_id'] = $groupId;
             $values['active'] = $active;
             $values['revision'] = $data['revision'] + 1;
@@ -287,6 +293,9 @@ class ActivityGroups
             $before = $row->exists ? $this->present($row) : [];
             $values = $data;
             unset($values['operation_id']);
+            // Times are optional (1.6); a session without them is all day.
+            $values['starts_at'] = ($data['starts_at'] ?? null) === null ? null : $data['starts_at'].':00';
+            $values['ends_at'] = ($data['ends_at'] ?? null) === null ? null : $data['ends_at'].':00';
             $values['activity_group_id'] = $groupId;
             $values['revision'] = $data['revision'] + 1;
             $row->fill($values)->save();
