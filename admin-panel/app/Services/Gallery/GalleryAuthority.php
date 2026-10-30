@@ -56,7 +56,7 @@ class GalleryAuthority
     public function family(User $actor, int $learnerId, bool $write = false, bool $approve = false, bool $removal = false): Students
     {
         $fresh = $this->actor($actor, $write, $removal);
-        $roles = app(ProfilePolicy::class)->roles($fresh, ! $removal);
+        $roles = app(ProfilePolicy::class)->roles($fresh, $removal ? false : null);
         abort_unless(array_intersect($roles, ['Parent', 'Student']) !== [], 403);
         $learner = Students::findOrFail($learnerId);
         $own = ! $approve && in_array('Student', $roles, true) && (int) $learner->user_id === (int) $fresh->id;

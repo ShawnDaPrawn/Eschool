@@ -61,7 +61,7 @@ class FamilyFormAccess
     public function parentActor(User $actor, bool $write = false, bool $revocation = false): User
     {
         $fresh = $this->actor($actor, $write, $revocation);
-        abort_unless(in_array('Parent', app(ProfilePolicy::class)->roles($fresh, ! $revocation), true), 403);
+        abort_unless(in_array('Parent', app(ProfilePolicy::class)->roles($fresh, $revocation ? false : null), true), 403);
 
         return $fresh;
     }

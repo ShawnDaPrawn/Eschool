@@ -20,10 +20,12 @@ use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -113,6 +115,15 @@ class LeaverState
         return ! $request->isMethodSafe() && ! $request->is(...(array) config('leavers.read_only.allow', [])) && ! self::onlyRemovesAccess($request);
     }
 
+    /**
+     * The user this request has already signed in, if any. Never asks a guard to
+     * authenticate (that would sign someone in as a side effect, as Audit notes).
+     */
+    public static function requester(): ?Authenticatable
+    {
+        return Auth::hasUser() ? Auth::user() : null;
+    }
+
     /** A guardian's decision that only takes access away is never refused for a leaver. */
     public static function onlyRemovesAccess(Request $request): bool
     {
@@ -133,7 +144,7 @@ class LeaverState
      */
     public function guardFamilyWrite(Students|int $learner, ?User $person = null): void
     {
-        $actor = app()->bound('request') ? request()->user() : null;
+        $actor = self::requester();
         if ($person !== null && ($actor === null || (int) $actor->getAuthIdentifier() !== (int) $person->id)) {
             return;
         }

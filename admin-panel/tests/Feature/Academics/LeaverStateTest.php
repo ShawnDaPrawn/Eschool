@@ -127,11 +127,11 @@ class LeaverStateTest extends TestCase
             ['profile_type' => 'learner', 'values' => ['transport_route' => ['text' => 'Route Seven']]]);
     }
 
-    /** A request made by $user, for helpers that read request() (the auth rebinding resets a resolver set before binding). */
+    /** A request made by $user (signed in on the guard, as the auth middleware would). */
     private function bindRequest(User $user, string $path, string $method, array $input = []): void
     {
         $this->app->instance('request', Request::create($path, $method, $input));
-        request()->setUserResolver(fn () => $user);
+        $this->app['auth']->guard()->setUser($user);
     }
 
     private function transportField(): void

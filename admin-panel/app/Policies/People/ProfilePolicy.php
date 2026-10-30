@@ -26,7 +26,7 @@ class ProfilePolicy
     {
         $fresh = User::query()->where('status', 1)->findOrFail($actor->id);
         // Only explicit domain revocations may use a reachable leaver role on a write.
-        abort_unless($this->roles($fresh, ! $revocation) !== [], 403);
+        abort_unless($this->roles($fresh, $revocation ? false : null) !== [], 403);
 
         return $fresh;
     }
@@ -40,7 +40,7 @@ class ProfilePolicy
     {
         // Acting: the person is the one making the request. Checking someone else's
         // roles (a consenting guardian, a profile's subject) always counts a leaver's.
-        $acting ??= app()->bound('request') && (int) request()->user()?->getAuthIdentifier() === (int) $person->id;
+        $acting ??= (int) LeaverState::requester()?->getAuthIdentifier() === (int) $person->id;
 
         return SchoolMembership::query()->when($acting && LeaverState::writing(), fn ($q) => $q->active(), fn ($q) => $q->reachable())
             ->where('school_id', app(CurrentSchool::class)->id())
