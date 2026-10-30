@@ -14,6 +14,9 @@ use App\Services\Activities\ActivityGroups;
 use App\Services\Activities\ActivitySeasons;
 use App\Services\Platform\Modules\ModuleGate;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -142,5 +145,41 @@ class ActivitySeasonsTest extends TestCase
         $this->actingAs($this->superAdmin());
         $this->expectException(ModelNotFoundException::class);
         $this->rollover(['session_year_id' => $this->schoolB->ids['session_year']]);
+    }
+
+    public function test_another_connection_cannot_start_a_rollover_while_source_and_destination_are_checked(): void
+    {
+        $this->group();
+        // The competing connection needs committed synthetic fixtures. Keeping
+        // the fixture transaction would itself hold the school lock and hide
+        // the missing rollover lock this regression is meant to detect.
+        DB::commit();
+        $this->assertSame(0, DB::transactionLevel());
+        config(['database.connections.season_lock_probe' => config('database.connections.'.config('database.default'))]);
+        $probe = DB::connection('season_lock_probe');
+        $probe->statement('SET SESSION innodb_lock_wait_timeout = 1');
+        $attempted = $blocked = false;
+        DB::listen(function (QueryExecuted $query) use ($probe, &$attempted, &$blocked) {
+            if ($attempted || ! str_contains($query->sql, 'from `activity_groups`')) {
+                return;
+            }
+            $attempted = true;
+            try {
+                $probe->transaction(fn () => $probe->table('schools')->where('id', 1)->lockForUpdate()->first());
+            } catch (QueryException $error) {
+                if ((int) ($error->errorInfo[1] ?? 0) !== 1205) {
+                    throw $error;
+                }
+                $blocked = true;
+            }
+        });
+        try {
+            $this->assertSame(['created' => 1, 'skipped' => 0], $this->rollover());
+            $this->assertTrue($attempted, 'A separate connection must compete during the group lookup');
+            $this->assertTrue($blocked, 'Destination checks must hold the same school lock as activity writes');
+            $this->assertSame(1, ActivityGroup::where('season', 'Winter')->count());
+        } finally {
+            DB::purge('season_lock_probe');
+        }
     }
 }
