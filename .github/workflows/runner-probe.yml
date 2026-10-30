@@ -1,0 +1,12 @@
+name: Hosted runner availability probe
+on:
+  pull_request:
+    paths: ['.github/workflows/runner-probe.yml']
+permissions: {}
+jobs:
+  ubuntu-24:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Confirm the hosted runner starts
+        run: echo 'Hosted Ubuntu 24.04 runner started successfully'

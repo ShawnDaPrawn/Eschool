@@ -59,7 +59,7 @@ return [
                             'keywords' => ['admission', 'admit', 'enrol', 'enroll', 'new learner', 'add student', 'register a learner']],
                         ['key' => 'import-learners', 'label' => 'nav_import_learners', 'route' => 'students.create-bulk-data', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
                             'keywords' => ['bulk upload', 'excel', 'csv', 'import students']],
-                        ['key' => 'school-imports', 'label' => 'nav_school_imports', 'route' => 'school-imports.index', 'permissions' => ['student-create', 'class-create'], 'module' => null,
+                        ['key' => 'school-imports', 'label' => 'nav_school_imports', 'route' => 'school-imports.index', 'permissions' => ['student-create', 'class-create', 'staff-create'], 'module' => null,
                             'active' => ['school-imports.index', 'school-imports.check', 'school-imports.store'],
                             'keywords' => ['onboarding', 'sa-sams', 'sasams', 'csv', 'import homerooms', 'import guardians', 'lurits', 'set up the school']],
                         ['key' => 'applications', 'label' => 'nav_applications', 'route' => 'online-registration.index', 'permissions' => ['online-registration-list'], 'module' => 'intake',

@@ -1,12 +1,13 @@
 # School onboarding imports
 
-Action Plan step 0.11 (homerooms, learners and guardians; staff follows once staff invitations are merged). Owner role: Backend and Admin UX. It uses the LURITS identifier (step 1.0, `engineering/specs/platform/lurits.md`) and applies the matching rule of step 1.0c.
+Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role: Backend and Admin UX. It uses the LURITS identifier (step 1.0, `engineering/specs/platform/lurits.md`) and applies the matching rule of step 1.0c.
 
 ## User stories
 
 - As a school setting up NavigateEd, I import my homerooms from a list of grades and letters, so I don't create them one by one.
 - As a school, I import my learner list (from SA-SAMS or my own spreadsheet), with each learner's LURITS number and up to two guardians, and see every problem before anything is saved.
 - As a school, I can import the same file again after fixing rows; learners already imported are left alone.
+- As a school, I import my staff list with each person's role, and they set their own passwords from an emailed invitation; nobody is ever given a password.
 - As a guardian, I get one invitation to sign in and approve my children when the school chooses to send them, even if I have several children at the school.
 - As a learner who already has a NavigateEd record at another school, I am not duplicated: the school is told to start a transfer, and is not told where my record is.
 
@@ -42,6 +43,17 @@ Action Plan step 0.11 (homerooms, learners and guardians; staff follows once sta
 - Invitations are `GuardianInvitations::issue`, once per guardian, only when chosen. Learner approval is never granted by an import.
 - One `academics.learner_changed` outbox event.
 
+**Staff**: first name, surname, email and role (required), mobile, gender, qualification (teachers).
+- The role is Teacher or one of the school's own roles (`custom_role`), by name in any case. Never Super Admin, nor a dedicated profile (Parent, Student, Facilitator, Vendor, Counsellor, Safeguarding). Teacher rows also need `teacher-create`.
+- The email is required, because staff set their password from an emailed link; a repeated email is an error.
+- Someone already on the staff here (an active non-learner, non-parent membership) is *already here*. A deleted, inactive or suspended account is an error, without saying more.
+- **Writes**:
+  - an account found by email or created with no usable password and `password_change_required`;
+  - the role, whose membership follows through `MembershipService`;
+  - a `teachers` row (qualification, or "Not recorded") or a `staffs` row.
+  - An existing account elsewhere (for example a parent here who also teaches) is given the role, not duplicated.
+- When chosen, each person added gets a staff invitation (`StaffInvitations::issue`, #358) to set their own password.
+
 **Audit**: `people.onboarding_import_committed` with the kind, the file's SHA-256, row and skipped counts and the result counts. No row contents.
 
 ## Acceptance tests (`People/SchoolImportsTest`)
@@ -59,14 +71,15 @@ Action Plan step 0.11 (homerooms, learners and guardians; staff follows once sta
 | A Windows-1252 upload with "Zoë" | check, then import from the page | the name shows and is saved as UTF-8; the fingerprint matches |
 | A file with a BOM, semicolons, CRLF and a blank line; a Windows-1252 file; 9.3.2015, 42072, 2015-02-30; 1,001 rows | read | read as expected; the bad date refused; too many rows refused |
 | A school administrator | open, download a template, upload, import (CRLF as a browser sends it), choose a missing column | page, CSV header, rows checked, learner imported, the missing column reported |
+| Staff: a new teacher ("teacher", spaced mobile, BEd), a new Bursar, Tara (already a teacher), a "Super Admin" row, a repeated email in other case, Farid (a parent here) as Teacher | check, then import the good rows with invitations | create, create, already here, error, error, create; three added with Teacher or Bursar, a teachers or staffs row, the qualification and the mobile cleaned; Farid not duplicated; three invitations; importing again leaves everything alone |
 | A teacher without the permissions | open, check, or call the service | 403 |
 
 ## Endpoints (panel)
 
 | Method and path | Permission | Notes |
 | --- | --- | --- |
-| `GET /school-imports?kind=` | `class-create` (homerooms) or `student-create` (learners) | the kinds offered are the ones the person may import |
-| `GET /school-imports/templates/{homerooms\|learners}` | the kind's permission | CSV header row, `no-store` |
+| `GET /school-imports?kind=` | `class-create` (homerooms), `student-create` (learners) or `staff-create` (staff) | the kinds offered are the ones the person may import |
+| `GET /school-imports/templates/{homerooms\|learners\|staff}` | the kind's permission | CSV header row, `no-store` |
 | `POST /school-imports/check` | the kind's permission, throttled 30 a minute | `kind`, `file` or `csv`, `mapped`, `mapping[field]`, settings |
 | `POST /school-imports` | the kind's permission, throttled 10 a minute | the same plus `fingerprint` |
 
@@ -89,5 +102,4 @@ No API change.
 
 ## Deferred
 
-- Staff import: after staff invitations (PR #358) merge, so staff get invitations rather than passwords.
 - Import on a school's behalf by HQ operations (SA.11).

@@ -2,7 +2,7 @@
 @section('title', __('Import school data'))
 @section('content')
 @php
-    $kindLabels = ['homerooms' => __('Homerooms'), 'learners' => __('Learners and guardians')];
+    $kindLabels = ['homerooms' => __('Homerooms'), 'learners' => __('Learners and guardians'), 'staff' => __('Staff')];
     $statusLabels = ['create' => __('Will be imported'), 'exists' => __('Already here, left alone'), 'transfer' => __('Start a transfer'), 'error' => __('Fix this row')];
     $rank = ['error' => 0, 'transfer' => 1, 'create' => 2, 'exists' => 3];
 @endphp
@@ -24,6 +24,8 @@
         <p>
             @if ($kind === 'homerooms')
                 {{ __('One row per homeroom: its grade (R or 1 to 12) and letter, and optionally the class name and medium. Homerooms that already exist are left alone.') }}
+            @elseif ($kind === 'staff')
+                {{ __('One row per staff member: names, email address and role (Teacher or one of the school\'s own roles), and optionally mobile number, gender and, for teachers, qualification. Nobody gets a password: each sets their own from an emailed invitation. People already on the staff are left alone.') }}
             @else
                 {{ __('One row per learner: admission number, names, and the homeroom (for example Grade 8 B, or the grade and letter). Add the LURITS number, date of birth, gender and up to two guardians with their email addresses when you have them. Learners already at the school are left alone, so you can import the same file again.') }}
             @endif
@@ -63,7 +65,9 @@
 
             <section class="page-section" aria-labelledby="import-settings">
                 <h2 id="import-settings">{{ __('3. Settings') }}</h2>
-                @if ($kind === 'homerooms')
+                @if ($kind === 'staff')
+                    <label><input type="checkbox" name="invite" value="1" @checked($check['options']['invite'])> {{ __('Email each new staff member an invitation to set their password now') }}</label>
+                @elseif ($kind === 'homerooms')
                     <x-page.field name="medium_id" id="import-medium" type="select" :label="__('Medium for rows that do not name one')" :value="$check['options']['medium_id'] ?? ''" :options="$mediums" :placeholder="__('Choose a medium')" :restore-old-input="false" />
                 @else
                     <x-page.field name="session_year_id" id="import-year" type="select" :label="__('School year')" :value="$check['options']['session_year_id']" :options="$years" :restore-old-input="false" />
@@ -81,7 +85,7 @@
                         <caption class="m3-visually-hidden">{{ __('Rows in the file') }}</caption>
                         <thead><tr>
                             <th scope="col">{{ __('Line') }}</th>
-                            <th scope="col">{{ $kind === 'homerooms' ? __('Homeroom') : __('Learner') }}</th>
+                            <th scope="col">{{ ['homerooms' => __('Homeroom'), 'staff' => __('Staff member')][$kind] ?? __('Learner') }}</th>
                             @if ($kind === 'learners')<th scope="col">{{ __('Homeroom') }}</th><th scope="col">{{ __('Guardians') }}</th>@endif
                             <th scope="col">{{ __('Result') }}</th>
                             <th scope="col">{{ __('Notes') }}</th>

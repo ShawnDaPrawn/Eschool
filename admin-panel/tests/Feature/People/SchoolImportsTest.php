@@ -12,6 +12,8 @@ use App\Models\ClassSection;
 use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianInvitation;
 use App\Models\Platform\GuardianLink;
+use App\Models\Platform\Role;
+use App\Models\Platform\StaffInvitation;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\People\SchoolImports;
@@ -179,6 +181,115 @@ class SchoolImportsTest extends TestCase
         $this->assertSame(['exists', 'exists', 'exists'], array_column($again['rows'], 'status'));
     }
 
+    public function test_staff_are_added_with_their_roles_and_invited_to_set_their_own_password(): void
+    {
+        Role::query()->create(['name' => 'Bursar', 'guard_name' => 'web', 'custom_role' => 1]);
+        $csv = implode("\n", [
+            'First Name,Surname,Email,Role,Mobile,Qualification',
+            'Nomvula,Khoza,nomvula@example.com,teacher,082 123 4567,BEd',
+            'Pieter,Smit,pieter@example.com,Bursar,,',
+            'Tara,Demo,tara@example.com,Teacher,,',
+            'Sam,Root,sam@example.com,Super Admin,,',
+            'Copy,Again,NOMVULA@example.com,Teacher,,',
+            'Farid,Demo,farid@example.com,Teacher,,',
+        ])."\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+
+        $this->assertSame(['create', 'create', 'exists', 'error', 'error', 'create'], array_column($check['rows'], 'status'));
+        $this->assertStringContainsString('No role "Super Admin"', implode(' ', $check['rows'][3]['notes']));
+
+        $csv = implode("\n", array_merge(array_slice(explode("\n", $csv), 0, 4), ['Farid,Demo,farid@example.com,Teacher,,']))."\n";
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+        $counts = $imports->commit($this->superAdmin(), 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
+        $this->assertSame(['created' => 3, 'invited' => 3], $counts);
+
+        $nomvula = User::query()->where('email', 'nomvula@example.com')->firstOrFail();
+        $this->assertTrue($nomvula->hasRole('Teacher'));
+        $this->assertTrue((bool) $nomvula->password_change_required);
+        $this->assertSame('0821234567', $nomvula->mobile);
+        $this->assertSame('BEd', DB::table('teachers')->where('user_id', $nomvula->id)->value('qualification'));
+        $pieter = User::query()->where('email', 'pieter@example.com')->firstOrFail();
+        $this->assertTrue($pieter->hasRole('Bursar'));
+        $this->assertTrue(DB::table('staffs')->where('user_id', $pieter->id)->exists());
+        // Farid's existing account gets the role here; it is not duplicated.
+        $this->assertSame(1, User::acrossSchools()->where('email', 'farid@example.com')->count());
+        $this->assertTrue(User::query()->findOrFail($this->schoolA->ids['farid_user'])->hasRole('Teacher'));
+        $this->assertSame(3, StaffInvitation::query()->whereIn('user_id', [$nomvula->id, $pieter->id, $this->schoolA->ids['farid_user']])->count());
+
+        $again = $imports->check($this->superAdmin(), 'staff', $csv, null, []);
+        $this->assertSame(['exists', 'exists', 'exists', 'exists'], array_column($again['rows'], 'status'));
+    }
+
+    private function staffWriteCounts(): array
+    {
+        return array_map(fn (string $table) => DB::table($table)->count(), ['users', 'school_memberships', 'staff_invitations', 'teachers', 'staffs']);
+    }
+
+    public function test_staff_create_alone_cannot_import_teachers(): void
+    {
+        $actor = User::query()->findOrFail($this->schoolA->ids['tara_user']);
+        $actor->givePermissionTo('staff-create');
+        $this->assertFalse($actor->can('teacher-create'));
+        $csv = "First Name,Surname,Email,Role\nThandi,Test,restricted-teacher@example.com,Teacher\n";
+        $before = $this->staffWriteCounts();
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($actor, 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame('error', $check['rows'][0]['status']);
+        try {
+            $imports->commit($actor, 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
+            $this->fail('Imported a teacher without teacher-create.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('rows', $e->errors());
+        }
+        $this->assertSame($before, $this->staffWriteCounts());
+    }
+
+    public function test_a_foreign_schools_custom_role_cannot_be_imported(): void
+    {
+        app(CurrentSchool::class)->run(2, fn () => Role::query()->create(['name' => 'Foreign role', 'guard_name' => 'web', 'custom_role' => 1]));
+        $before = $this->staffWriteCounts();
+        $csv = "First Name,Surname,Email,Role\nThandi,Test,foreign-role@example.com,Foreign role\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame('error', $check['rows'][0]['status']);
+        try {
+            $imports->commit($this->superAdmin(), 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
+            $this->fail('Granted another school role.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('rows', $e->errors());
+        }
+        $this->assertSame($before, $this->staffWriteCounts());
+    }
+
+    public function test_a_staff_import_check_cannot_be_replayed_by_another_actor_or_school(): void
+    {
+        Role::query()->create(['name' => 'Import helper', 'guard_name' => 'web', 'custom_role' => 1]);
+        app(CurrentSchool::class)->run(2, fn () => Role::query()->create(['name' => 'Import helper', 'guard_name' => 'web', 'custom_role' => 1]));
+        $actor = User::query()->findOrFail($this->schoolA->ids['tara_user']);
+        $actor->givePermissionTo('staff-create');
+        $other = app(CurrentSchool::class)->run(2, function () {
+            $user = User::query()->findOrFail($this->schoolB->ids['tara_user']);
+            $user->givePermissionTo('staff-create');
+
+            return $user;
+        });
+        $csv = "First Name,Surname,Email,Role\nThandi,Test,replayed-import@example.com,Import helper\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame('create', $check['rows'][0]['status']);
+        $before = $this->staffWriteCounts();
+        foreach ([$actor, $other] as $index => $caller) {
+            try {
+                app(CurrentSchool::class)->run($index === 0 ? 1 : 2, fn () => $imports->commit($caller, 'staff', $csv, $check['mapping'], $check['options'], $check['fingerprint']));
+                $this->fail('Replayed another actor/school check.');
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey('fingerprint', $e->errors());
+            }
+            $this->assertSame($before, $this->staffWriteCounts());
+        }
+    }
+
     public function test_a_check_that_no_longer_matches_is_refused(): void
     {
         $imports = app(SchoolImports::class);
@@ -251,6 +362,6 @@ class SchoolImportsTest extends TestCase
         $this->actingAs($teacher)->get('/school-imports')->assertForbidden();
         $this->actingAs($teacher)->post('/school-imports/check', ['kind' => 'learners', 'csv' => "a\nb\n"])->assertForbidden();
         $this->expectException(HttpException::class);
-        app(SchoolImports::class)->check($teacher, 'homerooms', "Grade,Letter\n8,A\n", null, []);
+        app(SchoolImports::class)->check($teacher, 'staff', "First name,Surname,Email,Role\nA,B,a@example.com,Teacher\n", null, []);
     }
 }
