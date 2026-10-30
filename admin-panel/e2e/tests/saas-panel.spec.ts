@@ -53,6 +53,7 @@ for (const width of [390, 820, 1280]) {
     expect(response.headers()['cache-control']).toBe('no-store, private');
     const invitation = (await page.locator('.saas-secret').innerText()).trim();
     expect(new URL(invitation).pathname).toMatch(/^\/invite\/staff\/[A-Za-z0-9]{64}$/);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     await page.getByRole('link', { name: 'Open the school', exact: true }).click();
     await expect(page.getByRole('heading', { name: `Synthetic platform school ${width}`, exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send the invitation again', exact: true })).toBeVisible();
