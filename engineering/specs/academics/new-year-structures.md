@@ -45,7 +45,7 @@ Four more carry-forward choices (`NewYearService::CARRY`):
 | Choice | Action | Copies | Never copies |
 | --- | --- | --- | --- |
 | `bell_schedules` | `TransferBellSchedules` | each bell schedule's name, section, periods and breaks, through `TimetableConfiguration::bells` (audited) | lessons: they name teachers and teaching groups, which are allocated afresh, so the new timetable is built on the copied bells |
-| `houses` | `TransferHouseMemberships` | each house membership open on the old year's last day, for a learner who has a homeroom with a grade on the new year's first day, into the same house from that day, through `RecognitionCatalog::membership` | points; leavers; closed houses; learners in an ungraded homeroom (placed by hand) |
+| `houses` | `TransferHouseMemberships` | each house membership open on the old year's last day, for a learner who has a homeroom with a grade on the new year's first day and is not marked as leaving that year, into the same house from that day, through `RecognitionCatalog::membership` | points; leavers (including one promoted and then marked as leaving); closed houses; learners in an ungraded homeroom (placed by hand) |
 | `award_windows` | `TransferAwardWindows` | each nomination window of an active school or grade award category, as a draft, its dates moved by the gap between the two years' start dates and kept inside the new year, through `RecognitionCatalog::window` | windows of activity-group categories (the school picks the new season's group); nominations and presentations |
 | `discipline` | `TransferDisciplineFramework` | the framework's title, levels, sanctions and infractions, published as the new year's revision 1 through `DisciplineFrameworks::save` | records, counters, detentions: every learner starts the year clean |
 
@@ -55,7 +55,7 @@ Rules:
 - **Once.** A new year that already has bell schedules, house memberships, award windows or a framework is left alone. Recognition writes use operation IDs derived from the source row and the new year, so a retried switch cannot add one twice.
 - **Modules.** Houses, award windows and discipline are offered only while their module (`house_points`, `awards`, `discipline`) is on. With it off, the choice shows nothing to copy and copies nothing.
 - **After the switch.** Discipline changes are written to the current year only, so the framework is copied just after the new year becomes current, in the same transaction (`NewYearService::AFTER_SWITCH`).
-- Each action checks the actor's authority through its own service: academic management, recognition management, or discipline management.
+- Each action checks the actor's authority first: academic management, recognition management, or discipline management. Each resolves both years within the school, so another school's year is not found and nothing is written in either school.
 
 ### Acceptance tests (`Academics/NewYearCarryTest`)
 
@@ -67,4 +67,6 @@ Rules:
 | A school category window 1 to 31 October, and a group category window | carried | one draft window, 13 October to 12 November 2027 |
 | Bells, a house member and a framework | the wizard switches with those choices | each offered with a count; all copied; the framework is the new year's revision 1; the new year is current |
 | The house points module off | the wizard's choices | houses show nothing to copy |
-| A teacher | each action | 403; nothing copied |
+| Asha promoted and then marked as leaving on the legacy page | houses carried | nothing |
+| A teacher | each action, discipline included | 403; nothing copied |
+| School B's year as the new year | each action | not found; no rows change in either school |

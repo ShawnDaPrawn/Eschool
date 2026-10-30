@@ -8,6 +8,7 @@ use App\Models\People\Enrolment;
 use App\Models\Recognition\House;
 use App\Models\Recognition\HouseMembership;
 use App\Models\SessionYear;
+use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Recognition\RecognitionCatalog;
@@ -43,7 +44,10 @@ class TransferHouseMemberships
             $houses = House::query()->where('active', true)->pluck('id')->flip();
             // Recognition needs the homeroom's grade; a learner in an ungraded
             // homeroom is left for the school to place in a house by hand.
-            $continuing = Enrolment::query()->where('session_year_id', $to->id)->onDate($firstDay)
+            // A learner promoted and then marked as leaving keeps the dated
+            // enrolment; the leaving decision on the year's row wins.
+            $leaving = StudentSessions::query()->where('session_year_id', $to->id)->where('status', 0)->select('student_id');
+            $continuing = Enrolment::query()->where('session_year_id', $to->id)->onDate($firstDay)->whereNotIn('learner_id', $leaving)
                 ->whereHas('homeroom.class', fn ($q) => $q->whereNotNull('grade_level_id'))->pluck('learner_id')->flip();
             $memberships = HouseMembership::query()->where('session_year_id', $from->id)->where('active', true)
                 ->whereDate('starts_on', '<=', $lastDay)->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $lastDay))

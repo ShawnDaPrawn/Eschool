@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Actions\Transfers;
 
 use App\Models\Discipline\DisciplineFramework;
+use App\Models\SessionYear;
 use App\Models\User;
+use App\Services\Discipline\DisciplineAuthority;
 use App\Services\Discipline\DisciplineFrameworks;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +26,10 @@ class TransferDisciplineFramework
     {
         $actor = auth()->user();
         abort_unless($actor instanceof User, 403);
+        abort_unless(app(DisciplineAuthority::class)->manages($actor), 403);
+        // Both years must be this school's.
+        SessionYear::query()->findOrFail($fromSessionId);
+        SessionYear::query()->findOrFail($toSessionId);
 
         DB::transaction(function () use ($actor, $fromSessionId, $toSessionId) {
             $source = DisciplineFramework::query()->where('session_year_id', $fromSessionId)->first();
