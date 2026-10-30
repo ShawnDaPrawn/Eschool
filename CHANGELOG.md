@@ -41,6 +41,13 @@ Earlier history is kept where it was written and is not repeated here:
   staging, explicitly assign `fee-payments-manage` to real Finance roles, and
   confirm the school allocation rule before allocating.
 
+- The learner's LURITS number can be recorded as their primary identifier, once per
+  learner across all schools, encrypted, and never written twice: a number another
+  learner already holds opens a conflict for review instead. The NavigateEd number
+  remains the temporary identifier for learners without one (ADR 0007). Screens,
+  API fields, imports and SA-SAMS keying follow. **Deploy:** run the additive
+  `learner_identifiers` LURITS migration.
+
 - Internal school ledger foundation with balanced immutable integer-cents postings,
   permanent receipt identities, protected wallet balances and nightly reconciliation.
   Existing receipt history stays intact; this does not activate wallets or payment providers.
