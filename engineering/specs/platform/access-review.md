@@ -37,5 +37,5 @@ For a **person** (current staff of the school) or a **role** of the school:
 | A teacher, a parent, a learner; another school's person or role | they open it, or are looked up | 403; not found; parents and other schools' staff are not offered |
 | The page | a role and a person are reviewed | the module table and the pages |
 
-Browser: `e2e/tests/access-review.spec.ts` at 1024 and 1280 pixels; teachers
+Browser: `e2e/tests/navigation.spec.ts` at 1024 and 1280 pixels; teachers
 refused.

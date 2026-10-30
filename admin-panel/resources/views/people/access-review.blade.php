@@ -39,7 +39,7 @@
             @if ($result['other'] !== [])
                 <h3>{{ __('Other permissions') }}</h3>
                 <p>{{ __('Held directly, outside the module levels.') }}</p>
-                <ul>@foreach ($result['other'] as $permission)<li><code>{{ $permission }}</code></li>@endforeach</ul>
+                <ul>@foreach ($result['other'] as $permission)<li>{{ $permission }}</li>@endforeach</ul>
             @endif
             <h3>{{ __('Pages in their menu') }}</h3>
             @if ($result['subject']['kind'] === 'role')
