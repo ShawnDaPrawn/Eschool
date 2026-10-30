@@ -47,12 +47,7 @@ class GradePromotionController extends Controller
         if (! $request->boolean('complete')) {
             return response($this->page($request, $from, $to, [], [], ['complete' => [self::TRUNCATED]]), 422);
         }
-        [$exceptions, $moves, $errors] = $this->choices($request);
-        if (trim((string) $request->validated('sheet')) !== '') {
-            $sheet = $this->promotion->parseSheet($from, (string) $request->validated('sheet'));
-            $exceptions = $sheet['exceptions'] + $exceptions;
-            $errors = [...$errors, ...$sheet['errors']];
-        }
+        [$exceptions, $moves, $errors] = $this->choices($request, $from);
 
         return $this->page($request, $from, $to, $exceptions, $moves, $errors === [] ? [] : ['choices' => $errors]);
     }
@@ -63,7 +58,9 @@ class GradePromotionController extends Controller
         if (! $request->boolean('complete')) {
             return response($this->page($request, $from, $to, [], [], ['complete' => [self::TRUNCATED]]), 422);
         }
-        [$exceptions, $moves, $errors] = $this->choices($request);
+        // A pasted sheet counts too: if it changes anything, the plan no
+        // longer matches the page and promoting is refused below.
+        [$exceptions, $moves, $errors] = $this->choices($request, $from);
         if ($errors !== []) {
             return response($this->page($request, $from, $to, $exceptions, $moves, ['choices' => $errors]), 422);
         }
@@ -120,12 +117,12 @@ class GradePromotionController extends Controller
     /**
      * The choices on the page: learner id => outcome, with the homeroom for
      * "place", and homerooms moved somewhere other than their default, both
-     * naming homerooms as the page does. Names that match no homeroom are
-     * reported.
+     * naming homerooms as the page does; then the pasted sheet, which wins.
+     * Names that match no homeroom, and the sheet's bad rows, are reported.
      *
      * @return array{0: array<int, array{outcome: string, homeroom_id: int|null}>, 1: array<int, int>, 2: list<string>}
      */
-    private function choices(GradePromotionRequest $request): array
+    private function choices(GradePromotionRequest $request, SessionYear $from): array
     {
         $names = $this->promotion->homeroomChoices();
         $byName = collect($names)->mapWithKeys(fn (string $name, int $id) => [mb_strtolower($name) => $id]);
@@ -156,6 +153,12 @@ class GradePromotionController extends Controller
             if ($room !== null) {
                 $moves[(int) $source] = $room;
             }
+        }
+
+        if (trim((string) $request->validated('sheet')) !== '') {
+            $sheet = $this->promotion->parseSheet($from, (string) $request->validated('sheet'));
+            $choices = $sheet['exceptions'] + $choices;
+            $errors = [...$errors, ...$sheet['errors']];
         }
 
         return [$choices, $moves, array_values(array_unique($errors))];

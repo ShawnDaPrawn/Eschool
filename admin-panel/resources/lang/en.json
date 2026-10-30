@@ -5394,7 +5394,7 @@
     "Promote learners": "Promote learners",
     "Create next school year first, then promote learners into it.": "Create next school year first, then promote learners into it.",
     ":promoted promoted, :repeated repeating, :placed placed and :left leaving, for :year.": ":promoted promoted, :repeated repeating, :placed placed and :left leaving, for :year.",
-    "Learners or placements changed since the preview. Check the promotion again.": "Learners or placements changed since the preview. Check the promotion again.",
+    "Something changed since this page was shown. Check the promotion below, then promote again.": "Something changed since this page was shown. Check the promotion below, then promote again.",
     "Row :row: no learner with admission number \":number\" this year.": "Row :row: no learner with admission number \":number\" this year.",
     "Row :row: the outcome must be promote, repeat, leave or place.": "Row :row: the outcome must be promote, repeat, leave or place.",
     "Row :row: no homeroom called \":room\".": "Row :row: no homeroom called \":room\".",

@@ -20,7 +20,8 @@ The legacy "Promote learners" page works one class at a time and writes only the
 - **Already placed.** A learner who already has an enrolment in the "to" year, or is already marked as leaving it, is shown and left alone.
 - **Dates.** Enrolments start on the "to" year's first day. The "to" year must start after the "from" year ends; this year's enrolments are not changed.
 - **Projection.** Each learner's `student_sessions` row for the "to" year gets status 1 (continues), result 1 (or 0 when repeating) and `previous_session_year_id`; a leaver's row gets status 0 and no homeroom, as the legacy page does. When the "to" year is already the current year, learners' homerooms move and leavers' sign-ins are switched off now, as making a year current does (`SessionYearService::applyPromotions`); otherwise that happens at the switch.
-- **Check, then promote.** The page shows the default moves. "Check changes" applies the choices on the page and a pasted sheet. "Promote learners" writes in one transaction and is refused if any learner, placement or choice differs from what the page showed (a fingerprint of the plan), or if a learner has no homeroom.
+- **Homeroom labels are unique.** Homerooms are named "Grade 8 A"; when several share a class name and letter across mediums, streams or shifts, the label adds them ("Grade 8 A (Afrikaans, Science)"), and identical ones are numbered, so a typed or pasted name always means one homeroom.
+- **Check, then promote.** The page shows the default moves. "Check changes" applies the choices on the page and a pasted sheet. "Promote learners" writes in one transaction and is refused if any learner, placement or choice differs from what the page showed (a fingerprint of the plan), or if a learner has no homeroom. A sheet pasted and sent straight to "Promote learners" is applied too, so if it changes anything the promotion is refused and the page shows the result to check.
 - **Audit.** `people.grade_promotion_committed` with the two years and the counts.
 
 ## Acceptance tests (`People/GradePromotionTest`)
@@ -34,6 +35,8 @@ The legacy "Promote learners" page works one class at a time and writes only the
 | A learner placed by hand after the page was shown | promote | refused; the learner now shows as already placed |
 | No Grade 6 A | plan, promote | one homeroom without a target is unresolved; promoting is refused |
 | Grade 5 A's grade not set; Grade 5 A and Grade 12 C both sent to Grade 6 A; one learner leaves | plan, promote | flagged as grade not set; two promoted, one leaving; promoting without the moves the page showed is refused; with them, both are in Grade 6 A; a typed homeroom that matches none is reported |
+| A sheet pasted and sent straight to "Promote learners" | promote | refused (422) with the sheet applied on the page; nothing written |
+| A second Grade 6 A in the Afrikaans medium | labels, parse, plan | "Grade 6 A (Afrikaans)" and a distinct label for the other; the sheet's label picks the right one; the default stays in the same medium |
 | "From" and "to" reversed | plan | refused |
 | A school administrator | open, check with a repeat, promote | the counts show; the repeat is written; a form missing its last field is refused (422) |
 | A teacher without the promotion permissions | open or promote | 403; nothing written |

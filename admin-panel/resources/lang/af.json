@@ -5394,7 +5394,7 @@
     "Promote learners": "Bevorder leerders",
     "Create next school year first, then promote learners into it.": "Skep eers volgende skooljaar en bevorder dan leerders daarheen.",
     ":promoted promoted, :repeated repeating, :placed placed and :left leaving, for :year.": ":promoted bevorder, :repeated druip, :placed geplaas en :left vertrek, vir :year.",
-    "Learners or placements changed since the preview. Check the promotion again.": "Leerders of plasings het verander sedert die voorskou. Kyk weer na die bevordering.",
+    "Something changed since this page was shown. Check the promotion below, then promote again.": "Iets het verander sedert hierdie bladsy gewys is. Kyk na die bevordering hieronder en bevorder dan weer.",
     "Row :row: no learner with admission number \":number\" this year.": "Ry :row: geen leerder met toelatingsnommer \":number\" hierdie jaar nie.",
     "Row :row: the outcome must be promote, repeat, leave or place.": "Ry :row: die uitkoms moet promote, repeat, leave of place wees.",
     "Row :row: no homeroom called \":room\".": "Ry :row: geen registerklas genaamd \":room\" nie.",

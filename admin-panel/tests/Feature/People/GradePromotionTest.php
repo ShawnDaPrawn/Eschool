@@ -174,6 +174,35 @@ class GradePromotionTest extends TestCase
         ])->assertOk()->assertSee('No homeroom called &quot;Grade 9 Z&quot;.', false);
     }
 
+    public function test_a_sheet_pasted_without_checking_is_not_ignored(): void
+    {
+        $ids = $this->schoolA->ids;
+        $plan = app(GradePromotion::class)->plan($this->from, $this->to);
+        $number = (string) DB::table('students')->where('id', $ids['ben'])->value('admission_no');
+        $this->actingAs($this->superAdmin())->post('/promotions/by-grade', [
+            'from' => $this->from->id, 'to' => $this->to->id, 'complete' => 1, 'fingerprint' => $plan['fingerprint'], 'sheet' => "$number,repeat",
+        ])->assertStatus(422)->assertSee('Something changed since this page was shown.')->assertSee('1 promoted, 1 repeating, 0 placed, 1 leaving.', false);
+        $this->assertSame(0, Enrolment::query()->where('session_year_id', $this->to->id)->count());
+    }
+
+    public function test_homerooms_with_the_same_name_get_labels_that_tell_them_apart(): void
+    {
+        // A second Grade 6 A in another medium.
+        $medium = DB::table('mediums')->insertGetId(['name' => 'Afrikaans', 'school_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $grade6 = ClassSchool::query()->forceCreate(['name' => 'Grade 6', 'medium_id' => $medium, 'grade_level_id' => DB::table('grade_levels')->where('sort_order', 6)->value('id')]);
+        $other = (int) ClassSection::query()->forceCreate(['class_id' => $grade6->id, 'section_id' => ClassSection::query()->findOrFail($this->nextRoom)->section_id])->id;
+        $service = app(GradePromotion::class);
+
+        $labels = $service->homeroomChoices();
+        $this->assertSame('Grade 6 A (Afrikaans)', $labels[$other]);
+        $this->assertStringStartsWith('Grade 6 A (', $labels[$this->nextRoom]);
+        $this->assertCount(count($labels), array_unique(array_map('mb_strtolower', $labels)));
+        $number = (string) DB::table('students')->where('id', $this->schoolA->ids['cara'])->value('admission_no');
+        $this->assertSame($other, $service->parseSheet($this->from, "$number,place,grade 6 a (afrikaans)")['exceptions'][$this->schoolA->ids['cara']]['homeroom_id']);
+        // The default stays in the same medium.
+        $this->assertSame($this->nextRoom, $this->rows($service->plan($this->from, $this->to))[$this->schoolA->ids['asha']]['target']);
+    }
+
     public function test_promoting_into_a_year_that_has_not_started_after_this_one_is_refused(): void
     {
         $this->expectException(ValidationException::class);

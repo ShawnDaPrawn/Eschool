@@ -125,7 +125,7 @@ class GradePromotion
             SessionYear::query()->whereKey($to->id)->lockForUpdate()->first();
             $plan = $this->plan($from, $to, $exceptions, $moves);
             if (! hash_equals($plan['fingerprint'], $fingerprint)) {
-                throw ValidationException::withMessages(['fingerprint' => __('Learners or placements changed since the preview. Check the promotion again.')]);
+                throw ValidationException::withMessages(['fingerprint' => __('Something changed since this page was shown. Check the promotion below, then promote again.')]);
             }
             if ($plan['unresolved'] > 0) {
                 throw ValidationException::withMessages(['outcome' => __('Choose a homeroom for every learner who has none (:count).', ['count' => $plan['unresolved']])]);
@@ -255,26 +255,51 @@ class GradePromotion
         return ['target' => $best['id'] ?? null, 'last_grade' => false, 'grade_unset' => false];
     }
 
-    /** @return array<int, array{id: int, name: string, grade_level_id: int|null, section_id: int, medium_id: int|null, stream_id: int|null, shift_id: int|null}> */
+    /**
+     * Every homeroom with a label that is unique in the school: "Grade 8 A",
+     * or "Grade 8 A (Afrikaans, Science, Afternoon)" when several homerooms
+     * share a class name and letter across mediums, streams or shifts.
+     *
+     * @return array<int, array{id: int, name: string, grade_level_id: int|null, section_id: int, medium_id: int|null, stream_id: int|null, shift_id: int|null}>
+     */
     private function homerooms(): array
     {
-        $classes = ClassSchool::query()->get()->keyBy('id');
-
-        return ClassSection::query()->with('section')->get()
+        $classes = ClassSchool::query()->with(['medium', 'streams', 'shifts'])->get()->keyBy('id');
+        $rooms = ClassSection::query()->with('section')->get()
             ->filter(fn (ClassSection $room) => $classes->has($room->class_id))
             ->mapWithKeys(function (ClassSection $room) use ($classes): array {
                 $class = $classes[$room->class_id];
 
                 return [(int) $room->id => [
                     'id' => (int) $room->id,
-                    'name' => trim($class->name.' '.($room->section?->name ?? '')),
+                    'name' => trim(preg_replace('/\s+/', ' ', $class->name.' '.($room->section?->name ?? '')) ?? ''),
+                    'detail' => array_values(array_filter([$class->medium?->name, $class->streams?->name, $class->shifts?->title], fn ($part) => (string) $part !== '')),
                     'grade_level_id' => $class->grade_level_id !== null ? (int) $class->grade_level_id : null,
                     'section_id' => (int) $room->section_id,
                     'medium_id' => $class->medium_id !== null ? (int) $class->medium_id : null,
                     'stream_id' => $class->stream_id !== null ? (int) $class->stream_id : null,
                     'shift_id' => $class->shift_id !== null ? (int) $class->shift_id : null,
                 ]];
-            })->all();
+            });
+        $shared = $rooms->countBy(fn (array $room) => mb_strtolower($room['name']))->filter(fn (int $count) => $count > 1);
+        $rooms = $rooms->map(function (array $room) use ($shared): array {
+            if ($shared->has(mb_strtolower($room['name'])) && $room['detail'] !== []) {
+                $room['name'] .= ' ('.implode(', ', $room['detail']).')';
+            }
+            unset($room['detail']);
+
+            return $room;
+        });
+        // Still the same (identical classes): number them so no label is ambiguous.
+        $still = $rooms->countBy(fn (array $room) => mb_strtolower($room['name']))->filter(fn (int $count) => $count > 1);
+
+        return $rooms->map(function (array $room) use ($still): array {
+            if ($still->has(mb_strtolower($room['name']))) {
+                $room['name'] .= ' #'.$room['id'];
+            }
+
+            return $room;
+        })->all();
     }
 
     /** @return array<int, int|null> grade level id => the next one up, or null for the last */

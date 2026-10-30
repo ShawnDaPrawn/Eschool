@@ -5394,7 +5394,7 @@
     "Promote learners": "Khuphula abafundi",
     "Create next school year first, then promote learners into it.": "Dala unyaka wesikole olandelayo kuqala, bese ukhuphulela abafundi kuwo.",
     ":promoted promoted, :repeated repeating, :placed placed and :left leaving, for :year.": ":promoted bakhushulwe, :repeated baphinda, :placed babekiwe kanti :left bayahamba, ku-:year.",
-    "Learners or placements changed since the preview. Check the promotion again.": "Abafundi noma ukubekwa kushintshile kusukela ekubukeni kuqala. Phinda uhlole ukukhuphula.",
+    "Something changed since this page was shown. Check the promotion below, then promote again.": "Kukhona okushintshile kusukela leli khasi likhonjisiwe. Hlola ukukhuphula ngezansi, bese uphinda ukhuphula.",
     "Row :row: no learner with admission number \":number\" this year.": "Umugqa :row: akekho umfundi onenombolo yokwamukelwa \":number\" kulo nyaka.",
     "Row :row: the outcome must be promote, repeat, leave or place.": "Umugqa :row: umphumela kufanele ube ngu-promote, repeat, leave noma place.",
     "Row :row: no homeroom called \":room\".": "Umugqa :row: alikho ikilasi elibizwa ngokuthi \":room\".",
