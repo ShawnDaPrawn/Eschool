@@ -5791,5 +5791,18 @@
     "Guardian :n needs a first name and surname.": "Guardian :n needs a first name and surname.",
     "Guardian :n's mobile number is not valid.": "Guardian :n's mobile number is not valid.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "The account for :email cannot be linked. Check it with the guardian before importing this learner.",
-    "The account for :email cannot be linked.": "The account for :email cannot be linked."
+    "The account for :email cannot be linked.": "The account for :email cannot be linked.",
+    "Qualification (teachers)": "Qualification (teachers)",
+    "One row per staff member: names, email address and role (Teacher or one of the school's own roles), and optionally mobile number, gender and, for teachers, qualification. Nobody gets a password: each sets their own from an emailed invitation. People already on the staff are left alone.": "One row per staff member: names, email address and role (Teacher or one of the school's own roles), and optionally mobile number, gender and, for teachers, qualification. Nobody gets a password: each sets their own from an emailed invitation. People already on the staff are left alone.",
+    "Email each new staff member an invitation to set their password now": "Email each new staff member an invitation to set their password now",
+    ":created staff added and :invited invited to set their password.": ":created staff added and :invited invited to set their password.",
+    "A valid email address is needed: staff set their password from an emailed link.": "A valid email address is needed: staff set their password from an emailed link.",
+    "This email address is already on line :line.": "This email address is already on line :line.",
+    "No role \":role\". Use Teacher or one of the school's own roles: :roles.": "No role \":role\". Use Teacher or one of the school's own roles: :roles.",
+    "You may not add teachers.": "You may not add teachers.",
+    "The mobile number is not valid.": "The mobile number is not valid.",
+    "The qualification is too long.": "The qualification is too long.",
+    "Already on the staff.": "Already on the staff.",
+    "The account for :email cannot be added. Check it with the person first.": "The account for :email cannot be added. Check it with the person first.",
+    "The account for :email cannot be added.": "The account for :email cannot be added."
 }

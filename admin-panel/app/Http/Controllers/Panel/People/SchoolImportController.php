@@ -72,10 +72,12 @@ class SchoolImportController extends Controller
             return response($this->page($request, $kind, $check, $e->errors(), $csv), 422);
         }
 
-        $message = $kind === 'learners'
+        $message = $kind === 'staff'
+            ? __(':created staff added and :invited invited to set their password.', ['created' => $counts['created'], 'invited' => $counts['invited']])
+            : ($kind === 'learners'
             ? __(':created learners imported, :linked guardian links made, :invited guardians invited and :lurits LURITS numbers recorded.', [
                 'created' => $counts['created'], 'linked' => $counts['guardians_linked'], 'invited' => $counts['guardians_invited'], 'lurits' => $counts['lurits_recorded']])
-            : __(':created homerooms imported.', ['created' => $counts['created']]);
+            : __(':created homerooms imported.', ['created' => $counts['created']]));
 
         return redirect()->route('school-imports.index', ['kind' => $kind])->with('success', $message);
     }
