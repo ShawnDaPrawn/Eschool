@@ -111,8 +111,8 @@ test('exam periods are added, kept accessible and removed', async ({ page, baseU
   const name = `Browser exams ${Date.now()}`;
   await form.getByRole('textbox', { name: 'Name', exact: true }).fill(name);
   await form.getByRole('combobox', { name: 'Grade', exact: true }).selectOption({ label: 'Grade 5' });
-  await form.getByLabel('First exam day', { exact: true }).fill('2026-11-23');
-  await form.getByLabel('Last exam day', { exact: true }).fill('2026-11-27');
+  await form.getByRole('textbox', { name: 'First exam day', exact: true }).fill('2026-11-23');
+  await form.getByRole('textbox', { name: 'Last exam day', exact: true }).fill('2026-11-27');
   await form.getByRole('button', { name: 'Add exam period', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Exam period saved' })).toBeVisible();
   await expect(page.getByRole('heading', { name: `${name} · Grade 5`, exact: true })).toBeVisible();
