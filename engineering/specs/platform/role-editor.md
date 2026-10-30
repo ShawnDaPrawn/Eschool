@@ -47,7 +47,7 @@ stays available for now.
 | Teacher or Super Admin; a built-in name; an unknown module; another school's role; a teacher user | they edit or create | 403, validation errors, not found, 403; nothing changed |
 | The panel | create, open, rename and raise a level | saved and redirected; the roles list offers "Access by module" |
 
-Browser: `e2e/tests/role-editor.spec.ts` (accessibility and fit at 1024 and
+Browser: `e2e/tests/modules.spec.ts` (role editor accessibility and fit at 1024 and
 1280 pixels; teachers refused).
 
 ## Not yet
