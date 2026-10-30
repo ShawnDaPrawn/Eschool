@@ -83,6 +83,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
 
+- HQ school records: platform staff keep each customer school's stage (lead to
+  live, at risk, churned), profile, contacts, contracts with the POPIA operator
+  agreement, and a timeline of notes, on a new page in `/saas`. The school list
+  shows each school's stage. Schools never see it, and it shows none of a
+  school's people. **Deploy:** run the additive `school_accounts` migration.
+
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
 
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.

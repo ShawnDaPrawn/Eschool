@@ -97,3 +97,6 @@ Five standalone Material 3 pages (`resources/views/saas/`, `public/assets/css/sa
 3. Set up a school; open the invitation link in another browser; choose a password; sign in as the new administrator; confirm they see only their own school and `/saas` answers 403.
 4. Suspend that school with a reason; confirm its administrator is refused; restore it.
 5. `php artisan platform:admin-access <id> --revoke`; confirm `/saas` answers 403 on the next page.
+
+HQ's own record of each customer school (stage, contacts, contracts,
+timeline) is specified in [`hq-school-accounts.md`](hq-school-accounts.md).

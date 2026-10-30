@@ -46,9 +46,10 @@ class PlatformSchools
     public function overview(): array
     {
         $counts = $this->counts();
+        $stages = $this->stages();
 
         return DB::table('schools')->orderBy('id')->get()
-            ->map(fn (object $school): array => $this->row($school, $counts))
+            ->map(fn (object $school): array => $this->row($school, $counts, $stages))
             ->all();
     }
 
@@ -57,7 +58,7 @@ class PlatformSchools
     {
         $school = DB::table('schools')->where('id', $id)->first();
 
-        return $school === null ? null : $this->row($school, $this->counts($id));
+        return $school === null ? null : $this->row($school, $this->counts($id), $this->stages($id));
     }
 
     /**
@@ -254,7 +255,7 @@ class PlatformSchools
      * @param  array<int, array{people: int, roles: array<string, int>}>  $counts
      * @return array<string, mixed>
      */
-    private function row(object $school, array $counts): array
+    private function row(object $school, array $counts, array $stages = []): array
     {
         $own = $counts[(int) $school->id] ?? ['people' => 0, 'roles' => []];
 
@@ -269,7 +270,16 @@ class PlatformSchools
             'people' => $own['people'],
             'roles' => array_merge(array_fill_keys(self::COUNTED_ROLES, 0), array_intersect_key($own['roles'], array_flip(self::COUNTED_ROLES))),
             'is_default' => (int) $school->id === CurrentSchool::defaultId(),
+            // HQ's lifecycle stage (PlatformSchoolAccounts); a school without a record is onboarding.
+            'stage' => $stages[(int) $school->id] ?? 'onboarding',
         ];
+    }
+
+    /** @return array<int, string> stage per school id */
+    private function stages(?int $schoolId = null): array
+    {
+        return DB::table('school_accounts')->when($schoolId !== null, fn ($query) => $query->where('school_id', $schoolId))
+            ->pluck('stage', 'school_id')->mapWithKeys(fn ($stage, $id) => [(int) $id => (string) $stage])->all();
     }
 
     private function uniqueSlug(string $name): string

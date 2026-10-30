@@ -85,6 +85,13 @@ for (const width of [390, 820, 1280]) {
     expect(denied?.status()).toBe(403);
     await context.close();
 
+    // HQ's own record of the school: profile, contacts, contracts and timeline.
+    await page.getByRole('link', { name: 'School record, contacts and contracts', exact: true }).click();
+    await expect(page.getByRole('heading', { name: `Synthetic platform school ${width}`, exact: true })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'School profile and stage', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+
     fixture('revoke');
     const retired = await page.reload();
     expect(retired?.status()).toBe(403);

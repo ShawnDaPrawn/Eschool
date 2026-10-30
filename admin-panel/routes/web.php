@@ -111,6 +111,7 @@ use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\StaffInvitationController;
+use App\Http\Controllers\Platform\SchoolAccountController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
 use App\Http\Controllers\SectionController;
@@ -252,6 +253,16 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/schools/create', [SaasController::class, 'create'])->name('schools.create');
     Route::post('/schools', [SaasController::class, 'store'])->middleware('throttle:20,1')->name('schools.store');
     Route::get('/schools/{school}', [SaasController::class, 'show'])->whereNumber('school')->name('schools.show');
+    // HQ's own record of the school (contacts, stage, contracts, timeline): never the school's people.
+    Route::prefix('/schools/{school}')->whereNumber('school')->name('schools.')->group(function () {
+        Route::get('account', [SchoolAccountController::class, 'show'])->name('account');
+        Route::put('account', [SchoolAccountController::class, 'save'])->name('account.save');
+        Route::post('contacts', [SchoolAccountController::class, 'contact'])->name('contacts.store');
+        Route::put('contacts/{contact}', [SchoolAccountController::class, 'contact'])->whereNumber('contact')->name('contacts.update');
+        Route::delete('contacts/{contact}', [SchoolAccountController::class, 'removeContact'])->whereNumber('contact')->name('contacts.destroy');
+        Route::post('contracts', [SchoolAccountController::class, 'contract'])->name('contracts.store');
+        Route::post('notes', [SchoolAccountController::class, 'note'])->name('notes.store');
+    });
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->whereNumber('school')->name('schools.modules');
