@@ -56,6 +56,23 @@ stays available for now.
 Browser: `e2e/tests/modules.spec.ts` (role editor accessibility and fit at 1024 and
 1280 pixels; teachers refused).
 
+## Templates (Action Plan 1.14)
+
+`config/role_templates.php` ships starting points for common school jobs:
+Principal, Deputy principal, School office, Bursar or finance officer, Head of
+department, Grade head, Sports and activities coordinator, Reception and gate,
+IT administrator. "Start from a template" on the new-role page ticks the
+template's levels and abilities and suggests its name; nothing is saved until
+the administrator saves. Modules the school has switched off are not granted.
+The system roles (Super Admin, Teacher, Parent, Student, Counsellor,
+Safeguarding) are left as they are, so Teacher and Counsellor are not
+templates. **Sensitive abilities are never part of a template**
+(`Unit/RoleTemplatesTest` enforces it, and that every template uses known
+modules, levels and abilities within what a custom role may hold): marks
+release, finance approvals, sensitive profiles, health records and roles are
+ticked on purpose. A librarian template waits for the library module.
+
 ## Not yet
 
-Role templates (1.14) and the "who can see what" review (1.15).
+The "who can see what" review (1.15) and choosing a template while inviting
+staff.
