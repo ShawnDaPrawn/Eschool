@@ -93,6 +93,9 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
             $full = $recipient === null ? null : app(EmailContent::class)->full($recipient, $this->mailable->notificationType, $this->mailable->deliveryContext);
             $this->mailable->contentHtml = $full['html'] ?? null;
             $this->mailable->contentText = $full['text'] ?? null;
+            if ($full !== null && trim($full['title']) !== '') {
+                $this->mailable->noticeTitle = $full['title'];
+            }
         }
 
         try {

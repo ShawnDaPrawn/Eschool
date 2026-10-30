@@ -64,7 +64,7 @@ class EmailContent
      * The full content of this notice for this recipient, or null for the
      * notice only. Call it in the notice's school, just before sending.
      *
-     * @return array{html: string, text: string}|null
+     * @return array{title: string, html: string, text: string}|null
      */
     public function full(User $recipient, string $type, array $context): ?array
     {
@@ -86,7 +86,8 @@ class EmailContent
         }
         $html = app(ContentMarkdown::class)->html((string) $message->markdown);
 
-        return ['html' => $html, 'text' => self::plain($html)];
+        // The sender's subject carries meaning too ("School closed tomorrow"): it becomes the email's subject and heading.
+        return ['title' => (string) $message->title, 'html' => $html, 'text' => self::plain($html)];
     }
 
     /** The plain-text alternative of sanitised message HTML: paragraphs, list items and link addresses kept. */

@@ -168,8 +168,13 @@ class BrandedEmailTest extends TestCase
         // The message itself never travels in the queue.
         $this->assertStringNotContainsString('Private family details', serialize($jobs[0]->mailable));
 
+        $this->assertStringNotContainsString('Private school message', serialize($jobs[0]->mailable), 'nor its subject');
+
         $mail = $this->deliver($jobs[0]);
+        $this->assertSame('Private school message', $mail->noticeTitle, 'the sender\'s subject is the email\'s subject and heading');
+        $this->assertSame('Private school message', $mail->build()->subject);
         $html = $mail->render();
+        $this->assertStringContainsString('Private school message</h1>', $html);
         $this->assertStringContainsString('<h1>Trip on Friday</h1>', $html);
         $this->assertStringContainsString('<strong>R50</strong>', $html);
         $this->assertStringContainsString('#0A7C4B', $html);
@@ -186,6 +191,7 @@ class BrandedEmailTest extends TestCase
         $mail = $this->deliver($jobs[0]);
         $this->assertNull($mail->contentHtml);
         $this->assertStringNotContainsString('Private family details', $mail->render());
+        $this->assertStringNotContainsString('Private school message', $mail->render(), 'an unverified address gets neither the body nor the subject');
         $this->assertStringContainsString('Open NavigateEd to view this notice.', $mail->render());
 
         // Verified now, but the message is withdrawn before the job runs: nothing is sent.

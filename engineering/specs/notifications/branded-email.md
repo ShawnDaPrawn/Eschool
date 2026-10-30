@@ -11,6 +11,7 @@ School notice emails were a plain stub: the school's name, the notice title and 
 - **Full content, opt-in per type.** A type gets its full content in the email only when `config/notification_types.php` marks it `full_content`. Today that is `communication.message` (school messages from the communication centre). The message's sanitised Markdown is rendered with the same renderer as the app (no images, no raw HTML, HTTPS links only).
 - **Notice only, always.** Types marked `notice_only` never carry content, even if also marked `full_content`: safeguarding alerts, consent requests, wellbeing, discipline, progress, transfers, consultations, recognition, group conversations, school support, the weekly digest and fee statement reminders. Their emails keep the generic notice, as before.
 - **Read at sending, for that recipient.** The content is fetched just before the email is sent, through the app reader's own check (`MessagePolicy::reader`) for that recipient, and only for the publication the notice announced. A recipient who lost access, a withdrawn message, or a different publication gets the notice only (a withdrawn message is not sent at all, as before). The message never travels in the queued job.
+- **Subject.** With full content, the message's own subject becomes the email subject and heading (it often carries the point, such as "School closed tomorrow"), read at sending like the body.
 - **Unverified addresses** get the generic notice only, as before.
 
 ## Acceptance tests (`Communication/BrandedEmailTest`)
