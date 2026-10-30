@@ -51,6 +51,17 @@ class FamilyReachTest extends TestCase
         $this->assertSame(['app' => 1, 'email' => 2, 'unreachable' => 0, 'no_guardian' => 0], $after['counts'], 'Ben by the app; Asha and Cara by Farid\'s email');
         $this->assertSame([], $after['unreached']);
 
+        // An expired sign-in is not current: past Sanctum's expiration, or its own expires_at.
+        $gina = User::findOrFail($this->schoolA->ids['gina_user']);
+        $gina->tokens()->update(['created_at' => now()->subMinutes((int) config('sanctum.expiration') + 1)]);
+        $this->assertSame('unreachable', $this->reason($this->report(), 'ben'), 'a token older than the configured expiration');
+        config(['sanctum.expiration' => null]);
+        $this->assertNull($this->reason($this->report(), 'ben'), 'without a configured expiration the token is current');
+        $gina->tokens()->update(['expires_at' => now()->subMinute()]);
+        $this->assertSame('unreachable', $this->reason($this->report(), 'ben'), 'a token past its own expires_at');
+        $gina->tokens()->update(['expires_at' => now()->addDay()]);
+        $this->assertNull($this->reason($this->report(), 'ben'));
+
         User::whereKey($this->schoolA->ids['gina_user'])->update(['status' => 0]);
         $this->assertSame('unreachable', $this->reason($this->report(), 'ben'), 'a switched-off account reaches nobody');
     }

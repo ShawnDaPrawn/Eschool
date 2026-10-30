@@ -12,7 +12,7 @@ row (an ended link overrides the legacy field). A learner is:
 
 | Status | When |
 | --- | --- |
-| Parent app | at least one active guardian account has a current parent-app sign-in |
+| Parent app | at least one active guardian account has a current parent-app sign-in (a token Sanctum still accepts: younger than `sanctum.expiration` and before its own `expires_at`) |
 | Verified email only | otherwise, at least one active guardian has a verified, valid email address |
 | Cannot be reached yet | guardians exist, but none has the app or a verified email, or their accounts are off |
 | No guardian recorded | no guardian at all |
@@ -33,6 +33,6 @@ queries for the whole school, not per learner.
 
 | Given | When | Then |
 | --- | --- | --- |
-| Three learners whose guardians have neither | Farid verifies his email; Gina signs in to the parent app; then Gina's account is switched off | all unreachable; then Ben by app and Asha and Cara by email; then Ben unreachable |
+| Three learners whose guardians have neither | Farid verifies his email; Gina signs in to the parent app; her token expires (by age, then by `expires_at`); then Gina's account is switched off | all unreachable; then Ben by app and Asha and Cara by email; Ben unreachable while the token is expired; then Ben unreachable |
 | Asha's two legacy parents with ended links | reported | no guardian recorded |
 | A teacher, a parent, a learner | they open it | 403; the office's page shows no other school |
