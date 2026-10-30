@@ -88,6 +88,12 @@ refreshes compatible v1 current-week projections; the canonical timetable remain
 authoritative while a projection refresh is delayed.
 
 
+Exam changes: academics.exam_changed (academics module, learner and parent
+portals, standard channel preferences) tells the learners in a class and their
+current guardians when an upcoming exam sitting's date, time or venue changes,
+or the sitting is removed. The notice names the subject and new time, never a
+learner.
+
 Academic register amendment: academics.register_amended (academics module),
 current guardians, standard channel preferences; attendance.absence retains its
 mandatory-parent rule. academics.register_changed carries register/entry IDs and

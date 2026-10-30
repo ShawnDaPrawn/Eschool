@@ -412,6 +412,7 @@ function examTimetableFormatter(value, row) {
                     escapeHtml(timetable.end_time) +
                     " - " +
                     moment(timetable.date, "YYYY-MM-DD").format("DD-MM-YYYY") +
+                    (timetable.venue ? " - " + escapeHtml(timetable.venue) : "") +
                     "</p>",
             );
         });

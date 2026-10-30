@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: exam mode. Exam periods per grade (Exams and results → Exam
+  periods) turn a learner's timetable days into exam days, leaving normal
+  lessons out unless the school keeps them. Each exam sitting can have a venue,
+  and learners and guardians are told when an upcoming sitting's date, time or
+  venue changes, or it is removed. **Deploy:** run the migrations.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No

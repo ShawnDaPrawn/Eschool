@@ -230,6 +230,8 @@ return [
                             'active' => ['exams.index'], 'keywords' => ['create exam', 'tests']],
                         ['key' => 'exam-timetable', 'label' => 'nav_exam_timetable', 'route' => 'exam-timetable.index', 'permissions' => ['exam-timetable-create'], 'module' => null,
                             'keywords' => ['exam dates', 'exam schedule']],
+                        ['key' => 'exam-periods', 'label' => 'nav_exam_periods', 'route' => 'exam-periods.index', 'permissions' => ['exam-timetable-create'], 'module' => null,
+                            'keywords' => ['exam mode', 'exam weeks', 'exam days']],
                         ['key' => 'capture-marks', 'label' => 'nav_capture_marks', 'route' => 'exams.upload-marks', 'permissions' => ['exam-upload-marks'], 'module' => null,
                             'keywords' => ['upload marks', 'enter marks', 'exam marks']],
                         ['key' => 'exam-results', 'label' => 'nav_exam_results', 'route' => 'exams.view-result', 'permissions' => ['view-exam-result'], 'module' => null,

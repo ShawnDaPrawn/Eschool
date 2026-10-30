@@ -83,13 +83,13 @@
                                     </div>
 
                                     <div class="row">
-                                        <div class="form-group col-md-4">
+                                        <div class="form-group col-md-3">
                                             <label>{{ __('start_time') }} <span class="text-danger">*</span></label>
                                             <input type="text" name="timetable[0][start_time]"
                                                 class="start_time form-control timepicker-popup" placeholder="{{ __('start_time') }}"
                                                 autocomplete="off" required>
                                         </div>
-                                        <div class="form-group col-md-4">
+                                        <div class="form-group col-md-3">
                                             <label>{{ __('end_time') }} <span class="text-danger">*</span></label>
                                             <input type="text" name="timetable[0][end_time]"
                                                 class="end_time form-control timepicker-popup" placeholder="{{ __('end_time') }}"
@@ -100,6 +100,11 @@
                                             <input type="text" name="timetable[0][date]"
                                                 class="exam-timetable-datepicker form-control"
                                                 placeholder="{{ __('date') }}" autocomplete="off" required>
+                                        </div>
+                                        <div class="form-group col-md-2">
+                                            <label>{{ __('Venue') }}</label>
+                                            <input type="text" aria-label="{{ __('Venue') }}" name="timetable[0][venue]"
+                                                class="venue form-control" placeholder="{{ __('Venue') }}" maxlength="120" autocomplete="off">
                                         </div>
                                         <div class="form-group col-md-1 pl-0 mt-4">
                                             <button type="button"
@@ -231,13 +236,13 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="form-group col-md-4">
+                                    <div class="form-group col-md-3">
                                         <label>{{ __('start_time') }} <span class="text-danger">*</span></label>
                                         <input type="text" name="edit_timetable[0][start_time]"
                                             class="edit_start_time form-control timepicker-popup" placeholder="{{ __('start_time') }}"
                                             autocomplete="off" required>
                                     </div>
-                                    <div class="form-group col-md-4">
+                                    <div class="form-group col-md-3">
                                         <label>{{ __('end_time') }} <span class="text-danger">*</span></label>
                                         <input type="text" name="edit_timetable[0][end_time]"
                                             class="edit_end_time form-control timepicker-popup" placeholder="{{ __('end_time') }}"
@@ -248,6 +253,11 @@
                                         <input type="text" name="edit_timetable[0][date]"
                                             class="exam-timetable-datepicker edit_date form-control"
                                             placeholder="{{ __('date') }}" autocomplete="off" required>
+                                    </div>
+                                    <div class="form-group col-md-2">
+                                        <label>{{ __('Venue') }}</label>
+                                        <input type="text" aria-label="{{ __('Venue') }}" name="edit_timetable[0][venue]"
+                                            class="edit_venue form-control" placeholder="{{ __('Venue') }}" maxlength="120" autocomplete="off">
                                     </div>
                                     <div class="form-group col-md-1 pl-0 mt-4">
                                         <button type="button"
