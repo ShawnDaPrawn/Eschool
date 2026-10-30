@@ -143,6 +143,25 @@ class PlatformRolesTest extends TestCase
         $this->assertSame('owner', $grant->before['role']);
     }
 
+    public function test_a_disabled_or_deleted_owner_does_not_count_as_the_remaining_owner(): void
+    {
+        $owner = $this->staff('owner');
+        $disabled = $this->staff('owner', 'disabled-owner@platform.example');
+        $deleted = $this->staff('owner', 'deleted-owner@platform.example');
+        app(CurrentSchool::class)->acrossSchools(function () use ($disabled, $deleted): void {
+            User::query()->whereKey($disabled->id)->update(['status' => 0]);
+            User::query()->findOrFail($deleted->id)->delete();
+        });
+
+        $this->expectValidation(fn () => app(PlatformStaff::class)->change($owner, $owner->id, ['role' => 'support', 'days' => 30, 'reason' => 'Stepping back from ownership']), 'role');
+        $this->expectValidation(fn () => app(PlatformStaff::class)->revoke($owner, $owner->id, 'Trying to remove the last owner'), 'role');
+        $this->assertSame('owner', PlatformAdminGrant::query()->where('user_id', $owner->id)->value('role'));
+
+        // The usable Owner may still demote the accounts that can no longer sign in.
+        app(PlatformStaff::class)->revoke($owner, $disabled->id, 'Account disabled after leaving');
+        $this->assertFalse((bool) PlatformAdminGrant::query()->where('user_id', $disabled->id)->value('active'));
+    }
+
     public function test_the_staff_page_forms_validate_and_save(): void
     {
         Queue::fake();

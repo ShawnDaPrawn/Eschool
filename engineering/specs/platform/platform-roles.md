@@ -45,7 +45,8 @@ whether they have accepted their invitation. An Owner can:
   new link replaces the old one.
 
 The install always keeps at least one active Owner: demoting or revoking the
-last one is refused. Each change is audited (`platform_staff_role_granted`,
+last one is refused. An Owner whose user account is disabled or deleted does
+not count, since that account cannot sign in. Each change is audited (`platform_staff_role_granted`,
 `platform_staff_revoked`, `platform_staff_invited`,
 `platform_staff_invitation_accepted`) with its reason, and shows in the HQ
 audit log.
@@ -71,7 +72,7 @@ now takes `--role=` (unchanged when left out, Owner for a new grant).
 - an Owner invites someone, who chooses their own password, signs in to `/saas` and cannot manage staff;
 - a queued email for a used link is not sent;
 - school accounts are refused, and revoking access voids the link;
-- the last Owner cannot be demoted or revoked;
+- the last Owner cannot be demoted or revoked, and a disabled or deleted Owner does not count;
 - the staff page forms validate and save.
 
 `SaasPanelTest` requires an ability on every `/saas` route. `saas-panel.spec.ts`

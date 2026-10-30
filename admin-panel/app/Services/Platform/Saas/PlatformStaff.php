@@ -263,11 +263,16 @@ class PlatformStaff
         return User::query()->findOrFail($userId);
     }
 
-    /** Refuses a change that would leave the install without an active Owner. */
+    /**
+     * Refuses a change that would leave the install without an active Owner.
+     * Only Owners whose account can sign in count (PlatformStaffAccess::allowed):
+     * not a disabled or deleted user.
+     */
     private function keepAnOwner(User $user): void
     {
         $owners = PlatformAdminGrant::query()->where('role', 'owner')->where('active', true)->where('expires_at', '>', now()->utc())
-            ->whereIn('user_id', PlatformStaffIdentity::query()->where('active', true)->select('user_id'))->lockForUpdate()->pluck('user_id')->map(fn ($id) => (int) $id);
+            ->whereIn('user_id', PlatformStaffIdentity::query()->where('active', true)->select('user_id'))
+            ->whereIn('user_id', User::query()->where('status', 1)->select('id'))->lockForUpdate()->pluck('user_id')->map(fn ($id) => (int) $id);
         if ($owners->count() === 1 && $owners->first() === (int) $user->id) {
             throw ValidationException::withMessages(['role' => __('Keep at least one active Owner. Make someone else an Owner first.')]);
         }
