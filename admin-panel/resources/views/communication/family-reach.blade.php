@@ -18,7 +18,7 @@
         </ul>
     </section>
     <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
-        <table class="table">
+        <div class="page-table__scroll" role="region" aria-label="{{ __('Reach by homeroom') }}" tabindex="0"><table class="page-table__table">
             <caption>{{ __('Reach by homeroom') }}</caption>
             <thead><tr><th scope="col">{{ __('Homeroom') }}</th><th scope="col">{{ __('Learners') }}</th><th scope="col">{{ __('Reached') }}</th></tr></thead>
             <tbody>
@@ -28,7 +28,7 @@
                 <tr><td colspan="3">{{ __('No current learners') }}</td></tr>
             @endforelse
             </tbody>
-        </table>
+        </table></div>
     </div></div>
     <section class="page-section" aria-labelledby="unreached-title">
         <h2 id="unreached-title">{{ __('Learners to follow up') }}</h2>
@@ -37,7 +37,7 @@
         @else
             <p>{{ __('Invite a guardian, or ask them to verify their email address or sign in to the parent app.') }}</p>
             <div class="m3-card m3-card--outlined"><div class="m3-card__content">
-            <table class="table">
+            <div class="page-table__scroll" role="region" aria-label="{{ __('Learners without a reachable guardian') }}" tabindex="0"><table class="page-table__table">
                 <caption>{{ __('Learners without a reachable guardian') }}</caption>
                 <thead><tr><th scope="col">{{ __('Learner') }}</th><th scope="col">{{ __('Homeroom') }}</th><th scope="col">{{ __('Reason') }}</th></tr></thead>
                 <tbody>
@@ -45,7 +45,7 @@
                     <tr><th scope="row">{{ $row['name'] }}</th><td>{{ $row['homeroom'] }}</td><td>{{ $reasons[$row['reason']] }}</td></tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
             </div></div>
         @endif
     </section>
