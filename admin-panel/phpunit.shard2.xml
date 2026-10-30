@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true">
+    <testsuites>
+        <testsuite name="CI shard">
+            <file>tests/Feature/Academics/AcademicReferencesTest.php</file>
+            <file>tests/Feature/Academics/MarkEngineTest.php</file>
+            <file>tests/Feature/Academics/RegisterEngineTest.php</file>
+            <file>tests/Feature/Academics/SchoolTermsTest.php</file>
+            <file>tests/Feature/Academics/TimetableClientContextTest.php</file>
+            <file>tests/Feature/AccessControlTest.php</file>
+            <file>tests/Feature/Activities/ActivityGroupsTest.php</file>
+            <file>tests/Feature/Activities/GroupChatPanelTest.php</file>
+            <file>tests/Feature/Admissions/AdmissionsTest.php</file>
+            <file>tests/Feature/Ai/AiQuarantineTest.php</file>
+            <file>tests/Feature/ApiContractTest.php</file>
+            <file>tests/Feature/Assistance/AssistanceNoticesTest.php</file>
+            <file>tests/Feature/Authorization/RoleMatrixTest.php</file>
+            <file>tests/Feature/Classroom/FoundationClassroomTest.php</file>
+            <file>tests/Feature/Communication/MessageEngineTest.php</file>
+            <file>tests/Feature/Consultations/ConsultationPanelTest.php</file>
+            <file>tests/Feature/Contracts/OpenApiContractTest.php</file>
+            <file>tests/Feature/Discipline/DisciplineDomainTest.php</file>
+            <file>tests/Feature/Facilitators/FacilitatorAuthBoundariesTest.php</file>
+            <file>tests/Feature/FamilyVisits/FamilyVisitsTest.php</file>
+            <file>tests/Feature/Growth/CounsellorCaseContextTest.php</file>
+            <file>tests/Feature/Growth/MasteryPanelTest.php</file>
+            <file>tests/Feature/Growth/ProgressAlertsTest.php</file>
+            <file>tests/Feature/Growth/ProgressNotesTest.php</file>
+            <file>tests/Feature/Growth/RiskPanelTest.php</file>
+            <file>tests/Feature/Learning/DailyPracticeTest.php</file>
+            <file>tests/Feature/Learning/LearnerDiaryTest.php</file>
+            <file>tests/Feature/Learning/TutorApiTest.php</file>
+            <file>tests/Feature/Learning/WeeklyDigestTest.php</file>
+            <file>tests/Feature/LogRedactionTest.php</file>
+            <file>tests/Feature/Money/CashupsTest.php</file>
+            <file>tests/Feature/Money/FeeItemConsentsTest.php</file>
+            <file>tests/Feature/Money/FeeLateChargesTest.php</file>
+            <file>tests/Feature/Money/FeePaymentsTest.php</file>
+            <file>tests/Feature/Money/FeeRemindersTest.php</file>
+            <file>tests/Feature/Money/VendorCataloguesTest.php</file>
+            <file>tests/Feature/Money/WalletCounterPaymentsTest.php</file>
+            <file>tests/Feature/Money/WalletHistoricalRolesTest.php</file>
+            <file>tests/Feature/Panel/NavigationTest.php</file>
+            <file>tests/Feature/ParentApiSecurityTest.php</file>
+            <file>tests/Feature/Pastoral/CoverPanelTest.php</file>
+            <file>tests/Feature/Pastoral/SupportPanelTest.php</file>
+            <file>tests/Feature/PaymentWebhookTest.php</file>
+            <file>tests/Feature/PermissionsTest.php</file>
+            <file>tests/Feature/Platform/ArrearsAccessTest.php</file>
+            <file>tests/Feature/Platform/ContextTest.php</file>
+            <file>tests/Feature/Platform/EnrolmentHistoryTest.php</file>
+            <file>tests/Feature/Platform/GuardianInvitationTest.php</file>
+            <file>tests/Feature/Platform/HqSchoolAccountsTest.php</file>
+            <file>tests/Feature/Platform/InvitationMailboxMigrationTest.php</file>
+            <file>tests/Feature/Platform/LedgerConcurrencyTest.php</file>
+            <file>tests/Feature/Platform/LegacyProfileFilesTest.php</file>
+            <file>tests/Feature/Platform/MySchoolTest.php</file>
+            <file>tests/Feature/Platform/OutboxTest.php</file>
+            <file>tests/Feature/Platform/PortalSignInTest.php</file>
+            <file>tests/Feature/Platform/ProfileFieldSchemaTest.php</file>
+            <file>tests/Feature/Platform/ProfileValidationTest.php</file>
+            <file>tests/Feature/Platform/SaasPanelTest.php</file>
+            <file>tests/Feature/Platform/StaffInvitationsTest.php</file>
+            <file>tests/Feature/Platform/TicketConcurrencyTest.php</file>
+            <file>tests/Feature/Platform/VendorSettlementConcurrencyTest.php</file>
+            <file>tests/Feature/Platform/WalletDeskConcurrencyTest.php</file>
+            <file>tests/Feature/PrivateRouteReachabilityTest.php</file>
+            <file>tests/Feature/RemovedFeaturesTest.php</file>
+            <file>tests/Feature/SchoolSetupTest.php</file>
+            <file>tests/Feature/StaffListTest.php</file>
+            <file>tests/Feature/Tenancy/ApiRouteTenancyTest.php</file>
+            <file>tests/Feature/Tenancy/PanelSchoolSwitcherTest.php</file>
+            <file>tests/Feature/Tenancy/SchoolRolesTest.php</file>
+            <file>tests/Feature/TranslationsTest.php</file>
+            <file>tests/Feature/Wellbeing/PublicReportingPageTest.php</file>
+            <file>tests/Feature/Wellbeing/WellbeingNoticesTest.php</file>
+            <file>tests/Unit/Ai/ProviderAdaptersTest.php</file>
+            <file>tests/Unit/Cards/CardCryptographyTest.php</file>
+            <file>tests/Unit/CentsRatioTest.php</file>
+            <file>tests/Unit/ContentMarkdownTest.php</file>
+            <file>tests/Unit/FamilyFormTimeTest.php</file>
+            <file>tests/Unit/FeeTaxAmountsTest.php</file>
+            <file>tests/Unit/Learning/PracticeAnswersTest.php</file>
+            <file>tests/Unit/ProductModulesTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing" />
+        <env name="APP_MAINTENANCE_DRIVER" value="file" />
+        <env name="BCRYPT_ROUNDS" value="4" />
+        <env name="CACHE_STORE" value="array" />
+        <env name="CACHE_DRIVER" value="array" />
+        <env name="DB_CONNECTION" value="mysql" />
+        <env name="DB_DATABASE" value="eschool_test" />
+        <env name="DB_PERSISTENT" value="false" />
+        <env name="MAIL_MAILER" value="array" />
+        <env name="QUEUE_CONNECTION" value="sync" />
+        <env name="SESSION_DRIVER" value="array" />
+        <env name="PULSE_ENABLED" value="false" />
+        <env name="TELESCOPE_ENABLED" value="false" />
+        <env name="NIGHTWATCH_ENABLED" value="false" />
+    </php>
+</phpunit>

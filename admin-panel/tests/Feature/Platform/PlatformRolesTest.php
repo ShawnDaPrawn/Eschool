@@ -62,13 +62,19 @@ class PlatformRolesTest extends TestCase
         $school = self::SCHOOL_B_ID;
 
         $this->actingAs($sales)->get('/saas')->assertOk()->assertDontSee('Set up a school');
-        $this->get('/saas/schools/'.$school)->assertOk()->assertDontSee('Change package')->assertDontSee('Change status')->assertSee('Your role cannot change modules');
+        $this->get('/saas/schools/'.$school)->assertOk()->assertDontSee('Change package')->assertDontSee('Change status')->assertSee('Your role cannot change modules')
+            // Links and forms another role's pages need are not offered either.
+            ->assertDontSee('School record, contacts and contracts')->assertDontSee('Audit log for this school')->assertDontSee('Send the invitation again');
         $this->get('/saas/schools/create')->assertForbidden();
         $this->put('/saas/schools/'.$school.'/package', ['package_key' => 'standard'])->assertForbidden();
         $this->put('/saas/schools/'.$school.'/status', ['status' => 'suspended', 'reason' => 'Should never be allowed'])->assertForbidden();
         $this->get('/saas/staff')->assertForbidden();
 
-        $this->actingAs($finance)->get('/saas/schools/'.$school)->assertOk()->assertSee('Change package')->assertDontSee('Change status');
+        $this->actingAs($finance)->get('/saas/schools/'.$school)->assertOk()->assertSee('Change package')->assertDontSee('Change status')
+            ->assertSee('School record, contacts and contracts')->assertSee('Audit log for this school');
+        $this->get('/saas/audit')->assertOk()->assertSee('Export CSV');
+        $this->actingAs($this->staff('support'))->get('/saas/audit')->assertOk()->assertDontSee('Export CSV');
+        $this->actingAs($finance);
         $this->put('/saas/schools/'.$school.'/package', ['package_key' => 'standard'])->assertRedirect();
         $this->put('/saas/schools/'.$school.'/status', ['status' => 'suspended', 'reason' => 'Should never be allowed'])->assertForbidden();
 

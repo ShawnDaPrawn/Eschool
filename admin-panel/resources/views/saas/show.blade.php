@@ -14,7 +14,7 @@
     ({{ $school['roles']['Student'] }} {{ __('learners') }}, {{ $school['roles']['Parent'] }} {{ __('parents') }}, {{ $school['roles']['Teacher'] }} {{ __('teachers') }})
 </p>
 
-@if ($pendingAdministrator)
+@if ($pendingAdministrator && $platformCan('schools.create'))
 <h2>{{ __('First administrator') }}</h2>
 <form method="POST" action="{{ route('saas.schools.invitation', $school['id']) }}" class="saas-card">
     @csrf
@@ -106,8 +106,8 @@
     </table>
 </div>
 <p class="saas-actions">
-    <a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>
+    @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
-    <a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>
+    @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif
 </p>
 @endsection

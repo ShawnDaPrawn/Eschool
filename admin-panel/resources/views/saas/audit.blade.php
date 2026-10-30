@@ -46,7 +46,9 @@
     </div>
     <div class="saas-actions">
         <button class="saas-btn" type="submit">{{ __('Filter') }}</button>
-        <a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit.export', array_filter($filters, fn ($value) => $value !== null)) }}">{{ __('Export CSV') }}</a>
+        @if (app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), 'audit.export'))
+            <a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit.export', array_filter($filters, fn ($value) => $value !== null)) }}">{{ __('Export CSV') }}</a>
+        @endif
         <a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit') }}">{{ __('Clear filters') }}</a>
     </div>
 </form>
