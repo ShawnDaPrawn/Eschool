@@ -20,8 +20,12 @@ class RequirePasswordChange
 {
     public const SESSION_KEY = 'must_change_password';
 
-    /** What someone who must change their password can still open. */
-    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*', 'saas/password'];
+    /**
+     * What someone who must change their password can still open. An emailed
+     * staff invitation also sets a password, and its controller signs out
+     * whoever was signed in on this browser.
+     */
+    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*', 'saas/password', 'invite/staff/*'];
 
     public static function isDefaultPassword(User $user, string $password): bool
     {

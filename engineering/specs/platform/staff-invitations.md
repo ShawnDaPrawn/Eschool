@@ -26,7 +26,8 @@ sent to), `expires_at` (seven days, `identity.invitation_days`), `used_at`,
   current or a date-of-birth password), verifies the email address, clears
   `password_change_required`, revokes every app token and browser session, marks
   the link used and audits it. Anyone signed in on that browser is signed out,
-  and the person signs in afresh.
+  and the person signs in afresh. The link works even while a signed-in default
+  password still has to be changed (`RequirePasswordChange` lets it through).
 - **Secrets stay secret.** The token is never in the audit log, the session or
   a model's array form; only its hash is searchable. Both routes are rate
   limited (`throttle:30,1` to view, `throttle:password` to accept).
@@ -56,7 +57,8 @@ sent to), `expires_at` (seven days, `identity.invitation_days`), `used_at`,
 ## Acceptance tests
 
 `Platform/StaffInvitationsTest`: a teacher chooses a password from the emailed
-link, old app tokens and sessions end, the link then opens nothing; a newer
+link, old app tokens and sessions end, the link then opens nothing; the link
+also works while signed in with a default password that must be changed; a newer
 link cancels the older one; a changed email, expiry or ended membership opens
 nothing and suppresses the queued email; a teacher cannot send invitations,
 parents, learners, oneself and other schools' people are refused, a staff editor

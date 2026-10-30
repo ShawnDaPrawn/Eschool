@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Http\Middleware\RequirePasswordChange;
 use App\Jobs\Platform\SendMail;
 use App\Mail\Platform\StaffInvitationMail;
 use App\Models\Platform\SchoolMembership;
@@ -81,6 +82,21 @@ class StaffInvitationsTest extends TestCase
         $this->get($path)->assertNotFound();
         $this->post($path, ['password' => 'Another-password-991!', 'password_confirmation' => 'Another-password-991!'])->assertNotFound();
         $this->assertNotNull(StaffInvitation::where('user_id', $tara->id)->sole()->accepted_at);
+    }
+
+    public function test_the_link_works_while_a_default_password_must_still_be_changed(): void
+    {
+        $tara = $this->person('tara');
+        app(StaffInvitations::class)->issue($tara, $this->superAdmin());
+        $path = $this->path($this->mailFor($tara));
+        // Signed in with the date-of-birth default, so every other page sends Tara to change it.
+        $this->actingAs($tara, 'web')->withSession([RequirePasswordChange::SESSION_KEY => true]);
+        $this->get('/home')->assertRedirect('resetpassword');
+
+        $this->get($path)->assertOk()->assertSee('Choose your password');
+        $this->post($path, ['password' => self::PASSWORD, 'password_confirmation' => self::PASSWORD])->assertRedirect(route('login'));
+        $this->assertTrue(Hash::check(self::PASSWORD, $tara->fresh()->password));
+        $this->assertGuest('web');
     }
 
     public function test_the_link_is_bound_to_the_address_the_school_and_current_staff_membership(): void
