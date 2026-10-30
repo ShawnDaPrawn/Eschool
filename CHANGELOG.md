@@ -23,12 +23,6 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
-- Short days: the timetable workbench can replace a bell schedule on one date
-  with short-day bells. Lessons keep their order and take the short times;
-  lessons past the last short period do not run that day. Clashing short days
-  are refused, and affected learners, guardians and teachers are notified. The
-  v2 week adds an optional `day_pattern`. **Deploy:** run the additive
-  `bell_schedule_overrides` migration.
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
@@ -53,6 +47,13 @@ Earlier history is kept where it was written and is not repeated here:
   fees, including saved links to the former fee-lock screen. Guardian fee privacy
   and approval checks continue to apply.
 
+- Short days: the timetable workbench can replace a bell schedule on one date
+  with short-day bells. Lessons keep their order and take the short times;
+  lessons past the last short period do not run that day. Clashing short days
+  are refused, and affected learners, guardians and teachers are notified. The
+  v2 week adds an optional `day_pattern`. **Deploy:** run the additive
+  `bell_schedule_overrides` migration.
+
 - **Platform admin area (`/saas`), first version.** Platform staff can see every school with its package and counts of learners, parents and teachers, set up a school with its first administrator (a one-time password, shown once), change its package and modules, and suspend, archive or restore it with a reason. It reads no person's record and is closed to school administrators. Opening it needs both a platform staff identity and an expiring grant set from the operator console. Support access into a school, imports and usage/health views are not part of this version. **Deploy:** run the migration, then `php artisan platform:staff-identity <user_id>` and `php artisan platform:admin-access <user_id> --hours=8` for each operator.
 
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
@@ -72,7 +73,6 @@ Earlier history is kept where it was written and is not repeated here:
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 
 - Guardian access approvals and one-use emailed invitations, including email verification, withdrawal, separate fee access and versioned consent. Existing family relationships are migrated without inventing approval. The shared approval screen uses generated API models.
-
 
 ### Developers
 
