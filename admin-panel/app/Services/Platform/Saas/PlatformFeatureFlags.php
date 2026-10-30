@@ -37,7 +37,7 @@ class PlatformFeatureFlags
             'description' => ['required', 'string', 'min:5', 'max:500'],
             'rollout' => ['required', Rule::in(FeatureFlags::ROLLOUTS)],
             'killed' => ['required', 'boolean'],
-            'kill_reason' => ['nullable', 'required_if:killed,1', 'string', 'min:5', 'max:500'],
+            'kill_reason' => ['nullable', 'required_if_accepted:killed', 'string', 'min:5', 'max:500'],
             'revision' => ['required', 'integer', 'min:1'],
         ];
     }
@@ -105,7 +105,7 @@ class PlatformFeatureFlags
             abort_if((int) $flag->revision !== (int) $data['revision'], 409, __('This flag changed. Reload before saving.'));
             $killed = (bool) $data['killed'];
             $next = ['description' => $data['description'], 'rollout' => $data['rollout'], 'killed' => $killed,
-                'kill_reason' => $killed ? $data['kill_reason'] : null];
+                'kill_reason' => $killed ? ($data['kill_reason'] ?? null) : null];
             DB::table('platform_feature_flags')->where('id', $id)->update($next + ['revision' => (int) $flag->revision + 1, 'updated_at' => now()]);
             Audit::record($killed && ! $flag->killed ? 'platform_feature_flag_killed' : 'platform_feature_flag_changed', null,
                 ['rollout' => $flag->rollout, 'killed' => (bool) $flag->killed],

@@ -88,6 +88,11 @@ class HqFeatureFlagsTest extends TestCase
         return (int) DB::table('platform_feature_flags')->where('key', $key)->value('id');
     }
 
+    private function revisionOf(int $id): int
+    {
+        return (int) DB::table('platform_feature_flags')->where('id', $id)->value('revision');
+    }
+
     private function save(string $key, array $changes): void
     {
         $id = $this->flagId($key);
@@ -170,6 +175,14 @@ class HqFeatureFlagsTest extends TestCase
         $this->post('/saas/flags', ['key' => 'parent_home', 'description' => 'The same key twice'])->assertSessionHasErrors('key');
         $id = $this->flagId('parent_home');
         $this->put('/saas/flags/'.$id, ['description' => 'Parent home across schools', 'rollout' => 'everyone', 'killed' => 0, 'revision' => 7])->assertStatus(409);
+        // Killing needs a reason however "true" is written, JSON included.
+        foreach ([true, 'true', 1, '1', 'on', 'yes'] as $killed) {
+            $this->putJson('/saas/flags/'.$id, ['description' => 'Parent home across schools', 'rollout' => 'everyone', 'killed' => $killed, 'kill_reason' => null, 'revision' => $this->revisionOf($id)])
+                ->assertStatus(422)->assertJsonValidationErrors('kill_reason');
+            $this->putJson('/saas/flags/'.$id, ['description' => 'Parent home across schools', 'rollout' => 'everyone', 'killed' => $killed, 'revision' => $this->revisionOf($id)])
+                ->assertStatus(422)->assertJsonValidationErrors('kill_reason');
+        }
+        $this->assertFalse((bool) DB::table('platform_feature_flags')->where('id', $id)->value('killed'));
         $this->post('/saas/flags/'.$id.'/schools', ['school_id' => 999, 'switch' => 'on'])->assertSessionHasErrors('school_id');
         $this->put('/saas/flags/999', ['description' => 'Unknown flag', 'rollout' => 'everyone', 'killed' => 0, 'revision' => 1])->assertNotFound();
         $this->assertSame(['off', 0], [DB::table('platform_feature_flags')->where('id', $id)->value('rollout'), DB::table('platform_feature_flag_schools')->count()]);
