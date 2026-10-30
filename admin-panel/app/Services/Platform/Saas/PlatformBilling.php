@@ -70,6 +70,7 @@ class PlatformBilling
     public static function creditRules(): array
     {
         return [
+            'idempotency_key' => ['required', 'uuid'],
             'full' => ['nullable', 'boolean'],
             // Rands excluding VAT, as typed: never a float.
             'amount' => ['nullable', 'required_unless:full,1', 'string', 'regex:/^\d{1,8}(\.\d{1,2})?$/D'],
@@ -272,12 +273,24 @@ class PlatformBilling
         }
 
         return $this->inSchool($schoolId, function () use ($invoiceId, $data, $full, $amount, $actor): int {
+            // Every account mutation takes the school lock before invoice/source
+            // locks, so requests cannot deadlock in opposite source orders.
+            $key = strtolower($data['idempotency_key']);
+            $fingerprint = hash('sha256', json_encode([$invoiceId, $full, $amount, $data['reason']], JSON_THROW_ON_ERROR));
+            $replay = PlatformInvoice::query()->where('credit_request_key', $key)->lockForUpdate()->first();
+            if ($replay !== null) {
+                if (! hash_equals((string) $replay->credit_request_hash, $fingerprint)) {
+                    throw ValidationException::withMessages(['idempotency_key' => __('This request key was already used for a different credit note.')]);
+                }
+
+                return (int) $replay->id;
+            }
             $original = PlatformInvoice::query()->whereKey($invoiceId)->lockForUpdate()->first();
             abort_if($original === null, 404);
             if ($original->kind !== PlatformInvoice::INVOICE || ! $original->isIssued()) {
                 throw ValidationException::withMessages(['invoice' => __('Only an issued invoice can be credited.')]);
             }
-            $credited = (int) -PlatformInvoice::query()->where('credits_invoice_id', $original->id)->where('status', PlatformInvoice::ISSUED)->sum('total_cents');
+            $credited = (int) -PlatformInvoice::query()->where('credits_invoice_id', $original->id)->where('status', PlatformInvoice::ISSUED)->lockForUpdate()->get(['total_cents'])->sum('total_cents');
             $creditable = (int) $original->total_cents - $credited;
             if ($full && $credited > 0) {
                 throw ValidationException::withMessages(['full' => __('Part of this invoice was credited already. Credit an amount instead.')]);
@@ -296,6 +309,7 @@ class PlatformBilling
             $today = self::today();
             $note = PlatformInvoice::query()->create([
                 'kind' => PlatformInvoice::CREDIT_NOTE, 'status' => PlatformInvoice::DRAFT, 'credits_invoice_id' => $original->id,
+                'credit_request_key' => $key, 'credit_request_hash' => $fingerprint,
                 'period_start' => $original->period_start->toDateString(), 'period_end' => $original->period_end->toDateString(),
                 'package_key' => $original->package_key, 'package_version' => $original->package_version, 'currency' => $original->currency,
                 'vat_rate_bp' => $original->vat_rate_bp, 'reason' => $data['reason'], 'computed_at' => now(), 'computed_by' => $actor->id,
@@ -307,7 +321,7 @@ class PlatformBilling
                 'issued_on' => $today, 'issued_at' => now(), 'issued_by' => $actor->id,
             ])->save();
             // The credit settles what is still unpaid on the original; the rest is account credit.
-            $settles = min(-$total, app(PlatformBillingAccounts::class)->outstanding($original));
+            $settles = min(-$total, app(PlatformBillingAccounts::class)->outstanding($original, true));
             if ($settles > 0) {
                 PlatformPaymentAllocation::query()->create(['invoice_id' => $original->id, 'credit_note_id' => $note->id, 'amount_cents' => $settles, 'created_by' => $actor->id]);
             }
@@ -545,7 +559,12 @@ class PlatformBilling
     {
         $this->school($schoolId);
 
-        return $this->currentSchool->run($schoolId, fn () => DB::transaction(fn () => $change(), 3));
+        return $this->currentSchool->run($schoolId, fn () => DB::transaction(function () use ($schoolId, $change) {
+            // Serialize mutations of an account before any balance snapshot.
+            DB::table('schools')->where('id', $schoolId)->lockForUpdate()->first();
+
+            return $change();
+        }, 3));
     }
 
     public function school(int $schoolId): object

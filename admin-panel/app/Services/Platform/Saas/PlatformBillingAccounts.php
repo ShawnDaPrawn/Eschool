@@ -72,9 +72,14 @@ class PlatformBillingAccounts
     // ---- settling ----
 
     /** What is unpaid on an issued invoice: its total less what payments and credit notes settle on it. */
-    public function outstanding(PlatformInvoice $invoice): int
+    public function outstanding(PlatformInvoice $invoice, bool $lock = false): int
     {
-        return max(0, (int) $invoice->total_cents - (int) PlatformPaymentAllocation::query()->where('invoice_id', $invoice->id)->whereNull('reversed_at')->sum('amount_cents'));
+        // Current reads are essential on money writes: a prior REPEATABLE READ
+        // snapshot can predate another request's committed allocation.
+        $allocations = PlatformPaymentAllocation::query()->where('invoice_id', $invoice->id)->whereNull('reversed_at');
+        $settled = $lock ? $allocations->lockForUpdate()->get(['amount_cents'])->sum('amount_cents') : $allocations->sum('amount_cents');
+
+        return max(0, (int) $invoice->total_cents - (int) $settled);
     }
 
     /**
@@ -116,8 +121,8 @@ class PlatformBillingAccounts
             }
             $invoices = $this->lockOpen(array_keys($wanted));
             foreach ($wanted as $invoiceId => $cents) {
-                if ($cents > $this->outstanding($invoices[$invoiceId])) {
-                    throw ValidationException::withMessages(['allocations.'.$invoiceId => __('Only :amount is unpaid on :reference.', ['amount' => PlatformBilling::rands($this->outstanding($invoices[$invoiceId])), 'reference' => $invoices[$invoiceId]->reference])]);
+                if ($cents > $this->outstanding($invoices[$invoiceId], true)) {
+                    throw ValidationException::withMessages(['allocations.'.$invoiceId => __('Only :amount is unpaid on :reference.', ['amount' => PlatformBilling::rands($this->outstanding($invoices[$invoiceId], true)), 'reference' => $invoices[$invoiceId]->reference])]);
                 }
             }
             $payment = PlatformPayment::query()->create([
@@ -175,7 +180,7 @@ class PlatformBillingAccounts
             if ($invoice->kind !== PlatformInvoice::INVOICE || ! $invoice->isIssued()) {
                 throw ValidationException::withMessages(['invoice' => __('Account credit settles issued invoices only.')]);
             }
-            $due = $this->outstanding($invoice);
+            $due = $this->outstanding($invoice, true);
             if ($due === 0) {
                 throw ValidationException::withMessages(['invoice' => __('Nothing is unpaid on this invoice.')]);
             }
@@ -209,8 +214,12 @@ class PlatformBillingAccounts
      */
     public function creditSources(bool $lock = false): array
     {
+        // Lock the allocation rows as a current read, then aggregate in memory.
+        // A grouped snapshot SUM can otherwise spend credit a second time
+        // after waiting for the payment or credit-note source lock.
         $settled = fn (string $column): array => PlatformPaymentAllocation::query()->whereNotNull($column)->whereNull('reversed_at')
-            ->groupBy($column)->selectRaw($column.' AS source, SUM(amount_cents) AS settled')->pluck('settled', 'source')->map(fn ($v) => (int) $v)->all();
+            ->when($lock, fn ($q) => $q->lockForUpdate())->get([$column, 'amount_cents'])
+            ->groupBy($column)->map(fn ($rows) => (int) $rows->sum('amount_cents'))->all();
         $notes = PlatformInvoice::query()->where('kind', PlatformInvoice::CREDIT_NOTE)->where('status', PlatformInvoice::ISSUED)->orderBy('issued_on')->orderBy('id')
             ->when($lock, fn ($q) => $q->lockForUpdate())->get(['id', 'reference', 'issued_on', 'total_cents']);
         $payments = PlatformPayment::query()->whereNull('reversed_at')->orderBy('received_on')->orderBy('id')

@@ -196,3 +196,17 @@ Existing tests that cover changed code still pass: `Platform/SaasPanelTest`
 - Volume discounts, per-school add-ons outside the package, and add-ons on top of a contract price.
 - Mastery subscription revenue per school and family (SA.8 Build 3), the full revenue dashboard (annual run rate, revenue per learner, churn) and an accounting export.
 - Card or debit order payments: EFT only.
+
+### Retry and concurrency safeguards
+
+- The credit-note form sends a UUID idempotency key. It is unique per school and
+  retained on the immutable credit note with a hash of the invoice, amount/full
+  choice and reason. An identical retry returns that note; changed input with the
+  same key is refused. Run migration `2026_11_01_181000` as well as the billing
+  migration. Rollback refuses to discard used request keys.
+- Account mutations lock the school before invoices and credit sources. Balance
+  checks on writes read allocation rows with current locks, including under an
+  already established MySQL REPEATABLE READ snapshot. Spent payments and credit
+  notes cannot be reused after waiting for another request.
+- `HqBillingTest` covers identical and changed replays, missing keys, and real
+  two-connection snapshot visibility for both payment and credit-note sources.

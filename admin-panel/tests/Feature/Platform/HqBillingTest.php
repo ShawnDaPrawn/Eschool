@@ -308,7 +308,7 @@ class HqBillingTest extends TestCase
         $year = substr(PlatformBilling::today(), 0, 4);
 
         // R 100 excluding VAT: R 115 credit, which settles R 115 of the unpaid invoice.
-        $this->actingAs($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['amount' => '100', 'reason' => 'Two learners left in the first week'])->assertRedirect();
+        $this->actingAs($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '100', 'reason' => 'Two learners left in the first week'])->assertRedirect();
         $note = PlatformInvoice::acrossSchools()->where('kind', 'credit_note')->sole();
         $this->assertSame(['issued', 'NE-'.$year.'-0003', $a->id, -10000, -1500, -11500], [$note->status, $note->reference, $note->credits_invoice_id, $note->subtotal_cents, $note->vat_cents, $note->total_cents]);
         $this->assertSame($a->total_cents - 11500, app(CurrentSchool::class)->run(1, fn () => app(PlatformBillingAccounts::class)->outstanding($a)));
@@ -318,21 +318,82 @@ class HqBillingTest extends TestCase
 
         // Not more than is left; not the whole invoice once part was credited; not a credit note itself; not zero.
         $before = $this->snapshot();
-        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['amount' => (string) intdiv($a->total_cents, 100), 'reason' => 'Far too much credit asked'])->assertSessionHasErrors('amount');
-        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['full' => '1', 'reason' => 'Credit the whole invoice please'])->assertSessionHasErrors('full');
-        $this->post('/saas/billing/schools/1/invoices/'.$note->id.'/credit-notes', ['amount' => '1', 'reason' => 'Credit of a credit note'])->assertSessionHasErrors('invoice');
-        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['amount' => '0', 'reason' => 'Nothing at all here'])->assertSessionHasErrors('amount');
-        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['amount' => '5'])->assertSessionHasErrors('reason');
+        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => (string) intdiv($a->total_cents, 100), 'reason' => 'Far too much credit asked'])->assertSessionHasErrors('amount');
+        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'full' => '1', 'reason' => 'Credit the whole invoice please'])->assertSessionHasErrors('full');
+        $this->post('/saas/billing/schools/1/invoices/'.$note->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '1', 'reason' => 'Credit of a credit note'])->assertSessionHasErrors('invoice');
+        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '0', 'reason' => 'Nothing at all here'])->assertSessionHasErrors('amount');
+        $this->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '5'])->assertSessionHasErrors('reason');
         $this->assertSame($before, $this->snapshot());
 
         // School B's invoice credited in full: every line negated exactly, paid in full by the credit.
         $b = $this->invoice(2);
-        $this->post('/saas/billing/schools/2/invoices/'.$b->id.'/credit-notes', ['full' => '1', 'reason' => 'Billed in error this month'])->assertRedirect();
+        $this->post('/saas/billing/schools/2/invoices/'.$b->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'full' => '1', 'reason' => 'Billed in error this month'])->assertRedirect();
         $full = PlatformInvoice::acrossSchools()->where('credits_invoice_id', $b->id)->sole();
         $this->assertSame([-$b->subtotal_cents, -$b->vat_cents, -$b->total_cents], [$full->subtotal_cents, $full->vat_cents, $full->total_cents]);
         $this->assertSame(0, app(CurrentSchool::class)->run(2, fn () => app(PlatformBillingAccounts::class)->outstanding($b)));
         $this->get('/saas/billing/schools/2/invoices/'.$full->id)->assertOk()->assertSee('Credit note')->assertSee('Credits invoice '.$b->reference)->assertSee('Billed in error this month');
         $this->get('/saas/billing/schools/2')->assertOk()->assertSee($full->reference)->assertSee('R 0.00');
+    }
+
+    public function test_credit_note_retries_reuse_one_note_and_reject_a_changed_request(): void
+    {
+        $finance = $this->staff('finance');
+        [$invoice] = $this->issued($finance);
+        $url = '/saas/billing/schools/1/invoices/'.$invoice->id.'/credit-notes';
+        $input = ['idempotency_key' => (string) Str::uuid(), 'amount' => '100', 'reason' => 'Correct the duplicate learner charge'];
+        $this->get('/saas/billing/schools/1/invoices/'.$invoice->id)->assertOk()->assertSee('name="idempotency_key"', false);
+        $first = $this->post($url, $input)->assertRedirect()->headers->get('Location');
+        $before = $this->snapshot();
+        $audit = AuditLog::query()->where('action', 'platform_credit_note_issued')->count();
+
+        $this->post($url, $input)->assertRedirect($first);
+        $this->assertSame($before, $this->snapshot(), 'replay changes no invoice, line, payment or allocation');
+        $this->assertSame($audit, AuditLog::query()->where('action', 'platform_credit_note_issued')->count());
+        $this->post($url, array_replace($input, ['amount' => '200']))->assertSessionHasErrors('idempotency_key');
+        $this->post($url, ['amount' => '100', 'reason' => $input['reason']])->assertSessionHasErrors('idempotency_key');
+        $this->assertSame($before, $this->snapshot());
+    }
+
+    public function test_locked_credit_balances_see_allocations_committed_after_the_repeatable_read_snapshot(): void
+    {
+        // Use a second actual MySQL connection, not a mock: this reproduces
+        // the stale snapshot held by a request waiting for a source lock.
+        config(['database.connections.billing_peer' => config('database.connections.mysql')]);
+        $peer = DB::connection('billing_peer');
+        [$invoiceId, $noteId, $paymentId] = $peer->transaction(function () use ($peer): array {
+            $invoice = ['school_id' => 1, 'kind' => 'invoice', 'status' => 'issued', 'period_start' => '2026-10-01',
+                'period_end' => '2026-10-31', 'vat_rate_bp' => 0, 'total_cents' => 20000, 'issued_on' => '2026-10-01'];
+            $invoiceId = $peer->table('platform_invoices')->insertGetId($invoice);
+            $noteId = $peer->table('platform_invoices')->insertGetId(array_replace($invoice, ['kind' => 'credit_note', 'total_cents' => -10000]));
+            $paymentId = $peer->table('platform_payments')->insertGetId(['school_id' => 1, 'received_on' => '2026-10-01',
+                'amount_cents' => 10000, 'bank_reference' => 'Concurrent credit fixture']);
+
+            return [$invoiceId, $noteId, $paymentId];
+        });
+        DB::rollBack();
+        DB::beginTransaction();
+        try {
+            app(CurrentSchool::class)->run(1, function () use ($peer, $invoiceId, $noteId, $paymentId): void {
+                $accounts = app(PlatformBillingAccounts::class);
+                $invoice = PlatformInvoice::query()->findOrFail($invoiceId);
+                $this->assertSame(20000, array_sum(array_column($accounts->creditSources(), 'available_cents')));
+                $peer->table('platform_payment_allocations')->insert([
+                    ['school_id' => 1, 'invoice_id' => $invoiceId, 'payment_id' => $paymentId, 'credit_note_id' => null, 'amount_cents' => 10000],
+                    ['school_id' => 1, 'invoice_id' => $invoiceId, 'payment_id' => null, 'credit_note_id' => $noteId, 'amount_cents' => 10000],
+                ]);
+                $this->assertSame(20000, $accounts->outstanding($invoice), 'ordinary reads still hold the old snapshot');
+                $this->assertSame([], $accounts->creditSources(true), 'neither spent source can be allocated again');
+                $this->assertSame(0, $accounts->outstanding($invoice, true), 'money writes see the committed allocations');
+            });
+        } finally {
+            // Release current-read locks before cleaning the committed fixtures.
+            DB::rollBack();
+            $peer->table('platform_payment_allocations')->where('invoice_id', $invoiceId)->delete();
+            $peer->table('platform_payments')->where('id', $paymentId)->delete();
+            $peer->table('platform_invoices')->whereIn('id', [$invoiceId, $noteId])->delete();
+            DB::disconnect('billing_peer');
+            DB::beginTransaction();
+        }
     }
 
     public function test_payments_settle_part_or_all_an_over_payment_is_credit_and_a_reversal_keeps_the_record(): void
@@ -500,7 +561,7 @@ class HqBillingTest extends TestCase
             // The services refuse too, whatever calls them.
             foreach ([
                 fn () => app(PlatformBilling::class)->run(['period' => $this->month()], $user),
-                fn () => app(PlatformBilling::class)->creditNote(1, $a->id, ['amount' => '1', 'reason' => 'Not allowed to do this'], $user),
+                fn () => app(PlatformBilling::class)->creditNote(1, $a->id, ['idempotency_key' => (string) Str::uuid(), 'amount' => '1', 'reason' => 'Not allowed to do this'], $user),
                 fn () => app(PlatformBillingAccounts::class)->record(1, ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'X-1'], $user),
                 fn () => app(PlatformBillingAccounts::class)->reverse(1, $payment->id, ['reason' => 'Not allowed to do this'], $user),
                 fn () => app(PlatformBillingAccounts::class)->remind(1, $user),
@@ -526,7 +587,7 @@ class HqBillingTest extends TestCase
             ["/saas/billing/schools/{$school}/invoices/{$invoice}/recompute", []],
             ["/saas/billing/schools/{$school}/invoices/{$invoice}/issue", []],
             ["/saas/billing/schools/{$school}/invoices/{$invoice}/discard", []],
-            ["/saas/billing/schools/{$school}/invoices/{$invoice}/credit-notes", ['amount' => '1', 'reason' => 'Not allowed to do this']],
+            ["/saas/billing/schools/{$school}/invoices/{$invoice}/credit-notes", ['idempotency_key' => (string) Str::uuid(), 'amount' => '1', 'reason' => 'Not allowed to do this']],
             ["/saas/billing/schools/{$school}/invoices/{$invoice}/apply-credit", []],
             ["/saas/billing/schools/{$school}/payments", ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'X-2']],
             ["/saas/billing/schools/{$school}/payments/{$payment}/reverse", ['reason' => 'Not allowed to do this']],
@@ -566,7 +627,7 @@ class HqBillingTest extends TestCase
         foreach (['recompute', 'issue', 'discard', 'apply-credit'] as $action) {
             $this->post('/saas/billing/schools/1/invoices/'.$b->id.'/'.$action)->assertNotFound();
         }
-        $this->post('/saas/billing/schools/1/invoices/'.$b->id.'/credit-notes', ['amount' => '1', 'reason' => 'Through the wrong school'])->assertNotFound();
+        $this->post('/saas/billing/schools/1/invoices/'.$b->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '1', 'reason' => 'Through the wrong school'])->assertNotFound();
         $this->post('/saas/billing/schools/1/payments/'.$baobabPayment->id.'/reverse', ['reason' => 'Through the wrong school'])->assertNotFound();
         // A payment at School A naming School B's invoice is refused.
         $this->post('/saas/billing/schools/1/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'WRONG-1', 'allocations' => [$b->id => '1']])->assertSessionHasErrors('allocations');
