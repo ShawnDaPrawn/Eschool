@@ -23,6 +23,10 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Notifications: school notice emails carry the school's crest, name and
+  colour and a plain-text version, and school messages arrive in full in the
+  email. Private notices (safeguarding, wellbeing, discipline, progress and
+  similar) still say only that there is something to see in the app.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
