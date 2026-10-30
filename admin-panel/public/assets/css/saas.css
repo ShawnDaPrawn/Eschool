@@ -34,3 +34,8 @@
 .saas-card > h2:first-of-type { margin-top: 0; }
 .saas h1, .saas h2 { font-weight: 600; }
 .saas-field select, .saas-field input, .saas-field textarea { font-family: inherit; }
+.saas-bar nav { display: flex; flex-wrap: wrap; gap: 16px; }
+.saas-audit td { vertical-align: top; }
+.saas-audit small { color: var(--md-sys-color-on-surface-variant); }
+.saas-audit-changes { margin: 0; overflow-wrap: anywhere; padding-inline-start: 18px; }
+.saas-audit-reason { margin: 0 0 4px; overflow-wrap: anywhere; }

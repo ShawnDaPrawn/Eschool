@@ -23,6 +23,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: an HQ audit log at `/saas/audit` shows who at Navigate Ed did what
+  to which school, when and why (reasons, before and after values), filtered by
+  school, action, staff member and date, and exported as CSV. A school's own
+  history is never shown there, and each export is itself recorded.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No

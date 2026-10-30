@@ -58,6 +58,14 @@ for (const width of [390, 820, 1280]) {
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 
+    // The HQ audit log shows the set-up, filtered to this school.
+    await page.getByRole('link', { name: 'Audit log for this school', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Audit log', exact: true })).toBeVisible();
+    await expect(page.locator('.saas-audit tbody tr').filter({ hasText: 'School set up' })).toHaveCount(1);
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.goBack();
+
     // A separate cookie jar proves actual first sign-in, forced password
     // replacement and the school's empty-year setup screen. No password is logged.
     const context = await browser.newContext({ viewport: { width, height: 1000 } });
