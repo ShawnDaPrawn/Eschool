@@ -18,3 +18,10 @@ c3301f3cfd09a5bb43231571632d3f8a629148f4:admin-panel/tests/Unit/Cards/SignedCard
 # only synthetic records. Current constants use fixtureFileId to state purpose.
 59605fe72fa34f47321468e86fa633e2455d29fe:packages/eschool_features/academics/lib/src/testing/family_form_fixtures.dart:generic-api-key:6
 59605fe72fa34f47321468e86fa633e2455d29fe:packages/eschool_features/academics/test/family_forms/fixture.dart:generic-api-key:10
+# Exact historical CI inventory rows: the high-entropy values are the head
+# and merge SHA-1s of public Git commit objects, not credentials. Verified with
+# git cat-file for both commit columns in rows 124, 143 and 154. Exempt only
+# these findings; future CSV rows and every other secret remain scanned.
+524437a4f618df33e4eee9e9b955f3a05343bc42:engineering/self-tests/oct30-merged-pr-ci.csv:generic-api-key:124
+524437a4f618df33e4eee9e9b955f3a05343bc42:engineering/self-tests/oct30-merged-pr-ci.csv:generic-api-key:143
+524437a4f618df33e4eee9e9b955f3a05343bc42:engineering/self-tests/oct30-merged-pr-ci.csv:generic-api-key:154
