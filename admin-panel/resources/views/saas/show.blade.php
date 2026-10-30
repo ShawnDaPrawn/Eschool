@@ -92,5 +92,9 @@
         </tbody>
     </table>
 </div>
-<p class="saas-actions"><a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a> <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a></p>
+<p class="saas-actions">
+    <a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>
+    <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
+    <a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>
+</p>
 @endsection

@@ -113,6 +113,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
+use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\Platform\SchoolAccountController;
@@ -273,6 +274,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->whereNumber('school')->name('schools.modules');
     Route::post('/schools/{school}/administrator-invitation', [SaasController::class, 'resendInvitation'])->whereNumber('school')->middleware('throttle:20,1')->name('schools.invitation');
+    Route::get('/audit', [PlatformAuditController::class, 'index'])->name('audit');
+    Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware('throttle:10,1')->name('audit.export');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
