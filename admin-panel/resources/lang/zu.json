@@ -5791,5 +5791,11 @@
     "Guardian :n needs a first name and surname.": "Umnakekeli :n udinga igama nesibongo.",
     "Guardian :n's mobile number is not valid.": "Inombolo yeselula yomnakekeli :n ayivumelekile.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "I-akhawunti ye-:email ayikwazi ukuxhunywa. Yihlole nomnakekeli ngaphambi kokungenisa lo mfundi.",
-    "The account for :email cannot be linked.": "I-akhawunti ye-:email ayikwazi ukuxhunywa."
+    "The account for :email cannot be linked.": "I-akhawunti ye-:email ayikwazi ukuxhunywa.",
+    "Add everyone in the homeroom": "Engeza wonke umuntu osekilasini",
+    "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.": "Umfundi ngamunye osekilasini ngosuku lokuqala uba yilungu aze ashiye ikilasi noma unyaka uphele. Abafundi asebevele bengamalungu bashiywa benjalo.",
+    "Members from": "Amalungu kusukela",
+    "Add the homeroom": "Engeza ikilasi",
+    ":added learners added from the homeroom; :skipped were already members.": "Abafundi abangu-:added bengeziwe besuka ekilasini; abangu-:skipped bebevele bengamalungu.",
+    "Only a group for one homeroom can be filled from it.": "Yiqembu lekilasi elilodwa kuphela elingagcwaliswa ngalo."
 }

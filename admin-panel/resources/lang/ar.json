@@ -4718,5 +4718,11 @@
     "Guardian :n needs a first name and surname.": "Guardian :n needs a first name and surname.",
     "Guardian :n's mobile number is not valid.": "Guardian :n's mobile number is not valid.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "The account for :email cannot be linked. Check it with the guardian before importing this learner.",
-    "The account for :email cannot be linked.": "The account for :email cannot be linked."
+    "The account for :email cannot be linked.": "The account for :email cannot be linked.",
+    "Add everyone in the homeroom": "Add everyone in the homeroom",
+    "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.": "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.",
+    "Members from": "Members from",
+    "Add the homeroom": "Add the homeroom",
+    ":added learners added from the homeroom; :skipped were already members.": ":added learners added from the homeroom; :skipped were already members.",
+    "Only a group for one homeroom can be filled from it.": "Only a group for one homeroom can be filled from it."
 }

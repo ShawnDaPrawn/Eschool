@@ -5791,5 +5791,11 @@
     "Guardian :n needs a first name and surname.": "Voog :n het 'n voornaam en van nodig.",
     "Guardian :n's mobile number is not valid.": "Voog :n se selfoonnommer is nie geldig nie.",
     "The account for :email cannot be linked. Check it with the guardian before importing this learner.": "Die rekening vir :email kan nie gekoppel word nie. Gaan dit met die voog na voordat jy hierdie leerder invoer.",
-    "The account for :email cannot be linked.": "Die rekening vir :email kan nie gekoppel word nie."
+    "The account for :email cannot be linked.": "Die rekening vir :email kan nie gekoppel word nie.",
+    "Add everyone in the homeroom": "Voeg almal in die registerklas by",
+    "Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.": "Elke leerder wat op die begindatum in die registerklas is, word 'n lid totdat hulle die registerklas verlaat of die jaar eindig. Leerders wat reeds lede is, word onveranderd gelaat.",
+    "Members from": "Lede vanaf",
+    "Add the homeroom": "Voeg die registerklas by",
+    ":added learners added from the homeroom; :skipped were already members.": ":added leerders uit die registerklas bygevoeg; :skipped was reeds lede.",
+    "Only a group for one homeroom can be filled from it.": "Slegs 'n groep vir een registerklas kan daaruit gevul word."
 }

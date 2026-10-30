@@ -55,3 +55,18 @@ not create whole-class v1 subject assignments. Bound homeroom assignments keep
 stable v1 projections, and term-filtered teacher/chat consumers explicitly accept
 current dated assignments. Enrolment changes end incompatible group memberships
 with an audit; moving grade never projects access into the new grade's homeroom.
+
+## Fill from the homeroom (Action Plan 1.20, first part)
+
+A teaching group for one homeroom can be filled in one step: **Add everyone in the homeroom** on the group page (academic management).
+- Each learner enrolled in the homeroom on the chosen start date becomes a member from that date until their enrolment in the homeroom or the year ends, with the chosen mark rule.
+- Each membership goes through the same dated-membership path as adding one learner (`TeachingGroups::dated`), so it is checked, audited and projected the same way.
+- Learners who are already members over that time are left alone, so it can be run again.
+- A group without a homeroom (an elective across homerooms), or a start date outside the year, is refused.
+
+Acceptance tests (`Academics/TeachingGroupFillTest`):
+- Asha (all year) and Ben (moves to 7C at the end of June) in 7A; Cara in 7C: filling Maths 7A from 10 February adds Asha until 31 December and Ben until 30 June, not Cara. Running it again adds nothing.
+- An elective group, or a 2027 start date: refused.
+- The page offers it and fills with the chosen rule. A teacher gets 403 from both the service and the route, and nothing changes.
+
+Still to come in 1.20: "last year's eligible members" per activity group, staff drafts and caseload renewals.
