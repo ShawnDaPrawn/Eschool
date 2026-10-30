@@ -103,6 +103,7 @@ use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
+use App\Http\Controllers\People\AccessReviewController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
@@ -1197,6 +1198,7 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/profile-configuration/definitions', [ProfileFieldController::class, 'field'])->name('profile-configuration.definitions.store');
     Route::put('/profile-configuration/definitions/{definition}', [ProfileFieldController::class, 'field'])->whereNumber('definition')->name('profile-configuration.definitions.update');
     Route::delete('/profile-configuration/definitions/{definition}', [ProfileFieldController::class, 'removeField'])->whereNumber('definition')->name('profile-configuration.definitions.destroy');
+    Route::get('/access-review', AccessReviewController::class)->name('access-review.index');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
     Route::get('/people-profiles/{person?}', [ProfileFormController::class, 'index'])->whereNumber('person')->name('people-profiles.index');
     Route::put('/people-profiles/{person?}', [ProfileFormController::class, 'update'])->whereNumber('person')->name('people-profiles.update');

@@ -23,6 +23,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Who can see what: a read-only page shows one person's or one role's level in
+  each module, their abilities (sensitive ones marked), any stray permissions,
+  and the pages in their menu, exactly as that person's own sidebar for a
+  person.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
