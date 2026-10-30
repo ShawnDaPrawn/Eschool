@@ -113,6 +113,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 - Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. School admins can arrange fields in Settings, and authorised people use the same form metadata in the panel and both apps. Saves update changed fields only. Permitted CSV exports filter sensitive values before decryption; private drafts stay out of browser/session storage. Private file fields accept encrypted PDF/PNG/JPEG attachments with authenticated previews and preserve unrelated edits. Legacy migration remains in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values, attachment metadata and private ciphertext before rolling it back.
 
+- Who can see what: a read-only page shows one person's or one role's level in
+  each module, their abilities (sensitive ones marked), any stray permissions,
+  and the pages in their menu, exactly as that person's own sidebar for a
+  person.
+
 - People can choose a global handle in the shared app settings. Learners under 18 need a verified guardian to approve the proposal; adults choose directly. Handles avoid personal identifiers, changes are limited per term, and old names remain reserved for 90 days. Approved handles work alongside existing sign-in names. Existing app/API responses remain compatible.
 
 - School admins can control included features under Settings → School modules. Disabled features disappear from navigation and app context, and their routes refuse access. Required features stay on; fees with retained records become read-only. Existing schools retain their seed features, while new explicitly packaged schools start fees off. Native apps refresh on a queued school-specific context change.

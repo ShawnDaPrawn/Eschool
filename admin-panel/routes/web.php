@@ -104,6 +104,7 @@ use App\Http\Controllers\Panel\Transfers\TransferPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\People\LearnerGuardiansController;
+use App\Http\Controllers\People\AccessReviewController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
@@ -1229,6 +1230,7 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/learners/{learner}/guardians', [LearnerGuardiansController::class, 'store'])->whereNumber('learner')->middleware('throttle:30,1')->name('learner-guardians.store');
     Route::put('/learners/{learner}/guardians/{link}', [LearnerGuardiansController::class, 'update'])->whereNumber(['learner', 'link'])->name('learner-guardians.update');
     Route::post('/learners/{learner}/guardians/{link}/end', [LearnerGuardiansController::class, 'end'])->whereNumber(['learner', 'link'])->name('learner-guardians.end');
+    Route::get('/access-review', AccessReviewController::class)->name('access-review.index');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
     Route::post('/people-profiles/{person}/invitation', [ProfileFormController::class, 'invite'])->whereNumber('person')->middleware('throttle:20,1')->name('people-profiles.invitation');
     Route::get('/people-profiles/{person?}', [ProfileFormController::class, 'index'])->whereNumber('person')->name('people-profiles.index');
