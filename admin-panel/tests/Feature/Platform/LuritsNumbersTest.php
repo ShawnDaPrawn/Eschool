@@ -161,4 +161,23 @@ class LuritsNumbersTest extends TestCase
         $this->assertSame(LuritsNumbers::hash('5566778899'), DB::table('learner_identifiers')->where('user_id', $foreign->user_id)->value('lurits_hash'), 'unchanged');
         $this->assertSame(0, DB::table('lurits_conflicts')->count());
     }
+
+    public function test_a_claim_locks_the_claims_row_without_inserting_it_first(): void
+    {
+        // INSERT IGNORE on an existing row takes a shared lock, and two claims
+        // holding it deadlock when both upgrade to the exclusive lock.
+        $this->assertTrue(DB::table('platform_counters')->where('name', LuritsNumbers::CLAIMS_LOCK)->exists(), 'the migration creates the lock row');
+        $writes = [];
+        DB::listen(function ($query) use (&$writes) {
+            if (str_contains($query->sql, 'platform_counters') && ! str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
+                $writes[] = $query->sql;
+            }
+        });
+        app(StudentNumbers::class)->assign($this->learnerA());
+        $writes = [];
+
+        $this->assertSame(LuritsNumbers::RECORDED, app(LuritsNumbers::class)->record($this->learnerA(), '1234567890', 'school_entry'));
+
+        $this->assertSame([], $writes);
+    }
 }

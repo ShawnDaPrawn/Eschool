@@ -8,7 +8,7 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 - New school-owned `lurits_conflicts`: the claiming school, learner, number hash, holder user, source, status (`open`, later `resolved` or `rejected`), who raised and resolved it.
 - `App\Services\Platform\Identity\LuritsNumbers`:
   - `normalise()` removes spaces and dashes; `valid()` checks the configured pattern.
-  - `record(learner, number, source, actor)` returns `recorded`, `unchanged` or `conflict`. It assigns the NavigateEd number first if needed, writes under a lock, audits hashes only, and opens one conflict per claim when another person holds the number.
+  - `record(learner, number, source, actor)` returns `recorded`, `unchanged` or `conflict`. It assigns the NavigateEd number first if needed, writes under a platform-wide claims lock (the `platform_counters` row `lurits_claims`, created by the migration and locked directly, so two schools claiming the same unused number at once get one `recorded` and one `conflict`, never a deadlock or unique-key error), audits hashes only, and opens one conflict per claim when another person holds the number. It refuses (404) a learner who is not in the current school, even a model loaded elsewhere.
   - `forLearner()`, `primary()` (LURITS, else the NavigateEd number labelled temporary) and `holderUserId()` for internal matching.
 - Sources: `school_entry`, `sasams_import`, `onboarding_import`, `transfer`, `dbe_correction`.
 
@@ -30,6 +30,8 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 | A conflict raised by School B | School A lists its conflicts | none |
 | Any recording | audited | the number is absent from the audit log |
 | Invalid number or source | recorded | refused |
+| A learner of School B | School A records, reads or asks for the primary identifier | 404; nothing written, no conflict |
+| The claims lock row | a number is recorded | the row is locked without an insert first (no shared-lock deadlock) |
 | A number held at School B | matched from School A | the holder's user id (internal only) |
 
 ## Follow-ups (later changes)

@@ -32,6 +32,9 @@ class LuritsNumbers
 
     public const CONFLICT = 'conflict';
 
+    /** The platform_counters row that serialises claims. */
+    public const CLAIMS_LOCK = 'lurits_claims';
+
     public const SOURCES = ['school_entry', 'sasams_import', 'onboarding_import', 'transfer', 'dbe_correction'];
 
     /** Digits only: spaces and dashes that people type are removed. */
@@ -73,13 +76,14 @@ class LuritsNumbers
         $hash = self::hash($number);
         $this->ownedHere($learner);
 
+        // A deadlock in an outermost transaction is retried, and the retry
+        // rechecks the holder, so a lost race answers CONFLICT.
         return DB::transaction(function () use ($learner, $number, $source, $actor, $hash) {
             $this->ownedHere($learner);
             // One claim at a time, platform-wide: two schools recording the same
             // unused number at once must not both pass the holder check, and
             // the second must get CONFLICT rather than a database error.
-            DB::table('platform_counters')->insertOrIgnore(['name' => 'lurits_claims', 'value' => 0]);
-            DB::table('platform_counters')->where('name', 'lurits_claims')->lockForUpdate()->value('value');
+            $this->lockClaims();
             app(StudentNumbers::class)->assign($learner);
             $identity = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->lockForUpdate()->first();
             $holder = DB::table('learner_identifiers')->where('lurits_hash', $hash)->lockForUpdate()->value('user_id');
@@ -109,7 +113,7 @@ class LuritsNumbers
             Audit::record('identity.lurits_recorded', $learner, ['lurits_hash' => $identity->lurits_hash], ['lurits_hash' => $hash, 'source' => $source]);
 
             return self::RECORDED;
-        });
+        }, 3);
     }
 
     /** The learner's LURITS number, or null when none is recorded. */
@@ -153,6 +157,20 @@ class LuritsNumbers
         $userId = DB::table('learner_identifiers')->where('lurits_hash', self::hash($number))->value('user_id');
 
         return $userId === null ? null : (int) $userId;
+    }
+
+    /**
+     * Takes the platform-wide claims lock. The migration creates its row; it is
+     * locked directly, because INSERT IGNORE on an existing row takes a shared
+     * lock first, and two claims that both hold it deadlock on the upgrade.
+     */
+    private function lockClaims(): void
+    {
+        $lock = fn () => DB::table('platform_counters')->where('name', self::CLAIMS_LOCK)->lockForUpdate()->value('value');
+        if ($lock() === null) {
+            DB::table('platform_counters')->insertOrIgnore(['name' => self::CLAIMS_LOCK, 'value' => 0]);
+            $lock();
+        }
     }
 
     /**

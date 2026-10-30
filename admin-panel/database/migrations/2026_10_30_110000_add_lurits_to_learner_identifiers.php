@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -41,10 +42,15 @@ return new class extends Migration
             $t->timestamps();
             $t->index(['learner_id', 'lurits_hash', 'status']);
         });
+
+        // The row LuritsNumbers::record() locks to serialise claims, present
+        // before the first claim so claims never have to insert it.
+        DB::table('platform_counters')->insertOrIgnore(['name' => 'lurits_claims', 'value' => 0]);
     }
 
     public function down(): void
     {
+        DB::table('platform_counters')->where('name', 'lurits_claims')->delete();
         Schema::dropIfExists('lurits_conflicts');
         Schema::table('learner_identifiers', function (Blueprint $t) {
             $t->dropConstrainedForeignId('lurits_recorded_by');
