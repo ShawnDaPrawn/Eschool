@@ -49,6 +49,8 @@ class PlatformIncidents
 
     public const NOTIFIED_HOW = ['email' => 'Email', 'phone' => 'Phone call', 'meeting' => 'Meeting', 'letter' => 'Letter'];
 
+    public const TIMELINE_PER_PAGE = 100;
+
     public const ENTRY_KINDS = ['note' => 'Note', 'action' => 'Action taken'];
 
     public function __construct(private readonly CurrentSchool $currentSchool) {}
@@ -126,9 +128,9 @@ class PlatformIncidents
     }
 
     /** One incident with its schools, timeline and what still stops it closing. */
-    public function show(int $id): array
+    public function show(int $id, int $timelinePage = 1): array
     {
-        return $this->currentSchool->acrossSchools(function () use ($id): array {
+        return $this->currentSchool->acrossSchools(function () use ($id, $timelinePage): array {
             $row = DB::table('platform_incidents')->where('id', $id)->first();
             abort_if($row === null, 404);
             $schools = DB::table('platform_incident_schools')->join('schools', 'schools.id', '=', 'platform_incident_schools.school_id')
@@ -138,8 +140,10 @@ class PlatformIncidents
             $contacts = DB::table('school_contacts')->whereIn('school_id', $schools->pluck('school_id'))
                 ->whereIn('role', ['information_officer', 'principal'])->orderByRaw("role = 'information_officer' desc")->orderBy('name')
                 ->get(['school_id', 'role', 'name', 'email', 'phone'])->groupBy('school_id');
-            $entries = DB::table('platform_incident_entries')->where('incident_id', $id)->orderByDesc('created_at')->orderByDesc('id')->limit(500)->get();
-            $actors = $this->actorNames($entries->pluck('actor_id')->push($row->opened_by, $row->closed_by)->merge($schools->pluck('notified_by')));
+            // Newest first, a page at a time: the whole history stays reachable however long it grows.
+            $entries = DB::table('platform_incident_entries')->where('incident_id', $id)->orderByDesc('created_at')->orderByDesc('id')
+                ->paginate(self::TIMELINE_PER_PAGE, ['*'], 'timeline', max(1, $timelinePage))->withPath(route('saas.incidents.show', $id))->fragment('timeline');
+            $actors = $this->actorNames(collect($entries->items())->pluck('actor_id')->push($row->opened_by, $row->closed_by)->merge($schools->pluck('notified_by')));
 
             return [
                 'incident' => $this->summaryRow($row, $schools) + [
@@ -156,10 +160,10 @@ class PlatformIncidents
                     'notified_by' => $actors[$school->notified_by] ?? null,
                     'contacts' => ($contacts[$school->school_id] ?? collect())->map(fn (object $c) => (array) $c)->values()->all(),
                 ])->values()->all(),
-                'entries' => $entries->map(fn (object $entry) => [
+                'entries' => $entries->through(fn (object $entry) => [
                     'kind' => (string) $entry->kind, 'body' => (string) $entry->body,
                     'at' => $this->local($entry->created_at), 'actor' => $actors[$entry->actor_id] ?? null,
-                ])->values()->all(),
+                ]),
                 'blockers' => $this->blockers($row, $schools),
             ];
         });

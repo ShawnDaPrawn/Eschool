@@ -21,7 +21,7 @@ Navigate Ed is the **operator** for each school's personal information; each sch
 - **Telling a school.** Per affected school: the date (not in the future, not before detection), how (email, phone call, meeting, letter) and whom (a role and name). A correction replaces the record and adds a timeline line. The school's Information Officer and principal from HQ's school record (SA.4) are shown beside each school.
 - **Regulator.** Required or not required, with the reason, the date the Regulator was told and its reference. The school decides as the responsible party; HQ records the decision and helps.
 - **Concurrent edits.** The details form carries the incident's revision; adding a school or recording a notification raises it, so a form opened before is refused (409, reload).
-- **Timeline.** Every change of status, severity, personal-information answer, Regulator decision, school added and school told adds a line; staff add notes and actions (no names of people).
+- **Timeline.** Every change of status, severity, personal-information answer, Regulator decision, school added and school told adds a line; staff add notes and actions (no names of people). The timeline shows the newest 100 entries a page at a time, with links to older and newer pages, so the whole history stays reachable.
 - **Audit.** `platform_incident_opened`, `platform_incident_updated` (fields changed, status, severity, Regulator decision), `platform_incident_school_added` and `platform_incident_school_notified` (against the school), `platform_incident_entry_added`. None holds the free text. They show in the HQ audit log (SA.3).
 
 ## Data
@@ -42,7 +42,8 @@ Rows are history: the migration's `down` refuses to drop tables that hold rows.
 | That incident | close it | refused until School A is told, the Regulator decision is recorded and, being required, its date given; then closed, with the timeline and audit rows (school notification audited against School A; no free text in the audit) |
 | Operations, an outage with no personal information | a stale form; close without a review; change a closed incident; add a school or record a notification once closed; reopen | 409; refused; 409; 409; reopened with closing and containment cleared |
 | Support | a future detection; an occurrence after detection; a breach with no personal information; an unknown school; a notification in the future or before detection; a Regulator date without "required" | each refused, nothing written |
-| Sales, Finance, Content; a school Super Admin and a teacher | every page and form | no menu link; 403 everywhere; nothing written |
+| Sales, Finance, Content; a school Super Admin and a teacher | each of the seven endpoints with a valid payload | no menu link; 403 everywhere; nothing written |
+| An incident with more than 100 timeline entries | open it; open page 2 | the newest 100 first, then the opening entry on page 2 |
 | An Owner | record a notification for a school not on the incident, or for an unknown incident | 404; nothing written |
 
 ## Endpoints (HQ panel)

@@ -66,6 +66,19 @@ class HqIncidentsTest extends TestCase
             'personal_information' => 'yes', 'occurred_at' => '2026-10-29T16:40', 'summary' => self::SUMMARY, 'revision' => $this->revision($id)];
     }
 
+    /** Every incident endpoint, each with a payload that would succeed for a permitted role, refused with 403. */
+    private function refusedEverywhere(int $id): void
+    {
+        $this->get('/saas/incidents')->assertForbidden();
+        $this->get('/saas/incidents/'.$id)->assertForbidden();
+        $this->post('/saas/incidents', ['title' => 'Should never be recorded', 'category' => 'security', 'severity' => 'low', 'personal_information' => 'no',
+            'detected_at' => '2026-10-30T07:00', 'summary' => 'This incident must never be recorded.', 'schools' => [1]])->assertForbidden();
+        $this->put('/saas/incidents/'.$id, $this->details($id, ['title' => 'Should never be changed']))->assertForbidden();
+        $this->post('/saas/incidents/'.$id.'/schools', ['school_id' => 2])->assertForbidden();
+        $this->put('/saas/incidents/'.$id.'/schools/1', ['notified_on' => '2026-10-30', 'notified_how' => 'email', 'notified_contact' => 'Principal'])->assertForbidden();
+        $this->post('/saas/incidents/'.$id.'/entries', ['kind' => 'note', 'body' => 'Should never be added'])->assertForbidden();
+    }
+
     public function test_support_records_an_incident_tells_the_school_and_closes_it(): void
     {
         $schoolA = (string) DB::table('schools')->where('id', 1)->value('name');
@@ -170,20 +183,13 @@ class HqIncidentsTest extends TestCase
         foreach (['sales', 'finance', 'content'] as $role) {
             $this->actingAs($this->staff($role));
             $this->get('/saas')->assertOk()->assertDontSee('Incidents');
-            $this->get('/saas/incidents')->assertForbidden();
-            $this->get('/saas/incidents/'.$id)->assertForbidden();
-            $this->post('/saas/incidents', ['title' => 'Should never be recorded'])->assertForbidden();
-            $this->put('/saas/incidents/'.$id, $this->details($id))->assertForbidden();
-            $this->post('/saas/incidents/'.$id.'/schools', ['school_id' => 2])->assertForbidden();
-            $this->put('/saas/incidents/'.$id.'/schools/1', ['notified_on' => '2026-10-30', 'notified_how' => 'email', 'notified_contact' => 'Principal'])->assertForbidden();
-            $this->post('/saas/incidents/'.$id.'/entries', ['kind' => 'note', 'body' => 'Should never be added'])->assertForbidden();
+            $this->refusedEverywhere($id);
         }
 
-        // A school's own Super Admin and teachers never reach HQ's register.
+        // A school's own Super Admin and teachers never reach HQ's register, on any endpoint.
         foreach ([$this->superAdmin(), User::query()->findOrFail($this->schoolA->ids['tara_user'])] as $schoolUser) {
             $this->actingAs($schoolUser);
-            $this->get('/saas/incidents')->assertForbidden();
-            $this->put('/saas/incidents/'.$id.'/schools/1', ['notified_on' => '2026-10-30', 'notified_how' => 'email', 'notified_contact' => 'Principal'])->assertForbidden();
+            $this->refusedEverywhere($id);
         }
 
         // A school not listed on the incident cannot be marked as told through it.
@@ -196,5 +202,21 @@ class HqIncidentsTest extends TestCase
         $this->assertSame($before, [DB::table('platform_incidents')->count(), DB::table('platform_incident_schools')->count(), DB::table('platform_incident_entries')->count(), $this->revision($id)]);
         $this->assertSame(0, DB::table('platform_incident_schools')->where('school_id', 2)->count());
         $this->assertNull(DB::table('platform_incident_schools')->where('incident_id', $id)->value('notified_on'));
+    }
+
+    public function test_the_whole_timeline_stays_reachable_a_page_at_a_time(): void
+    {
+        $this->actingAs($this->staff('support'));
+        $id = $this->open();
+        $rows = [];
+        for ($i = 1; $i <= PlatformIncidents::TIMELINE_PER_PAGE; $i++) {
+            $rows[] = ['incident_id' => $id, 'kind' => 'note', 'body' => 'Synthetic step '.$i, 'actor_id' => null, 'created_at' => now()->addMinutes($i)];
+        }
+        DB::table('platform_incident_entries')->insert($rows);
+
+        $this->get('/saas/incidents/'.$id)->assertOk()->assertSee('Synthetic step '.PlatformIncidents::TIMELINE_PER_PAGE)
+            ->assertDontSee('Incident recorded: High')->assertSee('Older entries')->assertSee('Page 1 of 2');
+        $this->get('/saas/incidents/'.$id.'?timeline=2')->assertOk()->assertSee('Incident recorded: High, one affected school.')
+            ->assertSee('Newer entries')->assertDontSee('Synthetic step '.PlatformIncidents::TIMELINE_PER_PAGE.'<');
     }
 }

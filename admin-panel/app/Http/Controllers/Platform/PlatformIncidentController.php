@@ -9,6 +9,7 @@ use App\Http\Requests\Saas\IncidentRequest;
 use App\Services\Platform\Saas\PlatformIncidents;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /** HQ: the breach and incident register (Action Plan SA.12). */
 class PlatformIncidentController extends Controller
@@ -27,9 +28,9 @@ class PlatformIncidentController extends Controller
         return redirect()->route('saas.incidents.show', $id)->with('success', __('Incident :reference recorded.', ['reference' => PlatformIncidents::reference($id)]));
     }
 
-    public function show(int $incident): View
+    public function show(Request $request, int $incident): View
     {
-        return view('saas.incident', $this->incidents->show($incident) + ['schoolChoices' => $this->incidents->schoolChoices()]);
+        return view('saas.incident', $this->incidents->show($incident, (int) $request->query('timeline', 1)) + ['schoolChoices' => $this->incidents->schoolChoices()]);
     }
 
     public function update(IncidentRequest $request, int $incident): RedirectResponse

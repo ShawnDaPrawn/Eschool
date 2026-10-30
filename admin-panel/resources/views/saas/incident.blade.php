@@ -188,4 +188,11 @@
         <li><time>{{ $entry['at'] }}</time>@if ($entry['actor']) · {{ $entry['actor'] }}@endif · {{ $entry['body'] }}</li>
     @endforeach
 </ol>
+@if ($entries->hasPages())
+<nav aria-label="{{ __('Timeline pages') }}" class="saas-actions">
+    @if ($entries->previousPageUrl())<a href="{{ $entries->previousPageUrl() }}">{{ __('Newer entries') }}</a>@endif
+    <span>{{ __('Page :page of :pages', ['page' => $entries->currentPage(), 'pages' => $entries->lastPage()]) }}</span>
+    @if ($entries->nextPageUrl())<a href="{{ $entries->nextPageUrl() }}">{{ __('Older entries') }}</a>@endif
+</nav>
+@endif
 @endsection
