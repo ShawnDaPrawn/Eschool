@@ -139,6 +139,7 @@ class RoleController extends Controller
         foreach ($res as $row) {
             $operate = '<a href='.route('roles-list', $row->id).' class="btn btn-xs btn-gradient-info btn-rounded btn-icon"><i class="fa fa-eye"></i></a>&nbsp;&nbsp;';
             $operate .= '<a href='.route('roles.edit', $row->id).' class="btn btn-xs btn-gradient-primary btn-rounded btn-icon" data-id='.$row->id.' title="Edit"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+            $operate .= '<a href='.route('role-access.edit', $row->id).' class="btn btn-xs btn-gradient-success btn-rounded btn-icon" title="'.e(__('Access by module')).'" aria-label="'.e(__('Access by module')).'"><i class="fa fa-th-list"></i></a>&nbsp;&nbsp;';
             $operate .= '<a href='.route('roles.destroy', $row->id).' class="btn btn-xs btn-gradient-danger btn-rounded btn-icon delete-form" data-id='.$row->id.'><i class="fa fa-trash"></i></a>';
 
             $tempRow['id'] = $row->id;
