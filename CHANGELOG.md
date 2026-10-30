@@ -23,6 +23,11 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Role templates: the role editor can start a new role from nine templates
+  for common school jobs (principal, deputy, office, bursar, head of
+  department, grade head, activities coordinator, reception, IT). Sensitive
+  abilities are never part of a template.
+
 - Role editor by module: school administrators can create and edit custom
   roles by choosing a level (no access, view, contribute, manage) for each
   module that is switched on, plus named abilities. Sensitive abilities need a

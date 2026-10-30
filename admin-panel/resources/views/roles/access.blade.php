@@ -10,13 +10,24 @@
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="$role ? __('Access for :role', ['role' => $role['name']]) : __('Create a role by module')"
         :subtitle="__('Choose what this role can do in each part of NavigateEd. Higher levels include the lower ones.')" />
+    @if (! $role && isset($templates))
+        <form method="GET" action="{{ route('role-access.create') }}" aria-label="{{ __('Start from a template') }}" class="page-section">
+            <x-page.field name="template" id="role-template" type="select" :label="__('Start from a template')" :value="$editor['template']['key'] ?? null"
+                :options="collect($templates)->map(fn ($t) => __($t['label']))->all()" :placeholder="__('Blank role')" :restore-old-input="false" />
+            <button class="m3-button m3-button--outlined" type="submit">{{ __('Use template') }}</button>
+        </form>
+        @isset($editor['template'])
+            <p role="status">{{ __('Started from :template. Sensitive abilities are never part of a template; tick them on purpose.', ['template' => __($editor['template']['label'])]) }}</p>
+            <p>{{ __($templates[$editor['template']['key']]['description']) }}</p>
+        @endisset
+    @endif
     @if ($errors->any())
         <div role="alert"><ul>@foreach ($errors->all() as $message)<li>{{ $message }}</li>@endforeach</ul></div>
     @endif
     <form method="POST" action="{{ $role ? route('role-access.update', $role['id']) : route('role-access.store') }}" aria-label="{{ __('Role access by module') }}">
         @csrf
         @if ($role) @method('PUT') @endif
-        <x-page.field name="name" id="role-name" :label="__('Role name')" :value="$role['name'] ?? null" maxlength="125" required />
+        <x-page.field name="name" id="role-name" :label="__('Role name')" :value="$role['name'] ?? (isset($editor['template']) ? __($editor['template']['label']) : null)" maxlength="125" required />
 
         <div class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
             <table class="table">

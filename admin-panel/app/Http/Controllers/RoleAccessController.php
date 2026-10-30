@@ -8,6 +8,7 @@ use App\Http\Requests\RoleAccessRequest;
 use App\Models\Platform\Role;
 use App\Services\Platform\Modules\RoleEditor;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /** Roles described by module and level (Action Plan 1.13). */
@@ -19,9 +20,12 @@ class RoleAccessController extends Controller
         $this->middleware('permission:role-edit', ['only' => ['edit', 'update']]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('roles.access', ['editor' => $this->editor->describe(null)]);
+        $template = $request->query('template');
+        $editor = is_string($template) && $template !== '' ? $this->editor->fromTemplate($template) : $this->editor->describe(null);
+
+        return view('roles.access', ['editor' => $editor, 'templates' => $this->editor->templates()]);
     }
 
     public function store(RoleAccessRequest $request): RedirectResponse
