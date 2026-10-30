@@ -5862,6 +5862,7 @@
     "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.": "Usazozibona lezi zaziso ku-app ye-NavigateEd. Izaziso isikole okufanele sikuthumelele zona, njengezaziso ze-akhawunti nezokuphepha, ziyaqhubeka zifika nge-imeyili.",
     "Open NavigateEd": "Vula i-NavigateEd",
     "You can change all your notices in the NavigateEd app.": "Ungashintsha zonke izaziso zakho ku-app ye-NavigateEd.",
+    "Sent by :school through NavigateEd.": "Kuthunyelwe yi-:school nge-NavigateEd.",
     "Optional emails about \":label\" are now off at every school.": "Ama-imeyili ongawakhetha mayelana ne-\":label\" asevaliwe kuzo zonke izikole.",
     "Optional emails about \":label\" are already off at every school.": "Ama-imeyili ongawakhetha mayelana ne-\":label\" asevele evaliwe kuzo zonke izikole.",
     "Stop optional emails about \":label\" at every school?": "Misa ama-imeyili ongawakhetha mayelana ne-\":label\" kuzo zonke izikole?",
