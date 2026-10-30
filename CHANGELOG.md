@@ -23,11 +23,6 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
-- HQ school records: platform staff keep each customer school's stage (lead to
-  live, at risk, churned), profile, contacts, contracts with the POPIA operator
-  agreement, and a timeline of notes, on a new page in `/saas`. The school list
-  shows each school's stage. Schools never see it, and it shows none of a
-  school's people. **Deploy:** run the additive `school_accounts` migration.
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
@@ -56,6 +51,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
 
+- HQ school records: platform staff keep each customer school's stage (lead to
+  live, at risk, churned), profile, contacts, contracts with the POPIA operator
+  agreement, and a timeline of notes, on a new page in `/saas`. The school list
+  shows each school's stage. Schools never see it, and it shows none of a
+  school's people. **Deploy:** run the additive `school_accounts` migration.
+
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
 
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.
@@ -71,7 +72,6 @@ Earlier history is kept where it was written and is not repeated here:
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 
 - Guardian access approvals and one-use emailed invitations, including email verification, withdrawal, separate fee access and versioned consent. Existing family relationships are migrated without inventing approval. The shared approval screen uses generated API models.
-
 
 ### Developers
 
