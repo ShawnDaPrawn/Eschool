@@ -5854,5 +5854,22 @@
     "In this group last year": "Ebelikuleli qembu ngonyaka odlule",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Laba bafundi bebeseqenjini ekupheleni konyaka odlule, basesikoleni futhi bayayihlangabezana nemithetho yalo manje. Engeza labo abaqhubekayo.",
     "Add :name": "Engeza u-:name",
-    "Add as member": "Engeza njengelungu"
+    "Add as member": "Engeza njengelungu",
+    "nav_navigate_ed_announcements": "Izimemezelo ze-Navigate Ed",
+    "Announcements from Navigate Ed": "Izimemezelo ezivela ku-Navigate Ed",
+    "Release notes, maintenance windows and policy changes Navigate Ed sent to this school. Only the school's Super Admins see them.": "Amanothi okukhishwa, izikhathi zokulungisa nezinguquko zenqubomgomo u-Navigate Ed azithumele kulesi sikole. Abaphathi Abakhulu besikole kuphela abazibonayo.",
+    "From :date": "Kusukela ngo-:date",
+    "until :date": "kuze kube ngu-:date",
+    "Maintenance from :from to :to.": "Ukulungisa kusukela ku-:from kuya ku-:to.",
+    "You dismissed it on :date.": "Ukuvalile ngo-:date.",
+    "Mark as read": "Maka njengokufundiwe",
+    "No announcements from Navigate Ed.": "Azikho izimemezelo ezivela ku-Navigate Ed.",
+    "From Navigate Ed": "Kusuka ku-Navigate Ed",
+    "Read in full": "Funda konke",
+    "Dismiss :title": "Vala u-:title",
+    "Dismiss": "Vala",
+    "Announcement dismissed.": "Isimemezelo sivaliwe.",
+    "Release notes": "Amanothi okukhishwa",
+    "Maintenance window": "Isikhathi sokulungisa",
+    "Policy change": "Ushintsho lwenqubomgomo"
 }

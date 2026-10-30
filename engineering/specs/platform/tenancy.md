@@ -255,3 +255,15 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### HQ announcements to schools
+
+`platform_announcements` is global: Navigate Ed's own announcements, written only
+from `/saas`. Its `audience_values` may list school ids (an explicit audience);
+only HQ reads it. `platform_announcement_schools` (the schools an announcement
+reached, fixed at publication) and `platform_announcement_reads` (one row per
+Super Admin who dismissed it) are required school-owned, with models that use
+`BelongsToSchool`: a school reads an announcement only through its own target
+row and sees only its own people's reads; it never sees which other schools an
+announcement reached or their reads. HQ reads both across schools and shows
+counts ([HQ announcements](hq-announcements.md)).

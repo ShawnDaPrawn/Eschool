@@ -5854,5 +5854,22 @@
     "In this group last year": "In this group last year",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.",
     "Add :name": "Add :name",
-    "Add as member": "Add as member"
+    "Add as member": "Add as member",
+    "nav_navigate_ed_announcements": "Navigate Ed announcements",
+    "Announcements from Navigate Ed": "Announcements from Navigate Ed",
+    "Release notes, maintenance windows and policy changes Navigate Ed sent to this school. Only the school's Super Admins see them.": "Release notes, maintenance windows and policy changes Navigate Ed sent to this school. Only the school's Super Admins see them.",
+    "From :date": "From :date",
+    "until :date": "until :date",
+    "Maintenance from :from to :to.": "Maintenance from :from to :to.",
+    "You dismissed it on :date.": "You dismissed it on :date.",
+    "Mark as read": "Mark as read",
+    "No announcements from Navigate Ed.": "No announcements from Navigate Ed.",
+    "From Navigate Ed": "From Navigate Ed",
+    "Read in full": "Read in full",
+    "Dismiss :title": "Dismiss :title",
+    "Dismiss": "Dismiss",
+    "Announcement dismissed.": "Announcement dismissed.",
+    "Release notes": "Release notes",
+    "Maintenance window": "Maintenance window",
+    "Policy change": "Policy change"
 }
