@@ -110,7 +110,7 @@ class PlatformSchools
                 $existing = User::acrossSchools()->withTrashed()->where('email', strtolower(trim($data['admin_email'])))->lockForUpdate()->first();
                 if ($existing !== null) {
                     // Refused before the school exists, so nothing is created.
-                    $joins->assertMayBeFirstAdministrator($existing);
+                    $joins->assertMayBeFirstAdministrator($existing, $data['admin_email']);
                 }
                 $school = School::query()->create([
                     'name' => $data['name'],
@@ -126,7 +126,7 @@ class PlatformSchools
                     // Nothing is attached to the account until its owner accepts.
                     $admin = $existing;
                     $typed = trim($data['admin_first_name'].' '.$data['admin_last_name']);
-                    $invitation = $this->currentSchool->run($school, fn () => $joins->inviteFirstAdministrator($existing, $actor, $typed));
+                    $invitation = $this->currentSchool->run($school, fn () => $joins->inviteFirstAdministrator($existing, $actor, $typed, $data['admin_email']));
                 } else {
                     $admin = User::query()->create([
                         'first_name' => $data['admin_first_name'],

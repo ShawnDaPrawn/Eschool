@@ -39,12 +39,21 @@ password never changes.
   (`StaffImport`), and HQ's school set-up (`PlatformSchools::create`). Each
   first asks `SchoolJoinInvitations::classify(email)`:
   - *new*: no account has the address. The existing path creates one, as before.
-  - *known*: the account already has a membership here (any role or status), or
-    an invitation to join here is waiting. Refused as a duplicate, with the same
-    message as before ("The email has already been taken."). The school already
-    knows this person, or added them a moment ago.
+  - *known*: the account already has a membership here (any role or status), an
+    invitation to join here is waiting, or its owner declined one from this
+    school in the last 180 days (`DECLINE_QUIET_DAYS`: they said no, and a
+    refused re-add looks like the refused re-add of a new person already on the
+    staff). Refused as a duplicate, with the same message as before ("The email
+    has already been taken."). After an expiry or a withdrawal the school may add
+    the address again, which sends a new invitation.
   - *elsewhere*: an account with no link to this school. It is invited; no
     second account is made.
+- **The exact address.** The database matches email addresses without regard
+  to case or accents, so "josé@" finds the account "jose@". Only the address the
+  school typed, ignoring letter case, is the account's: anything else is
+  withheld (never emailed, `address_mismatch`), and for HQ refused. The
+  invitation keeps what the school typed (`encrypted_email`), never the account's
+  own address.
 - **Who may invite.** The same people who may add that kind of staff:
   `teacher-create` for Teacher, `staff-create` for the school's own roles
   (`custom_role`). Never Super Admin, Parent or Student from a school; only HQ
@@ -112,12 +121,57 @@ first-administrator set-up the refusal is shown instead (below).
   (`school_join_invitation_withdrawn`) makes its link open nothing; the role's
   usual permission is needed, and a Super Admin for a first-administrator
   invitation. Answered, withdrawn and expired invitations are not listed.
+- **The staff import** never gives a role to an existing account. Someone
+  already on the staff here is *already here*; a learner's account here is an
+  error ("A learner's account cannot be added as staff."); a deleted, inactive or
+  suspended account here is an error, as before. Every other existing account (a
+  parent here, someone who left, another school's teacher) is invited to join, so
+  its owner decides; one that may not join is withheld, silently.
 - **Set-password links.** Someone who also belongs to another school already
   chose their password there. A school's "Send sign-in invitation" button for
   them answers as usual but sends nothing (`staff_invitation_withheld`), and the
   staff import does not send one either, so no school can reset another school's
   colleague's password or sign them out everywhere. They use "Forgot password"
   if they need to.
+
+### An account shared with another school belongs to its owner
+
+Once an account belongs to more than one school (it accepted an invitation, or
+"Add a guardian" linked it), no one school owns its `users` row. Otherwise
+School B could change the person's email address, use "Forgot password" and
+take over their access at School A, or deactivate or delete the account and
+lock them out of School A.
+
+- **Shared** (`SharedAccounts::shared`): the person has a membership that has
+  not ended at a school other than the current one, or is platform staff.
+- **Edits.** The teacher, staff and parent edit forms and the profile form may
+  not change a shared account's name, email address, date of birth, gender,
+  mobile number, addresses or photo. A changed value is refused with "This
+  person's name, email address and other account details belong to their own
+  NavigateEd account, and only they can change them." The school's own records
+  (qualification, custom fields, its parent row, its roles) still save. Only the
+  person, or HQ, changes the account.
+- **The teacher form** now finds the teacher among this school's teachers by
+  both ids (`teachers.id` and `user_id`) before anything is written. Before
+  this, any user id a school could see (a guardian's, say) had its account
+  rewritten.
+- **Deactivate** (teacher status) ends or restores only this school's Teacher
+  role and membership. The global `users.status` and the person's app sign-ins
+  are untouched. The teacher list shows such a teacher as inactive.
+- **Delete** (teacher, staff) deletes this school's teacher or staff record
+  and ends this school's staff roles. The account, its photo and its sign-ins
+  stay. Deleting a learner whose legacy parent also belongs elsewhere ends that
+  parent's Parent role here instead of deleting their account.
+- **Backstop.** `User` saving and deleting call `SharedAccounts::guard`. Inside a
+  school's request, by anyone but the person, a change to those details or
+  `status`, or a delete, of a shared account is refused (409). Platform code
+  (no school, across schools, impersonation by HQ support), the console and
+  queued work are not limited.
+- **Dual-role learners stay possible.** The review asked for the role listener
+  to refuse a staff role for any learner. Existing features rely on a learner
+  who is also a teacher at the same school (`ConsultationStaffAudienceTest`,
+  `GroupChatDomainTest`), so the listener is unchanged. The paths of this step
+  (join invitations, the staff import) refuse learners themselves.
 
 ### HQ: the first administrator
 
@@ -131,8 +185,9 @@ first-administrator set-up the refusal is shown instead (below).
   staff, inactive). HQ is trusted with this; schools never are.
 - The result page says the address already had an account and shows the link
   once, as for a new administrator (it only works signed in as that account).
-  "Send the invitation again" on the school page replaces it until it is
-  accepted. The onboarding checklist counts it as the administrator step.
+  "Send the invitation again" on the school page replaces it while nobody has
+  answered it (it may have expired). After the person accepts, declines, or the
+  invitation is withdrawn, it is no longer offered. The onboarding checklist counts it as the administrator step.
 - The create form no longer refuses an existing address (`StoreSchoolRequest`).
 
 ## Privacy decisions (account enumeration)
@@ -140,15 +195,17 @@ first-administrator set-up the refusal is shown instead (below).
 | Channel | Decision |
 | --- | --- |
 | The add-staff answer | Identical JSON for a new address, an account elsewhere and a withheld account. Only an address this school already knows is refused, as before. |
-| Adding the same address again | Refused as a duplicate in every case: a new person is on the staff by then, and an invited or withheld one has a waiting invitation. |
+| Adding the same address again | Refused as a duplicate while an invitation waits or for 180 days after a decline, as a new person on the staff would be. **Known leak:** after an invitation expires or is withdrawn, adding the address again invites again, where a new person who was added would still be on the staff. A school can tell from this that the address had an account (never where). |
 | The staff import | An account elsewhere reads exactly like a new person (*will be imported*, same notes, same counts). The "cannot be added" error is kept only for accounts this school already knows. |
 | The school's audit | Every add writes one `staff_added` row at the school with the role and who added, no subject and no account id, whatever happened. The invitation's own rows (sent, withheld with its reason, accepted, declined, withdrawn) are for HQ: `audit_log` has no school-facing view. |
-| Timing | The invitation path computes one password hash, about the cost of creating an account. It is not constant-time; it removes the obvious difference. |
+| Timing | The invitation path computes one password hash, about the cost of creating an account. It is not constant-time; it removes the obvious difference. **Known leak:** a sent invitation also renders and queues its email after the commit, and a withheld one does not, so a withheld address answers a little faster than an invited one. |
 | Emails | The school never sees which email went out. A new person gets the existing welcome email; an existing account gets the invitation; a withheld one gets nothing. |
-| The waiting list | Shows only what the school typed. Withheld rows look like any other waiting invitation, so the list cannot tell a learner or platform staff account from an ordinary one. |
+| The waiting list | Shows only what the school typed. Withheld rows look like any other waiting invitation, so the list cannot tell a learner or platform staff account from an ordinary one. **Known leak:** the list itself holds only addresses that had an account; a new person is never on it. It tells the school no more than the staff list does (below). |
 | The invitation page | A guest is redirected to sign in for every link, valid or not. The school is named only to the signed-in invitee. |
 | The school's other pages | The invited person is not on the staff list until they accept, while a new person is on it at once. A school that watches the staff list can infer that an address it added has an account somewhere, but never where. This is the price of asking the person first. Hiding it would need a placeholder staff record for every invitation (Not in this step). |
 | The other school | Learns nothing: no notice, no audit row in its name, no change to its memberships, roles or records. |
+| Edit forms (email uniqueness) | **Known leak, not changed here.** The edit forms for a school's own people still check the new address against every account (`unique:users,email` in `StaffController`, `TeacherController`, `ParentsController` and `ProfileForms`), and the learner admission form checks new parents' addresses the same way (`StudentController`). Changing someone's address to one that has an account anywhere is refused, which tells the school the address exists. One person has one address platform-wide, so such a change can never simply succeed. The fix is an address change confirmed from the new mailbox, answering the same either way. That is its own step. |
+| Shared accounts' details | A school learns that one of its own people also belongs elsewhere (never where) only when it tries to change their account details and is refused. |
 
 ## Parents and learners at a second school (unchanged)
 
@@ -204,9 +261,22 @@ route) and no API route or `openapi.yaml` change.
 | School B's staff import with a new address and Tara's | check, import, check again | both rows read the same; counts 2 and 2; Tara is invited, not given the role, and gets no set-password link; then both are *already here* | `test_staff_import_invites_an_account_from_another_school_instead_of_giving_it_the_role` |
 | Tara, now at both schools | School B sends her a sign-in invitation | the usual answer; no link, same password; `staff_invitation_withheld` | `test_a_set_password_link_is_never_sent_to_someone_who_belongs_to_another_school` |
 | Tara joins School B as a custom role with one permission | her roles and permissions are read at each school | School A's are exactly as before; School B's are exactly that role's; each school's teacher and staff rows stay its own; School A's permissions open nothing at School B | `test_the_new_membership_opens_nothing_at_the_first_school_and_the_first_opens_nothing_at_the_new_one` |
+| Tara at both schools | School B edits her email, name or date of birth on the teacher form; saves only a new qualification; deactivates and reactivates her; deletes her | refused, nothing changed; the qualification saves; only School B's Teacher role ends and returns; only School B's teacher record and role go. Her account, sign-ins and School A access are unchanged throughout | `test_school_b_cannot_change_lock_out_or_delete_a_teacher_it_shares_with_school_a` |
+| Tara at both schools, staff at School B | School B changes her email or surname on the staff form; saves unchanged; deletes her | refused; saved; only School B's staff record and roles end; account and School A unchanged | `test_school_b_cannot_change_or_delete_a_staff_member_it_shares_with_school_a` |
+| Tara linked to School B only as a guardian | School B uses the teacher form with her user id and one of its own teachers, the parent form, the profile form; deletes the learner she is legacy guardian of | refused, 422; her account unchanged; her Parent role at School B ends, her account and School A access stay | `test_an_account_linked_to_school_b_only_as_a_guardian_is_not_school_bs_to_change_or_delete` |
+| School A's staff import with its own learner, School B's learner and Farid (a parent at School A) | check, import | the learner here is an error; the others read like new people; neither gets a role or a set-password link; both get an invitation, the learner's withheld | `test_the_staff_import_never_gives_a_role_to_a_learner_or_a_known_non_staff_account_without_consent` |
+| Tara declined School B | School B adds her again; after 180 days; after withdrawing that one | refused as a duplicate; invited; invited | `test_adding_someone_again_after_they_declined_reads_as_a_duplicate_but_after_a_withdrawal_invites_again` |
+| An account "jose@", School B types "josé@"; Tara's address in capitals | add as teacher | the usual answer; José's invitation withheld, with the typed address kept; Tara's sent, with her typed capitals kept | `test_only_the_exact_address_is_invited_and_the_school_keeps_what_it_typed` |
+| HQ's first administrator declined | HQ opens the school | no "Send the invitation again"; re-send does nothing | `test_hq_is_not_offered_a_resend_after_the_first_administrator_declines` |
 | HQ sets up a school with Tara's address (any case) | a learner's, a platform staff member's or a parent-only address first; then Tara's; re-send; Tara accepts | refused with nothing created; then the school, no second account, nothing attached until she accepts; the old link 404; she becomes Super Admin there and stays a teacher at School A; re-send no longer offered | `test_hq_sets_up_a_school_whose_first_administrator_already_has_an_account` |
 
+Changed: `People/SchoolImportsTest` (Farid, a parent at the school, is now invited rather than given the Teacher role, and gets no set-password link).
+
 ## Not in this step
+
+- **Email changes confirmed by the new mailbox**, which would close the
+  uniqueness leak in the edit forms (privacy table) and let a person change
+  their own address with proof.
 
 - **The apps.** Accepting is in the browser only. A v2 endpoint to list and
   answer one's invitations (and a push when one arrives) would need an API

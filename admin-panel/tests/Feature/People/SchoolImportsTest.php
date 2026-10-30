@@ -13,6 +13,7 @@ use App\Models\People\Enrolment;
 use App\Models\Platform\GuardianInvitation;
 use App\Models\Platform\GuardianLink;
 use App\Models\Platform\Role;
+use App\Models\Platform\SchoolJoinInvitation;
 use App\Models\Platform\StaffInvitation;
 use App\Models\Students;
 use App\Models\User;
@@ -212,10 +213,12 @@ class SchoolImportsTest extends TestCase
         $pieter = User::query()->where('email', 'pieter@example.com')->firstOrFail();
         $this->assertTrue($pieter->hasRole('Bursar'));
         $this->assertTrue(DB::table('staffs')->where('user_id', $pieter->id)->exists());
-        // Farid's existing account gets the role here; it is not duplicated.
+        // Farid's existing account (a parent here) is invited to join, never given the role
+        // without his consent (Action Plan 1.3); it is not duplicated and gets no set-password link.
         $this->assertSame(1, User::acrossSchools()->where('email', 'farid@example.com')->count());
-        $this->assertTrue(User::query()->findOrFail($this->schoolA->ids['farid_user'])->hasRole('Teacher'));
-        $this->assertSame(3, StaffInvitation::query()->whereIn('user_id', [$nomvula->id, $pieter->id, $this->schoolA->ids['farid_user']])->count());
+        $this->assertFalse(User::query()->findOrFail($this->schoolA->ids['farid_user'])->hasRole('Teacher'));
+        $this->assertTrue(SchoolJoinInvitation::query()->where('user_id', $this->schoolA->ids['farid_user'])->exists());
+        $this->assertSame(2, StaffInvitation::query()->whereIn('user_id', [$nomvula->id, $pieter->id, $this->schoolA->ids['farid_user']])->count());
 
         $again = $imports->check($this->superAdmin(), 'staff', $csv, null, []);
         $this->assertSame(['exists', 'exists', 'exists', 'exists'], array_column($again['rows'], 'status'));

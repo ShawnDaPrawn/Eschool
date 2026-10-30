@@ -17,6 +17,7 @@ use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
+use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Exception;
@@ -113,7 +114,7 @@ class TeacherController extends Controller
             if ($kind === SchoolJoinInvitations::ELSEWHERE && $account !== null) {
                 // An existing account is invited, never given a second login (Action Plan 1.3).
                 $joins->inviteFromSchool(Auth::user(), $account, Role::query()->where('name', 'Teacher')->firstOrFail(),
-                    ['name' => trim($request->first_name.' '.$request->last_name), 'qualification' => (string) $request->qualification]);
+                    ['name' => trim($request->first_name.' '.$request->last_name), 'email' => (string) $request->email, 'qualification' => (string) $request->qualification]);
 
                 return response()->json(['error' => false, 'message' => trans('data_store_successfully')]);
             }
@@ -477,6 +478,7 @@ class TeacherController extends Controller
         $teachersWithSubjectTeachers = SubjectTeacher::whereIn('teacher_id', $teacherIds)->pluck('teacher_id')->unique()->toArray();
         $teachersWithClassTeachers = ClassTeacher::whereIn('class_teacher_id', $teacherIds)->pluck('class_teacher_id')->unique()->toArray();
 
+        $shared = app(SharedAccounts::class);
         foreach ($res as $row) {
             $relatedData = [];
             if (in_array($row->id, $teachersWithSubjectTeachers)) {
@@ -493,7 +495,9 @@ class TeacherController extends Controller
             data-id='.$row->id.' data-user_id='.$row->user_id.'
             data-url='.url('teachers', $row->user_id).'
             title="Delete"><i class="fa fa-trash"></i></a>';
-            $isActive = (int) ($row->user?->status ?? 1) === 1;
+            $isActive = (int) ($row->user?->status ?? 1) === 1
+                // An account shared with another school is active here while its Teacher role here is.
+                && (! $shared->shared((int) $row->user_id) || $shared->activeHere((int) $row->user_id, 'Teacher'));
             $operate .= '&nbsp;&nbsp;<a class="btn btn-xs btn-rounded btn-icon teacher-status '.($isActive ? 'btn-inverse-danger' : 'btn-inverse-success').'"
             data-url='.url('teachers/'.$row->user_id.'/status').' data-status='.($isActive ? 0 : 1).'
             data-confirm-text="'.e(trans($isActive ? 'teacher_deactivate_confirm' : 'teacher_activate_confirm')).'"
@@ -555,6 +559,13 @@ class TeacherController extends Controller
 
         try {
             $user = $teacher->user;
+            $shared = app(SharedAccounts::class);
+            if ($shared->shared((int) $user->id)) {
+                // The account also belongs elsewhere: only this school's role is switched (Action Plan 1.3).
+                (int) $request->input('status') === 1 ? $user->unsetRelation('roles')->assignRole('Teacher') : $shared->endStaffRolesHere($user, ['Teacher']);
+
+                return response()->json(['error' => false, 'message' => trans('data_update_successfully')]);
+            }
             $user->status = (int) $request->input('status');
             $user->save();
             if ($user->status !== 1) {
@@ -618,36 +629,48 @@ class TeacherController extends Controller
 
             return response()->json($response);
         }
+        // Only a teacher of this school, and only that teacher's own account, before anything is written.
+        $teacher = Teacher::query()->whereKey((int) $request->id)->where('user_id', (int) $request->user_id)->first();
+        $user = $teacher === null ? null : User::query()->find($teacher->user_id);
+        if ($teacher === null || $user === null) {
+            return response()->json(['error' => true, 'message' => trans('no_permission_message')]);
+        }
+        $shared = app(SharedAccounts::class);
+        $account = ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'gender' => $request->gender, 'current_address' => $request->current_address,
+            'permanent_address' => $request->permanent_address, 'email' => $request->email, 'mobile' => $request->mobile, 'dob' => $request->dob];
+        if ($shared->changes($user, $account) !== [] || ($request->hasFile('image') && $shared->locked($user))) {
+            // An account that also belongs elsewhere is its owner's to change (Action Plan 1.3).
+            return response()->json(['error' => true, 'message' => $shared->message()]);
+        }
         try {
-            $user = User::find($request->user_id);
-            if ($request->hasFile('image')) {
-                if (Storage::disk('public')->exists($user->getRawOriginal('image'))) {
-                    Storage::disk('public')->delete($user->getRawOriginal('image'));
+            if (! $shared->locked($user)) {
+                if ($request->hasFile('image')) {
+                    if (Storage::disk('public')->exists($user->getRawOriginal('image'))) {
+                        Storage::disk('public')->delete($user->getRawOriginal('image'));
+                    }
+                    $image = $request->file('image');
+                    // made file name with combination of current time
+                    $file_name = time().'-'.FileNames::forUpload($image);
+                    // made file path to store in database
+                    $file_path = 'teachers/'.$file_name;
+                    // resized image
+                    resizeImage($image);
+                    // stored image to storage/public/teachers folder
+                    $destinationPath = storage_path('app/public/teachers');
+                    $image->move($destinationPath, $file_name);
+
+                    $user->image = $file_path;
                 }
-                $image = $request->file('image');
-                // made file name with combination of current time
-                $file_name = time().'-'.FileNames::forUpload($image);
-                // made file path to store in database
-                $file_path = 'teachers/'.$file_name;
-                // resized image
-                resizeImage($image);
-                // stored image to storage/public/teachers folder
-                $destinationPath = storage_path('app/public/teachers');
-                $image->move($destinationPath, $file_name);
-
-                $user->image = $file_path;
+                $user->first_name = $request->first_name;
+                $user->last_name = $request->last_name;
+                $user->gender = $request->gender;
+                $user->current_address = $request->current_address;
+                $user->permanent_address = $request->permanent_address;
+                $user->email = $request->email;
+                $user->mobile = $request->mobile;
+                $user->dob = date('Y-m-d', strtotime($request->dob));
+                $user->save();
             }
-            $user->first_name = $request->first_name;
-            $user->last_name = $request->last_name;
-            $user->gender = $request->gender;
-            $user->current_address = $request->current_address;
-            $user->permanent_address = $request->permanent_address;
-            $user->email = $request->email;
-            $user->mobile = $request->mobile;
-            $user->dob = date('Y-m-d', strtotime($request->dob));
-            $user->save();
-
-            $teacher = Teacher::find($request->id);
 
             // Teacher dynamic fields
             $formFields = FormField::where('for', 3)->orderBy('rank', 'ASC')->get();
@@ -760,6 +783,17 @@ class TeacherController extends Controller
                     ->firstOrFail();
 
                 $user = $teacher->user;
+
+                if (app(SharedAccounts::class)->shared((int) $user->id)) {
+                    // The account also belongs elsewhere: this school's teacher record and role end, the account stays (Action Plan 1.3).
+                    if ($user->hasPermissionTo('class-teacher')) {
+                        $user->revokePermissionTo('class-teacher');
+                    }
+                    $teacher->delete();
+                    app(SharedAccounts::class)->endStaffRolesHere($user, ['Teacher']);
+
+                    return;
+                }
 
                 /**
                  * Remove class-teacher permission

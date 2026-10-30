@@ -925,11 +925,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('students/download-sample', [Student\BulkImportController::class, 'downloadSampleFile'])->name('students.download-sample');
         Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('students.store-bulk-data');
         Route::resource('students', Student\StudentController::class)->except(['edit']);
-        // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
-        // The office's LURITS numbers (Action Plan 1.0e).
         // Invitations for people who already have an account to join this school (Action Plan 1.3).
         Route::get('join-invitations', [JoinInvitationOfficeController::class, 'index'])->name('join-invitations.index');
         Route::post('join-invitations/{invitation}/withdraw', [JoinInvitationOfficeController::class, 'withdraw'])->whereNumber('invitation')->middleware('throttle:30,1')->name('join-invitations.withdraw');
+        // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
+        // The office's LURITS numbers (Action Plan 1.0e).
         Route::get('learners/lurits', [LuritsOfficeController::class, 'index'])->name('lurits-office.index');
         Route::post('learners/lurits', [LuritsOfficeController::class, 'store'])->middleware('throttle:60,1')->name('lurits-office.store');
         // School onboarding imports (Action Plan 0.11): homerooms, learners and guardians from CSV.

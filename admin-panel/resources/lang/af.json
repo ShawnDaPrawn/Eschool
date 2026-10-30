@@ -5870,7 +5870,6 @@
     "Be the first administrator of :school": "Word die eerste administrateur van :school",
     "Join :school": "Sluit aan by :school",
     ":school has invited you to join it on NavigateEd as :role.": ":school het jou genooi om op NavigateEd by hulle aan te sluit as :role.",
-    "If you accept, :school can see your name, email address and the other details on your NavigateEd profile, and you can work there with this role. Your password and your other schools stay as they are, and each school sees only its own records.": "As jy aanvaar, kan :school jou naam, e-posadres en die ander besonderhede op jou NavigateEd-profiel sien, en kan jy daar met hierdie rol werk. Jou wagwoord en jou ander skole bly soos hulle is, en elke skool sien net sy eie rekords.",
     "Accept and join": "Aanvaar en sluit aan",
     "Decline": "Wys van die hand",
     "This invitation expires on :date.": "Hierdie uitnodiging verval op :date.",
@@ -5879,7 +5878,10 @@
     "You declined the invitation. Nothing has changed on your account.": "Jy het die uitnodiging van die hand gewys. Niks het op jou rekening verander nie.",
     "An invitation to join :school on NavigateEd": "'n Uitnodiging om by :school op NavigateEd aan te sluit",
     ":school is ready on NavigateEd, and you are invited to be its first administrator.": ":school is gereed op NavigateEd, en jy word genooi om die eerste administrateur te wees.",
-    "You already have a NavigateEd account with this email address, so you do not need a new one. Sign in with your usual password to accept or decline. Your password and your other schools stay as they are.": "Jy het reeds 'n NavigateEd-rekening met hierdie e-posadres, so jy het nie 'n nuwe een nodig nie. Teken in met jou gewone wagwoord om te aanvaar of van die hand te wys. Jou wagwoord en jou ander skole bly soos hulle is.",
     "See the invitation": "Sien die uitnodiging",
-    "This private link expires after seven days. If you did not expect this email, ignore it.": "Hierdie privaat skakel verval na sewe dae. As jy nie hierdie e-pos verwag het nie, ignoreer dit."
+    "This private link expires after seven days. If you did not expect this email, ignore it.": "Hierdie privaat skakel verval na sewe dae. As jy nie hierdie e-pos verwag het nie, ignoreer dit.",
+    "If you accept, :school can see your name, email address and the other details on your NavigateEd account, and you can work there with this role. Accepting does not change your password. :school cannot change your account details or your place at your other schools; it can only end your role at :school.": "As jy aanvaar, kan :school jou naam, e-posadres en die ander besonderhede op jou NavigateEd-rekening sien, en kan jy daar met hierdie rol werk. Om te aanvaar verander nie jou wagwoord nie. :school kan nie jou rekeningbesonderhede of jou plek by jou ander skole verander nie; dit kan net jou rol by :school beëindig.",
+    "You already have a NavigateEd account with this email address, so you do not need a new one. Sign in with your usual password to accept or decline. Accepting does not change your password, and :school cannot change your account details or your place at your other schools.": "Jy het reeds 'n NavigateEd-rekening met hierdie e-posadres, so jy het nie 'n nuwe een nodig nie. Teken in met jou gewone wagwoord om te aanvaar of van die hand te wys. Om te aanvaar verander nie jou wagwoord nie, en :school kan nie jou rekeningbesonderhede of jou plek by jou ander skole verander nie.",
+    "This person's name, email address and other account details belong to their own NavigateEd account, and only they can change them. Save without changing these details.": "Hierdie persoon se naam, e-posadres en ander rekeningbesonderhede behoort aan hul eie NavigateEd-rekening, en net hulle kan dit verander. Stoor sonder om hierdie besonderhede te verander.",
+    "A learner's account cannot be added as staff.": "'n Leerder se rekening kan nie as personeel bygevoeg word nie."
 }

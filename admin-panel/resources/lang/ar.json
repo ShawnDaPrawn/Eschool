@@ -4797,7 +4797,6 @@
     "Be the first administrator of :school": "Be the first administrator of :school",
     "Join :school": "Join :school",
     ":school has invited you to join it on NavigateEd as :role.": ":school has invited you to join it on NavigateEd as :role.",
-    "If you accept, :school can see your name, email address and the other details on your NavigateEd profile, and you can work there with this role. Your password and your other schools stay as they are, and each school sees only its own records.": "If you accept, :school can see your name, email address and the other details on your NavigateEd profile, and you can work there with this role. Your password and your other schools stay as they are, and each school sees only its own records.",
     "Accept and join": "Accept and join",
     "Decline": "Decline",
     "This invitation expires on :date.": "This invitation expires on :date.",
@@ -4806,7 +4805,10 @@
     "You declined the invitation. Nothing has changed on your account.": "You declined the invitation. Nothing has changed on your account.",
     "An invitation to join :school on NavigateEd": "An invitation to join :school on NavigateEd",
     ":school is ready on NavigateEd, and you are invited to be its first administrator.": ":school is ready on NavigateEd, and you are invited to be its first administrator.",
-    "You already have a NavigateEd account with this email address, so you do not need a new one. Sign in with your usual password to accept or decline. Your password and your other schools stay as they are.": "You already have a NavigateEd account with this email address, so you do not need a new one. Sign in with your usual password to accept or decline. Your password and your other schools stay as they are.",
     "See the invitation": "See the invitation",
-    "This private link expires after seven days. If you did not expect this email, ignore it.": "This private link expires after seven days. If you did not expect this email, ignore it."
+    "This private link expires after seven days. If you did not expect this email, ignore it.": "This private link expires after seven days. If you did not expect this email, ignore it.",
+    "If you accept, :school can see your name, email address and the other details on your NavigateEd account, and you can work there with this role. Accepting does not change your password. :school cannot change your account details or your place at your other schools; it can only end your role at :school.": "If you accept, :school can see your name, email address and the other details on your NavigateEd account, and you can work there with this role. Accepting does not change your password. :school cannot change your account details or your place at your other schools; it can only end your role at :school.",
+    "You already have a NavigateEd account with this email address, so you do not need a new one. Sign in with your usual password to accept or decline. Accepting does not change your password, and :school cannot change your account details or your place at your other schools.": "You already have a NavigateEd account with this email address, so you do not need a new one. Sign in with your usual password to accept or decline. Accepting does not change your password, and :school cannot change your account details or your place at your other schools.",
+    "This person's name, email address and other account details belong to their own NavigateEd account, and only they can change them. Save without changing these details.": "This person's name, email address and other account details belong to their own NavigateEd account, and only they can change them. Save without changing these details.",
+    "A learner's account cannot be added as staff.": "A learner's account cannot be added as staff."
 }

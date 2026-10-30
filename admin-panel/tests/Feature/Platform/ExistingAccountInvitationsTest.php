@@ -20,6 +20,7 @@ use App\Models\User;
 use App\Services\People\SchoolImports;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
+use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -107,6 +108,38 @@ class ExistingAccountInvitationsTest extends TestCase
     private function pathOf(SchoolJoinInvitation $invitation): string
     {
         return (string) parse_url(app(SchoolJoinInvitations::class)->url((string) $invitation->encrypted_token), PHP_URL_PATH);
+    }
+
+    /** Tara invited to School B with $role and accepted. */
+    private function joinB(User $tara, ?Role $role = null): void
+    {
+        if ($role === null) {
+            $this->addTeacherAtB($tara->email);
+        } else {
+            $form = ['role_id' => $role->id, 'first_name' => 'Typed', 'last_name' => 'Name', 'email' => $tara->email, 'gender' => 'Female', 'mobile' => '0821234567', 'dob' => '1990-04-12'];
+            $this->actingAs($this->adminB(), 'web')->post(route('staff.store'), $form)->assertOk()->assertJsonPath('error', false);
+            auth()->forgetGuards();
+        }
+        $path = $this->emailedPath($tara);
+        $this->actingAs($tara, 'web')->post($path.'/accept')->assertRedirect(route('home'));
+        auth()->forgetGuards();
+        app(MembershipService::class)->forget($tara);
+    }
+
+    /** @return array<string, mixed> the users row as School A relies on it */
+    private function accountOf(User $person): array
+    {
+        return (array) DB::table('users')->where('id', $person->id)->first(['email', 'first_name', 'last_name', 'dob', 'gender', 'mobile', 'status', 'password', 'deleted_at', 'image']);
+    }
+
+    /** Still a teacher at School A, signed in everywhere as before. */
+    private function assertStillAtSchoolA(User $person, array $account, int $tokens): void
+    {
+        $this->assertSame($account, $this->accountOf($person), 'the account is unchanged');
+        $this->assertSame($tokens, DB::table('personal_access_tokens')->where('tokenable_id', $person->id)->count(), 'no sign-in ended');
+        app(MembershipService::class)->forget($person);
+        $this->assertTrue(app(MembershipService::class)->isActiveMember(User::acrossSchools()->findOrFail($person->id), 1), 'School A access kept');
+        $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => User::acrossSchools()->findOrFail($person->id)->hasRole('Teacher')));
     }
 
     /** Nothing about the person changed at School B, and their password is the same. */
@@ -435,6 +468,175 @@ class ExistingAccountInvitationsTest extends TestCase
         $this->assertSame($hash, DB::table('users')->where('id', $tara->id)->value('password'));
         $this->assertTrue(app(CurrentSchool::class)->run((int) $school->id, fn () => $tara->fresh()->hasRole('Super Admin')));
         $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => $tara->fresh()->hasRole('Teacher')), 'still a teacher at her first school');
+        auth()->forgetGuards();
+
+        $this->actingAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
+    }
+
+    // ---- a shared account belongs to its owner, not to one school (review HIGH-1) ----
+
+    public function test_school_b_cannot_change_lock_out_or_delete_a_teacher_it_shares_with_school_a(): void
+    {
+        $tara = $this->tara();
+        DB::table('users')->where('id', $tara->id)->update(['permanent_address' => '2 School Lane']);
+        $tara = $tara->fresh();
+        $this->joinB($tara);
+        $account = $this->accountOf($tara);
+        $tokens = $tara->tokens()->count();
+        $teacherB = (int) Teacher::acrossSchools()->where('school_id', self::B)->where('user_id', $tara->id)->value('id');
+        $form = fn (array $changes = []) => array_merge($this->teacherForm($tara->email, ['first_name' => $tara->first_name, 'last_name' => $tara->last_name, 'gender' => $tara->gender,
+            'mobile' => $tara->mobile, 'dob' => '1990-04-12', 'current_address' => $tara->current_address, 'permanent_address' => '2 School Lane']), ['id' => $teacherB, 'user_id' => $tara->id], $changes);
+        $this->actingAs($this->adminB(), 'web');
+
+        // Changing the account's email (then "forgot password") or name is refused.
+        foreach ([['email' => 'takeover@baobab.example'], ['first_name' => 'Someone'], ['dob' => '1970-01-01']] as $change) {
+            $this->put('/teachers/'.$teacherB, $form($change))->assertOk()->assertJsonPath('error', true);
+            $this->assertStillAtSchoolA($tara, $account, $tokens);
+        }
+        // School B's own record still changes.
+        $this->put('/teachers/'.$teacherB, $form(['qualification' => 'MEd']))->assertOk()->assertJsonPath('error', false);
+        $this->assertSame('MEd', Teacher::acrossSchools()->whereKey($teacherB)->value('qualification'));
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+
+        // Deactivating ends School B's role only; reactivating restores it.
+        $this->post('/teachers/'.$tara->id.'/status', ['status' => 0])->assertOk()->assertJsonPath('error', false);
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+        $this->assertFalse(app(CurrentSchool::class)->run(self::B, fn () => app(SharedAccounts::class)->activeHere($tara->id, 'Teacher')));
+        $this->post('/teachers/'.$tara->id.'/status', ['status' => 1])->assertOk()->assertJsonPath('error', false);
+        $this->assertTrue(app(CurrentSchool::class)->run(self::B, fn () => app(SharedAccounts::class)->activeHere($tara->id, 'Teacher')));
+
+        // Deleting removes her from School B only.
+        $this->delete('/teachers/'.$tara->id)->assertOk()->assertJsonPath('error', false);
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+        $this->assertFalse(Teacher::acrossSchools()->whereKey($teacherB)->exists());
+        $this->assertFalse(SchoolMembership::query()->where(['school_id' => self::B, 'user_id' => $tara->id, 'status' => 'active'])->exists());
+    }
+
+    public function test_school_b_cannot_change_or_delete_a_staff_member_it_shares_with_school_a(): void
+    {
+        $tara = $this->tara();
+        $bursar = app(CurrentSchool::class)->run(self::B, fn () => Role::query()->create(['name' => 'Baobab Bursar', 'guard_name' => 'web', 'custom_role' => 1]));
+        $this->joinB($tara, $bursar);
+        $account = $this->accountOf($tara);
+        $tokens = $tara->tokens()->count();
+        $form = fn (array $changes = []) => array_merge(['role_id' => $bursar->id, 'user_id' => $tara->id, 'first_name' => $tara->first_name, 'last_name' => $tara->last_name,
+            'email' => $tara->email, 'gender' => $tara->gender, 'mobile' => $tara->mobile, 'dob' => '1990-04-12', 'address' => $tara->current_address], $changes);
+        $this->actingAs($this->adminB(), 'web');
+
+        $this->put('/staff/'.$tara->id, $form(['email' => 'takeover@baobab.example']))->assertJsonPath('error', true);
+        $this->put('/staff/'.$tara->id, $form(['last_name' => 'Other']))->assertJsonPath('error', true);
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+        $this->put('/staff/'.$tara->id, $form())->assertJsonPath('error', false);
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+
+        $this->delete('/staff/'.$tara->id)->assertJsonPath('error', false);
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+        $this->assertFalse(SchoolMembership::query()->where(['school_id' => self::B, 'user_id' => $tara->id, 'status' => 'active'])->exists(), 'only School B\'s role ends');
+        $this->assertFalse(Staff::acrossSchools()->where('school_id', self::B)->where('user_id', $tara->id)->exists());
+    }
+
+    public function test_an_account_linked_to_school_b_only_as_a_guardian_is_not_school_bs_to_change_or_delete(): void
+    {
+        $tara = $this->tara();
+        $account = $this->accountOf($tara);
+        $tokens = $tara->tokens()->count();
+        $this->actingAs($this->adminB(), 'web');
+        $this->post(route('learner-guardians.store', $this->schoolB->ids['ben']), ['email' => $tara->email, 'first_name' => 'Tara', 'last_name' => 'Aunt',
+            'relationship' => 'aunt_or_uncle', 'can_approve' => 1, 'can_see_fees' => 0])->assertRedirect();
+        $parentRow = (int) DB::table('parents')->where('school_id', self::B)->where('user_id', $tara->id)->value('id');
+        $this->assertGreaterThan(0, $parentRow);
+
+        // The teacher form with her user id and one of School B's own teachers.
+        $this->put('/teachers/'.$this->schoolB->ids['tara_teacher'], $this->teacherForm('takeover@baobab.example') + ['id' => $this->schoolB->ids['tara_teacher'], 'user_id' => $tara->id])
+            ->assertJsonPath('error', true);
+        $this->assertSame($account, $this->accountOf($tara));
+        // The parent form and the profile form.
+        $this->put('/parents/'.$parentRow, ['edit_id' => $parentRow, 'first_name' => 'Tara', 'last_name' => 'Aunt', 'gender' => 'female', 'email' => 'takeover@baobab.co.za', 'mobile' => '0123456789', 'dob' => '1990-04-12'])
+            ->assertJsonPath('error', true);
+        $this->assertSame($account, $this->accountOf($tara));
+        $this->put('/people-profiles/'.$tara->id, ['profile_type' => 'parent', 'values' => ['email' => ['text' => 'takeover@baobab.example']]])->assertStatus(422);
+        $this->assertSame($account, $this->accountOf($tara));
+
+        // Deleting the only learner she is the legacy guardian of ends her Parent role at School B, never her account.
+        DB::table('students')->where('id', $this->schoolB->ids['ben'])->update(['guardian_id' => $parentRow]);
+        $this->delete('/students/'.$this->schoolB->ids['ben_user'])->assertOk()->assertJsonPath('error', false);
+        $this->assertStillAtSchoolA($tara, $account, $tokens);
+        $this->assertFalse(SchoolMembership::query()->where(['school_id' => self::B, 'user_id' => $tara->id, 'role' => 'Parent', 'status' => 'active'])->exists());
+    }
+
+    // ---- staff import consent (review MEDIUM-1) ----
+
+    public function test_the_staff_import_never_gives_a_role_to_a_learner_or_a_known_non_staff_account_without_consent(): void
+    {
+        $asha = User::acrossSchools()->findOrFail($this->schoolA->ids['asha_user']);
+        DB::table('users')->where('id', $asha->id)->update(['email' => 'asha.learner@example.com']);
+        $benB = User::acrossSchools()->findOrFail($this->schoolB->ids['ben_user']);
+        DB::table('users')->where('id', $benB->id)->update(['email' => 'ben.learner@baobab.example']);
+        $farid = User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user']);
+        $csv = "First Name,Surname,Email,Role\nAsha,Learner,asha.learner@example.com,Teacher\nBen,Elsewhere,ben.learner@baobab.example,Teacher\nFarid,Parent,{$farid->email},Teacher\n";
+        $imports = app(SchoolImports::class);
+        $check = $imports->check($this->superAdmin(), 'staff', $csv, null, ['invite' => true]);
+        $this->assertSame(['error', 'create', 'create'], array_column($check['rows'], 'status'), 'a learner here is refused; others read like new people');
+
+        $good = "First Name,Surname,Email,Role\nBen,Elsewhere,ben.learner@baobab.example,Teacher\nFarid,Parent,{$farid->email},Teacher\n";
+        $check = $imports->check($this->superAdmin(), 'staff', $good, null, ['invite' => true]);
+        $imports->commit($this->superAdmin(), 'staff', $good, $check['mapping'], $check['options'], $check['fingerprint']);
+        foreach ([$benB, $farid] as $person) {
+            $this->assertFalse(SchoolMembership::query()->where(['school_id' => 1, 'user_id' => $person->id, 'role' => 'Teacher'])->exists(), 'no role without consent');
+            $this->assertSame(0, StaffInvitation::acrossSchools()->where('user_id', $person->id)->count(), 'no set-password link');
+            $this->assertTrue(SchoolJoinInvitation::acrossSchools()->where('school_id', 1)->where('user_id', $person->id)->exists(), 'an invitation instead');
+        }
+        $this->assertNotNull(SchoolJoinInvitation::acrossSchools()->where('school_id', 1)->where('user_id', $benB->id)->value('withheld_at'), 'a learner is never asked');
+    }
+
+    // ---- enumeration and lookups (review MEDIUM-2, LOW) ----
+
+    public function test_adding_someone_again_after_they_declined_reads_as_a_duplicate_but_after_a_withdrawal_invites_again(): void
+    {
+        $tara = $this->tara();
+        $this->addTeacherAtB($tara->email);
+        $path = $this->emailedPath($tara);
+        $this->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
+        auth()->forgetGuards();
+        $this->assertTrue($this->addTeacherAtB($tara->email)['error'], 'declined: refused as a duplicate');
+
+        SchoolJoinInvitation::acrossSchools()->where('user_id', $tara->id)->update(['declined_at' => now()->subDays(200)]);
+        $this->assertFalse($this->addTeacherAtB($tara->email)['error'], 'long ago: invited again');
+        $waiting = $this->invitationAtB($tara);
+        $this->actingAs($this->adminB(), 'web')->post(route('join-invitations.withdraw', $waiting->id))->assertRedirect();
+        auth()->forgetGuards();
+        $this->assertFalse($this->addTeacherAtB($tara->email)['error'], 'withdrawn by the school: invited again');
+    }
+
+    public function test_only_the_exact_address_is_invited_and_the_school_keeps_what_it_typed(): void
+    {
+        $jose = User::query()->create(['first_name' => 'Jose', 'last_name' => 'Demo', 'email' => 'jose@example.com', 'mobile' => '', 'password' => Hash::make(self::PASSWORD), 'status' => 1]);
+        app(CurrentSchool::class)->run(1, fn () => $jose->assignRole('Teacher'));
+        $answer = $this->addTeacherAtB('josé@example.com');
+        $this->assertFalse($answer['error']);
+        $invitation = $this->invitationAtB($jose);
+        $this->assertNotNull($invitation->withheld_at, 'an address that only looks the same is never emailed');
+        $this->assertSame('josé@example.com', $invitation->encrypted_email, 'the school sees what it typed');
+
+        $tara = $this->tara();
+        $this->addTeacherAtB(strtoupper($tara->email));
+        $this->assertNull($this->invitationAtB($tara)->withheld_at, 'letter case does not matter');
+        $this->assertSame(strtoupper($tara->email), $this->invitationAtB($tara)->encrypted_email);
+    }
+
+    public function test_hq_is_not_offered_a_resend_after_the_first_administrator_declines(): void
+    {
+        $tara = $this->tara();
+        $operator = User::query()->create(['first_name' => 'Hq', 'last_name' => 'Staff', 'email' => 'operator@navigate.example', 'mobile' => '', 'password' => Hash::make(self::PASSWORD), 'status' => 1]);
+        PlatformStaffIdentity::query()->create(['user_id' => $operator->id, 'active' => true]);
+        PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
+        app(CurrentSchool::class)->forget();
+        $form = ['name' => 'Marula Primary', 'slug' => '', 'timezone' => 'Africa/Johannesburg', 'package_key' => 'core', 'admin_first_name' => 'Tara', 'admin_last_name' => 'Moving', 'admin_email' => $tara->email, 'admin_mobile' => ''];
+        $path = (string) parse_url($this->actingAs($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
+        $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
+        auth()->forgetGuards();
+        $this->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
         auth()->forgetGuards();
 
         $this->actingAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
