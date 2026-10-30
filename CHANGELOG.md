@@ -28,6 +28,10 @@ Earlier history is kept where it was written and is not repeated here:
   fees, from "Manage guardians" on the learner's profile. A learner always keeps
   at least one approving guardian, and removing a guardian ends their access at
   once. **Deploy:** run the additive `guardian_links` migration.
+- Developers: school permissions are now described as modules with access levels
+  (view, contribute, manage) and named special abilities, in
+  `config/module_access.php`, as the foundation for a simpler role editor. No
+  permission changes for anyone.
 
 - Finance can record verified cash/EFT fee receipts, review allocation to explicit
   holder shares, and retain overpayments as credit. Parents have private fee
