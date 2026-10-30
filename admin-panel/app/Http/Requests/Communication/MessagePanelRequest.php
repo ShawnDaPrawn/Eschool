@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Communication;
 
+use App\Models\Communication\Audience;
 use App\Policies\Communication\MessagePolicy;
 use App\Services\Communication\CommunicationAudiences;
 use App\Services\Communication\MessageDraftRestoration;
@@ -24,7 +25,15 @@ class MessagePanelRequest extends MessageRequest
             abort_unless(is_string($value) && preg_match('/^(school|grade|homeroom|group|activity_group|custom):(0|[1-9][0-9]{0,14})$/D', $value, $matches), 422);
             $this->merge(['audience' => ['kind' => $matches[1], 'target_id' => $matches[1] === 'school' ? null : (int) $matches[2], 'session_year_id' => $this->input('session_year_id'), 'parents' => $this->input('parents', '0')]]);
         }
-        if (in_array($this->action(), ['audience-create', 'audience-save'], true)) {
+        if (in_array($this->action(), ['audience-create', 'audience-save'], true) && $this->audienceKind() === Audience::SMART) {
+            // The smart group form sends its rules as "kind:id" choices.
+            $rules = [];
+            foreach ((array) $this->input('rule_selectors', []) as $value) {
+                abort_unless(is_string($value) && preg_match('/^(grade|homeroom|group|activity_group):([1-9][0-9]{0,14})$/D', $value, $matches), 422);
+                $rules[] = ['kind' => $matches[1], 'target_id' => (int) $matches[2]];
+            }
+            $this->merge(['rules' => $rules]);
+        } elseif (in_array($this->action(), ['audience-create', 'audience-save'], true)) {
             $this->merge(['user_ids' => $this->input('user_ids', [])]);
         }
     }
@@ -52,6 +61,6 @@ class MessagePanelRequest extends MessageRequest
 
     public function rules(): array
     {
-        return parent::rules() + ['message_id' => ['sometimes', 'integer', 'min:1'], 'audience_id' => ['sometimes', 'integer', 'min:1'], 'contact_page' => ['sometimes', 'integer', 'between:1,10000'], 'preview_message' => ['sometimes', 'boolean']];
+        return parent::rules() + ['message_id' => ['sometimes', 'integer', 'min:1'], 'audience_id' => ['sometimes', 'integer', 'min:1'], 'contact_page' => ['sometimes', 'integer', 'between:1,10000'], 'preview_message' => ['sometimes', 'boolean'], 'rule_selectors' => ['sometimes', 'array', 'max:'.Audience::MAX_RULES]];
     }
 }
