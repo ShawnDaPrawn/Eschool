@@ -220,8 +220,11 @@ class SaasPanelTest extends TestCase
             $this->assertContains(str_starts_with($route->getName() ?? '', 'saas.password') ? 'platform.staff:password' : 'platform.staff', $middleware, $route->uri());
             $this->assertContains('auth', $middleware, $route->uri());
             $this->assertNotContains('school.context', $middleware, $route->uri());
+            if (! str_starts_with($route->getName() ?? '', 'saas.password')) {
+                $this->assertNotEmpty(array_filter($middleware, fn ($name) => is_string($name) && str_starts_with($name, 'platform.can:')), $route->uri().' names the ability its role must hold');
+            }
         }
-        $this->assertSame(20, $count);
+        $this->assertSame(25, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void

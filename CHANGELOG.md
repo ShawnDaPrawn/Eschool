@@ -37,6 +37,11 @@ Earlier history is kept where it was written and is not repeated here:
   lessons out unless the school keeps them. Each exam sitting can have a venue,
   and learners and guardians are told when an upcoming sitting's date, time or
   venue changes, or it is removed. **Deploy:** run the migrations.
+- Platform: platform staff roles (Owner, Operations, Support, Finance, Content,
+  Sales read-only). Every HQ page and action checks the role. Owners invite
+  staff by email from `/saas/staff`; the invited person chooses their own
+  password. Access is time-limited and every change is audited with its reason.
+  Existing grants became Owner. **Deploy:** run the migrations.
 
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in

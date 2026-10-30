@@ -19,6 +19,7 @@ use App\Http\Middleware\EnsureDefaultSchool;
 use App\Http\Middleware\EnsureLearnerApproved;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
+use App\Http\Middleware\EnsurePlatformAbility;
 use App\Http\Middleware\EnsurePlatformStaff;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
 use App\Http\Middleware\EnsureTeacherActive;
@@ -167,6 +168,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'school.default' => EnsureDefaultSchool::class,
             // The platform admin area (/saas): active platform staff identities only.
             'platform.staff' => EnsurePlatformStaff::class,
+            // ...and the staff member's role must hold the named ability (SA.1).
+            'platform.can' => EnsurePlatformAbility::class,
             'Role' => CheckRole::class,
             'checkChild' => CheckChild::class,
             'checkStudent' => CheckStudent::class,

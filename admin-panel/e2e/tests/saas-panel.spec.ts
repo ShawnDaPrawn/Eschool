@@ -68,6 +68,14 @@ for (const width of [390, 820, 1280]) {
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     await page.goBack();
 
+    // An Owner manages platform staff and their roles.
+    await page.getByRole('link', { name: 'Platform staff', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Platform staff', exact: true })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'Invite a staff member', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    await page.goBack();
+
     // A separate cookie jar proves the emailed link: the administrator chooses
     // their own password, then signs in. Nobody else ever knew a password.
     const context = await browser.newContext({ viewport: { width, height: 1000 } });

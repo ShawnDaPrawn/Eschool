@@ -10,17 +10,23 @@
     <link rel="stylesheet" href="{{ asset('assets/css/saas.css') }}">
 </head>
 <body class="saas">
+@php
+    $platformCan = fn (string $ability): bool => auth()->check() && app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
+@endphp
 <header class="saas-bar">
-    <a href="{{ route('saas.index') }}">{{ __('NavigateEd platform') }}</a>
+    <a href="{{ auth()->check() ? route('saas.index') : route('login') }}">{{ __('NavigateEd platform') }}</a>
+    @auth
     <nav aria-label="{{ __('Platform') }}">
-        <a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>
-        <a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>
-        <a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>
+        @if ($platformCan('schools.create'))<a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>@endif
+        @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
+        @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
+        @if ($platformCan('staff.manage'))<a href="{{ route('saas.staff.index') }}">{{ __('Platform staff') }}</a>@endif
     </nav>
     <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button class="saas-btn saas-btn--quiet" type="submit">{{ __('Sign out') }}</button>
     </form>
+    @endauth
 </header>
 <main class="saas-main" id="main">
     @if ($errors->any())

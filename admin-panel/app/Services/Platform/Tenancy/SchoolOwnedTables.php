@@ -134,6 +134,7 @@ final class SchoolOwnedTables
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
         'users' => 'one row per human across schools; a user belongs to a school through school_memberships',
         'permissions' => 'one catalogue of permission names; roles hold them per school',
+        'platform_staff_invitations' => 'one-use, expiring links for invited platform staff to choose a password; no school data',
         'platform_staff_identities' => 'global platform-operator exclusions; never school data or an access grant',
         'languages' => 'interface languages are installed for the whole platform',
         'policy_acceptances' => 'a user accepts a platform policy version once',
