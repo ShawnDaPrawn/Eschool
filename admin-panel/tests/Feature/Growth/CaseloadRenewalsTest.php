@@ -94,7 +94,7 @@ class CaseloadRenewalsTest extends TestCase
 
     private function identity(): array
     {
-        return ['expected_account_id' => $this->superAdmin()->id, 'expected_school_id' => app(CurrentSchool::class)->id()];
+        return ['expected_account_id' => $this->superAdmin()->id, 'expected_school_id' => app(CurrentSchool::class)->id(), 'complete' => 1];
     }
 
     public function test_open_cases_are_offered_and_renewed_into_the_new_year_and_closed_ones_never(): void
@@ -195,7 +195,7 @@ class CaseloadRenewalsTest extends TestCase
             $this->actingAs($this->actor($name));
             $this->get(route('risk-interventions.renewals', ['year' => $this->next->id]))->assertForbidden()->assertDontSee($asha);
             $this->post(route('risk-interventions.renewals.store'), ['year' => $this->next->id, 'fingerprint' => $plan['fingerprint'],
-                'expected_account_id' => $this->actor($name)->id, 'expected_school_id' => app(CurrentSchool::class)->id(),
+                'expected_account_id' => $this->actor($name)->id, 'expected_school_id' => app(CurrentSchool::class)->id(), 'complete' => 1,
                 'cases' => [$this->cases['asha'] => $this->actor()->id]])->assertForbidden();
         }
         $this->assertSame(0, $this->nextYearGrants());
@@ -224,6 +224,40 @@ class CaseloadRenewalsTest extends TestCase
         $this->assertSame(1, $this->nextYearGrants());
         // Renewing gives the grade head no caseload of their own.
         $this->assertSame(0, RiskCaseload::where('session_year_id', $this->next->id)->where('professional_id', $this->actor('theo')->id)->count());
+    }
+
+    public function test_a_grade_head_renews_before_the_new_year_starts_from_its_future_enrolments(): void
+    {
+        // Still last year: the new year's enrolments start on 1 January.
+        $this->travelTo(now()->setDate(2026, 12, 10));
+        Settings::updateOrCreate(['type' => 'session_year'], ['message' => (string) $this->year]);
+        AcademicLeadership::create(['user_id' => $this->actor('theo')->id, 'kind' => 'grade_head', 'grade_level_id' => (int) GradeLevel::where('code', '7')->value('id'),
+            'session_year_id' => $this->year, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic grade head']);
+
+        $plan = app(CaseloadRenewals::class)->plan($this->actor('theo'), $this->next);
+        $this->assertSame([$this->cases['asha']], array_column($plan['cases'], 'id'), 'Asha is in grade 7 on the new year\'s first day');
+        $this->assertSame('2027-01-01', $plan['starts_on']);
+        app(CaseloadRenewals::class)->apply($this->actor('theo'), $this->next, [$this->cases['asha'] => $this->actor()->id], $plan['fingerprint']);
+        $this->assertSame('2027-01-01', RiskCaseload::where('session_year_id', $this->next->id)->sole()->starts_on->toDateString());
+
+        // The grade still decides: moved to grade 8 for the new year, Asha is not the grade 7 head's.
+        Enrolment::where('learner_id', $this->schoolA->ids['asha'])->where('session_year_id', $this->next->id)->update(['class_section_id' => $this->schoolA->ids['section_c']]);
+        RiskCaseload::where('session_year_id', $this->next->id)->delete();
+        $this->assertSame([], app(CaseloadRenewals::class)->plan($this->actor('theo'), $this->next)['cases']);
+        $this->denied(fn () => app(Interventions::class)->assign($this->actor('theo'), $this->schoolA->ids['asha'], $this->next->id, $this->actor()->id,
+            ['starts_on' => '2027-01-01', 'ends_on' => '2027-12-31', 'expected_revision' => 0]));
+    }
+
+    public function test_a_renewal_cut_short_in_transit_is_refused_and_nothing_is_renewed(): void
+    {
+        $page = $this->get(route('risk-interventions.renewals', ['year' => $this->next->id]))->assertOk();
+        preg_match('/name="fingerprint" value="([a-f0-9]{64})"/', $page->getContent(), $match);
+        $this->assertGreaterThan(strrpos($page->getContent(), 'name="cases['), strpos($page->getContent(), 'name="complete"'), 'the marker is the last field');
+
+        // Past the server's input limit the trailing fields, the marker first, are dropped.
+        $this->post(route('risk-interventions.renewals.store'), array_diff_key($this->identity(), ['complete' => true]) + ['year' => $this->next->id,
+            'fingerprint' => $match[1], 'cases' => [$this->cases['asha'] => $this->actor()->id]])->assertSessionHasErrors('complete');
+        $this->assertSame(0, $this->nextYearGrants());
     }
 
     public function test_another_schools_cases_professionals_and_years_are_refused(): void

@@ -43,7 +43,13 @@ class CaseloadRenewals
     private const PROFESSIONALS = 500;
 
     /**
-     * @return array{to: SessionYear, from: SessionYear, starts_on: string, ends_on: string, cases: list<array<string, mixed>>, unplaced: int, professionals: array<int, string>, fingerprint: string}
+     * Open cases offered in one submission, well within PHP's default
+     * max_input_vars (1000); the rest are offered once these are renewed.
+     */
+    public const PER_SUBMISSION = 500;
+
+    /**
+     * @return array{to: SessionYear, from: SessionYear, starts_on: string, ends_on: string, cases: list<array<string, mixed>>, waiting: int, unplaced: int, professionals: array<int, string>, fingerprint: string}
      */
     public function plan(User $actor, SessionYear $to): array
     {
@@ -96,9 +102,15 @@ class CaseloadRenewals
             ];
         }
 
+        $offered = 0;
+        foreach ($cases as &$case) {
+            $case['in_form'] = $case['renewed'] === [] && ++$offered <= self::PER_SUBMISSION;
+        }
+        unset($case);
+
         return [
             'to' => $to, 'from' => $from, 'starts_on' => $startsOn, 'ends_on' => $endsOn,
-            'cases' => $cases, 'unplaced' => $unplaced, 'professionals' => $professionals,
+            'cases' => $cases, 'waiting' => max(0, $offered - self::PER_SUBMISSION), 'unplaced' => $unplaced, 'professionals' => $professionals,
             'fingerprint' => hash('sha256', json_encode([(int) $from->id, (int) $to->id, $startsOn, $endsOn, $unplaced,
                 array_map(fn (array $c) => [$c['id'], $c['revision'], $c['learner_id'], $c['professional_id'], $c['still_eligible'], $c['renewed']], $cases),
                 array_keys($professionals)], JSON_THROW_ON_ERROR)),
@@ -124,7 +136,7 @@ class CaseloadRenewals
             if (! hash_equals($plan['fingerprint'], $fingerprint)) {
                 throw ValidationException::withMessages(['fingerprint' => __('Caseloads changed since this page was shown. Check the renewals again, then renew.')]);
             }
-            $open = collect($plan['cases'])->filter(fn (array $c) => $c['renewed'] === [])->keyBy('id');
+            $open = collect($plan['cases'])->filter(fn (array $c) => $c['in_form'])->keyBy('id');
             $writes = [];
             foreach ($choices as $id => $professional) {
                 if (! ctype_digit((string) $id) || ! $open->has((int) $id)) {

@@ -79,8 +79,13 @@ class RiskAuthority
 
     public function currentGrade(int $learner, int $year): int
     {
+        return $this->gradeOn($learner, $year, app(AcademicAuthority::class)->today());
+    }
+
+    /** The learner's grade from their enrolment in the year on $date. */
+    public function gradeOn(int $learner, int $year, string $date): int
+    {
         Students::findOrFail($learner);
-        $date = app(AcademicAuthority::class)->today();
         $enrolment = Enrolment::where('learner_id', $learner)->where('session_year_id', $year)->onDate($date)
             ->with('homeroom.class')->orderByDesc('starts_on')->firstOrFail();
         $grade = $enrolment->homeroom?->class?->grade_level_id;
@@ -121,7 +126,10 @@ class RiskAuthority
         }
         $grade = RiskObservation::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id')
             ?? Intervention::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id');
-        $grade ??= $this->currentGrade($learner, $year);
+        // A year still to come has no enrolment today: its grade is the one on its first day
+        // (caseload renewals before the switch, Action Plan 1.20). Other years read today.
+        $start = SessionYear::withTrashed()->findOrFail($year)->start_date;
+        $grade ??= $this->gradeOn($learner, $year, max(substr((string) $start, 0, 10), $authority->today()));
         abort_unless($authority->currentLeadership($fresh, 'grade_head', (int) $grade), 403);
 
         return $fresh;

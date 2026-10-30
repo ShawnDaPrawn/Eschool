@@ -5878,5 +5878,8 @@
     "A case on this page cannot be renewed. Check the renewals again, then renew.": "'n Geval op hierdie bladsy kan nie hernu word nie. Gaan die hernuwings weer na en hernu dan.",
     "Choose a professional who has restricted pastoral access.": "Kies 'n professionele persoon met beperkte pastorale toegang.",
     "There is no school year to renew caseloads into.": "Daar is geen skooljaar om gevallelaste in te hernu nie.",
-    ":renewed caseloads renewed and :reassigned reassigned for :year.": ":renewed gevallelaste hernu en :reassigned heraangewys vir :year."
+    ":renewed caseloads renewed and :reassigned reassigned for :year.": ":renewed gevallelaste hernu en :reassigned heraangewys vir :year.",
+    "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.": "'n Deel van die hernuwings het nie aangekom nie, dus is niks hernu nie. Laai die bladsy weer en hernu weer.",
+    "Offered once the cases above are renewed.": "Word aangebied sodra die gevalle hierbo hernu is.",
+    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Hierdie bladsy bied :count oop gevallelaste op 'n slag aan. Hernu hierdie, dan bied die bladsy die volgende :waiting aan."
 }

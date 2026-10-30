@@ -5878,5 +5878,8 @@
     "A case on this page cannot be renewed. Check the renewals again, then renew.": "Icala elikuleli khasi alikwazi ukuvuselelwa. Hlola ukuvuselelwa futhi, bese uyavuselela.",
     "Choose a professional who has restricted pastoral access.": "Khetha uchwepheshe onokufinyelela okukhawulelwe kokwelusa.",
     "There is no school year to renew caseloads into.": "Awukho unyaka wesikole ongavuselelela kuwo imithwalo yamacala.",
-    ":renewed caseloads renewed and :reassigned reassigned for :year.": "Imithwalo yamacala engu-:renewed ivuselelwe kanti engu-:reassigned yabelwe kabusha ku-:year."
+    ":renewed caseloads renewed and :reassigned reassigned for :year.": "Imithwalo yamacala engu-:renewed ivuselelwe kanti engu-:reassigned yabelwe kabusha ku-:year.",
+    "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.": "Enye ingxenye yokuvuselelwa ayifikanga, ngakho akukho okuvuselelwe. Layisha kabusha ikhasi bese uvuselela futhi.",
+    "Offered once the cases above are renewed.": "Kuzonikezwa uma amacala angenhla esevuselelwe.",
+    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Leli khasi linikeza imithwalo yamacala evulekile engu-:count ngesikhathi. Vuselela le, bese ikhasi linikeza elandelayo engu-:waiting."
 }

@@ -5878,5 +5878,8 @@
     "A case on this page cannot be renewed. Check the renewals again, then renew.": "A case on this page cannot be renewed. Check the renewals again, then renew.",
     "Choose a professional who has restricted pastoral access.": "Choose a professional who has restricted pastoral access.",
     "There is no school year to renew caseloads into.": "There is no school year to renew caseloads into.",
-    ":renewed caseloads renewed and :reassigned reassigned for :year.": ":renewed caseloads renewed and :reassigned reassigned for :year."
+    ":renewed caseloads renewed and :reassigned reassigned for :year.": ":renewed caseloads renewed and :reassigned reassigned for :year.",
+    "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.": "Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.",
+    "Offered once the cases above are renewed.": "Offered once the cases above are renewed.",
+    "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting."
 }

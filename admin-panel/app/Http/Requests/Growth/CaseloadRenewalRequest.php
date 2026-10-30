@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Growth;
 
+use App\Services\Growth\CaseloadRenewals;
 use App\Services\Growth\RiskAuthority;
 use App\Services\Growth\RiskQueries;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -44,10 +45,19 @@ class CaseloadRenewalRequest extends FormRequest
         return [
             'year' => ['required', 'integer', 'min:1'],
             'fingerprint' => ['required', 'string', 'size:64'],
+            // The form's last field: missing means the server dropped trailing choices.
+            'complete' => ['required', 'accepted'],
             'expected_account_id' => ['required', 'integer', 'min:1'],
             'expected_school_id' => ['required', 'integer', 'min:1'],
-            'cases' => ['sometimes', 'array', 'max:5000'],
+            'cases' => ['sometimes', 'array', 'max:'.CaseloadRenewals::PER_SUBMISSION],
             'cases.*' => ['nullable', 'integer', 'min:1'],
         ];
+    }
+
+    public function messages(): array
+    {
+        $lost = __('Some of the renewals did not arrive, so nothing was renewed. Reload the page and renew again.');
+
+        return ['complete.required' => $lost, 'complete.accepted' => $lost];
     }
 }
