@@ -32,7 +32,7 @@ class SasamsLayout
             'columns' => ['required', 'array', 'min:1', 'max:40'], 'columns.*' => ['array:header,field,value'],
             'columns.*.header' => ['required', 'string', 'max:191', 'distinct'], 'columns.*.field' => ['required', Rule::in(self::FIELDS)],
             'columns.*.value' => ['required_if:columns.*.field,literal', 'nullable', 'string', 'max:191'],
-            'learner_refs' => ['required', 'array', 'min:1', 'max:10000'], 'learner_refs.*' => ['required', 'string', 'max:100', 'distinct'],
+            'learner_refs' => ['sometimes', 'array', 'max:10000'], 'learner_refs.*' => ['required', 'string', 'max:100', 'distinct'],
             'attendance_codes' => ['sometimes', 'array'], 'attendance_codes.*' => ['required', 'string', 'max:30'],
             'mark_codes' => ['sometimes', 'array'], 'mark_codes.*' => ['required', 'string', 'max:30'],
             'value_maps' => ['sometimes', 'array:gender,grade,homeroom'], 'value_maps.*' => ['array', 'max:1000'], 'value_maps.*.*' => ['required', 'string', 'max:191'],

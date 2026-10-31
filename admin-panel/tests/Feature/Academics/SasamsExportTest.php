@@ -19,8 +19,11 @@ use App\Models\User;
 use App\Services\Academics\CurriculumPlans;
 use App\Services\Academics\SasamsExport;
 use App\Services\Academics\TeachingGroups;
+use App\Services\Platform\Identity\LuritsNumbers;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -93,6 +96,102 @@ class SasamsExportTest extends TestCase
         unset($m['hmac_sha256']);
         $this->assertSame(hash_hmac('sha256', json_encode($m, JSON_THROW_ON_ERROR), config('app.key')), $hmac);
         $this->assertSame(1, Enrolment::count());
+    }
+
+    /** Asha has a LURITS number; Ben, in the same homeroom, has none and is mapped. */
+    private function mixed(): void
+    {
+        Students::whereKey($this->schoolA->ids['ben'])->update(['student_number' => '000008']);
+        Enrolment::create(['learner_id' => $this->schoolA->ids['ben'], 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year,
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic export fixture']);
+        app(LuritsNumbers::class)->record(Students::findOrFail($this->learner), '8800000001', 'sasams_import');
+    }
+
+    public function test_learners_with_a_lurits_number_are_keyed_on_it_and_the_others_on_the_map(): void
+    {
+        $this->mixed();
+        $p = $this->layout();
+        $p['learner_refs'] = [$this->number => '000042', '000008' => '000043'];
+        $p['columns'][] = ['header' => 'Student number', 'field' => 'student_number'];
+        $result = $this->export($p);
+        // Asha by her LURITS number although the map names her too; Ben by the map.
+        $this->assertMatchesRegularExpression('/\r\n8800000001;Demo;\d+\r\n/', $result['content']);
+        $this->assertStringContainsString("\r\n000043;Demo;000008\r\n", $result['content']);
+        $this->assertStringNotContainsString('000042', $result['content']);
+        $this->assertSame([2, 1], [$result['manifest']['records'], $result['manifest']['learners_without_lurits']]);
+        // The number is in the file only: never in the manifest or the audit log.
+        $this->assertStringNotContainsString('8800000001', json_encode($result['manifest']));
+        $this->assertStringNotContainsString('8800000001', DB::table('audit_log')->get()->toJson());
+        $this->assertSame(1, DB::table('audit_log')->where('action', 'academics.sasams_exported')->count());
+
+        // Attendance and marks use the same keys.
+        $this->register();
+        $r = AttendanceEntry::query()->value('attendance_register_id');
+        AttendanceEntry::create(['attendance_register_id' => $r, 'learner_id' => $this->schoolA->ids['ben'], 'state' => 'late', 'source' => 'tap', 'captured_by' => $this->superAdmin()->id]);
+        $attendance = $this->attendance();
+        $attendance['learner_refs'] = $p['learner_refs'];
+        $content = $this->export($attendance)['content'];
+        $this->assertStringContainsString('8800000001;2026-02-10;L-fixture', $content);
+        $this->assertStringContainsString('000043;2026-02-10;L-fixture', $content);
+        $marks = $this->task();
+        $marks['learner_refs'] = [];
+        $result = $this->export($marks);
+        $this->assertStringContainsString('8800000001;15.75;20.00', $result['content']);
+        $this->assertSame(0, $result['manifest']['learners_without_lurits']);
+
+        // Ben without a LURITS number or a mapped reference: refused, as before.
+        unset($p['learner_refs']['000008']);
+        try {
+            $this->export($p);
+            $this->fail('A learner without a LURITS number or a reference was exported.');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('Record a LURITS number for every exported learner', implode(' ', $e->errors()['layout']));
+        }
+        // A mapped reference that repeats a LURITS number would make two learners one.
+        $p['learner_refs']['000008'] = '8800000001';
+        try {
+            $this->export($p);
+            $this->fail('Two learners shared one reference.');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('share one learner reference', implode(' ', $e->errors()['layout']));
+        }
+    }
+
+    public function test_a_school_b_learners_lurits_number_never_reaches_a_school_a_export(): void
+    {
+        $numbers = app(LuritsNumbers::class);
+        $baobab = app(CurrentSchool::class)->run(2, function () use ($numbers) {
+            $ben = Students::findOrFail($this->schoolB->ids['ben']);
+            $numbers->record($ben, '8800000002', 'sasams_import');
+            Students::whereKey($ben->id)->update(['student_number' => $this->number]);
+
+            return $ben;
+        });
+        // School B's learner even shares Asha's student number: School A still uses its map.
+        $content = $this->export($this->layout())['content'];
+        $this->assertStringContainsString('000042;', $content);
+        $this->assertStringNotContainsString('8800000002', $content);
+        $this->assertStringNotContainsString(self::SCHOOL_B_MARKER, $content);
+        // Nor can School A read it through the service with School B's model.
+        try {
+            $numbers->forLearners([$baobab]);
+            $this->fail('School A read a School B learner\'s LURITS number.');
+        } catch (HttpExceptionInterface $e) {
+            $this->assertSame(404, $e->getStatusCode());
+        }
+    }
+
+    public function test_the_page_counts_learners_without_lurits_and_links_to_the_office_page(): void
+    {
+        app(LuritsNumbers::class)->record(Students::findOrFail($this->learner), '8800000001', 'sasams_import');
+        $this->actingAs($this->superAdmin())->get(route('academic-sasams.index'))->assertOk()
+            ->assertSee('2 of 3 learners have no LURITS number yet.')->assertSee(route('lurits-office.index'), false)
+            ->assertDontSee('8800000001');
+        // A teacher has no export page, and no export is written.
+        $this->actingAs(User::findOrFail($this->schoolA->ids['tara_user']));
+        $this->get(route('academic-sasams.index'))->assertStatus(403);
+        $this->post(route('academic-sasams.download'), ['layout' => UploadedFile::fake()->createWithContent('layout.json', json_encode($this->layout()))])->assertStatus(403);
+        $this->assertSame(0, DB::table('audit_log')->where('action', 'academics.sasams_exported')->count());
     }
 
     public function test_wrong_roles_and_school_contexts_cannot_export(): void
