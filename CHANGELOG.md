@@ -23,6 +23,10 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Notifications: school notice emails carry the school's crest, name and
+  colour and a plain-text version, and school messages arrive in full in the
+  email. Private notices (safeguarding, wellbeing, discipline, progress and
+  similar) still say only that there is something to see in the app.
 - Notifications: optional school notice emails have a one-click unsubscribe
   (in the email client and as a footer link) that switches that notice's email
   off. Required notices, such as absence alerts and urgent notices, never
