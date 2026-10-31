@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\Platform;
 
 use App\Models\Platform\NotificationDelivery;
+use App\Services\Academics\TimetableRefreshPush;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\FcmClient;
@@ -70,7 +71,7 @@ class SendPush implements ShouldBeEncrypted, ShouldQueue
             return;
         }
         // A silent push to a person's device (1.9) still needs that person and device to be current.
-        if ($type === null && $row?->recipient_user_id !== null && ! app(DeliveryGuard::class)->allowsSilent($row, (string) ($this->message['message']['token'] ?? ''))) {
+        if ($type === null && ($this->message['message']['data']['type'] ?? null) === TimetableRefreshPush::TYPE && ! app(DeliveryGuard::class)->allowsSilent($row, (string) ($this->message['message']['token'] ?? ''))) {
             DeliveryLog::suppressed($row);
 
             return;
