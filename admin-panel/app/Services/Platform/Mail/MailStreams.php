@@ -401,6 +401,8 @@ class MailStreams
             'sending_enabled' => $status['sending_enabled'],
             'engagement_tracking' => $status['engagement_tracking'],
             'optimized_delivery' => $status['optimized_delivery'],
+            // SES answered: a ready set's earlier problem (such as ses_unreachable) is over.
+            'last_error' => $row->status === MailStream::READY ? null : $row->last_error,
             'checked_at' => now(),
         ])->save();
         if ($before !== null && $before !== $status['sending_enabled']) {

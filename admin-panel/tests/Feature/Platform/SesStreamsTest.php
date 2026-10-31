@@ -415,6 +415,33 @@ class SesStreamsTest extends TestCase
         $this->assertSame('ne-platform-bulk', $this->configurationSetOf($this->noticeIn(1, $farid)));
     }
 
+    public function test_a_check_that_reaches_ses_again_clears_an_earlier_unreachable_error(): void
+    {
+        $this->artisan('mail:ensure-streams', ['--school' => 1])->assertSuccessful();
+        $operator = $this->staff('operations');
+        // The grant outlasts the two days this test travels.
+        PlatformAdminGrant::query()->where('user_id', $operator->id)->update(['expires_at' => now()->addDays(3)]);
+        $this->actingAs($operator);
+
+        // The daily check fails once: the set stays in use and HQ sees why.
+        $this->sesDown = true;
+        $this->travel(25)->hours();
+        $this->artisan('mail:ensure-streams')->assertSuccessful();
+        $row = MailStream::query()->where('configuration_set', 'ne-s1-bulk')->sole();
+        $this->assertSame(['ready', 'ses_unreachable'], [$row->status, $row->last_error]);
+        $this->get('/saas/mail-streams')->assertOk()->assertSee('SES could not be reached at the last check');
+
+        // The next day's check reaches SES: the error is gone from the row and the page.
+        $this->sesDown = false;
+        $this->travel(25)->hours();
+        $this->artisan('mail:ensure-streams')->assertSuccessful();
+        foreach (MailStream::query()->where('school_id', 1)->get() as $stream) {
+            $this->assertSame(['ready', null], [$stream->status, $stream->last_error], $stream->configuration_set);
+        }
+        $this->get('/saas/mail-streams')->assertOk()->assertDontSee('SES could not be reached at the last check');
+        $this->assertSame('ne-s1-bulk', $this->configurationSetOf($this->noticeIn(1, User::query()->findOrFail($this->schoolA->ids['farid_user']))));
+    }
+
     public function test_switched_off_no_ses_client_is_built_and_the_page_only_explains(): void
     {
         config(['mail.streams.enabled' => false]);
