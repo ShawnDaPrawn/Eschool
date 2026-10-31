@@ -33,6 +33,11 @@ Earlier history is kept where it was written and is not repeated here:
   until HQ re-applies the package to them, with a reason. Other HQ roles can
   only look. The four existing packages are copied over unchanged, so no school
   notices anything. **Deploy:** run the migrations.
+- Caseload renewals for a new school year: in Early warning and interventions,
+  **Renew caseloads for a new year** lists last year's open risk caseload grants
+  for learners placed in the new year. A principal (or the learner's grade head)
+  keeps the same counsellor, chooses another one, or lets the grant end. Ended
+  grants are never carried, and only caseload administrators see the page.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
