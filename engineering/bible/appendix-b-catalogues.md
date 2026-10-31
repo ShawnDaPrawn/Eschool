@@ -93,6 +93,12 @@ and the lessons' teachers when a short day is planned or cancelled. The notice
 names only the date; the outbox event carries lesson IDs, never a learner list.
 
 
+POPIA data requests: school.data_request (people module, admin portal, push,
+email and in-app mandatory, locked) tells a school's Super Admins that Navigate
+Ed has passed them a POPIA data subject request and when it must be answered.
+The notice names no one; the request itself is read on the Data requests page
+(SA.11, [data requests](../specs/platform/data-requests.md)).
+
 New school year: school.new_year (people module, learner and parent portals,
 standard channel preferences) welcomes the learners placed in the new year and
 their current guardians when it becomes current, if the school chooses it in the

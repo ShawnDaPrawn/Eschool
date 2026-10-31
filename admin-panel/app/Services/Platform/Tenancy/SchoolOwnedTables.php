@@ -23,6 +23,7 @@ final class SchoolOwnedTables
     public const REQUIRED = [
         'lurits_conflicts',
         'platform_incident_schools',
+        'platform_data_requests',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',

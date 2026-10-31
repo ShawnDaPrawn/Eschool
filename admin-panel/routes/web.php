@@ -99,6 +99,7 @@ use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
+use App\Http\Controllers\Panel\People\DataRequestController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
@@ -118,6 +119,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformDataRequestController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
@@ -306,6 +308,15 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('/{incident}/schools', [PlatformIncidentController::class, 'school'])->whereNumber('incident')->name('schools.store');
         Route::put('/{incident}/schools/{school}', [PlatformIncidentController::class, 'notified'])->whereNumber(['incident', 'school'])->name('schools.notified');
         Route::post('/{incident}/entries', [PlatformIncidentController::class, 'entry'])->middleware('throttle:60,1')->whereNumber('incident')->name('entries.store');
+    });
+    // POPIA data subject requests (SA.11): logged with a deadline, passed to the school, answered, closed.
+    Route::prefix('/data-requests')->middleware('platform.can:privacy.manage')->name('data-requests.')->group(function () {
+        Route::get('/', [PlatformDataRequestController::class, 'index'])->name('index');
+        Route::post('/', [PlatformDataRequestController::class, 'store'])->middleware('throttle:20,1')->name('store');
+        Route::get('/{dataRequest}', [PlatformDataRequestController::class, 'show'])->whereNumber('dataRequest')->name('show');
+        Route::post('/{dataRequest}/pass', [PlatformDataRequestController::class, 'pass'])->middleware('throttle:20,1')->whereNumber('dataRequest')->name('pass');
+        Route::post('/{dataRequest}/close', [PlatformDataRequestController::class, 'close'])->middleware('throttle:20,1')->whereNumber('dataRequest')->name('close');
+        Route::post('/{dataRequest}/withdraw', [PlatformDataRequestController::class, 'withdraw'])->middleware('throttle:20,1')->whereNumber('dataRequest')->name('withdraw');
     });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
@@ -919,6 +930,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         // The office's LURITS numbers (Action Plan 1.0e).
         Route::get('learners/lurits', [LuritsOfficeController::class, 'index'])->name('lurits-office.index');
         Route::post('learners/lurits', [LuritsOfficeController::class, 'store'])->middleware('throttle:60,1')->name('lurits-office.store');
+        // POPIA requests Navigate Ed passes to the school (Action Plan SA.11): the Super Admin answers.
+        Route::get('data-requests', [DataRequestController::class, 'index'])->middleware('role:Super Admin')->name('data-requests.index');
+        Route::post('data-requests/{dataRequest}/answer', [DataRequestController::class, 'answer'])->middleware(['role:Super Admin', 'throttle:20,1'])->whereNumber('dataRequest')->name('data-requests.answer');
         // School onboarding imports (Action Plan 0.11): homerooms, learners and guardians from CSV.
         Route::get('school-imports', [SchoolImportController::class, 'index'])->name('school-imports.index');
         Route::get('school-imports/templates/{kind}', [SchoolImportController::class, 'template'])->where('kind', 'homerooms|learners|staff')->name('school-imports.template');

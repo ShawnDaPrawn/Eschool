@@ -471,6 +471,8 @@ return [
                 'policies' => [
                     'label' => 'nav_group_policies',
                     'items' => [
+                        ['key' => 'data-requests', 'label' => 'nav_data_requests', 'route' => 'data-requests.index', 'permissions' => [], 'roles' => ['Super Admin'], 'module' => null,
+                            'keywords' => ['popia', 'data subject request', 'access request', 'delete my data', 'information officer', 'privacy request']],
                         ['key' => 'privacy-policy', 'label' => 'nav_privacy_policy', 'route' => 'privacy.index', 'permissions' => ['privacy-policy'], 'module' => null,
                             'keywords' => ['popia', 'privacy notice']],
                         ['key' => 'terms-and-conditions', 'label' => 'nav_terms_and_conditions', 'url' => 'terms-condition', 'permissions' => ['terms-condition'], 'module' => null,
