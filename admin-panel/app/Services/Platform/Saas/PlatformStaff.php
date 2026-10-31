@@ -45,9 +45,10 @@ class PlatformStaff
             $pending = PlatformStaffInvitation::query()->whereNull('used_at')->where('expires_at', '>', now()->utc())->pluck('expires_at', 'user_id');
             $accepted = PlatformStaffInvitation::query()->whereNotNull('accepted_at')->pluck('user_id')->flip();
             $identities = PlatformStaffIdentity::query()->get()->keyBy('user_id');
+            $twoFactor = app(PlatformTwoFactor::class)->enrolledIds();
 
             return User::query()->whereIn('id', $identities->keys())->orderBy('first_name')->orderBy('last_name')->get()
-                ->map(function (User $user) use ($grants, $pending, $identities, $accepted): array {
+                ->map(function (User $user) use ($grants, $pending, $identities, $accepted, $twoFactor): array {
                     $grant = $grants->get($user->id);
                     $current = $grant !== null && $grant->active && $grant->expires_at->isFuture() && $identities[$user->id]->active && (int) $user->status === 1;
 
@@ -61,6 +62,7 @@ class PlatformStaff
                         'current' => $current,
                         'invitation_pending' => $pending->has($user->id),
                         'invited' => $pending->has($user->id) || $accepted->has($user->id),
+                        'two_factor' => isset($twoFactor[(int) $user->id]),
                     ];
                 })->all();
         });

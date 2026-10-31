@@ -255,3 +255,10 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### HQ two-factor sign-in
+
+`platform_staff_two_factor` is global: a platform staff member's own authenticator
+app (encrypted secret, hashed recovery codes), read and written only by the
+two-factor pages, the HQ staff page and the operator console. Platform staff
+belong to no school ([two-factor sign-in](hq-two-factor.md)).

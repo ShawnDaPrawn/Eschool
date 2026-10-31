@@ -124,6 +124,7 @@ final class SchoolOwnedTables
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
+        'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',
