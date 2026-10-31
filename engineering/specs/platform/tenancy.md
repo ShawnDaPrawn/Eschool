@@ -255,3 +255,11 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
