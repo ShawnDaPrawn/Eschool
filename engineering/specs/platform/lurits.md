@@ -90,7 +90,7 @@ The LURITS number is the number a learner is known by wherever NavigateEd identi
   - a guardian with an **active guardian link that may approve** (`can_approve`);
   - staff with **profile permission** (`profile-person-view` or `profile-person-edit`).
   - Everyone else gets null: a guardian whose link may not approve, a parent known only from the legacy father/mother/guardian fields (no guardian link yet), a teacher without profile permission (who may still open the profile of a learner they teach), and Navigate Ed staff during impersonation.
-- **Documents** carry the headline identifier for whoever the document is issued to, because they are the school's official records of the learner:
+- **Documents** carry the headline identifier for whoever the document is issued to, because they are the school's official records of the learner. This includes a guardian whose link may not approve: they see the number on the report card (owner decision, 31 October 2026), even though screens and the API still show it only to approving guardians.
   - report card PDFs (read when the PDF is made, held only in the encrypted PDF, never in the card payload or its fingerprint);
   - transfer packages (frozen in the encrypted, signed package contents the guardian consents to);
   - exit archives (in the signed `manifest.json` with the admission number, read when the archive is built; the stored manifest and archive are encrypted);
