@@ -35,71 +35,8 @@ class DeliveryGuard
         }
 
         return app(CurrentSchool::class)->run($delivery->school_id, function () use ($delivery, $type, $channel, $address, $context) {
-            $user = User::query()->find($delivery->recipient_user_id);
-            if (! $user || (int) $user->status !== 1 || app(CurrentSchool::class)->school()?->status !== 'active'
-                || ! SchoolMembership::query()->active()->where('school_id', $delivery->school_id)->where('user_id', $user->id)->exists()) {
-                return false;
-            }
-            if (isset($context['handle_proposal_id'])) {
-                $proposal = HandleProposal::query()->where('status', 'pending')->where('expires_at', '>', now())->find($context['handle_proposal_id']);
-                if (! $proposal || ! $user->email_verified_at || ! GuardianLink::query()->where('learner_id', $proposal->learner_id)
-                    ->where('guardian_user_id', $user->id)->where('status', 'active')->where('can_approve', true)->exists()) {
-                    return false;
-                }
-            }
-            if (isset($context['register_learner_id'])) {
-                $learner = Students::find($context['register_learner_id']);
-                if ($learner === null || ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id)) {
-                    return false;
-                }
-            }
-            if (isset($context['register_entry_id'])) {
-                $entry = AttendanceEntry::with('register', 'learner')->find($context['register_entry_id']);
-                $kind = $context['register_notice_kind'] ?? null;
-                if ($entry === null || $entry->register === null || (int) $entry->learner_id !== (int) ($context['register_learner_id'] ?? 0)
-                    || $entry->revision !== (int) ($context['register_entry_revision'] ?? 0)
-                    || ! in_array($kind, ['absence', 'amended'], true)
-                    || $type !== ($kind === 'absence' ? 'attendance.absence' : 'academics.register_amended')
-                    || ! app(RegisterRosters::class)->learners($entry->register)->contains('id', $entry->learner_id)) {
-                    return false;
-                }
-                if ($kind === 'absence' && ($entry->register->timetable_lesson_id !== null || $entry->state !== 'absent'
-                    || isset(Leave::approvedTypesForDate($entry->register->on_date->toDateString())[$entry->learner->user_id]))) {
-                    return false;
-                }
-            }
-            if (str_starts_with($type, 'communication.') && ! app(MessageDelivery::class)->allows($user, $type, $context)) {
-                return false;
-            }
-            if (isset($context['content_version_id'])) {
-                if ($type !== 'academics.content_published' || ! isset($context['content_learner_id'])) {
-                    return false;
-                }
-                try {
-                    app(ContentPolicy::class)->reader($user, (int) $context['content_learner_id'], (int) $context['content_version_id']);
-                } catch (HttpExceptionInterface|ModelNotFoundException) {
-                    return false;
-                }
-            }
-            if (isset($context['report_card_id'])) {
-                $card = ReportCard::with('batch')->find($context['report_card_id']);
-                $learner = $card === null ? null : Students::find($card->learner_id);
-                if ($type !== 'academics.report_published' || $card === null || $learner === null || $card->batch?->state !== 'released'
-                    || $card->generated_fingerprint !== $card->batch->fingerprint || (int) $card->learner_id !== (int) ($context['report_learner_id'] ?? 0)
-                    || ((int) $learner->user_id !== (int) $user->id && ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id))) {
-                    return false;
-                }
-            }
-            if (! app(PrivateNoticeScopes::class)->permitsDelivery($user, $type, $context)) {
-                return false;
-            }
-            if (str_starts_with($type, 'transfer.') && ! app(TransferNotices::class)->allows($user, $type, $context)) {
-                return false;
-            }
-            if (str_starts_with($type, 'progress.') && ! app(ProgressNotices::class)->allows($user, $type, $context)) {
-                return false;
-            }
-            if (str_starts_with($type, 'pastoral.cover') && ! app(CoverNotices::class)->allows($user, $type, $context)) {
+            $user = $this->recipient((int) $delivery->recipient_user_id, (int) $delivery->school_id, $type, $context);
+            if ($user === null) {
                 return false;
             }
             $current = $channel === 'email'
@@ -108,5 +45,94 @@ class DeliveryGuard
 
             return $current && app(NotificationRules::class)->allows($user, $type, $channel);
         });
+    }
+
+    /**
+     * The same fresh access check as transport, without a channel: used
+     * before the app shows a notice's full body (NotificationInbox::show).
+     */
+    public function permits(int $userId, int $schoolId, string $type, array $context = []): bool
+    {
+        return app(CurrentSchool::class)->run($schoolId, fn () => $this->recipient($userId, $schoolId, $type, $context) !== null);
+    }
+
+    /** The freshly loaded recipient when every source rule still allows this notice, else null. */
+    private function recipient(int $userId, int $schoolId, string $type, array $context): ?User
+    {
+        $user = User::query()->find($userId);
+        if (! $user || (int) $user->status !== 1 || app(CurrentSchool::class)->school()?->status !== 'active'
+            || ! SchoolMembership::query()->active()->where('school_id', $schoolId)->where('user_id', $user->id)->exists()) {
+            return null;
+        }
+
+        return $this->sourceAllows($user, $type, $context) ? $user : null;
+    }
+
+    private function sourceAllows(User $user, string $type, array $context): bool
+    {
+        if (isset($context['handle_proposal_id'])) {
+            $proposal = HandleProposal::query()->where('status', 'pending')->where('expires_at', '>', now())->find($context['handle_proposal_id']);
+            if (! $proposal || ! $user->email_verified_at || ! GuardianLink::query()->where('learner_id', $proposal->learner_id)
+                ->where('guardian_user_id', $user->id)->where('status', 'active')->where('can_approve', true)->exists()) {
+                return false;
+            }
+        }
+        if (isset($context['register_learner_id'])) {
+            $learner = Students::find($context['register_learner_id']);
+            if ($learner === null || ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id)) {
+                return false;
+            }
+        }
+        if (isset($context['register_entry_id'])) {
+            $entry = AttendanceEntry::with('register', 'learner')->find($context['register_entry_id']);
+            $kind = $context['register_notice_kind'] ?? null;
+            if ($entry === null || $entry->register === null || (int) $entry->learner_id !== (int) ($context['register_learner_id'] ?? 0)
+                || $entry->revision !== (int) ($context['register_entry_revision'] ?? 0)
+                || ! in_array($kind, ['absence', 'amended'], true)
+                || $type !== ($kind === 'absence' ? 'attendance.absence' : 'academics.register_amended')
+                || ! app(RegisterRosters::class)->learners($entry->register)->contains('id', $entry->learner_id)) {
+                return false;
+            }
+            if ($kind === 'absence' && ($entry->register->timetable_lesson_id !== null || $entry->state !== 'absent'
+                || isset(Leave::approvedTypesForDate($entry->register->on_date->toDateString())[$entry->learner->user_id]))) {
+                return false;
+            }
+        }
+        if (str_starts_with($type, 'communication.') && ! app(MessageDelivery::class)->allows($user, $type, $context)) {
+            return false;
+        }
+        if (isset($context['content_version_id'])) {
+            if ($type !== 'academics.content_published' || ! isset($context['content_learner_id'])) {
+                return false;
+            }
+            try {
+                app(ContentPolicy::class)->reader($user, (int) $context['content_learner_id'], (int) $context['content_version_id']);
+            } catch (HttpExceptionInterface|ModelNotFoundException) {
+                return false;
+            }
+        }
+        if (isset($context['report_card_id'])) {
+            $card = ReportCard::with('batch')->find($context['report_card_id']);
+            $learner = $card === null ? null : Students::find($card->learner_id);
+            if ($type !== 'academics.report_published' || $card === null || $learner === null || $card->batch?->state !== 'released'
+                || $card->generated_fingerprint !== $card->batch->fingerprint || (int) $card->learner_id !== (int) ($context['report_learner_id'] ?? 0)
+                || ((int) $learner->user_id !== (int) $user->id && ! app(GuardianService::class)->guardianUserIds($learner)->contains((int) $user->id))) {
+                return false;
+            }
+        }
+        if (! app(PrivateNoticeScopes::class)->permitsDelivery($user, $type, $context)) {
+            return false;
+        }
+        if (str_starts_with($type, 'transfer.') && ! app(TransferNotices::class)->allows($user, $type, $context)) {
+            return false;
+        }
+        if (str_starts_with($type, 'progress.') && ! app(ProgressNotices::class)->allows($user, $type, $context)) {
+            return false;
+        }
+        if (str_starts_with($type, 'pastoral.cover') && ! app(CoverNotices::class)->allows($user, $type, $context)) {
+            return false;
+        }
+
+        return true;
     }
 }

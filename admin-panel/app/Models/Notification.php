@@ -15,7 +15,9 @@ class Notification extends Model
     use BelongsToSchool, HasFactory;
     use SoftDeletes;
 
-    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'preferences_enforced', 'delivery_payload', 'source_key'];
+    // The layered columns stay out of the v1 lists: the body is read only
+    // through the freshly checked v2 detail (NotificationInbox::show).
+    protected $hidden = ['deleted_at', 'created_at', 'updated_at', 'preferences_enforced', 'delivery_payload', 'source_key', 'excerpt', 'body', 'target'];
 
     protected function casts(): array
     {
