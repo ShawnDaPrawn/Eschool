@@ -248,6 +248,14 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### POPIA data requests
+
+`platform_data_requests` is required school-owned (a foreign key to the school
+the request is about). HQ logs, reads and closes rows across schools from
+`/saas`; the school reads only its own rows, and only once HQ has passed them
+on, on its Data requests page. The requester's details and every note are
+encrypted at rest ([data requests](data-requests.md)).
+
 ### HQ incident register
 
 `platform_incidents` and `platform_incident_entries` are global: Navigate Ed's

@@ -23,6 +23,15 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- **POPIA data requests (HQ and school panel).** When someone asks Navigate Ed
+  to see, correct or delete their personal information, or objects to how it
+  is used, HQ logs the request with a deadline (30 days by default) and passes
+  it to the school, the responsible party. The school's Super Admins are told
+  without anyone being named. They see the request under Settings > Policies >
+  Data requests and record how they answered. HQ follows each request to its
+  deadline, with overdue ones marked, and closes it. The requester's details
+  are encrypted, and the audit log records no names. **Deploy:** run the
+  migrations.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

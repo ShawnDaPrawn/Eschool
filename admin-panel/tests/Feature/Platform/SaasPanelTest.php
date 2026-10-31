@@ -224,7 +224,7 @@ class SaasPanelTest extends TestCase
                 $this->assertNotEmpty(array_filter($middleware, fn ($name) => is_string($name) && str_starts_with($name, 'platform.can:')), $route->uri().' names the ability its role must hold');
             }
         }
-        $this->assertSame(36, $count);
+        $this->assertSame(42, $count);
     }
 
     public function test_a_role_free_platform_operator_can_sign_in_without_receiving_school_access(): void
