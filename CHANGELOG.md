@@ -23,6 +23,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: each school's mail now goes out on two Amazon SES streams, one for
+  account and safety mail (sign-in links, password resets, invitations, welcome
+  mails, safeguarding alerts, urgent notices and absence alerts) and one for
+  everything else, each through the school's own SES configuration set, so one
+  school's newsletter bounces can no longer hold up another school's or its own
+  password resets. HQ's new "Mail streams" page (/saas/mail-streams) shows each
+  school's streams, whether SES lets them send, any tenant pause SES reports,
+  and 30 days of bounce and complaint rates flagged at SES's review and pause
+  levels; Operations can set up or check a school's streams there. Off until
+  `MAIL_SES_STREAMS` is switched on. **Deploy:** run the migrations. Before
+  switching on, see engineering/specs/platform/ses-streams.md (VDM cost check,
+  SES key permissions, leave `AWS_SES_CONFIGURATION_SET` empty, then run
+  `php artisan mail:ensure-streams`).
+
 - Admin panel: schools can send their notices from their own domain. Under
   Settings, "Email from your domain", the school's Super Admin enters the domain,
   sees the exact DNS records to add (three DKIM records, the bounce MX and SPF

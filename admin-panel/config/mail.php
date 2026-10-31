@@ -135,6 +135,55 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | SES streams (Action Plan 2.3)
+    |--------------------------------------------------------------------------
+    |
+    | Each school sends through two Amazon SES configuration sets: "account"
+    | (sign-in, passwords, invitations, welcome mails and safety notices) and
+    | "bulk" (every other notice), named <prefix>-s<school id>-<stream>, plus a
+    | platform pair <prefix>-platform-<stream> for mail without a school. Each
+    | set publishes deliveries, bounces, complaints and rejects to the SNS topic
+    | POST /webhook/mail/ses already reads, and has Virtual Deliverability
+    | Manager options on. Off by default: while off no SES client is built,
+    | mail:ensure-streams does nothing and mail carries no configuration set.
+    | With it on, leave AWS_SES_CONFIGURATION_SET unset.
+    | engineering/specs/platform/ses-streams.md.
+    |
+    */
+
+    'streams' => [
+        'enabled' => (bool) env('MAIL_SES_STREAMS', false),
+
+        // Keeps staging and production apart in one SES account (letters, digits, hyphens).
+        'prefix' => (string) env('MAIL_SES_STREAMS_PREFIX', 'ne'),
+
+        // The SNS topic the sets publish to; it must be one of
+        // services.ses_notifications.topic_arns (the first one when unset).
+        'event_topic_arn' => env('MAIL_SES_STREAMS_TOPIC_ARN'),
+
+        // Notification types sent on the account stream. Every mail that is
+        // not a notice (passwords, invitations, welcome mails, admissions
+        // replies) is account mail too. Other notices are bulk.
+        'account_types' => ['account.*', 'approval.*', 'safeguarding.alert', 'comms.urgent', 'attendance.absence'],
+
+        // VDM engagement tracking (opens and clicks) per stream. Off for the
+        // account stream, so sign-in, password and invitation links are never
+        // rewritten through a tracking domain. Optimised shared delivery is on
+        // for both.
+        'engagement_tracking' => ['account' => false, 'bulk' => true],
+
+        // The /saas mail streams page: rates over this many days, flagged from
+        // this many messages, at SES's review and pause levels.
+        'report_days' => 30,
+        'report_minimum' => 50,
+        'bounce_review' => 0.05,
+        'bounce_pause' => 0.10,
+        'complaint_review' => 0.001,
+        'complaint_pause' => 0.005,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
     |

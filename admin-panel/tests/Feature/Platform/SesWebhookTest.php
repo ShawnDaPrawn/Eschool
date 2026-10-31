@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Models\Platform\MailStream;
 use App\Models\Platform\NotificationDelivery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Transport\SesTransport;
@@ -165,6 +166,44 @@ class SesWebhookTest extends TestCase
         ]);
         $this->postSns($evil)->assertStatus(400);
         Http::assertNotSent(fn ($request) => str_contains($request->url(), 'internal.example.com'));
+    }
+
+    public function test_a_tenant_sending_status_event_is_recorded_on_that_schools_streams_only(): void
+    {
+        config(['mail.streams.prefix' => 'ne']);
+        foreach ([[1, 'account'], [1, 'bulk'], [2, 'account'], [2, 'bulk']] as [$school, $stream]) {
+            MailStream::query()->create(['school_id' => $school, 'stream' => $stream, 'configuration_set' => "ne-s{$school}-{$stream}", 'status' => 'ready']);
+        }
+        // The event SES publishes to EventBridge (an EventBridge rule sends it to our SNS topic).
+        $event = fn (string $type, string $status, string $tenant, string $time) => $this->notification([
+            'version' => '0', 'id' => (string) Str::uuid(), 'detail-type' => $type, 'source' => 'aws.ses', 'account' => '123456789012',
+            'time' => $time, 'region' => 'af-south-1', 'resources' => ["arn:aws:ses:af-south-1:123456789012:tenant/{$tenant}/tn-0123456789abcdef"],
+            'detail' => ['version' => '1.0.0', 'data' => ['origin' => 'CUSTOMER_MANAGED', 'record' => ['status' => $status, 'cause' => 'Reputation policy: high bounce rate.', 'lastUpdatedTimestamp' => [2026, 10, 31, 9, 0, 0, 0]]]],
+        ]);
+
+        $paused = $event('Sending Status Disabled', 'DISABLED', 'ne-s1', '2026-10-31T09:00:00Z');
+        $this->postSns($paused)->assertOk()->assertJson(['message' => 'Recorded']);
+        $this->assertSame(['DISABLED', 'DISABLED'], MailStream::query()->where('school_id', 1)->orderBy('stream')->pluck('tenant_status')->all());
+        $row = MailStream::query()->where('configuration_set', 'ne-s1-bulk')->sole();
+        $this->assertSame(['CUSTOMER_MANAGED', 'Reputation policy: high bounce rate.', '2026-10-31T09:00:00Z'], [$row->tenant_status_origin, $row->tenant_status_cause, $row->tenant_status_at->utc()->format('Y-m-d\TH:i:s\Z')]);
+        $this->assertSame([null, null], MailStream::query()->where('school_id', 2)->pluck('tenant_status')->all());
+        $this->assertSame(2, DB::table('audit_log')->where('action', 'mail_stream.tenant_status')->where('school_id', 1)->count());
+        $this->postSns($paused)->assertOk()->assertJson(['message' => 'Already processed']);
+
+        // Reinstated comes as "Sending Status Disabled" with status REINSTATED; an older event never replaces a newer one.
+        $this->postSns($event('Sending Status Disabled', 'REINSTATED', 'ne-s1', '2026-10-31T10:00:00Z'))->assertOk();
+        $this->postSns($event('Sending Status Enabled', 'ENABLED', 'ne-s1', '2026-10-31T08:00:00Z'))->assertOk()->assertJson(['message' => 'Ignored']);
+        $this->assertSame('REINSTATED', MailStream::query()->where('configuration_set', 'ne-s1-account')->sole()->tenant_status);
+
+        // Tenants that are not one of ours, other SES events and unsigned copies change nothing.
+        $this->postSns($event('Sending Status Disabled', 'DISABLED', 'someone-else', '2026-10-31T11:00:00Z'))->assertOk()->assertJson(['message' => 'Ignored']);
+        $this->postSns($event('Sending Status Disabled', 'DISABLED', 'ne-s2x', '2026-10-31T11:00:00Z'))->assertOk()->assertJson(['message' => 'Ignored']);
+        $this->postSns($event('Advisor Recommendation Status Open', 'DISABLED', 'ne-s2', '2026-10-31T11:00:00Z'))->assertOk()->assertJson(['message' => 'Ignored']);
+        $tampered = $event('Sending Status Disabled', 'DISABLED', 'ne-s1', '2026-10-31T12:00:00Z');
+        $tampered['Message'] = str_replace('tenant\\/ne-s1\\/', 'tenant\\/ne-s2\\/', $tampered['Message'], $replaced);
+        $this->assertSame(1, $replaced);
+        $this->postSns($tampered)->assertStatus(401);
+        $this->assertSame([null, null], MailStream::query()->where('school_id', 2)->pluck('tenant_status')->all());
     }
 
     public function test_a_body_that_is_not_an_sns_message_is_refused(): void
