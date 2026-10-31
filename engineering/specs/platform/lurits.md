@@ -36,8 +36,8 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 
 ## Follow-ups (later changes)
 
-1. Panel and app display: LURITS first on learner profiles, report cards, transfer and exit packages; the NavigateEd number labelled temporary when no LURITS exists.
-2. API: additive `lurits_number` and `primary_identifier` on v2 learner resources (OpenAPI and generated SDK).
+1. ~~Panel and app display~~: panel and documents done, see "Headline number" below; the Flutter profile screens (`packages/eschool_people`) remain.
+2. ~~API~~: `primary_identifier` added to the v2 learner resources, see "Headline number" below (no separate `lurits_number` field: `primary_identifier` carries it). The generated Dart SDK (`packages/eschool_api`) still needs regenerating.
 3. ~~Entry and edit in the panel~~: done, see "School office and HQ claims" below (a page by admission number; the learner profile screen remains).
 4. Admissions, mid-year Join and onboarding imports match on LURITS before creating a learner.
 5. SA-SAMS exports keyed on LURITS, replacing the manual `learner_refs` map.
@@ -70,3 +70,87 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 | No numbers; Ben at School B holds 8800000002 | the office opens the page, records Asha's number with spaces, records it again, claims Ben's number for Cara, uses an unknown admission number, a too-short number, a School B admission number | 0 of 3, Asha listed; recorded and normalised; "already has"; a warning, not written, the claim listed without naming School B; errors for the rest |
 | A teacher | the page or a record | 403; nothing written |
 | Cara's claim on Ben's number | Support opens HQ; closes it as corrected; closes it again; Sales opens HQ | both school names, the source, no learner name, number or admission number; closed and audited; 409; 403 |
+
+## Headline number (Action Plan 1.0b)
+
+The LURITS number is the number a learner is known by wherever NavigateEd identifies them (ADR 0007). When a learner has no LURITS number yet, the NavigateEd number (ADR 0005) is shown in its place, labelled **NavigateEd number (temporary)**. The school's own admission number stays, shown after it as **Admission number**.
+
+### User stories
+
+- As the school office, when I open a learner's profile or report page I see their LURITS number first, so I can quote the number the Department and other schools use.
+- As a guardian who approves for my child, the app can show my child's LURITS number.
+- As a receiving school, a transfer package names the learner by LURITS number, so I can match the learner to the Department's records.
+- As a learner leaving, my report cards, exit archive and leaving certificate carry my LURITS number.
+
+### Rules
+
+- **The headline identifier** is `LuritsNumbers::primary()`: `{type: 'lurits', value}` when a LURITS number is recorded, else `{type: 'navigateed', value}` with the NavigateEd number, else null.
+- **Who sees it on screens and in the API** (`App\Services\Platform\Identity\LearnerIdentifiers`), at the learner's own school only:
+  - the learner;
+  - a guardian with an **active guardian link that may approve** (`can_approve`);
+  - staff with **profile permission** (`profile-person-view` or `profile-person-edit`).
+  - Everyone else gets null: a guardian whose link may not approve, a parent known only from the legacy father/mother/guardian fields (no guardian link yet), a teacher without profile permission (who may still open the profile of a learner they teach), and Navigate Ed staff during impersonation.
+- **Documents** carry the headline identifier for whoever the document is issued to, because they are the school's official records of the learner:
+  - report card PDFs (read when the PDF is made, held only in the encrypted PDF, never in the card payload or its fingerprint);
+  - transfer packages (frozen in the encrypted, signed package contents the guardian consents to);
+  - exit archives (in the signed `manifest.json` with the admission number, read when the archive is built; the stored manifest and archive are encrypted);
+  - the leaving certificate (row 2, before date of birth; staff with `generate-document`).
+- **Never** in notifications, URLs, logs, audit rows or AI context. No v1 API change.
+- `admission_no` is unchanged and still the school's own number.
+
+### Where it shows
+
+| Place | What changed |
+| --- | --- |
+| Panel: person profile (`/people-profiles/{person}`, learner profile) | Headline number, then admission number, under the page title |
+| Panel: student report (`/student-report/{id}`) | The header's "ID: admission number" becomes headline number, then admission number |
+| Panel: school transfers workbench | The package's headline number replaces "Student number"; packages prepared before this change still show the student number |
+| Report card PDF (`academics.reports.pdf`) | A line under the learner's name: headline number · admission number |
+| Transfer package contents (`navigateed-school-transfer-v1`) | New `primary_identifier` |
+| Exit archive manifest (`navigateed-academic-exit-v1`) | New `primary_identifier` and `admission_no` |
+| Leaving certificate PDF | New row 2; "GR Number" becomes "GR Number (admission number)" |
+| API v2 `GET /me/profile`, `GET /people/{person}/profile` (ProfileForm) | New `primary_identifier` (null for non-learner profiles) |
+| API v2 `GET /me/context` children (Child) | New `primary_identifier` |
+| API v2 `GET /guardian/approvals` (ApprovalLearner) | New `primary_identifier` |
+| API v2 `GET /wellbeing/configuration` learner choices (WellbeingLearnerChoice) | New `primary_identifier` |
+
+The API field is additive and optional in `openapi.yaml` (`LearnerPrimaryIdentifier`, or null): no field is removed or renamed.
+
+### Data
+
+No new tables or migrations. `LuritsNumbers::primaryForUsers()` reads many people's numbers in one query for lists (the app context's children, the wellbeing learner picker); it does not check the school, so only `LearnerIdentifiers` and the context's own authorised children call it.
+
+### Acceptance tests
+
+`People/LuritsHeadlineTest`:
+
+| Test | Checks |
+| --- | --- |
+| `test_the_panel_profile_shows_lurits_first_then_the_admission_number` | Profile and student report pages show "LURITS number", the number, then "Admission number" and GR-ASHA; no School B number |
+| `test_the_panel_labels_the_navigateed_number_as_temporary_without_lurits` | Cara: "NavigateEd number (temporary)", her number, then her admission number |
+| `test_a_teacher_without_profile_permission_sees_only_the_admission_number_in_the_panel` | Tara sees the admission number, not the LURITS number |
+| `test_the_learner_and_an_approving_guardian_get_the_number_in_the_api` | Asha (me/profile), Farid with an approving link (person profile, approvals, context child); Cara, known to Farid only from the legacy father field, gets null |
+| `test_a_guardian_without_approval_rights_gets_null` | Mona (link without `can_approve`): null on profile and context, the number absent from the responses, no approvals listed |
+| `test_staff_with_profile_permission_get_it_and_a_teacher_without_it_gets_null` | Super Admin gets LURITS and the temporary number; Tara gets null on a learner profile she may open; staff profiles have null; staff lists follow the same rule |
+| `test_another_schools_learner_is_not_found_and_its_number_never_appears` | School B's learner: 404 on API and panel profile and report page, null even for a model loaded in School B; School B's number in no School A response |
+| `test_the_number_stays_out_of_the_audit_log_and_the_application_log` | Reads write nothing with the number to `audit_log` or the log file |
+| `test_the_leaving_certificate_names_the_learner_by_lurits_first_or_the_temporary_number` | Row 2 is the LURITS number (Asha) or the temporary number (Cara), then the GR (admission) number |
+| `test_a_teacher_cannot_print_a_leaving_certificate` | Refused, no PDF made |
+
+Also:
+
+| Test | Checks |
+| --- | --- |
+| `Academics/TransitionEngineTest::test_report_cards_and_exit_archives_name_the_learner_by_lurits_first` | Report card page: temporary number, then LURITS once recorded, with the admission number; not in the card payload; exit manifest `primary_identifier` and `admission_no`; never in the stored manifest or archive in the clear; no School B number |
+| `Transfers/SchoolTransferTest::test_the_package_and_the_panel_name_the_learner_by_lurits_first` | Package contents and the workbench: temporary number, then LURITS; encrypted at rest; the receiving school's incoming view shows it |
+| `Contracts/OpenApiContractTest::test_learner_headline_numbers_match_the_spec` | LURITS, temporary and null shapes match `openapi.yaml` on profile, person profile, approvals and context |
+| `Wellbeing/WellbeingApiTest::test_management_choices_are_named_and_do_not_grant_report_or_case_body_access` | The learner picker carries the LURITS number for the Super Admin |
+
+### Not in this step
+
+- The Flutter profile screens (`packages/eschool_people`) and the generated Dart SDK (`packages/eschool_api`, `tool/generate.sh`): no Dart toolchain here. The new field is optional, so the current SDK keeps working.
+- `primary_identifier` on the other v2 resources that carry `student_number` (transfer summaries and details, transition learners, the mark matrix): their callers include teachers without profile permission, so each needs its own visibility decision.
+- Panel screens left as they are: the student list and its edit dialog (`students/details`, `students/stu-detail`), the academic transitions workbench (it reads the v2 transitions resource), ID cards, the bonafide certificate, and exam result sheets.
+- Re-making existing documents: a report card PDF generated before this change has no number line, and a card keeps the number it was made with, until the PDF is regenerated; transfer packages prepared before this change have no `primary_identifier` (the workbench shows their student number).
+- Report cards can be downloaded by any linked guardian, including one who may not approve, so such a guardian can read the LURITS number printed on the card. The product owner should confirm this for documents, or ask for cards to leave it out.
+

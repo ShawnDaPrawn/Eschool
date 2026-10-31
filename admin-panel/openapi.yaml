@@ -35456,6 +35456,21 @@ components:
         approved_by_count:
           type: integer
           minimum: 0
+    LearnerPrimaryIdentifier:
+      type: object
+      additionalProperties: false
+      description: A learner's headline number. `lurits` is the LURITS number; `navigateed` is the NavigateEd number (ADR 0005), shown as "NavigateEd number (temporary)" until a LURITS number is recorded.
+      required:
+      - type
+      - value
+      properties:
+        type:
+          type: string
+          enum:
+          - lurits
+          - navigateed
+        value:
+          type: string
     ApprovalLearner:
       type: object
       additionalProperties: false
@@ -35478,6 +35493,11 @@ components:
           type:
           - string
           - 'null'
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
         school:
           $ref: '#/components/schemas/SchoolSummary'
     GuardianConsent:
@@ -36144,6 +36164,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProfileFormCategory'
+        primary_identifier:
+          description: For a learner profile, the learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) for other profile types, or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
     ProfileDefinition:
       type: object
       additionalProperties: false
@@ -36593,6 +36618,11 @@ components:
           type:
           - string
           - 'null'
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
         approved:
           type: boolean
         homeroom:
@@ -46165,6 +46195,11 @@ components:
           type: string
         admission_no:
           type: string
+        primary_identifier:
+          description: The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+          anyOf:
+          - $ref: '#/components/schemas/LearnerPrimaryIdentifier'
+          - type: 'null'
     WellbeingCategory:
       type: object
       additionalProperties: false

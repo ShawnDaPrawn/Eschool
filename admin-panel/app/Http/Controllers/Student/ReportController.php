@@ -23,6 +23,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\Term;
 use App\Services\OnlineExamScoringService;
+use App\Services\Platform\Identity\LearnerIdentifiers;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -138,6 +139,8 @@ class ReportController extends Controller
     {
         return [
             'student' => $student,
+            // The headline number first (ADR 0007), for staff with profile permission.
+            'identifier' => app(LearnerIdentifiers::class)->forLearner(Auth::user(), $student),
             'attendance' => collect(),
             'examDetail' => collect(),
             'leaveDetail' => collect(),
