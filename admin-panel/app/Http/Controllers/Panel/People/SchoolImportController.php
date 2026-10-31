@@ -78,6 +78,7 @@ class SchoolImportController extends Controller
             ? __(':created learners imported, :linked guardian links made, :invited guardians invited and :lurits LURITS numbers recorded.', [
                 'created' => $counts['created'], 'linked' => $counts['guardians_linked'], 'invited' => $counts['guardians_invited'], 'lurits' => $counts['lurits_recorded']])
                 .($counts['lurits_claimed'] > 0 ? ' '.trans_choice(':count LURITS number is already registered to another learner and waits for Navigate Ed support.|:count LURITS numbers are already registered to other learners and wait for Navigate Ed support.', $counts['lurits_claimed']) : '')
+                .($counts['lurits_kept'] > 0 ? ' '.trans_choice(':count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.', $counts['lurits_kept']) : '')
             : __(':created homerooms imported.', ['created' => $counts['created']]));
 
         return redirect()->route('school-imports.index', ['kind' => $kind])->with('success', $message);

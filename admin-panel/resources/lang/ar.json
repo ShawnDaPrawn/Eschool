@@ -4795,5 +4795,6 @@
     "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.": "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.",
     "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.": "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.",
     "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.": "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.",
-    "Already at the school. Their LURITS number will be recorded.": "Already at the school. Their LURITS number will be recorded."
+    "Already at the school. Their LURITS number will be recorded.": "Already at the school. Their LURITS number will be recorded.",
+    ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.": ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept."
 }

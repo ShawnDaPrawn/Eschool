@@ -32,6 +32,9 @@ class LuritsNumbers
 
     public const CONFLICT = 'conflict';
 
+    /** recordIfUnset(): the learner already has a different number, which is kept. */
+    public const KEPT = 'kept';
+
     /** The platform_counters row that serialises claims. */
     public const CLAIMS_LOCK = 'lurits_claims';
 
@@ -64,7 +67,7 @@ class LuritsNumbers
      * is not written: a conflict is opened for review and CONFLICT is returned,
      * without revealing who holds it or at which school.
      */
-    public function record(Students $learner, string $number, string $source, ?User $actor = null): string
+    public function record(Students $learner, string $number, string $source, ?User $actor = null, bool $onlyIfUnset = false): string
     {
         $number = self::normalise($number);
         if (! self::valid($number)) {
@@ -78,7 +81,7 @@ class LuritsNumbers
 
         // A deadlock in an outermost transaction is retried, and the retry
         // rechecks the holder, so a lost race answers CONFLICT.
-        return DB::transaction(function () use ($learner, $number, $source, $actor, $hash) {
+        return DB::transaction(function () use ($learner, $number, $source, $actor, $hash, $onlyIfUnset) {
             $this->ownedHere($learner);
             // One claim at a time, platform-wide: two schools recording the same
             // unused number at once must not both pass the holder check, and
@@ -86,6 +89,11 @@ class LuritsNumbers
             $this->lockClaims();
             app(StudentNumbers::class)->assign($learner);
             $identity = DB::table('learner_identifiers')->where('user_id', $learner->user_id)->lockForUpdate()->first();
+            // Checked under the row lock, so a number recorded meanwhile (for
+            // example by the office during an import) is never replaced.
+            if ($onlyIfUnset && $identity->lurits_hash !== null && $identity->lurits_hash !== $hash) {
+                return self::KEPT;
+            }
             $holder = DB::table('learner_identifiers')->where('lurits_hash', $hash)->lockForUpdate()->value('user_id');
 
             if ($holder !== null && (int) $holder !== (int) $learner->user_id) {
@@ -114,6 +122,16 @@ class LuritsNumbers
 
             return self::RECORDED;
         }, 3);
+    }
+
+    /**
+     * As record(), but only when the learner has no number yet: a different
+     * number already recorded is kept and KEPT is returned, nothing written
+     * and no claim raised. Used by imports, which never correct a number.
+     */
+    public function recordIfUnset(Students $learner, string $number, string $source, ?User $actor = null): string
+    {
+        return $this->record($learner, $number, $source, $actor, true);
     }
 
     /** The learner's LURITS number, or null when none is recorded. */

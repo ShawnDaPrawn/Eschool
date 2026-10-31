@@ -191,15 +191,17 @@ final class LearnerImport implements OnboardingImport
         $school = app(CurrentSchool::class)->id();
         $invite = [];
         $source = ! empty($options['from_sasams']) ? 'sasams_import' : 'onboarding_import';
-        $counts = ['created' => 0, 'guardians_linked' => 0, 'lurits_recorded' => 0, 'lurits_claimed' => 0];
+        $counts = ['created' => 0, 'guardians_linked' => 0, 'lurits_recorded' => 0, 'lurits_claimed' => 0, 'lurits_kept' => 0];
         foreach ($rows as $row) {
             if ($row['status'] === 'lurits') {
                 // A learner already here gets the file's number, or the number
                 // is raised as a claim when another learner holds it (1.0d).
+                // A number recorded since the check (by the office) is kept.
                 $learner = Students::query()->findOrFail($row['data']['learner_id']);
-                $result = app(LuritsNumbers::class)->record($learner, $row['data']['lurits'], $source, $actor);
+                $result = app(LuritsNumbers::class)->recordIfUnset($learner, $row['data']['lurits'], $source, $actor);
                 $counts['lurits_recorded'] += $result === LuritsNumbers::RECORDED ? 1 : 0;
                 $counts['lurits_claimed'] += $result === LuritsNumbers::CONFLICT ? 1 : 0;
+                $counts['lurits_kept'] += $result === LuritsNumbers::KEPT ? 1 : 0;
 
                 continue;
             }

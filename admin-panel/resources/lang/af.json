@@ -5868,5 +5868,6 @@
     "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.": "Reeds by die skool met 'n ander LURITS-nommer, wat behou word. As die lêer reg is, korrigeer dit op die LURITS-nommers-blad.",
     "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.": "Reeds by die skool. Hierdie LURITS-nommer wag vir Navigate Ed-ondersteuning om dit na te gaan.",
     "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.": "Reeds by die skool. Hierdie LURITS-nommer is reeds op 'n ander leerder geregistreer, dus word dit nie aangeteken nie: Navigate Ed-ondersteuning sal dit nagaan. As die leerder van 'n ander skool af kom, begin 'n oorplasingsversoek.",
-    "Already at the school. Their LURITS number will be recorded.": "Reeds by die skool. Hul LURITS-nommer sal aangeteken word."
+    "Already at the school. Their LURITS number will be recorded.": "Reeds by die skool. Hul LURITS-nommer sal aangeteken word.",
+    ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.": ":count leerder het intussen 'n ander LURITS-nommer gekry, wat behou word.|:count leerders het intussen 'n ander LURITS-nommer gekry, wat behou word."
 }

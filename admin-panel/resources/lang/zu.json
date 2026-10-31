@@ -5868,5 +5868,6 @@
     "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.": "Usesesikoleni ngenombolo ye-LURITS ehlukile, egcinwayo. Uma ifayela lilungile, yilungise ekhasini lezinombolo ze-LURITS.",
     "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.": "Usesesikoleni. Le nombolo ye-LURITS ilinde ukuthi ukwesekwa kwe-Navigate Ed kuyihlole.",
     "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.": "Usesesikoleni. Le nombolo ye-LURITS isibhaliselwe komunye umfundi, ngakho ngeke irekhodwe: ukwesekwa kwe-Navigate Ed kuzoyihlola. Uma umfundi ezojoyina evela kwesinye isikole, qala isicelo sokudluliselwa.",
-    "Already at the school. Their LURITS number will be recorded.": "Usesesikoleni. Inombolo yakhe ye-LURITS izorekhodwa."
+    "Already at the school. Their LURITS number will be recorded.": "Usesesikoleni. Inombolo yakhe ye-LURITS izorekhodwa.",
+    ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.": "Umfundi ongu-:count unikezwe enye inombolo ye-LURITS phakathi naleso sikhathi, egcinwayo.|Abafundi abangu-:count banikezwe enye inombolo ye-LURITS phakathi naleso sikhathi, egcinwayo."
 }

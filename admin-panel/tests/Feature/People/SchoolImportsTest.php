@@ -142,7 +142,7 @@ class SchoolImportsTest extends TestCase
         $this->assertSame(0, DB::table('lurits_conflicts')->where('school_id', 1)->count());
 
         $counts = $imports->commit($this->superAdmin(), 'learners', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
-        $this->assertSame(['created' => 1, 'guardians_linked' => 0, 'lurits_recorded' => 2, 'lurits_claimed' => 1, 'guardians_invited' => 0], $counts);
+        $this->assertSame(['created' => 1, 'guardians_linked' => 0, 'lurits_recorded' => 2, 'lurits_claimed' => 1, 'lurits_kept' => 0, 'guardians_invited' => 0], $counts);
 
         $asha = Students::query()->findOrFail($ids['asha']);
         $this->assertSame('7700000010', $numbers->forLearner($asha));
@@ -167,6 +167,36 @@ class SchoolImportsTest extends TestCase
         $again = $imports->check($this->superAdmin(), 'learners', $csv, null, $options);
         $this->assertSame(['exists', 'exists', 'exists', 'exists'], array_column($again['rows'], 'status'));
         $this->assertStringContainsString('waiting for Navigate Ed support', implode(' ', $again['rows'][1]['notes']));
+    }
+
+    public function test_a_lurits_number_the_office_records_after_the_check_is_kept_by_the_import(): void
+    {
+        $asha = Students::query()->findOrFail($this->schoolA->ids['asha']);
+        $numbers = app(LuritsNumbers::class);
+        $csv = "Admission No,First Name,Surname,Homeroom,LURITS Number\nGR-ASHA,Asha,Demo,Grade 5 A,7700000040\n";
+        $check = app(SchoolImports::class)->check($this->superAdmin(), 'learners', $csv, null, ['from_sasams' => true]);
+        $this->assertSame('lurits', $check['rows'][0]['status']);
+
+        // The office records another number after the import's recheck, just
+        // before the write: the import's own writes run with what it checked.
+        $numbers->record($asha, '7700000041', 'school_entry');
+        $audit = DB::table('audit_log')->count();
+        $counts = (new LearnerImport)->commit($this->superAdmin(), $check['rows'], $check['options']);
+
+        $this->assertSame(['created' => 0, 'guardians_linked' => 0, 'lurits_recorded' => 0, 'lurits_claimed' => 0, 'lurits_kept' => 1, 'guardians_invited' => 0], $counts);
+        $this->assertSame('7700000041', $numbers->forLearner($asha));
+        $this->assertSame('school_entry', DB::table('learner_identifiers')->where('user_id', $asha->user_id)->value('lurits_source'));
+        $this->assertSame($audit, DB::table('audit_log')->count());
+        $this->assertSame(0, DB::table('lurits_conflicts')->count());
+
+        // Directly: kept when different, unchanged when the same, recorded when unset.
+        $this->assertSame(LuritsNumbers::KEPT, $numbers->recordIfUnset($asha, '7700000042', 'sasams_import'));
+        $this->assertSame(LuritsNumbers::UNCHANGED, $numbers->recordIfUnset($asha, '7700000041', 'sasams_import'));
+        $ben = Students::query()->findOrFail($this->schoolA->ids['ben']);
+        $this->assertSame(LuritsNumbers::RECORDED, $numbers->recordIfUnset($ben, '7700000043', 'sasams_import'));
+        $this->assertSame('7700000041', $numbers->forLearner($asha));
+        // The office page still corrects a number.
+        $this->assertSame(LuritsNumbers::RECORDED, $numbers->record($asha, '7700000044', 'school_entry'));
     }
 
     public function test_the_panel_offers_the_sa_sams_source_and_imports_lurits_for_learners_already_here(): void
@@ -240,7 +270,7 @@ class SchoolImportsTest extends TestCase
         $check = $imports->check($this->superAdmin(), 'learners', $csv, null, ['starts_on' => now()->toDateString(), 'invite' => true]);
         $this->assertSame(['create' => 2, 'exists' => 1, 'transfer' => 0, 'error' => 0, 'lurits' => 0], $check['counts']);
         $counts = $imports->commit($this->superAdmin(), 'learners', $csv, $check['mapping'], $check['options'], $check['fingerprint']);
-        $this->assertSame(['created' => 2, 'guardians_linked' => 2, 'lurits_recorded' => 1, 'lurits_claimed' => 0, 'guardians_invited' => 2], $counts);
+        $this->assertSame(['created' => 2, 'guardians_linked' => 2, 'lurits_recorded' => 1, 'lurits_claimed' => 0, 'lurits_kept' => 0, 'guardians_invited' => 2], $counts);
 
         $thabo = Students::query()->where('admission_no', 'A100')->firstOrFail();
         $this->assertSame(['Thabo', 'Mokoena', '2015-03-09', 'male'], [$thabo->user->first_name, $thabo->user->last_name, substr((string) $thabo->user->dob, 0, 10), $thabo->user->gender]);

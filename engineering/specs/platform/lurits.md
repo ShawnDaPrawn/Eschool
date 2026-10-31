@@ -10,6 +10,7 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
   - `normalise()` removes spaces and dashes; `valid()` checks the configured pattern.
   - `record(learner, number, source, actor)` returns `recorded`, `unchanged` or `conflict`. It assigns the NavigateEd number first if needed, writes under a platform-wide claims lock (the `platform_counters` row `lurits_claims`, created by the migration and locked directly, so two schools claiming the same unused number at once get one `recorded` and one `conflict`, never a deadlock or unique-key error), audits hashes only, and opens one conflict per claim when another person holds the number. It refuses (404) a learner who is not in the current school, even a model loaded elsewhere.
   - `forLearner()`, `primary()` (LURITS, else the NavigateEd number labelled temporary) and `holderUserId()` for internal matching.
+  - `recordIfUnset()` (1.0d): as `record()`, but returns `kept` without writing (and without a claim) when the learner already has a different number. It checks under the `learner_identifiers` row lock, so a number recorded meanwhile is never replaced. Imports use it; the office page keeps `record()`, which corrects.
   - `forLearners()` (1.0d): the numbers of many learners at once, for exports. It refuses (404) if any learner is not in the current school.
 - Sources: `school_entry`, `sasams_import`, `onboarding_import`, `transfer`, `dbe_correction`.
 
