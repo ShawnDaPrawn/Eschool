@@ -453,6 +453,8 @@ return [
                             'active' => ['roles.*'], 'keywords' => ['role permission', 'staff roles', 'access', 'who can do what']],
                         ['key' => 'access-review', 'label' => 'nav_access_review', 'route' => 'access-review.index', 'permissions' => ['role-list'], 'module' => null,
                             'keywords' => ['who can see what', 'view as role', 'access check', 'permissions review']],
+                        ['key' => 'support-tickets', 'label' => 'nav_support_tickets', 'route' => 'support-tickets.index', 'permissions' => ['setting-create'], 'module' => null,
+                            'active' => ['support-tickets.*'], 'keywords' => ['help desk', 'navigate ed support', 'support ticket', 'report a problem', 'billing question']],
                     ],
                 ],
                 'messaging' => [

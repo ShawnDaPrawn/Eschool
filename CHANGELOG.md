@@ -23,6 +23,18 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel and Platform: a support desk. A school's Super Admin, or office
+  staff who look after the settings, open a support ticket to Navigate Ed
+  under Settings > Navigate Ed support (a question, a problem, a request or
+  billing; normal or urgent), read Navigate Ed's replies, add messages and
+  close it, and are told in the panel when Navigate Ed replies. In HQ, Owner,
+  Operations and Support work the queue at `/saas/support` (urgent first, then
+  oldest, with tickets changed since their last look marked new), reply, keep
+  internal notes the school never sees, assign tickets and set their status.
+  HQ's page for each school shows its open tickets, and its timeline notes
+  when a ticket opens and closes. Messages are encrypted and never written to
+  the audit log. **Deploy:** run the migrations.
+
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

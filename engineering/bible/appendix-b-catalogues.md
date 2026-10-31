@@ -469,3 +469,11 @@ Personal profiles use their current wallet/guardian scope; dedicated operators
 use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
+
+## Support desk
+
+Navigate Ed support replies: `school.support_reply` (school module, admin portal
+only, standard channel preferences) tells the school staff member who opened a
+support ticket that Navigate Ed replied. The notice carries the ticket's subject
+and a link to `/support-tickets/{id}` in the admin panel, never the message;
+internal notes and status changes send nothing.

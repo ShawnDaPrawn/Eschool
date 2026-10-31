@@ -255,3 +255,11 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Support desk
+
+`school_support_tickets` and `school_support_ticket_messages` are required
+school-owned: a school reads and writes only its own tickets (another school's
+id is a 404), and HQ reads them across schools from `/saas` and writes inside
+the ticket's school. `platform_support_views` is global: when each HQ staff
+member last opened the queue ([support desk](support-desk.md)).
