@@ -112,6 +112,9 @@ SECRET_STRIPE_WEBHOOK=navigateed-stripe-webhook-secret
 SECRET_RECAPTCHA=navigateed-recaptcha-secret-key
 SECRET_FCM=navigateed-fcm-service-account
 SECRET_DIARY_KEY=navigateed-diary-key
+# The one NavigateEd Twilio account for SMS and WhatsApp (Action Plan 2.7).
+SECRET_TWILIO_SID=navigateed-twilio-account-sid
+SECRET_TWILIO_TOKEN=navigateed-twilio-auth-token
 
 # Those secrets as "variable|secret|roles that mount it". Each is mounted once
 # it has a value: Cloud Run refuses a revision that mounts a secret without a
@@ -127,6 +130,8 @@ OPTIONAL_SECRETS=(
     "STRIPE_WEBHOOK_SECRET|$SECRET_STRIPE_WEBHOOK|web scheduler"
     "RECAPTCHA_SECRET_KEY|$SECRET_RECAPTCHA|web scheduler"
     "DIARY_KEY|$SECRET_DIARY_KEY|web scheduler"
+    "TWILIO_ACCOUNT_SID|$SECRET_TWILIO_SID|web worker scheduler"
+    "TWILIO_AUTH_TOKEN|$SECRET_TWILIO_TOKEN|web worker scheduler"
 )
 
 PROJECT_NUMBER="$("${G[@]}" projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)"

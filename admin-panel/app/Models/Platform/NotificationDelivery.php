@@ -7,7 +7,7 @@ namespace App\Models\Platform;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One attempt to deliver one mail or push message. Written only through
+ * One attempt to deliver one mail, push, SMS or WhatsApp message. Written only through
  * App\Services\Platform\Notifications\DeliveryLog.
  *
  * @property int $id
@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $provider_message_id
  * @property int $attempt
  * @property string|null $error_summary
+ * @property int|null $segments
+ * @property int|null $price_cents
+ * @property string|null $price_currency
  */
 class NotificationDelivery extends Model
 {
@@ -36,12 +39,17 @@ class NotificationDelivery extends Model
 
     public const COMPLAINED = 'complained';
 
+    /** SMS and WhatsApp: the carrier or WhatsApp could not deliver it. */
+    public const UNDELIVERED = 'undelivered';
+
     protected $guarded = ['id'];
 
     protected $casts = [
         'school_id' => 'integer',
         'recipient_user_id' => 'integer',
         'attempt' => 'integer',
+        'segments' => 'integer',
+        'price_cents' => 'integer',
         'queued_at' => 'datetime',
         'sent_at' => 'datetime',
         'failed_at' => 'datetime',

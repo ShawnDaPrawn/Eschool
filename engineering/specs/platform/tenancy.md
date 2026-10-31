@@ -255,3 +255,13 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### SMS and WhatsApp
+
+`school_messaging_settings` is required school-owned (one row per school, a
+foreign key to the school): each school's own SMS and WhatsApp opt-in, never
+another school's. Texted deliveries are `notification_deliveries` rows like mail
+and push, with the school they were sent for; HQ reads their counts and cost
+across schools. Guardians' numbers come from the school-owned `parents` row at
+the sending school, never from the shared `users` row
+([SMS and WhatsApp](sms-whatsapp.md)).
