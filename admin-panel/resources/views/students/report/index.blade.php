@@ -29,7 +29,7 @@
                 <img src="{{ $student->user?->image }}" class="sr-profile-avatar mr-3">
                 <div>
                     <h4>{{ $student->user?->full_name }}</h4>
-                    <small>ID: {{ $student->admission_no }}</small>
+                    <x-page.learner-identifiers :identifier="$identifier ?? null" :admission-no="$student->admission_no" />
                 </div>
             </div>
         </div>

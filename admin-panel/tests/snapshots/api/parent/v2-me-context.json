@@ -17,6 +17,7 @@
                     "image": "null",
                     "last_name": "string",
                     "name": "string",
+                    "primary_identifier": "null",
                     "school": {
                         "crest_url": "null",
                         "id": "number",

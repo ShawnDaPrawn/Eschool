@@ -48,6 +48,7 @@ use App\Services\People\Profiles\ProfileFiles;
 use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -397,6 +398,47 @@ class TransitionEngineTest extends TestCase
         $meta = app(ExitPackages::class)->data($this->superAdmin(), $row->fresh());
         $this->assertSame($verification['public_key'], $meta['signing_public_key']);
         $this->assertNotNull($meta['download_url']);
+    }
+
+    /** Action Plan 1.0b: engineering/specs/platform/lurits.md, "Headline number". */
+    public function test_report_cards_and_exit_archives_name_the_learner_by_lurits_first(): void
+    {
+        Storage::fake(ExitArtifacts::DISK);
+        Queue::fake();
+        app(CurrentSchool::class)->run(2, fn () => app(LuritsNumbers::class)->record(Students::findOrFail($this->schoolB->ids['asha']), '8800000009', 'sasams_import'));
+        $report = $this->releasedReport();
+        $card = ReportCard::with('batch', 'comments')->findOrFail($report);
+        // No LURITS yet: the NavigateEd number, labelled temporary, then the admission number.
+        $number = (string) DB::table('learner_identifiers')->where('user_id', $this->schoolA->ids['asha_user'])->value('student_number');
+        $this->assertNotSame('', $number);
+        $this->assertStringContainsString('NavigateEd number (temporary): '.$number.' · Admission number: GR-ASHA', app(ReportArtifacts::class)->html($card));
+
+        app(LuritsNumbers::class)->record(Students::findOrFail($this->schoolA->ids['asha']), '8800000001', 'school_entry');
+        $html = app(ReportArtifacts::class)->html($card);
+        $this->assertStringContainsString('LURITS number: 8800000001 · Admission number: GR-ASHA', $html);
+        $this->assertStringNotContainsString('NavigateEd number (temporary)', $html);
+        $this->assertStringNotContainsString('8800000009', $html);
+        // The number is read when the PDF is made, never stored in the card payload.
+        $this->assertStringNotContainsString('8800000001', json_encode($card->fresh()->payload, JSON_THROW_ON_ERROR));
+
+        $row = $this->exitPackage($this->exitSelection(['report_ids' => [$report]]));
+        app(ExitArtifacts::class)->generate((int) $row->id, $row->generation_id);
+        $path = tempnam(sys_get_temp_dir(), 'exit-test-');
+        try {
+            file_put_contents($path, app(ExitArtifacts::class)->read($this->superAdmin(), (int) $row->id));
+            $zip = new ZipArchive;
+            $this->assertTrue($zip->open($path));
+            $manifest = json_decode($zip->getFromName('manifest.json'), true, flags: JSON_THROW_ON_ERROR);
+            $zip->close();
+        } finally {
+            unlink($path);
+        }
+        $this->assertSame(['type' => 'lurits', 'value' => '8800000001'], $manifest['primary_identifier']);
+        $this->assertSame('GR-ASHA', $manifest['admission_no']);
+        $this->assertStringNotContainsString('8800000009', json_encode($manifest, JSON_THROW_ON_ERROR));
+        // Encrypted at rest: the stored manifest and the archive never hold the number in the clear.
+        $this->assertStringNotContainsString('8800000001', (string) DB::table('academic_exit_packages')->where('id', $row->id)->value('manifest'));
+        $this->assertStringNotContainsString('8800000001', Storage::disk(ExitArtifacts::DISK)->get($row->fresh()->artifact_path));
     }
 
     public function test_exit_source_changes_and_revoked_requesters_fail_without_publishing_a_partial_file(): void

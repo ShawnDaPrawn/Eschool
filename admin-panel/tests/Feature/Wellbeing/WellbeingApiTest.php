@@ -9,6 +9,7 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Platform\SchoolModule;
+use App\Models\Students;
 use App\Models\User;
 use App\Models\Wellbeing\CaseAssignment;
 use App\Models\Wellbeing\IncidentReport;
@@ -16,6 +17,7 @@ use App\Models\Wellbeing\IncidentThread;
 use App\Services\Facilitators\FacilitatorAccess;
 use App\Services\ParentPolicyService;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Wellbeing\WellbeingSettings;
 use Illuminate\Support\Facades\Hash;
@@ -102,6 +104,10 @@ class WellbeingApiTest extends TestCase
         $this->submit();
         $this->api($this->superAdmin())->getJson('/api/v2/wellbeing/access')->assertOk()->assertJsonPath('data.can_configure', true)->assertJsonPath('data.professional', false);
         $this->getJson('/api/v2/wellbeing/configuration')->assertOk()->assertJsonPath('data.professional_choices.0.name', 'Synthetic Professional');
+        // The learner picker names learners by the headline number for staff with profile permission (ADR 0007).
+        app(LuritsNumbers::class)->record(Students::findOrFail($this->schoolA->ids['asha']), '8800000001', 'school_entry');
+        $this->getJson('/api/v2/wellbeing/configuration')->assertOk()->assertJsonPath('data.learner_choices.0.id', $this->schoolA->ids['asha'])
+            ->assertJsonPath('data.learner_choices.0.admission_no', 'GR-ASHA')->assertJsonPath('data.learner_choices.0.primary_identifier', ['type' => 'lurits', 'value' => '8800000001']);
         $this->postJson('/api/v2/wellbeing/categories/'.$this->category['id'].'/team', $this->grant())->assertOk();
         $this->getJson('/api/v2/wellbeing/categories/'.$this->category['id'].'/team')->assertOk()->assertJsonPath('data.items.0.name', 'Synthetic Professional');
         $case = $this->postJson('/api/v2/wellbeing/management/cases', $this->operation(['learner_id' => $this->schoolA->ids['asha']]))->assertOk()->json('data');
