@@ -7256,6 +7256,51 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /communication/drafts/{message}/report:
+    get:
+      operationId: schoolMessageDeliveryReport
+      tags:
+      - Communication
+      summary: Delivery report for a published school message
+      description: Private no-store report for the message's author and the staff who may review it. Counts recipients,
+        read acknowledgements and each channel's state per person, and lists recipients by name only, 50 per page. Never
+        includes addresses, device tokens or provider errors. 404 until the message is published.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/ActivityGroupsCapability'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: message
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 10000
+      responses:
+        '200':
+          description: Delivery report for a published school message.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunicationMessageReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /communication/drafts/{message}/submit:
     post:
       operationId: submitSchoolMessage
@@ -43022,6 +43067,78 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/CommunicationMessagePreview'
+    CommunicationMessageReportResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          $ref: '#/components/schemas/CommunicationMessageReport'
+    CommunicationMessageReport:
+      type: object
+      additionalProperties: false
+      description: People are counted once per channel by their best result (one reached device is enough for push).
+      required: [id, title, published_at, recipient_count, read_count, not_notified, channels, page, last_page, items]
+      properties:
+        id: {type: integer}
+        title: {type: string}
+        published_at: {type: string, format: date-time}
+        recipient_count: {type: integer, minimum: 0}
+        read_count: {type: integer, minimum: 0}
+        not_notified:
+          type: integer
+          minimum: 0
+          description: Recipients whose own choices or access left no notification channel. They can still read the message in the app.
+        channels:
+          type: object
+          additionalProperties: false
+          required: [email, push]
+          properties:
+            email:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+            push:
+              $ref: '#/components/schemas/CommunicationDeliveryCounts'
+        page: {type: integer, minimum: 1}
+        last_page: {type: integer, minimum: 1}
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, read_at, notice, email, push]
+            properties:
+              name: {type: string}
+              read_at: {type: [string, 'null'], format: date-time}
+              notice: {type: string, enum: [pending, queued, none]}
+              email:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+              push:
+                type: [string, 'null']
+                enum: [delivered, sent, queued, bounced, complained, failed, suppressed, null]
+    CommunicationDeliveryCounts:
+          type: object
+          additionalProperties: false
+          required: [delivered, sent, queued, bounced, complained, failed, suppressed]
+          properties:
+            delivered: {type: integer, minimum: 0}
+            sent: {type: integer, minimum: 0}
+            queued: {type: integer, minimum: 0}
+            bounced: {type: integer, minimum: 0}
+            complained: {type: integer, minimum: 0}
+            failed: {type: integer, minimum: 0}
+            suppressed: {type: integer, minimum: 0}
     CommunicationMessageReaderResponse:
       type: object
       additionalProperties: false

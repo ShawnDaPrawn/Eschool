@@ -482,6 +482,8 @@ class OpenApiContractTest extends TestCase
             'getSchoolMessageEditor' => ['superadmin', 'GET', 'api/v2/communication/drafts/999999', [], 404],
             'saveSchoolMessageDraft' => ['superadmin', 'PUT', 'api/v2/communication/drafts/999999', [], 404],
             'previewSchoolMessage' => ['superadmin', 'GET', 'api/v2/communication/drafts/999999/preview', [], 404],
+            'schoolMessageDeliveryReport' => ['superadmin', 'GET', 'api/v2/communication/drafts/999999/report', [], 404],
+            'delivery report refused to a family' => ['farid', 'GET', 'api/v2/communication/drafts/999999/report', [], 403],
             'submitSchoolMessage' => ['superadmin', 'POST', 'api/v2/communication/drafts/999999/submit', [], 404],
             'decideSchoolMessage' => ['superadmin', 'POST', 'api/v2/communication/drafts/999999/decision', [], 404],
             'withdrawSchoolMessage' => ['superadmin', 'POST', 'api/v2/communication/drafts/999999/withdraw', [], 404],
