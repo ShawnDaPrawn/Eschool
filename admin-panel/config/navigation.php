@@ -460,6 +460,8 @@ return [
                     'items' => [
                         ['key' => 'email-setup', 'label' => 'nav_email_setup', 'route' => 'setting.email-config-index', 'permissions' => ['email-setting-create'], 'module' => null,
                             'keywords' => ['email configuration', 'smtp', 'mail server']],
+                        ['key' => 'sending-domain', 'label' => 'nav_sending_domain', 'route' => 'sending-domain.index', 'permissions' => ['setting-create'], 'module' => null,
+                            'active' => ['sending-domain.*'], 'keywords' => ['own domain', 'dkim', 'dns', 'from address', 'branded email', 'dmarc']],
                         ['key' => 'email-templates', 'label' => 'nav_email_templates', 'route' => 'email.Template', 'permissions' => ['email-setting-create'], 'module' => null,
                             'keywords' => ['email template', 'welcome email']],
                         ['key' => 'push-setup', 'label' => 'nav_push_setup', 'url' => 'fcm-settings', 'permissions' => ['fcm-setting-create'], 'module' => null,

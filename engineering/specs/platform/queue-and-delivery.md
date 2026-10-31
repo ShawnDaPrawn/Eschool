@@ -77,6 +77,7 @@ None: queueing and delivery are part of the kernel and always on.
 | `AWS_SES_REGION` | `config/services.php` | `af-south-1` | |
 | `AWS_SES_CONFIGURATION_SET` | `config/services.php` (`ses.options`) | empty | The configuration set that publishes Delivery, Bounce, Complaint and Reject to SNS. |
 | `SES_SNS_TOPIC_ARNS` | `config/services.php` (`ses_notifications.topic_arns`) | empty (webhook refuses everything) | Comma-separated. |
+| `MAIL_SENDING_DOMAINS`, `MAIL_SENDING_DOMAINS_RESERVED` | `config/mail.php` (`sending_domains`) | `false`; `navigateed.co.za,amazonses.com` | A school's notices (`NotificationMail`) come from its own verified domain; `SendMail` decides the From at send time ([sending domains](sending-domains.md)). |
 
 ## Security notes
 

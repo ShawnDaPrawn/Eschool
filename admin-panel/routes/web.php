@@ -130,6 +130,7 @@ use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
+use App\Http\Controllers\School\SendingDomainController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SessionYearController;
 use App\Http\Controllers\SettingController;
@@ -1308,6 +1309,11 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+    // The domain the school's notices are sent from (Action Plan 2.2); SendingDomainRequest checks the right.
+    Route::get('/sending-domain', [SendingDomainController::class, 'index'])->name('sending-domain.index');
+    Route::post('/sending-domain', [SendingDomainController::class, 'store'])->middleware('throttle:10,1')->name('sending-domain.store');
+    Route::post('/sending-domain/{sendingDomain}/check', [SendingDomainController::class, 'check'])->whereNumber('sendingDomain')->middleware('throttle:20,1')->name('sending-domain.check');
+    Route::delete('/sending-domain/{sendingDomain}', [SendingDomainController::class, 'destroy'])->whereNumber('sendingDomain')->middleware('throttle:10,1')->name('sending-domain.destroy');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {
