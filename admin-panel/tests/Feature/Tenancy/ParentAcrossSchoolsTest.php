@@ -11,6 +11,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -111,13 +112,35 @@ class ParentAcrossSchoolsTest extends TestCase
         }
         $this->assertSame([], $leaks);
 
-        // The same reads do answer for each child in their own school, so the refusals above are the school check, not a broken route.
-        $answered = 0;
-        foreach ($reads as $uri) {
-            $answered += $this->read($uri, $this->schoolB->ids['cara'], ['X-School-Id' => '2'])->getStatusCode() === 200 ? 1 : 0;
-            $answered += $this->read($uri, $this->schoolA->ids['asha'])->getStatusCode() === 200 ? 1 : 0;
-        }
-        $this->assertGreaterThanOrEqual(10, $answered, 'too few family reads answer in the child\'s own school');
+    }
+
+    /**
+     * Same-school controls: each of these family reads answers 200 for each
+     * child in that child's own school, so its refusal above is the school
+     * check, not a read that refuses every parent. The other reads in the
+     * sweep need module data the demo schools don't have (or are staff-only);
+     * for them the sweep proves only that they never answer across schools.
+     */
+    #[DataProvider('answeredReads')]
+    public function test_a_family_read_answers_for_each_child_in_their_own_school(string $uri): void
+    {
+        $this->withoutMiddleware([ThrottleRequests::class]);
+        $this->assertContains($uri, $this->familyReads(), 'the control route is no longer a family read');
+        $this->read($uri, $this->schoolA->ids['asha'])->assertOk()->assertDontSee(self::SCHOOL_B_MARKER);
+        $this->read($uri, $this->schoolB->ids['cara'], ['X-School-Id' => '2'])->assertOk()->assertDontSee('GR-ASHA');
+        // And each is refused for the other school's child in the same contexts.
+        $this->assertGreaterThanOrEqual(400, $this->read($uri, $this->schoolB->ids['cara'])->getStatusCode());
+        $this->assertGreaterThanOrEqual(400, $this->read($uri, $this->schoolA->ids['asha'], ['X-School-Id' => '2'])->getStatusCode());
+    }
+
+    /** @return array<string, array{string}> */
+    public static function answeredReads(): array
+    {
+        $uris = ['api/v2/academics/content/learners/{learner}', 'api/v2/academics/marks/learners/{learner}/periods',
+            'api/v2/academics/registers/learners/{learner}/qr', 'api/v2/academics/registers/learners/{learner}/today',
+            'api/v2/academics/reports/learners/{learner}'];
+
+        return array_combine($uris, array_map(fn ($uri) => [$uri], $uris));
     }
 
     public function test_a_school_the_parent_does_not_belong_to_is_refused(): void
