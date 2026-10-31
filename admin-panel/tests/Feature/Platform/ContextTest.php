@@ -161,11 +161,12 @@ class ContextTest extends TestCase
         $teacher = $this->queriesFor('tara');
 
         $this->assertSame($oneChild, $twoChildren, 'The number of queries grows with the number of children');
-        // One additional fixed query loads profile metadata, without values, one
-        // reads the module set of the school's package version (SA.7), and one
-        // more the platform feature flags with this school's switches (SA.14).
-        $this->assertLessThanOrEqual(16, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
-        $this->assertLessThanOrEqual(12, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
+        // One additional fixed query loads profile metadata, without values, and
+        // one more the platform feature flags with this school's switches (SA.14).
+        // The teacher's context also reads the module set of the school's
+        // package version (SA.7).
+        $this->assertLessThanOrEqual(15, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
+        $this->assertLessThanOrEqual(13, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
     }
 
     private function queriesFor(string $person): int
