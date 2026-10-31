@@ -123,6 +123,7 @@ use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformStaffController;
+use App\Http\Controllers\Platform\PlatformTwoFactorController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
@@ -262,6 +263,16 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
     Route::post('saas/password', [HomeController::class, 'changePassword'])->middleware('throttle:password')->name('saas.password.store');
 });
 
+// Two-factor sign-in for platform staff (SA.2): set up the authenticator app,
+// then pass the challenge once in each session. Every other /saas page waits
+// for it (platform.staff); these pages are the only ones open before it.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:two-factor'])->prefix('saas/two-factor')->name('saas.two-factor.')->group(function () {
+    Route::get('/', [PlatformTwoFactorController::class, 'enrol'])->name('enrol');
+    Route::post('/', [PlatformTwoFactorController::class, 'confirm'])->middleware('throttle:20,1')->name('confirm');
+    Route::get('/challenge', [PlatformTwoFactorController::class, 'challenge'])->name('challenge');
+    Route::post('/challenge', [PlatformTwoFactorController::class, 'verify'])->middleware('throttle:20,1')->name('verify');
+});
+
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
 Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::get('platform/invite/{token}', [PlatformInvitationController::class, 'show'])->middleware('throttle:30,1')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.show');
@@ -314,6 +325,7 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/staff/{user}', [PlatformStaffController::class, 'update'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.update');
     Route::post('/staff/{user}/revoke', [PlatformStaffController::class, 'revoke'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.revoke');
     Route::post('/staff/{user}/invitation', [PlatformStaffController::class, 'resend'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.invitation');
+    Route::post('/staff/{user}/two-factor/reset', [PlatformStaffController::class, 'resetTwoFactor'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.two-factor.reset');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');

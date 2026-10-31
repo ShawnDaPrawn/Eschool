@@ -9,12 +9,14 @@ use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
 /** The product catalogue page in /saas (Action Plan 1.16). */
 class ProductCatalogueTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -30,7 +32,7 @@ class ProductCatalogueTest extends TestCase
         PlatformStaffIdentity::query()->updateOrCreate(['user_id' => $user->id], ['active' => true]);
         PlatformAdminGrant::query()->updateOrCreate(['user_id' => $user->id], ['active' => true, 'expires_at' => now()->addHour()]);
 
-        $this->actingAs($user)->get('/saas/packages')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
+        $this->actingAsHq($user)->get('/saas/packages')->assertOk()->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Product modules and packages')->assertSee('Pastoral care')->assertSee('Level 3')->assertSee('Not priced yet')->assertSee('pilot');
     }
 
@@ -45,7 +47,7 @@ class ProductCatalogueTest extends TestCase
         $user = $this->superAdmin();
         PlatformStaffIdentity::query()->updateOrCreate(['user_id' => $user->id], ['active' => true]);
         PlatformAdminGrant::query()->updateOrCreate(['user_id' => $user->id], ['active' => true, 'expires_at' => now()->addHour()]);
-        $this->actingAs($user)->put('/saas/schools/2/package', ['package_key' => 'pilot'])->assertRedirect('/saas/schools/2');
+        $this->actingAsHq($user)->put('/saas/schools/2/package', ['package_key' => 'pilot'])->assertRedirect('/saas/schools/2');
         $this->assertSame('pilot', School::query()->findOrFail(2)->package_key);
     }
 }

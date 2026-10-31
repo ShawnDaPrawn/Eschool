@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\Platform\Saas\PlatformOnboarding;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -28,6 +29,7 @@ use Tests\TestCase;
  */
 class HqOnboardingTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -90,7 +92,7 @@ class HqOnboardingTest extends TestCase
 
     public function test_the_page_shows_counts_and_no_person(): void
     {
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
 
         $page = $this->get('/saas/schools/1/onboarding')->assertOk()->assertSee('Onboarding:')->assertSee('Learners imported with LURITS numbers');
         foreach (['Asha', 'Farid', 'Tara', 'GR-ASHA', self::SCHOOL_B_MARKER] as $person) {
@@ -103,7 +105,7 @@ class HqOnboardingTest extends TestCase
 
     public function test_operations_records_a_training_session_on_the_timeline(): void
     {
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
 
         $this->post('/saas/schools/1/training', ['held_on' => now()->subDay()->toDateString(), 'topic' => 'Registers and marks', 'attendees' => 12])
             ->assertRedirect('/saas/schools/1/onboarding');
@@ -118,7 +120,7 @@ class HqOnboardingTest extends TestCase
 
     public function test_training_accepts_an_omitted_attendee_count(): void
     {
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
         $this->post('/saas/schools/1/training', ['held_on' => now()->toDateString(), 'topic' => 'Safe onboarding'])
             ->assertRedirect('/saas/schools/1/onboarding');
         $event = app(CurrentSchool::class)->run(1, fn () => SchoolAccountEvent::query()->where('kind', 'training')->sole());

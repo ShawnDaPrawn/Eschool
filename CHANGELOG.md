@@ -23,6 +23,16 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: HQ (`/saas`) now needs two-factor sign-in. Every Navigate Ed staff
+  member sets up an authenticator app (Google Authenticator, Microsoft
+  Authenticator, 1Password and others) and gets ten single-use recovery codes.
+  After that, each sign-in asks for a code from the app before any HQ page
+  opens. An Owner can reset someone's two-factor sign-in from the staff page
+  with a reason; the operator console command `platform:reset-two-factor
+  {email}` is the break-glass for an Owner's own. School accounts are not
+  affected. **Deploy:** run the migrations. Every platform staff member sets
+  up their app at their next HQ sign-in.
+
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
