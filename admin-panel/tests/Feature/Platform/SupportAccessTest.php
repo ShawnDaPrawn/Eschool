@@ -52,6 +52,9 @@ class SupportAccessTest extends TestCase
         parent::setUp();
         $this->setUpTwoSchools();
         app(CurrentSchool::class)->forget();
+        // The demo memberships start on the day the fixture is built; this test's clock is pinned
+        // to 30 October 2026, so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         $this->travelTo(CarbonImmutable::parse('2026-10-30 08:00', SupportAccess::TIMEZONE));
         $this->adminB = app(CurrentSchool::class)->run(self::SCHOOL_B_ID, function (): User {
             $user = User::query()->create(['first_name' => 'Baobab', 'last_name' => 'Principal', 'email' => 'principal@baobab.example', 'mobile' => '', 'password' => 'Synthetic-support-password-731!', 'status' => 1]);

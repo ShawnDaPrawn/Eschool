@@ -16,14 +16,16 @@
                     <h3>{{ __(':person (Navigate Ed :role) asks for :minutes minutes of read-only access', ['person' => $grant['requester'], 'role' => $grant['role'], 'minutes' => $grant['minutes']]) }}</h3>
                     <p>{{ __('Reason: :reason', ['reason' => $grant['reason']]) }}</p>
                     <p>{{ __('Asked :date', ['date' => $grant['requested_at']]) }}</p>
-                    <form method="POST" action="{{ route('support-access.approve', $grant['id']) }}" aria-label="{{ __('Approve') }}" class="d-inline">
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem">
+                    <form method="POST" action="{{ route('support-access.approve', $grant['id']) }}" aria-label="{{ __('Approve') }}">
                         @csrf
                         <button class="m3-button m3-button--filled" type="submit">{{ __('Approve') }}</button>
                     </form>
-                    <form method="POST" action="{{ route('support-access.decline', $grant['id']) }}" aria-label="{{ __('Decline') }}" class="d-inline">
+                    <form method="POST" action="{{ route('support-access.decline', $grant['id']) }}" aria-label="{{ __('Decline') }}">
                         @csrf
                         <button class="m3-button m3-button--outlined" type="submit">{{ __('Decline') }}</button>
                     </form>
+                    </div>
                 </div></div>
             @endforeach
         @endif
