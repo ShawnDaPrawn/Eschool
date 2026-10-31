@@ -37,7 +37,7 @@ class PlatformTwoFactorController extends Controller
     public function confirm(TwoFactorCodeRequest $request): View
     {
         $user = $request->user();
-        $codes = $this->twoFactor->confirm($user, (string) $request->validated('two_factor_code'), (string) $request->ip());
+        $codes = $this->twoFactor->confirm($user, (string) $request->validated('current_password'), (string) $request->validated('two_factor_code'), (string) $request->ip());
         // A new session id for the raised trust, then the passed state bound to it.
         $request->session()->migrate(true);
         $this->twoFactor->remember($request->session(), $user);

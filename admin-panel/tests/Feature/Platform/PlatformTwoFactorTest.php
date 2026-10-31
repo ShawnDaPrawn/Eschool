@@ -111,7 +111,7 @@ class PlatformTwoFactorTest extends TestCase
     {
         $this->signIn($user);
         $secret = (string) $this->get('/saas/two-factor')->assertOk()->viewData('secret');
-        $codes = $this->keepSession($this->post('/saas/two-factor', ['two_factor_code' => Totp::code($secret, Totp::step(now()->getTimestamp()))]))->assertOk()->viewData('codes');
+        $codes = $this->keepSession($this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => Totp::code($secret, Totp::step(now()->getTimestamp()))]))->assertOk()->viewData('codes');
 
         return [$secret, $codes];
     }
@@ -139,11 +139,17 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertSame($secret, $this->get('/saas/two-factor')->viewData('secret'));
         $this->assertNull(PlatformStaffTwoFactor::query()->where('user_id', $owner->id)->value('confirmed_at'));
 
-        $this->post('/saas/two-factor', ['two_factor_code' => $this->wrongCode($secret)])->assertSessionHasErrors('two_factor_code')->assertSessionMissing('_old_input.two_factor_code');
+        $this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => $this->wrongCode($secret)])->assertSessionHasErrors('two_factor_code')->assertSessionMissing('_old_input.two_factor_code');
         $this->assertNull(PlatformStaffTwoFactor::query()->where('user_id', $owner->id)->value('confirmed_at'));
         $this->assertSame(1, $this->audits('platform_two_factor_failed', $owner));
 
-        $done = $this->keepSession($this->post('/saas/two-factor', ['two_factor_code' => $this->codeNow($secret)]))->assertOk()->assertSee('Two-factor sign-in is on');
+        // Setting it up always asks for the password again: a session alone cannot attach an app.
+        $this->post('/saas/two-factor', ['current_password' => 'Not-the-password-1!', 'two_factor_code' => $this->codeNow($secret)])
+            ->assertSessionHasErrors('current_password')->assertSessionMissing('_old_input.current_password');
+        $this->post('/saas/two-factor', ['two_factor_code' => $this->codeNow($secret)])->assertSessionHasErrors('current_password');
+        $this->assertNull(PlatformStaffTwoFactor::query()->where('user_id', $owner->id)->value('confirmed_at'));
+        $this->assertSame(1, AuditLog::query()->where('action', 'platform_two_factor_failed')->where('after->during', 'enrolment_password')->count());
+        $done = $this->keepSession($this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => $this->codeNow($secret)]))->assertOk()->assertSee('Two-factor sign-in is on');
         $codes = $done->viewData('codes');
         $this->assertCount(10, $codes);
         $this->assertCount(10, array_unique($codes));
@@ -348,6 +354,64 @@ class PlatformTwoFactorTest extends TestCase
         $this->assertSame(['user_id' => $owner->id, 'via' => 'console', 'reason' => 'The only Owner lost their phone'], $audit->after);
     }
 
+    public function test_a_session_from_before_a_reset_signs_in_again_whatever_the_session_driver(): void
+    {
+        // File sessions (the default driver): deleting database session rows signs nobody out.
+        $files = storage_path('framework/sessions');
+        $before = glob($files.'/*') ?: [];
+        config(['session.driver' => 'file']);
+        $this->app['session']->forgetDrivers();
+        try {
+            $owner = $this->staff('owner');
+            foreach (['hq', 'console'] as $via) {
+                [$support, $secret] = $this->enrolled('support', 'support.'.$via.'@platform.example');
+                $this->signIn($support);
+                $this->keepSession($this->post('/saas/two-factor/challenge', ['two_factor_code' => $this->codeNow($secret)]))->assertRedirect(route('saas.index'));
+                $this->get('/saas')->assertOk();
+                $this->assertSame(0, DB::table('sessions')->where('user_id', $support->id)->count());
+
+                // Someone else holds this session when the reset happens.
+                if ($via === 'hq') {
+                    app(PlatformTwoFactor::class)->reset($owner, $support->id, 'Phone stolen with the browser open');
+                } else {
+                    app(PlatformTwoFactor::class)->breakGlass($support, 'Phone stolen with the browser open');
+                }
+                $this->assertSame(1, (int) PlatformStaffIdentity::query()->where('user_id', $support->id)->value('two_factor_generation'));
+
+                // The old session reaches neither setup nor any HQ page: it is signed out.
+                $this->keepSession($this->get('/saas/two-factor'))->assertRedirect(route('login'))->assertSessionHas('error');
+                $this->assertGuest();
+                auth()->forgetGuards();
+                $this->get('/saas/two-factor')->assertRedirect('/login');
+                $this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => '123456'])->assertRedirect('/login');
+                $this->assertFalse(PlatformStaffTwoFactor::query()->where('user_id', $support->id)->exists());
+
+                // Other stale sessions: refused on the own password page, and on an HQ page as JSON.
+                $this->signIn($support);
+                $this->get('/saas/two-factor')->assertOk();
+                PlatformStaffIdentity::query()->where('user_id', $support->id)->increment('two_factor_generation');
+                $this->keepSession($this->get('/saas/password'))->assertRedirect(route('login'));
+                $this->assertGuest();
+                $this->signIn($support);
+                PlatformStaffIdentity::query()->where('user_id', $support->id)->increment('two_factor_generation');
+                $this->keepSession($this->getJson('/saas'))->assertUnauthorized();
+                $this->assertGuest();
+
+                // A fresh sign-in with the password sets it up again.
+                $this->signIn($support);
+                $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
+                $fresh = (string) $this->get('/saas/two-factor')->assertOk()->viewData('secret');
+                $this->keepSession($this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => $this->codeNow($fresh)]))->assertOk();
+                $this->get('/saas')->assertOk();
+                $this->signOut();
+            }
+        } finally {
+            foreach (array_diff(glob($files.'/*') ?: [], $before) as $file) {
+                @unlink($file);
+            }
+        }
+    }
+
     public function test_school_accounts_are_unaffected_and_reach_none_of_the_new_pages(): void
     {
         $teacher = User::query()->findOrFail($this->schoolA->ids['tara_user']);
@@ -379,8 +443,8 @@ class PlatformTwoFactorTest extends TestCase
         $grouped = trim(chunk_split($secret, 4, ' '));
         // The setup page is the one place it shows, to the person setting it up.
         $setup->assertSee($grouped);
-        $this->post('/saas/two-factor', ['two_factor_code' => $this->wrongCode($secret)])->assertSessionHasErrors('two_factor_code');
-        $done = $this->keepSession($this->post('/saas/two-factor', ['two_factor_code' => $this->codeNow($secret)]))->assertOk();
+        $this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => $this->wrongCode($secret)])->assertSessionHasErrors('two_factor_code');
+        $done = $this->keepSession($this->post('/saas/two-factor', ['current_password' => self::PASSWORD, 'two_factor_code' => $this->codeNow($secret)]))->assertOk();
         $codes = $done->viewData('codes');
 
         $responses = [$done, $this->get('/saas'), $this->get('/saas/staff'), $this->get('/saas/audit'), $this->get('/saas/audit/export'), $this->get('/saas/two-factor'), $this->get('/saas/two-factor/challenge')];

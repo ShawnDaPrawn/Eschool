@@ -40,6 +40,8 @@ trait PassesPlatformTwoFactor
         $session = $this->app['session']->driver();
         // As after a fresh sign-in: AuthenticateSession records this account's password again.
         $session->forget('password_hash_'.config('auth.defaults.guard'));
+        // As a sign-in does: the session carries the account's current two-factor generation.
+        app(PlatformTwoFactor::class)->stamp($session, $user);
         app(PlatformTwoFactor::class)->remember($session, $user);
         // The session as a browser would send it back, on JSON requests too: same id, same contents.
         $session->save();

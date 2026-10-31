@@ -25,6 +25,8 @@ use Symfony\Component\HttpFoundation\Response;
  *  password    the operator's own password: also before a forced password
  *              change, and two-factor first only once it is set up;
  *  two-factor  setting up the app and the challenge themselves.
+ * For every purpose, a session that signed in before the staff member's last
+ * two-factor reset is signed out (PlatformTwoFactor::current()).
  */
 class EnsurePlatformStaff
 {
@@ -38,6 +40,11 @@ class EnsurePlatformStaff
         $actor = $this->access->actor($request->user(), $purpose === 'password' || $purpose === 'two-factor');
         Auth::guard('web')->setUser($actor);
         $request->setUserResolver(fn () => $actor);
+        // A session from before a two-factor reset signs in again, for every
+        // purpose (setup and the own password included), whatever the driver.
+        if (! $this->twoFactor->current($request->hasSession() ? $request->session() : null, $actor)) {
+            return $this->twoFactor->signOut($request);
+        }
         // Any other purpose than these two, a misspelt one included, needs two-factor.
         $needsTwoFactor = $purpose !== 'two-factor' && ($purpose !== 'password' || $this->twoFactor->enrolled($actor));
         if ($needsTwoFactor && ! $this->twoFactor->passed($request->hasSession() ? $request->session() : null, $actor)) {

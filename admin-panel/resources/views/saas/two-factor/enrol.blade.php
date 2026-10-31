@@ -17,8 +17,10 @@
 
 <form method="POST" action="{{ route('saas.two-factor.confirm') }}" class="saas-card" aria-labelledby="confirm-heading">
     @csrf
-    <h2 id="confirm-heading">{{ __('2. Type the code your app shows') }}</h2>
+    <h2 id="confirm-heading">{{ __('2. Confirm with your password and the code your app shows') }}</h2>
     <div class="saas-field">
+        <label for="current_password">{{ __('Your current password') }}</label>
+        <input type="password" id="current_password" name="current_password" autocomplete="current-password" required>
         <label for="two_factor_code">{{ __('6-digit code') }}</label>
         <input id="two_factor_code" name="two_factor_code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required autofocus>
     </div>

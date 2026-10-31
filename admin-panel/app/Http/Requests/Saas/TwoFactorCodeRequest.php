@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * A code from the authenticator app, or a recovery code (SA.2): confirming
- * the app while setting it up, and the challenge. The service checks the
+ * the app while setting it up (with the current password), and the challenge. The service checks the
  * code itself; the field is never flashed back (bootstrap/app.php).
  */
 class TwoFactorCodeRequest extends FormRequest
@@ -23,6 +23,10 @@ class TwoFactorCodeRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['two_factor_code' => ['required', 'string', 'max:64']];
+        return array_filter([
+            'two_factor_code' => ['required', 'string', 'max:64'],
+            // Setting up the app always asks for the password again (SA.2).
+            'current_password' => $this->route()?->getName() === 'saas.two-factor.confirm' ? ['required', 'string', 'max:191'] : null,
+        ]);
     }
 }

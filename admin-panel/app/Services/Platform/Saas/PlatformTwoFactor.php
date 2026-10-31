@@ -16,6 +16,7 @@ use BaconQrCode\Writer;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -40,6 +41,14 @@ use Symfony\Component\HttpFoundation\Response;
 class PlatformTwoFactor
 {
     public const SESSION_KEY = 'platform_two_factor';
+
+    /**
+     * The staff member's two-factor generation when this session signed in.
+     * A reset raises the generation on the platform staff identity, so every
+     * older session is signed out on its next /saas request, whatever the
+     * session driver keeps sessions in.
+     */
+    public const GENERATION_KEY = 'platform_two_factor_generation';
 
     /** Where to go once the challenge is passed (a /saas address only). */
     public const INTENDED_KEY = 'platform_two_factor_intended';
@@ -67,7 +76,8 @@ class PlatformTwoFactor
             return false;
         }
         $proof = $this->proof($user);
-        $valid = ($marker['user'] ?? null) === (int) $user->id
+        $valid = $this->current($session, $user)
+            && ($marker['user'] ?? null) === (int) $user->id
             && is_string($marker['session'] ?? null) && hash_equals($marker['session'], $session->getId())
             && $proof !== null && is_string($marker['proof'] ?? null) && hash_equals($proof, $marker['proof']);
         if (! $valid) {
@@ -91,6 +101,48 @@ class PlatformTwoFactor
     public function forget(Session $session): void
     {
         $session->forget([self::SESSION_KEY, self::INTENDED_KEY]);
+    }
+
+    /**
+     * Records the staff member's current generation in a session that has
+     * just signed in (ForgetPlatformTwoFactor, on Login). Only a sign-in with
+     * the password does this; nothing in /saas can raise a session's stamp.
+     */
+    public function stamp(Session $session, User $user): void
+    {
+        $session->put(self::GENERATION_KEY, $this->generation($user));
+    }
+
+    /**
+     * Whether this session signed in after the staff member's last reset. A
+     * session from before any reset carries no stamp and counts as
+     * generation 0, which is only current while nobody has reset them.
+     */
+    public function current(?Session $session, User $user): bool
+    {
+        $stamp = $session?->get(self::GENERATION_KEY, 0);
+
+        return $session !== null && is_int($stamp) && $stamp === $this->generation($user);
+    }
+
+    /** The response for a session from before a reset: signed out, back to the sign-in page. */
+    public function signOut(Request $request): Response
+    {
+        auth()->guard('web')->logout();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+        $message = __('Your two-factor sign-in was reset. Sign in again to set it up.');
+
+        return $request->expectsJson()
+            ? response()->json(['error' => true, 'message' => $message], 401)
+            : redirect()->route('login')->with('error', $message);
+    }
+
+    private function generation(User $user): int
+    {
+        return (int) PlatformStaffIdentity::query()->where('user_id', $user->id)->value('two_factor_generation');
     }
 
     /**
@@ -140,16 +192,26 @@ class PlatformTwoFactor
     }
 
     /**
-     * Confirms the app with a code from it and returns the ten recovery
-     * codes, in plain text this once; only their keyed hashes are kept.
+     * Confirms the app with the account's current password and a code from
+     * the app, and returns the ten recovery codes, in plain text this once;
+     * only their keyed hashes are kept. The password is asked for every
+     * time, so a session alone (a stolen one, or one left open) can never
+     * attach someone else's authenticator to the account.
      *
      * @return list<string>
      */
-    public function confirm(User $user, string $code, string $ip): array
+    public function confirm(User $user, string $password, string $code, string $ip): array
     {
         $this->ensureCanEnrol($user);
         $code = $this->validCode($code);
         $this->throttle($user, $ip);
+        $hash = $this->currentSchool->acrossSchools(fn () => User::query()->whereKey($user->id)->value('password'));
+        if (! is_string($hash) || ! Hash::check($password, $hash)) {
+            RateLimiter::hit($this->limiterKey($user, $ip), 60);
+            Audit::record('platform_two_factor_failed', $this->identity($user), [], ['user_id' => (int) $user->id, 'during' => 'enrolment_password']);
+
+            throw ValidationException::withMessages(['current_password' => __('That is not your current password.')]);
+        }
         $codes = DB::transaction(function () use ($user, $code): ?array {
             $row = PlatformStaffTwoFactor::query()->where('user_id', $user->id)->lockForUpdate()->first();
             abort_if($row === null, 409, __('Start setting up two-factor sign-in again.'));
@@ -216,7 +278,8 @@ class PlatformTwoFactor
     /**
      * An Owner resets another staff member's two-factor sign-in from HQ, with
      * a reason: their app and recovery codes are removed, every session of
-     * theirs ends, and they set it up again at their next sign-in. Nobody
+     * theirs is signed out (the generation, whatever the session driver), and
+     * they sign in with their password and set it up again. Nobody
      * resets their own here (platform:reset-two-factor is the break-glass).
      */
     public function reset(User $actor, int $userId, string $reason): void
@@ -254,7 +317,11 @@ class PlatformTwoFactor
             abort_if($row === null, 409, __('This person has not set up two-factor sign-in.'));
             $wasConfirmed = $row->confirmed_at !== null;
             $row->delete();
-            // Signs them out everywhere: a lost or taken phone may be in someone else's hands.
+            // Signs them out everywhere, whatever the session driver: a lost or
+            // taken phone, or an open session, may be in someone else's hands.
+            // EnsurePlatformStaff signs out any session stamped before this.
+            PlatformStaffIdentity::query()->where('user_id', $user->id)->increment('two_factor_generation');
+            // Database-stored sessions are also removed at once.
             DB::table('sessions')->where('user_id', $user->id)->delete();
             Audit::record('platform_two_factor_reset', $this->identity($user), ['set_up' => $wasConfirmed], array_filter([
                 'user_id' => (int) $user->id, 'via' => $via, 'reason' => $reason, 'changed_by' => $actorId,
