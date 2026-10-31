@@ -16,14 +16,18 @@ use Throwable;
  * complained). Every status change also writes one log line,
  * "notification_delivery", with ids and status only, for log-based metrics.
  *
- * Addresses and device tokens are never stored or logged: rows carry the
- * recipient's user id where known and a SHA-256 hash of the address.
+ * Addresses, device tokens and phone numbers are never stored or logged: rows
+ * carry the recipient's user id where known and a SHA-256 hash of the address.
  */
 class DeliveryLog
 {
     public const MAIL = 'mail';
 
     public const PUSH = 'push';
+
+    public const SMS = 'sms';
+
+    public const WHATSAPP = 'whatsapp';
 
     /**
      * Record a message as queued and return the key its attempts share.
@@ -160,6 +164,74 @@ class DeliveryLog
         }
 
         return $rows->count();
+    }
+
+    /**
+     * Twilio's status callback for a sent SMS or WhatsApp message: sent,
+     * delivered, failed or undelivered, with the segments and price when it
+     * reports them. A message that is delivered, failed or undelivered keeps
+     * that status when a late "sent" arrives. Returns the rows changed (0
+     * when the message id is unknown).
+     */
+    public static function textFeedback(string $providerMessageId, string $status, ?string $summary = null, ?int $segments = null, ?int $priceCents = null, ?string $currency = null): int
+    {
+        $rows = NotificationDelivery::query()->where('provider_message_id', $providerMessageId)
+            ->whereIn('channel', [self::SMS, self::WHATSAPP])->get();
+        $final = [NotificationDelivery::DELIVERED, NotificationDelivery::FAILED, NotificationDelivery::UNDELIVERED];
+        foreach ($rows as $row) {
+            $changes = self::charges($segments, $priceCents, $currency);
+            if (! ($status === NotificationDelivery::SENT && in_array($row->status, $final, true))
+                && ! ($status === NotificationDelivery::DELIVERED && in_array($row->status, [NotificationDelivery::FAILED, NotificationDelivery::UNDELIVERED], true))) {
+                $changes += ['status' => $status, 'feedback_at' => now()];
+                if ($summary !== null) {
+                    $changes['error_summary'] = self::summarise($summary);
+                }
+                if ($status === NotificationDelivery::FAILED || $status === NotificationDelivery::UNDELIVERED) {
+                    $changes['failed_at'] = now();
+                }
+            }
+            if ($changes !== []) {
+                $row->forceFill($changes)->save();
+                self::metric($row);
+            }
+        }
+
+        return $rows->count();
+    }
+
+    /** Record the segments and price a provider returned for a sent row. */
+    public static function charged(?NotificationDelivery $row, ?int $segments, ?int $priceCents, ?string $currency): void
+    {
+        $changes = self::charges($segments, $priceCents, $currency);
+        if (! $row || $changes === []) {
+            return;
+        }
+
+        try {
+            $row->forceFill($changes)->save();
+        } catch (Throwable $e) {
+            self::bookkeepingFailed('charged', $row->delivery_key, $e);
+        }
+    }
+
+    /**
+     * Segments and price of a texted message, for the pass-through report.
+     * Only values the provider actually gave are written.
+     *
+     * @return array<string, int|string>
+     */
+    public static function charges(?int $segments, ?int $priceCents, ?string $currency): array
+    {
+        $changes = [];
+        if ($segments !== null && $segments > 0) {
+            $changes['segments'] = min($segments, 65535);
+        }
+        if ($priceCents !== null && $priceCents >= 0) {
+            $changes['price_cents'] = $priceCents;
+            $changes['price_currency'] = $currency === null || $currency === '' ? null : Str::upper(Str::limit($currency, 3, ''));
+        }
+
+        return $changes;
     }
 
     /** The stored form of an address, token or topic. */

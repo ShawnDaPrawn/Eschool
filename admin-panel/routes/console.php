@@ -39,6 +39,9 @@ Schedule::command('money:backfill-cents')->dailyAt('02:10')->withoutOverlapping(
 // Each school enables its own cadence and local delivery hour.
 Schedule::command('fees:remind')->hourly()->withoutOverlapping();
 
+// Twilio prices SMS and WhatsApp messages after sending (Action Plan 2.7).
+Schedule::command('messaging:fetch-prices')->hourly()->name('messaging-prices')->withoutOverlapping();
+
 // Read-only by default: discrepancies remain visible and generate a critical
 // operations log; historical receipts are never automatically reposted.
 Schedule::command('ledger:reconcile --json')->dailyAt('02:20')->withoutOverlapping();

@@ -59,6 +59,27 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    /*
+    | Twilio: SMS and WhatsApp for urgent notices (Action Plan 2.7). One
+    | NavigateEd account for the whole platform; never per school, never in a
+    | settings row. The account SID and auth token come from Secret Manager
+    | (navigateed-twilio-account-sid, navigateed-twilio-auth-token). Messages
+    | go through the messaging service when it is set, otherwise from the SMS
+    | sender; WhatsApp from the WhatsApp sender (or the messaging service).
+    */
+
+    'twilio' => [
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID'),
+        'sms_from' => env('TWILIO_SMS_FROM'),
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
+        // The status callback URL Twilio is given and signs; empty means
+        // APP_URL + /webhook/messaging/twilio.
+        'status_callback_url' => env('TWILIO_STATUS_CALLBACK_URL'),
+        'base_url' => 'https://api.twilio.com/2010-04-01',
+    ],
+
     // The learner diary's own encryption root (engineering/specs/learning/learner-diary.md).
     // Set it to a separate 32-byte secret ("base64:..."); rotating it makes existing entries unreadable.
     'diary' => [

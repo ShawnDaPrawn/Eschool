@@ -136,6 +136,10 @@ class Notifier
                 $sent[] = $channel;
             });
         }
+        // SMS and WhatsApp (Action Plan 2.7): urgent types at opted-in schools only.
+        foreach (app(UrgentMessaging::class)->queue($user, $notice, $type, $title, $body, $channels) as $channel) {
+            $sent[] = $channel;
+        }
 
         return $sent;
     }
