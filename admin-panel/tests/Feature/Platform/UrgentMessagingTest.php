@@ -501,6 +501,27 @@ class UrgentMessagingTest extends TestCase
         $this->actingAs($this->superAdmin())->get('/saas/messaging')->assertForbidden();
     }
 
+    public function test_a_message_twilio_cannot_price_yet_does_not_hold_back_the_next_batch(): void
+    {
+        config(['urgent_messaging.price_lookup.batch' => 1]);
+        $this->travelTo(CarbonImmutable::parse('2026-11-15 10:00', 'Africa/Johannesburg'));
+        $later = 'SM55555555555555555555555555555555';
+        $this->sentText(1, self::MESSAGE_SID, ['sent_at' => now()->subHours(2)]);
+        $this->sentText(1, $later, ['sent_at' => now()->subHour()]);
+        Http::fake([
+            'api.twilio.com/*/Messages/'.self::MESSAGE_SID.'.json' => Http::response(['sid' => self::MESSAGE_SID, 'status' => 'delivered', 'num_segments' => '1', 'price' => null, 'price_unit' => 'USD']),
+            'api.twilio.com/*/Messages/'.$later.'.json' => Http::response(['sid' => $later, 'status' => 'delivered', 'num_segments' => '1', 'price' => '-0.07925', 'price_unit' => 'USD']),
+        ]);
+
+        $this->travel(1)->minutes();
+        $this->artisan('messaging:fetch-prices')->assertSuccessful();
+        $this->travel(1)->hours();
+        $this->artisan('messaging:fetch-prices')->assertSuccessful();
+
+        $this->assertNull(NotificationDelivery::query()->where('provider_message_id', self::MESSAGE_SID)->value('price_cents'));
+        $this->assertSame(8, (int) NotificationDelivery::query()->where('provider_message_id', $later)->value('price_cents'));
+    }
+
     public function test_recorded_numbers_are_read_as_south_african_unless_they_say_otherwise(): void
     {
         $this->assertSame('+27821234567', UrgentMessaging::normalise('082 123 4567'));

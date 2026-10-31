@@ -35,12 +35,16 @@ class FetchMessagePrices extends Command
             ->where('provider', TwilioClient::PROVIDER)->whereNotNull('provider_message_id')->whereNull('price_cents')
             ->where('sent_at', '<=', now()->subMinutes((int) ($lookup['after_minutes'] ?? 10)))
             ->where('sent_at', '>=', now()->subDays((int) ($lookup['within_days'] ?? 7)))
-            ->orderBy('id')->limit((int) ($lookup['batch'] ?? 200))->get();
+            // Least recently looked-up first: a lookup that finds no price
+            // touches the row, so it moves behind the rest of the batch.
+            ->orderBy('updated_at')->orderBy('id')->limit((int) ($lookup['batch'] ?? 200))->get();
 
         $priced = 0;
         foreach ($rows as $row) {
             $message = $twilio->fetch((string) $row->provider_message_id);
             if ($message === null || $message['price_cents'] === null) {
+                $row->touch();
+
                 continue;
             }
             DeliveryLog::charged($row, $message['segments'], $message['price_cents'], $message['currency']);
