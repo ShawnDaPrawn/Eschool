@@ -140,6 +140,13 @@
                             </div>
                             <div class="row">
                                 <div class="form-group col-sm-12 col-md-4">
+                                    <label for="add-learner-lurits">{{ __('LURITS number') }}</label>
+                                    <input id="add-learner-lurits" name="lurits" type="text" class="form-control" inputmode="numeric" autocomplete="off" maxlength="32" aria-describedby="add-learner-lurits-help">
+                                    <small id="add-learner-lurits-help" class="form-text text-muted">{{ __('Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.') }}</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-sm-12 col-md-4">
                                     <label>{{ __('blood_group') }} <span class="text-danger">*</span></label>
                                     <select name="blood_group" class="form-control">
                                         <option value="">{{ __('select') . ' ' . __('blood_group') }}</option>

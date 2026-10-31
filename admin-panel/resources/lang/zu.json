@@ -5854,5 +5854,10 @@
     "In this group last year": "Ebelikuleli qembu ngonyaka odlule",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Laba bafundi bebeseqenjini ekupheleni konyaka odlule, basesikoleni futhi bayayihlangabezana nemithetho yalo manje. Engeza labo abaqhubekayo.",
     "Add :name": "Engeza u-:name",
-    "Add as member": "Engeza njengelungu"
+    "Add as member": "Engeza njengelungu",
+    "That is not a valid LURITS number.": "Lena akuyona inombolo ye-LURITS evumelekile.",
+    "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Akuphoqelekile. Uma umfundi esenayo irekhodi le-NavigateEd, uzocelwa ukuthi uqale isicelo sokudluliselwa esikhundleni salokho.",
+    "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Le nombolo ye-LURITS ingeyowayengumfundi wesikole sakho (:number). Buyisela irekhodi lakhe esikhundleni sokumengeza futhi.",
+    "This LURITS number belongs to :number, already a learner at your school. Open their record instead of adding them again.": "Le nombolo ye-LURITS ingeka-:number, osevele engumfundi esikoleni sakho. Vula irekhodi lakhe esikhundleni sokumengeza futhi.",
+    "This learner already has a NavigateEd record. Start a transfer request to bring their records to your school instead of adding them again.": "Lo mfundi usenayo irekhodi le-NavigateEd. Qala isicelo sokudluliselwa ukuze ulethe amarekhodi akhe esikoleni sakho esikhundleni sokumengeza futhi."
 }

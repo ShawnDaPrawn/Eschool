@@ -27,9 +27,11 @@ use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\MailService;
+use App\Services\People\LuritsAdmission;
 use App\Services\People\RemoveLearner;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
@@ -152,6 +154,9 @@ class StudentController extends Controller
                 'guardian_mobile.regex' => trans('guardian_mobile_number_between_7_and_15_digits'),
             ]
         );
+
+        // A LURITS number another NavigateEd learner holds stops the admission (Action Plan 1.0c).
+        $lurits = app(LuritsAdmission::class)->admissible(Auth::user(), $request->input('lurits'));
 
         $response = [];
         try {
@@ -597,6 +602,10 @@ class StudentController extends Controller
             $student->guardian_id = $guardian_parent_id;
             $student->dynamic_fields = json_encode($data);
             $student->save();
+            if ($lurits !== null) {
+                // Rechecked under the platform-wide claims lock: a number taken meanwhile opens a claim instead.
+                app(LuritsNumbers::class)->record($student, $lurits, 'school_entry', Auth::user());
+            }
 
             // -------------------------------------------------
             // Create student session entry for current session

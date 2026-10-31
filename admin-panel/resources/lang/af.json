@@ -5854,5 +5854,10 @@
     "In this group last year": "Verlede jaar in hierdie groep",
     "These learners were in this group at the end of last year, are at the school and meet its rules now. Add the ones who continue.": "Hierdie leerders was aan die einde van verlede jaar in hierdie groep, is by die skool en voldoen nou aan sy reëls. Voeg dié by wat aanhou.",
     "Add :name": "Voeg :name by",
-    "Add as member": "Voeg by as lid"
+    "Add as member": "Voeg by as lid",
+    "That is not a valid LURITS number.": "Dit is nie 'n geldige LURITS-nommer nie.",
+    "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Opsioneel. As die leerder reeds 'n NavigateEd-rekord het, sal u gevra word om eerder 'n oorplasingsversoek te begin.",
+    "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Hierdie LURITS-nommer behoort aan 'n oud-leerder van u skool (:number). Herstel hulle rekord eerder as om hulle weer by te voeg.",
+    "This LURITS number belongs to :number, already a learner at your school. Open their record instead of adding them again.": "Hierdie LURITS-nommer behoort aan :number, reeds 'n leerder by u skool. Maak hulle rekord oop eerder as om hulle weer by te voeg.",
+    "This learner already has a NavigateEd record. Start a transfer request to bring their records to your school instead of adding them again.": "Hierdie leerder het reeds 'n NavigateEd-rekord. Begin 'n oorplasingsversoek om hulle rekords na u skool te bring eerder as om hulle weer by te voeg."
 }
