@@ -46,7 +46,7 @@ class UrgentMessagingTest extends TestCase
 
     private const SID = 'ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
-    private const TOKEN = 'synthetic-twilio-auth-token-5d8e1f';
+    private const TOKEN = 'aaaabbbbccccddddtoken';
 
     private const NUMBER = '+27821234567';
 
