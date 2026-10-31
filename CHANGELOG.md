@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Caseload renewals for a new school year: in Early warning and interventions,
+  **Renew caseloads for a new year** lists last year's open risk caseload grants
+  for learners placed in the new year. A principal (or the learner's grade head)
+  keeps the same counsellor, chooses another one, or lets the grant end. Ended
+  grants are never carried, and only caseload administrators see the page.
+
 - Communication: smart groups. Staff can save a group by rules (grades,
   homerooms, teaching and activity groups, any or all of them, learners or
   their guardians) that is worked out again whenever a message is previewed

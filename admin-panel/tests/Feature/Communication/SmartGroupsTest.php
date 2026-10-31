@@ -19,6 +19,7 @@ use App\Services\Academics\TeachingGroups;
 use App\Services\Communication\CommunicationAudiences;
 use App\Services\Communication\MessageDelivery;
 use App\Services\Communication\MessageFlow;
+use App\Services\Communication\MessageQueries;
 use App\Services\People\EnrolmentService;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -275,5 +276,96 @@ class SmartGroupsTest extends TestCase
         $this->actingAs($this->teacher(), 'web')->get('/communication-centre?audience_id='.$group->id)->assertOk()
             ->assertSee('A rule names a group that is no longer active.')->assertSee('Save smart group');
         $this->denied(fn () => $this->toGroup($group), 404);
+    }
+
+    private function staleSmartAudience(): Audience
+    {
+        $group = $this->smart(null, ['parents' => false]);
+        TeachingGroup::whereKey($this->group)->update(['active' => false]);
+        $this->assertSame([], app(MessageQueries::class)->configuration($this->teacher(), $this->year, true)['scopes']);
+
+        return $group;
+    }
+
+    private function archiveData(Audience $group): array
+    {
+        return ['operation_id' => (string) Str::uuid(), 'revision' => $group->revision, 'session_year_id' => $this->year,
+            'name' => $group->name, 'kind' => 'smart', 'active' => false, 'shared' => $group->shared,
+            'match' => $group->definition['match'], 'parents' => $group->definition['parents'], 'rules' => $group->definition['rules']];
+    }
+
+    public function test_panel_can_archive_existing_stale_smart_audience_without_any_current_scope(): void
+    {
+        $group = $this->staleSmartAudience();
+        $definition = $group->definition;
+        $this->actingAs($this->teacher(), 'web')->get('/communication-centre?audience_id='.$group->id)
+            ->assertOk()->assertSee('Remove that rule or archive the group');
+        $this->post('/communication-centre/audiences/'.$group->id, $this->archiveData($group) + ['rule_selectors' => []])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertFalse($group->fresh()->active);
+        $this->assertSame($definition, $group->fresh()->definition);
+        $this->denied(fn () => $this->toGroup($group->fresh()), 404);
+    }
+
+    public function test_api_can_archive_existing_stale_smart_audience_with_its_retained_rule(): void
+    {
+        $group = $this->staleSmartAudience();
+        $definition = $group->definition;
+        $this->putJson('/api/v2/communication/audiences/'.$group->id, $this->archiveData($group), $this->headers())->assertOk();
+        $this->assertFalse($group->fresh()->active);
+        $this->assertSame($definition, $group->fresh()->definition);
+        $this->denied(fn () => $this->toGroup($group->fresh()), 404);
+    }
+
+    public function test_a_manager_can_archive_a_stale_smart_audience_but_other_people_and_schools_cannot(): void
+    {
+        $group = $this->staleSmartAudience();
+        $input = $this->archiveData($group);
+        $this->putJson('/api/v2/communication/audiences/'.$group->id, $input, $this->headers('theo'))->assertNotFound();
+        $this->actingAs($this->person('theo'), 'web')->post('/communication-centre/audiences/'.$group->id, $input + ['rule_selectors' => []])->assertNotFound();
+        $this->app['auth']->forgetGuards();
+        $this->putJson('/api/v2/communication/audiences/'.$group->id, $input, ['Authorization' => 'Bearer '.$this->schoolB->tokens['tara'], 'X-School-Id' => '2'])->assertNotFound();
+        $this->app['auth']->forgetGuards();
+        $this->putJson('/api/v2/communication/audiences/'.$group->id, $input, ['Authorization' => 'Bearer '.$this->schoolA->tokens['farid'], 'X-School-Id' => '1'])->assertForbidden();
+        $this->assertTrue($group->fresh()->active);
+        $this->assertSame(1, $group->fresh()->revision);
+
+        $definition = $group->definition;
+        $this->actingAs($this->superAdmin(), 'web')->post('/communication-centre/audiences/'.$group->id, $input + ['rule_selectors' => []])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertFalse($group->fresh()->active);
+        $this->assertSame($definition, $group->fresh()->definition);
+    }
+
+    public function test_archival_does_not_accept_new_empty_audiences_invalid_rule_schema_or_changed_stale_rules(): void
+    {
+        $group = $this->staleSmartAudience();
+        $url = '/api/v2/communication/audiences/'.$group->id;
+        $input = $this->archiveData($group);
+        $this->putJson($url, array_replace($input, ['rules' => [['kind' => 'school', 'target_id' => 1]]]), $this->headers())->assertUnprocessable();
+        $this->putJson($url, array_replace($input, ['rules' => [['kind' => 'group', 'target_id' => 999999]]]), $this->headers())->assertNotFound();
+        $this->putJson($url, array_replace($input, ['active' => true, 'rules' => []]), $this->headers())->assertUnprocessable();
+        $this->putJson($url, array_replace($input, ['active' => true]), $this->headers())->assertNotFound();
+        // The API keeps its documented nonempty rule schema; it can retain the old rule to archive.
+        $this->putJson($url, array_replace($input, ['rules' => []]), $this->headers())->assertUnprocessable();
+        $this->postJson('/api/v2/communication/audiences', array_replace($input, ['revision' => 0, 'rules' => []]), $this->headers())->assertUnprocessable();
+        $this->assertTrue($group->fresh()->active);
+        $this->assertSame(1, $group->fresh()->revision);
+        $this->assertSame(1, Audience::count());
+    }
+
+    public function test_valid_inactive_rule_edits_still_work_and_an_archived_group_cannot_be_reactivated_with_stale_rules(): void
+    {
+        $group = $this->smart(null, ['parents' => false]);
+        $input = array_replace($this->archiveData($group), ['parents' => true]);
+        $this->putJson('/api/v2/communication/audiences/'.$group->id, $input, $this->headers())->assertOk();
+        $this->assertFalse($group->fresh()->active);
+        $this->assertTrue($group->fresh()->definition['parents']);
+
+        TeachingGroup::whereKey($this->group)->update(['active' => false]);
+        $this->putJson('/api/v2/communication/audiences/'.$group->id,
+            array_replace($this->archiveData($group->fresh()), ['active' => true]), $this->headers())->assertNotFound();
+        $this->assertFalse($group->fresh()->active);
+        $this->denied(fn () => $this->toGroup($group->fresh()), 404);
     }
 }

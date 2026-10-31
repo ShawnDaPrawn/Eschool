@@ -37,3 +37,9 @@ Staff could already save fixed lists of people ("saved custom audiences") in the
 - Exclusion rules ("everyone in Grade 7 except …") and rules on other attributes (houses, transport, fees).
 - Smart groups that span school years.
 - The apps' screens for smart groups (the API is ready).
+
+An existing smart audience can be archived after its last scope becomes stale.
+The panel may submit no selected rules for this recovery; the API retains its
+nonempty rule schema and can submit the saved stale rules. Archival retains the
+saved definition, while new audiences, changed definitions and reactivation
+still require current scope authority. Archived audiences cannot send messages.

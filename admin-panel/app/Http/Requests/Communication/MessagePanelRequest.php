@@ -61,6 +61,12 @@ class MessagePanelRequest extends MessageRequest
 
     public function rules(): array
     {
-        return parent::rules() + ['message_id' => ['sometimes', 'integer', 'min:1'], 'audience_id' => ['sometimes', 'integer', 'min:1'], 'contact_page' => ['sometimes', 'integer', 'between:1,10000'], 'preview_message' => ['sometimes', 'boolean'], 'rule_selectors' => ['sometimes', 'array', 'max:'.Audience::MAX_RULES]];
+        $rules = parent::rules() + ['message_id' => ['sometimes', 'integer', 'min:1'], 'audience_id' => ['sometimes', 'integer', 'min:1'], 'contact_page' => ['sometimes', 'integer', 'between:1,10000'], 'preview_message' => ['sometimes', 'boolean'], 'rule_selectors' => ['sometimes', 'array', 'max:'.Audience::MAX_RULES]];
+        if ($this->action() === 'audience-save' && $this->route('audience') !== null && $this->audienceKind() === Audience::SMART && ! $this->boolean('active')) {
+            // A stale group's former scopes are absent from the panel's choices.
+            $rules['rules'] = ['present', 'array', 'max:'.Audience::MAX_RULES];
+        }
+
+        return $rules;
     }
 }

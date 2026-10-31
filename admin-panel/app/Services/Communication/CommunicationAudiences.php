@@ -41,7 +41,9 @@ class CommunicationAudiences
             abort_unless(($data['kind'] ?? $kind) === $kind, 422, __('A saved audience cannot change between a fixed list and a smart group.'));
             abort_unless((int) ($row->revision ?? 0) === (int) $data['revision'], 409, __('The audience changed. Refresh before saving.'));
             if ($kind === Audience::SMART) {
-                $definition = $this->smartDefinition($actor, $data);
+                // Archival may retain a saved definition whose scopes are no longer usable.
+                // New audiences and edits to the rules still need today's scope authority.
+                $definition = $this->retainsArchivedDefinition($row, $data) ? $row->definition : $this->smartDefinition($actor, $data);
                 $count = null;
             } else {
                 $allowed = app(CommunicationRecipients::class)->allowed($actor, (int) $data['session_year_id'], app(AcademicAuthority::class)->today());
@@ -69,8 +71,7 @@ class CommunicationAudiences
      */
     private function smartDefinition(User $actor, array $data): array
     {
-        $rules = collect($data['rules'] ?? [])->map(fn ($rule) => ['kind' => (string) $rule['kind'], 'target_id' => (int) $rule['target_id']])
-            ->unique(fn ($rule) => $rule['kind'].':'.$rule['target_id'])->sortBy(fn ($rule) => $rule['kind'].':'.str_pad((string) $rule['target_id'], 15, '0', STR_PAD_LEFT))->values()->all();
+        $rules = $this->selectedRules($data);
         abort_if($rules === [] || count($rules) > Audience::MAX_RULES, 422, __('A smart group needs between one and ten rules.'));
         $year = (int) $data['session_year_id'];
         foreach ($rules as $rule) {
@@ -79,6 +80,24 @@ class CommunicationAudiences
         }
 
         return ['session_year_id' => $year, 'match' => ($data['match'] ?? 'any') === 'all' ? 'all' : 'any', 'parents' => (bool) ($data['parents'] ?? false), 'rules' => $rules];
+    }
+
+    private function retainsArchivedDefinition(Audience $row, array $data): bool
+    {
+        if (! $row->exists || $data['active'] || (int) $data['session_year_id'] !== (int) $row->definition['session_year_id']) {
+            return false;
+        }
+        $rules = $this->selectedRules($data);
+
+        return $rules === [] || ($rules === $row->definition['rules']
+            && ($data['match'] ?? 'any') === $row->definition['match']
+            && (bool) ($data['parents'] ?? false) === $row->definition['parents']);
+    }
+
+    private function selectedRules(array $data): array
+    {
+        return collect($data['rules'] ?? [])->map(fn ($rule) => ['kind' => (string) $rule['kind'], 'target_id' => (int) $rule['target_id']])
+            ->unique(fn ($rule) => $rule['kind'].':'.$rule['target_id'])->sortBy(fn ($rule) => $rule['kind'].':'.str_pad((string) $rule['target_id'], 15, '0', STR_PAD_LEFT))->values()->all();
     }
 
     /** May the actor see and use this saved audience in this year? */
