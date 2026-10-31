@@ -9,6 +9,7 @@ use App\Models\Platform\School;
 use App\Models\Platform\SchoolHealthSnapshot;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\PushDevices;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
@@ -433,6 +434,22 @@ class PlatformSchoolHealth
     }
 
     /**
+     * The notification type a delivery row was sent for. The transports log
+     * their channel in front of it (MailService: mail.comms.notice, PushQueue:
+     * push.comms.message), while config/notification_types.php has the bare type.
+     */
+    private static function notificationType(string $type): string
+    {
+        foreach ([DeliveryLog::MAIL, DeliveryLog::PUSH] as $channel) {
+            if (str_starts_with($type, $channel.'.')) {
+                return substr($type, strlen($channel) + 1);
+            }
+        }
+
+        return $type;
+    }
+
+    /**
      * Modules on, each with the messages it sent and the AI requests it made
      * in the last 30 days (none counted for sensitive modules).
      *
@@ -444,7 +461,7 @@ class PlatformSchoolHealth
         $messages = [];
         foreach (DB::table('notification_deliveries')->where('school_id', $schoolId)->where('created_at', '>=', $since)
             ->groupBy('type')->selectRaw('type, COUNT(DISTINCT delivery_key) AS messages')->get() as $row) {
-            $module = $types[$row->type]['module'] ?? null;
+            $module = $types[self::notificationType((string) $row->type)]['module'] ?? null;
             if (is_string($module)) {
                 $messages[$module] = ($messages[$module] ?? 0) + (int) $row->messages;
             }

@@ -8,11 +8,13 @@ use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolHealthSnapshot;
 use App\Models\User;
+use App\Services\Platform\Notifications\PushQueue;
 use App\Services\Platform\Saas\PlatformSchoolHealth;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -70,9 +72,10 @@ class HqSchoolHealthTest extends TestCase
             'personal_access_token_id' => $tokenId, 'last_seen_at' => now()->subDays($seen), 'created_at' => now()->subDays($seen), 'updated_at' => now()]);
     }
 
+    /** A delivery row as the transports log it: the type behind its channel (mail.comms.notice, push.comms.message). */
     private function delivery(int $school, string $channel, string $status, int $daysAgo = 1, string $type = 'comms.notice'): void
     {
-        DB::table('notification_deliveries')->insert(['school_id' => $school, 'delivery_key' => (string) Str::uuid(), 'type' => $type, 'channel' => $channel,
+        DB::table('notification_deliveries')->insert(['school_id' => $school, 'delivery_key' => (string) Str::uuid(), 'type' => $channel.'.'.$type, 'channel' => $channel,
             'status' => $status, 'attempt' => 1, 'created_at' => now()->subDays($daysAgo), 'updated_at' => now()]);
     }
 
@@ -148,6 +151,22 @@ class HqSchoolHealthTest extends TestCase
         $this->aiUsage(2, $this->person('tara', true), now('Africa/Johannesburg')->toDateString(), 70000);
         $this->failedJob(2);
         $this->failedJob(2);
+    }
+
+    public function test_messages_queued_through_the_push_transport_count_for_their_module(): void
+    {
+        Queue::fake();
+        DB::table('notification_deliveries')->delete();
+        app(CurrentSchool::class)->run(1, function (): void {
+            PushQueue::toDevice('comms.message', $this->person('farid'), 'synthetic-token', ['message' => ['token' => 'synthetic-token']]);
+            PushQueue::toDevice('comms.notice', $this->person('farid'), 'synthetic-token', ['message' => ['token' => 'synthetic-token']]);
+        });
+        app(CurrentSchool::class)->forget();
+        $this->assertSame(['push.comms.message', 'push.comms.notice'], DB::table('notification_deliveries')->orderBy('type')->pluck('type')->all());
+
+        $modules = collect(app(PlatformSchoolHealth::class)->compute(1)['modules']['list'])->keyBy('key');
+        $this->assertSame(1, $modules['chat']['messages']);
+        $this->assertSame(1, $modules['communication']['messages']);
     }
 
     public function test_the_figures_come_from_the_schools_own_data(): void
