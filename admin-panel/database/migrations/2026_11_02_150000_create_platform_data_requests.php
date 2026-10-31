@@ -21,10 +21,10 @@ return new class extends Migration
             $t->id();
             $t->foreignId('school_id')->index()->constrained('schools')->restrictOnDelete();
             // access, correction, deletion or objection (POPIA sections 23, 24 and 11(3)).
-            $t->string('kind', 12);
+            $t->string('kind', 16);
             // received, with_school, answered, closed or withdrawn.
-            $t->string('status', 12)->default('received');
-            $t->string('channel', 8);
+            $t->string('status', 16)->default('received');
+            $t->string('channel', 16);
             $t->string('requester_role', 16);
             // Who asked, how to reach them and what they asked for: encrypted at rest, never in the audit log.
             $t->text('requester_name');
@@ -35,7 +35,7 @@ return new class extends Migration
             $t->dateTime('passed_at')->nullable();
             $t->foreignId('passed_by')->nullable()->constrained('users')->nullOnDelete();
             // fulfilled, partly or refused, with the school's note to Navigate Ed (encrypted).
-            $t->string('outcome', 10)->nullable();
+            $t->string('outcome', 16)->nullable();
             $t->text('outcome_note')->nullable();
             $t->dateTime('answered_at')->nullable();
             $t->foreignId('answered_by')->nullable()->constrained('users')->nullOnDelete();

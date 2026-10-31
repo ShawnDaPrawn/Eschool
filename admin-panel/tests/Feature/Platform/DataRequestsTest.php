@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Platform;
 
+use App\Jobs\Platform\SendMail;
 use App\Models\Platform\AuditLog;
 use App\Models\Platform\DataRequest;
 use App\Models\Platform\OutboxEvent;
@@ -11,10 +12,12 @@ use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Platform\Notifications\Notifier;
 use App\Services\Platform\Privacy\DataRequests;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -125,6 +128,25 @@ class DataRequestsTest extends TestCase
         $this->assertSame(['platform_data_request_logged', 'platform_data_request_passed', 'platform_data_request_answered', 'platform_data_request_closed'], $audit->pluck('action')->all());
         $this->assertStringNotContainsString('Nomsa', $audit->toJson());
         $this->assertStringNotContainsString('full record', $audit->toJson());
+    }
+
+    public function test_the_email_links_to_the_staff_panel_and_in_person_requests_are_kept_whole(): void
+    {
+        Queue::fake();
+        config(['app.url' => 'https://staff.example.test', 'identity.portal_url' => 'https://family.example.test']);
+        $officer = $this->officerA();
+        $officer->forceFill(['email_verified_at' => now()])->save();
+        $this->actingAs($this->hq('operations'));
+        $id = $this->log(1, ['channel' => 'in_person']);
+        $this->assertSame('in_person', $this->row($id)->channel);
+        $this->get('/saas/data-requests/'.$id)->assertOk()->assertSee('In person');
+
+        app(CurrentSchool::class)->run(1, function () use ($officer): void {
+            $notifier = app(Notifier::class);
+            $notice = $notifier->makeNotice('school.data_request', 'A data request needs your answer', 'Please answer it.', '/data-requests');
+            $notifier->send($officer, 'school.data_request', $notice->title, $notice->message, '/data-requests', $notice, ['email']);
+        });
+        Queue::assertPushed(SendMail::class, fn ($job) => $job->mailable->noticeUrl === 'https://staff.example.test/data-requests');
     }
 
     public function test_roles_without_the_ability_are_refused_and_nothing_changes(): void
