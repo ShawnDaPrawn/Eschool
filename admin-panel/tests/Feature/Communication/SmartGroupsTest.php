@@ -4,25 +4,29 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Communication;
 
+use App\Jobs\Platform\SendMail;
+use App\Mail\Platform\NotificationMail;
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingAllocation;
 use App\Models\Academics\TeachingGroup;
+use App\Models\Academics\TeachingGroupMembership;
 use App\Models\ClassSchool;
 use App\Models\Communication\Audience;
 use App\Models\Communication\Message;
 use App\Models\Communication\MessageRecipient;
+use App\Models\People\Enrolment;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\Academics\TeachingGroups;
 use App\Services\Communication\CommunicationAudiences;
 use App\Services\Communication\MessageDelivery;
 use App\Services\Communication\MessageFlow;
 use App\Services\Communication\MessageQueries;
-use App\Services\People\EnrolmentService;
+use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -55,13 +59,13 @@ class SmartGroupsTest extends TestCase
         SessionYear::whereKey($this->year)->update(['start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
         ClassSchool::whereKey($this->schoolA->ids['class_a'])->update(['grade_level_id' => $this->grade]);
         foreach (['asha', 'ben'] as $key) {
-            app(EnrolmentService::class)->place($this->schoolA->ids[$key], $this->schoolA->ids['section_a'], $this->year, '2026-01-01', 'Synthetic message enrolment');
+            Enrolment::create(['learner_id' => $this->schoolA->ids[$key], 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic read fixture']);
         }
-        $g = app(TeachingGroups::class)->save($this->superAdmin(), ['name' => 'Message fractions group', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
+        $g = TeachingGroup::create(['name' => 'Message fractions group', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
         $this->group = (int) $g->id;
-        app(TeachingGroups::class)->dated($this->superAdmin(), 'teachers', ['teacher_id' => Teacher::where('user_id', $this->teacher()->id)->value('id'), 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic message author'], $this->group);
+        TeachingAllocation::create(['teaching_group_id' => $this->group] + ['teacher_id' => Teacher::where('user_id', $this->teacher()->id)->value('id'), 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic message author']);
         foreach (['asha', 'ben'] as $key) {
-            app(TeachingGroups::class)->dated($this->superAdmin(), 'memberships', ['learner_id' => $this->schoolA->ids[$key], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up', 'reason' => 'Synthetic audience member'], $this->group);
+            TeachingGroupMembership::create(['teaching_group_id' => $this->group] + ['learner_id' => $this->schoolA->ids[$key], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up', 'reason' => 'Synthetic audience member']);
         }
         Queue::fake();
     }
@@ -164,8 +168,8 @@ class SmartGroupsTest extends TestCase
         $this->assertArrayNotHasKey('user_ids', $m->audience);
 
         // Cara joins the homeroom and the group after the group and the message were saved.
-        app(EnrolmentService::class)->place($this->schoolA->ids['cara'], $this->schoolA->ids['section_a'], $this->year, '2026-01-01', 'Synthetic later member');
-        app(TeachingGroups::class)->dated($this->superAdmin(), 'memberships', ['learner_id' => $this->schoolA->ids['cara'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up', 'reason' => 'Synthetic later member'], $this->group);
+        Enrolment::create(['learner_id' => $this->schoolA->ids['cara'], 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic read fixture']);
+        TeachingGroupMembership::create(['teaching_group_id' => $this->group] + ['learner_id' => $this->schoolA->ids['cara'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up', 'reason' => 'Synthetic later member']);
         $m = $this->approved($m);
         app(MessageDelivery::class)->process((int) $m->id);
         $this->assertSame($this->ids('asha', 'ben', 'cara'), $this->recipients($m));
@@ -367,5 +371,33 @@ class SmartGroupsTest extends TestCase
             array_replace($this->archiveData($group->fresh()), ['active' => true]), $this->headers())->assertNotFound();
         $this->assertFalse($group->fresh()->active);
         $this->denied(fn () => $this->toGroup($group->fresh()), 404);
+    }
+
+    public function test_private_smart_audience_full_email_still_obeys_the_global_opt_out(): void
+    {
+        foreach (['farid', 'mona', 'gina'] as $key) {
+            $person = $this->person($key);
+            $person->forceFill(['email_verified_at' => now()])->save();
+            app(NotificationRules::class)->choose($person, 'communication.message', 'email', true);
+        }
+        $audience = $this->smart();
+        $message = $this->approved($this->draft(null, ['channels' => ['in_app', 'email'],
+            'audience' => ['kind' => 'custom', 'session_year_id' => $this->year, 'target_id' => (int) $audience->id, 'parents' => false]]));
+        app(MessageDelivery::class)->process((int) $message->id);
+        $jobs = Queue::pushed(SendMail::class)->filter(fn ($job) => $job->mailable instanceof NotificationMail && $job->mailable->notificationType === 'communication.message');
+        $this->assertCount(3, $jobs);
+        app(NotificationRules::class)->choose($this->person('farid'), 'communication.message', 'email', false);
+        Mail::fake();
+        app(CurrentSchool::class)->forget();
+        foreach ($jobs as $job) {
+            $job->handle();
+        }
+        Mail::assertSent(NotificationMail::class, 2);
+        Mail::assertNotSent(NotificationMail::class, fn ($mail) => $mail->hasTo($this->person('farid')->email));
+        Mail::assertSent(NotificationMail::class, function ($mail) {
+            $this->assertStringContainsString('Private family details.', $mail->render());
+
+            return true;
+        });
     }
 }
