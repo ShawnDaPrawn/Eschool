@@ -33,6 +33,7 @@ use App\Policies\Money\MoneyPolicy;
 use App\Services\Money\FeeReceiptOverview;
 use App\Services\Panel\SetupChecklist;
 use App\Services\Panel\TodayNumbers;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\ResponseService;
@@ -247,6 +248,8 @@ class HomeController extends Controller
         return [
             'total_students' => Students::count(),
             'session_students' => $session_students,
+            // Leavers reading their records until 31 March, apart from current learners (1.21).
+            'leavers' => app(LeaverState::class)->count(),
             'total_teachers' => Teacher::count(),
             'total_classes' => ClassSchool::count(),
             'total_streams' => Stream::count(),

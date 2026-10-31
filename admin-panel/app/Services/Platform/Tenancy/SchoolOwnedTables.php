@@ -21,6 +21,17 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'lurits_conflicts',
+        'platform_incident_schools',
+        // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
+        // notes, their lines, its EFT payments and what each payment or credit
+        // note settles. Each row is about one school, so it carries the school
+        // (written inside it from /saas); only HQ reads them, never the school.
+        'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations',
+        'school_health_snapshots',
+        'platform_announcement_schools', 'platform_announcement_reads',
+        'support_access_grants', 'support_access_views',
+        'platform_feature_flag_schools',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',
@@ -56,6 +67,7 @@ final class SchoolOwnedTables
         'houses', 'house_memberships', 'point_categories', 'recognition_settings', 'house_point_limits', 'house_points', 'award_categories', 'award_category_admins', 'award_windows', 'award_definitions', 'award_nominations', 'award_nomination_versions', 'award_presentations', 'recognition_operations',
         'transfer_packages', 'transfer_consents', 'transfer_stages', 'transfer_receipts', 'transfer_operations',
         'learner_activity_days',
+        'exam_periods',
         'risk_settings', 'risk_observations', 'risk_caseloads', 'interventions', 'intervention_versions', 'risk_operations',
         'wellbeing_notice_intents', 'incident_photos', 'wellbeing_categories', 'wellbeing_team_assignments', 'incident_reports', 'incident_threads', 'support_cases', 'support_case_assignments', 'support_case_entries', 'wellbeing_appointments', 'wellbeing_operations', 'wellbeing_events',
         'learner_note_operations', 'progress_band_states', 'progress_band_alerts', 'progress_band_settings', 'learner_notes', 'learner_note_revisions', 'learner_note_assignments',
@@ -68,11 +80,11 @@ final class SchoolOwnedTables
         'academic_transition_policies', 'academic_transitions', 'academic_exit_packages', 'retention_rules',
         'report_templates', 'report_comment_banks', 'report_batches', 'report_cards', 'report_comments', 'report_recipients',
         'attendance_registers', 'attendance_entries', 'attendance_operations', 'attendance_notices',
-        'rooms', 'bell_schedules', 'bell_periods', 'timetable_lessons',
+        'rooms', 'bell_schedules', 'bell_periods', 'bell_schedule_overrides', 'timetable_lessons',
         'assessment_marks', 'question_marks', 'mark_snapshots', 'mark_releases', 'mark_release_entries', 'academic_exam_links',
         'teaching_groups', 'teaching_group_memberships', 'teaching_allocations', 'homeroom_allocations', 'academic_leaderships',
         'curriculum_plans', 'curriculum_topics', 'assessment_plans', 'assessment_tasks', 'assessment_questions',
-        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations',
+        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations', 'staff_invitations', 'school_join_invitations', 'school_accounts', 'school_contacts', 'school_contracts', 'school_account_events',
         'term_templates', 'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',
@@ -118,6 +130,13 @@ final class SchoolOwnedTables
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
+        'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
+        'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
+        'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
+        'platform_package_modules' => 'which product modules each version of a package includes; names no school',
+        'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
+        'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
+        'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
@@ -125,12 +144,14 @@ final class SchoolOwnedTables
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',
         'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
         'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
-        'learner_identifiers' => 'one immutable student number per human across schools; accessed by user id under a lock',
+        'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',
+        'user_devices' => 'push registrations belong to one human across schools, like users; each notification carries its own school',
         'platform_counters' => 'platform-wide sequence allocation under a row lock',
         'schools' => 'the schools themselves',
         'school_memberships' => 'the link between a person and a school: carries school_id (not null, foreign key) but is read across schools for one user',
         'users' => 'one row per human across schools; a user belongs to a school through school_memberships',
         'permissions' => 'one catalogue of permission names; roles hold them per school',
+        'platform_staff_invitations' => 'one-use, expiring links for invited platform staff to choose a password; no school data',
         'platform_staff_identities' => 'global platform-operator exclusions; never school data or an access grant',
         'languages' => 'interface languages are installed for the whole platform',
         'policy_acceptances' => 'a user accepts a platform policy version once',

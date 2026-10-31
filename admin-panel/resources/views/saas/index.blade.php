@@ -12,6 +12,7 @@
         <tr>
             <th scope="col">{{ __('School') }}</th>
             <th scope="col">{{ __('Status') }}</th>
+            <th scope="col">{{ __('Stage') }}</th>
             <th scope="col">{{ __('Package') }}</th>
             <th scope="col" class="num">{{ __('Learners') }}</th>
             <th scope="col" class="num">{{ __('Parents') }}</th>
@@ -24,6 +25,7 @@
             <tr>
                 <th scope="row"><a href="{{ route('saas.schools.show', $school['id']) }}">{{ $school['name'] }}</a></th>
                 <td><span class="saas-badge {{ $school['status'] === 'active' ? '' : 'saas-badge--warn' }}">{{ __(ucfirst($school['status'])) }}</span></td>
+                <td>{{ __('stage_'.$school['stage']) }}</td>
                 <td>{{ $school['package_key'] ?? __('Upgraded seed (legacy)') }}</td>
                 <td class="num">{{ $school['roles']['Student'] }}</td>
                 <td class="num">{{ $school['roles']['Parent'] }}</td>
@@ -34,5 +36,7 @@
         </tbody>
     </table>
 </div>
+@if (app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), 'schools.create'))
 <p class="saas-actions"><a class="saas-btn" href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a></p>
+@endif
 @endsection

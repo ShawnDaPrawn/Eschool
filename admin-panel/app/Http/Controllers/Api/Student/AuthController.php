@@ -6,10 +6,12 @@ namespace App\Http\Controllers\Api\Student;
 
 use App\Http\Controllers\Api\Student\Concerns\StudentAccess;
 use App\Http\Controllers\Controller;
+use App\Models\ClassSection;
 use App\Models\Shift;
 use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\Platform\Identity\PortalSession;
@@ -61,7 +63,11 @@ class AuthController extends Controller
                 return ResponseService::errorResponse('Your account is not active for the current academic year because promotion to the next class has not been completed. Please contact the administration.', null, null);
             }
 
-            if ($studentSession->status == 0) {
+            // A leaver (Action Plan 1.21) signs in, read-only, until leaver_until; their
+            // row this year has no homeroom, so the answer names their last one.
+            $leaver = (int) $studentSession->status === 0 && app(LeaverState::class)->until($user->student) !== null;
+            $room = $studentSession->class_section ?? ($leaver ? ClassSection::query()->find($user->student->class_section_id) : null);
+            if (((int) $studentSession->status === 0 && ! $leaver) || $room === null) {
                 return ResponseService::errorResponse('Your Account is Deactivate Please contact Admin for Further Help.', null, null);
             } else {
                 // Only now that the account and its session are active.
@@ -77,21 +83,21 @@ class AuthController extends Controller
                     $auth->save();
                 }
 
-                $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
+                $classSectionName = $room->class->name.' '.$room->section->name;
 
                 // Set Class Section name
-                $streamName = $studentSession->class_section->class->streams->name ?? null;
+                $streamName = $room->class->streams->name ?? null;
                 if ($streamName !== null) {
                     $user->class_section_name = $classSectionName.' '.$streamName;
                 } else {
                     $user->class_section_name = $classSectionName;
                 }
-                $user->is_term_on_in_class = $studentSession->class_section->class->getIncludeTermsForSession($session_year_id);
+                $user->is_term_on_in_class = $room->class->getIncludeTermsForSession($session_year_id);
                 // Set Medium name
-                $user->medium_name = $studentSession->class_section->class->medium->name;
+                $user->medium_name = $room->class->medium->name;
 
                 // Set Shift name
-                $user->shift_id = $studentSession->class_section->class->shifts->id ?? '';
+                $user->shift_id = $room->class->shifts->id ?? '';
                 $user->shift = Shift::find($user->shift_id);
                 if ($user->shift) {
                     $user->shift->id;
@@ -105,7 +111,7 @@ class AuthController extends Controller
                 // Set Category name
                 $user->category_name = $user->student->category->name;
                 unset($user->student->category);
-                $class_id = $studentSession->class_section->class_id;
+                $class_id = $room->class_id;
 
                 $user->is_fee_payment_due = 0; // Retired v1 hint; statements are authoritative.
 
@@ -115,7 +121,7 @@ class AuthController extends Controller
 
                 // Override class_id and class_section_id using student sessions
                 $user['class_id'] = $class_id;
-                $user['class_section_id'] = $studentSession->class_section_id;
+                $user['class_section_id'] = $room->id;
 
                 if (! empty($dynamicField)) {
                     $data = json_decode($dynamicField ?? '[]', true);

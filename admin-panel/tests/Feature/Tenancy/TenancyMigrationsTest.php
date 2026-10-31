@@ -125,6 +125,11 @@ class TenancyMigrationsTest extends TestCase
     {
         foreach (array_reverse($this->migrationNames()) as $name) {
             $this->migration($name)->down();
+            if ($name === '2026_10_28_240000_add_unpaid_fee_payer_corrections') {
+                $this->assertFeeItemReference(false);
+            } elseif ($name === '2026_10_26_004000_create_foundation_classroom_authority') {
+                $this->assertScanReference(false);
+            }
         }
     }
 
@@ -132,7 +137,33 @@ class TenancyMigrationsTest extends TestCase
     {
         foreach ($this->migrationNames() as $name) {
             $this->migration($name)->up();
+            if ($name === '2026_10_28_240000_add_unpaid_fee_payer_corrections') {
+                $this->assertFeeItemReference(true);
+            } elseif ($name === '2026_10_26_004000_create_foundation_classroom_authority') {
+                $this->assertScanReference(true);
+            }
         }
+    }
+
+    /** A rollback must preserve the source's school isolation and delete restriction. */
+    private function assertFeeItemReference(bool $nullable): void
+    {
+        $foreign = collect(Schema::getForeignKeys('fee_charges'))->first(fn (array $key): bool => $key['columns'] === ['school_id', 'fee_item_id'] && $key['foreign_table'] === 'fee_items');
+        $this->assertNotNull($foreign);
+        $this->assertSame(['school_id', 'id'], $foreign['foreign_columns']);
+        $this->assertSame('restrict', strtolower($foreign['on_delete']));
+        $column = collect(Schema::getColumns('fee_charges'))->firstWhere('name', 'fee_item_id');
+        $this->assertSame($nullable, $column['nullable']);
+    }
+
+    private function assertScanReference(bool $nullable): void
+    {
+        $foreign = collect(Schema::getForeignKeys('card_classroom_sessions'))->first(fn (array $key): bool => $key['columns'] === ['school_id', 'scan_id'] && $key['foreign_table'] === 'card_scan_logs');
+        $this->assertNotNull($foreign);
+        $this->assertSame(['school_id', 'id'], $foreign['foreign_columns']);
+        $this->assertContains(strtolower($foreign['on_delete']), ['no action', 'restrict']);
+        $column = collect(Schema::getColumns('card_classroom_sessions'))->firstWhere('name', 'scan_id');
+        $this->assertSame($nullable, $column['nullable']);
     }
 
     private function migration(string $name): object

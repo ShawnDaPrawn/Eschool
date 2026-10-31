@@ -87,6 +87,30 @@ when a placement batch commits. It contains no learner list. The normal schedule
 refreshes compatible v1 current-week projections; the canonical timetable remains
 authoritative while a projection refresh is delayed.
 
+Notification type academics.timetable_changed (academics module, every portal,
+standard channel preferences) tells affected learners, their current guardians
+and the lessons' teachers when a short day is planned or cancelled. The notice
+names only the date; the outbox event carries lesson IDs, never a learner list.
+
+
+New school year: school.new_year (people module, learner and parent portals,
+standard channel preferences) welcomes the learners placed in the new year and
+their current guardians when it becomes current, if the school chooses it in the
+new-year wizard. The notice names the year and its first day, never a learner or
+homeroom.
+
+Announcements from Navigate Ed: platform.announcement (school module, which is
+always on; admin portal only; in-app and email on by default, no push; the
+school's notification rules apply) goes to the active Super Admins of each school
+an HQ announcement reaches (SA.13) when it is published. The notice carries the
+announcement's title and its kind (and a maintenance window's times), and links
+to the school panel's Navigate Ed announcements page; it names no other school.
+
+Exam changes: academics.exam_changed (academics module, learner and parent
+portals, standard channel preferences) tells the learners in a class and their
+current guardians when an upcoming exam sitting's date, time or venue changes,
+or the sitting is removed. The notice names the subject and new time, never a
+learner.
 
 Academic register amendment: academics.register_amended (academics module),
 current guardians, standard channel preferences; attendance.absence retains its
@@ -452,3 +476,25 @@ Personal profiles use their current wallet/guardian scope; dedicated operators
 use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
+
+### Navigate Ed account overdue (HQ billing)
+
+`billing.overdue` (school module, admin portal; in-app and email mandatory,
+push on by default; locked) tells a school's Super Admins that its own account
+with Navigate Ed is overdue, when HQ sends a reminder from `/saas/billing`. The
+bursar contact on HQ's school record gets the same text by email. The notice
+names the overdue amount and invoice references only; no learner or person.
+No payment provider is involved: schools pay by EFT
+([HQ billing](../specs/platform/hq-billing.md)).
+
+## Navigate Ed support access (SA.9)
+
+Notification types `support_access.requested` and `support_access.emergency`
+(people module, admin portal only, every channel mandatory and locked so a school
+cannot switch them off) go to the school's active Super Admins, never to a
+platform staff account that also holds a school role. The first says Navigate Ed
+asks for support access; the second that an Owner opened emergency access at once.
+Both link to the school panel's `/support-access` page and name no person, reason
+or record. No ability, module or permission row is added to schools; HQ adds the
+platform abilities `support.access` (Owner, Operations, Support) and
+`support.emergency` (Owner).

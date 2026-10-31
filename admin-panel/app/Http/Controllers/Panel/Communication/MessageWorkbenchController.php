@@ -15,6 +15,7 @@ use App\Services\Communication\CommunicationRules;
 use App\Services\Communication\MessageDraftRestoration;
 use App\Services\Communication\MessageFlow;
 use App\Services\Communication\MessageQueries;
+use App\Services\Communication\MessageReport;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -38,6 +39,14 @@ class MessageWorkbenchController extends Controller
             'contacts' => $contacts, 'audience' => $audience, 'preview' => $preview, 'restored' => $restored, 'selectedContacts' => $selectedContacts, 'removedContacts' => $removedContacts,
             'rendered' => $message === null ? null : app(ContentMarkdown::class)->html($message['markdown']),
             'roleRules' => $config['can_manage'] ? app(CommunicationRules::class)->listing($r->user()) : []]);
+    }
+
+    /** The sender's delivery report for a published message (Action Plan 2.4). */
+    public function report(MessagePanelRequest $r, int $message): Response
+    {
+        $report = app(MessageReport::class)->for($r->user(), $message, (int) $r->validated('page', 1));
+
+        return response()->view('communication.report', ['report' => $report, 'timezone' => app(MessageQueries::class)->configuration($r->user(), null, true)['timezone']]);
     }
 
     private function done(array $receipt, string $text): Response

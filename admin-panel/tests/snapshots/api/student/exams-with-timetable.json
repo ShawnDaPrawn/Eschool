@@ -34,7 +34,8 @@
                             "type": "string"
                         },
                         "subject_id": "number",
-                        "total_marks": "number"
+                        "total_marks": "number",
+                        "venue": "null"
                     }
                 ],
                 "id": "number",

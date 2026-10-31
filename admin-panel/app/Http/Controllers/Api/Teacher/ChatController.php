@@ -684,8 +684,10 @@ class ChatController extends Controller
         }
 
         $sessionYearId = $this->currentSessionYearId();
-        $students = Students::whereIn('class_section_id', $this->teacherClassSectionIds())
-            ->whereHas('studentSessions', fn ($q) => $q->where('session_year_id', $sessionYearId));
+        // This year's placement, not the learner's last homeroom: a leaver keeps
+        // students.class_section_id but has no homeroom this year (Action Plan 1.21).
+        $students = Students::whereHas('studentSessions', fn ($q) => $q->where('session_year_id', $sessionYearId)
+            ->where('status', 1)->whereIn('class_section_id', $this->teacherClassSectionIds()));
 
         if ((clone $students)->where('user_id', $userId)->exists()) {
             return true;

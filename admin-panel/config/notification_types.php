@@ -28,7 +28,11 @@ return [
     'academics.marks_released' => ['label' => 'Marks released', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.content_published' => ['label' => 'Learning content published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'platform.announcement' => ['label' => 'Announcements from Navigate Ed', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'off', 'email' => 'default_on', 'in_app' => 'default_on']],
+    'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'academics.exam_changed' => ['label' => 'Exam changes', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.register_amended' => ['label' => 'Register amended', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
+    'academics.timetable_changed' => ['label' => 'Timetable changes', 'module' => 'academics', 'portals' => $all, 'channels' => $on],
     'attendance.absence' => ['label' => 'Absence alert', 'module' => 'academics', 'portals' => $all, 'channels' => $on, 'locked' => ['parent'], 'mandatory_channels' => ['push', 'email', 'in_app']],
     'fees.ledger_reminder' => ['label' => 'Fee statement reminders', 'module' => 'fees', 'portals' => ['parent'], 'channels' => $on],
     'fees.invoice' => ['label' => 'Fee invoice', 'module' => 'fees', 'portals' => $all, 'channels' => array_replace($on, ['email' => 'default_on'])],
@@ -53,5 +57,10 @@ return [
     'school_assistance.parent_update' => ['label' => 'School support replies', 'module' => 'ask_school', 'portals' => ['parent'], 'channels' => $on],
     'school_assistance.office_update' => ['label' => 'School support office updates', 'module' => 'ask_school', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'group_chat.staff_update' => ['label' => 'Staff group conversations', 'module' => 'groups', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    // Navigate Ed support access (SA.9): a school's Super Admins are always told, on every channel they have.
+    'support_access.requested' => ['label' => 'Navigate Ed support access request', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
+    'support_access.emergency' => ['label' => 'Navigate Ed emergency support access', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    // Navigate Ed tells a school's Super Admins that its own account with Navigate Ed is overdue (HQ billing, SA.8).
+    'billing.overdue' => ['label' => 'Navigate Ed account overdue', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'default_on', 'email' => 'mandatory', 'in_app' => 'mandatory'], 'locked' => ['admin']],
 ];

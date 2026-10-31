@@ -135,7 +135,10 @@ class ProgressQueries
     {
         app(LearnerNotesPolicy::class)->principal($actor);
 
-        return $this->learners(Students::query()->with('user')->whereHas('user', fn ($q) => $q->where('status', 1))
+        // Current learners only: leavers keep an active account (Action Plan 1.21).
+        $current = SchoolMembership::query()->active()->where('school_id', app(CurrentSchool::class)->id())->where('role', 'Student')->select('user_id');
+
+        return $this->learners(Students::query()->with('user')->whereHas('user', fn ($q) => $q->where('status', 1))->whereIn('user_id', $current)
             ->orderBy('id')->paginate(100, ['*'], 'page', max(1, $page)));
     }
 

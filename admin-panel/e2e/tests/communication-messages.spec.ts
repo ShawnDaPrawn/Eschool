@@ -66,12 +66,18 @@ for (const width of [1024,1280]) {
     await signIn(page,author);
     await page.goto(`/communication-centre?message_id=${id}`);
     await expect(page.getByText('Recipients at publication',{exact:false})).toBeVisible();
+    const report = page.getByRole('link',{name:'Delivery report',exact:true});
+    await expect(report).toBeVisible();
+    await expect(report).toHaveCSS('text-decoration-line','underline');
+    await expect(page.getByRole('link',{name:'Refresh message status',exact:true})).toHaveCSS('text-decoration-line','none');
     await expect(page.getByRole('form',{name:'Edit private message',exact:true})).toHaveCount(0);
     await page.getByText('Withdraw message',{exact:true}).first().click();
     form=page.getByRole('form',{name:'Withdraw message',exact:true});
     await form.getByRole('textbox',{name:'Withdrawal reason',exact:true}).fill('Synthetic message withdrawn after browser review');
     await form.getByRole('button',{name:'Withdraw message',exact:true}).click();
     await expect(page.getByRole('status').filter({hasText:'Message withdrawn'})).toBeVisible();
+    await expect(report).toBeVisible();
+    await expect(report).toHaveCSS('text-decoration-line','underline');
     expect(await seriousViolations(page)).toEqual([]);
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     expect(errors).toEqual([]);

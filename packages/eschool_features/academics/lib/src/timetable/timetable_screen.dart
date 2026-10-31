@@ -75,6 +75,10 @@ class TimetableScreen extends StatelessWidget {
     return '${const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][parsed.weekday - 1]} ${MaterialLocalizations.of(context).formatShortDate(parsed)}';
   }
 
+  /// Exam mode: the school marked this day as one of the learner's exam days.
+  bool _examDay(AcademicTimetableWeekData week, String day) =>
+      week.examDays?.contains(day) ?? false;
+
   @override
   Widget build(
     BuildContext context,
@@ -218,6 +222,10 @@ class TimetableScreen extends StatelessWidget {
                                     ).textTheme.titleMedium,
                                   ),
                                 ),
+                                if (_examDay(week, day))
+                                  const AcademicText(
+                                    'Exam day: see your exam timetable',
+                                  ),
                                 if (!week.lessons.any(
                                   (lesson) => lesson.date == day,
                                 ))
@@ -256,6 +264,12 @@ class TimetableScreen extends StatelessWidget {
                                           Expanded(
                                             child: ListView(
                                               children: [
+                                                if (_examDay(week, day))
+                                                  const Center(
+                                                    child: AcademicText(
+                                                      'Exam day: see your exam timetable',
+                                                    ),
+                                                  ),
                                                 if (!week.lessons.any(
                                                   (lesson) =>
                                                       lesson.date == day,

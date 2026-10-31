@@ -80,6 +80,7 @@ class ExamTimetableController extends Controller
                 'timetable.*.passing_marks' => 'required|lte:timetable.*.total_marks',
                 'timetable.*.end_time' => 'required|after:timetable.*.start_time',
                 'timetable.*.date' => 'required|date',
+                'timetable.*.venue' => 'nullable|string|max:120',
             ],
             [
                 'timetable.*.passing_marks.lte' => trans('passing_marks_should_less_than_or_equal_to_total_marks'),
@@ -108,6 +109,7 @@ class ExamTimetableController extends Controller
                     'passing_marks' => $timetable['passing_marks'],
                     'start_time' => $timetable['start_time'],
                     'end_time' => $timetable['end_time'],
+                    'venue' => self::venue($timetable),
                     'date' => $date,
                     'session_year_id' => $session_year_id,
                 ];
@@ -412,6 +414,7 @@ class ExamTimetableController extends Controller
                 'edit_timetable.*.start_time' => 'required',
                 'edit_timetable.*.end_time' => 'required|after:edit_timetable.*.start_time',
                 'edit_timetable.*.date' => 'required|',
+                'edit_timetable.*.venue' => 'nullable|string|max:120',
             ],
             [
 
@@ -438,6 +441,7 @@ class ExamTimetableController extends Controller
                         $timetable_db->passing_marks = $timetable['passing_marks'];
                         $timetable_db->start_time = $timetable['start_time'];
                         $timetable_db->end_time = $timetable['end_time'];
+                        $timetable_db->venue = self::venue($timetable);
                         $date = date('Y-m-d', strtotime($timetable['date']));
                         $timetable_db->date = $date;
                         $timetable_db->save();
@@ -456,6 +460,7 @@ class ExamTimetableController extends Controller
                             'passing_marks' => $timetable['passing_marks'],
                             'start_time' => $timetable['start_time'],
                             'end_time' => $timetable['end_time'],
+                            'venue' => self::venue($timetable),
                             'session_year_id' => $request->session_year_id,
                             'date' => $date,
                         ];
@@ -532,5 +537,13 @@ class ExamTimetableController extends Controller
         }
 
         return response()->json($response);
+    }
+
+    /** An exam sitting's venue (exam mode), or null when left blank. */
+    private static function venue(array $timetable): ?string
+    {
+        $venue = trim((string) ($timetable['venue'] ?? ''));
+
+        return $venue === '' ? null : $venue;
     }
 }

@@ -19,8 +19,10 @@ use App\Http\Middleware\EnsureDefaultSchool;
 use App\Http\Middleware\EnsureLearnerApproved;
 use App\Http\Middleware\EnsureModuleEnabled;
 use App\Http\Middleware\EnsureParentChildrenSessionIsActive;
+use App\Http\Middleware\EnsurePlatformAbility;
 use App\Http\Middleware\EnsurePlatformStaff;
 use App\Http\Middleware\EnsureStudentSessionIsActive;
+use App\Http\Middleware\EnsureSupportSession;
 use App\Http\Middleware\EnsureTeacherActive;
 use App\Http\Middleware\EnsureUserHasAnyRole;
 use App\Http\Middleware\EnsureUserIsStaff;
@@ -110,6 +112,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/*',
             // Browsers send content security policy reports without a token.
             'csp-report',
+            // One-click unsubscribe (RFC 8058): mail providers POST to the signed link.
+            'email/unsubscribe/*',
         ]);
 
         // Every request starts with no school; school.context chooses it.
@@ -167,6 +171,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'school.default' => EnsureDefaultSchool::class,
             // The platform admin area (/saas): active platform staff identities only.
             'platform.staff' => EnsurePlatformStaff::class,
+            // ...and the staff member's role must hold the named ability (SA.1).
+            'platform.can' => EnsurePlatformAbility::class,
+            // An audited, read-only support session in one school (SA.9).
+            'support.session' => EnsureSupportSession::class,
             'Role' => CheckRole::class,
             'checkChild' => CheckChild::class,
             'checkStudent' => CheckStudent::class,

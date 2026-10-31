@@ -57,6 +57,30 @@ class PlatformStaffAccess
             && PlatformAdminGrant::query()->where('user_id', $user->id)->where('active', true)->where('expires_at', '>', now()->utc())->exists();
     }
 
+    /**
+     * The role on the account's current grant (config/platform_roles.php), or
+     * null without one. A role no longer in the config grants nothing.
+     */
+    public function role(User $user): ?string
+    {
+        return app(CurrentSchool::class)->acrossSchools(function () use ($user): ?string {
+            $role = PlatformAdminGrant::query()->where('user_id', $user->id)->where('active', true)->where('expires_at', '>', now()->utc())->value('role');
+
+            return is_string($role) && array_key_exists($role, (array) config('platform_roles')) ? $role : null;
+        });
+    }
+
+    /** Whether an allowed platform staff member's role holds the ability. */
+    public function can(?User $user, string $ability): bool
+    {
+        if (! $this->allowed($user)) {
+            return false;
+        }
+        $abilities = (array) config('platform_roles.'.$this->role($user).'.abilities', []);
+
+        return in_array('*', $abilities, true) || in_array($ability, $abilities, true);
+    }
+
     /** The signed-in staff member, from a fresh row; 403 for anyone else. */
     public function actor(?User $user, bool $ownPassword = false): User
     {

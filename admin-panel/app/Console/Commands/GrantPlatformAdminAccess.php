@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
 
 class GrantPlatformAdminAccess extends Command
 {
-    protected $signature = 'platform:admin-access {user_id : An active platform operator} {--hours=24 : Expiry from now, 1 to 8760 hours} {--revoke}';
+    protected $signature = 'platform:admin-access {user_id : An active platform operator} {--hours=24 : Expiry from now, 1 to 8760 hours} {--role= : owner, operations, support, finance, content or sales (default: unchanged, owner for a new grant)} {--revoke}';
 
     protected $description = 'Grant or revoke expiring access to the platform admin area (/saas) from the trusted operator console';
 
@@ -30,8 +30,15 @@ class GrantPlatformAdminAccess extends Command
 
                 return self::FAILURE;
             }
+            $role = $this->option('role');
+            if ($role !== null && ! array_key_exists((string) $role, (array) config('platform_roles'))) {
+                $this->error('Choose a role from config/platform_roles.php.');
+
+                return self::FAILURE;
+            }
             // Changes are audited by the model (who is "system": the console).
-            PlatformAdminGrant::query()->updateOrCreate(['user_id' => (int) $id], ['active' => ! $this->option('revoke'), 'expires_at' => now()->utc()->addHours((int) $hours)]);
+            $values = ['active' => ! $this->option('revoke'), 'expires_at' => now()->utc()->addHours((int) $hours)];
+            PlatformAdminGrant::query()->updateOrCreate(['user_id' => (int) $id], $role === null ? $values : $values + ['role' => (string) $role]);
             $this->info($this->option('revoke')
                 ? 'Platform admin access revoked.'
                 : "Platform admin access granted for {$hours} hours. No school roles or permissions were granted.");

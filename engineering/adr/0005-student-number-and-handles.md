@@ -1,6 +1,6 @@
 # 0005. Lifelong student number and learner handle rules
 
-Status: Accepted (Phase 0, defaulted). The rules are the defaults taken for Q0.5 and Q0.6 in [phase-0-questions.md](../phases/phase-0-questions.md) until the product owner answers. Nothing is built in Phase 0; Phase 1 (identity: `learners` view fields, `users.handle`, guardian links and approvals) consumes this record.
+Status: Accepted (Phase 0, defaulted). Amended by [ADR 0007](0007-lurits-primary-learner-identifier.md): the LURITS number is the primary learner identifier; this number remains the fallback. The rules are the defaults taken for Q0.5 and Q0.6 in [phase-0-questions.md](../phases/phase-0-questions.md) until the product owner answers. Nothing is built in Phase 0; Phase 1 (identity: `learners` view fields, `users.handle`, guardian links and approvals) consumes this record.
 
 ## Context
 

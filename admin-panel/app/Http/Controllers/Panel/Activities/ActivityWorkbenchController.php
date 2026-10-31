@@ -71,7 +71,9 @@ class ActivityWorkbenchController extends Controller
             }
         }
 
-        return compact('readOnly', 'years', 'year', 'groups', 'detail', 'roster', 'staffNames', 'learnerNames', 'edit', 'record', 'session', 'attendance') + $extra + ['restored' => null, 'failedAction' => null, 'conflict' => false];
+        $suggestions = $detail === null || $readOnly ? [] : $service->lastYearSuggestions($r->user(), (int) $id);
+
+        return compact('readOnly', 'years', 'year', 'groups', 'detail', 'roster', 'staffNames', 'learnerNames', 'edit', 'record', 'session', 'attendance', 'suggestions') + $extra + ['restored' => null, 'failedAction' => null, 'conflict' => false];
     }
 
     public function invalid(ActivityPanelRequest $r, array $errors, int $status): Response
