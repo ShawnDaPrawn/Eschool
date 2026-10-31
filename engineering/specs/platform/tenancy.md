@@ -264,6 +264,6 @@ A child is only found in their own school. Every v2 family read keyed by `{learn
 
 `Tenancy/ParentAcrossSchoolsTest` checks this:
 - It finds the family reads from the route list rather than a fixed list, so a new `learners/{learner}` read is covered automatically.
-- It also checks that the same reads do answer for each child in their own school, so a refusal is the school check and not a broken route.
+- Five reads the demo schools have data for (content, marks periods, register QR, register today, reports) are named controls. Each must answer 200 for each child in that child's own school and refuse the other school's child, so for these a refusal is the school check and not a read that refuses every parent. The other reads in the sweep need module data the demo schools don't have; for them, the sweep proves only that they never answer across schools.
 
 The apps' parent home and child screens are app work and not part of this step; nor are the v1 parent endpoints that take `child_id`.
