@@ -23,6 +23,21 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: Owners now set the AI spending caps in HQ. In the AI control
+  centre at `/saas/ai`, each AI feature's daily caps per school, per person and
+  per learner can be changed with a reason, and apply from the next request.
+  The values in `config/ai.php` are the defaults until HQ saves one. Every
+  change is kept with who made it, when, the old and new amounts and why, and
+  is in the HQ audit log. A school's own lower limits in its AI settings still
+  apply on top (the lower of the two is used), and HQ never changes them.
+  Amounts are in the gateway's metering currency (US dollars today), with no
+  exchange rate applied. **Deploy:** run the migrations.
+- AI: the Subject tutor is a personal service to the learner, not a school
+  service. Tutor use no longer counts against a school's daily AI cap, and a
+  school at its cap can still use the tutor. The tutor keeps its own daily
+  caps per person and per learner, set in HQ. HQ shows tutor spend apart,
+  labelled as personal.
+
 - Platform: an AI control centre at `/saas/ai` for Owner, Operations and
   Support. It shows whether each AI feature and provider is qualified, its
   model, price and daily caps per school, person and learner; each school's AI

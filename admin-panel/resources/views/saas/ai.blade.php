@@ -57,7 +57,11 @@
                 <td>{{ $yesNo($feature['priced']) }}</td>
                 <td>{{ __('No evaluation result recorded') }}@if ($feature['evaluation_cases'] !== null) · {{ trans_choice('{1} 1 case in its corpus|[2,*] :count cases in its corpus', $feature['evaluation_cases'], ['count' => $feature['evaluation_cases']]) }}@endif</td>
                 @foreach (['school', 'actor', 'learner'] as $who)
-                    <td>{{ $feature['caps'][$who.'_cents'] === null ? __('Not set') : \App\Services\Platform\Saas\PlatformAiControls::money($feature['caps'][$who.'_cents'], $currency) }}@if ($feature['caps'][$who.'_tokens'] !== null) · {{ __(':tokens tokens', ['tokens' => number_format($feature['caps'][$who.'_tokens'])]) }}@endif</td>
+                    @if ($who === 'school' && $feature['personal'])
+                        <td>{{ __('Not counted: a personal service') }}</td>
+                    @else
+                        <td>{{ $feature['caps'][$who.'_cents'] === null ? __('Not set') : \App\Services\Platform\Saas\PlatformAiControls::money($feature['caps'][$who.'_cents'], $currency) }}@if (($feature['cap_settings'][$who.'_daily_cents']['hq'] ?? null) !== null) <span class="saas-badge">{{ __('set in HQ') }}</span>@endif @if ($feature['caps'][$who.'_tokens'] !== null) · {{ __(':tokens tokens', ['tokens' => number_format($feature['caps'][$who.'_tokens'])]) }}@endif</td>
+                    @endif
                 @endforeach
                 <td>{{ $feature['module'] === null ? __('None') : ($modules[$feature['module']]['name'] ?? $feature['module']) }}</td>
             </tr>
@@ -70,8 +74,63 @@
     @foreach ($thresholds as $metric => $percent){{ \Illuminate\Support\Str::headline($metric) }} {{ $percent === null ? __('not set') : rtrim(rtrim(number_format($percent, 2), '0'), '.').'%' }}@if (! $loop->last), @endif @endforeach.
     {{ __('Results of ai:eval runs are not stored, so none is shown.') }}</p>
 
+@php $capLabels = ['school_daily_cents' => __('Daily cap per school'), 'actor_daily_cents' => __('Daily cap per person'), 'learner_daily_cents' => __('Daily cap per learner')]; @endphp
+<h2 id="caps">{{ __('Spending caps') }}</h2>
+<p>{{ __('The caps in force are the ones HQ saved, or the defaults in config/ai.php until HQ saves one. A school\'s own lower limit in its AI settings still applies on top: the lower of the two is used, and HQ never changes a school\'s own setting. Amounts are whole cents in :currency, the currency the gateway meters in; no exchange rate is applied.', ['currency' => $currency]) }}
+    {{ __('The Subject tutor is a personal service to one learner, not a school service: its spend is shown apart and never counts against the school\'s daily cap. It keeps its own caps per person and per learner.') }}</p>
+@if ($canEditCaps)
+    @foreach ($features as $feature)
+    <form method="POST" action="{{ route('saas.ai.caps') }}" class="saas-card" aria-label="{{ __('Spending caps for :feature', ['feature' => $feature['label']]) }}">
+        @csrf
+        @method('PUT')
+        <input type="hidden" name="feature" value="{{ $feature['name'] }}">
+        <h3>{{ $feature['label'] }}@if ($feature['personal']) <span class="saas-badge">{{ __('Personal service') }}</span>@endif</h3>
+        <div class="saas-grid">
+            @foreach ($capLabels as $cap => $label)
+                @continue($cap === 'school_daily_cents' && $feature['personal'])
+                @php $setting = $feature['cap_settings'][$cap] ?? null; @endphp
+                @continue($setting === null || $setting['default'] === null)
+                <div class="saas-field">
+                    <label for="cap-{{ $feature['name'] }}-{{ $cap }}">{{ $label }} ({{ __('cents, :currency', ['currency' => $currency]) }})</label>
+                    <input id="cap-{{ $feature['name'] }}-{{ $cap }}" name="{{ $cap }}" type="number" inputmode="numeric" min="0" max="{{ $capMaximum[$cap] }}" step="1"
+                        value="{{ old('feature') === $feature['name'] ? old($cap) : $setting['effective'] }}">
+                    <small>{{ __('Default :default; leave blank to use it. At most :max.', ['default' => \App\Services\Platform\Saas\PlatformAiControls::money($setting['default'], $currency), 'max' => \App\Services\Platform\Saas\PlatformAiControls::money($capMaximum[$cap], $currency)]) }}</small>
+                </div>
+            @endforeach
+            <div class="saas-field">
+                <label for="cap-{{ $feature['name'] }}-reason">{{ __('Reason') }}</label>
+                <textarea id="cap-{{ $feature['name'] }}-reason" name="reason" required minlength="10" maxlength="500" rows="2">{{ old('feature') === $feature['name'] ? old('reason') : '' }}</textarea>
+            </div>
+        </div>
+        <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Save caps for :feature', ['feature' => $feature['label']]) }}</button></div>
+    </form>
+    @endforeach
+@endif
+<h3>{{ __('Cap changes') }}</h3>
+@if ($capHistory === [])
+    <p class="saas-card">{{ __('No cap has been changed in HQ: the config/ai.php defaults are in force.') }}</p>
+@else
+<div class="saas-card saas-table-wrap" role="region" aria-label="{{ __('Cap changes') }}" tabindex="0">
+    <table class="saas-table">
+        <thead><tr><th scope="col">{{ __('When') }}</th><th scope="col">{{ __('Feature') }}</th><th scope="col">{{ __('Cap') }}</th><th scope="col">{{ __('Change') }}</th><th scope="col">{{ __('By') }}</th><th scope="col">{{ __('Reason') }}</th></tr></thead>
+        <tbody>
+        @foreach ($capHistory as $change)
+            <tr>
+                <td>{{ $change['at'] }}</td>
+                <td>{{ \Illuminate\Support\Str::headline($change['feature']) }}</td>
+                <td>{{ $capLabels[$change['cap']] ?? $change['cap'] }}</td>
+                <td>{{ $change['old'] === null ? __('default') : \App\Services\Platform\Saas\PlatformAiControls::money($change['old'], $change['currency']) }} → {{ $change['new'] === null ? __('default').' ('.\App\Services\Platform\Saas\PlatformAiControls::money((int) $change['default'], $change['currency']).')' : \App\Services\Platform\Saas\PlatformAiControls::money($change['new'], $change['currency']) }}</td>
+                <td>{{ $change['by'] !== '' ? $change['by'] : __('Unknown') }}</td>
+                <td>{{ $change['reason'] }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
+
 <h2>{{ __('Schools') }}</h2>
-<p>{{ __('Spend counts actual and reserved charges. The daily cap is the highest feature cap, lowered by the school\'s own AI settings when it set a lower one; the gateway checks each day\'s whole spend against it. Today and this month follow each school\'s own clock.') }}</p>
+<p>{{ __('Spend counts actual and reserved charges. The daily cap is the highest school feature cap in force, lowered by the school\'s own AI settings when it set a lower one; the gateway checks each day\'s school spend against it. Subject tutor spend is personal: it is shown in its own column and is not part of the school\'s spend or cap. Today and this month follow each school\'s own clock.') }}</p>
 @if ($schools === [])
     <p class="saas-card">{{ __('No schools yet.') }}</p>
 @else
@@ -79,7 +138,7 @@
     <table class="saas-table">
         <thead><tr>
             <th scope="col">{{ __('School') }}</th><th scope="col">{{ __('This month') }}</th><th scope="col">{{ __('Today against the daily cap') }}</th>
-            <th scope="col">{{ __('Daily cap per learner') }}</th><th scope="col">{{ __('Safeguarding queue') }}</th><th scope="col">{{ __('AI features switched on') }}</th>
+            <th scope="col">{{ __('Daily cap per learner') }}</th><th scope="col">{{ __('Subject tutor (personal)') }}</th><th scope="col">{{ __('Safeguarding queue') }}</th><th scope="col">{{ __('AI features switched on') }}</th>
         </tr></thead>
         <tbody>
         @foreach ($schools as $school)
@@ -93,6 +152,7 @@
                     @if ($school['own_limits']) · {{ __('school set its own limits') }}@endif
                 </td>
                 <td>{{ $school['learner_cap'] ?? __('Not set') }}</td>
+                <td>{{ __('Today :today', ['today' => $school['personal']['today']]) }} · {{ __('this month :month', ['month' => $school['personal']['month'] === [] ? __('nothing metered') : implode('; ', $school['personal']['month'])]) }}@if ($school['personal']['learner_cap'] !== null) · {{ __(':cap per learner a day', ['cap' => $school['personal']['learner_cap']]) }}@endif</td>
                 <td>{{ trans_choice('{0} none waiting|{1} 1 waiting|[2,*] :count waiting', $school['queue']['open'], ['count' => $school['queue']['open']]) }}@if ($school['queue']['escalated'] > 0) · {{ trans_choice('{1} 1 escalated|[2,*] :count escalated', $school['queue']['escalated'], ['count' => $school['queue']['escalated']]) }}@endif</td>
                 <td>
                     @php $on = array_keys(array_filter($school['modules'], fn ($state) => $state['enabled'])); @endphp

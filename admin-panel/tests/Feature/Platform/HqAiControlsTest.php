@@ -55,11 +55,11 @@ class HqAiControlsTest extends TestCase
         return $user;
     }
 
-    /** One metered tutor receipt in a school, with private content that must never reach HQ. */
-    private function usage(int $schoolId, string $date, int $cost, int $reserved = 0, ?string $currency = 'USD'): AiUsage
+    /** One metered receipt in a school, with private content that must never reach HQ. */
+    private function usage(int $schoolId, string $date, int $cost, int $reserved = 0, ?string $currency = 'USD', string $feature = 'school_assistant'): AiUsage
     {
         return app(CurrentSchool::class)->run($schoolId, fn () => AiUsage::create([
-            'user_id' => $schoolId === 1 ? $this->schoolA->ids['tara_user'] : $this->schoolB->ids['tara_user'], 'feature' => 'tutor', 'provider' => 'openai',
+            'user_id' => $schoolId === 1 ? $this->schoolA->ids['tara_user'] : $this->schoolB->ids['tara_user'], 'feature' => $feature, 'provider' => 'openai',
             'operation_id' => (string) Str::uuid(), 'request_hash' => hash('sha256', Str::random()), 'usage_date' => $date, 'unit' => 'tokens', 'state' => 'completed',
             'used_units' => 100, 'reserved_units' => 0, 'cost_cents' => $cost, 'reserved_cost_cents' => $reserved, 'billing_currency' => $currency,
             'inference_output' => ['output' => self::PRIVATE_OUTPUT], 'inference_sources' => [self::PRIVATE_SOURCE],
@@ -68,7 +68,7 @@ class HqAiControlsTest extends TestCase
 
     private function flag(int $schoolId, string $status = 'open', ?CarbonImmutable $at = null): void
     {
-        $usage = $this->usage($schoolId, now()->toDateString(), 0);
+        $usage = $this->usage($schoolId, now()->toDateString(), 0, 0, 'USD', 'tutor');
         app(CurrentSchool::class)->run($schoolId, function () use ($usage, $status, $at): void {
             $flag = AiFlag::create(['ai_usage_id' => $usage->id, 'code' => 'synthetic_self_harm_signal', 'review_status' => $status]);
             if ($at !== null) {
@@ -89,6 +89,9 @@ class HqAiControlsTest extends TestCase
         $this->usage(1, '2026-10-03', 250);
         $this->usage(1, '2026-09-30', 9999);
         $this->usage(1, '2026-10-05', 40, 0, null);
+        // Subject tutor spend is personal: shown apart, never against School A's cap.
+        $this->usage(1, '2026-10-20', 900, 0, 'USD', 'tutor');
+        $this->usage(1, '2026-10-04', 60, 0, 'USD', 'tutor');
         // School B: a larger, distinctive spend that must stay on School B's row.
         $this->usage(2, '2026-10-20', 777);
         $this->flag(1);
@@ -109,7 +112,7 @@ class HqAiControlsTest extends TestCase
 
         $response = $this->get('/saas/ai')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $response->assertSee('AI control centre')->assertSee('Not qualified')->assertSee('No evaluation result recorded')
-            ->assertSee('10 cases in its corpus')->assertDontSee('Switch an AI feature for a school')
+            ->assertSee('10 cases in its corpus')->assertDontSee('Switch an AI feature for a school')->assertSee('Spending caps')->assertDontSee('Save caps for')
             ->assertDontSee(self::PRIVATE_OUTPUT)->assertDontSee(self::PRIVATE_SOURCE)->assertDontSee('synthetic_self_harm_signal');
 
         $schools = collect($response->viewData('schools'))->keyBy('id');
@@ -119,14 +122,22 @@ class HqAiControlsTest extends TestCase
         // The school's own 600-cent limit lowers the 1000-cent platform ceiling; its learner limit lowers 50 to 20.
         $this->assertSame(['US$ 6.00', 25, 'US$ 0.20'], [$schools[1]['cap'], $schools[1]['used_percent'], $schools[1]['learner_cap']]);
         $this->assertSame(['open' => 1, 'escalated' => 1], $schools[1]['queue']);
+        // The tutor's 9.00 today would put School A over its cap if it counted: it is personal and shown apart.
+        $this->assertSame(['month' => ['US$ 9.60'], 'today' => 'US$ 9.00', 'learner_cap' => 'US$ 0.20'], $schools[1]['personal']);
+        $this->assertFalse($schools[1]['over']);
+        $response->assertSee('Subject tutor (personal)')->assertSee('Not counted: a personal service');
         // School B: only its own spend and flags.
         $this->assertSame(['US$ 7.77'], $schools[2]['month']);
         $this->assertSame(['US$ 7.77', 'US$ 10.00', 77, 'US$ 0.50'], [$schools[2]['today'], $schools[2]['cap'], $schools[2]['used_percent'], $schools[2]['learner_cap']]);
         $this->assertSame(['open' => 3, 'escalated' => 0], $schools[2]['queue']);
+        // School B's flagged tutor receipts were metered at nothing: personal, and not on School A's row.
+        $this->assertSame(['month' => ['US$ 0.00'], 'today' => 'US$ 0.00', 'learner_cap' => 'US$ 0.50'], $schools[2]['personal']);
 
         $features = $response->viewData('features');
         $this->assertFalse($features['tutor']['qualified']);
         $this->assertSame(['tutor', 50, 50000], [$features['tutor']['module'], $features['tutor']['caps']['learner_cents'], $features['tutor']['caps']['learner_tokens']]);
+        $this->assertTrue($features['tutor']['personal']);
+        $this->assertNull($features['tutor']['caps']['school_cents']);
         $this->assertStringNotContainsString(self::PRIVATE_OUTPUT, json_encode($response->viewData('schools')));
         $this->assertFalse(app(CurrentSchool::class)->isSet());
     }

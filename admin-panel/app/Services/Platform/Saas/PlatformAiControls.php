@@ -7,6 +7,7 @@ namespace App\Services\Platform\Saas;
 use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Ai\Operations\AiPlatformCosts;
+use App\Services\Ai\Operations\PlatformAiCaps;
 use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Ledger\Money;
@@ -71,6 +72,9 @@ class PlatformAiControls
             'page' => $page,
             'lastPage' => max(1, (int) ceil($data['total'] / self::SCHOOLS_PER_PAGE)),
             'canManage' => app(PlatformStaffAccess::class)->can($actor, 'ai.manage'),
+            'canEditCaps' => app(PlatformStaffAccess::class)->can($actor, 'ai.caps'),
+            'capMaximum' => PlatformAiCaps::MAXIMUM,
+            'capHistory' => app(PlatformAiCaps::class)->history(),
             'costReport' => $this->holdsCostGrant($actor),
         ];
     }
@@ -142,12 +146,16 @@ class PlatformAiControls
     {
         $modules = (array) config('ai.inference.school_modules', []);
         $participants = (array) config('ai.quarantine.participants', []);
+        // The caps in force: HQ's saved value, else the config/ai.php default.
+        $caps = app(PlatformAiCaps::class)->caps();
         $answer = [];
         foreach ((array) config('ai.inference.features', []) as $name => $settings) {
             if (! is_string($name) || ! is_array($settings)) {
                 continue;
             }
             $int = fn (string $key): ?int => is_int($settings[$key] ?? null) ? $settings[$key] : null;
+            $personal = PlatformAiCaps::personal($name);
+            $cents = fn (string $key): ?int => $caps[$name][$key]['effective'] ?? null;
             $answer[$name] = [
                 'name' => $name,
                 'label' => Str::headline($name),
@@ -156,8 +164,11 @@ class PlatformAiControls
                 'qualified' => $this->qualified($name),
                 'switched_on' => config('ai.inference.enabled') === true && ($settings['enabled'] ?? false) === true,
                 'priced' => is_int($settings['cents_per_million_tokens'] ?? null) && $settings['cents_per_million_tokens'] > 0,
-                'caps' => ['school_cents' => $int('school_daily_cents'), 'actor_cents' => $int('actor_daily_cents'), 'learner_cents' => $int('learner_daily_cents'),
-                    'school_tokens' => $int('school_daily_tokens'), 'actor_tokens' => $int('actor_daily_tokens'), 'learner_tokens' => $int('learner_daily_tokens')],
+                // A personal service has no school cap: its spend is not part of the school's day.
+                'personal' => $personal,
+                'caps' => ['school_cents' => $personal ? null : $cents('school_daily_cents'), 'actor_cents' => $cents('actor_daily_cents'), 'learner_cents' => $cents('learner_daily_cents'),
+                    'school_tokens' => $personal ? null : $int('school_daily_tokens'), 'actor_tokens' => $int('actor_daily_tokens'), 'learner_tokens' => $int('learner_daily_tokens')],
+                'cap_settings' => $caps[$name] ?? [],
                 'module' => is_string($modules[$name] ?? null) ? $modules[$name] : null,
                 'evaluation_cases' => $this->evaluationCases($name),
                 'safeguarding_queue' => array_key_exists($name, $participants),
@@ -256,8 +267,8 @@ class PlatformAiControls
         // Aggregate ledger columns only, as /platform/ai-costs: no output, source, user or learner column.
         $spend = DB::table('ai_usage')->whereIn('school_id', $ids)
             ->whereBetween('usage_date', [min(array_column($days, 'month')), max(array_column($days, 'today'))])
-            ->groupBy('school_id', 'usage_date', 'billing_currency')
-            ->selectRaw('school_id, usage_date, billing_currency, SUM(cost_cents) AS cost_cents, SUM(reserved_cost_cents) AS reserved_cost_cents')
+            ->groupBy('school_id', 'usage_date', 'billing_currency', 'personal')
+            ->selectRaw('school_id, usage_date, billing_currency, '.$this->personalCase().' AS personal, SUM(cost_cents) AS cost_cents, SUM(reserved_cost_cents) AS reserved_cost_cents', PlatformAiCaps::personalFeatures())
             ->get();
         $limits = DB::table('ai_school_limits')->whereIn('school_id', $ids)->get(['school_id', 'paused', 'limits'])->keyBy('school_id');
 
@@ -276,37 +287,47 @@ class PlatformAiControls
             ->selectRaw('ai_flags.school_id AS school_id, ai_flags.review_status AS review_status, COUNT(*) AS flags')
             ->get();
 
-        $ceilings = fn (string $key): array => array_values(array_filter(array_map(fn ($f) => $f['caps'][$key], $features), 'is_int'));
+        $schoolFeatures = array_filter($features, fn ($f) => ! $f['personal']);
+        $personalFeatures = array_filter($features, fn ($f) => $f['personal']);
+        $ceilings = fn (string $key, array $among): array => array_values(array_filter(array_map(fn ($f) => $f['caps'][$key], $among), 'is_int'));
         $rows = [];
         foreach ($schools as $school) {
             $id = (int) $school->id;
             $limit = $limits->get($id);
             $own = $limit === null ? [] : (array) json_decode((string) $limit->limits, true);
-            $month = [];
-            $today = 0;
+            // [school spend, personal (tutor) spend], kept apart as the gateway keeps them.
+            $month = [[], []];
+            $today = [0, 0];
             foreach ($spend->where('school_id', $id) as $row) {
                 if ((string) $row->usage_date < $days[$id]['month'] || (string) $row->usage_date > $days[$id]['today']) {
                     continue;
                 }
+                $pool = (int) $row->personal === 1 ? 1 : 0;
                 $key = $row->billing_currency ?? '';
-                $month[$key] = ($month[$key] ?? 0) + (int) $row->cost_cents + (int) $row->reserved_cost_cents;
+                $month[$pool][$key] = ($month[$pool][$key] ?? 0) + (int) $row->cost_cents + (int) $row->reserved_cost_cents;
                 if ((string) $row->usage_date === $days[$id]['today'] && $row->billing_currency === $currency) {
-                    $today += (int) $row->cost_cents + (int) $row->reserved_cost_cents;
+                    $today[$pool] += (int) $row->cost_cents + (int) $row->reserved_cost_cents;
                 }
             }
-            ksort($month);
-            $cap = $this->cap($ceilings('school_cents'), $own['school_daily_cents'] ?? null);
+            ksort($month[0]);
+            ksort($month[1]);
+            $listed = fn (array $amounts): array => array_map(fn ($cents, $code) => self::money((int) $cents, $code === '' ? null : (string) $code), $amounts, array_keys($amounts));
+            $cap = $this->cap($ceilings('school_cents', $schoolFeatures), $own['school_daily_cents'] ?? null);
+            $tutorCap = $this->cap($ceilings('learner_cents', $personalFeatures), $own['learner_daily_cents'] ?? null);
             $rows[] = [
                 'id' => $id,
                 'name' => (string) $school->name,
                 'status' => (string) $school->status,
                 'paused' => (bool) ($limit->paused ?? false),
-                'month' => array_map(fn ($cents, $code) => self::money((int) $cents, $code === '' ? null : (string) $code), $month, array_keys($month)),
-                'today' => self::money($today, $currency),
+                'month' => $listed($month[0]),
+                'today' => self::money($today[0], $currency),
                 'cap' => $cap === null ? null : self::money($cap, $currency),
-                'used_percent' => $cap === null || $cap === 0 ? null : (int) floor($today * 100 / $cap),
-                'over' => $cap !== null && $today >= $cap,
-                'learner_cap' => ($learner = $this->cap($ceilings('learner_cents'), $own['learner_daily_cents'] ?? null)) === null ? null : self::money($learner, $currency),
+                'used_percent' => $cap === null || $cap === 0 ? null : (int) floor($today[0] * 100 / $cap),
+                'over' => $cap !== null && $today[0] >= $cap,
+                'learner_cap' => ($learner = $this->cap($ceilings('learner_cents', $schoolFeatures), $own['learner_daily_cents'] ?? null)) === null ? null : self::money($learner, $currency),
+                // Personal services (the Mastery tutor): shown apart, never against the school's cap.
+                'personal' => ['month' => $listed($month[1]), 'today' => self::money($today[1], $currency),
+                    'learner_cap' => $tutorCap === null ? null : self::money($tutorCap, $currency)],
                 'own_limits' => array_key_exists('school_daily_cents', $own) || array_key_exists('learner_daily_cents', $own),
                 'queue' => ['open' => (int) $queue->where('school_id', $id)->where('review_status', 'open')->sum('flags'),
                     'escalated' => (int) $queue->where('school_id', $id)->where('review_status', 'escalated')->sum('flags')],
@@ -316,10 +337,19 @@ class PlatformAiControls
         return $rows;
     }
 
+    /** SQL marking a personal-service receipt 1 and a school receipt 0. */
+    private function personalCase(): string
+    {
+        $personal = PlatformAiCaps::personalFeatures();
+
+        return $personal === [] ? '0' : 'CASE WHEN feature IN ('.implode(',', array_fill(0, count($personal), '?')).') THEN 1 ELSE 0 END';
+    }
+
     /**
-     * The most the gateway lets a school spend in a day: the highest feature
-     * ceiling (it checks the day's whole spend against the ceiling of the
-     * feature in use), lowered by the school's own limit when it set one.
+     * The most the gateway lets a school spend in a day: the highest school
+     * feature cap in force (it checks the day's school spend against the cap
+     * of the feature in use), lowered by the school's own limit when it set
+     * one. Personal services are left out on both sides.
      *
      * @param  list<int>  $ceilings
      */

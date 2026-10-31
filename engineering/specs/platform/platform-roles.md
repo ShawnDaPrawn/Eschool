@@ -21,7 +21,7 @@ and Owners invite staff by email from HQ.
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
 `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`ai.view`, `ai.manage` (Owner only; see `hq-ai.md`), `staff.manage`. A role that is no longer in the
+`ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with

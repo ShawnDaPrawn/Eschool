@@ -20,6 +20,7 @@ declare(strict_types=1);
  *  incidents.manage the breach and incident register: record, update, close
  *  ai.view          the AI control centre: qualification, caps, spend, queue counts
  *  ai.manage        switch a school's AI features on or off (Owner only)
+ *  ai.caps          set the AI spending caps that replace config/ai.php's defaults (Owner only)
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access
