@@ -49,6 +49,14 @@ portal/channel modes, humans control their optional choices, and `Notifier`
 enforces module availability, current access and precedence before delivery.
 The [specification](../specs/platform/notification-rules.md) records semantics.
 
+Each notice has three layers (Action Plan 1.4): a title, an excerpt of at most
+140 characters for the inbox row and an optional full body, plus the app path
+(`target`) it opens. Learner approval requests, handle approval requests,
+safeguarding alerts and relief-cover assignments are marked `notice_only`;
+like every `private_notices` scope prefix they keep their generic message as
+the excerpt and never store a body. See
+[notification layers](../specs/notifications/notification-layers.md).
+
 ## Phase 2: curriculum permissions
 
 Always-on academics includes curriculum-read/manage/publish. School publishers

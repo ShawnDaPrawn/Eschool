@@ -5884,5 +5884,9 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.",
     "Choose grant dates within the school year.": "Choose grant dates within the school year.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "The school year before this one was deleted, so its caseloads cannot be renewed.",
-    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it"
+    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it",
+    "It was on :was.": "It was on :was.",
+    "Open the calendar for your full exam timetable.": "Open the calendar for your full exam timetable.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.",
+    "Contact the school office if something looks wrong.": "Contact the school office if something looks wrong."
 }

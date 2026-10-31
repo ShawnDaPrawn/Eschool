@@ -5884,5 +5884,9 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Leli khasi linikeza imithwalo yamacala evulekile engu-:count ngesikhathi. Vuselela le, bese ikhasi linikeza elandelayo engu-:waiting.",
     "Choose grant dates within the school year.": "Khetha izinsuku zemvume ezingaphakathi konyaka wesikole.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "Unyaka wesikole ongaphambi kwalona wasuswa, ngakho imithwalo yawo yamacala ayikwazi ukuvuselelwa.",
-    "ended on :date, so it is not kept unless you choose it": "yaphela ngo-:date, ngakho ayigcinwa ngaphandle uma uyikhetha"
+    "ended on :date, so it is not kept unless you choose it": "yaphela ngo-:date, ngakho ayigcinwa ngaphandle uma uyikhetha",
+    "It was on :was.": "Ngaphambilini bekungo-:was.",
+    "Open the calendar for your full exam timetable.": "Vula ikhalenda ukuze ubone lonke uhlelo lwakho lokuhlolwa.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "Uma wazi isizathu, noma uma kuyiphutha, xhumana nehhovisi lesikole. Vula ukuya esikoleni ukuze ubone irejista.",
+    "Contact the school office if something looks wrong.": "Xhumana nehhovisi lesikole uma kukhona okubonakala kungalungile."
 }

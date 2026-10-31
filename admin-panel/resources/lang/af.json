@@ -5884,5 +5884,9 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Hierdie bladsy bied :count oop gevallelaste op 'n slag aan. Hernu hierdie, dan bied die bladsy die volgende :waiting aan.",
     "Choose grant dates within the school year.": "Kies toekenningsdatums binne die skooljaar.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "Die skooljaar voor hierdie een is uitgevee, dus kan sy gevallelaste nie hernu word nie.",
-    "ended on :date, so it is not kept unless you choose it": "het op :date geëindig, dus word dit nie behou tensy jy dit kies nie"
+    "ended on :date, so it is not kept unless you choose it": "het op :date geëindig, dus word dit nie behou tensy jy dit kies nie",
+    "It was on :was.": "Dit was op :was.",
+    "Open the calendar for your full exam timetable.": "Maak die kalender oop vir jou volledige eksamenrooster.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "As jy weet hoekom, of as dit 'n fout is, kontak die skoolkantoor. Maak Bywoning oop vir die register.",
+    "Contact the school office if something looks wrong.": "Kontak die skoolkantoor as iets verkeerd lyk."
 }

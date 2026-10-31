@@ -64,7 +64,11 @@ class RegisterNotices
                 $date = $entry->register->on_date->toDateString();
                 $title = $kind === 'absence' ? __('Absence alert') : __('Attendance updated');
                 $body = $kind === 'absence' ? __(':name was marked absent on :date.', ['name' => $name, 'date' => $date]) : __('Attendance for :name on :date was updated. Open the register to review it.', ['name' => $name, 'date' => $date]);
-                $notice = $notifier->makeNotice($kind === 'absence' ? 'attendance.absence' : 'academics.register_amended', $title, $body, '/academics/attendance');
+                $detail = $body.' '.($kind === 'absence'
+                    ? __('If you know why, or this is a mistake, contact the school office. Open Attendance for the register.')
+                    : __('Contact the school office if something looks wrong.'));
+                $notice = $notifier->makeNotice($kind === 'absence' ? 'attendance.absence' : 'academics.register_amended', $title, $body, '/academics/attendance',
+                    excerpt: $body, body: $detail, target: '/academics/attendance');
                 $notice->delivery_payload = ['link' => '/academics/attendance', 'register_learner_id' => (int) $entry->learner_id, 'register_entry_id' => (int) $entry->id, 'register_entry_revision' => $entry->revision, 'register_notice_kind' => $kind];
                 $notice->save();
                 AttendanceNotice::create($key + ['notification_id' => (int) $notice->id]);
