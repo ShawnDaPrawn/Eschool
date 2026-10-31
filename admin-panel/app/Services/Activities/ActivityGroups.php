@@ -265,9 +265,6 @@ class ActivityGroups
             $before = $row->exists ? $this->present($row) : [];
             $values = $data;
             unset($values['operation_id']);
-            // Times are optional (1.6); a session without them is all day.
-            $values['starts_at'] = ($data['starts_at'] ?? null) === null ? null : $data['starts_at'].':00';
-            $values['ends_at'] = ($data['ends_at'] ?? null) === null ? null : $data['ends_at'].':00';
             $values['activity_group_id'] = $groupId;
             $values['active'] = $active;
             $values['revision'] = $data['revision'] + 1;
