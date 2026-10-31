@@ -39,6 +39,8 @@ class PlatformAuditLog
         'platform_school_status_changed' => 'School status changed',
         'platform_school_module_changed' => 'Module switched',
         'platform_audit_exported' => 'Audit log exported',
+        'platform_announcement_published' => 'Announcement published',
+        'platform_announcement_withdrawn' => 'Announcement withdrawn',
         'ai.platform_cost_access_changed' => 'AI cost access changed',
     ];
 

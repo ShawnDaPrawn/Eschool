@@ -21,6 +21,7 @@
         @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
         @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
         @if ($platformCan('incidents.manage'))<a href="{{ route('saas.incidents.index') }}">{{ __('Incidents') }}</a>@endif
+        @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif
         @if ($platformCan('staff.manage'))<a href="{{ route('saas.staff.index') }}">{{ __('Platform staff') }}</a>@endif
     </nav>
