@@ -2586,6 +2586,88 @@ paths:
                   - in_app
                 enabled:
                   type: boolean
+  /me/notification-quiet-hours:
+    get:
+      operationId: getMyQuietHours
+      tags:
+      - Platform
+      summary: Read your push quiet hours
+      description: Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuietHoursResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      operationId: updateMyQuietHours
+      tags:
+      - Platform
+      summary: Set your push quiet hours
+      description: Your own push quiet hours, one setting for every school. While they run, push notices wait and are sent when they end; email and in-app notices are unaffected, and the exempt safety types are never held. An end time before the start time means overnight. Without a timezone, the current school's is used.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - enabled
+              - starts_at
+              - ends_at
+              properties:
+                enabled:
+                  type: boolean
+                starts_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                ends_at:
+                  type: string
+                  pattern: ^([01]\d|2[0-3]):[0-5]\d$
+                timezone:
+                  type:
+                  - string
+                  - 'null'
+                  description: An IANA time zone such as Africa/Johannesburg.
+      responses:
+        '200':
+          description: The operation succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuietHoursResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile:
     get:
       operationId: getMyProfile
@@ -35953,6 +36035,44 @@ components:
               $ref: '#/components/schemas/NotificationChannelPreference'
             in_app:
               $ref: '#/components/schemas/NotificationChannelPreference'
+    QuietHoursResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - enabled
+          - starts_at
+          - ends_at
+          - timezone
+          - exempt_types
+          properties:
+            enabled:
+              type: boolean
+            starts_at:
+              type: string
+            ends_at:
+              type: string
+            timezone:
+              type: string
+            exempt_types:
+              type: array
+              description: Notice types that are never held.
+              items:
+                type: string
     NotificationPreferencesResponse:
       type: object
       additionalProperties: false
