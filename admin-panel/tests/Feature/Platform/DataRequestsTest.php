@@ -39,6 +39,9 @@ class DataRequestsTest extends TestCase
         parent::setUp();
         $this->setUpTwoSchools();
         app(CurrentSchool::class)->forget();
+        // The demo memberships start on the day the fixture is built; the clock below is pinned,
+        // so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00', DataRequests::TIMEZONE));
     }
 
