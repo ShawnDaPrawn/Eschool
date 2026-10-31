@@ -4811,5 +4811,17 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.",
     "Choose grant dates within the school year.": "Choose grant dates within the school year.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "The school year before this one was deleted, so its caseloads cannot be renewed.",
-    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it"
+    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it",
+    "Email notices": "Email notices",
+    "You still see these notices in the NavigateEd app, and you can turn the emails back on in your notification settings there.": "You still see these notices in the NavigateEd app, and you can turn the emails back on in your notification settings there.",
+    ":school needs to send you \":label\" by email, so it cannot be switched off here.": ":school needs to send you \":label\" by email, so it cannot be switched off here.",
+    "Stop these emails": "Stop these emails",
+    "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.": "You will still see these notices in the NavigateEd app. Notices the school must send you, such as account and safety notices, keep coming by email.",
+    "Open NavigateEd": "Open NavigateEd",
+    "You can change all your notices in the NavigateEd app.": "You can change all your notices in the NavigateEd app.",
+    "Sent by :school through NavigateEd.": "Sent by :school through NavigateEd.",
+    "Optional emails about \":label\" are now off at every school.": "Optional emails about \":label\" are now off at every school.",
+    "Optional emails about \":label\" are already off at every school.": "Optional emails about \":label\" are already off at every school.",
+    "Stop optional emails about \":label\" at every school?": "Stop optional emails about \":label\" at every school?",
+    "This preference applies at every school you belong to. Required notices keep coming by email.": "This preference applies at every school you belong to. Required notices keep coming by email."
 }
