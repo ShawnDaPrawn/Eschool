@@ -15,6 +15,18 @@
             <button class="m3-button m3-button--filled" type="submit">{{ __('Download private export and manifest') }}</button>
         </form>
     </section>
+    <section class="page-section" aria-labelledby="sasams-lurits"><h2 id="sasams-lurits">{{ __('Learner LURITS numbers') }}</h2>
+        <p>{{ __('Each learner is exported with their LURITS number. A learner without one needs the learner reference from the layout\'s learner_refs map, by student number.') }}</p>
+        <p role="status">{{ trans_choice(':count of :learners learners has no LURITS number yet.|:count of :learners learners have no LURITS number yet.', $readiness['without_lurits'], ['count' => $readiness['without_lurits'], 'learners' => $readiness['learners']]) }}
+            {{ __('The manifest in each download counts the learners exported without one.') }}</p>
+        @if ($readiness['without_lurits'] > 0)
+            @if ($recordsLurits)
+                <p><a class="m3-button m3-button--text" href="{{ route('lurits-office.index') }}">{{ __('Record the missing LURITS numbers') }}</a></p>
+            @else
+                <p>{{ __('Ask the school office to record the missing LURITS numbers.') }}</p>
+            @endif
+        @endif
+    </section>
     <section class="page-section"><h2>{{ __('Check the target import') }}</h2>
         <p>{{ __('Keep the ZIP private. Its manifest records counts, version and hashes. Back up the target database, import into a test copy of the matching SA-SAMS version, and compare learner counts, attendance and scores before using it for a live submission.') }}</p>
         <p>{{ __('A generated export is not proof of a successful SA-SAMS import. Record that result separately for each target layout version.') }}</p>

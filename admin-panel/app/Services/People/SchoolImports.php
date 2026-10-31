@@ -91,7 +91,7 @@ class SchoolImports
         $options = $this->options($import, $options);
         $missing = array_keys(array_filter($import->fields(), fn (array $field, string $key) => $field['required'] && ! isset($mapping[$key]), ARRAY_FILTER_USE_BOTH));
         $rows = $missing === [] ? $import->plan($sheet, $mapping, $options) : [];
-        $counts = array_fill_keys(['create', 'exists', 'transfer', 'error'], 0);
+        $counts = array_fill_keys(['create', 'exists', 'transfer', 'error', 'lurits'], 0);
         foreach ($rows as $row) {
             $counts[$row['status']]++;
         }
@@ -212,7 +212,9 @@ class SchoolImports
             throw ValidationException::withMessages(['starts_on' => __('Choose a start date within :year.', ['year' => $year->name])]);
         }
 
-        return ['session_year_id' => (int) $year->id, 'category_id' => (int) $category->id, 'starts_on' => $startsOn, 'invite' => ! empty($options['invite'])];
+        return ['session_year_id' => (int) $year->id, 'category_id' => (int) $category->id, 'starts_on' => $startsOn, 'invite' => ! empty($options['invite']),
+            // The LURITS numbers' source: an SA-SAMS learner export, or the school's own list (1.0d).
+            'from_sasams' => ! empty($options['from_sasams'])];
     }
 
     /**

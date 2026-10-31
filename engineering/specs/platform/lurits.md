@@ -10,6 +10,7 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
   - `normalise()` removes spaces and dashes; `valid()` checks the configured pattern.
   - `record(learner, number, source, actor)` returns `recorded`, `unchanged` or `conflict`. It assigns the NavigateEd number first if needed, writes under a platform-wide claims lock (the `platform_counters` row `lurits_claims`, created by the migration and locked directly, so two schools claiming the same unused number at once get one `recorded` and one `conflict`, never a deadlock or unique-key error), audits hashes only, and opens one conflict per claim when another person holds the number. It refuses (404) a learner who is not in the current school, even a model loaded elsewhere.
   - `forLearner()`, `primary()` (LURITS, else the NavigateEd number labelled temporary) and `holderUserId()` for internal matching.
+  - `forLearners()` (1.0d): the numbers of many learners at once, for exports. It refuses (404) if any learner is not in the current school.
 - Sources: `school_entry`, `sasams_import`, `onboarding_import`, `transfer`, `dbe_correction`.
 
 ## Privacy rules
@@ -39,8 +40,8 @@ Action Plan step 1.0. Decision record: [ADR 0007](../../adr/0007-lurits-primary-
 1. Panel and app display: LURITS first on learner profiles, report cards, transfer and exit packages; the NavigateEd number labelled temporary when no LURITS exists.
 2. API: additive `lurits_number` and `primary_identifier` on v2 learner resources (OpenAPI and generated SDK).
 3. ~~Entry and edit in the panel~~: done, see "School office and HQ claims" below (a page by admission number; the learner profile screen remains).
-4. Admissions, mid-year Join and onboarding imports match on LURITS before creating a learner.
-5. SA-SAMS exports keyed on LURITS, replacing the manual `learner_refs` map.
+4. Admissions, mid-year Join and onboarding imports match on LURITS before creating a learner. (Onboarding imports: done in 0.11; since 1.0d they also record a LURITS number for a learner already at the school, see [school imports](../people/school-imports.md).)
+5. ~~SA-SAMS exports keyed on LURITS~~: done in 1.0d, see [SA-SAMS layouts](../academics/sasams-layouts.md). The manual `learner_refs` map stays as the fallback for learners without a LURITS number.
 6. ~~A "learners missing LURITS" list for the school office, and the conflict resolution screen in Navigate Ed HQ~~: done, see below.
 7. Confirm the official LURITS format and tighten `identity.lurits.pattern`.
 

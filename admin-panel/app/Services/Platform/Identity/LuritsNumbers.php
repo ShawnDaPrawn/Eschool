@@ -126,6 +126,39 @@ class LuritsNumbers
     }
 
     /**
+     * LURITS numbers for many learners of the current school at once (exports),
+     * keyed by learner id; null for a learner without one. Every learner must
+     * belong to the current school, as for forLearner(), or nothing is read.
+     *
+     * @param  iterable<Students>  $learners
+     * @return array<int, string|null>
+     */
+    public function forLearners(iterable $learners): array
+    {
+        $users = [];
+        foreach ($learners as $learner) {
+            $users[(int) $learner->getKey()] = (int) $learner->user_id;
+        }
+        if ($users === []) {
+            return [];
+        }
+        $owned = [];
+        foreach (array_chunk(array_keys($users), 1000) as $ids) {
+            $owned += Students::acrossSchools()->withTrashed()->whereKey($ids)->where('school_id', app(CurrentSchool::class)->id())
+                ->pluck('user_id', 'id')->map(fn ($user) => (int) $user)->all();
+        }
+        foreach ($users as $id => $user) {
+            abort_unless(($owned[$id] ?? null) === $user, 404);
+        }
+        $encrypted = [];
+        foreach (array_chunk(array_values(array_unique($users)), 1000) as $chunk) {
+            $encrypted += DB::table('learner_identifiers')->whereIn('user_id', $chunk)->whereNotNull('lurits_number')->pluck('lurits_number', 'user_id')->all();
+        }
+
+        return array_map(fn (int $user) => isset($encrypted[$user]) ? Crypt::decryptString((string) $encrypted[$user]) : null, $users);
+    }
+
+    /**
      * The identifier shown first wherever a learner is identified: LURITS when
      * recorded, otherwise the NavigateEd number, labelled as temporary.
      *
