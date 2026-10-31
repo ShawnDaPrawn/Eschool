@@ -69,6 +69,9 @@ return [
         // Server-owned feature => InferenceFeaturePolicy class allowlist; never a client setting.
         'staff_actor_policies' => ['message_translation' => TranslationFeaturePolicy::class],
         'feature_policies' => ['school_assistant' => AssistantFeaturePolicy::class, 'message_translation' => TranslationFeaturePolicy::class, 'teaching_assistant' => TeachingDraftFeaturePolicy::class, 'exam_coach' => ExamAnswerFeaturePolicy::class, 'tutor' => TutorFeaturePolicy::class],
+        // The school module (config/modules.php) each feature runs in: a school
+        // switches the feature on or off by switching that module (HQ /saas/ai).
+        'school_modules' => ['school_assistant' => 'ask_school', 'message_translation' => 'ask_school', 'teaching_assistant' => 'teaching_assistant', 'exam_coach' => 'exam_coach', 'tutor' => 'tutor'],
         // Only explicit feature-owned resolvers may load approved private derivatives.
         'vision_resolvers' => ['teaching_assistant' => TeachingDraftVisionResolver::class, 'exam_coach' => ExamAnswerVisionResolver::class, 'tutor' => TutorVisionResolver::class],
     ],

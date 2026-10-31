@@ -23,6 +23,19 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: an AI control centre at `/saas/ai` for Owner, Operations and
+  Support. It shows whether each AI feature and provider is qualified, its
+  model, price and daily caps per school, person and learner; each school's AI
+  spend this month and today against its daily cap; and how many safeguarding
+  flags wait for each school's reviewers. Only settings, totals and counts are
+  shown, never a prompt, an answer or a learner. Owners can switch an AI
+  feature on or off for a school with a reason (kept in the audit log); a
+  feature that is not qualified cannot be switched on. Amounts are in the
+  gateway's metering currency (US dollars today), with no exchange rate
+  applied. The dated cost report at `/platform/ai-costs` is unchanged and
+  linked for staff who hold its grant.
+  `engineering/specs/platform/hq-ai.md`.
+
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

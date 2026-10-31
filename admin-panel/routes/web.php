@@ -117,6 +117,7 @@ use App\Http\Controllers\Platform\CspReportController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
+use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
@@ -307,6 +308,9 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::put('/{incident}/schools/{school}', [PlatformIncidentController::class, 'notified'])->whereNumber(['incident', 'school'])->name('schools.notified');
         Route::post('/{incident}/entries', [PlatformIncidentController::class, 'entry'])->middleware('throttle:60,1')->whereNumber('incident')->name('entries.store');
     });
+    // The AI control centre (SA.15): qualification, caps, spend and queue counts; never a prompt, an answer or a learner.
+    Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
+    Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
