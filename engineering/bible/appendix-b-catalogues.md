@@ -87,6 +87,23 @@ when a placement batch commits. It contains no learner list. The normal schedule
 refreshes compatible v1 current-week projections; the canonical timetable remains
 authoritative while a projection refresh is delayed.
 
+Notification type academics.timetable_changed (academics module, every portal,
+standard channel preferences) tells affected learners, their current guardians
+and the lessons' teachers when a short day is planned or cancelled. The notice
+names only the date; the outbox event carries lesson IDs, never a learner list.
+
+
+New school year: school.new_year (people module, learner and parent portals,
+standard channel preferences) welcomes the learners placed in the new year and
+their current guardians when it becomes current, if the school chooses it in the
+new-year wizard. The notice names the year and its first day, never a learner or
+homeroom.
+
+Exam changes: academics.exam_changed (academics module, learner and parent
+portals, standard channel preferences) tells the learners in a class and their
+current guardians when an upcoming exam sitting's date, time or venue changes,
+or the sitting is removed. The notice names the subject and new time, never a
+learner.
 
 Academic register amendment: academics.register_amended (academics module),
 current guardians, standard channel preferences; attendance.absence retains its

@@ -102,10 +102,11 @@ class DeliveryGuard
             if (str_starts_with($type, 'pastoral.cover') && ! app(CoverNotices::class)->allows($user, $type, $context)) {
                 return false;
             }
-            $currentAddress = $channel === 'email' ? $user->email : $user->fcm_id;
+            $current = $channel === 'email'
+                ? is_string($user->email) && hash_equals($user->email, $address)
+                : app(PushDevices::class)->isCurrent($user, $address);
 
-            return is_string($currentAddress) && hash_equals($currentAddress, $address)
-                && app(NotificationRules::class)->allows($user, $type, $channel);
+            return $current && app(NotificationRules::class)->allows($user, $type, $channel);
         });
     }
 }

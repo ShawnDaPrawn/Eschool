@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { accounts, signIn } from '../support/accounts';
 import { collectErrors, horizontalOverflow, seriousViolations } from '../support/checks';
@@ -132,6 +134,23 @@ for (const width of [1024, 1280]) {
     await expect(page.getByRole('status').filter({ hasText: /successfully/i })).toBeVisible();
     const revoked = await page.request.get(oldUrl!, { headers: { Origin: baseURL!, 'X-School-Id': '2' } });
     expect(revoked.status()).toBe(404);
+    expect(errors).toEqual([]);
+  });
+}
+
+// A learner's guardians (engineering/specs/platform/guardian-management.md).
+for (const width of [1024, 1280]) {
+  test(`guardians page at ${width}px`, async ({ page, baseURL }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await signIn(page, accounts.admin);
+    const errors = collectErrors(page, baseURL!);
+    const id = execFileSync('php', ['artisan', 'tinker', '--execute', "echo app(\\App\\Services\\Platform\\Tenancy\\CurrentSchool::class)->run(1, fn () => \\App\\Models\\Students::query()->value('id'));"], { cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8' }).trim();
+    expect(id).toMatch(/^\d+$/);
+    await page.goto(`/learners/${id}/guardians`);
+    await expect(page.getByRole('heading', { name: 'Guardians', exact: true })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'Add a guardian', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
     expect(errors).toEqual([]);
   });
 }

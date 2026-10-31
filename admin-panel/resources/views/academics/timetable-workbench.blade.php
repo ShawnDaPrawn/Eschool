@@ -12,7 +12,7 @@
         <button class="m3-button m3-button--outlined" type="submit">{{ __('View week') }}</button>
     </form>
     <nav aria-label="{{ __('Timetable sections') }}" class="timetable-links">
-        <a href="#week">{{ __('Week') }}</a><a href="#placement">{{ __('Place a lesson') }}</a><a href="#rooms">{{ __('Rooms') }}</a><a href="#bells">{{ __('Bell schedules') }}</a><a href="#import">{{ __('Import timetable') }}</a>
+        <a href="#week">{{ __('Week') }}</a><a href="#placement">{{ __('Place a lesson') }}</a><a href="#rooms">{{ __('Rooms') }}</a><a href="#bells">{{ __('Bell schedules') }}</a><a href="#short-days">{{ __('Short days') }}</a><a href="#import">{{ __('Import timetable') }}</a>
     </nav>
     <section id="week" class="page-section" aria-labelledby="week-title">
         <h2 id="week-title">{{ __('Week') }}: {{ $week['starts_on'] }} – {{ $week['ends_on'] }}</h2>
@@ -20,8 +20,9 @@
             @for ($day = 0; $day < 7; $day++)
                 @php $date = \Carbon\CarbonImmutable::parse($weekOn)->addDays($day)->toDateString(); $onDay = collect($week['lessons'])->where('date', $date); @endphp
                 <section class="m3-card m3-card--outlined"><div class="m3-card__content"><h3>{{ __(\Carbon\CarbonImmutable::parse($date)->format('l')) }} {{ $date }}</h3>
+                    @foreach (collect($shortDays)->where('on_date', $date) as $shortDay)<p class="timetable-short-day">{{ __('Short day: :replacement instead of :schedule', ['replacement' => $shortDay['replacement_name'], 'schedule' => $shortDay['schedule_name']]) }}</p>@endforeach
                     @forelse ($onDay as $entry)
-                        <article class="timetable-lesson"><h4>{{ $entry['title'] }}</h4><p>{{ $entry['starts_at'] }}–{{ $entry['ends_at'] }} · {{ $entry['room_name'] }}</p><p>{{ $entry['teacher_name'] }}</p>
+                        <article class="timetable-lesson"><h4>{{ $entry['title'] }}</h4><p>{{ $entry['starts_at'] }}–{{ $entry['ends_at'] }} · {{ $entry['room_name'] }}@isset($entry['day_pattern']) · {{ $entry['day_pattern'] }}@endisset</p><p>{{ $entry['teacher_name'] }}</p>
                             <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'edit' => $entry['id']]) }}#placement">{{ __('Edit lesson') }}: {{ $entry['title'] }}</a>
                         </article>
                     @empty<p>{{ __('No lessons') }}</p>@endforelse
@@ -91,6 +92,31 @@
             <button type="button" class="m3-button m3-button--outlined" data-add-period>{{ __('Add period') }}</button><button type="submit" class="m3-button m3-button--filled">{{ __('Save bell schedule') }}</button>
         </form>
         <ul>@foreach ($configuration['bell_schedules'] as $item)<li>{{ $item['name'] }} · {{ $item['section'] }} <a href="{{ route('academic-timetable.index', ['session_year_id' => $year->id, 'week_on' => $weekOn, 'schedule' => $item['id']]) }}#bells">{{ __('Copy schedule') }}</a></li>@endforeach</ul>
+    </div></details>
+    <details id="short-days" class="m3-card m3-card--outlined page-section" @if($errors->hasAny(['on_date', 'reason', 'replacements', 'short_day']) || session('success') === __('Short day saved') || session('success') === __('Short day removed')) open @endif><summary>{{ __('Short days') }}</summary><div class="m3-card__content">
+        <h2>{{ __('Plan a short day') }}</h2>
+        <p>{{ __('Lessons keep their order and follow the short-day bells. Lessons after the last short-day period do not take place that day.') }}</p>
+        @foreach (['short_day', 'replacements', 'on_date'] as $key)@error($key)<p role="alert">{{ $message }}</p>@enderror @endforeach
+        <form method="POST" action="{{ route('academic-timetable.short-day') }}" aria-label="{{ __('Plan a short day') }}">@csrf @include('academics.timetable-context')
+            <div class="timetable-fields">
+                <x-page.field name="on_date" id="short-day-date" type="date" :label="__('Short day date')" required />
+                <x-page.field name="reason" id="short-day-reason" :label="__('Reason for the short day')" maxlength="191" required />
+                @foreach ($configuration['bell_schedules'] as $i => $item)
+                    <input type="hidden" name="replacements[{{ $i }}][bell_schedule_id]" value="{{ $item['id'] }}">
+                    <x-page.field :name="'replacements['.$i.'][replacement_bell_schedule_id]'" :id="'short-day-bells-'.$item['id']" type="select" :label="__('Bells instead of :name', ['name' => $item['name']])"
+                        :options="collect($configuration['bell_schedules'])->where('id', '!=', $item['id'])->pluck('name', 'id')->all()" :placeholder="__('Normal bells')" />
+                @endforeach
+            </div>
+            <button type="submit" class="m3-button m3-button--filled">{{ __('Save short day') }}</button>
+        </form>
+        <ul>@forelse ($shortDays as $shortDay)
+            <li>{{ $shortDay['on_date'] }} · {{ __(':replacement instead of :schedule', ['replacement' => $shortDay['replacement_name'], 'schedule' => $shortDay['schedule_name']]) }} · {{ $shortDay['reason'] }}
+                <form method="POST" action="{{ route('academic-timetable.short-day-remove') }}" aria-label="{{ __('Remove short day') }} {{ $shortDay['on_date'] }} {{ $shortDay['schedule_name'] }}">@csrf @include('academics.timetable-context')
+                    <input type="hidden" name="override_id" value="{{ $shortDay['id'] }}"><input type="hidden" name="revision" value="{{ $shortDay['revision'] }}">
+                    <button type="submit" class="m3-button m3-button--text">{{ __('Remove short day') }}</button>
+                </form>
+            </li>
+        @empty<li>{{ __('No short days planned') }}</li>@endforelse</ul>
     </div></details>
     @include('academics.timetable-import')
 </div>

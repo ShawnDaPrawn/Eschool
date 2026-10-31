@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Services\Platform\Saas;
 
 use App\Models\Platform\School;
+use App\Models\Platform\StaffInvitation;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
@@ -44,9 +46,10 @@ class PlatformSchools
     public function overview(): array
     {
         $counts = $this->counts();
+        $stages = $this->stages();
 
         return DB::table('schools')->orderBy('id')->get()
-            ->map(fn (object $school): array => $this->row($school, $counts))
+            ->map(fn (object $school): array => $this->row($school, $counts, $stages))
             ->all();
     }
 
@@ -55,7 +58,7 @@ class PlatformSchools
     {
         $school = DB::table('schools')->where('id', $id)->first();
 
-        return $school === null ? null : $this->row($school, $this->counts($id));
+        return $school === null ? null : $this->row($school, $this->counts($id), $this->stages($id));
     }
 
     /**
@@ -85,11 +88,12 @@ class PlatformSchools
 
     /**
      * Set a school up: the school, its system roles and profile defaults, and
-     * its first Super Admin with a one-time password they must change at first
-     * sign-in. Nothing is sent: the password is returned to show once.
+     * its first Super Admin, who is emailed a one-use link to choose their own
+     * password (StaffInvitations). Their starting password is random and known
+     * to nobody. The link is also returned, to show once if the email is late.
      *
      * @param  array{name: string, slug: ?string, timezone: string, package_key: string, admin_first_name: string, admin_last_name: string, admin_email: string, admin_mobile: ?string}  $data
-     * @return array{school: School, admin: User, password: string}
+     * @return array{school: School, admin: User, invitation_url: string}
      */
     public function create(array $data, User $actor): array
     {
@@ -105,18 +109,18 @@ class PlatformSchools
                 app(SchoolRoles::class)->seed($school);
                 $this->currentSchool->run($school, fn () => $this->firstRunDefaults($school));
 
-                $password = Str::password(16, symbols: false);
                 $admin = User::query()->create([
                     'first_name' => $data['admin_first_name'],
                     'last_name' => $data['admin_last_name'],
                     'email' => strtolower(trim($data['admin_email'])),
                     'mobile' => $data['admin_mobile'] ?? '',
-                    'password' => $password,
+                    'password' => Str::password(32),
                     'status' => 1,
                 ]);
                 $admin->forceFill(['password_change_required' => true])->save();
                 // The role grant creates the membership (MembershipService).
                 $this->currentSchool->run($school, fn () => $admin->assignRole(SchoolRoles::SUPER_ADMIN));
+                $invitation = $this->currentSchool->run($school, fn () => app(StaffInvitations::class)->issue($admin, $actor, StaffInvitation::SCHOOL_ADMIN));
 
                 Audit::record('platform_school_created', $school, [], [
                     'package_key' => $school->package_key,
@@ -124,7 +128,7 @@ class PlatformSchools
                     'created_by' => $actor->id,
                 ], (int) $school->id);
 
-                return ['school' => $school, 'admin' => $admin, 'password' => $password];
+                return ['school' => $school, 'admin' => $admin, 'invitation_url' => $invitation['url']];
             });
         });
     }
@@ -251,7 +255,7 @@ class PlatformSchools
      * @param  array<int, array{people: int, roles: array<string, int>}>  $counts
      * @return array<string, mixed>
      */
-    private function row(object $school, array $counts): array
+    private function row(object $school, array $counts, array $stages = []): array
     {
         $own = $counts[(int) $school->id] ?? ['people' => 0, 'roles' => []];
 
@@ -266,7 +270,16 @@ class PlatformSchools
             'people' => $own['people'],
             'roles' => array_merge(array_fill_keys(self::COUNTED_ROLES, 0), array_intersect_key($own['roles'], array_flip(self::COUNTED_ROLES))),
             'is_default' => (int) $school->id === CurrentSchool::defaultId(),
+            // HQ's lifecycle stage (PlatformSchoolAccounts); a school without a record is onboarding.
+            'stage' => $stages[(int) $school->id] ?? 'onboarding',
         ];
+    }
+
+    /** @return array<int, string> stage per school id */
+    private function stages(?int $schoolId = null): array
+    {
+        return DB::table('school_accounts')->when($schoolId !== null, fn ($query) => $query->where('school_id', $schoolId))
+            ->pluck('stage', 'school_id')->mapWithKeys(fn ($stage, $id) => [(int) $id => (string) $stage])->all();
     }
 
     private function uniqueSlug(string $name): string

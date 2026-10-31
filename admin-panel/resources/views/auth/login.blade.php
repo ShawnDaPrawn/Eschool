@@ -44,6 +44,9 @@
                                     <div class="brand-logo text-center">
                                         <img src="{{ schoolLogoUrl('logo2') }}" alt="logo">
                                     </div>
+                                    @if (session('success'))
+                                        <div class="alert alert-success text-center" role="status">{{ session('success') }}</div>
+                                    @endif
                                     <form action="{{ route('login') }}" id="frmLogin" method="POST" class="pt-3">
                                         @csrf
                                         <div class="form-group">

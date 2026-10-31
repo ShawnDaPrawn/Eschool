@@ -239,3 +239,19 @@ receipt matching are per school, with no platform-wide financial read endpoint.
 `fee_accounting_settings` is required school-owned, with a unique school foreign
 key. Its Eloquent model uses BelongsToSchool. Reports and CSV exports use current-
 school predicates on every raw join, including invoice shares and ledger postings.
+
+### Identity: devices and LURITS
+
+`user_devices` is global, like `users`: one push registration per device of one
+human, each notification carrying its own school ([push devices](push-devices.md)).
+LURITS numbers live on the global `learner_identifiers` row of the human.
+`lurits_conflicts` is required school-owned: the claiming school sees only its own
+open claims, and the holder school is never told of them ([LURITS](lurits.md)).
+
+### HQ incident register
+
+`platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
+own register, read and written only from `/saas`. `platform_incident_schools` is
+required school-owned (a foreign key to the school) so each affected school, and
+when it was told, is one row per school; HQ reads it across schools and no school
+reads it ([HQ incidents](hq-incidents.md)).

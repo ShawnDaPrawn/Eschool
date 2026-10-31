@@ -30,3 +30,6 @@ happy path, wrong role/school/owner, cross-schedule time clashes, membership
 clashes, patterns/date overrides, concurrent/stale writes, import atomicity,
 legacy projections and next-period boundaries. Cover new app screens with cubit,
 widget/browser checks and any new panel page with both Playwright widths.
+
+Short days (one-date bell schedule replacements) are specified in
+[`short-days.md`](short-days.md).

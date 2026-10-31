@@ -51,6 +51,7 @@ AcademicTimetableLesson _$AcademicTimetableLessonFromJson(
         'original_teacher_name',
         (v) => v as String?,
       ),
+      dayPattern: $checkedConvert('day_pattern', (v) => v as String?),
       id: $checkedConvert('id', (v) => (v as num).toInt()),
       revision: $checkedConvert('revision', (v) => (v as num).toInt()),
       sessionYearId: $checkedConvert(
@@ -102,6 +103,7 @@ AcademicTimetableLesson _$AcademicTimetableLessonFromJson(
     'coverId': 'cover_id',
     'originalTeacherId': 'original_teacher_id',
     'originalTeacherName': 'original_teacher_name',
+    'dayPattern': 'day_pattern',
     'sessionYearId': 'session_year_id',
     'termId': 'term_id',
     'teachingGroupId': 'teaching_group_id',
@@ -128,6 +130,7 @@ Map<String, dynamic> _$AcademicTimetableLessonToJson(
   'cover_id': ?instance.coverId,
   'original_teacher_id': ?instance.originalTeacherId,
   'original_teacher_name': ?instance.originalTeacherName,
+  'day_pattern': ?instance.dayPattern,
   'id': instance.id,
   'revision': instance.revision,
   'session_year_id': instance.sessionYearId,

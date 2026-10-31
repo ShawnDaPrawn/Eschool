@@ -42,3 +42,50 @@ Rules:
 - Grade heads, principal and other appointments, and teaching allocations, as drafts for review.
 - Award windows, discipline framework, family fee accounts.
 - Re-assignment helpers: teaching groups filled from the new homeroom and subject choices; "last year's members who are still eligible" for each activity group.
+
+## Part two: bells, houses, award windows and discipline
+
+Four more carry-forward choices (`NewYearService::CARRY`):
+
+| Choice | Action | Copies | Never copies |
+| --- | --- | --- | --- |
+| `bell_schedules` | `TransferBellSchedules` | each bell schedule's name, section, periods and breaks, through `TimetableConfiguration::bells` (audited) | lessons: they name teachers and teaching groups, which are allocated afresh, so the new timetable is built on the copied bells |
+| `houses` | `TransferHouseMemberships` | each house membership open on the old year's last day, for a learner who has a homeroom with a grade on the new year's first day and is not marked as leaving that year, into the same house from that day, through `RecognitionCatalog::membership` | points; leavers (including one promoted and then marked as leaving); closed houses; learners in an ungraded homeroom (placed by hand) |
+| `award_windows` | `TransferAwardWindows` | each nomination window of an active school or grade award category, as a draft, its dates moved by the gap between the two years' start dates and kept inside the new year, through `RecognitionCatalog::window` | windows of activity-group categories (the school picks the new season's group); nominations and presentations |
+| `discipline` | `TransferDisciplineFramework` | the framework's title, levels, sanctions and infractions, published as the new year's revision 1 through `DisciplineFrameworks::save` | records, counters, detentions: every learner starts the year clean |
+
+Rules:
+
+- **Houses keep their people.** They are the exception the Action Plan names: a learner stays in their house.
+- **Once.** A new year that already has bell schedules, house memberships, award windows or a framework is left alone. Recognition writes use operation IDs derived from the source row and the new year, so a retried switch cannot add one twice.
+- **Modules.** Houses, award windows and discipline are offered only while their module (`house_points`, `awards`, `discipline`) is on. With it off, the choice shows nothing to copy and copies nothing.
+- **After the switch.** Discipline changes are written to the current year only, so the framework is copied just after the new year becomes current, in the same transaction (`NewYearService::AFTER_SWITCH`).
+- Each action checks the actor's authority first: academic management, recognition management, or discipline management. Each resolves both years within the school, so another school's year is not found and nothing is written in either school.
+
+### Acceptance tests (`Academics/NewYearCarryTest`)
+
+| Given | When | Then |
+| --- | --- | --- |
+| Asha (promoted) moved from Blue to Red in the year; Ben (leaving) in Red | carried twice | one membership: Asha in Red from the new year's first day; the old year keeps three |
+| A closed house; then an ungraded new homeroom | carried | nothing |
+| A bell schedule with a period and a break | carried twice | one copy with both, in order |
+| A school category window 1 to 31 October, and a group category window | carried | one draft window, 13 October to 12 November 2027 |
+| Bells, a house member and a framework | the wizard switches with those choices | each offered with a count; all copied; the framework is the new year's revision 1; the new year is current |
+| The house points module off | the wizard's choices | houses show nothing to copy |
+| Asha promoted and then marked as leaving on the legacy page | houses carried | nothing |
+| A teacher | each action, discipline included | 403; nothing copied |
+| School B's year as the new year | each action | not found; no rows change in either school |
+
+## Switch day (Action Plan 1.21, first part)
+
+- **Welcome.** The wizard's carry step has a choice, ticked by default: "Welcome families to *year* in the app when it becomes current". After the switch, in the same transaction, one `school.new_year` notice goes to the learners enrolled in the new year on its first day (or today, if later) and their current guardians (`GuardianService::guardianUserIds`). It says "Welcome to *year*", gives the first day and links to the timetable (`/academics/timetable`). It names no learner or homeroom. Leavers and their families get nothing. The result reports how many people it went to.
+- **Year-end check: every class has a grade.** It counts the classes of this year's homerooms that have no grade, because promoting by grade (1.18) needs them, and links to the classes page.
+- **Deferred:** the leaver state (read-only access until 31 March, `leaver_until` on the membership, replacing deactivation at the switch) and the alumni invitation hook. Changing what a leaver can do touches every sign-in path, so it is its own piece of work.
+
+### Acceptance tests (`Academics/NewYearWelcomeTest`)
+
+| Given | When | Then |
+| --- | --- | --- |
+| Asha placed in 2027, Ben (leaving) not | switch with the welcome | one notice, "Welcome to 2027", with 13 Jan 2027 and the timetable link, to Asha, Farid and Mona only; 3 reported |
+| The same | switch without it | no notice |
+| Grade 5 without a grade | year-end checks; set the grade; the wizard page; make current with `welcome` | "1 class has no grade" then done; the choice is on the page; 3 welcomed |

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Panel\Academics;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Academics\ClassGradeRequest;
+use App\Http\Requests\Academics\FillTeachingGroupRequest;
 use App\Http\Requests\Academics\TeachingGroupRequest;
 use App\Models\Academics\GradeLevel;
 use App\Models\Academics\TeachingGroup;
@@ -77,6 +78,14 @@ class TeachingGroupController extends Controller
         $service->dated($request->user(), (string) $request->route('kind'), $request->validated(), $group, $id);
 
         return ($group === null ? redirect()->route('academic-allocations.index') : redirect()->route('teaching-groups.show', $group))->with('success', __('Dated assignment saved'));
+    }
+
+    public function fill(FillTeachingGroupRequest $request, TeachingGroups $service, int $group): RedirectResponse
+    {
+        $data = $request->validated();
+        $result = $service->fillFromHomeroom($request->user(), $group, $data['starts_on'], $data['mark_rule']);
+
+        return redirect()->route('teaching-groups.show', $group)->with('success', __(':added learners added from the homeroom; :skipped were already members.', $result));
     }
 
     public function map(ClassGradeRequest $request, AcademicReferences $references, int $class): RedirectResponse

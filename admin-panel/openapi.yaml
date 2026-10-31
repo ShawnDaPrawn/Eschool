@@ -37765,6 +37765,8 @@ components:
           minimum: 1
         original_teacher_name:
           type: string
+        day_pattern:
+          type: string
         id:
           type: integer
           minimum: 1
@@ -37962,6 +37964,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AcademicTimetableLesson'
+        exam_days:
+          type: array
+          items:
+            type: string
+            pattern: ^\d{4}-\d{2}-\d{2}$
     AcademicTimetableNextData:
       type: object
       additionalProperties: false

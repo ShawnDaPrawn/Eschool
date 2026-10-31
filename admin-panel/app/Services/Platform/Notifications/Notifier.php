@@ -106,7 +106,7 @@ class Notifier
             if ($channel === 'email' && filter_var($user->email, FILTER_VALIDATE_EMAIL) === false) {
                 continue;
             }
-            if ($channel === 'push' && (! $user->fcm_id || ! in_array($user->device_type, ['android', 'ios'], true))) {
+            if ($channel === 'push' && app(PushDevices::class)->destinations($user) === []) {
                 continue;
             }
             DB::transaction(function () use ($user, $type, $title, $body, $link, $notice, $channel, &$sent) {
@@ -155,16 +155,18 @@ class Notifier
 
     private function push(User $user, string $deliveryType, string $title, string $body, array $data): void
     {
-        if (! $user->fcm_id || ! in_array($user->device_type, ['android', 'ios'], true)) {
-            return;
-        }
         $data['school_id'] = (string) app(CurrentSchool::class)->id();
         $data['click_action'] ??= 'FLUTTER_NOTIFICATION_CLICK';
         $data['notice_type'] = NotificationTypes::legacy($deliveryType);
-        $message = ['token' => $user->fcm_id, 'data' => array_map(fn ($value) => $value === null ? '' : (is_string($value) ? $value : (is_scalar($value) ? (string) $value : (json_encode($value) ?: ''))), $data)];
-        if ($user->device_type === 'ios') {
-            $message['notification'] = ['title' => $title, 'body' => $body];
+        $payload = array_map(fn ($value) => $value === null ? '' : (is_string($value) ? $value : (is_scalar($value) ? (string) $value : (json_encode($value) ?: ''))), $data);
+        // One job per signed-in device, so a retry never repeats a message
+        // another device already received.
+        foreach (app(PushDevices::class)->destinations($user) as $device) {
+            $message = ['token' => $device['token'], 'data' => $payload];
+            if ($device['platform'] === 'ios') {
+                $message['notification'] = ['title' => $title, 'body' => $body];
+            }
+            PushQueue::toDevice($deliveryType, (int) $user->id, $device['token'], ['message' => $message]);
         }
-        PushQueue::toDevice($deliveryType, (int) $user->id, $user->fcm_id, ['message' => $message]);
     }
 }

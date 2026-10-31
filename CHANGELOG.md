@@ -23,6 +23,34 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: a breach and incident register at `/saas/incidents` for Owner,
+  Operations and Support. Each incident records the schools it affects and
+  when, how and whom at each school Navigate Ed told, whether the Information
+  Regulator must be told and when it was, a timeline and a closing review. An
+  incident that may involve personal information cannot close until every
+  school has been told and the Regulator decision is recorded. **Deploy:** run
+  the migrations.
+
+- Notifications now reach every device a person is signed in on, not only the last
+  one: a parent's phone and tablet, or a teacher's two devices, all receive them.
+  Signing in to an app on another device no longer signs the first one out (up to
+  five devices per app), and signing out ends only that device. **Deploy:** run the
+  additive `user_devices` migration, which copies each existing push registration.
+- Platform: an HQ audit log at `/saas/audit` shows who at Navigate Ed did what
+  to which school, when and why (reasons, before and after values), filtered by
+  school, action, staff member and date, and exported as CSV. A school's own
+  history is never shown there, and each export is itself recorded.
+- Admin panel: exam mode. Exam periods per grade (Exams and results → Exam
+  periods) turn a learner's timetable days into exam days, leaving normal
+  lessons out unless the school keeps them. Each exam sitting can have a venue,
+  and learners and guardians are told when an upcoming sitting's date, time or
+  venue changes, or it is removed. **Deploy:** run the migrations.
+- Platform: platform staff roles (Owner, Operations, Support, Finance, Content,
+  Sales read-only). Every HQ page and action checks the role. Owners invite
+  staff by email from `/saas/staff`; the invited person chooses their own
+  password. Access is time-limited and every change is audited with its reason.
+  Existing grants became Owner. **Deploy:** run the migrations.
+
 - Developers: school permissions are now described as modules with access levels
   (view, contribute, manage) and named special abilities, in
   `config/module_access.php`, as the foundation for a simpler role editor. No
@@ -35,6 +63,13 @@ Earlier history is kept where it was written and is not repeated here:
   **Deploy:** rehearse the additive payment migration and reconciliation on isolated
   staging, explicitly assign `fee-payments-manage` to real Finance roles, and
   confirm the school allocation rule before allocating.
+
+- The learner's LURITS number can be recorded as their primary identifier, once per
+  learner across all schools, encrypted, and never written twice: a number another
+  learner already holds opens a conflict for review instead. The NavigateEd number
+  remains the temporary identifier for learners without one (ADR 0007). Screens,
+  API fields, imports and SA-SAMS keying follow. **Deploy:** run the additive
+  `learner_identifiers` LURITS migration.
 
 - Internal school ledger foundation with balanced immutable integer-cents postings,
   permanent receipt identities, protected wallet balances and nightly reconciliation.
@@ -52,21 +87,71 @@ Earlier history is kept where it was written and is not repeated here:
   fees, including saved links to the former fee-lock screen. Guardian fee privacy
   and approval checks continue to apply.
 
+- Short days: the timetable workbench can replace a bell schedule on one date
+  with short-day bells. Lessons keep their order and take the short times;
+  lessons past the last short period do not run that day. Clashing short days
+  are refused, and affected learners, guardians and teachers are notified. The
+  v2 week adds an optional `day_pattern`. **Deploy:** run the additive
+  `bell_schedule_overrides` migration.
+
 - **Platform admin area (`/saas`), first version.** Platform staff can see every school with its package and counts of learners, parents and teachers, set up a school with its first administrator (a one-time password, shown once), change its package and modules, and suspend, archive or restore it with a reason. It reads no person's record and is closed to school administrators. Opening it needs both a platform staff identity and an expiring grant set from the operator console. Support access into a school, imports and usage/health views are not part of this version. **Deploy:** run the migration, then `php artisan platform:staff-identity <user_id>` and `php artisan platform:admin-access <user_id> --hours=8` for each operator.
+
+- Staff invitations: a new school's first Super Admin is emailed a one-use
+  link to choose their own password instead of being handed a one-time
+  password, and the platform can send it again until it is accepted. School
+  staff can send a colleague a sign-in invitation from their profile.
+  Accepting verifies the email address and signs out every other session.
+  **Deploy:** run the additive `staff_invitations` migration; mail must be
+  configured for the emails to arrive (the link is also shown once).
 
 - Manage dated teaching groups, learner memberships and teacher/homeroom/leadership assignments with explicit class-grade mappings, audited corrections and current allocation checks for existing app projections.
 
+- HQ school records: platform staff keep each customer school's stage (lead to
+  live, at risk, churned), profile, contacts, contracts with the POPIA operator
+  agreement, and a timeline of notes, on a new page in `/saas`. The school list
+  shows each school's stage. Schools never see it, and it shows none of a
+  school's people. **Deploy:** run the additive `school_accounts` migration.
+
 - Prepare versioned curriculum topics and term assessment plans with exact task/question maxima, separate term and annual weights, allocated-teacher access, audited publication and explicit new-year draft copying.
+
+- Guardian management: the school office can give a learner any number of
+  guardians, each with a relationship and the rights to approve and to see
+  fees, from "Manage guardians" on the learner's profile. A learner always keeps
+  at least one approving guardian, and removing a guardian ends their access at
+  once. **Deploy:** run the additive `guardian_links` migration.
 
 - Add versioned CAPS/IEB subject reference imports and school subject mapping, with source provenance, explicit publication, tenant/permission checks and a Material 3 catalogue page.
 
+- Role editor by module: school administrators can create and edit custom
+  roles by choosing a level (no access, view, contribute, manage) for each
+  module that is switched on, plus named abilities. Sensitive abilities need a
+  confirmation and are audited. The old checkbox editor is still available.
+
 - School staff can edit app contacts and branding under Settings → School information, publish PDF policies and schedules, and show current-year term dates in both apps’ My school screen. School selection is explicit on each request. Unlisting removes a publication from the screen while its public link remains valid.
+
+- Role templates: the role editor can start a new role from nine templates
+  for common school jobs (principal, deputy, office, bursar, head of
+  department, grade head, activities coordinator, reception, IT). Sensitive
+  abilities are never part of a template.
 
 - Add school-specific person profile categories, protected defaults, encrypted custom values and authorised API v2 forms/configuration. Partial edits validate supplied fields without blocking on unrelated incomplete fields. School admins can arrange fields in Settings, and authorised people use the same form metadata in the panel and both apps. Saves update changed fields only. Permitted CSV exports filter sensitive values before decryption; private drafts stay out of browser/session storage. Private file fields accept encrypted PDF/PNG/JPEG attachments with authenticated previews and preserve unrelated edits. Legacy migration remains in progress. **Deploy:** preserve APP_KEY; rehearse the additive profile migration and back up profile values, attachment metadata and private ciphertext before rolling it back.
 
+- Who can see what: a read-only page shows one person's or one role's level in
+  each module, their abilities (sensitive ones marked), any stray permissions,
+  and the pages in their menu, exactly as that person's own sidebar for a
+  person.
+
 - People can choose a global handle in the shared app settings. Learners under 18 need a verified guardian to approve the proposal; adults choose directly. Handles avoid personal identifiers, changes are limited per term, and old names remain reserved for 90 days. Approved handles work alongside existing sign-in names. Existing app/API responses remain compatible.
 
+- Product catalogue: the 44 module switches are grouped into ten product
+  modules with a readiness level and a price placeholder, shown to platform
+  staff at `/saas/packages`, and a new `pilot` package includes them all.
+
 - School admins can control included features under Settings → School modules. Disabled features disappear from navigation and app context, and their routes refuse access. Required features stay on; fees with retained records become read-only. Existing schools retain their seed features, while new explicitly packaged schools start fees off. Native apps refresh on a queued school-specific context change.
+
+- Family reach: a page for the school office shows how many current learners
+  have a guardian the school can reach in the parent app or by verified email,
+  reach by homeroom, and which learners to follow up.
 
 - Lifelong student numbers work alongside existing learner logins. School staff can append dated homeroom moves through API v2, while installed clients keep their existing session fields. Parent context includes each authorised child's school, approval, number and homeroom. **Deploy:** rehearse `people:backfill-identities --queue` on isolated staging before production acceptance; historical dates imported from the old session table are marked as legacy-derived. Permanent cleanup preserves numbers and other schools' accounts, and refuses learners with dated enrolment history.
 

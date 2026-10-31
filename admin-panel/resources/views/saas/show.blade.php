@@ -3,6 +3,9 @@
 @section('title', $school['name'])
 
 @section('content')
+@php
+    $platformCan = fn (string $ability): bool => app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
+@endphp
 <h1>{{ $school['name'] }}</h1>
 <p class="saas-lead">
     <span class="saas-badge {{ $school['status'] === 'active' ? '' : 'saas-badge--warn' }}">{{ __(ucfirst($school['status'])) }}</span>
@@ -11,7 +14,17 @@
     ({{ $school['roles']['Student'] }} {{ __('learners') }}, {{ $school['roles']['Parent'] }} {{ __('parents') }}, {{ $school['roles']['Teacher'] }} {{ __('teachers') }})
 </p>
 
+@if ($pendingAdministrator && $platformCan('schools.create'))
+<h2>{{ __('First administrator') }}</h2>
+<form method="POST" action="{{ route('saas.schools.invitation', $school['id']) }}" class="saas-card">
+    @csrf
+    <p>{{ __('The first administrator has not accepted their invitation yet. Sending a new one cancels the old link.') }}</p>
+    <div class="saas-actions"><button class="saas-btn" type="submit">{{ __('Send the invitation again') }}</button></div>
+</form>
+@endif
+
 <h2>{{ __('Package') }}</h2>
+@if ($platformCan('schools.package'))
 <form method="POST" action="{{ route('saas.schools.package', $school['id']) }}" class="saas-card">
     @csrf
     @method('PUT')
@@ -27,8 +40,12 @@
         <button class="saas-btn" type="submit">{{ __('Change package') }}</button>
     </div>
 </form>
+@else
+<p class="saas-card">{{ $school['package_key'] ?? __('Upgraded seed (legacy)') }}</p>
+@endif
 
 <h2>{{ __('Status') }}</h2>
+@if ($platformCan('schools.status'))
 <form method="POST" action="{{ route('saas.schools.status', $school['id']) }}" class="saas-card">
     @csrf
     @method('PUT')
@@ -53,6 +70,9 @@
         <div class="saas-actions"><button class="saas-btn saas-btn--danger" type="submit">{{ __('Change status') }}</button></div>
     @endif
 </form>
+@else
+<p class="saas-card">{{ __(ucfirst($school['status'])) }}</p>
+@endif
 
 <h2>{{ __('Modules') }}</h2>
 <div class="saas-card">
@@ -69,6 +89,8 @@
                         {{ __('Required') }}
                     @elseif (! $module['in_package'])
                         {{ __('Not in this package') }}
+                    @elseif (! $platformCan('schools.modules'))
+                        {{ __('Your role cannot change modules') }}
                     @else
                         <form class="saas-inline" method="POST" action="{{ route('saas.schools.modules', [$school['id'], $key]) }}">
                             @csrf
@@ -83,5 +105,10 @@
         </tbody>
     </table>
 </div>
-<p class="saas-actions"><a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a></p>
+<p class="saas-actions">
+    @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
+    <a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.onboarding', $school['id']) }}">{{ __('Onboarding checklist') }}</a>
+    <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
+    @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif
+</p>
 @endsection

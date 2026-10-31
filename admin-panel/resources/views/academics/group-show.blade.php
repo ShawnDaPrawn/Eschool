@@ -23,6 +23,17 @@
     <h2>{{ __('Learner memberships') }}</h2>
     @foreach ($memberships as $row)@include('academics.assignment-history', ['kind' => 'memberships'])@endforeach
     @include('academics.groups-pagination', ['page' => $memberships])
+    @if ($manage && $group->homeroom !== null)
+        <section class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
+            <h3>{{ __('Add everyone in the homeroom') }}</h3>
+            <form method="POST" action="{{ route('teaching-groups.fill', $group->id) }}" aria-label="{{ __('Add everyone in the homeroom') }}">@csrf
+                <p>{{ __('Each learner in the homeroom on the start date becomes a member until they leave the homeroom or the year ends. Learners who are already members are left alone.') }}</p>
+                <x-page.field id="fill-mark-rule" name="mark_rule" type="select" :label="__('Mark rule')" :options="['catch_up' => __('Catch-up work'), 'excused' => __('Excused earlier work'), 'carried' => __('Reviewed carried marks')]" required />
+                <x-page.field id="fill-starts" name="starts_on" type="date" :label="__('Members from')" :value="max(substr($group->year->start_date, 0, 10), $today)" required />
+                <button class="m3-button m3-button--filled" type="submit">{{ __('Add the homeroom') }}</button>
+            </form>
+        </div></section>
+    @endif
     @if ($manage)
         <section class="m3-card m3-card--outlined page-section"><div class="m3-card__content">
             <h3>{{ __('Add learner membership') }}</h3>

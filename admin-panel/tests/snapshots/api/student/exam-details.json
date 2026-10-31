@@ -12,6 +12,7 @@
                 "ending_time": "string",
                 "id": "number",
                 "passing_marks": "number",
+                "revision": "number",
                 "starting_time": "string",
                 "subject": {
                     "bg_color": "string",
@@ -20,7 +21,8 @@
                     "name": "string",
                     "type": "string"
                 },
-                "total_marks": "number"
+                "total_marks": "number",
+                "venue": "null"
             }
         ],
         "error": "bool",
