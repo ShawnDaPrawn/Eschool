@@ -40,6 +40,9 @@ class SupportDeskTest extends TestCase
     {
         parent::setUp();
         $this->setUpTwoSchools();
+        // The demo memberships start on the day the fixture is built; the clock below is pinned,
+        // so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         app(CurrentSchool::class)->forget();
         $this->travelTo(CarbonImmutable::parse('2026-11-02 09:00', 'Africa/Johannesburg'));
     }
