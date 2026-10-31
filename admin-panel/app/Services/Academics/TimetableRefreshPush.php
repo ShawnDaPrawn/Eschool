@@ -30,10 +30,15 @@ class TimetableRefreshPush
      * Queues one silent push per device of each affected learner, their
      * current guardians and the lessons' teachers, in the current school.
      *
+     * A lesson moved to another teacher, group or homeroom also refreshes the
+     * people of its previous placement, named by ids that resolve only within
+     * the current school.
+     *
      * @param  list<int>  $lessonIds
+     * @param  list<array<string, mixed>>  $previous  placements the lessons moved away from
      * @return int the pushes queued
      */
-    public function queue(array $lessonIds): int
+    public function queue(array $lessonIds, array $previous = []): int
     {
         if (! config('platform.rich_push.timetable_refresh') || $lessonIds === []) {
             return 0;
@@ -47,9 +52,16 @@ class TimetableRefreshPush
         $lessons = TimetableLesson::query()->whereIn('id', array_map('intval', $lessonIds))->get();
         $learners = [];
         $teachers = [];
-        foreach ($lessons as $lesson) {
-            $teachers[] = (int) $lesson->teacher_id;
-            foreach ($engine->learners($lesson->getAttributes(), $today) as $learner) {
+        $placements = $lessons->map(fn (TimetableLesson $lesson) => TimetableEngine::placement($lesson->getAttributes()))->all();
+        // Only previous placements of lessons that exist in this school count.
+        if ($lessons->isNotEmpty()) {
+            foreach ($previous as $placement) {
+                $placements[] = is_array($placement) ? TimetableEngine::placement($placement) : null;
+            }
+        }
+        foreach (array_filter($placements) as $placement) {
+            $teachers[] = $placement['teacher_id'];
+            foreach ($engine->learners($placement, $today) as $learner) {
                 $learners[$learner] = true;
             }
         }

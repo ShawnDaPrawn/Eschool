@@ -7,9 +7,11 @@ namespace Tests\Feature\Platform;
 use App\Jobs\Platform\FanoutNotification;
 use App\Jobs\Platform\SendPush;
 use App\Models\Academics\GradeLevel;
+use App\Models\Academics\TimetableLesson;
 use App\Models\ClassSchool;
 use App\Models\People\Enrolment;
 use App\Models\Platform\NotificationDelivery;
+use App\Models\Platform\OutboxEvent;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Settings;
@@ -302,6 +304,63 @@ class RichPushTest extends TestCase
 
         config(['platform.rich_push.timetable_refresh' => false]);
         $this->assertSame(0, app(TimetableRefreshPush::class)->queue([$ids['lesson']]));
+    }
+
+    public function test_reassigning_a_lesson_refreshes_both_the_old_and_the_new_teacher_and_roster(): void
+    {
+        $old = array_merge($this->devices($this->schoolA->ids['asha_user'], 'asha'), $this->devices($this->schoolA->ids['tara_user'], 'tara'));
+        $new = array_merge($this->devices($this->schoolA->ids['ben_user'], 'ben'), $this->devices($this->schoolA->ids['gina_user'], 'gina'),
+            $this->devices($this->schoolA->ids['theo_user'], 'theo'));
+        $this->devices($this->schoolA->ids['cara_user'], 'cara');
+        $schoolB = array_merge($this->devices($this->schoolB->ids['asha_user'], 'baobab-asha', self::SCHOOL_B_ID),
+            $this->devices($this->schoolB->ids['tara_user'], 'baobab-tara', self::SCHOOL_B_ID));
+        Queue::fake();
+        $ids = $this->timetable();
+        $this->refreshes();
+        $before = count(Queue::pushed(SendPush::class));
+
+        // Move the lesson to Science 7A (Ben's group), taught by Theo.
+        $admin = $this->superAdmin();
+        $lesson = TimetableLesson::findOrFail($ids['lesson']);
+        $groups = app(TeachingGroups::class);
+        $science = $groups->save($admin, ['name' => 'Science 7A', 'subject_id' => $this->schoolA->ids['science'], 'grade_level_id' => (int) GradeLevel::where('code', '7')->value('id'),
+            'session_year_id' => $lesson->session_year_id, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
+        Enrolment::create(['learner_id' => $this->schoolA->ids['ben'], 'session_year_id' => $lesson->session_year_id, 'class_section_id' => $this->schoolA->ids['section_a'],
+            'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Refresh rehearsal']);
+        $dates = ['starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Moved lesson'];
+        $groups->dated($admin, 'teachers', $dates + ['teacher_id' => $this->schoolA->ids['theo_teacher']], $science->id);
+        $groups->dated($admin, 'memberships', $dates + ['learner_id' => $this->schoolA->ids['ben'], 'mark_rule' => 'catch_up'], $science->id);
+        $engine = app(TimetableEngine::class);
+        $preview = $engine->preview($admin, [['id' => $lesson->id, 'revision' => $lesson->revision, 'session_year_id' => $lesson->session_year_id, 'term_id' => null,
+            'teaching_group_id' => (int) $science->id, 'class_section_id' => null, 'teacher_id' => $this->schoolA->ids['theo_teacher'], 'room_id' => $lesson->room_id,
+            'bell_period_id' => $lesson->bell_period_id, 'starts_on' => $lesson->starts_on->toDateString(), 'ends_on' => $lesson->ends_on->toDateString(),
+            'weekday' => $lesson->weekday, 'week_pattern' => $lesson->week_pattern, 'active' => true]]);
+        $this->assertTrue($preview['can_save'], json_encode($preview['conflicts']));
+        $engine->save($admin, $preview['rows'], $preview['fingerprint']);
+
+        $event = OutboxEvent::where('type', 'academics.timetable_changed')->latest('id')->firstOrFail();
+        $this->assertSame([['teacher_id' => (int) $lesson->teacher_id, 'teaching_group_id' => (int) $lesson->teaching_group_id, 'class_section_id' => null,
+            'session_year_id' => (int) $lesson->session_year_id]], $event->payload['previous'], 'ids only, no learner list');
+        Outbox::dispatchPending();
+        $tokens = Queue::pushed(SendPush::class)->slice($before)->map(fn ($job) => $job->message['message'])
+            ->filter(fn ($m) => ($m['data']['type'] ?? null) === 'timetable.refresh')->pluck('token')->values()->all();
+        $this->assertEqualsCanonicalizing(array_merge($old, $new), $tokens, 'old and new audiences, never Cara');
+        $this->assertSame([], array_values(array_intersect($tokens, $schoolB)));
+
+        // A previous placement naming School B's teacher and homeroom finds nobody from School A's event.
+        $year = $this->schoolB->ids['session_year'];
+        app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => Enrolment::create(['learner_id' => $this->schoolB->ids['asha'], 'session_year_id' => $year,
+            'class_section_id' => $this->schoolB->ids['section_a'], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Baobab roster']));
+        $foreign = ['teacher_id' => $this->schoolB->ids['tara_teacher'], 'teaching_group_id' => null, 'class_section_id' => $this->schoolB->ids['section_a'], 'session_year_id' => $year];
+        $this->assertContains($this->schoolB->ids['asha'], app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => app(TimetableEngine::class)->learners($foreign, '2026-02-10')),
+            'the placement is real in School B');
+        $count = count(Queue::pushed(SendPush::class));
+        Outbox::record(new AcademicTimetableChanged(1, [$ids['lesson']], [$foreign]));
+        Outbox::dispatchPending();
+        $forged = Queue::pushed(SendPush::class)->slice($count)->map(fn ($job) => $job->message['message']['token'])->values()->all();
+        $this->assertNotEmpty($forged, 'School A\'s own lesson is still refreshed');
+        $this->assertSame([], array_values(array_intersect($forged, $schoolB)));
+        $this->assertSame(0, NotificationDelivery::where('school_id', self::SCHOOL_B_ID)->where('type', 'push.timetable.refresh')->count());
     }
 
     public function test_a_school_a_change_never_reaches_school_b_devices(): void

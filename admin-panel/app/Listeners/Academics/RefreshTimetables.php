@@ -17,6 +17,8 @@ class RefreshTimetables implements OutboxListener
         if ($event->school_id === null) {
             return;
         }
-        app(CurrentSchool::class)->run((int) $event->school_id, fn () => app(TimetableRefreshPush::class)->queue(array_values(array_filter(array_map('intval', (array) ($event->payload['lesson_ids'] ?? []))))));
+        $lessons = array_values(array_filter(array_map('intval', (array) ($event->payload['lesson_ids'] ?? []))));
+        $previous = array_values(array_filter((array) ($event->payload['previous'] ?? []), 'is_array'));
+        app(CurrentSchool::class)->run((int) $event->school_id, fn () => app(TimetableRefreshPush::class)->queue($lessons, $previous));
     }
 }
