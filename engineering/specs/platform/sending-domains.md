@@ -69,7 +69,7 @@ The SES v2 API returns no ARN for an identity, so the identity's name is stored 
 
 ## Not in this step
 
-- Per-school SES tenants and configuration sets, separate account and bulk streams, tenant status events and VDM (Action Plan 2.3).
+- Per-school configuration sets, separate account and bulk streams, tenant status events and VDM: built in Action Plan 2.3 ([SES streams](ses-streams.md)), which also records why `tenant_name` is not a column here.
 - Telling the school's admin by notice or email when the domain becomes verified or stops being verified; they see it on the page and HQ sees it on the onboarding checklist.
 - Retrying a notice from the platform address if SES refuses a school From between daily checks; the delivery is retried and recorded as failed as today.
 - Bring-your-own DKIM keys, more than one domain per school, a Reply-To at the school, and an HQ page to release a leftover SES identity (support does that in the SES console).

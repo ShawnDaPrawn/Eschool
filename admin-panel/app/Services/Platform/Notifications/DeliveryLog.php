@@ -99,6 +99,23 @@ class DeliveryLog
         }
     }
 
+    /**
+     * Record the SES stream a mail goes out on and the configuration set it
+     * names, if any (Action Plan 2.3), before it is handed to the mailer.
+     */
+    public static function routed(?NotificationDelivery $row, string $stream, ?string $configurationSet): void
+    {
+        if (! $row) {
+            return;
+        }
+
+        try {
+            $row->forceFill(['mail_stream' => Str::limit($stream, 10, ''), 'configuration_set' => $configurationSet === null ? null : Str::limit($configurationSet, 64, '')])->save();
+        } catch (Throwable $e) {
+            self::bookkeepingFailed('routed', $row->delivery_key, $e);
+        }
+    }
+
     public static function sent(?NotificationDelivery $row, string $provider, ?string $providerMessageId): void
     {
         if (! $row) {

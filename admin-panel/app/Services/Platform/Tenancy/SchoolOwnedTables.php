@@ -102,6 +102,7 @@ final class SchoolOwnedTables
      */
     public const NULLABLE = [
         'audit_log', 'domain_events', 'idempotency_keys', 'notification_deliveries', 'settings',
+        'mail_streams',
     ];
 
     /**

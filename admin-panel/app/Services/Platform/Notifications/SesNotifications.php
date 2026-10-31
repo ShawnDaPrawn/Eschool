@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Platform\Notifications;
 
 use App\Models\Platform\NotificationDelivery;
+use App\Services\Platform\Mail\MailStreams;
 use Aws\Sns\Exception\InvalidSnsMessageException;
 use Aws\Sns\Message;
 use Aws\Sns\MessageValidator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -23,8 +25,10 @@ use Throwable;
  * services.ses_notifications.topic_arns: anyone can sign messages from their
  * own SNS topic, so the topic check is what makes it ours. Subscription
  * requests are confirmed; Delivery, Bounce and Complaint notices update the
- * notification_deliveries rows of the SES message id they quote. Each SNS
- * message id is processed once.
+ * notification_deliveries rows of the SES message id they quote, and SES
+ * tenant sending status events (EventBridge, through the same topic) are
+ * recorded on the school's mail streams (Action Plan 2.3). Each SNS message
+ * id is processed once.
  */
 class SesNotifications
 {
@@ -98,6 +102,12 @@ class SesNotifications
             return $this->reject(400, 'Invalid notification');
         }
 
+        // EventBridge events from SES (tenant sending status, Action Plan 2.3)
+        // reach the same topic through an EventBridge rule with an SNS target.
+        if (($payload['source'] ?? null) === 'aws.ses' && isset($payload['detail-type'])) {
+            return $this->eventBridge($message, $payload);
+        }
+
         // Identity notifications say notificationType; configuration set events say eventType.
         $type = (string) ($payload['notificationType'] ?? $payload['eventType'] ?? '');
         $sesMessageId = $payload['mail']['messageId'] ?? null;
@@ -133,6 +143,55 @@ class SesNotifications
         Log::info('ses_notification', ['type' => $type, 'result' => $status === null ? 'ignored' : 'recorded', 'deliveries_updated' => $updated]);
 
         return [200, $status === null ? 'Ignored' : 'Recorded'];
+    }
+
+    /**
+     * A tenant's sending status changed (detail-types "Sending Status Enabled"
+     * and "Sending Status Disabled"; the second also carries REINSTATED). The
+     * tenant is the resource ARN arn:aws:ses:<region>:<account>:tenant/<name>/<id>.
+     * Other SES EventBridge events are accepted and ignored.
+     *
+     * @param  array<string, mixed>  $event
+     * @return array{0: int, 1: string}
+     */
+    private function eventBridge(Message $message, array $event): array
+    {
+        $type = (string) $event['detail-type'];
+        $record = (array) ($event['detail']['data']['record'] ?? []);
+        $tenant = null;
+        foreach ((array) ($event['resources'] ?? []) as $arn) {
+            if (is_string($arn) && preg_match('#^arn:aws[a-z-]*:ses:[a-z0-9-]+:\d{12}:tenant/([A-Za-z0-9_-]{1,64})/[A-Za-z0-9_-]+$#', $arn, $m) === 1) {
+                $tenant = $m[1];
+            }
+        }
+        $statusEvent = in_array($type, ['Sending Status Enabled', 'Sending Status Disabled'], true) && $tenant !== null && is_string($record['status'] ?? null);
+        try {
+            $at = isset($event['time']) && is_string($event['time']) ? Carbon::parse($event['time'])->setTimezone((string) config('app.timezone')) : now();
+        } catch (Throwable) {
+            $at = now();
+        }
+
+        $updated = DB::transaction(function () use ($message, $type, $statusEvent, $tenant, $record, $event, $at) {
+            $first = DB::table('webhook_receipts')->insertOrIgnore([
+                'provider' => self::PROVIDER,
+                'event_id' => (string) $message['MessageId'],
+                'event_type' => mb_substr($type, 0, 100),
+                'received_at' => now(),
+            ]);
+            if ($first === 0) {
+                return null;
+            }
+
+            return $statusEvent ? app(MailStreams::class)->tenantStatus((string) $tenant, (string) $record['status'],
+                (string) ($event['detail']['data']['origin'] ?? ''), (string) ($record['cause'] ?? ''), $at) : 0;
+        });
+
+        if ($updated === null) {
+            return [200, 'Already processed'];
+        }
+        Log::info('ses_notification', ['type' => $type, 'result' => $updated > 0 ? 'recorded' : 'ignored', 'streams_updated' => $updated]);
+
+        return [200, $updated > 0 ? 'Recorded' : 'Ignored'];
     }
 
     /**
