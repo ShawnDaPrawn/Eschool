@@ -248,6 +248,13 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
+
 ### HQ incident register
 
 `platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
@@ -255,3 +262,18 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
+### Packages and prices
+
+`platform_packages`, `platform_package_modules` and `platform_prices` are global:
+Navigate Ed's own package list and price list, written only from `/saas`. They
+name no school; a school names its package by key and the module set version
+applied to it on its own `schools` row (`package_key`, `package_version`)
+([package editor](package-editor.md)).

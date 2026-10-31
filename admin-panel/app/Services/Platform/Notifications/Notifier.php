@@ -119,25 +119,33 @@ class Notifier
                 }
                 if ($channel === 'in_app') {
                     UserNotification::query()->firstOrCreate(['notification_id' => $notice->id, 'user_id' => $user->id]);
-                } elseif ($channel === 'push') {
-                    $this->push($user, $notice->type, $title, $body, array_replace($notice->delivery_payload ?? [], [
-                        'type' => $notice->type, 'title' => $title, 'body' => $body, 'link' => $link,
-                        'image' => $notice->image ? url(Storage::url($notice->image)) : ($notice->delivery_payload['image'] ?? ''),
-                    ]));
                 } else {
-                    $school = app(CurrentSchool::class)->school();
-                    $mailBody = $user->email_verified_at === null ? __('Open NavigateEd to view this notice.') : $body;
-                    $mailBase = in_array($type, array_merge(['communication.approval_requested', 'pastoral.cover_assigned', 'progress.staff_band_changed'], (array) config('private_notices.staff_types', [])), true) ? config('app.url') : config('identity.portal_url');
-                    $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) $mailBase, '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
-                    if (! MailService::queue($mail, (int) $user->id)) {
-                        throw new RuntimeException('A notification email could not be queued.');
-                    }
+                    // Delivery rows carry the notice, for the sender's delivery report.
+                    DeliveryLog::forNotice((int) $notice->id, fn () => $this->transport($user, $type, $title, $body, $link, $notice, $channel));
                 }
                 $sent[] = $channel;
             });
         }
 
         return $sent;
+    }
+
+    private function transport(User $user, string $type, string $title, string $body, string $link, Notification $notice, string $channel): void
+    {
+        if ($channel === 'push') {
+            $this->push($user, $notice->type, $title, $body, array_replace($notice->delivery_payload ?? [], [
+                'type' => $notice->type, 'title' => $title, 'body' => $body, 'link' => $link,
+                'image' => $notice->image ? url(Storage::url($notice->image)) : ($notice->delivery_payload['image'] ?? ''),
+            ]));
+        } else {
+            $school = app(CurrentSchool::class)->school();
+            $mailBody = $user->email_verified_at === null ? __('Open NavigateEd to view this notice.') : $body;
+            $mailBase = in_array($type, array_merge(['communication.approval_requested', 'pastoral.cover_assigned', 'progress.staff_band_changed'], (array) config('private_notices.staff_types', [])), true) ? config('app.url') : config('identity.portal_url');
+            $mail = new NotificationMail($user->email, $type, $user->email_verified_at === null ? __('School notification') : $title, $mailBody, rtrim((string) $mailBase, '/').$link, (string) $school?->name, $notice->delivery_payload ?? []);
+            if (! MailService::queue($mail, (int) $user->id)) {
+                throw new RuntimeException('A notification email could not be queued.');
+            }
+        }
     }
 
     public function makeNotice(string $type, string $title, string $body, string $link): Notification

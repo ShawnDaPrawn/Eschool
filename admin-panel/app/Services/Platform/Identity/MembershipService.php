@@ -37,7 +37,7 @@ class MembershipService
 
         // One query: the memberships with their schools joined (it runs on
         // every signed-in request).
-        $schoolColumns = ['name', 'slug', 'status', 'timezone', 'package_key', 'short_name', 'tagline', 'crest_path', 'theme_color', 'secondary_color', 'created_at', 'updated_at'];
+        $schoolColumns = ['name', 'slug', 'status', 'timezone', 'package_key', 'package_version', 'short_name', 'tagline', 'crest_path', 'theme_color', 'secondary_color', 'created_at', 'updated_at'];
         $rows = SchoolMembership::query()
             ->join('schools', 'schools.id', '=', 'school_memberships.school_id')
             ->where('school_memberships.user_id', $user->getKey())
