@@ -154,6 +154,7 @@ class SupportAccessTest extends TestCase
 
         $this->actingAs($admin);
         $this->get('/support-access')->assertOk()->assertSee('Waiting for your decision')->assertSee('Support Operator')->assertSee('Ticket 4411')
+            ->assertSee('class="m3-card__actions m3-card__actions--start"', false)->assertDontSee('class="d-inline"', false)
             ->assertDontSee('support@platform.example');
         $this->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access')->assertSessionHas('success');
         $grant = $this->grant($id);
