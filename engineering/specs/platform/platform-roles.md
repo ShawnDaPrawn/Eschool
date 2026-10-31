@@ -11,9 +11,9 @@ and Owners invite staff by email from HQ.
 
 | Role | Can |
 | --- | --- |
-| Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register |
-| Support | see schools; audit log; LURITS claims; incident register |
+| Owner | everything, including managing platform staff and the support access emergency override |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; ask for support access |
+| Support | see schools; audit log; LURITS claims; incident register; ask for support access |
 | Finance | see schools; change package; customer records; packages; audit log and its export |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
@@ -21,6 +21,7 @@ and Owners invite staff by email from HQ.
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
 `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
+`support.access`, `support.emergency` ([support access](support-access.md)),
 `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 

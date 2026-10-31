@@ -255,3 +255,13 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Support access
+
+`support_access_grants` and `support_access_views` are required school-owned
+(foreign keys to the school; the models use BelongsToSchool). The school reads its
+own rows in its panel through the ordinary school scope; HQ reads them across
+schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: the
+granted school with the impersonation flag, which cannot be switched to another
+school or widened to every school for the rest of the request
+([support access](support-access.md)).

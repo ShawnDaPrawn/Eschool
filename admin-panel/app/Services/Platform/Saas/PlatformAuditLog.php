@@ -40,6 +40,12 @@ class PlatformAuditLog
         'platform_school_module_changed' => 'Module switched',
         'platform_audit_exported' => 'Audit log exported',
         'ai.platform_cost_access_changed' => 'AI cost access changed',
+        'platform_support_access_requested' => 'Support access requested',
+        'platform_support_access_approved' => 'Support access approved by the school',
+        'platform_support_access_declined' => 'Support access declined',
+        'platform_support_access_emergency' => 'Emergency support access opened',
+        'platform_support_access_ended' => 'Support access ended',
+        'platform_support_page_viewed' => 'Page viewed in a support session',
     ];
 
     /** Keys left out of the summary: who changed it is already the actor. */

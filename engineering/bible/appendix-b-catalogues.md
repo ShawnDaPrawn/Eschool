@@ -469,3 +469,15 @@ Personal profiles use their current wallet/guardian scope; dedicated operators
 use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
+
+## Navigate Ed support access (SA.9)
+
+Notification types `support_access.requested` and `support_access.emergency`
+(people module, admin portal only, every channel mandatory and locked so a school
+cannot switch them off) go to the school's active Super Admins, never to a
+platform staff account that also holds a school role. The first says Navigate Ed
+asks for support access; the second that an Owner opened emergency access at once.
+Both link to the school panel's `/support-access` page and name no person, reason
+or record. No ability, module or permission row is added to schools; HQ adds the
+platform abilities `support.access` (Owner, Operations, Support) and
+`support.emergency` (Owner).
