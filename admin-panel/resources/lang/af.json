@@ -5884,5 +5884,10 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Hierdie bladsy bied :count oop gevallelaste op 'n slag aan. Hernu hierdie, dan bied die bladsy die volgende :waiting aan.",
     "Choose grant dates within the school year.": "Kies toekenningsdatums binne die skooljaar.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "Die skooljaar voor hierdie een is uitgevee, dus kan sy gevallelaste nie hernu word nie.",
-    "ended on :date, so it is not kept unless you choose it": "het op :date geëindig, dus word dit nie behou tensy jy dit kies nie"
+    "ended on :date, so it is not kept unless you choose it": "het op :date geëindig, dus word dit nie behou tensy jy dit kies nie",
+    "That is not a valid LURITS number.": "Dit is nie 'n geldige LURITS-nommer nie.",
+    "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Opsioneel. As die leerder reeds 'n NavigateEd-rekord het, sal u gevra word om eerder 'n oorplasingsversoek te begin.",
+    "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Hierdie LURITS-nommer behoort aan 'n oud-leerder van u skool (:number). Herstel hulle rekord eerder as om hulle weer by te voeg.",
+    "This LURITS number belongs to :number, already a learner at your school. Open their record instead of adding them again.": "Hierdie LURITS-nommer behoort aan :number, reeds 'n leerder by u skool. Maak hulle rekord oop eerder as om hulle weer by te voeg.",
+    "This learner already has a NavigateEd record. Start a transfer request to bring their records to your school instead of adding them again.": "Hierdie leerder het reeds 'n NavigateEd-rekord. Begin 'n oorplasingsversoek om hulle rekords na u skool te bring eerder as om hulle weer by te voeg."
 }

@@ -5884,5 +5884,10 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.",
     "Choose grant dates within the school year.": "Choose grant dates within the school year.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "The school year before this one was deleted, so its caseloads cannot be renewed.",
-    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it"
+    "ended on :date, so it is not kept unless you choose it": "ended on :date, so it is not kept unless you choose it",
+    "That is not a valid LURITS number.": "That is not a valid LURITS number.",
+    "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.",
+    "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.",
+    "This LURITS number belongs to :number, already a learner at your school. Open their record instead of adding them again.": "This LURITS number belongs to :number, already a learner at your school. Open their record instead of adding them again.",
+    "This learner already has a NavigateEd record. Start a transfer request to bring their records to your school instead of adding them again.": "This learner already has a NavigateEd record. Start a transfer request to bring their records to your school instead of adding them again."
 }

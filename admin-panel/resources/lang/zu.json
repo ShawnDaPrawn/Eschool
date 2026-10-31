@@ -5884,5 +5884,10 @@
     "This page offers :count open caseloads at a time. Renew these, then the page offers the next :waiting.": "Leli khasi linikeza imithwalo yamacala evulekile engu-:count ngesikhathi. Vuselela le, bese ikhasi linikeza elandelayo engu-:waiting.",
     "Choose grant dates within the school year.": "Khetha izinsuku zemvume ezingaphakathi konyaka wesikole.",
     "The school year before this one was deleted, so its caseloads cannot be renewed.": "Unyaka wesikole ongaphambi kwalona wasuswa, ngakho imithwalo yawo yamacala ayikwazi ukuvuselelwa.",
-    "ended on :date, so it is not kept unless you choose it": "yaphela ngo-:date, ngakho ayigcinwa ngaphandle uma uyikhetha"
+    "ended on :date, so it is not kept unless you choose it": "yaphela ngo-:date, ngakho ayigcinwa ngaphandle uma uyikhetha",
+    "That is not a valid LURITS number.": "Lena akuyona inombolo ye-LURITS evumelekile.",
+    "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Akuphoqelekile. Uma umfundi esenayo irekhodi le-NavigateEd, uzocelwa ukuthi uqale isicelo sokudluliselwa esikhundleni salokho.",
+    "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Le nombolo ye-LURITS ingeyowayengumfundi wesikole sakho (:number). Buyisela irekhodi lakhe esikhundleni sokumengeza futhi.",
+    "This LURITS number belongs to :number, already a learner at your school. Open their record instead of adding them again.": "Le nombolo ye-LURITS ingeka-:number, osevele engumfundi esikoleni sakho. Vula irekhodi lakhe esikhundleni sokumengeza futhi.",
+    "This learner already has a NavigateEd record. Start a transfer request to bring their records to your school instead of adding them again.": "Lo mfundi usenayo irekhodi le-NavigateEd. Qala isicelo sokudluliselwa ukuze ulethe amarekhodi akhe esikoleni sakho esikhundleni sokumengeza futhi."
 }
