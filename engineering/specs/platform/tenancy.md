@@ -255,3 +255,15 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### A guardian at two schools (Action Plan 1.1, server side)
+
+A parent with children at two schools signs in once. `/api/v2/me/context` lists both schools and each child with their own school. The app reads each child with `X-School-Id` set to that child's school: the header picks one of the user's active memberships, and a school they don't belong to is refused (403).
+
+A child is only found in their own school. Every v2 family read keyed by `{learner}` refuses another school's child, with or without the header, and never echoes that child's details. The other school's child is not found (404) or the read is refused (403/422), never answered.
+
+`Tenancy/ParentAcrossSchoolsTest` checks this:
+- It finds the family reads from the route list rather than a fixed list, so a new `learners/{learner}` read is covered automatically.
+- It also checks that the same reads do answer for each child in their own school, so a refusal is the school check and not a broken route.
+
+The apps' parent home and child screens are app work and not part of this step; nor are the v1 parent endpoints that take `child_id`.
