@@ -29,6 +29,14 @@ Earlier history is kept where it was written and is not repeated here:
   keeps the same counsellor, chooses another one, or lets the grant end. Ended
   grants are never carried, and only caseload administrators see the page.
 
+- Notifications: school notice emails carry the school's crest, name and
+  colour and a plain-text version, and school messages arrive in full in the
+  email. Private notices (safeguarding, wellbeing, discipline, progress and
+  similar) still say only that there is something to see in the app.
+- Notifications: optional school notice emails have a one-click unsubscribe
+  (in the email client and as a footer link) that switches that notice's email
+  off. Required notices, such as absence alerts and urgent notices, never
+  carry it.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information

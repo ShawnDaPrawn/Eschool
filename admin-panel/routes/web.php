@@ -115,6 +115,7 @@ use App\Http\Controllers\People\LearnerGuardiansController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
+use App\Http\Controllers\Platform\EmailUnsubscribeController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
@@ -264,6 +265,13 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
 });
 
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
+// One-click unsubscribe from an optional notice email (Action Plan 2.4, RFC 8058): the
+// signature is the authority, so the POST takes no session or CSRF token.
+Route::middleware([PrivateDomainResponse::class, 'signed', 'throttle:30,1'])->group(function () {
+    Route::get('email/unsubscribe/{user}/{school}/{type}', [EmailUnsubscribeController::class, 'show'])->whereNumber(['user', 'school'])->where('type', '[a-z0-9_.]{3,64}')->name('notifications.unsubscribe');
+    Route::post('email/unsubscribe/{user}/{school}/{type}', [EmailUnsubscribeController::class, 'store'])->whereNumber(['user', 'school'])->where('type', '[a-z0-9_.]{3,64}')->name('notifications.unsubscribe.store');
+});
+
 Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::get('platform/invite/{token}', [PlatformInvitationController::class, 'show'])->middleware('throttle:30,1')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.show');
     Route::post('platform/invite/{token}', [PlatformInvitationController::class, 'accept'])->middleware('throttle:password')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.accept');
