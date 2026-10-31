@@ -69,6 +69,12 @@ class SendPush implements ShouldBeEncrypted, ShouldQueue
 
             return;
         }
+        // A silent push to a person's device (1.9) still needs that person and device to be current.
+        if ($type === null && $row?->recipient_user_id !== null && ! app(DeliveryGuard::class)->allowsSilent($row, (string) ($this->message['message']['token'] ?? ''))) {
+            DeliveryLog::suppressed($row);
+
+            return;
+        }
         // Quiet hours (1.5): hold the push until they end, as a fresh job for
         // the same delivery, so the wait never uses up a retry.
         // A synchronous queue cannot wait: re-dispatching would run at once and

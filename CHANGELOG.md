@@ -23,6 +23,14 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Notifications: richer pushes. Consent requests show Yes and No, messages
+  show Reply and their sender, urgent notices and safeguarding alerts show
+  Acknowledge; every button only opens the app to confirm. Private notices
+  (wellbeing, discipline, consent, progress and similar) show only "School
+  notification" on a lock screen. When a timetable changes, the affected
+  people's phones can quietly refresh it. **Deploy:** nothing to run; leave
+  `PUSH_TIMETABLE_REFRESH` and `PUSH_ANDROID_PRIVATE_VISIBILITY` off until
+  the apps that handle them are released.
 - Notifications: quiet hours. Each person can set hours when push
   notifications wait and arrive afterwards; safeguarding alerts, urgent
   notices, absence alerts and new sign-in alerts always come through. Pushes

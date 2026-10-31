@@ -2,6 +2,8 @@
 
 // Add types with their feature. Modes are mandatory, default_on, default_off,
 // or off (not offered). The platform locks cannot be weakened by school rows.
+// push_actions (2.9): the buttons a push offers, ids from PushPresentation::ACTIONS.
+// Each one only opens the app, where the person confirms; none writes anything.
 $all = ['learner', 'parent', 'teacher', 'admin'];
 $on = ['push' => 'default_on', 'email' => 'default_off', 'in_app' => 'default_on'];
 $mail = ['push' => 'off', 'email' => 'mandatory', 'in_app' => 'off'];
@@ -15,13 +17,13 @@ return [
     'account.new_device' => ['label' => 'New sign-in', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'quiet_hours_exempt' => true],
     'approval.requested' => ['label' => 'Learner access approval', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent']],
     'approval.handle_requested' => ['label' => 'Handle approval request', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent']],
-    'consent.requested' => ['label' => 'Consent request', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all],
-    'safeguarding.alert' => ['label' => 'Safeguarding alert', 'module' => 'wellbeing', 'portals' => ['admin', 'teacher'], 'channels' => $required, 'locked' => ['admin', 'teacher'], 'permission' => 'safeguarding-alerts', 'quiet_hours_exempt' => true],
+    'consent.requested' => ['label' => 'Consent request', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'push_actions' => ['consent_yes', 'consent_no']],
+    'safeguarding.alert' => ['label' => 'Safeguarding alert', 'module' => 'wellbeing', 'portals' => ['admin', 'teacher'], 'channels' => $required, 'locked' => ['admin', 'teacher'], 'permission' => 'safeguarding-alerts', 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
     'comms.notice' => ['label' => 'School notice', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
-    'comms.urgent' => ['label' => 'Urgent school notice', 'module' => 'communication', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'quiet_hours_exempt' => true],
-    'communication.message' => ['label' => 'School message', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
+    'comms.urgent' => ['label' => 'Urgent school notice', 'module' => 'communication', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'quiet_hours_exempt' => true, 'push_actions' => ['acknowledge']],
+    'communication.message' => ['label' => 'School message', 'module' => 'communication', 'portals' => $all, 'channels' => $on, 'push_actions' => ['reply']],
     'communication.approval_requested' => ['label' => 'Message awaiting approval', 'module' => 'communication', 'portals' => ['teacher', 'admin'], 'channels' => $on],
-    'comms.message' => ['label' => 'Direct message', 'module' => 'chat', 'portals' => $all, 'channels' => $on],
+    'comms.message' => ['label' => 'Direct message', 'module' => 'chat', 'portals' => $all, 'channels' => $on, 'push_actions' => ['reply']],
     'academics.assignment_published' => ['label' => 'Assignment published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.submission' => ['label' => 'Assignment submission', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'academics.content_published' => ['label' => 'Lesson content', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],

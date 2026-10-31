@@ -160,6 +160,21 @@ class Notifier
         $data['notice_type'] = NotificationTypes::legacy($deliveryType);
         // The app's notification channel (Android) is the type's area: comms, academics, wellbeing and so on (1.5).
         $data['channel'] = Str::before(NotificationTypes::legacy($deliveryType), '.');
+        // Private notices show only generic text on a lock screen, whatever the producer passed (2.9).
+        $private = PushPresentation::private($deliveryType);
+        if ($private) {
+            ['title' => $title, 'body' => $body] = PushPresentation::genericText();
+            $data = array_replace($data, ['title' => $title, 'body' => $body, 'image' => '', 'visibility' => 'private']);
+        }
+        // Buttons are ids only: each opens the app to confirm, none writes (2.9).
+        $actions = PushPresentation::actions($deliveryType);
+        if ($actions !== []) {
+            $data['actions'] = implode(',', $actions);
+            $data['category'] = PushPresentation::category($actions);
+        }
+        if (! $private && in_array(NotificationTypes::legacy($deliveryType), PushPresentation::SENDER_TYPES, true)) {
+            $data = array_replace($data, PushPresentation::sender($data));
+        }
         $payload = array_map(fn ($value) => $value === null ? '' : (is_string($value) ? $value : (is_scalar($value) ? (string) $value : (json_encode($value) ?: ''))), $data);
         // One job per signed-in device, so a retry never repeats a message
         // another device already received.
@@ -168,8 +183,19 @@ class Notifier
             if ($device['platform'] === 'ios') {
                 $message['notification'] = ['title' => $title, 'body' => $body];
                 // Safety notices break through Focus; notices about one child group together (1.5).
-                $message['apns'] = ['payload' => ['aps' => ['interruption-level' => QuietHours::exempt($deliveryType) ? 'time-sensitive' : 'active',
-                    'thread-id' => isset($data['learner_id']) && is_scalar($data['learner_id']) ? 'learner-'.$data['learner_id'] : $data['channel']]]];
+                $aps = ['interruption-level' => QuietHours::exempt($deliveryType) ? 'time-sensitive' : 'active',
+                    'thread-id' => isset($data['learner_id']) && is_scalar($data['learner_id']) ? 'learner-'.$data['learner_id'] : $data['channel']];
+                if ($actions !== []) {
+                    $aps['category'] = $payload['category'];
+                }
+                if (($payload['sender_avatar'] ?? '') !== '') {
+                    // Lets the app's notification service extension fetch the picture.
+                    $aps['mutable-content'] = 1;
+                }
+                $message['apns'] = ['payload' => ['aps' => $aps]];
+            } elseif ($private && config('platform.rich_push.android_private_visibility')) {
+                // Android hides even the generic text on a secure lock screen.
+                $message['android'] = ['notification' => ['title' => $title, 'body' => $body, 'visibility' => 'PRIVATE']];
             }
             PushQueue::toDevice($deliveryType, (int) $user->id, $device['token'], ['message' => $message]);
         }
