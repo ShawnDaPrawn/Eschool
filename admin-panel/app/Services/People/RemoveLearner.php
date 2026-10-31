@@ -9,7 +9,9 @@ use App\Models\Platform\HandleProposal;
 use App\Models\Platform\SchoolMembership;
 use App\Models\Students;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\AppTokens;
+use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Identity\MembershipService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -29,9 +31,12 @@ class RemoveLearner
             if (HandleProposal::query()->where('learner_id', $learner->id)->exists()) {
                 throw ValidationException::withMessages(['learner' => 'This learner has handle request history. Archive the learner instead; retained records require the retention process.']);
             }
+            $guardians = app(GuardianService::class)->guardianUserIds($learner)->all();
             $learner->forceDelete();
             $user->removeRole('Student');
             app(MembershipService::class)->end($user, (int) $learner->school_id, 'Student');
+            // A guardian left with only leavers here reads until their dates; with none, loses access (1.21).
+            app(LeaverState::class)->settleGuardians($guardians);
 
             // Other school accounts and other roles keep their global user.
             // Keep the identifier even when the final account is archived:

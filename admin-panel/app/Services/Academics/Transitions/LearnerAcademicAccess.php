@@ -10,6 +10,7 @@ use App\Models\Students;
 use App\Models\StudentSessions;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\ApprovalService;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -32,6 +33,10 @@ class LearnerAcademicAccess
             ->whereDate('effective_on', '<=', $date)->orderByDesc('effective_on')->orderByDesc('id')->first();
         if ($latest?->kind === 'leave' && $latest->effective_on->toDateString() < $date) {
             return false;
+        }
+        // A year-end leaver reads their records, read-only, until leaver_until (1.21).
+        if (app(LeaverState::class)->until($learner) !== null) {
+            return true;
         }
 
         return Enrolment::where('learner_id', $learner->id)->onDate($date)->exists();

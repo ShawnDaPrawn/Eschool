@@ -160,7 +160,7 @@ class GalleryTags
     public function remove(User $actor, int $id, array $input): PhotoTag
     {
         $a = app(GalleryAuthority::class);
-        $a->actor($actor, true);
+        $a->actor($actor, true, removal: true);
         $tag = PhotoTag::findOrFail($id);
         $authority = fn () => $a->family($actor, (int) $tag->learner_id, true, removal: true);
         $authority();
@@ -175,7 +175,7 @@ class GalleryTags
             $this->retireUnlinkedFamilyPhoto((int) $row->gallery_photo_id);
 
             return ['id' => (int) $row->id];
-        });
+        }, removal: true);
 
         return PhotoTag::findOrFail($result['id']);
     }

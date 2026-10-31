@@ -18,6 +18,10 @@ use Illuminate\Support\Collection;
  * assignRole and syncRoles, in that school's team) grants the membership,
  * and taking the role away ends it (see grantForRoles() and endForRoles(),
  * called from PlatformServiceProvider).
+ *
+ * A leaver membership (SchoolMembership::LEAVER, Action Plan 1.21) still
+ * opens the school until the end of its leaver_until, read-only: active()
+ * includes it, and readOnlyAt() tells the school context to refuse writes.
  */
 class MembershipService
 {
@@ -41,7 +45,7 @@ class MembershipService
         $rows = SchoolMembership::query()
             ->join('schools', 'schools.id', '=', 'school_memberships.school_id')
             ->where('school_memberships.user_id', $user->getKey())
-            ->where('school_memberships.status', SchoolMembership::ACTIVE)
+            ->whereIn('school_memberships.status', [SchoolMembership::ACTIVE, SchoolMembership::LEAVER])
             ->where('schools.status', School::ACTIVE)
             ->orderBy('school_memberships.school_id')
             ->orderBy('school_memberships.id')
@@ -63,10 +67,30 @@ class MembershipService
         // for every membership on the sign-in path.
         return $this->active[$user->getKey()] = $rows->filter(function (SchoolMembership $membership) {
             $today = now($membership->school->timezone)->toDateString();
+            if ($membership->status === SchoolMembership::LEAVER) {
+                return $membership->leaver_until !== null && $membership->leaver_until->toDateString() >= $today;
+            }
 
             return ($membership->starts_on === null || $membership->starts_on->toDateString() <= $today)
                 && ($membership->ends_on === null || $membership->ends_on->toDateString() >= $today);
         })->values();
+    }
+
+    /**
+     * True when everything the user holds at the school is a leaver
+     * membership: they may read there, and every write is refused.
+     */
+    public function readOnlyAt(User $user, int $schoolId): bool
+    {
+        $here = $this->active($user)->where('school_id', $schoolId);
+
+        return $here->isNotEmpty() && $here->every(fn (SchoolMembership $membership) => $membership->status === SchoolMembership::LEAVER);
+    }
+
+    /** True when the user's roles at the school are only learner and guardian ones. */
+    public function familyOnlyAt(User $user, int $schoolId): bool
+    {
+        return $this->active($user)->where('school_id', $schoolId)->every(fn (SchoolMembership $membership) => in_array($membership->role, ['Student', 'Parent'], true));
     }
 
     /**
@@ -92,13 +116,20 @@ class MembershipService
         return $this->active($user)->contains('school_id', $schoolId);
     }
 
-    /** The school a user works in when they have not chosen one: their first. */
+    /** The school a user works in when they have not chosen one: their first current one, else their first. */
     public function defaultSchool(User $user): ?School
     {
-        return $this->active($user)->first()?->school;
+        // A school where the person is a current member comes before one where they are only a leaver.
+        $active = $this->active($user);
+
+        return ($active->firstWhere('status', SchoolMembership::ACTIVE) ?? $active->first())?->school;
     }
 
-    /** Grant (or renew) a role's membership from today. */
+    /**
+     * Grant (or renew) a role's membership from today. Renewing a leaver's
+     * membership makes them a current member again, from when they first
+     * joined.
+     */
     public function grant(User $user, School|int $school, string $role): SchoolMembership
     {
         $schoolId = $school instanceof School ? (int) $school->getKey() : $school;
@@ -108,10 +139,12 @@ class MembershipService
             'role' => $role,
         ]);
         if (! $membership->exists || $membership->status !== SchoolMembership::ACTIVE || $membership->ends_on !== null) {
+            $continues = $membership->exists && in_array($membership->status, [SchoolMembership::ACTIVE, SchoolMembership::LEAVER], true);
             $membership->fill([
                 'status' => SchoolMembership::ACTIVE,
-                'starts_on' => $membership->exists && $membership->status === SchoolMembership::ACTIVE ? $membership->starts_on : $this->schoolDate($school),
+                'starts_on' => $continues ? $membership->starts_on : $this->schoolDate($school),
                 'ends_on' => null,
+                'leaver_until' => null,
             ])->save();
         }
         $this->forget($user);

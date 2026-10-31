@@ -15,6 +15,7 @@ use App\Models\Students;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\ApprovalService;
 use App\Services\Platform\Identity\CurrentLearnerMembership;
 use App\Services\Platform\Identity\GuardianService;
@@ -29,7 +30,7 @@ class FamilyFormAccess
         $school->school()?->refresh();
         abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating() && $school->school()?->isActive(), 403);
         abort_if(PlatformStaffIdentity::where('user_id', $actor->id)->where('active', true)->exists(), 403);
-        $fresh = app(ProfilePolicy::class)->actor($actor);
+        $fresh = app(ProfilePolicy::class)->actor($actor, $revocation);
         abort_if($fresh->password_change_required, 403);
         if (! $revocation) {
             app(ModuleGate::class)->forget();
@@ -39,10 +40,17 @@ class FamilyFormAccess
         return $fresh;
     }
 
-    public function learner(int $id, bool $approved = true): Students
+    public function learner(int $id, bool $approved = true, bool $revocation = false): Students
     {
-        $learner = Students::whereIn('user_id', app(CurrentLearnerMembership::class)->users()->select('id'))->findOrFail($id);
-        abort_unless(Enrolment::where('learner_id', $id)->where('session_year_id', schoolSetting('session_year'))->onDate(app(AcademicAuthority::class)->today())->exists(), 404);
+        // Withdrawing an existing consent does not require current-year
+        // enrolment, but ended/expired learner access never grants authority.
+        $users = $revocation
+            ? User::where('status', 1)->whereIn('id', SchoolMembership::reachable()->where('school_id', app(CurrentSchool::class)->id())->where('role', 'Student')->select('user_id'))
+            : app(CurrentLearnerMembership::class)->users();
+        $learner = Students::whereIn('user_id', $users->select('id'))->findOrFail($id);
+        if (! $revocation) {
+            abort_unless(Enrolment::where('learner_id', $id)->where('session_year_id', schoolSetting('session_year'))->onDate(app(AcademicAuthority::class)->today())->exists(), 404);
+        }
         if ($approved) {
             abort_unless(app(ApprovalService::class)->approved($learner), 403);
         }
@@ -53,7 +61,7 @@ class FamilyFormAccess
     public function parentActor(User $actor, bool $write = false, bool $revocation = false): User
     {
         $fresh = $this->actor($actor, $write, $revocation);
-        abort_unless(in_array('Parent', app(ProfilePolicy::class)->roles($fresh), true), 403);
+        abort_unless(in_array('Parent', app(ProfilePolicy::class)->roles($fresh, $revocation ? false : null), true), 403);
 
         return $fresh;
     }
@@ -61,9 +69,13 @@ class FamilyFormAccess
     public function guardian(User $actor, int $learnerId, bool $write = false, bool $revocation = false, bool $attest = false): User
     {
         $fresh = $this->parentActor($actor, $write, $revocation);
-        $this->learner($learnerId, ! $revocation);
+        $this->learner($learnerId, ! $revocation, $revocation);
         $parent = (int) (Parents::where('user_id', $fresh->id)->value('id') ?? 0);
         abort_unless(app(GuardianService::class)->childrenFor((int) $fresh->id, $parent)->whereKey($learnerId)->exists(), 404);
+        // Withdrawing consent stays open for a leaver's guardian; other answers do not (1.21).
+        if (($write || $attest) && ! $revocation) {
+            app(LeaverState::class)->guardFamilyWrite($learnerId, $fresh);
+        }
         if ($write || $attest) {
             abort_unless($fresh->email_verified_at !== null, 403);
             $link = GuardianLink::where('learner_id', $learnerId)->where('guardian_user_id', $fresh->id)->first();
