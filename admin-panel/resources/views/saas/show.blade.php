@@ -105,10 +105,32 @@
         </tbody>
     </table>
 </div>
+<h2 id="support">{{ __('Support tickets') }}</h2>
+<div class="saas-card">
+    <p>{{ trans_choice('{0} No open support tickets.|{1} One open support ticket.|[2,*] :count open support tickets.', $support['open'], ['count' => $support['open']]) }}</p>
+    @if ($platformCan('support.manage') && $support['latest'] !== [])
+        <table class="saas-table">
+            <caption>{{ __('The school\'s latest tickets') }}</caption>
+            <thead><tr><th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Subject') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col">{{ __('Last change') }}</th></tr></thead>
+            <tbody>
+            @foreach ($support['latest'] as $ticket)
+                <tr>
+                    <td><a href="{{ route('saas.support.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a></td>
+                    <th scope="row">{{ $ticket['subject'] }}@if ($ticket['priority'] === 'urgent') <span class="saas-badge saas-badge--warn">{{ __('Urgent') }}</span>@endif</th>
+                    <td>{{ \App\Models\Platform\SupportTicket::STATUS_LABELS[$ticket['status']] }}</td>
+                    <td>{{ $ticket['updated_at'] }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    @endif
+</div>
+
 <p class="saas-actions">
     @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.onboarding', $school['id']) }}">{{ __('Onboarding checklist') }}</a>
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
+    @if ($platformCan('support.manage'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.support.index') }}">{{ __('Support desk') }}</a>@endif
     @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif
 </p>
 @endsection

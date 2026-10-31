@@ -44,3 +44,8 @@
 .saas-onboarding { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
 .saas-onboarding__step h2 { font-size: 1.05rem; margin: 0 0 6px; }
 .saas-onboarding__step p { margin: 4px 0; }
+.saas-thread { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.saas-thread__item--hq { border-inline-start: 4px solid var(--md-sys-color-primary); }
+.saas-thread__item--note { border-inline-start: 4px solid var(--md-sys-color-error); background: var(--md-sys-color-surface-container); }
+.saas-thread__meta { color: var(--md-sys-color-on-surface-variant); margin: 0 0 8px; }
+.saas-thread__body { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
