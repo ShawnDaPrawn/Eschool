@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\ReleasedMarks;
 use App\Services\Ai\Operations\AiSchoolControls;
+use App\Services\Ai\Operations\PlatformAiCaps;
 use App\Services\Ai\PromptRegistry;
 use App\Services\Ai\Quarantine\AiQuarantine;
 use App\Services\Platform\Identity\ApprovalService;
@@ -106,9 +107,16 @@ class InferenceGateway
             if ((clone $daily)->where(fn ($query) => $query->whereNull('billing_currency')->orWhere('billing_currency', '!=', $config['billing_currency']))->where(fn ($query) => $query->where('cost_cents', '>', 0)->orWhere('reserved_cost_cents', '>', 0))->exists()) {
                 throw new AiUnavailable('budget_currency_changed');
             }
-            $budgets = ['school', 'actor', ...($scope?->learnerId === null ? [] : ['learner'])];
+            // Two pools (owner decision, 31 October 2026): a personal service (the
+            // Mastery tutor) is neither checked against nor added to the school's
+            // daily total, and school features never count personal spend.
+            $personal = PlatformAiCaps::personalFeatures();
+            $pool = $config['personal']
+                ? (clone $daily)->whereIn('feature', $personal)
+                : (clone $daily)->whereNotIn('feature', $personal);
+            $budgets = [...($config['personal'] ? [] : ['school']), 'actor', ...($scope?->learnerId === null ? [] : ['learner'])];
             foreach ($budgets as $budget) {
-                $query = clone $daily;
+                $query = clone $pool;
                 if ($budget === 'actor') {
                     $query->where('user_id', $actor->id);
                 } elseif ($budget === 'learner') {
@@ -293,8 +301,10 @@ class InferenceGateway
             throw new AiUnavailable('budget_not_configured');
         }
         $config['billing_currency'] = $currency;
+        $config['personal'] = PlatformAiCaps::personal($feature);
 
-        return app(AiSchoolControls::class)->apply($config);
+        // HQ's saved caps replace the config defaults; the school's own lower limits apply on top.
+        return app(AiSchoolControls::class)->apply(app(PlatformAiCaps::class)->apply($feature, $config));
     }
 
     private function quarantine(AiUsage $usage, array $flags, string $stage, string|array|null $content): void
