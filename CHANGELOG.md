@@ -23,6 +23,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Caseload renewals for a new school year: in Early warning and interventions,
+  **Renew caseloads for a new year** lists last year's open risk caseload grants
+  for learners placed in the new year. A principal (or the learner's grade head)
+  keeps the same counsellor, chooses another one, or lets the grant end. Ended
+  grants are never carried, and only caseload administrators see the page.
+
 - API: notifications now come in three layers: a title, a short excerpt for the
   inbox row and, where there is more to say, a full text, plus the app screen
   each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
