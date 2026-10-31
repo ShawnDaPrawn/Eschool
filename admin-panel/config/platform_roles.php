@@ -15,7 +15,9 @@ declare(strict_types=1);
  *  schools.status   suspend, archive or restore a school
  *  schools.modules  switch a school's modules
  *  accounts.manage  customer records: stage, contacts, contracts, notes
- *  packages.view    the product catalogue and packages
+ *  packages.view    the product catalogue, packages and prices (read-only)
+ *  packages.manage  create, edit, activate and retire packages; set their
+ *                   modules and prices; re-apply a package to its schools
  *  identity.review  LURITS claims between schools: see and close them
  *  incidents.manage the breach and incident register: record, update, close
  *  health.view      school health and usage, per school and compared (counts only)
@@ -28,7 +30,7 @@ return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
     'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'flags.manage']],
     'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view']],
-    'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'audit.view', 'audit.export', 'health.view']],
+    'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'audit.view', 'audit.export', 'health.view', 'packages.manage']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],
 ];

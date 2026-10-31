@@ -24,6 +24,9 @@
 @endif
 
 <h2>{{ __('Package') }}</h2>
+@if ($packageVersion !== null && $packageVersion['applied'] < $packageVersion['current'])
+<p class="saas-card">{{ __('This school has version :applied of the package\'s modules; the package is now at version :current. The school keeps what it has until HQ re-applies the package from its page.', ['applied' => $packageVersion['applied'], 'current' => $packageVersion['current']]) }}</p>
+@endif
 @if ($platformCan('schools.package'))
 <form method="POST" action="{{ route('saas.schools.package', $school['id']) }}" class="saas-card">
     @csrf
@@ -32,8 +35,11 @@
         <div class="saas-field">
             <label for="package_key">{{ __('Package') }}</label>
             <select id="package_key" name="package_key">
-                @foreach ($packages as $package)
-                    <option value="{{ $package }}" @selected(($school['package_key'] ?? 'legacy') === $package)>{{ $package }}</option>
+                @unless (array_key_exists($school['package_key'] ?? 'legacy', $packages))
+                    <option value="" selected disabled>{{ $school['package_key'] ?? 'legacy' }} ({{ __('retired') }})</option>
+                @endunless
+                @foreach ($packages as $package => $name)
+                    <option value="{{ $package }}" @selected(($school['package_key'] ?? 'legacy') === $package)>{{ $name }} ({{ $package }})</option>
                 @endforeach
             </select>
         </div>
