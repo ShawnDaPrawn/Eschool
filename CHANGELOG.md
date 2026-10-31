@@ -29,6 +29,14 @@ Earlier history is kept where it was written and is not repeated here:
   keeps the same counsellor, chooses another one, or lets the grant end. Ended
   grants are never carried, and only caseload administrators see the page.
 
+- Notifications: school notice emails carry the school's crest, name and
+  colour and a plain-text version, and school messages arrive in full in the
+  email. Private notices (safeguarding, wellbeing, discipline, progress and
+  similar) still say only that there is something to see in the app.
+- Notifications: optional school notice emails have a one-click unsubscribe
+  (in the email client and as a footer link) that switches that notice's email
+  off. Required notices, such as absence alerts and urgent notices, never
+  carry it.
 - API: notifications now come in three layers: a title, a short excerpt for the
   inbox row and, where there is more to say, a full text, plus the app screen
   each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
