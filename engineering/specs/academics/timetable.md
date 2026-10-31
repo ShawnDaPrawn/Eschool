@@ -33,3 +33,22 @@ widget/browser checks and any new panel page with both Playwright widths.
 
 Short days (one-date bell schedule replacements) are specified in
 [`short-days.md`](short-days.md).
+
+## Breaks and activities in the week view (Action Plan 1.6)
+
+A learner's week (the learner, or their guardian with `learner_id`) now also shows:
+
+- **Breaks.** The named break periods (`bell_periods.is_break`) of the bells their lessons follow each day, with their times. On a short day it shows the replacement bells' breaks. A day without lessons shows no breaks.
+- **Activities.** Sessions of activity groups the learner is a current member of on that day, not cancelled: name, group, venue, date and, when set, start and end time. A session without times is all day. Nothing shows when the activity groups module is off.
+
+Activity sessions gain optional `starts_at` and `ends_at` (HH:MM). Both or neither must be given, and the end must come after the start. Existing sessions have none. They are set in the activity workbench and through the activities API (`ActivitySessionWrite`).
+
+A staff member's own week returns empty `breaks` and `activities`. The week response always has both (`AcademicTimetableWeekData`). Who may read whose week is unchanged.
+
+| Given | When | Then (`Academics/WeekBreaksActivitiesTest`) |
+| --- | --- | --- |
+| Asha has a Tuesday lesson with a long break after it, and Hockey on Tuesday 14:30-16:00 and Thursday (no time); a cancelled and a next-week session; a session of a group she is not in | her guardian, then Asha, read the week | one break on Tuesday; Practice and Match day only, with times or null; a teacher's own week has neither |
+| A session with an end before its start, one time only, or a non-time | saved | refused |
+| Gina (not Asha's guardian), School B, the groups module off | read Asha's week | refused; refused; breaks but no activities |
+
+Not in this step: the apps' week screen colours and layout, activity sessions in the calendar feed, and per-learner bell schedules other than those their lessons follow.

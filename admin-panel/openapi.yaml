@@ -37969,6 +37969,58 @@ components:
           items:
             type: string
             pattern: ^\d{4}-\d{2}-\d{2}$
+        breaks:
+          type: array
+          description: A learner's week only. Named breaks of the bells their lessons follow each day (the replacement bells on a short day).
+          items:
+            type: object
+            additionalProperties: false
+            required: [date, name, starts_at, ends_at]
+            properties:
+              date:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+              name:
+                type: string
+              starts_at:
+                type: string
+                pattern: ^\d{2}:\d{2}$
+              ends_at:
+                type: string
+                pattern: ^\d{2}:\d{2}$
+        activities:
+          type: array
+          description: A learner's week only. Sessions of activity groups they belong to on that day, not cancelled. A session without times is all day.
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, date, starts_at, ends_at, name, group_name, venue, status]
+            properties:
+              id:
+                type: integer
+                minimum: 1
+              date:
+                type: string
+                pattern: ^\d{4}-\d{2}-\d{2}$
+              starts_at:
+                type:
+                - string
+                - 'null'
+                pattern: ^\d{2}:\d{2}$
+              ends_at:
+                type:
+                - string
+                - 'null'
+                pattern: ^\d{2}:\d{2}$
+              name:
+                type: string
+              group_name:
+                type: string
+              venue:
+                type: string
+              status:
+                type: string
+                enum: [scheduled, completed]
     AcademicTimetableNextData:
       type: object
       additionalProperties: false
@@ -43249,6 +43301,16 @@ components:
         on_date:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
         name:
           type: string
           maxLength: 191
@@ -43590,6 +43652,17 @@ components:
         on_date:
           type: string
           pattern: ^\d{4}-\d{2}-\d{2}$
+        starts_at:
+          type:
+          - string
+          - 'null'
+          description: Optional; with ends_at.
+          pattern: ^\d{2}:\d{2}$
+        ends_at:
+          type:
+          - string
+          - 'null'
+          pattern: ^\d{2}:\d{2}$
         name:
           type: string
           maxLength: 191
