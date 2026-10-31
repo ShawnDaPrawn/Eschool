@@ -267,3 +267,11 @@ A child is only found in their own school. Every v2 family read keyed by `{learn
 - Five reads the demo schools have data for (content, marks periods, register QR, register today, reports) are named controls. Each must answer 200 for each child in that child's own school and refuse the other school's child, so for these a refusal is the school check and not a read that refuses every parent. The other reads in the sweep need module data the demo schools don't have; for them, the sweep proves only that they never answer across schools.
 
 The apps' parent home and child screens are app work and not part of this step; nor are the v1 parent endpoints that take `child_id`.
+
+### Packages and prices
+
+`platform_packages`, `platform_package_modules` and `platform_prices` are global:
+Navigate Ed's own package list and price list, written only from `/saas`. They
+name no school; a school names its package by key and the module set version
+applied to it on its own `schools` row (`package_key`, `package_version`)
+([package editor](package-editor.md)).

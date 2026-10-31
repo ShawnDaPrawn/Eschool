@@ -65,7 +65,7 @@ All web, session auth, `PrivateDomainResponse`, `platform.staff`; none under `sc
 | GET | `/saas` | schools with status, package and active people by role |
 | GET, POST | `/saas/schools/create`, `/saas/schools` | the set-up form; creates the school, emails the first administrator's invitation and shows its link once in that response (throttled 20 a minute) |
 | GET | `/saas/schools/{id}` | one school: counts, package, status, modules as the school sees them |
-| PUT | `/saas/schools/{id}/package` | package key from `config/school_packages.php`; a money module (fees) the new package leaves out stays read-only while the school has records; queues `context.changed` for that school. Moving back to a package that includes fees leaves it read-only until someone enables it (the school's own switch or `/saas`) |
+| PUT | `/saas/schools/{id}/package` | an active package key ([package editor](package-editor.md)); the school gets the package's current module set version; a money module (fees) the new package leaves out stays read-only while the school has records; queues `context.changed` for that school. Moving back to a package that includes fees leaves it read-only until someone enables it (the school's own switch or `/saas`) |
 | PUT | `/saas/schools/{id}/status` | `active`, `suspended` or `archived`, with a reason of 10 to 500 characters |
 | PUT | `/saas/schools/{id}/modules/{module}` | `ModuleGate::change` inside that school, so the rules of the school's own switch apply |
 | POST | `/saas/schools/{id}/administrator-invitation` | sends the first administrator's invitation again while nobody has accepted it; the old link stops working; names no person (throttled 20 a minute) |
