@@ -280,3 +280,10 @@ A child is only found in their own school. Every v2 family read keyed by `{learn
 - Five reads the demo schools have data for (content, marks periods, register QR, register today, reports) are named controls. Each must answer 200 for each child in that child's own school and refuse the other school's child, so for these a refusal is the school check and not a read that refuses every parent. The other reads in the sweep need module data the demo schools don't have; for them, the sweep proves only that they never answer across schools.
 
 The apps' parent home and child screens are app work and not part of this step; nor are the v1 parent endpoints that take `child_id`.
+
+### Calendar feeds
+
+`calendar_feeds` is required school-owned: each link belongs to the school whose
+timetable it serves. The public `.ics` endpoint has no school header; it finds
+the link by its token hash, then runs inside the link's school and rechecks the
+owner's access there ([calendar feed](../academics/calendar-feed.md)).
