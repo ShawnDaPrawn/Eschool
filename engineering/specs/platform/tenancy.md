@@ -248,6 +248,13 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### HQ AI spending caps
+
+`platform_ai_caps` and `platform_ai_cap_changes` are global: Navigate Ed's own
+daily AI caps per feature and their history, read and written only from
+`/saas/ai`. They name no school. A school's own lower limits stay in the
+school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+
 ### HQ incident register
 
 `platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
@@ -256,6 +263,17 @@ required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
 
+### A guardian at two schools (Action Plan 1.1, server side)
+
+A parent with children at two schools signs in once. `/api/v2/me/context` lists both schools and each child with their own school. The app reads each child with `X-School-Id` set to that child's school: the header picks one of the user's active memberships, and a school they don't belong to is refused (403).
+
+A child is only found in their own school. Every v2 family read keyed by `{learner}` refuses another school's child, with or without the header, and never echoes that child's details. The other school's child is not found (404) or the read is refused (403/422), never answered.
+
+`Tenancy/ParentAcrossSchoolsTest` checks this:
+- It finds the family reads from the route list rather than a fixed list, so a new `learners/{learner}` read is covered automatically.
+- Five reads the demo schools have data for (content, marks periods, register QR, register today, reports) are named controls. Each must answer 200 for each child in that child's own school and refuse the other school's child, so for these a refusal is the school check and not a read that refuses every parent. The other reads in the sweep need module data the demo schools don't have; for them, the sweep proves only that they never answer across schools.
+
+The apps' parent home and child screens are app work and not part of this step; nor are the v1 parent endpoints that take `child_id`.
 ### Notification quiet hours
 
 `notification_quiet_hours` is global, like `notification_preferences`: one
