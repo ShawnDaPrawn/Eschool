@@ -45,6 +45,8 @@ class SendingDomainsTest extends TestCase
 
     private bool $clientBuilt = false;
 
+    private ?string $hostedZone = 'dkim.af-south-1.amazonses.com';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -83,12 +85,12 @@ class SendingDomainsTest extends TestCase
         return match ($name) {
             'CreateEmailIdentity' => isset($this->ses[$domain]) ? $fail('AlreadyExistsException') : Create::promiseFor(new Result([
                 'IdentityType' => 'DOMAIN', 'VerifiedForSendingStatus' => false,
-                'DkimAttributes' => ['SigningEnabled' => true, 'Status' => ($this->ses[$domain] = ['verified' => false, 'dkim' => 'PENDING', 'mail_from' => 'PENDING'])['dkim'], 'Tokens' => $tokens],
+                'DkimAttributes' => ['SigningHostedZone' => $this->hostedZone, 'SigningEnabled' => true, 'Status' => ($this->ses[$domain] = ['verified' => false, 'dkim' => 'PENDING', 'mail_from' => 'PENDING'])['dkim'], 'Tokens' => $tokens],
             ])),
             'PutEmailIdentityMailFromAttributes' => Create::promiseFor(new Result([])),
             'GetEmailIdentity' => ! isset($this->ses[$domain]) ? $fail('NotFoundException') : Create::promiseFor(new Result([
                 'IdentityType' => 'DOMAIN', 'VerifiedForSendingStatus' => $this->ses[$domain]['verified'],
-                'DkimAttributes' => ['SigningEnabled' => true, 'Status' => $this->ses[$domain]['dkim'], 'Tokens' => $tokens],
+                'DkimAttributes' => ['SigningHostedZone' => $this->hostedZone, 'SigningEnabled' => true, 'Status' => $this->ses[$domain]['dkim'], 'Tokens' => $tokens],
                 'MailFromAttributes' => ['MailFromDomain' => 'bounce.'.$domain, 'MailFromDomainStatus' => $this->ses[$domain]['mail_from'], 'BehaviorOnMxFailure' => 'USE_DEFAULT_VALUE'],
                 'VerificationInfo' => $this->ses[$domain]['verified'] ? [] : ['ErrorType' => 'HOST_NOT_FOUND'],
             ])),
@@ -149,6 +151,36 @@ class SendingDomainsTest extends TestCase
         return array_values(array_map(fn ($sent) => $sent->getOriginalMessage(), app('mail.manager')->mailer('array')->getSymfonyTransport()->messages()->all()));
     }
 
+    public function test_dkim_targets_use_the_identity_hosted_zone_returned_by_ses(): void
+    {
+        $row = $this->connectA();
+        $service = app(SendingDomains::class);
+        $targets = fn () => array_column(array_filter($service->records($row->fresh()), fn (array $record) => $record['purpose'] === 'dkim'), 'value');
+        $this->assertSame(array_map(fn (string $token) => $token.'.dkim.af-south-1.amazonses.com', $row->dkim_tokens), $targets());
+        $this->hostedZone = 'dkim.amazonses.com';
+        $service->check($this->superAdmin(), (int) $row->id);
+        $this->assertSame(array_map(fn (string $token) => $token.'.dkim.amazonses.com', $row->dkim_tokens), $targets(), 'Use the identity response, not an assumed suffix for the configured region');
+    }
+
+    public function test_missing_or_invalid_hosted_zones_never_guess_dkim_targets(): void
+    {
+        $this->hostedZone = null;
+        $row = $this->connectA();
+        $service = app(SendingDomains::class);
+        $dkim = fn () => array_values(array_filter($service->records($row->fresh()), fn (array $record) => $record['purpose'] === 'dkim'));
+        $this->assertSame([], $dkim());
+        $this->get('/sending-domain')->assertOk()->assertSee('The DKIM DNS target is not available yet.');
+        $this->hostedZone = 'https://invalid.example/path';
+        $service->check($this->superAdmin(), (int) $row->id);
+        $this->assertSame([], $dkim());
+        $this->hostedZone = 'dkim.af-south-1.amazonses.com';
+        $service->check($this->superAdmin(), (int) $row->id);
+        $this->assertCount(3, $dkim());
+        $this->hostedZone = null;
+        $service->check($this->superAdmin(), (int) $row->id);
+        $this->assertCount(3, $dkim(), 'The last known zone remains usable for the same selectors');
+    }
+
     public function test_the_super_admin_connects_a_domain_adds_the_records_checks_it_and_disconnects(): void
     {
         $admin = $this->superAdmin();
@@ -169,7 +201,7 @@ class SendingDomainsTest extends TestCase
             ->assertSee('10 feedback-smtp.af-south-1.amazonses.com')->assertSee('"v=spf1 include:amazonses.com ~all"')
             ->assertSee('_dmarc.jacaranda-school.co.za')->assertSee('"v=DMARC1; p=none;"');
         foreach ($row->dkim_tokens as $token) {
-            $page->assertSee($token.'._domainkey.jacaranda-school.co.za')->assertSee($token.'.dkim.amazonses.com');
+            $page->assertSee($token.'._domainkey.jacaranda-school.co.za')->assertSee($token.'.dkim.af-south-1.amazonses.com');
         }
 
         // Not there yet: "Check now" says so and records the reason.

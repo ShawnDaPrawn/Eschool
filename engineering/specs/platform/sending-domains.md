@@ -74,3 +74,10 @@ The SES v2 API returns no ARN for an identity, so the identity's name is stored 
 - Retrying a notice from the platform address if SES refuses a school From between daily checks; the delivery is retried and recorded as failed as today.
 - Bring-your-own DKIM keys, more than one domain per school, a Reply-To at the school, and an HQ page to release a leftover SES identity (support does that in the SES console).
 - Any API or app change: this is panel and server only.
+
+DKIM CNAME targets use the identity's `DkimAttributes.SigningHostedZone` from
+SES, persisted alongside its selectors. They do not assume a global or regional
+suffix. When SES omits that field, a known zone is retained only for unchanged
+selectors; otherwise DKIM CNAME instructions wait for a fresh check. See
+[AWS DKIM attributes](https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_DkimAttributes.html)
+and [SES regions](https://docs.aws.amazon.com/ses/latest/dg/regions.html#regions-dkim).

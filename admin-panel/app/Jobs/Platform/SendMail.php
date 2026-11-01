@@ -13,6 +13,8 @@ use App\Services\Platform\Mail\MailStreams;
 use App\Services\Platform\Mail\SendingDomains;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
+use App\Services\Platform\Notifications\EmailContent;
+use App\Services\Platform\Notifications\EmailUnsubscribe;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeEncrypted;
@@ -85,9 +87,20 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
 
                 return;
             }
-            if (User::acrossSchools()->whereKey($row->recipient_user_id)->value('email_verified_at') === null) {
+            $recipient = User::acrossSchools()->whereKey($row->recipient_user_id)->first();
+            if ($recipient?->email_verified_at === null) {
                 $this->mailable->noticeTitle = __('School notification');
                 $this->mailable->noticeBody = __('Open NavigateEd to view this notice.');
+            }
+            // An optional notice carries a one-click unsubscribe link (2.4); a required one never does.
+            $this->mailable->unsubscribeUrl = $recipient === null ? null : app(EmailUnsubscribe::class)->url($recipient, $this->mailable->notificationType);
+            // The school's branding, and the full content where the type allows it (2.1), read now for this recipient.
+            $this->mailable->brand = app(EmailContent::class)->branding();
+            $full = $recipient === null ? null : app(EmailContent::class)->full($recipient, $this->mailable->notificationType, $this->mailable->deliveryContext);
+            $this->mailable->contentHtml = $full['html'] ?? null;
+            $this->mailable->contentText = $full['text'] ?? null;
+            if ($full !== null && trim($full['title']) !== '') {
+                $this->mailable->noticeTitle = $full['title'];
             }
             // A school notice comes from the school's own verified domain
             // (Action Plan 2.2), decided now and only for the delivery's own

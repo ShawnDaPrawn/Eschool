@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $school_id
  * @property string $domain
  * @property string $ses_identity
+ * @property string|null $dkim_signing_hosted_zone
  * @property list<string>|null $dkim_tokens
  * @property string $mail_from_domain
  * @property string $status

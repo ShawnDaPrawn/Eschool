@@ -44,7 +44,7 @@ class SesIdentities
     /**
      * Creates the domain identity with Easy DKIM.
      *
-     * @return array{verified: bool, dkim_status: string|null, tokens: list<string>, mail_from_status: string|null, error: string|null}
+     * @return array{verified: bool, dkim_status: string|null, tokens: list<string>, signing_hosted_zone: string|null, mail_from_status: string|null, error: string|null}
      *
      * @throws SesIdentityExists when SES already has an identity of that name
      */
@@ -80,7 +80,7 @@ class SesIdentities
     /**
      * What SES says about the identity now, or null when SES has none.
      *
-     * @return array{verified: bool, dkim_status: string|null, tokens: list<string>, mail_from_status: string|null, error: string|null}|null
+     * @return array{verified: bool, dkim_status: string|null, tokens: list<string>, signing_hosted_zone: string|null, mail_from_status: string|null, error: string|null}|null
      */
     public function status(string $domain): ?array
     {
@@ -108,7 +108,7 @@ class SesIdentities
     }
 
     /**
-     * @return array{verified: bool, dkim_status: string|null, tokens: list<string>, mail_from_status: string|null, error: string|null}
+     * @return array{verified: bool, dkim_status: string|null, tokens: list<string>, signing_hosted_zone: string|null, mail_from_status: string|null, error: string|null}
      */
     private function summary(Result $result): array
     {
@@ -120,9 +120,29 @@ class SesIdentities
             'verified' => (bool) ($result['VerifiedForSendingStatus'] ?? false),
             'dkim_status' => isset($dkim['Status']) ? (string) $dkim['Status'] : null,
             'tokens' => $tokens,
+            'signing_hosted_zone' => self::hostedZone($dkim['SigningHostedZone'] ?? null),
             'mail_from_status' => isset($mailFrom['MailFromDomainStatus']) ? (string) $mailFrom['MailFromDomainStatus'] : null,
             'error' => isset($result['VerificationInfo']['ErrorType']) ? (string) $result['VerificationInfo']['ErrorType'] : null,
         ];
+    }
+
+    /** A plain DNS suffix returned by SES; never guess a zone when the response omits it. */
+    private static function hostedZone(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+        $zone = strtolower(rtrim($value, '.'));
+        if (strlen($zone) > 253 || ! str_contains($zone, '.')) {
+            return null;
+        }
+        foreach (explode('.', $zone) as $label) {
+            if (preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/D', $label) !== 1) {
+                return null;
+            }
+        }
+
+        return $zone;
     }
 
     private function client(): SesV2Client

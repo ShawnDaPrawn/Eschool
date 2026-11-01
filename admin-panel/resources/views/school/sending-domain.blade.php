@@ -80,6 +80,9 @@
         <section class="page-section" aria-labelledby="sending-records">
             <h2 id="sending-records">{{ __('DNS records to add') }}</h2>
             <p>{{ __('Add these records at the company that manages your domain\'s DNS. Copy each name and value exactly. Some DNS providers add your domain to the name for you; if so, leave it off the end of the name.') }}</p>
+            @if ($domain->dkim_signing_hosted_zone === null)
+                <p role="status">{{ __('The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.') }}</p>
+            @endif
             <div class="page-table__scroll" role="region" aria-label="{{ __('DNS records to add') }}" tabindex="0"><table class="page-table__table">
                 <caption class="m3-visually-hidden">{{ __('DNS records to add') }}</caption>
                 <thead><tr><th scope="col">{{ __('Type') }}</th><th scope="col">{{ __('Name') }}</th><th scope="col">{{ __('Value') }}</th><th scope="col">{{ __('What it is for') }}</th></tr></thead>

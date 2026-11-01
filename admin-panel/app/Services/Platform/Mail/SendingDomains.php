@@ -231,8 +231,8 @@ class SendingDomains
     public function records(SchoolSendingDomain $row): array
     {
         $records = [];
-        foreach ((array) $row->dkim_tokens as $token) {
-            $records[] = ['type' => 'CNAME', 'name' => $token.'._domainkey.'.$row->domain, 'value' => $token.'.dkim.amazonses.com', 'purpose' => 'dkim'];
+        foreach ($row->dkim_signing_hosted_zone === null ? [] : (array) $row->dkim_tokens as $token) {
+            $records[] = ['type' => 'CNAME', 'name' => $token.'._domainkey.'.$row->domain, 'value' => $token.'.'.$row->dkim_signing_hosted_zone, 'purpose' => 'dkim'];
         }
         $region = (string) config('services.ses.region', 'af-south-1');
         $records[] = ['type' => 'MX', 'name' => $row->mail_from_domain, 'value' => '10 feedback-smtp.'.$region.'.amazonses.com', 'purpose' => 'mail_from'];
@@ -305,7 +305,7 @@ class SendingDomains
     }
 
     /**
-     * @param  array{verified: bool, dkim_status: string|null, tokens: list<string>, mail_from_status: string|null, error: string|null}  $summary
+     * @param  array{verified: bool, dkim_status: string|null, tokens: list<string>, signing_hosted_zone: string|null, mail_from_status: string|null, error: string|null}  $summary
      */
     private function apply(SchoolSendingDomain $row, array $summary): void
     {
@@ -316,11 +316,15 @@ class SendingDomains
             'TEMPORARY_FAILURE' => 'dkim_temporary_failure',
             default => $summary['error'] !== null ? substr(strtolower($summary['error']), 0, 64) : null,
         };
+        $tokens = $summary['tokens'] !== [] ? $summary['tokens'] : $row->dkim_tokens;
+        // An omitted zone may retain the known zone only for the same selectors.
+        $zone = $summary['signing_hosted_zone'] ?? ($tokens === $row->dkim_tokens ? $row->dkim_signing_hosted_zone : null);
         $row->forceFill([
             'status' => $status,
             'dkim_status' => $summary['dkim_status'],
             'mail_from_status' => $summary['mail_from_status'] ?? $row->mail_from_status,
-            'dkim_tokens' => $summary['tokens'] !== [] ? $summary['tokens'] : $row->dkim_tokens,
+            'dkim_tokens' => $tokens,
+            'dkim_signing_hosted_zone' => $zone,
             'verified_at' => $verified ? ($row->verified_at ?? now()) : null,
             'last_checked_at' => now(),
             'last_error' => $error,
