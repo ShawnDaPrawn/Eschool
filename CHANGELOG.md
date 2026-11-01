@@ -100,6 +100,7 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+
 - HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
   families, how many learners have a guardian the school can reach, sign-ins by
   role, module use, email bounces and complaints, push failures, AI spend against
