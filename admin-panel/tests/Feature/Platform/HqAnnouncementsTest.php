@@ -16,6 +16,7 @@ use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Saas\PlatformAnnouncements;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -167,7 +168,7 @@ class HqAnnouncementsTest extends TestCase
         $this->assertTrue(app(CurrentSchool::class)->run(1, fn () => app(NotificationRules::class)->offered($this->superAdmin(), PlatformAnnouncements::TYPE)));
 
         $audit = AuditLog::query()->where('action', 'platform_announcement_published')->sole();
-        $this->assertSame(['announcement_id' => $id, 'schools' => 2, 'recipients' => 2], array_intersect_key($audit->after, array_flip(['announcement_id', 'schools', 'recipients'])));
+        $this->assertSame(['announcement_id' => $id, 'recipients' => 2, 'schools' => 2], Arr::sortRecursive(array_intersect_key($audit->after, array_flip(['announcement_id', 'schools', 'recipients']))));
         $this->assertStringNotContainsString('term marks', (string) $audit->toJson());
         $this->get('/saas/audit')->assertOk()->assertSee('Announcement published');
         $this->get('/saas/announcements')->assertOk()->assertSee('Showing now')->assertSee('0 of 2');

@@ -42,6 +42,8 @@ class PlatformAuditLog
         'platform_announcement_published' => 'Announcement published',
         'platform_announcement_withdrawn' => 'Announcement withdrawn',
         'ai.platform_cost_access_changed' => 'AI cost access changed',
+        'platform_ai_feature_switched' => 'AI feature switched',
+        'platform_ai_caps_changed' => 'AI spending caps changed',
     ];
 
     /** Keys left out of the summary: who changed it is already the actor. */
