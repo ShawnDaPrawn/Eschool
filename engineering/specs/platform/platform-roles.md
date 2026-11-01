@@ -12,8 +12,8 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; SMS and WhatsApp costs |
-| Support | see schools; audit log; LURITS claims; incident register |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; SMS and WhatsApp costs; AI control centre (view) |
+| Support | see schools; audit log; LURITS claims; incident register; AI control centre (view) |
 | Finance | see schools; change package; customer records; packages; audit log and its export; SMS and WhatsApp costs |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
@@ -21,7 +21,7 @@ and Owners invite staff by email from HQ.
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
 `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`messaging.view`, `staff.manage`. A role that is no longer in the
+`messaging.view`, `staff.manage`, `ai.view`, `ai.manage`, `ai.caps`, `hq-ai.md`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with
