@@ -52,3 +52,7 @@ A staff member's own week returns empty `breaks` and `activities`. The week resp
 | Gina (not Asha's guardian), School B, the groups module off | read Asha's week | refused; refused; breaks but no activities |
 
 Not in this step: the apps' week screen colours and layout, activity sessions in the calendar feed, and per-learner bell schedules other than those their lessons follow.
+
+Activity-session updates from older clients that omit both optional time fields
+retain the saved times. Sending both fields explicitly as null makes the session
+all-day. Rolling back the added time columns refuses while any saved time exists.

@@ -119,6 +119,24 @@ class CommunicationRecipients
         return array_intersect_key($result, array_flip($active));
     }
 
+    /**
+     * A smart group's people now: the learners of any (or all) of its rules,
+     * or their guardians. Rules are grades, homerooms, teaching and activity
+     * groups of the definition's year (Action Plan 2.5).
+     *
+     * @param  array{session_year_id: int, match: string, parents: bool, rules: list<array{kind: string, target_id: int}>}  $smart
+     */
+    public function smart(array $smart, string $date): array
+    {
+        $learners = null;
+        foreach ($smart['rules'] as $rule) {
+            $set = $this->learners(['kind' => $rule['kind'], 'target_id' => (int) $rule['target_id'], 'session_year_id' => (int) $smart['session_year_id']], $date)->keyBy('id');
+            $learners = $learners === null ? $set : ($smart['match'] === 'all' ? $learners->intersectByKeys($set) : $learners->union($set));
+        }
+
+        return $this->normalise($this->fromLearners(($learners ?? collect())->values(), (bool) $smart['parents']));
+    }
+
     public function standard(array $definition, string $date): array
     {
         $result = $this->fromLearners($this->learners($definition, $date), (bool) $definition['parents']);
@@ -128,6 +146,12 @@ class CommunicationRecipients
                 $this->merge($result, (int) $user, 'staff');
             }
         }
+
+        return $this->normalise($result);
+    }
+
+    private function normalise(array $result): array
+    {
         foreach ($result as &$reason) {
             $reason['learner_ids'] = array_values(array_unique($reason['learner_ids']));
             $reason['guardian_of'] = array_values(array_unique($reason['guardian_of']));

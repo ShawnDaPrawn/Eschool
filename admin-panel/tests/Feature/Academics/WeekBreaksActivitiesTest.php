@@ -19,6 +19,7 @@ use App\Services\Academics\TimetableEngine;
 use App\Services\Activities\ActivityGroups;
 use App\Services\Platform\Modules\ModuleGate;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
@@ -127,6 +128,34 @@ class WeekBreaksActivitiesTest extends TestCase
         $teacher = $this->week('tara')->assertOk();
         $this->assertSame([], $teacher->json('data.breaks'));
         $this->assertSame([], $teacher->json('data.activities'));
+    }
+
+    public function test_older_clients_keep_saved_session_times_and_explicit_nulls_clear_them(): void
+    {
+        $hockey = $this->group('Hockey');
+        $timed = $this->activitySession($hockey, ['starts_at' => '14:30', 'ends_at' => '16:00']);
+        $service = app(ActivityGroups::class);
+        $legacy = ['operation_id' => (string) Str::uuid(), 'revision' => $timed['revision'],
+            'on_date' => '2026-02-10', 'name' => 'Renamed practice', 'venue' => 'Field', 'status' => 'scheduled'];
+        $updated = $service->session($this->superAdmin(), $hockey, $timed['id'], $legacy);
+        $this->assertSame(['14:30', '16:00'], [$updated['starts_at'], $updated['ends_at']], 'An older client does not send the new time fields');
+        $cleared = $service->session($this->superAdmin(), $hockey, $timed['id'], [
+            'operation_id' => (string) Str::uuid(), 'revision' => $updated['revision'], 'starts_at' => null, 'ends_at' => null,
+        ] + $legacy);
+        $this->assertSame([null, null], [$cleared['starts_at'], $cleared['ends_at']]);
+    }
+
+    public function test_rollback_preserves_saved_activity_session_times(): void
+    {
+        $session = $this->activitySession($this->group('Hockey'), ['starts_at' => '14:30', 'ends_at' => '16:00']);
+        $migration = require database_path('migrations/2026_11_02_140000_add_times_to_activity_sessions.php');
+        try {
+            $migration->down();
+            $this->fail('A rollback must not silently discard saved session times.');
+        } catch (\RuntimeException $error) {
+            $this->assertStringContainsString('Retain saved session times', $error->getMessage());
+        }
+        $this->assertSame('14:30:00', DB::table('activity_sessions')->where('id', $session['id'])->value('starts_at'));
     }
 
     public function test_session_times_are_optional_but_must_make_sense(): void

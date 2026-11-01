@@ -290,9 +290,12 @@ class ActivityGroups
             $before = $row->exists ? $this->present($row) : [];
             $values = $data;
             unset($values['operation_id']);
-            // Times are optional (1.6); a session without them is all day.
-            $values['starts_at'] = ($data['starts_at'] ?? null) === null ? null : $data['starts_at'].':00';
-            $values['ends_at'] = ($data['ends_at'] ?? null) === null ? null : $data['ends_at'].':00';
+            // Older clients omit both new fields: retain their saved times.
+            // An explicit pair of nulls changes a timed session to all day.
+            if (array_key_exists('starts_at', $data) || array_key_exists('ends_at', $data)) {
+                $values['starts_at'] = ($data['starts_at'] ?? null) === null ? null : $data['starts_at'].':00';
+                $values['ends_at'] = ($data['ends_at'] ?? null) === null ? null : $data['ends_at'].':00';
+            }
             $values['activity_group_id'] = $groupId;
             $values['revision'] = $data['revision'] + 1;
             $row->fill($values)->save();

@@ -10,8 +10,12 @@ moderation, no provider call occurs. Students/parents are refused even if
 accidentally configured. No endpoint or app screen is introduced in this slice.
 
 Given an authorized request UUID, atomically reserve its conservative token and
-integer-cent bounds under a school lock before dispatch. Both school and actor
-daily limits span all inference features. Provider metadata includes only an HMAC
+integer-cent bounds under a school lock before dispatch. School, actor and
+learner daily limits span all school inference features. A personal service
+(`ai.inference.personal_features`: the Mastery tutor, owner decision of 31
+October 2026) is neither checked against nor added to the school total; its
+actor and learner limits span personal spend only
+([HQ AI control centre](../platform/hq-ai.md)). Provider metadata includes only an HMAC
 pseudonym and request UUID; no account/school/learner IDs or source references.
 Feature callers must authorize and minimize input/source content on every call,
 including replay. No counselling or learner record loader is introduced here.
