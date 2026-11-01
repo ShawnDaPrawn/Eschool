@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Platform;
 
 use App\Http\Middleware\PrivateDomainResponse;
+use App\Jobs\Platform\SendMail;
+use App\Mail\Platform\NotificationMail;
 use App\Models\Notification;
+use App\Models\Platform\NotificationDelivery;
 use App\Models\Platform\PlatformAdminGrant;
 use App\Models\Platform\PlatformStaffIdentity;
 use App\Models\Platform\School;
@@ -26,6 +29,7 @@ use App\Services\Wellbeing\WellbeingAccess;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -152,6 +156,25 @@ class SupportAccessTest extends TestCase
         $this->assertSame(0, $this->views());
         $this->actingAsHq($support)->get('/support-session/'.$id)->assertOk();
         $this->assertSame(1, $this->views());
+    }
+
+    public function test_support_email_keeps_the_office_destination_and_delivery_report_linkage(): void
+    {
+        Queue::fake();
+        config(['app.url' => 'https://office.example.invalid', 'identity.portal_url' => 'https://family.example.invalid']);
+        $admin = $this->superAdmin();
+        $this->actingAsSupportUser($this->staff('support'));
+        $this->ask();
+        $notice = Notification::query()->withoutGlobalScopes()->where('type', SupportAccess::REQUESTED)->sole();
+        app(CurrentSchool::class)->run(1, fn () => app(Notifier::class)->send($admin, $notice->type, $notice->title, $notice->message, SupportAccess::LINK, $notice, ['in_app']));
+
+        $job = Queue::pushed(SendMail::class)->first(fn (SendMail $job) => $job->mailable instanceof NotificationMail && $job->mailable->notificationType === SupportAccess::REQUESTED);
+        $this->assertNotNull($job);
+        $this->assertSame('https://office.example.invalid/support-access', $job->mailable->noticeUrl);
+        $delivery = app(CurrentSchool::class)->run(1, fn () => NotificationDelivery::query()->where('delivery_key', $job->deliveryKey)->sole());
+        $this->assertSame((int) $notice->id, (int) $delivery->notification_id);
+        $this->assertSame(1, (int) $delivery->school_id);
+        $this->assertSame((int) $admin->id, (int) $delivery->recipient_user_id);
     }
 
     public function test_support_asks_the_school_approves_every_page_viewed_is_logged_and_the_session_expires(): void

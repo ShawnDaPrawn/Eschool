@@ -254,6 +254,12 @@ open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 daily AI caps per feature and their history, read and written only from
 `/saas/ai`. They name no school. A school's own lower limits stay in the
 school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
 
 ### HQ incident register
 
@@ -296,3 +302,17 @@ schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: th
 granted school with the impersonation flag, which cannot be switched to another
 school or widened to every school for the rest of the request
 ([support access](support-access.md)).
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
+### Packages and prices
+
+`platform_packages`, `platform_package_modules` and `platform_prices` are global:
+Navigate Ed's own package list and price list, written only from `/saas`. They
+name no school; a school names its package by key and the module set version
+applied to it on its own `schools` row (`package_key`, `package_version`)
+([package editor](package-editor.md)).
