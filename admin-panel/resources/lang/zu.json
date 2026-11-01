@@ -5919,6 +5919,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "Izethameli ezilondoloziwe azikwazi ukushintsha phakathi kohlu olungashintshi neqembu elihlakaniphile.",
     "A smart group needs between one and ten rules.": "Iqembu elihlakaniphile lidinga imithetho ephakathi kweyodwa neyishumi.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "Umthetho ubala iqembu elingasasebenzi. Susa lowo mthetho noma ugcine iqembu; imilayezo eya kulo ayikwazi ukuthunyelwa kuze kube yileso sikhathi.",
+    "Remove a calendar link for this learner before making another.": "Susa isixhumanisi sekhalenda salo mfundi ngaphambi kokwenza esinye.",
+    "Exam: :subject": "Isivivinyo: :subject",
     "That is not a valid LURITS number.": "Lena akuyona inombolo ye-LURITS evumelekile.",
     "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Akuphoqelekile. Uma umfundi esenayo irekhodi le-NavigateEd, uzocelwa ukuthi uqale isicelo sokudluliselwa esikhundleni salokho.",
     "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Le nombolo ye-LURITS ingeyowayengumfundi wesikole sakho (:number). Buyisela irekhodi lakhe esikhundleni sokumengeza futhi.",

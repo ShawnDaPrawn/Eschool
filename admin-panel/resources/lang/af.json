@@ -5919,6 +5919,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "'n Gestoorde gehoor kan nie tussen 'n vaste lys en 'n slim groep verander nie.",
     "A smart group needs between one and ten rules.": "'n Slim groep het tussen een en tien reëls nodig.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "'n Reël noem 'n groep wat nie meer aktief is nie. Verwyder daardie reël of argiveer die groep; boodskappe daaraan kan eers dan gestuur word.",
+    "Remove a calendar link for this learner before making another.": "Verwyder 'n kalenderskakel vir hierdie leerder voordat jy nog een maak.",
+    "Exam: :subject": "Eksamen: :subject",
     "That is not a valid LURITS number.": "Dit is nie 'n geldige LURITS-nommer nie.",
     "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Opsioneel. As die leerder reeds 'n NavigateEd-rekord het, sal u gevra word om eerder 'n oorplasingsversoek te begin.",
     "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Hierdie LURITS-nommer behoort aan 'n oud-leerder van u skool (:number). Herstel hulle rekord eerder as om hulle weer by te voeg.",
