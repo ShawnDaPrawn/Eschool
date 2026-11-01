@@ -5919,6 +5919,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "Izethameli ezilondoloziwe azikwazi ukushintsha phakathi kohlu olungashintshi neqembu elihlakaniphile.",
     "A smart group needs between one and ten rules.": "Iqembu elihlakaniphile lidinga imithetho ephakathi kweyodwa neyishumi.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "Umthetho ubala iqembu elingasasebenzi. Susa lowo mthetho noma ugcine iqembu; imilayezo eya kulo ayikwazi ukuthunyelwa kuze kube yileso sikhathi.",
+    "Remove a calendar link for this learner before making another.": "Susa isixhumanisi sekhalenda salo mfundi ngaphambi kokwenza esinye.",
+    "Exam: :subject": "Isivivinyo: :subject",
     "Learner LURITS numbers": "Izinombolo ze-LURITS zabafundi",
     "Each learner is exported with their LURITS number. A learner without one needs the learner reference from the layout's learner_refs map, by student number.": "Umfundi ngamunye uthunyelwa ngenombolo yakhe ye-LURITS. Umfundi ongenayo udinga inkomba yomfundi evela kumephu ye-learner_refs yesakhiwo, ngenombolo yomfundi.",
     ":count of :learners learners has no LURITS number yet.|:count of :learners learners have no LURITS number yet.": ":count kwabafundi abangu-:learners akakabi nayo inombolo ye-LURITS.|:count kwabafundi abangu-:learners abakabi nayo inombolo ye-LURITS.",
