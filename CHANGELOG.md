@@ -100,6 +100,15 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+- HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
+  families, how many learners have a guardian the school can reach, sign-ins by
+  role, module use, email bounces and complaints, push failures, AI spend against
+  the month's cap and failed jobs, counts only and never a person. `/saas/health`
+  compares every school from nightly figures, schools at risk first; the at-risk
+  rules (activity down 30%, reach under 60%, bounces at 5% and others) are in
+  `config/school_health.php`. Owner, Operations, Support and Finance can see it.
+  **Deploy:** run the `school_health_snapshots` migration; the scheduler runs
+  `platform:school-health` nightly (run it once by hand to fill the comparison).
 - Staff drafts for a new school year: on Academic allocations, **Draft from last
   year** fills in each teaching group's teachers and each homeroom's teacher from
   last year wherever the group or homeroom carried over. Change what is different

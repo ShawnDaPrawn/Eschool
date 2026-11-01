@@ -79,10 +79,10 @@ class HqSchoolHealthTest extends TestCase
             'status' => $status, 'attempt' => 1, 'created_at' => now()->subDays($daysAgo), 'updated_at' => now()]);
     }
 
-    private function aiUsage(int $school, int $userId, string $date, int $cents, int $reserved = 0, ?string $currency = null): void
+    private function aiUsage(int $school, int $userId, string $date, int $cents, int $reserved = 0, ?string $currency = null, string $feature = 'teaching_assistant'): void
     {
         $currency ??= (string) config('ai.billing_currency', 'USD');
-        DB::table('ai_usage')->insert(['school_id' => $school, 'user_id' => $userId, 'feature' => 'teaching_assistant', 'provider' => 'openai', 'operation_id' => (string) Str::uuid(),
+        DB::table('ai_usage')->insert(['school_id' => $school, 'user_id' => $userId, 'feature' => $feature, 'provider' => 'openai', 'operation_id' => (string) Str::uuid(),
             'request_hash' => str_repeat('a', 64), 'usage_date' => $date, 'unit' => 'tokens', 'state' => 'completed', 'cost_cents' => $cents, 'reserved_cost_cents' => $reserved,
             'billing_currency' => $currency, 'created_at' => now(), 'updated_at' => now()]);
     }
@@ -211,6 +211,37 @@ class HqSchoolHealthTest extends TestCase
         $this->assertSame([200, true], [$after['spent_cents'], $after['other_currency']]);
         $this->actingAs($this->staff('owner'))->get('/saas/schools/1/health')->assertOk()
             ->assertSee('Spend recorded in another billing currency this month is not included.');
+    }
+
+    public function test_school_ai_summary_uses_live_hq_caps_and_keeps_the_schools_lower_limit(): void
+    {
+        $this->seedSchoolA();
+        config(['ai.inference.features' => [
+            'school_assistant' => ['school_daily_cents' => 900],
+            'teaching_assistant' => ['school_daily_cents' => 700],
+        ]]);
+        foreach (['school_assistant' => 100, 'teaching_assistant' => 200] as $feature => $cents) {
+            DB::table('platform_ai_caps')->insert(['feature' => $feature, 'cap' => 'school_daily_cents', 'cents' => $cents]);
+        }
+        $health = app(PlatformSchoolHealth::class);
+        $this->assertSame(200, $health->compute(1)['ai']['daily_cap_cents']);
+        DB::table('ai_school_limits')->where('school_id', 1)->update(['limits' => json_encode(['school_daily_cents' => 50])]);
+        $this->assertSame(50, $health->compute(1)['ai']['daily_cap_cents']);
+    }
+
+    public function test_school_ai_summary_excludes_personal_tutor_spend_and_caps(): void
+    {
+        $this->seedSchoolA();
+        config(['ai.inference.personal_features' => ['tutor'], 'ai.inference.features' => [
+            'teaching_assistant' => ['school_daily_cents' => 100],
+            'tutor' => ['school_daily_cents' => 999999],
+        ]]);
+        $local = CarbonImmutable::now('Africa/Johannesburg');
+        $this->aiUsage(1, $this->person('asha'), $local->toDateString(), 90000, 10000, null, 'tutor');
+        $other = config('ai.billing_currency', 'USD') === 'ZAR' ? 'USD' : 'ZAR';
+        $this->aiUsage(1, $this->person('asha'), $local->toDateString(), 80000, 0, $other, 'tutor');
+        $ai = app(PlatformSchoolHealth::class)->compute(1)['ai'];
+        $this->assertSame([200, 100, false], [$ai['spent_cents'], $ai['daily_cap_cents'], $ai['other_currency']]);
     }
 
     public function test_school_b_activity_never_counts_for_school_a(): void

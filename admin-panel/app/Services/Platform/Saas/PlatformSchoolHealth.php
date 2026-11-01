@@ -9,6 +9,7 @@ use App\Models\Platform\School;
 use App\Models\Platform\SchoolHealthSnapshot;
 use App\Models\Platform\SchoolMembership;
 use App\Models\User;
+use App\Services\Ai\Operations\PlatformAiCaps;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\PushDevices;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -526,14 +527,15 @@ class PlatformSchoolHealth
         // billing currency (or with none recorded) are never added to it, only noted.
         $currency = (string) config('ai.billing_currency', 'USD');
         $month = DB::table('ai_usage')->where('school_id', $schoolId)
+            ->whereNotIn('feature', PlatformAiCaps::personalFeatures())
             ->whereBetween('usage_date', [$local->startOfMonth()->toDateString(), $local->toDateString()]);
         $spent = (int) (clone $month)->where('billing_currency', $currency)->sum(DB::raw('cost_cents + reserved_cost_cents'));
         $otherCurrency = (clone $month)->where(fn ($q) => $q->whereNull('billing_currency')->orWhere('billing_currency', '!=', $currency))
             ->where(fn ($q) => $q->where('cost_cents', '>', 0)->orWhere('reserved_cost_cents', '>', 0))->exists();
         $configured = null;
-        foreach ((array) config('ai.inference.features', []) as $feature) {
-            $value = is_array($feature) ? ($feature['school_daily_cents'] ?? null) : null;
-            if (is_int($value) && $value > 0) {
+        foreach (app(PlatformAiCaps::class)->caps() as $feature => $caps) {
+            $value = $caps['school_daily_cents']['effective'] ?? null;
+            if (! PlatformAiCaps::personal($feature) && is_int($value) && $value >= 0) {
                 $configured = max($configured ?? 0, $value);
             }
         }
