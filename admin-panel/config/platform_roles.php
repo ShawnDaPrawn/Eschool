@@ -22,14 +22,17 @@ declare(strict_types=1);
  *  incidents.manage the breach and incident register: record, update, close
  *  health.view      school health and usage, per school and compared (counts only)
  *  flags.manage     feature flags: create, roll out, switch schools, kill
+ *  ai.view          the AI control centre
+ *  ai.manage        switch school AI features (Owner only)
+ *  ai.caps          set school AI caps (Owner only)
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'flags.manage']],
-    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'flags.manage', 'ai.view']],
+    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'ai.view']],
     'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'audit.view', 'audit.export', 'health.view', 'packages.manage']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],

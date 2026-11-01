@@ -6,6 +6,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\Classes;
 use App\Http\Controllers\ClassTeacherController;
@@ -115,9 +116,11 @@ use App\Http\Controllers\People\LearnerGuardiansController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
+use App\Http\Controllers\Platform\EmailUnsubscribeController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
+use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformFeatureFlagController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
@@ -259,6 +262,12 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::post('invite/staff/{token}', [StaffInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:password')->name('staff-invitation.accept');
 });
 
+// A learner's calendar subscription (Action Plan 1.10). The secret token is
+// the only key; the calendar app fetches it without signing in.
+Route::middleware([PrivateDomainResponse::class])->group(function () {
+    Route::get('calendar/{token}.ics', CalendarFeedController::class)->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:60,1')->name('calendar.feed');
+});
+
 // An operator's own password has a separate purpose: pending accounts may
 // settle it, but cannot enter /saas or any school through this route.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:password'])->group(function () {
@@ -267,6 +276,13 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
 });
 
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
+// One-click unsubscribe from an optional notice email (Action Plan 2.4, RFC 8058): the
+// signature is the authority, so the POST takes no session or CSRF token.
+Route::middleware([PrivateDomainResponse::class, 'signed', 'throttle:30,1'])->group(function () {
+    Route::get('email/unsubscribe/{user}/{school}/{type}', [EmailUnsubscribeController::class, 'show'])->whereNumber(['user', 'school'])->where('type', '[a-z0-9_.]{3,64}')->name('notifications.unsubscribe');
+    Route::post('email/unsubscribe/{user}/{school}/{type}', [EmailUnsubscribeController::class, 'store'])->whereNumber(['user', 'school'])->where('type', '[a-z0-9_.]{3,64}')->name('notifications.unsubscribe.store');
+});
+
 Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::get('platform/invite/{token}', [PlatformInvitationController::class, 'show'])->middleware('throttle:30,1')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.show');
     Route::post('platform/invite/{token}', [PlatformInvitationController::class, 'accept'])->middleware('throttle:password')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.accept');
@@ -325,6 +341,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::put('/{incident}/schools/{school}', [PlatformIncidentController::class, 'notified'])->whereNumber(['incident', 'school'])->name('schools.notified');
         Route::post('/{incident}/entries', [PlatformIncidentController::class, 'entry'])->middleware('throttle:60,1')->whereNumber('incident')->name('entries.store');
     });
+    // The AI control centre (SA.15): qualification, caps, spend and queue counts; never a prompt, an answer or a learner.
+    Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
+    Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
+    Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
     // Feature flags and staged rollout (SA.14): beta schools first, then everyone; a kill switch.
     Route::get('/flags', [PlatformFeatureFlagController::class, 'index'])->middleware('platform.can:flags.manage')->name('flags.index');
     Route::post('/flags', [PlatformFeatureFlagController::class, 'store'])->middleware(['platform.can:flags.manage', 'throttle:20,1'])->name('flags.store');

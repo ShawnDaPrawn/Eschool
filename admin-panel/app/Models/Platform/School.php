@@ -36,6 +36,23 @@ class School extends Model
 {
     use Auditable;
 
+    /** @var array{key: string, version: int, products: list<string>}|null */
+    private ?array $membershipPackage = null;
+
+    /** Immutable applied package modules read with the authenticated memberships. */
+    public function withMembershipPackage(string $key, int $version, array $products): void
+    {
+        $this->membershipPackage = ['key' => $key, 'version' => $version, 'products' => $products];
+    }
+
+    /** @return list<string>|null Null when a fresh or changed school needs a database read. */
+    public function membershipPackage(string $key, int $version): ?array
+    {
+        return $this->membershipPackage !== null
+            && $this->membershipPackage['key'] === $key && $this->membershipPackage['version'] === $version
+                ? $this->membershipPackage['products'] : null;
+    }
+
     public const ACTIVE = 'active';
 
     public const SUSPENDED = 'suspended';

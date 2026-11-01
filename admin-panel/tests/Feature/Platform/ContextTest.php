@@ -149,9 +149,8 @@ class ContextTest extends TestCase
     /**
      * Budget: 150 ms at p95. The work is a fixed handful of queries (the
      * token, its user and its last-used time, the user's memberships with
-     * their schools (Phase 1, one query), roles, settings, year, terms, the
-     * school's package modules (SA.7, one query), and for a parent their
-     * record, children and the children's users),
+     * their schools (Phase 1, one query), roles, settings, year, terms, and
+     * for a parent their record, children and the children's users),
      * whatever the number of children.
      */
     public function test_it_takes_a_fixed_handful_of_queries(): void
@@ -161,11 +160,9 @@ class ContextTest extends TestCase
         $teacher = $this->queriesFor('tara');
 
         $this->assertSame($oneChild, $twoChildren, 'The number of queries grows with the number of children');
-        // Fixed reads include profile metadata, feature flags and the package's
-        // module set. One tenant-qualified calendar read keeps the strict
-        // budgets without dropping any of those live inputs.
+        // One additional fixed query loads profile metadata, without values.
         $this->assertLessThanOrEqual(14, $twoChildren, "A parent's context takes $twoChildren queries, more than budgeted");
-        $this->assertLessThanOrEqual(12, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
+        $this->assertLessThanOrEqual(11, $teacher, "A teacher's context takes $teacher queries, more than budgeted");
     }
 
     private function queriesFor(string $person): int
