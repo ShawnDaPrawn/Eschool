@@ -56,6 +56,7 @@ use App\Http\Controllers\Panel\Discipline\DisciplinePanelController;
 use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
+use App\Http\Controllers\Panel\Growth\CaseloadRenewalController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
@@ -114,9 +115,11 @@ use App\Http\Controllers\People\LearnerGuardiansController;
 use App\Http\Controllers\People\ProfileFieldController;
 use App\Http\Controllers\People\ProfileFormController;
 use App\Http\Controllers\Platform\CspReportController;
+use App\Http\Controllers\Platform\EmailUnsubscribeController;
 use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
+use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
@@ -264,6 +267,13 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
 });
 
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
+// One-click unsubscribe from an optional notice email (Action Plan 2.4, RFC 8058): the
+// signature is the authority, so the POST takes no session or CSRF token.
+Route::middleware([PrivateDomainResponse::class, 'signed', 'throttle:30,1'])->group(function () {
+    Route::get('email/unsubscribe/{user}/{school}/{type}', [EmailUnsubscribeController::class, 'show'])->whereNumber(['user', 'school'])->where('type', '[a-z0-9_.]{3,64}')->name('notifications.unsubscribe');
+    Route::post('email/unsubscribe/{user}/{school}/{type}', [EmailUnsubscribeController::class, 'store'])->whereNumber(['user', 'school'])->where('type', '[a-z0-9_.]{3,64}')->name('notifications.unsubscribe.store');
+});
+
 Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::get('platform/invite/{token}', [PlatformInvitationController::class, 'show'])->middleware('throttle:30,1')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.show');
     Route::post('platform/invite/{token}', [PlatformInvitationController::class, 'accept'])->middleware('throttle:password')->where('token', '[A-Za-z0-9]{64}')->name('platform-invitation.accept');
@@ -311,6 +321,10 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::put('/{incident}/schools/{school}', [PlatformIncidentController::class, 'notified'])->whereNumber(['incident', 'school'])->name('schools.notified');
         Route::post('/{incident}/entries', [PlatformIncidentController::class, 'entry'])->middleware('throttle:60,1')->whereNumber('incident')->name('entries.store');
     });
+    // The AI control centre (SA.15): qualification, caps, spend and queue counts; never a prompt, an answer or a learner.
+    Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
+    Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
+    Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -1330,6 +1344,9 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::post('interventions/{intervention}/owner', [RiskPanelController::class, 'write'])->whereNumber('intervention')->name('transfer');
     Route::post('learners/{learner}/assignments', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('assign');
     Route::post('learners/{learner}/assignments/revoke', [RiskPanelController::class, 'write'])->whereNumber('learner')->name('revoke');
+    // Caseload renewals into the new year (Action Plan 1.20).
+    Route::get('renewals', [CaseloadRenewalController::class, 'index'])->name('renewals');
+    Route::post('renewals', [CaseloadRenewalController::class, 'store'])->middleware('throttle:20,1')->name('renewals.store');
     Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
 });
 

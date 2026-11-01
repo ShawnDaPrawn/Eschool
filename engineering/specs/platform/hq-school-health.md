@@ -94,3 +94,8 @@ Read-only: no form, nothing written by either page. `sort` is `flags` (default: 
 - Storage per school (needs file sizes recorded for every upload) and application errors per school (needs error tracking with the school in its context).
 - Alerts when a school becomes at risk, a HQ home page tile, and setting the school's stage to "At risk" from the flags.
 - A per-school history chart beyond the four-week average.
+
+AI health summaries use the live HQ caps (falling back to config defaults),
+then the school's lower limit. Personal services such as the tutor stay out of
+the school's spend, foreign-currency warning and school-cap calculation, as
+they do in the inference gateway.

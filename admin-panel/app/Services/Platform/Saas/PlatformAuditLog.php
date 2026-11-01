@@ -40,6 +40,8 @@ class PlatformAuditLog
         'platform_school_module_changed' => 'Module switched',
         'platform_audit_exported' => 'Audit log exported',
         'ai.platform_cost_access_changed' => 'AI cost access changed',
+        'platform_ai_feature_switched' => 'AI feature switched',
+        'platform_ai_caps_changed' => 'AI spending caps changed',
     ];
 
     /** Keys left out of the summary: who changed it is already the actor. */
