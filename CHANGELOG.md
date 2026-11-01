@@ -23,6 +23,16 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: packages and prices are edited at `/saas/packages` instead of being
+  fixed in the code. Owner and Finance create draft packages from the product
+  modules, set trial days, activate and retire them, and add prices per learner
+  per month (excluding VAT) from a date: a base price, add-on prices for product
+  modules and discounts. Past prices are kept and never changed, overlapping
+  dates are refused, and the page shows the price on any date. Changing an
+  active package's modules does not change what schools already on it can use
+  until HQ re-applies the package to them, with a reason. Other HQ roles can
+  only look. The four existing packages are copied over unchanged, so no school
+  notices anything. **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
@@ -50,6 +60,7 @@ Earlier history is kept where it was written and is not repeated here:
   applied. The dated cost report at `/platform/ai-costs` is unchanged and
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
+
 - Platform: packages and prices are edited at `/saas/packages` instead of being
   fixed in the code. Owner and Finance create draft packages from the product
   modules, set trial days, activate and retire them, and add prices per learner
@@ -87,6 +98,11 @@ Earlier history is kept where it was written and is not repeated here:
   apps off for a school, but never on where the app does not offer it.
   **Deploy:** run the migrations.
 
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
 - Notifications: school notice emails carry the school's crest, name and
   colour and a plain-text version, and school messages arrive in full in the
   email. Private notices (safeguarding, wellbeing, discipline, progress and
@@ -100,6 +116,7 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+
 
 - HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
   families, how many learners have a guardian the school can reach, sign-ins by

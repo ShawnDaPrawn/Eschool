@@ -24,7 +24,7 @@ declare(strict_types=1);
  *  flags.manage     feature flags: create, roll out, switch schools, kill
  *  ai.view          the AI control centre
  *  ai.manage        switch school AI features (Owner only)
- *  ai.caps          set school AI caps (Owner only)
+ *  ai.caps          set global AI spending caps (Owner only)
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access

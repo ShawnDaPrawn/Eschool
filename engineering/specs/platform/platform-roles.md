@@ -13,7 +13,7 @@ and Owners invite staff by email from HQ.
 | --- | --- |
 | Owner | everything, including managing platform staff |
 | Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; school health; feature flags; AI control centre (view) |
-| Support | see schools; audit log; LURITS claims; incident register; school health |
+| Support | see schools; audit log; LURITS claims; incident register; school health; AI control centre (view) |
 | Finance | see schools; change package; customer records; packages, and edit packages and prices; audit log and its export; school health |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
