@@ -5919,6 +5919,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "A saved audience cannot change between a fixed list and a smart group.",
     "A smart group needs between one and ten rules.": "A smart group needs between one and ten rules.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.",
+    "Remove a calendar link for this learner before making another.": "Remove a calendar link for this learner before making another.",
+    "Exam: :subject": "Exam: :subject",
     "nav_support_access": "Navigate Ed support access",
     "Navigate Ed support access": "Navigate Ed support access",
     "Navigate Ed staff can open your school only when you approve, for a limited time and read-only. They never see wellbeing, counselling, health, safeguarding, discipline, early-warning or support-plan records. Every page they open is listed here.": "Navigate Ed staff can open your school only when you approve, for a limited time and read-only. They never see wellbeing, counselling, health, safeguarding, discipline, early-warning or support-plan records. Every page they open is listed here.",
