@@ -417,6 +417,16 @@ class UrgentMessagingTest extends TestCase
         $this->assertStringNotContainsString(self::TOKEN, json_encode(config('urgent_messaging')));
     }
 
+    public function test_callback_signature_matches_twilio_duplicate_values_and_default_port_vectors(): void
+    {
+        // Fixed vectors from Twilio's documented URL/parameter signing rules,
+        // independent of the application's signature fixture helper.
+        $client = app(TwilioClient::class);
+        $this->assertTrue($client->validSignature(self::CALLBACK, ['Extra' => ['10', '2', '2']], 'ItrR4lbtEDChjfVe1I/XPTYfl88='));
+        $this->assertFalse($client->validSignature(self::CALLBACK, ['Extra' => ['10', '3', '2']], 'ItrR4lbtEDChjfVe1I/XPTYfl88='));
+        $this->assertTrue($client->validSignature(self::CALLBACK, ['MessageStatus' => 'delivered'], 'bZhhL06TkZ0wp5a8vPKTDvoU//Q='));
+    }
+
     public function test_a_signed_status_callback_updates_the_delivery_with_its_segments_and_price(): void
     {
         $row = $this->sentText();

@@ -9,6 +9,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Twilio\Security\RequestValidator;
 
 /**
  * Twilio's Messages API (SMS and WhatsApp) through Laravel's HTTP client, for
@@ -94,9 +95,8 @@ class TwilioClient
     }
 
     /**
-     * Twilio's X-Twilio-Signature for a form-encoded request: base64 of the
-     * HMAC-SHA1, keyed with the auth token, of the full URL followed by each
-     * parameter name and value in name order.
+     * Twilio's SDK validates the exact callback URL and original form values,
+     * including repeated values and the SDK's port compatibility rules.
      *
      * @param  array<string, mixed>  $params
      */
@@ -107,7 +107,7 @@ class TwilioClient
             return false;
         }
 
-        return hash_equals(self::signature($token, $url, $params), $signature);
+        return (new RequestValidator($token))->validate($signature, $url, $params);
     }
 
     /**
@@ -115,17 +115,7 @@ class TwilioClient
      */
     public static function signature(string $token, string $url, array $params): string
     {
-        ksort($params, SORT_STRING);
-        $data = $url;
-        foreach ($params as $name => $value) {
-            $values = is_array($value) ? $value : [$value];
-            sort($values, SORT_STRING);
-            foreach ($values as $one) {
-                $data .= $name.(is_scalar($one) ? (string) $one : '');
-            }
-        }
-
-        return base64_encode(hash_hmac('sha1', $data, $token, true));
+        return (new RequestValidator($token))->computeSignature($url, $params);
     }
 
     /** The exact URL Twilio is given, and therefore signs, for status callbacks. */
