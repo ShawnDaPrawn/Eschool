@@ -5919,6 +5919,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "Izethameli ezilondoloziwe azikwazi ukushintsha phakathi kohlu olungashintshi neqembu elihlakaniphile.",
     "A smart group needs between one and ten rules.": "Iqembu elihlakaniphile lidinga imithetho ephakathi kweyodwa neyishumi.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "Umthetho ubala iqembu elingasasebenzi. Susa lowo mthetho noma ugcine iqembu; imilayezo eya kulo ayikwazi ukuthunyelwa kuze kube yileso sikhathi.",
+    "Remove a calendar link for this learner before making another.": "Susa isixhumanisi sekhalenda salo mfundi ngaphambi kokwenza esinye.",
+    "Exam: :subject": "Isivivinyo: :subject",
     "nav_urgent_messaging": "I-SMS ne-WhatsApp",
     "SMS and WhatsApp": "I-SMS ne-WhatsApp",
     "Urgent notices and absence alerts can also go to guardians by SMS or WhatsApp. Each message is charged to the school at the price NavigateEd pays for it. Both are off until you switch them on here.": "Izaziso eziphuthumayo nezexwayiso zokungabikho nazo zingathunyelwa kubanakekeli nge-SMS noma nge-WhatsApp. Umlayezo ngamunye ukhokhiswa isikole ngentengo uNavigateEd ayikhokhayo. Kokubili kuvaliwe uze ukuvule lapha.",
