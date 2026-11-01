@@ -348,8 +348,8 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::post('/staff/{user}/invitation', [PlatformStaffController::class, 'resend'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.invitation');
 });
 
-// A support session (SA.9): read-only pages of the one school an open grant names. No school.context or
-// platform.staff: support.session checks the grant and platform role on fresh rows, then sets the school.
+// A support session (SA.9): read-only pages of the one school an open grant names.
+// support.session checks the grant and platform sign-in before setting the school; no school.context.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'support.session'])->prefix('support-session/{grant}')->name('support-session.')->group(function () {
     Route::get('/', [SupportSessionController::class, 'show'])->whereNumber('grant')->name('show');
     Route::get('/people', [SupportSessionController::class, 'people'])->whereNumber('grant')->name('people');
