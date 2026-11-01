@@ -111,6 +111,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhook/*',
             // Browsers send content security policy reports without a token.
             'csp-report',
+            // One-click unsubscribe (RFC 8058): mail providers POST to the signed link.
+            'email/unsubscribe/*',
         ]);
 
         // Every request starts with no school; school.context chooses it.

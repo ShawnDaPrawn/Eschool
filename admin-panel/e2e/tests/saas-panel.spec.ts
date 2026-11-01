@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -8,6 +9,22 @@ function fixture(action = 'initial'): { email: string } {
   return JSON.parse(execFileSync('php', ['artisan', 'tinker', '--execute', "echo json_encode(require base_path('e2e/support/saas-fixture.php'));"], {
     cwd: path.resolve(process.cwd(), '..'), encoding: 'utf8', env: { ...process.env, SAAS_FIXTURE_ACTION: action },
   }).trim());
+}
+
+// Test-side authenticator for the setup key shown to this synthetic operator.
+function authenticatorCode(setupKey: string): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const bits = setupKey.replace(/\s/g, '').split('').map(char => {
+    const value = alphabet.indexOf(char);
+    if (value < 0) throw new Error('Invalid authenticator setup key');
+    return value.toString(2).padStart(5, '0');
+  }).join('');
+  const key = Buffer.from(bits.match(/.{8}/g)!.map(byte => parseInt(byte, 2)));
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
+  const digest = createHmac('sha1', key).update(counter).digest();
+  const offset = digest[digest.length - 1] & 15;
+  return String((digest.readUInt32BE(offset) & 0x7fffffff) % 1000000).padStart(6, '0');
 }
 
 test.describe.configure({ mode: 'serial' });
@@ -33,6 +50,17 @@ for (const width of [390, 820, 1280]) {
     await page.getByLabel('Confirm new password', { exact: true }).fill('Synthetic-platform-rotated-password-674!');
     expect(await seriousViolations(page)).toEqual([]);
     await page.getByRole('button', { name: 'Change password', exact: true }).click();
+    await expect(page).toHaveURL(/\/saas\/two-factor$/);
+    await expect(page.getByRole('heading', { name: 'Set up two-factor sign-in', exact: true })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+    const setupKey = await page.getByLabel('Setup key', { exact: true }).innerText();
+    await page.getByLabel('Your current password', { exact: true }).fill('Synthetic-platform-rotated-password-674!');
+    await page.getByLabel('6-digit code', { exact: true }).fill(authenticatorCode(setupKey));
+    await page.getByRole('button', { name: 'Turn on two-factor sign-in', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Two-factor sign-in is on', exact: true })).toBeVisible();
+    await expect(page.locator('.saas-codes li')).toHaveCount(10);
+    await page.getByRole('link', { name: 'I have saved my codes. Continue', exact: true }).click();
     await expect(page).toHaveURL(/\/saas$/);
     await expect(page.getByRole('heading', { name: 'Schools', exact: true })).toBeVisible();
     expect(await page.locator('main').innerText()).not.toContain('@');

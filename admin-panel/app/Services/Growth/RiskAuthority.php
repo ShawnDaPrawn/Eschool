@@ -79,8 +79,13 @@ class RiskAuthority
 
     public function currentGrade(int $learner, int $year): int
     {
+        return $this->gradeOn($learner, $year, app(AcademicAuthority::class)->today());
+    }
+
+    /** The learner's grade from their enrolment in the year on $date. */
+    public function gradeOn(int $learner, int $year, string $date): int
+    {
         Students::findOrFail($learner);
-        $date = app(AcademicAuthority::class)->today();
         $enrolment = Enrolment::where('learner_id', $learner)->where('session_year_id', $year)->onDate($date)
             ->with('homeroom.class')->orderByDesc('starts_on')->firstOrFail();
         $grade = $enrolment->homeroom?->class?->grade_level_id;
@@ -123,6 +128,30 @@ class RiskAuthority
             ?? Intervention::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id');
         $grade ??= $this->currentGrade($learner, $year);
         abort_unless($authority->currentLeadership($fresh, 'grade_head', (int) $grade), 403);
+
+        return $fresh;
+    }
+
+    /**
+     * administer() for a grant that starts on $date in $year, used only by
+     * caseload renewals (Action Plan 1.20). The principal or grade-head
+     * appointment must belong to $year and cover $date, and without early-warning
+     * history in $year the learner's grade is read on $date. Every other caller
+     * keeps administer(), which reads today.
+     */
+    public function administerOn(User $actor, int $learner, int $year, string $date): User
+    {
+        $fresh = $this->actor($actor);
+        $this->year($year);
+        Students::findOrFail($learner);
+        $authority = app(AcademicAuthority::class);
+        if ($authority->leads($fresh, 'principal', 0, $year, $date)) {
+            return $fresh;
+        }
+        $grade = RiskObservation::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id')
+            ?? Intervention::where('learner_id', $learner)->where('session_year_id', $year)->latest('id')->value('grade_level_id')
+            ?? $this->gradeOn($learner, $year, $date);
+        abort_unless($authority->leads($fresh, 'grade_head', (int) $grade, $year, $date), 403);
 
         return $fresh;
     }

@@ -15,22 +15,35 @@ use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 /** School actions, distinct from clinical case notes; bodies are current-owner only. */
 class Interventions
 {
     public const META = ['id', 'learner_id', 'session_year_id', 'grade_level_id', 'owner_id', 'created_by', 'owner_authority', 'started_on', 'review_on', 'state', 'revision', 'updated_at'];
 
-    public function assign(User $actor, int $learner, int $year, int $professional, array $input): array
+    /**
+     * $authorityOn is for caseload renewals only (RiskAuthority::administerOn):
+     * authority is checked for a grant starting on that date. Everyone else
+     * leaves it null and is checked as of today.
+     */
+    public function assign(User $actor, int $learner, int $year, int $professional, array $input, ?string $authorityOn = null): array
     {
-        app(RiskAuthority::class)->administer($actor, $learner, $year);
+        $administer = fn () => $authorityOn === null ? app(RiskAuthority::class)->administer($actor, $learner, $year)
+            : app(RiskAuthority::class)->administerOn($actor, $learner, $year, $authorityOn);
+        $administer();
         app(SensitiveRecordsAccess::class)->actor(User::findOrFail($professional));
         $data = Validator::make($input, ['starts_on' => ['required', 'date_format:Y-m-d'],
             'ends_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:starts_on'], 'expected_revision' => ['required', 'integer', 'min:0']])->validate();
+        // A grant belongs to its year: it may not start before it or run past it.
+        $bounds = SessionYear::withTrashed()->findOrFail($year);
+        if ($data['starts_on'] < substr((string) $bounds->start_date, 0, 10) || $data['ends_on'] > substr((string) $bounds->end_date, 0, 10)) {
+            throw ValidationException::withMessages(['starts_on' => __('Choose grant dates within the school year.')]);
+        }
 
-        return DB::transaction(function () use ($actor, $learner, $year, $professional, $data) {
+        return DB::transaction(function () use ($learner, $year, $professional, $data, $administer) {
             School::lockForUpdate()->findOrFail(app(CurrentSchool::class)->id());
-            app(RiskAuthority::class)->administer($actor, $learner, $year);
+            $administer();
             app(SensitiveRecordsAccess::class)->actor(User::findOrFail($professional));
             $row = RiskCaseload::where('learner_id', $learner)->where('session_year_id', $year)->where('professional_id', $professional)->lockForUpdate()->first();
             abort_unless((int) ($row?->revision ?? 0) === (int) $data['expected_revision'], 409, 'The risk caseload changed. Reload before saving.');
