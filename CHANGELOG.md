@@ -70,6 +70,10 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+
+- Academics: a learner or guardian can subscribe their calendar app to the
+  learner's exams, and optionally the next four weeks of lessons, through a
+  secret link they can revoke at any time. **Deploy:** run the migrations.
 - Admin panel and Platform: a support desk. A school's Super Admin, or office
   staff who look after the settings, open a support ticket to Navigate Ed
   under Settings > Navigate Ed support (a question, a problem, a request or
