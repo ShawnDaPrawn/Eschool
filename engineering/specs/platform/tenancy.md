@@ -281,6 +281,12 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### HQ two-factor sign-in
+
+`platform_staff_two_factor` is global: a platform staff member's own authenticator
+app (encrypted secret, hashed recovery codes), read and written only by the
+two-factor pages, the HQ staff page and the operator console. Platform staff
+belong to no school ([two-factor sign-in](hq-two-factor.md)).
 ### Support access
 
 `support_access_grants` and `support_access_views` are required school-owned

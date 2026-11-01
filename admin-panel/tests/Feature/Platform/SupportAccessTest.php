@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -41,6 +42,7 @@ use Tests\TestCase;
  */
 class SupportAccessTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const REASON = 'Ticket 4411: the school says new staff cannot sign in after their invitation.';
@@ -129,12 +131,35 @@ class SupportAccessTest extends TestCase
         return array_map('intval', json_decode((string) $event->payload, true)['user_ids']);
     }
 
+    /** Each actor has a separate browser; HQ actors pass the real session-proof fixture. */
+    private function actingAsSupportUser(User $user): static
+    {
+        $this->newBrowserSession();
+
+        return PlatformStaffIdentity::where('user_id', $user->id)->exists()
+            ? $this->actingAsHq($user)
+            : $this->actingAs($user);
+    }
+
+    public function test_support_session_requires_two_factor_before_any_school_view(): void
+    {
+        $support = $this->staff('support');
+        $id = $this->forced($support, 'active');
+        $this->newBrowserSession();
+        $this->actingAs($support)->get('/support-session/'.$id)->assertRedirect(route('saas.two-factor.enrol'));
+        $this->assertSame(0, $this->views());
+        $this->getJson('/support-session/'.$id)->assertForbidden();
+        $this->assertSame(0, $this->views());
+        $this->actingAsHq($support)->get('/support-session/'.$id)->assertOk();
+        $this->assertSame(1, $this->views());
+    }
+
     public function test_support_asks_the_school_approves_every_page_viewed_is_logged_and_the_session_expires(): void
     {
         $support = $this->staff('support');
         $admin = $this->superAdmin();
         $tara = $this->schoolA->ids['tara_user'];
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $this->get('/saas/support')->assertOk()->assertSee('Ask a school for access');
 
         $id = $this->ask();
@@ -153,7 +178,7 @@ class SupportAccessTest extends TestCase
         $this->get('/support-session/'.$id)->assertForbidden();
         $this->assertSame(0, $this->views());
 
-        $this->actingAs($admin);
+        $this->actingAsSupportUser($admin);
         $this->get('/support-access')->assertOk()->assertSee('Waiting for your decision')->assertSee('Support Operator')->assertSee('Ticket 4411')
             ->assertDontSee('support@platform.example');
         $this->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access')->assertSessionHas('success');
@@ -164,7 +189,7 @@ class SupportAccessTest extends TestCase
         $this->assertSame(0, DB::table('school_memberships')->where('user_id', $support->id)->count());
         $this->assertSame(0, DB::table('model_has_roles')->where('model_id', $support->id)->count());
 
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $this->get('/support-session/'.$id)->assertOk()->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Read-only support session')->assertSee((string) DB::table('schools')->where('id', 1)->value('name'))->assertDontSee(self::SCHOOL_B_MARKER);
         $this->get('/support-session/'.$id.'/people')->assertOk()->assertSee('Tara')->assertDontSee(self::SCHOOL_B_MARKER);
@@ -192,20 +217,20 @@ class SupportAccessTest extends TestCase
         $this->get('/saas/audit?school=1')->assertOk()->assertSee('Page viewed in a support session')->assertSee('Support access approved by the school');
 
         // The school sees its history and the viewed pages.
-        $this->actingAs($admin);
+        $this->actingAsSupportUser($admin);
         $this->get('/support-access')->assertOk()->assertSee('Open now')->assertSee('See the 4 pages viewed');
         $this->get('/support-access/'.$id)->assertOk()->assertSee('One account')->assertSee('person #'.$tara)->assertSee('People search')
             ->assertSee('1 account listed')->assertDontSee('Farid');
 
         // It expires by itself: refused afterwards, and nothing more is logged.
         $this->travel(61)->minutes();
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $before = $this->state();
         $this->get('/support-session/'.$id)->assertForbidden();
         $this->get('/support-session/'.$id.'/people/'.$tara)->assertForbidden();
         $this->assertSame($before, $this->state());
         $this->assertSame('expired', $this->grant($id)->state());
-        $this->actingAs($admin);
+        $this->actingAsSupportUser($admin);
         $this->get('/support-access')->assertOk()->assertSee('No support session is open')->assertSee('Expired');
     }
 
@@ -214,13 +239,13 @@ class SupportAccessTest extends TestCase
         $support = $this->staff('support');
         $owner = $this->staff('owner');
         $admin = $this->superAdmin();
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask();
 
         // Support cannot override, and an Owner must give a reason.
         $before = $this->state();
         $this->post('/saas/support/'.$id.'/emergency', ['emergency_reason' => 'The school is offline and exams start in an hour.'])->assertForbidden();
-        $this->actingAs($owner);
+        $this->actingAsSupportUser($owner);
         $this->post('/saas/support/'.$id.'/emergency', [])->assertSessionHasErrors('emergency_reason');
         $this->post('/saas/support/'.$id.'/emergency', ['emergency_reason' => 'Too short'])->assertSessionHasErrors('emergency_reason');
         $this->assertSame($before, $this->state());
@@ -240,20 +265,20 @@ class SupportAccessTest extends TestCase
 
         // The requester opens it; the Owner who overrode it cannot use someone else's grant.
         $this->get('/support-session/'.$id)->assertNotFound();
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $this->get('/support-session/'.$id)->assertOk()->assertSee('Opened by emergency override.');
 
-        $this->actingAs($admin);
+        $this->actingAsSupportUser($admin);
         $this->get('/support-access')->assertOk()->assertSee('Opened by a Navigate Ed emergency override, without your approval.')
             ->assertSee('Emergency reason: The school office cannot be reached');
         $this->get('/support-access/'.$id)->assertOk()->assertSee('Emergency reason: The school office cannot be reached');
 
         // A request the school declined cannot be overridden.
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $second = $this->ask(self::SCHOOL_B_ID, ['reason' => 'Ticket 4412: the timetable page shows the wrong week for Grade 5.']);
         $this->post('/saas/support/'.$second.'/end')->assertRedirect();
         $declined = $this->forced($support, 'declined');
-        $this->actingAs($owner);
+        $this->actingAsSupportUser($owner);
         $before = $this->state();
         $this->post('/saas/support/'.$declined.'/emergency', ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'])->assertStatus(409);
         $this->post('/saas/support/'.$second.'/emergency', ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'])->assertStatus(409);
@@ -264,25 +289,25 @@ class SupportAccessTest extends TestCase
     {
         $support = $this->staff('support');
         $admin = $this->superAdmin();
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask();
-        $this->actingAs($admin)->post('/support-access/'.$id.'/approve')->assertRedirect();
-        $this->actingAs($support)->get('/support-session/'.$id)->assertOk();
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$id.'/approve')->assertRedirect();
+        $this->actingAsSupportUser($support)->get('/support-session/'.$id)->assertOk();
 
-        $this->actingAs($admin)->post('/support-access/'.$id.'/end')->assertRedirect('/support-access');
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$id.'/end')->assertRedirect('/support-access');
         $this->assertSame(['ended', 'school', (int) $admin->id], [$this->grant($id)->state(), $this->grant($id)->ended_side, $this->grant($id)->ended_by]);
-        $this->actingAs($support)->get('/support-session/'.$id)->assertForbidden();
-        $this->actingAs($admin)->post('/support-access/'.$id.'/end')->assertStatus(409);
+        $this->actingAsSupportUser($support)->get('/support-session/'.$id)->assertForbidden();
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$id.'/end')->assertStatus(409);
 
         // Ending it starts the school's cool-down: no new request for a day.
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $before = $this->state();
         $this->post('/saas/support', ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'])->assertStatus(409);
         $this->assertSame($before, $this->state());
         $this->travel(25)->hours();
         $second = $this->ask();
-        $this->actingAs($admin)->post('/support-access/'.$second.'/approve')->assertRedirect();
-        $this->actingAs($support)->post('/saas/support/'.$second.'/end')->assertRedirect('/saas/support/'.$second);
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$second.'/approve')->assertRedirect();
+        $this->actingAsSupportUser($support)->post('/saas/support/'.$second.'/end')->assertRedirect('/saas/support/'.$second);
         $this->assertSame(['ended', 'staff'], [$this->grant($second)->state(), $this->grant($second)->ended_side]);
         $this->get('/support-session/'.$second)->assertForbidden();
 
@@ -290,7 +315,7 @@ class SupportAccessTest extends TestCase
         $third = $this->ask();
         $this->post('/saas/support/'.$third.'/end')->assertRedirect();
         $this->assertSame('withdrawn', $this->grant($third)->state());
-        $this->actingAs($admin)->post('/support-access/'.$third.'/approve')->assertStatus(409);
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$third.'/approve')->assertStatus(409);
         $this->assertSame('withdrawn', $this->grant($third)->state());
         $this->assertSame(1, DB::table('audit_log')->where('action', 'platform_support_access_ended')->where('after->side', 'school')->count());
     }
@@ -305,7 +330,7 @@ class SupportAccessTest extends TestCase
         $ended = $this->forced($support, 'active', ['status' => 'ended', 'ended_at' => now()]);
         $lapsed = $this->forced($support, 'pending', ['requested_at' => now()->subHours(25)]);
         $othersOpen = $this->forced($other, 'active');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
 
         $before = $this->state();
         $this->get('/support-session/999999')->assertNotFound();
@@ -319,7 +344,7 @@ class SupportAccessTest extends TestCase
         $this->assertSame($before, $this->state());
 
         // A lapsed request cannot be approved any more.
-        $this->actingAs($this->superAdmin())->post('/support-access/'.$lapsed.'/approve')->assertStatus(409);
+        $this->actingAsSupportUser($this->superAdmin())->post('/support-access/'.$lapsed.'/approve')->assertStatus(409);
         $this->assertSame($before, $this->state());
         // Signed out: the sign-in page, and nothing logged.
         auth()->logout();
@@ -331,7 +356,7 @@ class SupportAccessTest extends TestCase
     {
         $support = $this->staff('support');
         $id = $this->forced($support, 'active');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $baobabFarid = $this->schoolB->ids['farid_user'];
 
         $before = $this->state();
@@ -388,7 +413,7 @@ class SupportAccessTest extends TestCase
             })->whereNumber('grant')->name('support-session.probe-write');
         app('router')->getRoutes()->refreshNameLookups();
         $modules = DB::table('school_modules')->where('school_id', 1)->orderBy('id')->get()->map(fn ($r) => (array) $r)->all();
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
 
         $before = $this->state();
         foreach (['post', 'put', 'patch', 'delete'] as $method) {
@@ -431,7 +456,7 @@ class SupportAccessTest extends TestCase
                 return response('reached '.$kind);
             })->whereNumber('grant')->name('support-session.probe');
         app('router')->getRoutes()->refreshNameLookups();
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
 
         $before = $this->state();
         foreach (['wellbeing', 'risk', 'risk-actor', 'support-plans', 'counselling', 'discipline', 'health', 'learner-notes'] as $kind) {
@@ -439,7 +464,7 @@ class SupportAccessTest extends TestCase
         }
         // The school's own pages for them are never reachable by the staff member either.
         foreach (['/wellbeing', '/risk-interventions', '/support-plans', '/school-discipline'] as $page) {
-            $this->assertNotSame(200, $this->actingAs($support)->get($page)->getStatusCode(), $page);
+            $this->assertNotSame(200, $this->actingAsSupportUser($support)->get($page)->getStatusCode(), $page);
         }
         $this->assertSame($before, $this->state());
 
@@ -466,7 +491,7 @@ class SupportAccessTest extends TestCase
         foreach (['sales', 'finance', 'content'] as $role) {
             $staff = $this->staff($role);
             $id = $this->forced($staff, 'active');
-            $this->actingAs($staff);
+            $this->actingAsSupportUser($staff);
             $before = $this->state();
             $this->get('/saas/support')->assertForbidden();
             $this->get('/saas/support/'.$id)->assertForbidden();
@@ -481,7 +506,7 @@ class SupportAccessTest extends TestCase
         // A Support member moved to Sales mid-session is refused at the next page.
         $support = $this->staff('support');
         $id = $this->forced($support, 'active');
-        $this->actingAs($support)->get('/support-session/'.$id)->assertOk();
+        $this->actingAsSupportUser($support)->get('/support-session/'.$id)->assertOk();
         PlatformAdminGrant::query()->where('user_id', $support->id)->update(['role' => 'sales']);
         $before = $this->state();
         $this->get('/support-session/'.$id)->assertForbidden();
@@ -489,7 +514,7 @@ class SupportAccessTest extends TestCase
 
         // School accounts never reach HQ's side or a session.
         foreach ([$this->superAdmin(), User::acrossSchools()->findOrFail($this->schoolA->ids['tara_user'])] as $schoolUser) {
-            $this->actingAs($schoolUser);
+            $this->actingAsSupportUser($schoolUser);
             $this->get('/saas/support')->assertForbidden();
             $this->post('/saas/support', ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'])->assertForbidden();
             $this->get('/support-session/'.$id)->assertForbidden();
@@ -500,12 +525,12 @@ class SupportAccessTest extends TestCase
     public function test_a_school_cannot_see_or_decide_another_schools_requests_and_only_its_super_admin_decides(): void
     {
         $support = $this->staff('support');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask(1);
         $before = $this->state();
 
         // School B's Super Admin: not listed, not found, not decided.
-        $this->actingAs($this->adminB);
+        $this->actingAsSupportUser($this->adminB);
         $this->get('/support-access')->assertOk()->assertSee('No request is waiting')->assertDontSee('Ticket 4411')->assertDontSee('Support Operator');
         $this->get('/support-access/'.$id)->assertNotFound();
         foreach (['approve', 'decline', 'end'] as $action) {
@@ -518,7 +543,7 @@ class SupportAccessTest extends TestCase
         $this->assertSame($before, $this->state());
 
         // In School A, a teacher cannot decide or see it.
-        $this->actingAs(User::acrossSchools()->findOrFail($this->schoolA->ids['tara_user']));
+        $this->actingAsSupportUser(User::acrossSchools()->findOrFail($this->schoolA->ids['tara_user']));
         $this->get('/support-access')->assertForbidden();
         $this->get('/support-access/'.$id)->assertForbidden();
         $this->post('/support-access/'.$id.'/approve')->assertForbidden();
@@ -527,19 +552,19 @@ class SupportAccessTest extends TestCase
         // Nor can a platform staff account that also holds School A's Super Admin role approve its own request.
         app(CurrentSchool::class)->run(1, fn () => $support->assignRole('Super Admin'));
         app(CurrentSchool::class)->forget();
-        $this->actingAs($support)->post('/support-access/'.$id.'/approve')->assertForbidden();
+        $this->actingAsSupportUser($support)->post('/support-access/'.$id.'/approve')->assertForbidden();
         $this->assertSame('pending', $this->grant($id)->state());
 
         // School A's Super Admin decides, and School B's history stays empty.
-        $this->actingAs($this->superAdmin())->post('/support-access/'.$id.'/decline')->assertRedirect('/support-access');
+        $this->actingAsSupportUser($this->superAdmin())->post('/support-access/'.$id.'/decline')->assertRedirect('/support-access');
         $this->assertSame('declined', $this->grant($id)->state());
-        $this->actingAs($this->adminB)->get('/support-access')->assertOk()->assertSee('No history yet');
+        $this->actingAsSupportUser($this->adminB)->get('/support-access')->assertOk()->assertSee('No history yet');
     }
 
     public function test_requests_are_validated_and_one_open_request_per_school(): void
     {
         $support = $this->staff('support');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $before = $this->state();
         $valid = ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
         $this->post('/saas/support', ['reason' => 'Too short'] + $valid)->assertSessionHasErrors('reason');
@@ -565,21 +590,21 @@ class SupportAccessTest extends TestCase
         $admin = $this->superAdmin();
         $valid = ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
         $override = ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'];
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $first = $this->ask();
-        $this->actingAs($admin)->post('/support-access/'.$first.'/decline')->assertRedirect();
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$first.'/decline')->assertRedirect();
 
         // (a) Nobody may ask the school again during the cool-down.
         $before = $this->state();
         foreach ([$other, $owner, $support] as $staff) {
-            $this->actingAs($staff)->post('/saas/support', $valid)->assertStatus(409);
+            $this->actingAsSupportUser($staff)->post('/saas/support', $valid)->assertStatus(409);
         }
         $this->assertSame($before, $this->state());
 
         $this->travel((int) config('support_access.refusal_cooldown_hours') + 1)->hours();
-        $this->actingAs($other);
+        $this->actingAsSupportUser($other);
         $second = $this->ask();
-        $this->actingAs($owner);
+        $this->actingAsSupportUser($owner);
         $own = $this->ask();
 
         // (b) An override needs the request to have waited for the school first.
@@ -600,12 +625,12 @@ class SupportAccessTest extends TestCase
         $this->assertSame($first, $audit['earlier_refusal']['grant_id']);
 
         // (a) An override is refused too while the school's refusal is recent.
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $third = $this->ask();
-        $this->actingAs($admin)->post('/support-access/'.$own.'/decline')->assertRedirect();
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$own.'/decline')->assertRedirect();
         $this->travel((int) config('support_access.override_after_minutes') + 1)->minutes();
         $before = $this->state();
-        $this->actingAs($owner)->post('/saas/support/'.$third.'/emergency', $override)->assertStatus(409);
+        $this->actingAsSupportUser($owner)->post('/saas/support/'.$third.'/emergency', $override)->assertStatus(409);
         $this->assertSame($before, $this->state());
     }
 
@@ -615,7 +640,7 @@ class SupportAccessTest extends TestCase
         $id = $this->forced($support, 'active');
         $farid = User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user']);
         $asha = User::acrossSchools()->findOrFail($this->schoolA->ids['asha_user']);
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
 
         // Staff by part of a name; learners and parents never by a fragment.
         $this->post('/support-session/'.$id.'/people', ['q' => 'Tar'])->assertOk()->assertSee('Tara');
@@ -641,7 +666,7 @@ class SupportAccessTest extends TestCase
         $this->assertStringNotContainsString(substr($asha->email, 0, 6), $stored);
         $this->assertStringContainsString((string) $farid->id, (string) DB::table('audit_log')->where('action', 'platform_support_page_viewed')->orderBy('id')->skip(3)->first()->after);
 
-        $this->actingAs($this->superAdmin())->get('/support-access/'.$id)->assertOk()->assertSee('1 account listed')->assertSee('No accounts listed');
+        $this->actingAsSupportUser($this->superAdmin())->get('/support-access/'.$id)->assertOk()->assertSee('1 account listed')->assertSee('No accounts listed');
     }
 
     public function test_refused_session_attempts_are_logged_and_cross_site_requests_refused(): void
@@ -649,7 +674,7 @@ class SupportAccessTest extends TestCase
         $support = $this->staff('support');
         $pending = $this->forced($support, 'pending');
         $open = $this->forced($support, 'active');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         Log::spy();
 
         $before = $this->state();
@@ -674,14 +699,14 @@ class SupportAccessTest extends TestCase
         DB::table('school_memberships')->where('school_id', self::SCHOOL_B_ID)->where('role', 'Super Admin')->update(['status' => 'ended']);
         $support = $this->staff('support');
         $owner = $this->staff('owner');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask(self::SCHOOL_B_ID);
         $this->get('/saas/support/'.$id)->assertOk()->assertSee('Nobody at this school can approve it');
         $this->get('/saas/support')->assertOk()->assertSee('Nobody at this school can approve it');
 
         $this->travel((int) config('support_access.override_after_minutes') + 1)->minutes();
         $before = $this->state();
-        $this->actingAs($owner)->post('/saas/support/'.$id.'/emergency', ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'])->assertStatus(409);
+        $this->actingAsSupportUser($owner)->post('/saas/support/'.$id.'/emergency', ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'])->assertStatus(409);
         $this->assertSame($before, $this->state());
         $this->assertSame('pending', $this->grant($id)->state());
     }
@@ -708,14 +733,14 @@ class SupportAccessTest extends TestCase
         $this->assertFalse($school->isSet());
 
         // A request after a session starts clean.
-        $this->actingAs($support)->get('/support-session/'.$id)->assertOk();
+        $this->actingAsSupportUser($support)->get('/support-session/'.$id)->assertOk();
         $this->assertFalse(app(CurrentSchool::class)->isSupportSession());
     }
 
     public function test_the_requester_can_never_decide_their_own_request(): void
     {
         $support = $this->staff('support');
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask();
         // No longer platform staff, and now a Super Admin of the school.
         PlatformStaffIdentity::query()->where('user_id', $support->id)->update(['active' => false]);
@@ -723,7 +748,7 @@ class SupportAccessTest extends TestCase
         app(CurrentSchool::class)->forget();
 
         $before = $this->state();
-        $this->actingAs($support)->post('/support-access/'.$id.'/approve')->assertForbidden();
+        $this->actingAsSupportUser($support)->post('/support-access/'.$id.'/approve')->assertForbidden();
         $this->post('/support-access/'.$id.'/decline')->assertForbidden();
         $this->assertSame($before, $this->state());
         $this->assertSame('pending', $this->grant($id)->state());
@@ -793,13 +818,13 @@ class SupportAccessTest extends TestCase
         $owner = $this->staff('owner');
         $admin = $this->superAdmin();
         $this->travelTo(CarbonImmutable::parse('2026-10-30T06:00:00Z'));
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $ended = $this->ask(1, ['minutes' => 240]);
-        $this->actingAs($other);
+        $this->actingAsSupportUser($other);
         $declined = $this->ask();
-        $this->actingAs($waiting);
+        $this->actingAsSupportUser($waiting);
         $pending = $this->ask();
-        $this->actingAs($admin)->post('/support-access/'.$ended.'/approve')->assertRedirect();
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$ended.'/approve')->assertRedirect();
 
         $this->travelTo(CarbonImmutable::parse('2026-10-30T07:00:00Z'));
         $this->post('/support-access/'.$declined.'/decline')->assertRedirect();
@@ -812,8 +837,8 @@ class SupportAccessTest extends TestCase
         $input = ['school_id' => 1, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
         $override = ['emergency_reason' => 'The school office cannot be reached and report cards fail to send.'];
         $before = $this->state();
-        $this->actingAs($support)->post('/saas/support', $input)->assertStatus(409);
-        $this->actingAs($owner)->post('/saas/support/'.$pending.'/emergency', $override)->assertStatus(409);
+        $this->actingAsSupportUser($support)->post('/saas/support', $input)->assertStatus(409);
+        $this->actingAsSupportUser($owner)->post('/saas/support/'.$pending.'/emergency', $override)->assertStatus(409);
         $this->assertSame($before, $this->state());
         $earlier = app(SupportAccess::class)->hqShow($owner, $pending)['grant']['earlier_refusal'];
         $this->assertSame($ended, $earlier['id']);
@@ -821,8 +846,8 @@ class SupportAccessTest extends TestCase
 
         // At exactly 24 hours after the termination both actions are permitted.
         $this->travelTo(CarbonImmutable::parse('2026-10-31T09:00:00Z'));
-        $this->actingAs($support)->post('/saas/support', $input)->assertRedirect()->assertSessionHasNoErrors();
-        $this->actingAs($owner)->post('/saas/support/'.$pending.'/emergency', $override)->assertRedirect('/saas/support/'.$pending);
+        $this->actingAsSupportUser($support)->post('/saas/support', $input)->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAsSupportUser($owner)->post('/saas/support/'.$pending.'/emergency', $override)->assertRedirect('/saas/support/'.$pending);
         $this->assertSame('active', $this->grant($pending)->state());
         $audit = json_decode((string) DB::table('audit_log')->where('action', 'platform_support_access_emergency')->sole()->after, true);
         $this->assertSame($ended, $audit['earlier_refusal']['grant_id']);
@@ -844,19 +869,19 @@ class SupportAccessTest extends TestCase
         $this->schoolInAuckland();
         $support = $this->staff('support');
         $admin = $this->adminB;
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask(self::SCHOOL_B_ID);
         $this->assertSame(SupportAccess::TIMEZONE, config('app.timezone'), 'HQ retains its own clock');
         $this->assertSame('2026-10-30 06:00:00', DB::table('support_access_grants')->where('id', $id)->value('requested_at'));
 
-        $this->actingAs($admin)->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access');
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$id.'/approve')->assertRedirect('/support-access');
         $row = DB::table('support_access_grants')->where('id', $id)->first();
         $this->assertSame('2026-10-30 06:00:00', $row->starts_at);
         $this->assertSame('2026-10-30 07:00:00', $row->expires_at);
         $this->get('/support-access/'.$id)->assertOk()->assertSee('2026-10-30 20:00');
 
         // HQ checks the grant before entering the school's timezone: it opens immediately, never hours later.
-        $this->actingAs($support)->get('/support-session/'.$id)->assertOk();
+        $this->actingAsSupportUser($support)->get('/support-session/'.$id)->assertOk();
         $this->assertSame('2026-10-30 06:00:00', DB::table('support_access_views')->where('grant_id', $id)->value('viewed_at'));
         $this->assertSame([$id], array_column(app(SupportAccess::class)->hqList($support)['open'], 'id'));
         $this->travelTo(CarbonImmutable::parse('2026-10-30T06:59:59Z'));
@@ -873,15 +898,15 @@ class SupportAccessTest extends TestCase
         $this->schoolInAuckland();
         $support = $this->staff('support');
         $admin = $this->adminB;
-        $this->actingAs($support);
+        $this->actingAsSupportUser($support);
         $id = $this->ask(self::SCHOOL_B_ID);
         $this->travelTo(CarbonImmutable::parse('2026-10-31T05:59:59Z'));
         // The school's clock is already thirteen hours ahead, but this request has not waited 24 real hours.
-        $this->actingAs($admin)->post('/support-access/'.$id.'/decline')->assertRedirect('/support-access');
+        $this->actingAsSupportUser($admin)->post('/support-access/'.$id.'/decline')->assertRedirect('/support-access');
         $this->assertSame('2026-10-31 05:59:59', DB::table('support_access_grants')->where('id', $id)->value('decided_at'));
         $this->travelTo(CarbonImmutable::parse('2026-11-01T05:59:58Z'));
         $input = ['school_id' => self::SCHOOL_B_ID, 'reason' => self::REASON, 'minutes' => 60, 'scope' => 'read'];
-        $this->actingAs($support)->post('/saas/support', $input)->assertStatus(409);
+        $this->actingAsSupportUser($support)->post('/saas/support', $input)->assertStatus(409);
         $this->travelTo(CarbonImmutable::parse('2026-11-01T05:59:59Z'));
         $this->post('/saas/support', $input)->assertRedirect()->assertSessionHasNoErrors();
     }
@@ -898,7 +923,7 @@ class SupportAccessTest extends TestCase
                 'expires_at' => $i % 2 === 0 ? $old->copy()->addHour() : null, 'created_at' => $old, 'updated_at' => $old];
         }
         DB::table('support_access_grants')->insert($rows);
-        $this->actingAs($other);
+        $this->actingAsSupportUser($other);
         $id = $this->ask();
 
         $open = app(SupportAccess::class)->hqList($other)['open'];

@@ -74,6 +74,15 @@ Earlier history is kept where it was written and is not repeated here:
 - Academics: a learner or guardian can subscribe their calendar app to the
   learner's exams, and optionally the next four weeks of lessons, through a
   secret link they can revoke at any time. **Deploy:** run the migrations.
+- Platform: HQ (`/saas`) now needs two-factor sign-in. Every Navigate Ed staff
+  member sets up an authenticator app (Google Authenticator, Microsoft
+  Authenticator, 1Password and others) and gets ten single-use recovery codes.
+  After that, each sign-in asks for a code from the app before any HQ page
+  opens. An Owner can reset someone's two-factor sign-in from the staff page
+  with a reason; the operator console command `platform:reset-two-factor
+  {email}` is the break-glass for an Owner's own. School accounts are not
+  affected. **Deploy:** run the migrations. Every platform staff member sets
+  up their app at their next HQ sign-in.
 - Platform and Admin panel: audited support access. Navigate Ed Support,
   Operations and Owner staff ask a school for access at `/saas/support`, with a
   reason and a length of up to four hours. The school's Super Admins are told

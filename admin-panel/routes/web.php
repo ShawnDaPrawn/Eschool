@@ -127,6 +127,7 @@ use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformStaffController;
+use App\Http\Controllers\Platform\PlatformTwoFactorController;
 use App\Http\Controllers\Platform\PlatformSupportAccessController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
@@ -275,6 +276,16 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
     Route::post('saas/password', [HomeController::class, 'changePassword'])->middleware('throttle:password')->name('saas.password.store');
 });
 
+// Two-factor sign-in for platform staff (SA.2): set up the authenticator app,
+// then pass the challenge once in each session. Every other /saas page waits
+// for it (platform.staff); these pages are the only ones open before it.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:two-factor'])->prefix('saas/two-factor')->name('saas.two-factor.')->group(function () {
+    Route::get('/', [PlatformTwoFactorController::class, 'enrol'])->name('enrol');
+    Route::post('/', [PlatformTwoFactorController::class, 'confirm'])->middleware('throttle:20,1')->name('confirm');
+    Route::get('/challenge', [PlatformTwoFactorController::class, 'challenge'])->name('challenge');
+    Route::post('/challenge', [PlatformTwoFactorController::class, 'verify'])->middleware('throttle:20,1')->name('verify');
+});
+
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
 // One-click unsubscribe from an optional notice email (Action Plan 2.4, RFC 8058): the
 // signature is the authority, so the POST takes no session or CSRF token.
@@ -346,10 +357,11 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/staff/{user}', [PlatformStaffController::class, 'update'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.update');
     Route::post('/staff/{user}/revoke', [PlatformStaffController::class, 'revoke'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.revoke');
     Route::post('/staff/{user}/invitation', [PlatformStaffController::class, 'resend'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.invitation');
+    Route::post('/staff/{user}/two-factor/reset', [PlatformStaffController::class, 'resetTwoFactor'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.two-factor.reset');
 });
 
-// A support session (SA.9): read-only pages of the one school an open grant names. No school.context or
-// platform.staff: support.session checks the grant and platform role on fresh rows, then sets the school.
+// A support session (SA.9): read-only pages of the one school an open grant names.
+// support.session checks the grant and platform sign-in before setting the school; no school.context.
 Route::middleware([PrivateDomainResponse::class, 'auth', 'support.session'])->prefix('support-session/{grant}')->name('support-session.')->group(function () {
     Route::get('/', [SupportSessionController::class, 'show'])->whereNumber('grant')->name('show');
     Route::get('/people', [SupportSessionController::class, 'people'])->whereNumber('grant')->name('people');

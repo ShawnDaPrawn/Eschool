@@ -19,7 +19,7 @@ class ManagePlatformStaffRequest extends PlatformStaffRequest
         return match ($this->route()?->getName()) {
             'saas.staff.store' => PlatformStaff::rules(new: true),
             'saas.staff.update' => PlatformStaff::rules(new: false),
-            'saas.staff.revoke' => ['reason' => ['required', 'string', 'min:10', 'max:500']],
+            'saas.staff.revoke', 'saas.staff.two-factor.reset' => ['reason' => ['required', 'string', 'min:10', 'max:500']],
             default => [], // Resending an invitation has no input.
         };
     }
