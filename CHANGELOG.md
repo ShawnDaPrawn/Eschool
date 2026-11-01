@@ -70,6 +70,10 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+
+- Academics: a learner or guardian can subscribe their calendar app to the
+  learner's exams, and optionally the next four weeks of lessons, through a
+  secret link they can revoke at any time. **Deploy:** run the migrations.
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
@@ -302,7 +306,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 ### Developers
 
 - `engineering/`: phase plans and questions, feature specs, decision records (ADR 0001 to 0005), runbooks, the security record, the self-test record and the living appendices; and this changelog.
-- `DemoSchoolSeeder`: a demo school with a user per profile (password `NavigateDemo2026`), an exam paper to capture marks for and an assignment, for demos, self-tests and Playwright.
+- Demo account credentials are omitted from this public changelog.
 - Playwright checks of every panel page at 1280 and 1024 px with axe, the main flows and the removed URLs, in CI.
 - Test suites for tenancy (every API route), the role matrix (every route against every role) and the OpenAPI contract (every v2 response).
 - CI builds both apps for the web and runs their smoke flows on an Android emulator and in Chrome.
