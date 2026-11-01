@@ -5919,6 +5919,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "'n Gestoorde gehoor kan nie tussen 'n vaste lys en 'n slim groep verander nie.",
     "A smart group needs between one and ten rules.": "'n Slim groep het tussen een en tien reëls nodig.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "'n Reël noem 'n groep wat nie meer aktief is nie. Verwyder daardie reël of argiveer die groep; boodskappe daaraan kan eers dan gestuur word.",
+    "Remove a calendar link for this learner before making another.": "Verwyder 'n kalenderskakel vir hierdie leerder voordat jy nog een maak.",
+    "Exam: :subject": "Eksamen: :subject",
     "Staff draft": "Personeelkonsep",
     "Nobody": "Niemand",
     "Staff draft for :year": "Personeelkonsep vir :year",
