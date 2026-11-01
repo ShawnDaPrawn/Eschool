@@ -104,6 +104,13 @@ Earlier history is kept where it was written and is not repeated here:
 - Academics: a learner or guardian can subscribe their calendar app to the
   learner's exams, and optionally the next four weeks of lessons, through a
   secret link they can revoke at any time. **Deploy:** run the migrations.
+- Platform: feature flags at `/saas/flags` for Owner and Operations. A new
+  feature can be switched on for chosen pilot schools first (beta), then for
+  everyone, with single schools switched on or off by name, and a kill switch
+  that turns it off everywhere at once. The apps receive the result in their
+  existing feature switches. A flag can switch a feature that is already in the
+  apps off for a school, but never on where the app does not offer it.
+  **Deploy:** run the migrations.
 - Communication: the sender of a school message, and its reviewers, see a
   delivery report: how many people it reached and read it, who had no
   notification channel, and for email and push how many were delivered, sent,
