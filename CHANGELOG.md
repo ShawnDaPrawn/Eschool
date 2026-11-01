@@ -76,6 +76,10 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+
+- Academics: a learner or guardian can subscribe their calendar app to the
+  learner's exams, and optionally the next four weeks of lessons, through a
+  secret link they can revoke at any time. **Deploy:** run the migrations.
 - Admin panel and apps: learners who leave at the end of the year are no longer
   locked out on the day the new year starts. Until 31 March they, and their
   guardians, can still sign in and read their final reports, marks and

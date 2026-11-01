@@ -4846,6 +4846,8 @@
     "A saved audience cannot change between a fixed list and a smart group.": "A saved audience cannot change between a fixed list and a smart group.",
     "A smart group needs between one and ten rules.": "A smart group needs between one and ten rules.",
     "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.": "A rule names a group that is no longer active. Remove that rule or archive the group; messages to it cannot be sent until then.",
+    "Remove a calendar link for this learner before making another.": "Remove a calendar link for this learner before making another.",
+    "Exam: :subject": "Exam: :subject",
     "Leavers": "Leavers",
     "nav_leavers": "Leavers",
     "Learners who left at the start of the school year. Until the date shown, they and their guardians can read their reports, marks and documents in the app, and change nothing. They are not in any class list, register or group.": "Learners who left at the start of the school year. Until the date shown, they and their guardians can read their reports, marks and documents in the app, and change nothing. They are not in any class list, register or group.",
