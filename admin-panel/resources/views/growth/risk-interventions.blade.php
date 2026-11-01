@@ -9,7 +9,7 @@
 <nav class="note-tabs" aria-label="{{ __('Intervention workbench') }}">
 @foreach(['queue'=>'Review actions','classroom'=>'Class follow-up'] as $key=>$label)<a href="{{ route('risk-interventions.index',['mode'=>$key]) }}" @if($mode===$key) aria-current="page" @endif>{{ __($label) }}</a>@endforeach
 @if($config['can_read_signals'])<a href="{{ route('risk-interventions.index',['mode'=>'signals']) }}" @if($mode==='signals') aria-current="page" @endif>{{ __('Early warning list') }}</a>@endif
-@if($config['can_manage'] || $config['grade_ids'])<a href="{{ route('risk-interventions.index',['mode'=>'assignments']) }}" @if($mode==='assignments') aria-current="page" @endif>{{ __('Risk caseload assignments') }}</a>@endif
+@if($config['can_manage'] || $config['grade_ids'])<a href="{{ route('risk-interventions.index',['mode'=>'assignments']) }}" @if($mode==='assignments') aria-current="page" @endif>{{ __('Risk caseload assignments') }}</a><a href="{{ route('risk-interventions.renewals') }}">{{ __('Renew caseloads for a new year') }}</a>@endif
 @if($config['can_manage'])<a href="{{ route('risk-interventions.index',['mode'=>'settings']) }}" @if($mode==='settings') aria-current="page" @endif>{{ __('School follow-up rules') }}</a>@endif
 </nav>
 @if($mode!=='settings')

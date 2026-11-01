@@ -635,7 +635,9 @@ class SchoolTransferTest extends TestCase
         $notice = Notification::where('type', TransferNotices::TYPE)->sole();
         $this->assertStringNotContainsString($p->contents['learner_name'], $notice->message);
         $this->assertStringNotContainsString($p->contents['to_school_name'], $notice->message);
-        $this->assertSame(['link', 'transfer_package_id', 'transfer_revision'], array_keys($notice->delivery_payload));
+        $deliveryKeys = array_keys($notice->delivery_payload);
+        sort($deliveryKeys);
+        $this->assertSame(['link', 'transfer_package_id', 'transfer_revision'], $deliveryKeys);
         $guard = app(TransferNotices::class);
         $payload = $notice->delivery_payload;
         $this->assertTrue($guard->allows($this->guardian, $notice->type, $payload));

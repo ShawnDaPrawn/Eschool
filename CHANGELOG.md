@@ -23,6 +23,53 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: Owners now set the AI spending caps in HQ. In the AI control
+  centre at `/saas/ai`, each AI feature's daily caps per school, per person and
+  per learner can be changed with a reason, and apply from the next request.
+  The values in `config/ai.php` are the defaults until HQ saves one. Every
+  change is kept with who made it, when, the old and new amounts and why, and
+  is in the HQ audit log. A school's own lower limits in its AI settings still
+  apply on top (the lower of the two is used), and HQ never changes them.
+  Amounts are in the gateway's metering currency (US dollars today), with no
+  exchange rate applied. **Deploy:** run the migrations.
+- AI: the Subject tutor is a personal service to the learner, not a school
+  service. Tutor use no longer counts against a school's daily AI cap, and a
+  school at its cap can still use the tutor. The tutor keeps its own daily
+  caps per person and per learner, set in HQ. HQ shows tutor spend apart,
+  labelled as personal.
+
+- Platform: an AI control centre at `/saas/ai` for Owner, Operations and
+  Support. It shows whether each AI feature and provider is qualified, its
+  model, price and daily caps per school, person and learner; each school's AI
+  spend this month and today against its daily cap; and how many safeguarding
+  flags wait for each school's reviewers. Only settings, totals and counts are
+  shown, never a prompt, an answer or a learner. Owners can switch an AI
+  feature on or off for a school with a reason (kept in the audit log); a
+  feature that is not qualified cannot be switched on. Amounts are in the
+  gateway's metering currency (US dollars today), with no exchange rate
+  applied. The dated cost report at `/platform/ai-costs` is unchanged and
+  linked for staff who hold its grant.
+  `engineering/specs/platform/hq-ai.md`.
+
+- Caseload renewals for a new school year: in Early warning and interventions,
+  **Renew caseloads for a new year** lists last year's open risk caseload grants
+  for learners placed in the new year. A principal (or the learner's grade head)
+  keeps the same counsellor, chooses another one, or lets the grant end. Ended
+  grants are never carried, and only caseload administrators see the page.
+
+- Notifications: school notice emails carry the school's crest, name and
+  colour and a plain-text version, and school messages arrive in full in the
+  email. Private notices (safeguarding, wellbeing, discipline, progress and
+  similar) still say only that there is something to see in the app.
+- Notifications: optional school notice emails have a one-click unsubscribe
+  (in the email client and as a footer link) that switches that notice's email
+  off. Required notices, such as absence alerts and urgent notices, never
+  carry it.
+- Communication: smart groups. Staff can save a group by rules (grades,
+  homerooms, teaching and activity groups, any or all of them, learners or
+  their guardians) that is worked out again whenever a message is previewed
+  and sent. Saved audiences can now be private or shared. **Deploy:** run the
+  migrations.
 - Admin panel, Apps and API: the LURITS number is now the number a learner
   is known by. Person profiles, the student report page, report cards, school
   transfer packages, exit archives and the leaving certificate show it first,
@@ -265,7 +312,7 @@ Phase 0 (Groundwork): built on the phase branch, not yet released to production.
 ### Developers
 
 - `engineering/`: phase plans and questions, feature specs, decision records (ADR 0001 to 0005), runbooks, the security record, the self-test record and the living appendices; and this changelog.
-- `DemoSchoolSeeder`: a demo school with a user per profile (password `NavigateDemo2026`), an exam paper to capture marks for and an assignment, for demos, self-tests and Playwright.
+- Demo account credentials are omitted from this public changelog.
 - Playwright checks of every panel page at 1280 and 1024 px with axe, the main flows and the removed URLs, in CI.
 - Test suites for tenancy (every API route), the role matrix (every route against every role) and the OpenAPI contract (every v2 response).
 - CI builds both apps for the web and runs their smoke flows on an Android emulator and in Chrome.

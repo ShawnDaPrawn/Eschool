@@ -152,5 +152,4 @@ Also:
 - `primary_identifier` on the other v2 resources that carry `student_number` (transfer summaries and details, transition learners, the mark matrix): their callers include teachers without profile permission, so each needs its own visibility decision.
 - Panel screens left as they are: the student list and its edit dialog (`students/details`, `students/stu-detail`), the academic transitions workbench (it reads the v2 transitions resource), ID cards, the bonafide certificate, and exam result sheets.
 - Re-making existing documents: a report card PDF generated before this change has no number line, and a card keeps the number it was made with, until the PDF is regenerated; transfer packages prepared before this change have no `primary_identifier` (the workbench shows their student number).
-- Report cards can be downloaded by any linked guardian, including one who may not approve, so such a guardian can read the LURITS number printed on the card. The product owner should confirm this for documents, or ask for cards to leave it out.
 
