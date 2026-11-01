@@ -248,6 +248,13 @@ LURITS numbers live on the global `learner_identifiers` row of the human.
 `lurits_conflicts` is required school-owned: the claiming school sees only its own
 open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 
+### HQ AI spending caps
+
+`platform_ai_caps` and `platform_ai_cap_changes` are global: Navigate Ed's own
+daily AI caps per feature and their history, read and written only from
+`/saas/ai`. They name no school. A school's own lower limits stay in the
+school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+
 ### HQ incident register
 
 `platform_incidents` and `platform_incident_entries` are global: Navigate Ed's
