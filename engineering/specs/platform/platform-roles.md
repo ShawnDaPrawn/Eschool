@@ -12,15 +12,15 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; school health; feature flags |
-| Support | see schools; audit log; LURITS claims; incident register; school health |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; school health; feature flags; AI control centre (view) |
+| Support | see schools; audit log; LURITS claims; incident register; school health; AI control centre (view) |
 | Finance | see schools; change package; customer records; packages, and edit packages and prices; audit log and its export; school health |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
-`packages.manage` ([package editor](package-editor.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`, `health.view`, `flags.manage`, `staff.manage`. A role that is no longer in the
+`packages.manage`, `audit.view`, `audit.export`, `identity.review`, `incidents.manage`, `health.view`, `flags.manage`, `staff.manage`, `ai.view`, `ai.manage`, `ai.caps`, `hq-ai.md`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with
