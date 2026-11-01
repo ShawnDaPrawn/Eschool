@@ -7,17 +7,19 @@ namespace Tests\Feature\Communication;
 use App\Jobs\Platform\SendMail;
 use App\Mail\Platform\NotificationMail;
 use App\Models\Academics\GradeLevel;
+use App\Models\Academics\TeachingAllocation;
+use App\Models\Academics\TeachingGroup;
+use App\Models\Academics\TeachingGroupMembership;
 use App\Models\ClassSchool;
 use App\Models\Communication\Message;
+use App\Models\People\Enrolment;
 use App\Models\Platform\School;
 use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Teacher;
 use App\Models\User;
-use App\Services\Academics\TeachingGroups;
 use App\Services\Communication\MessageDelivery;
 use App\Services\Communication\MessageFlow;
-use App\Services\People\EnrolmentService;
 use App\Services\Platform\Notifications\EmailContent;
 use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -55,13 +57,13 @@ class BrandedEmailTest extends TestCase
         SessionYear::whereKey($this->year)->update(['start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
         ClassSchool::whereKey($this->schoolA->ids['class_a'])->update(['grade_level_id' => $this->grade]);
         foreach (['asha', 'ben'] as $key) {
-            app(EnrolmentService::class)->place($this->schoolA->ids[$key], $this->schoolA->ids['section_a'], $this->year, '2026-01-01', 'Synthetic message enrolment');
+            Enrolment::create(['learner_id' => $this->schoolA->ids[$key], 'class_section_id' => $this->schoolA->ids['section_a'], 'session_year_id' => $this->year, 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic read fixture']);
         }
-        $g = app(TeachingGroups::class)->save($this->superAdmin(), ['name' => 'Message fractions group', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
+        $g = TeachingGroup::create(['name' => 'Message fractions group', 'subject_id' => $this->schoolA->ids['maths'], 'grade_level_id' => $this->grade, 'session_year_id' => $this->year, 'class_section_id' => $this->schoolA->ids['section_a'], 'active' => true]);
         $this->group = (int) $g->id;
-        app(TeachingGroups::class)->dated($this->superAdmin(), 'teachers', ['teacher_id' => Teacher::where('user_id', $this->teacher()->id)->value('id'), 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic message author'], $this->group);
+        TeachingAllocation::create(['teaching_group_id' => $this->group] + ['teacher_id' => Teacher::where('user_id', $this->teacher()->id)->value('id'), 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'reason' => 'Synthetic message author']);
         foreach (['asha', 'ben'] as $key) {
-            app(TeachingGroups::class)->dated($this->superAdmin(), 'memberships', ['learner_id' => $this->schoolA->ids[$key], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up', 'reason' => 'Synthetic audience member'], $this->group);
+            TeachingGroupMembership::create(['teaching_group_id' => $this->group] + ['learner_id' => $this->schoolA->ids[$key], 'starts_on' => '2026-01-01', 'ends_on' => '2026-12-31', 'mark_rule' => 'catch_up', 'reason' => 'Synthetic audience member']);
         }
         Queue::fake();
     }
@@ -241,5 +243,20 @@ class BrandedEmailTest extends TestCase
         foreach (['red;background:url(x)', '#fff', '', null, '#12345G'] as $value) {
             $this->assertSame(EmailContent::DEFAULT_COLOUR, EmailContent::colour($value));
         }
+    }
+
+    public function test_a_global_opt_out_after_publication_still_suppresses_branded_message_email(): void
+    {
+        ['jobs' => $jobs] = $this->published();
+        $this->assertCount(3, $jobs);
+        foreach (['farid', 'mona', 'gina'] as $key) {
+            app(NotificationRules::class)->choose($this->person($key), 'communication.message', 'email', false);
+        }
+        Mail::fake();
+        app(CurrentSchool::class)->forget();
+        foreach ($jobs as $job) {
+            $job->handle();
+        }
+        Mail::assertNothingSent();
     }
 }

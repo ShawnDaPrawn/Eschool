@@ -7,7 +7,6 @@ namespace Tests\Feature\Platform;
 use App\Jobs\Platform\SendMail;
 use App\Mail\Platform\NotificationMail;
 use App\Models\User;
-use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Notifications\EmailUnsubscribe;
 use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Notifications\Notifier;
@@ -112,7 +111,7 @@ class EmailUnsubscribeTest extends TestCase
     public function test_the_confirmation_discloses_the_global_preference_and_required_notices_still_arrive(): void
     {
         $parent = $this->parent();
-        app(MembershipService::class)->grant($parent, 2, 'Parent');
+        DB::table('school_memberships')->insert(['school_id' => 2, 'user_id' => $parent->id, 'role' => 'Parent', 'status' => 'active', 'created_at' => now(), 'updated_at' => now()]);
         app(NotificationRules::class)->choose($parent, 'comms.notice', 'email', true);
         $url = app(CurrentSchool::class)->run(1, fn () => app(EmailUnsubscribe::class)->url($parent, 'comms.notice'));
         app(CurrentSchool::class)->forget();
