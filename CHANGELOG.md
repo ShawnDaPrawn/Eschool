@@ -70,6 +70,10 @@ Earlier history is kept where it was written and is not repeated here:
   their guardians) that is worked out again whenever a message is previewed
   and sent. Saved audiences can now be private or shared. **Deploy:** run the
   migrations.
+
+- Academics: a learner or guardian can subscribe their calendar app to the
+  learner's exams, and optionally the next four weeks of lessons, through a
+  secret link they can revoke at any time. **Deploy:** run the migrations.
 - Platform: announcements to schools at `/saas/announcements` for Owner and
   Operations. Write release notes, a maintenance window or a policy change, aim
   it at every school, at schools on a package or at a lifecycle stage, or at
