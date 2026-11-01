@@ -223,7 +223,8 @@ class PlatformPackages
         if (! $http && isset($this->jobSchools[$memo])) {
             return $this->jobSchools[$memo];
         }
-        $included = DB::table('platform_packages as pp')->join('platform_package_modules as ppm', 'ppm.package_id', '=', 'pp.id')
+        $included = $school instanceof School ? $school->membershipPackage($key, $version) : null;
+        $included ??= DB::table('platform_packages as pp')->join('platform_package_modules as ppm', 'ppm.package_id', '=', 'pp.id')
             ->where('pp.package_key', $key)->where('ppm.version', $version)->pluck('ppm.product_module')->all();
         $modules = self::expand(array_values(array_filter(array_keys((array) config('product_modules')), fn (string $product): bool => in_array($product, $included, true))));
         if ($http) {
