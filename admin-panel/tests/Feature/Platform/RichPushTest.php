@@ -32,6 +32,7 @@ use App\Services\Platform\Notifications\PushQueue;
 use App\Services\Platform\Notifications\QuietHours;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -339,8 +340,10 @@ class RichPushTest extends TestCase
         $engine->save($admin, $preview['rows'], $preview['fingerprint']);
 
         $event = OutboxEvent::where('type', 'academics.timetable_changed')->latest('id')->firstOrFail();
-        $this->assertSame([['teacher_id' => (int) $lesson->teacher_id, 'teaching_group_id' => (int) $lesson->teaching_group_id, 'class_section_id' => null,
-            'session_year_id' => (int) $lesson->session_year_id]], $event->payload['previous'], 'ids only, no learner list');
+        $previous = [['teacher_id' => (int) $lesson->teacher_id, 'teaching_group_id' => (int) $lesson->teaching_group_id, 'class_section_id' => null,
+            'session_year_id' => (int) $lesson->session_year_id]];
+        // JSON object key order can change in MySQL; keep exact keys, types and values.
+        $this->assertSame(Arr::sortRecursive($previous), Arr::sortRecursive($event->payload['previous']), 'ids only, no learner list');
         Outbox::dispatchPending();
         $tokens = Queue::pushed(SendPush::class)->slice($before)->map(fn ($job) => $job->message['message'])
             ->filter(fn ($m) => ($m['data']['type'] ?? null) === 'timetable.refresh')->pluck('token')->values()->all();
