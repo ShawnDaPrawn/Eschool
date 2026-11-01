@@ -12,16 +12,16 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; billing (read-only); audit log; LURITS claims; incident register |
-| Support | see schools; audit log; LURITS claims; incident register |
-| Finance | see schools; change package; customer records; packages, and edit packages and prices; billing: invoices, credit notes, payments and reminders; audit log and its export |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; AI control centre (view); billing (read-only) |
+| Support | see schools; audit log; LURITS claims; incident register; AI control centre (view) |
+| Finance | see schools; change package; customer records; packages, and edit packages and prices; invoices, credit notes, payments and reminders; audit log and its export |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
-`packages.manage` ([package editor](package-editor.md)), `billing.view`, `billing.manage` ([HQ billing](hq-billing.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`staff.manage`. A role that is no longer in the
+`packages.manage` ([package editor](package-editor.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
+`billing.view`, `billing.manage` ([HQ billing](hq-billing.md)), `ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with
