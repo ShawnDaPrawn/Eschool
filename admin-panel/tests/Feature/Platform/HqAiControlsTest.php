@@ -181,10 +181,12 @@ class HqAiControlsTest extends TestCase
         $first = $audit->first();
         $this->assertSame(['enabled' => false], $first->before);
         // Ids, states and the reason only: the reason is the one free-text value.
-        $this->assertSame(['module', 'features', 'enabled', 'reason', 'changed_by'], array_keys($first->after));
-        $this->assertSame(['tutor', ['tutor'], true, self::REASON], [$first->after['module'], $first->after['features'], $first->after['enabled'], $first->after['reason']]);
-        $strings = array_filter(array_merge(array_values($first->after), $first->after['features']), 'is_string');
-        $this->assertSame(['tutor', self::REASON, 'tutor'], array_values($strings));
+        // MySQL may reorder JSON object keys; retain exact fields, values and types.
+        $expected = ['module' => 'tutor', 'features' => ['tutor'], 'enabled' => true, 'reason' => self::REASON, 'changed_by' => auth()->id()];
+        $after = $first->after;
+        ksort($expected);
+        ksort($after);
+        $this->assertSame($expected, $after);
         $this->get('/saas/audit')->assertOk()->assertSee('AI feature switched');
     }
 
