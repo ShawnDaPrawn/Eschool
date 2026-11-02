@@ -306,6 +306,12 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
+### Notification quiet hours
+
+`notification_quiet_hours` is global, like `notification_preferences`: one
+person chooses their push quiet hours once for every school ([quiet hours](quiet-hours.md)).
+
+
 ### HQ billing
 
 `platform_invoices`, `platform_invoice_lines`, `platform_payments` and

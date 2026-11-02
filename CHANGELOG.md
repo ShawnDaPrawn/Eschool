@@ -145,6 +145,10 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- Notifications: quiet hours. Each person can set hours when push
+  notifications wait and arrive afterwards; safeguarding alerts, urgent
+  notices, absence alerts and new sign-in alerts always come through. Pushes
+  now tell the apps their channel and urgency. **Deploy:** run the migrations.
 - Platform: feature flags at `/saas/flags` for Owner and Operations. A new
   feature can be switched on for chosen pilot schools first (beta), then for
   everyone, with single schools switched on or off by name, and a kill switch
