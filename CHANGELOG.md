@@ -29,6 +29,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: Navigate Ed Operations can now run a school's onboarding imports
+  (homerooms, learners with guardians, or staff) on its behalf. From the
+  school's HQ page, "Imports on the school's behalf", Operations check the file
+  first: every row's result is shown and nothing is written. They then send it
+  to a leader at the school, who sees the rows under People, "Imports by
+  Navigate Ed", and approves or declines it with a reason. Only after approval
+  can Operations apply it, through the school's own import, and only if the file
+  and the school's records are unchanged since the check. The file is stored
+  encrypted and deleted once the import is applied, declined, cancelled or
+  stopped, or after 7 days. Every step is in the HQ audit log and on the
+  school's page. New HQ ability `imports.run` (Owner and Operations).
+  **Deploy:** run the migrations; the scheduler runs
+  `platform:expire-school-imports` hourly.
+
 - Admin panel: a **Mastery impact** report for each term. Principals and
   academic managers see the whole school; grade heads see their own grades. For
   each topic it shows how many learners rose a level since the start of the

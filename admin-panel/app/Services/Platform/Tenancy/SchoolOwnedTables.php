@@ -26,6 +26,7 @@ final class SchoolOwnedTables
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
+        'platform_school_imports',
         'school_support_tickets', 'school_support_ticket_messages',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
         // notes, their lines, its EFT payments and what each payment or credit

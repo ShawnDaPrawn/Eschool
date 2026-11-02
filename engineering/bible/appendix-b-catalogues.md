@@ -114,6 +114,12 @@ their current guardians when it becomes current, if the school chooses it in the
 new-year wizard. The notice names the year and its first day, never a learner or
 homeroom.
 
+Import waiting for approval: people.hq_import_approval (people module, teacher
+and admin portals, standard channel preferences) tells the school leader whom
+Navigate Ed Operations named when an onboarding import prepared on the school's
+behalf (SA.11) waits for their approval. The notice links to the import in the
+panel and names no learner, guardian or staff member.
+
 Announcements from Navigate Ed: platform.announcement (school module, which is
 always on; admin portal only; in-app and email on by default, no push; the
 school's notification rules apply) goes to the active Super Admins of each school

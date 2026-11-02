@@ -110,6 +110,9 @@ Schedule::command('platform:school-health')->dailyAt('04:20')->name('school-heal
 
 Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-copy-retention')->withoutOverlapping();
 
+// Imports run on a school's behalf (SA.11): an unfinished one expires and its file is deleted.
+Schedule::command('platform:expire-school-imports')->hourly()->name('hq-import-expiry')->withoutOverlapping();
+
 // School offboarding (SA.11): a leaving school's receipt deadline passes.
 Schedule::command('offboarding:receipt-deadlines')->dailyAt('03:10')->name('offboarding-receipt-deadlines')->withoutOverlapping();
 
