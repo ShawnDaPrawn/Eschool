@@ -19,6 +19,8 @@ class SensitiveRecordsAccess
     {
         $school = app(CurrentSchool::class);
         abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating(), 403);
+        // Never in a Navigate Ed support session (SA.9), whatever its scope.
+        abort_if($school->isSupportSession(), 403);
         // A platform operator cannot gain access by also being given a school role.
         abort_if(PlatformStaffIdentity::query()->where('user_id', $actor->id)->where('active', true)->exists(), 403);
         $policy = app(ProfilePolicy::class);

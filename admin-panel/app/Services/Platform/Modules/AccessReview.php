@@ -27,7 +27,7 @@ class AccessReview
     /** Item flags whose visibility also depends on an appointment, allocation or caseload. */
     private const ACTOR_FLAGS = ['vendor_payment_reader_actor', 'communication_author', 'cover_actor', 'discipline_actor', 'risk_actor', 'progress_actor',
         'support_actor', 'wellbeing_actor', 'principal_dashboard', 'transfer_actor', 'foundation_classroom_actor', 'card_actor', 'pathway_manager', 'pathway_guide',
-        'assistance_office', 'peer_actor', 'family_visit_actor', 'family_form_actor', 'gallery_actor', 'ai_manager', 'ai_reviewer', 'digest_manager',
+        'assistance_office', 'peer_actor', 'family_visit_actor', 'family_form_actor', 'gallery_actor', 'ai_manager', 'ai_reviewer', 'digest_manager', 'exam_coach_staff',
         'consultation_actor', 'intake_actor', 'recognition_module'];
 
     public function __construct(private readonly ModuleAccess $access, private readonly Navigation $navigation) {}
