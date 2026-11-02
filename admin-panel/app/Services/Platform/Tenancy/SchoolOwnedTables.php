@@ -27,7 +27,7 @@ final class SchoolOwnedTables
         // notes, their lines, its EFT payments and what each payment or credit
         // note settles. Each row is about one school, so it carries the school
         // (written inside it from /saas); only HQ reads them, never the school.
-        'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations',
+        'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
         'school_health_snapshots',
         'platform_announcement_schools', 'platform_announcement_reads',
         'support_access_grants', 'support_access_views',

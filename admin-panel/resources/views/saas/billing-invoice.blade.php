@@ -89,7 +89,8 @@
 @if ($canManage && ! $isCredit && $invoice['status'] === 'issued' && $invoice['creditable_cents'] > 0)
 <form method="POST" action="{{ route('saas.billing.invoices.credit', [$school['id'], $invoice['id']]) }}" class="saas-card saas-print-hide" aria-label="{{ __('Issue a credit note') }}">
     @csrf
-    <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', (string) Illuminate\Support\Str::uuid()) }}">
+    {{-- A refused retry keeps its key; a key already used for something else gets a fresh one, so the form never loops. --}}
+    <input type="hidden" name="idempotency_key" value="{{ $errors->has('idempotency_key') ? (string) Illuminate\Support\Str::uuid() : old('idempotency_key', (string) Illuminate\Support\Str::uuid()) }}">
     <h2>{{ __('Issue a credit note') }}</h2>
     <p>{{ __('An issued invoice never changes. To correct it, credit part or all of it: :amount (including VAT) is left to credit. The credit settles what is unpaid; anything more is credit on the school\'s account.', ['amount' => $rands($invoice['creditable_cents'])]) }}</p>
     <div class="saas-grid">

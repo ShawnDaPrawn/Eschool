@@ -80,9 +80,9 @@ the actual count is billed.
 
 - **Run.** `Create drafts` for a month makes a draft for every active school that has no invoice for that month yet. A month's invoice has a unique slot per school (`school_id`, `"2026-11"`), so running again creates nothing new. Suspended and archived schools are skipped. Months from twelve back to next month can be run.
 - **Draft.** Can be recomputed (counts and prices again) or discarded ("do not bill this month": kept, marked discarded, and a run does not make it again). A draft is not sent anywhere.
-- **Issue.** One draft, or every ready draft of the month. A draft with no price or nothing to bill (total R 0.00) stays a draft. Issuing gives the next reference of the year under a row lock (`platform_counters`, `NE-2026-0001`; the prefix is config), the issue date (today, South African time) and the due date (issue date + `payment_terms_days`, 30 by default). References never repeat or skip: drafts have none.
-- **Issued invoices never change.** Every route refuses, and the models refuse any change to an issued invoice or its lines (only the reminder columns are written later) and any delete.
-- **Credit notes.** A correction is a credit note against an issued invoice, issued at once with a reason: either the whole invoice (every line negated exactly; only when nothing was credited before) or an amount excluding VAT (one line, VAT at the invoice's rate, rounded on the line). Never more than is left to credit (the invoice total less earlier credit notes). It takes the next reference and refers to the original. Its credit settles what is unpaid on the original; anything more is credit on the school's account. A credit note cannot itself be credited.
+- **Issue.** One draft, or every ready draft of the month. A draft with no price or nothing to bill (total R 0.00) stays a draft. Issuing the month also leaves as drafts those of schools suspended or archived since the run (reported as left because the school is no longer active; HQ can still issue one by hand), and carries on past a draft another request issued or discarded in the meantime (reported as changed). Issuing gives the next reference of the year under a row lock (`platform_counters`, `NE-2026-0001`; the prefix is config), the issue date (today, South African time) and the due date (issue date + `payment_terms_days`, 30 by default). References never repeat or skip: drafts have none.
+- **Issued invoices never change.** Every route refuses. The models refuse any change to an issued or discarded invoice (only the reminder columns are written later) and any delete. A line may be added, changed or removed only while both the invoice it belonged to and the one it would belong to are drafts; the parent is read without the school scope, so a write from another school's context is refused too. The database enforces the same below the models (migration `2026_11_01_182000`, MySQL/MariaDB triggers): an update of an issued or discarded invoice that touches anything but `reminded_at`, `reminders` and `updated_at` is refused, invoices are never deleted, lines are inserted only on a draft of the same school and changed or deleted only on drafts, and payments and allocations are never deleted and only ever reversed, once. So a query-builder or raw SQL write cannot change billing history either.
+- **Credit notes.** A correction is a credit note against an issued invoice, issued at once with a reason: either the whole invoice (every line negated exactly; only when nothing was credited before) or an amount excluding VAT (one line, VAT at the invoice's rate, rounded on the line). Never more than is left to credit: the invoice total less earlier credit notes, and also the invoice's amount excluding VAT less what earlier credit notes credited excluding VAT. Each partial credit note rounds its own VAT on its line, so the VAT credited over several partial notes can differ from the original's VAT by up to half a cent per note; a full credit (every line negated) is exact. It takes the next reference and refers to the original. Its credit settles what is unpaid on the original; anything more is credit on the school's account. A credit note cannot itself be credited.
 
 ### Payments and credit
 
@@ -102,7 +102,12 @@ menus and forms.
 ### Overdue, grace and suspension
 
 - An issued invoice is **overdue** from the day after its due date while anything on it is unpaid. The billing page lists each school with an overdue invoice: the amount, the oldest due date and how long ago, and the last reminder.
-- **Reminder** (`billing.manage`): a notice of the new type `billing.overdue` (school module, admin portal, in-app and email mandatory, push on by default, locked) through `Notifier` to the school's Super Admins with an active membership, and an email to each bursar contact on HQ's school record (`school_contacts`, role bursar, with an email). It names the overdue amount and invoice references, never anything else. Each overdue invoice records when it was last reminded and how many times; the audit names the invoices, how many Super Admins and which bursar contacts. Refused when nothing is overdue.
+- **Reminder** (`billing.manage`): a notice of the new type `billing.overdue` (school module, admin portal, in-app and email mandatory, push on by default, locked) through `Notifier` to the school's Super Admins with an active membership, and an email to each bursar contact on HQ's school record (`school_contacts`, role bursar, with an email).
+  - The notice fits the notice's 128 characters, so it arrives whole: the overdue amount, how many invoices and the oldest reference. The bursar email lists every overdue reference with its unpaid amount and due date. Neither names anything else.
+  - It runs under the school's account lock and reads what is unpaid with current (locking) reads.
+  - The form sends a request key (`idempotency_key`); a repeated request with the same key returns the first reminder and sends nothing again. Each reminder is logged in `platform_billing_reminders`.
+  - The bursar emails are queued only after the reminder commits, and once: delivery claims the log row first, so a retried transaction or a second delivery sends nothing.
+  - Each overdue invoice records when it was last reminded and how many times; the audit names the reminder, the invoices, how many Super Admins and which bursar contacts. Refused when nothing is overdue.
 - **Grace.** After `grace_days` (14 by default) past the oldest unpaid due date, the school is listed as **due for suspension**.
 - **Suspension is never automatic.** The list shows Owner and Operations the existing suspend form (`PUT /saas/schools/{id}/status`, reason required, audited as `platform_school_status_changed`); Finance sees who to ask. Restoring is the same existing form.
 
@@ -133,14 +138,16 @@ school and who did it.
 | `platform_invoice_lines` | school-owned (required) | position, kind (base, discount, module, credit), product module, description, learners, unit price, amount and VAT in cents |
 | `platform_payments` | school-owned (required) | date received, amount in cents, currency, bank reference, note, who recorded it, reversal (when, who, why) |
 | `platform_payment_allocations` | school-owned (required) | invoice, the payment or credit note settling it, amount in cents, who, reversed when and by whom |
+| `platform_billing_reminders` | school-owned (required) | each overdue reminder: its request key (unique per school), the invoices, the amount overdue, how many Super Admins, which bursar contacts, the email title and text, when the emails were queued, who sent it |
 
 Each row is about one school, so each carries `school_id` (not null, indexed,
 a foreign key) and is written inside that school (`CurrentSchool::run`); the
 models use `BelongsToSchool`, so another school's id is not found. Only HQ
 reads them. Config: `config/platform_billing.php` (VAT, terms, grace, prefix,
-the seller details printed on invoices). Migration
-`2026_11_01_180000_create_platform_billing`; its `down` refuses once any row
-exists.
+the seller details printed on invoices). Migrations
+`2026_11_01_180000_create_platform_billing`, `2026_11_01_181000_add_credit_note_idempotency`
+and `2026_11_01_182000_guard_platform_billing` (the reminder log and the
+database guards above); each `down` refuses once it holds rows.
 
 ## Endpoints (HQ panel)
 
@@ -175,12 +182,16 @@ check `billing.manage` again. No API route or response changes.
 | `test_a_credit_note_corrects_an_issued_invoice_and_refers_to_it` | both schools issued | credit R 100 on A; too much, whole after part, a credit note's credit, zero, no reason; credit B in full | the next reference, -R 115 with VAT, settles A by R 115, audited, A unchanged; refusals write nothing; B's lines negated exactly and B paid; pages show it |
 | `test_payments_settle_part_or_all_an_over_payment_is_credit_and_a_reversal_keeps_the_record` | A issued | part-pay; repeat the bank reference; over-allocate, future date, malformed amount; over-pay; apply credit to next month; reverse the first payment; record it again; edit a payment | unpaid falls by the part; refusals write nothing; R 50 credit, balance -R 50; next month settled by R 50; reversal kept with its reason and A unpaid by R 100 again, audited; the reference can be used again; editing refused; statement balance and the page's summary agree |
 | `test_overdue_invoices_go_from_grace_to_due_for_suspension_and_suspending_stays_a_decision` | both issued, B part-paid | the day after the due date (A pays), then 15 days on | B overdue in grace by what is unpaid; then due for suspension and still active; Finance sees it with no form and cannot suspend; Operations sees the form and suspends through the existing flow with its reason |
-| `test_a_reminder_goes_to_that_schools_super_admins_and_bursar_only` | Super Admins and bursar contacts at both schools | remind A before and after its due date | refused before; after, one `notification.requested` for School A's Super Admins only, a `billing.overdue` notice naming the reference, an email to A's bursar only, reminder recorded on A's invoice only, audited |
+| `test_a_reminder_goes_to_that_schools_super_admins_and_bursar_only` | Super Admins and bursar contacts at both schools; two invoices of A overdue | remind A before its due date and without a key; after; deliver the emails twice and through School B; the same key again; a new key | refused before and without a key; after, one `notification.requested` for School A's Super Admins only, a whole notice of at most 128 characters naming the count and oldest reference; the email text lists both references; no email before delivery, one to A's bursar only, none on a second delivery or through B; both A invoices recorded, B not; audited; the same key changes nothing; a new key is a second reminder |
+| `test_issued_invoices_and_lines_cannot_change_through_re_parenting_new_lines_another_school_or_the_query_builder` | A issued, a draft for next month | move lines between the issued invoice and the draft; add a line to the issued invoice; change or delete its line from School B's context; query-builder and raw updates, deletes and inserts; edit or delete a payment or allocation | each refused (the models, then the database) and nothing changes; a draft still recomputes, the reminder columns still update and a payment can still be reversed |
+| `test_issuing_a_month_leaves_drafts_of_schools_no_longer_active` | drafts for both; School B suspended, then archived | issue the month; again through the service; issue B by hand | A issued, B left a draft and reported; the service reports it skipped; HQ can still issue B deliberately |
+| `test_one_schools_account_credit_never_settles_another_schools_invoice` | School A with R 50 credit | apply credit to B's invoice through B's URL and through A's | refused (B has no credit) and not found; nothing written; A keeps its credit |
+| `test_the_billing_migrations_refuse_to_roll_back_once_they_hold_rows` | an issued invoice, a keyed credit note, a reminder | roll back each billing migration | each refuses; tables, columns and triggers stay |
 | `test_sales_content_and_support_cannot_manage_billing_and_nothing_is_written` | an invoice and a payment | Sales, Content, Support and Operations call every write endpoint and the services directly | 403 everywhere and nothing written; Operations reads the pages without forms; the others cannot read them |
 | `test_school_accounts_are_refused` | a school Super Admin and a teacher | read or write billing | 403; nothing written |
 | `test_another_schools_invoice_or_payment_is_not_found` | School B's invoice and payment | every action through School A's URLs; a School A payment naming B's invoice; an unknown school | 404, or a validation error for the allocation; nothing written; A's statement shows nothing of B |
 
-Existing tests that cover changed code still pass: `Platform/SaasPanelTest`
+The credit-note retry and snapshot tests are described under "Retry and concurrency safeguards" below. Existing tests that cover changed code still pass: `Platform/SaasPanelTest`
 (its /saas route count rises by the thirteen routes above, to 57),
 `Platform/PlatformRolesTest`, `Tenancy/SchoolOwnedTablesTest`,
 `Platform/NotificationRulesTest`, `Platform/NotifierTest`,
@@ -202,8 +213,10 @@ Existing tests that cover changed code still pass: `Platform/SaasPanelTest`
 - The credit-note form sends a UUID idempotency key. It is unique per school and
   retained on the immutable credit note with a hash of the invoice, amount/full
   choice and reason. An identical retry returns that note; changed input with the
-  same key is refused. Run migration `2026_11_01_181000` as well as the billing
-  migration. Rollback refuses to discard used request keys.
+  same key is refused; the form then renders a fresh key instead of resending the
+  used one. Run migrations `2026_11_01_181000` and `2026_11_01_182000` as well as
+  the billing migration. Rollback refuses to discard used request keys.
+- Overdue reminders carry their own request key (see Reminder above).
 - Account mutations lock the school before invoices and credit sources. Balance
   checks on writes read allocation rows with current locks, including under an
   already established MySQL REPEATABLE READ snapshot. Spent payments and credit

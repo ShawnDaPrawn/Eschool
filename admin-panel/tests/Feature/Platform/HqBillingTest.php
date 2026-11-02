@@ -21,7 +21,9 @@ use App\Services\Platform\Saas\PlatformBillingAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -39,7 +41,7 @@ class HqBillingTest extends TestCase
 {
     use UsesTwoSchools;
 
-    private const TABLES = ['platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations'];
+    private const TABLES = ['platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders'];
 
     private int $staffCount = 0;
 
@@ -388,9 +390,13 @@ class HqBillingTest extends TestCase
         } finally {
             // Release current-read locks before cleaning the committed fixtures.
             DB::rollBack();
+            // Billing rows are never deleted (migration 2026_11_01_182000): lift the guard only to remove these committed fixtures.
+            $guard = require database_path('migrations/2026_11_01_182000_guard_platform_billing.php');
+            $guard->dropTriggers();
             $peer->table('platform_payment_allocations')->where('invoice_id', $invoiceId)->delete();
             $peer->table('platform_payments')->where('id', $paymentId)->delete();
             $peer->table('platform_invoices')->whereIn('id', [$invoiceId, $noteId])->delete();
+            $guard->createTriggers();
             DB::disconnect('billing_peer');
             DB::beginTransaction();
         }
@@ -510,11 +516,20 @@ class HqBillingTest extends TestCase
         foreach ([1 => 'bursar-a@school.example', 2 => 'bursar-baobab@school.example'] as $school => $email) {
             DB::table('school_contacts')->insert(['school_id' => $school, 'role' => 'bursar', 'name' => 'Synthetic bursar', 'email' => $email, 'created_at' => now(), 'updated_at' => now()]);
         }
-        $this->actingAs($finance)->post('/saas/billing/schools/1/reminders')->assertSessionHasErrors('school');
+        $key = fn (): array => ['idempotency_key' => (string) Str::uuid()];
+        $this->actingAs($finance)->post('/saas/billing/schools/1/reminders', $key())->assertSessionHasErrors('school');
+        $this->post('/saas/billing/schools/1/reminders')->assertSessionHasErrors('idempotency_key');
         $this->assertSame(0, OutboxEvent::query()->where('type', 'notification.requested')->count(), 'nothing overdue yet, nothing sent');
+        $this->assertSame(0, DB::table('platform_billing_reminders')->count());
 
+        // A second month for School A, so two invoices are overdue.
+        $next = CarbonImmutable::parse(PlatformBilling::today())->startOfMonth()->addMonth()->format('Y-m');
+        $this->post('/saas/billing/runs', ['period' => $next]);
+        $this->post('/saas/billing/schools/1/invoices/'.$this->invoice(1, $next)->id.'/issue')->assertRedirect();
+        $later = $this->invoice(1, $next);
         $this->travelTo(CarbonImmutable::parse($a->due_on->toDateString(), PlatformBilling::TIMEZONE)->addDays(2)->setTime(10, 0));
-        $this->post('/saas/billing/schools/1/reminders')->assertRedirect();
+        $request = $key();
+        $this->post('/saas/billing/schools/1/reminders', $request)->assertRedirect();
         $admins = app(CurrentSchool::class)->run(1, fn () => app(PlatformBillingAccounts::class)->superAdmins(1));
         $this->assertContains($this->superAdmin()->id, $admins);
         $this->assertNotContains($baobabAdmin->id, $admins);
@@ -522,16 +537,161 @@ class HqBillingTest extends TestCase
         $this->assertSame([1, $admins], [(int) $event->school_id, $event->payload['user_ids']]);
         $notice = DB::table('notifications')->where('id', $event->payload['notification_id'])->first();
         $this->assertSame([1, 'billing.overdue'], [(int) $notice->school_id, $notice->type]);
-        $this->assertStringContainsString($a->reference, $notice->message);
+        // The notice is short enough to arrive whole: the amount, how many, the oldest reference.
+        $this->assertLessThanOrEqual(128, mb_strlen($notice->message));
+        $this->assertStringContainsString('2 Navigate Ed invoices, the oldest '.$a->reference, $notice->message);
+        $this->assertStringEndsWith('quoting each reference.', $notice->message);
         $this->assertStringNotContainsString('Baobab', $notice->message.$notice->title);
-        // Only School A's bursar is emailed.
+        $reminder = DB::table('platform_billing_reminders')->sole();
+        $this->assertStringContainsString($a->reference, $reminder->email_body);
+        $this->assertStringContainsString($later->reference, $reminder->email_body);
+
+        // The bursar emails wait for the commit (tests run in a transaction, so deliver them directly), and go once.
+        $this->assertSame(0, DB::table('notification_deliveries')->where('type', 'mail.billing.overdue')->count());
+        $accounts = app(PlatformBillingAccounts::class);
+        $this->assertSame(1, $accounts->deliverBursarEmails(1, (int) $reminder->id));
+        $this->assertSame(0, $accounts->deliverBursarEmails(1, (int) $reminder->id), 'a second delivery sends nothing');
+        $this->assertSame(0, $accounts->deliverBursarEmails(2, (int) $reminder->id), 'nor through another school');
         $mails = DB::table('notification_deliveries')->where('type', 'mail.billing.overdue')->get();
-        $this->assertSame([[1, DeliveryLog::hash('bursar-a@school.example')]], $mails->map(fn ($m) => [(int) $m->school_id, $m->recipient_hash])->all());
-        $this->assertSame([1, 1], [$a->fresh()->reminders, $a->fresh()->reminded_at !== null ? 1 : 0]);
-        $this->assertSame(0, $b->fresh()->reminders);
+        $this->assertSame([[1, DeliveryLog::hash('bursar-a@school.example')]], $mails->map(fn ($m) => [(int) $m->school_id, $m->recipient_hash])->all(), 'only School A\'s bursar');
+        $this->assertSame([1, 1, 0], [$a->fresh()->reminders, $later->fresh()->reminders, $b->fresh()->reminders]);
         $audit = AuditLog::query()->where('action', 'platform_billing_reminder_sent')->sole();
-        $this->assertSame([1, [$a->id], count($admins)], [$audit->school_id, $audit->after['invoices'], $audit->after['super_admins']]);
+        $this->assertSame([1, [$a->id, $later->id], count($admins)], [$audit->school_id, $audit->after['invoices'], $audit->after['super_admins']]);
+
+        // A double submit with the same key sends nothing again.
+        $before = $this->counts();
+        $this->post('/saas/billing/schools/1/reminders', $request)->assertRedirect();
+        $this->assertSame($before, $this->counts());
+        $this->assertSame(1, $a->fresh()->reminders);
+        // A new request is a new reminder.
+        $this->post('/saas/billing/schools/1/reminders', $key())->assertRedirect();
+        $this->assertSame([2, 2], [$a->fresh()->reminders, DB::table('platform_billing_reminders')->count()]);
         $this->assertArrayHasKey('billing.overdue', (array) config('notification_types'));
+    }
+
+    public function test_issued_invoices_and_lines_cannot_change_through_re_parenting_new_lines_another_school_or_the_query_builder(): void
+    {
+        $finance = $this->staff('finance');
+        [$a] = $this->issued($finance);
+        $next = CarbonImmutable::parse(PlatformBilling::today())->startOfMonth()->addMonth()->format('Y-m');
+        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $next]);
+        $draft = $this->invoice(1, $next);
+        $issuedLine = fn () => PlatformInvoiceLine::acrossSchools()->where('invoice_id', $a->id)->orderBy('id')->first();
+        $draftLine = fn () => PlatformInvoiceLine::acrossSchools()->where('invoice_id', $draft->id)->orderBy('id')->first();
+        $before = $this->snapshot();
+
+        $refusedByModel = [
+            'moving an issued line to a draft' => fn () => app(CurrentSchool::class)->run(1, fn () => $issuedLine()->forceFill(['invoice_id' => $draft->id])->save()),
+            'moving a draft line onto an issued invoice' => fn () => app(CurrentSchool::class)->run(1, fn () => $draftLine()->forceFill(['invoice_id' => $a->id])->save()),
+            'adding a line to an issued invoice' => fn () => app(CurrentSchool::class)->run(1, fn () => PlatformInvoiceLine::query()->create(['invoice_id' => $a->id, 'position' => 9, 'kind' => 'base', 'description' => 'Extra', 'amount_cents' => 999999, 'vat_cents' => 0])),
+            'changing an issued line from another school' => fn () => app(CurrentSchool::class)->run(2, fn () => $issuedLine()->forceFill(['amount_cents' => 1])->save()),
+            'deleting an issued line from another school' => fn () => app(CurrentSchool::class)->run(2, fn () => $issuedLine()->delete()),
+        ];
+        foreach ($refusedByModel as $what => $write) {
+            try {
+                $write();
+                $this->fail($what.' was allowed');
+            } catch (LogicException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        // Below the models, the database refuses too.
+        $refusedByDatabase = [
+            'a query-builder update of an issued invoice' => fn () => PlatformInvoice::acrossSchools()->whereKey($a->id)->update(['total_cents' => 1]),
+            'issuing it a second reference' => fn () => DB::table('platform_invoices')->where('id', $a->id)->update(['reference' => 'NE-2000-9999']),
+            'deleting an issued invoice' => fn () => DB::table('platform_invoices')->where('id', $a->id)->delete(),
+            'deleting a draft' => fn () => DB::table('platform_invoices')->where('id', $draft->id)->delete(),
+            'inserting a line on an issued invoice' => fn () => DB::table('platform_invoice_lines')->insert(['school_id' => 1, 'invoice_id' => $a->id, 'position' => 9, 'kind' => 'base', 'description' => 'Extra', 'amount_cents' => 999999, 'vat_cents' => 0]),
+            'inserting a line on a draft for another school' => fn () => DB::table('platform_invoice_lines')->insert(['school_id' => 2, 'invoice_id' => $draft->id, 'position' => 9, 'kind' => 'base', 'description' => 'Extra', 'amount_cents' => 1, 'vat_cents' => 0]),
+            'moving a line between invoices' => fn () => DB::table('platform_invoice_lines')->where('invoice_id', $a->id)->update(['invoice_id' => $draft->id]),
+            'changing an issued line' => fn () => DB::table('platform_invoice_lines')->where('invoice_id', $a->id)->update(['amount_cents' => 1]),
+            'deleting an issued line' => fn () => DB::table('platform_invoice_lines')->where('invoice_id', $a->id)->delete(),
+        ];
+        foreach ($refusedByDatabase as $what => $write) {
+            try {
+                $write();
+                $this->fail($what.' was allowed');
+            } catch (QueryException $e) {
+                $this->assertStringContainsString('45000', $e->getMessage(), $what);
+            }
+        }
+        $this->assertSame($before, $this->snapshot());
+
+        // Payments and allocations are only ever reversed, never edited or deleted.
+        $this->post('/saas/billing/schools/1/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'GUARD-1', 'allocations' => [$a->id => '1']])->assertRedirect();
+        $payment = PlatformPayment::acrossSchools()->sole();
+        foreach ([fn () => DB::table('platform_payments')->where('id', $payment->id)->update(['amount_cents' => 5]),
+            fn () => DB::table('platform_payments')->where('id', $payment->id)->delete(),
+            fn () => DB::table('platform_payment_allocations')->where('payment_id', $payment->id)->update(['amount_cents' => 5]),
+            fn () => DB::table('platform_payment_allocations')->where('payment_id', $payment->id)->delete()] as $write) {
+            try {
+                $write();
+                $this->fail('a payment changed');
+            } catch (QueryException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        // What may change still can: a draft's lines, the reminder columns and a reversal.
+        $this->post('/saas/billing/schools/1/invoices/'.$draft->id.'/recompute')->assertRedirect();
+        $this->assertSame(1, DB::table('platform_invoices')->where('id', $a->id)->update(['reminders' => 3]));
+        $this->post('/saas/billing/schools/1/payments/'.$payment->id.'/reverse', ['reason' => 'Recorded against the wrong school'])->assertRedirect();
+        $this->assertNotNull($payment->fresh()->reversed_at);
+    }
+
+    public function test_issuing_a_month_leaves_drafts_of_schools_no_longer_active(): void
+    {
+        $finance = $this->staff('finance');
+        $this->price('base', 5000);
+        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
+        School::query()->whereKey(2)->update(['status' => School::SUSPENDED]);
+        $this->post('/saas/billing/runs/issue', ['period' => $this->month()])->assertRedirect()->assertSessionHas('success', fn (string $m) => str_contains($m, '1 left as drafts because the school is no longer active'));
+        $this->assertSame(['issued', 'draft'], [$this->invoice(1)->status, $this->invoice(2)->status]);
+        $this->assertSame(['issued' => 0, 'left' => 0, 'skipped' => 1, 'changed' => 0], app(PlatformBilling::class)->issueMonth(['period' => $this->month()], $finance));
+        School::query()->whereKey(2)->update(['status' => School::ARCHIVED]);
+        $this->assertSame('draft', $this->invoice(2)->status);
+        // Issuing it by hand is still a deliberate choice HQ can make.
+        School::query()->whereKey(2)->update(['status' => School::SUSPENDED]);
+        $this->post('/saas/billing/schools/2/invoices/'.$this->invoice(2)->id.'/issue')->assertRedirect();
+        $this->assertSame('issued', $this->invoice(2)->status);
+    }
+
+    public function test_one_schools_account_credit_never_settles_another_schools_invoice(): void
+    {
+        $finance = $this->staff('finance');
+        [$a, $b] = $this->issued($finance);
+        $cents = $a->total_cents + 5000;
+        $this->actingAs($finance)->post('/saas/billing/schools/1/payments', ['amount' => intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT),
+            'received_on' => PlatformBilling::today(), 'bank_reference' => 'CREDIT-A', 'allocations' => [$a->id => intdiv($a->total_cents, 100).'.'.str_pad((string) ($a->total_cents % 100), 2, '0', STR_PAD_LEFT)]])->assertRedirect();
+        $this->assertSame(5000, app(PlatformBillingAccounts::class)->statement(1)['credit_cents']);
+        $before = $this->snapshot();
+        $this->post('/saas/billing/schools/2/invoices/'.$b->id.'/apply-credit')->assertSessionHasErrors('invoice');
+        $this->post('/saas/billing/schools/1/invoices/'.$b->id.'/apply-credit')->assertNotFound();
+        $this->assertSame($before, $this->snapshot());
+        $this->assertSame($b->total_cents, app(CurrentSchool::class)->run(2, fn () => app(PlatformBillingAccounts::class)->outstanding($b)));
+        $this->assertSame(5000, app(PlatformBillingAccounts::class)->statement(1)['credit_cents']);
+    }
+
+    public function test_the_billing_migrations_refuse_to_roll_back_once_they_hold_rows(): void
+    {
+        $finance = $this->staff('finance');
+        [$a] = $this->issued($finance);
+        $this->actingAs($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '10', 'reason' => 'Rollback guard fixture'])->assertRedirect();
+        DB::table('platform_billing_reminders')->insert(['school_id' => 1, 'request_key' => (string) Str::uuid(), 'invoice_ids' => '[]', 'overdue_cents' => 0,
+            'super_admins' => 0, 'bursar_contact_ids' => '[]', 'email_title' => 'Fixture', 'email_body' => 'Fixture', 'created_at' => now(), 'updated_at' => now()]);
+        foreach (['2026_11_01_182000_guard_platform_billing', '2026_11_01_181000_add_credit_note_idempotency', '2026_11_01_180000_create_platform_billing'] as $name) {
+            $migration = require database_path("migrations/{$name}.php");
+            try {
+                $migration->down();
+                $this->fail($name.' rolled back');
+            } catch (\RuntimeException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+        foreach (self::TABLES as $table) {
+            $this->assertTrue(Schema::hasTable($table), $table);
+        }
+        $this->assertTrue(Schema::hasColumn('platform_invoices', 'credit_request_key'));
+        $this->assertSame(1, (int) DB::selectOne("SELECT COUNT(*) AS c FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE() AND TRIGGER_NAME = 'platform_invoices_frozen'")->c);
     }
 
     public function test_sales_content_and_support_cannot_manage_billing_and_nothing_is_written(): void
@@ -564,7 +724,7 @@ class HqBillingTest extends TestCase
                 fn () => app(PlatformBilling::class)->creditNote(1, $a->id, ['idempotency_key' => (string) Str::uuid(), 'amount' => '1', 'reason' => 'Not allowed to do this'], $user),
                 fn () => app(PlatformBillingAccounts::class)->record(1, ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'X-1'], $user),
                 fn () => app(PlatformBillingAccounts::class)->reverse(1, $payment->id, ['reason' => 'Not allowed to do this'], $user),
-                fn () => app(PlatformBillingAccounts::class)->remind(1, $user),
+                fn () => app(PlatformBillingAccounts::class)->remind(1, ['idempotency_key' => (string) Str::uuid()], $user),
             ] as $call) {
                 try {
                     $call();
@@ -591,7 +751,7 @@ class HqBillingTest extends TestCase
             ["/saas/billing/schools/{$school}/invoices/{$invoice}/apply-credit", []],
             ["/saas/billing/schools/{$school}/payments", ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'X-2']],
             ["/saas/billing/schools/{$school}/payments/{$payment}/reverse", ['reason' => 'Not allowed to do this']],
-            ["/saas/billing/schools/{$school}/reminders", []],
+            ["/saas/billing/schools/{$school}/reminders", ['idempotency_key' => (string) Str::uuid()]],
         ];
     }
 

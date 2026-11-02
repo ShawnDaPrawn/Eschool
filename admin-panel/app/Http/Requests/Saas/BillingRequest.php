@@ -23,6 +23,7 @@ class BillingRequest extends PlatformStaffRequest
             'saas.billing.invoices.credit' => PlatformBilling::creditRules(),
             'saas.billing.payments.store' => PlatformBillingAccounts::paymentRules(),
             'saas.billing.payments.reverse' => PlatformBillingAccounts::reversalRules(),
+            'saas.billing.reminders.store' => PlatformBillingAccounts::reminderRules(),
             default => [],
         };
     }
