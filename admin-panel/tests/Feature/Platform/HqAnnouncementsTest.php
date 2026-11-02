@@ -16,6 +16,7 @@ use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Saas\PlatformAnnouncements;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -40,6 +41,9 @@ class HqAnnouncementsTest extends TestCase
     {
         parent::setUp();
         $this->setUpTwoSchools();
+        // The demo memberships start on the day the fixture is built; the clock below is pinned,
+        // so they must have started before it whatever day the suite runs.
+        DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         app(CurrentSchool::class)->forget();
         $this->travelTo(CarbonImmutable::parse('2026-11-02 08:00', PlatformAnnouncements::TIMEZONE));
         // School A: no package (legacy) and no HQ record (the default stage, onboarding). School B: core, live.
