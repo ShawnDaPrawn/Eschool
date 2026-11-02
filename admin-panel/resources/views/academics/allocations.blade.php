@@ -5,6 +5,18 @@
     <x-page.header :title="__('Academic allocations')" :subtitle="__('Appoint homeroom teachers, grade heads and principals with explicit dates and school-year scope.')" />
     @include('academics.groups-status')
     <a href="{{ route('teaching-groups.index') }}">{{ __('Teaching groups') }}</a>
+    <section class="m3-card m3-card--outlined page-section" aria-labelledby="staff-draft-start"><div class="m3-card__content">
+        <h2 id="staff-draft-start">{{ __('Draft from last year') }}</h2>
+        <p>{{ __('Start a new year\'s subject teachers and homeroom teachers from last year\'s, change what is different, then apply the draft. Teachers see nothing until it is applied.') }}</p>
+        @if ($draftYears === [])
+            <p>{{ __('No school year is running or still to come.') }}</p>
+        @else
+            <form method="GET" action="{{ route('academic-allocations.draft') }}" aria-label="{{ __('Draft from last year') }}">
+                <x-page.field id="staff-draft-year" name="year" type="select" :label="__('School year')" :options="$draftYears" :value="$draftYear" :restore-old-input="false" required />
+                <button class="m3-button m3-button--outlined" type="submit">{{ __('Build the draft') }}</button>
+            </form>
+        @endif
+    </div></section>
     <h2>{{ __('Homeroom teachers') }}</h2>
     @foreach ($homerooms as $row)@include('academics.assignment-history', ['kind' => 'homerooms', 'manage' => true])@endforeach
     @include('academics.groups-pagination', ['page' => $homerooms])
