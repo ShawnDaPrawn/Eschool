@@ -9,6 +9,8 @@ use App\Mail\Platform\NotificationMail;
 use App\Mail\Platform\ViewMail;
 use App\Models\Platform\NotificationDelivery;
 use App\Models\User;
+use App\Services\Platform\Mail\MailStreams;
+use App\Services\Platform\Mail\SendingDomains;
 use App\Services\Platform\Notifications\DeliveryGuard;
 use App\Services\Platform\Notifications\DeliveryLog;
 use App\Services\Platform\Notifications\EmailContent;
@@ -23,6 +25,7 @@ use Illuminate\Mail\SentMessage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mime\Email;
 use Throwable;
 
 /**
@@ -36,6 +39,9 @@ use Throwable;
 class SendMail implements ShouldBeEncrypted, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
+
+    /** Names the SES configuration set a message is sent through (SendRawEmail and SMTP). */
+    public const CONFIGURATION_SET_HEADER = 'X-SES-CONFIGURATION-SET';
 
     public int $tries;
 
@@ -96,7 +102,30 @@ class SendMail implements ShouldBeEncrypted, ShouldQueue
             if ($full !== null && trim($full['title']) !== '') {
                 $this->mailable->noticeTitle = $full['title'];
             }
+            // A school notice comes from the school's own verified domain
+            // (Action Plan 2.2), decided now and only for the delivery's own
+            // school; otherwise the platform From address. Account mail
+            // (passwords, invitations) is never a NotificationMail.
+            $this->mailable->from = [];
+            $from = app(SendingDomains::class)->noticeAddress($row?->school_id === null ? null : (int) $row->school_id);
+            if ($from !== null) {
+                $this->mailable->from($from, $this->mailable->schoolName !== '' ? $this->mailable->schoolName : null);
+            }
         }
+
+        // The SES stream and configuration set (Action Plan 2.3): the
+        // delivery row's own school and the mail's stream decide it, never
+        // the ambient school. The header works for the SES API and SMTP alike.
+        $streams = app(MailStreams::class);
+        $stream = MailStreams::streamFor($this->mailable);
+        $configurationSet = $streams->configurationSetFor($row?->school_id === null ? null : (int) $row->school_id, $stream);
+        DeliveryLog::routed($row, $stream, $configurationSet);
+        $this->mailable->withSymfonyMessage(function (Email $message) use ($configurationSet) {
+            $message->getHeaders()->remove(self::CONFIGURATION_SET_HEADER);
+            if ($configurationSet !== null) {
+                $message->getHeaders()->addTextHeader(self::CONFIGURATION_SET_HEADER, $configurationSet);
+            }
+        });
 
         try {
             $sent = Mail::mailer()->send($this->mailable);
