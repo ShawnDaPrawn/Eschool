@@ -34,6 +34,7 @@ class SchoolImportRequest extends FormRequest
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
             'starts_on' => ['nullable', 'date_format:Y-m-d'],
             'invite' => ['nullable', 'boolean'],
+            'from_sasams' => ['nullable', 'boolean'],
             'fingerprint' => [$this->routeIs('school-imports.store') ? 'required' : 'nullable', 'string', 'size:64'],
         ];
     }
