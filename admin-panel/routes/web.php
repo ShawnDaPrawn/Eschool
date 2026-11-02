@@ -147,6 +147,7 @@ use App\Http\Controllers\Platform\PlatformTwoFactorController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\SchoolStageController;
 use App\Http\Controllers\Platform\SchoolExitController;
 use App\Http\Controllers\Platform\SchoolSupportAccessController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
@@ -1516,6 +1517,9 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::put('/urgent-messaging', [UrgentMessagingController::class, 'update'])->middleware('throttle:20,1')->name('urgent-messaging.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+    // The age stage of each grade (Action Plan 4.1).
+    Route::get('/school-stages', [SchoolStageController::class, 'index'])->name('school-stages.index');
+    Route::put('/school-stages', [SchoolStageController::class, 'update'])->middleware('throttle:30,1')->name('school-stages.update');
     // A leaving school's export (SA.11): its Super Admin downloads it through a short-lived signed link and confirms receipt.
     Route::get('/school-exit', [SchoolExitController::class, 'index'])->name('school-exit.index');
     Route::get('/school-exit/{offboarding}/download', [SchoolExitController::class, 'download'])->whereNumber('offboarding')->middleware(['signed', 'throttle:10,1'])->name('school-exit.download');

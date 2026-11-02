@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\PushDevices;
+use App\Services\Platform\Stages\SchoolStages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
@@ -49,6 +50,10 @@ final class PortalSession
     public static function signIn(Request $request, User $user, string $app): string
     {
         app(ApprovalService::class)->assertAccess($user);
+        if ($app === AppTokens::STUDENT) {
+            // Early years learners never sign in themselves (Action Plan 4.1); guardians keep their own sign-in.
+            app(SchoolStages::class)->assertMaySignIn($user);
+        }
 
         if (! self::isPortal($request)) {
             $plain = AppTokens::issue($user, $app);

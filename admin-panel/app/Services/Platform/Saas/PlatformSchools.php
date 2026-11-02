@@ -15,6 +15,7 @@ use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Stages\SchoolStages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolRoles;
 use Database\Seeders\EmailSeeder;
@@ -240,6 +241,8 @@ class PlatformSchools
         $sessionYear->default = 1;
         $sessionYear->save();
         Settings::query()->updateOrCreate(['type' => 'session_year'], ['message' => (string) $sessionYear->id]);
+        // The owner's default age stage for each grade; the school adjusts them itself (Action Plan 4.1).
+        app(SchoolStages::class)->seedDefaults((int) $school->id);
     }
 
     /**
