@@ -438,3 +438,11 @@ current school's rows ([mastery impact](../leadership/mastery-impact.md)).
 `wellbeing_check_ins` are required school-owned: a school's library, the
 progress against its own interventions and its learners' check-ins. Another
 school's ids are not found ([check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)).
+### Early years tools
+
+`early_years_development_areas`, `early_years_diary_entries`,
+`early_years_observations` and `early_years_concerns` are required school-owned:
+each school keeps its own development areas, and every diary entry, observation
+and concern belongs to the learner's school. Observation photographs stay in the
+school's private gallery tables and storage prefix; a concern's words stay in
+the school's encrypted intervention ([early years](../learning/early-years.md)).

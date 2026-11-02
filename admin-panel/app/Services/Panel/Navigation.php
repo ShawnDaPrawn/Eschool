@@ -15,6 +15,7 @@ use App\Services\Commerce\VendorPaymentReaderAccess;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Consultations\ConsultationAccess;
 use App\Services\Discipline\DisciplineQueries;
+use App\Services\EarlyYears\EarlyYearsAuthority;
 use App\Services\FamilyForms\FamilyPanelScope;
 use App\Services\FamilyVisits\VisitPanelScope;
 use App\Services\Gallery\GalleryPanelScope;
@@ -214,6 +215,9 @@ class Navigation
         }
         // Only while the school is leaving and has an export to collect (SA.11).
         if (($item['school_exit'] ?? false) && (! app(SchoolExit::class)->allowed($user) || app(SchoolExit::class)->current() === null)) {
+            return false;
+        }
+        if (($item['early_years_actor'] ?? false) && ! app(EarlyYearsAuthority::class)->available($user)) {
             return false;
         }
         if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {
