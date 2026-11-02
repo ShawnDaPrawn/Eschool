@@ -15,30 +15,43 @@ use App\Models\StudentSessions;
 use App\Models\SubjectTeacher;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 
 /** Resolve person/role authority before any field values are loaded. */
 class ProfilePolicy
 {
-    public function actor(User $actor): User
+    public function actor(User $actor, bool $revocation = false): User
     {
         $fresh = User::query()->where('status', 1)->findOrFail($actor->id);
-        abort_unless($this->roles($fresh) !== [], 403);
+        // Only explicit domain revocations may use a reachable leaver role on a write.
+        abort_unless($this->roles($fresh, $revocation ? false : null) !== [], 403);
 
         return $fresh;
     }
 
-    public function roles(User $person): array
+    /**
+     * Roles that may reach the school's records today. A leaver's role counts
+     * for reading until their leaver_until (Action Plan 1.21), never for a
+     * write: a former learner or guardian who is also staff writes as staff.
+     */
+    public function roles(User $person, ?bool $acting = null): array
     {
-        return SchoolMembership::query()->active()->where('school_id', app(CurrentSchool::class)->id())
+        // Acting: the person is the one making the request. Checking someone else's
+        // roles (a consenting guardian, a profile's subject) always counts a leaver's.
+        $acting ??= (int) LeaverState::requester()?->getAuthIdentifier() === (int) $person->id;
+
+        return SchoolMembership::query()->when($acting && LeaverState::writing(), fn ($q) => $q->active(), fn ($q) => $q->reachable())
+            ->where('school_id', app(CurrentSchool::class)->id())
             ->where('user_id', $person->id)->pluck('role')->unique()->values()->all();
     }
 
+    /** The profiles a person has here (a leaver's learner profile stays one, for the office to read and edit). */
     public function types(User $person): array
     {
         $types = [];
-        foreach ($this->roles($person) as $role) {
+        foreach ($this->roles($person, false) as $role) {
             $types[] = self::typeForRole($role);
         }
 
@@ -74,6 +87,7 @@ class ProfilePolicy
         $actor = $this->actor($actor); // Never use roles cached under another school.
         $person = User::query()->where('status', 1)->findOrFail($person->id);
         abort_unless(in_array($profile, $this->types($person), true), 404);
+        $learner = null;
         $role = null;
         $write = false;
         $sensitive = false;
@@ -107,6 +121,11 @@ class ProfilePolicy
             }
         }
         abort_unless($role !== null, 404);
+        // A leaver's profile is read-only to the leaver and their guardians.
+        if ($write && $profile === 'learner' && in_array($role, ['owner', 'guardian'], true)) {
+            $learner ??= Students::query()->where('user_id', $person->id)->first();
+            $write = $learner === null || ! app(LeaverState::class)->isLeaver((int) $learner->id);
+        }
 
         return ['actor' => $actor, 'person' => $person, 'role' => $role, 'write' => $write,
             'sensitive' => $sensitive && ! app(CurrentSchool::class)->isImpersonating()];

@@ -27,12 +27,21 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property Carbon|null $starts_on
  * @property Carbon|null $ends_on
+ * @property Carbon|null $leaver_until
  */
 class SchoolMembership extends Model
 {
     use Auditable;
 
     public const ACTIVE = 'active';
+
+    /**
+     * Left at the year switch (Action Plan 1.21): read-only access to the
+     * school's records about them until the end of leaver_until; never a
+     * current member (scopeActive leaves leavers out). See
+     * App\Services\People\Leavers\LeaverState.
+     */
+    public const LEAVER = 'leaver';
 
     public const SUSPENDED = 'suspended';
 
@@ -45,6 +54,7 @@ class SchoolMembership extends Model
         return [
             'starts_on' => 'date',
             'ends_on' => 'date',
+            'leaver_until' => 'date',
         ];
     }
 
@@ -68,5 +78,22 @@ class SchoolMembership extends Model
             ->where(fn (Builder $q) => $q->whereNull('school_memberships.starts_on')->orWhere('school_memberships.starts_on', '<=', $today))
             ->where(fn (Builder $q) => $q->whereNull('school_memberships.ends_on')->orWhere('school_memberships.ends_on', '>=', $today))
             ->whereHas('school', fn (Builder $school) => $school->where('status', School::ACTIVE));
+    }
+
+    /**
+     * Who may reach the school's records today: active members, and leavers
+     * until the end of their leaver_until. Use it for access checks (which
+     * roles may read); use active() for who is a current member.
+     */
+    public function scopeReachable(Builder $query): Builder
+    {
+        $timezone = app(CurrentSchool::class)->school()?->timezone ?? config('app.timezone', 'UTC');
+        $today = now($timezone)->toDateString();
+
+        return $query->where(fn (Builder $either) => $either
+            ->where(fn (Builder $active) => $active->active())
+            ->orWhere(fn (Builder $leaver) => $leaver->where('school_memberships.status', self::LEAVER)
+                ->whereDate('school_memberships.leaver_until', '>=', $today)
+                ->whereHas('school', fn (Builder $school) => $school->where('status', School::ACTIVE))));
     }
 }

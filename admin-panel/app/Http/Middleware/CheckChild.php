@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\Platform\GuardianLink;
+use App\Services\People\Leavers\LeaverState;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,8 @@ class CheckChild
                 'code' => 105,
             ]);
         }
+        // A leaver's records stay readable; nothing is written for them (Action Plan 1.21).
+        app(LeaverState::class)->guardFamilyWrite($child);
         if ($request->is('api/parent/*fees*', 'api/parent/*payment*', 'api/parent/*transaction*')) {
             $link = GuardianLink::query()->where('learner_id', $child->id)
                 ->where('guardian_user_id', $request->user()->id)->first();

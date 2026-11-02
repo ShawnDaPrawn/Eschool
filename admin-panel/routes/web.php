@@ -103,6 +103,7 @@ use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
+use App\Http\Controllers\Panel\People\LeaverController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
@@ -1088,6 +1089,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('promotions/by-grade', [GradePromotionController::class, 'index'])->name('promotions.by-grade');
         Route::post('promotions/by-grade/check', [GradePromotionController::class, 'preview'])->name('promotions.by-grade.preview');
         Route::post('promotions/by-grade', [GradePromotionController::class, 'store'])->name('promotions.by-grade.store');
+        // Leavers: read-only until 31 March, restored or ended early by the office (Action Plan 1.21).
+        Route::get('learners/leavers', [LeaverController::class, 'index'])->name('leavers.index');
+        Route::post('learners/leavers/{learner}/restore', [LeaverController::class, 'restore'])->whereNumber('learner')->middleware('throttle:60,1')->name('leavers.restore');
+        Route::post('learners/leavers/{learner}/end', [LeaverController::class, 'end'])->whereNumber('learner')->middleware('throttle:60,1')->name('leavers.end');
 
         Route::get('resetpassword', [HomeController::class, 'resetpassword'])->name('resetpassword');
         // POST so the password isn't written to access logs with the URL.

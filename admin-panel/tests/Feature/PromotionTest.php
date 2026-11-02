@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\StudentSessions;
@@ -52,11 +53,20 @@ class PromotionTest extends TestCase
         app(SessionYearService::class)->makeCurrent($next);
 
         $this->assertSame($id['section_c'], Students::find($id['asha'])->class_section_id);
-        $this->assertSame(0, (int) User::find($id['ben_user'])->status);
+        // A leaver is not deactivated: read-only until 31 March (Action Plan 1.21).
+        $this->assertSame(1, (int) User::find($id['ben_user'])->status);
+        $leaver = fn () => SchoolMembership::query()->where('user_id', $id['ben_user'])->where('role', 'Student')->sole();
+        $this->assertSame(SchoolMembership::LEAVER, $leaver()->status);
+        $this->assertSame(now()->addYear()->format('Y').'-03-31', $leaver()->leaver_until->toDateString());
 
-        // Changing a leave back to continue updated the session but left the account locked.
+        // Changing a leave back to continue makes Ben a current learner again.
         $promote($id['ben'], 1, $id['section_a']);
         $this->assertSame(1, (int) User::find($id['ben_user'])->status);
+        $this->assertSame([SchoolMembership::ACTIVE, null], [$leaver()->status, $leaver()->leaver_until]);
+        // Marking him as leaving the current year makes him a leaver at once.
+        $promote($id['ben'], 0);
+        $this->assertSame(SchoolMembership::LEAVER, $leaver()->status);
+        $promote($id['ben'], 1, $id['section_a']);
         $this->assertSame($id['section_a'], StudentSessions::where(['student_id' => $id['ben'], 'session_year_id' => $next->id])->value('class_section_id'));
     }
 

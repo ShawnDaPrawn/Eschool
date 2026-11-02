@@ -218,6 +218,7 @@
                                 @endforeach
                                 <li>{{ __('new_year_preview_promotions', ['promoted' => $preview['promoted'], 'learners' => $preview['learners'], 'leaving' => $preview['leaving']]) }}</li>
                             </ul>
+                            <p class="page-card-subtitle">{{ __('Learners who leave, and their guardians, keep read-only access to their reports, marks and documents until :date. The office can bring a leaver back or end their access sooner on the Leavers page.', ['date' => \Illuminate\Support\Carbon::parse($preview['leaver_until'])->format('j M Y')]) }}</p>
                             <div class="page-form-actions">
                                 <button type="button" class="m3-button m3-button--outlined" data-wizard-back>{{ __('new_year_back') }}</button>
                                 <button type="button" class="m3-button m3-button--filled" data-wizard-next>{{ __('new_year_next') }}</button>
