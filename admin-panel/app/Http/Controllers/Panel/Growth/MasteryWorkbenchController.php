@@ -10,6 +10,7 @@ use App\Jobs\Growth\RecomputeMastery;
 use App\Models\Subject;
 use App\Policies\Growth\MasteryPolicy;
 use App\Services\Academics\AcademicAccess;
+use App\Services\Growth\MasteryModels;
 use App\Services\Growth\MasteryQueries;
 use App\Services\Growth\MasteryService;
 use App\Services\Growth\TopicGraph;
@@ -57,6 +58,22 @@ class MasteryWorkbenchController extends Controller
         }
 
         return redirect()->route('mastery.index', ['subject_id' => $subject])->with('success', __('Mastery graph saved'));
+    }
+
+    /** Action Plan 3.8: the school chooses its mastery score model. */
+    public function model(MasteryPanelRequest $request): Response
+    {
+        try {
+            $result = app(MasteryModels::class)->change($request->user(), $request->validated());
+        } catch (HttpExceptionInterface $error) {
+            if ($error->getStatusCode() !== 409) {
+                throw $error;
+            }
+
+            return redirect()->route('mastery.index')->withErrors(['model_version' => __('Mastery settings changed. Review the current model and try again.')]);
+        }
+
+        return redirect()->route('mastery.index')->with('success', __('Mastery model saved').': '.MasteryModels::label($result['model_version']));
     }
 
     public function refresh(MasteryPanelRequest $request, int $subject): Response

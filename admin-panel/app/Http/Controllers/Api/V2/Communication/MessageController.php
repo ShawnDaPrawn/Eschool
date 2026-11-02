@@ -12,6 +12,7 @@ use App\Services\Communication\CommunicationOperations;
 use App\Services\Communication\CommunicationRules;
 use App\Services\Communication\MessageFlow;
 use App\Services\Communication\MessageQueries;
+use App\Services\Communication\MessageReport;
 use App\Services\ResponseService;
 use Illuminate\Http\JsonResponse;
 
@@ -96,6 +97,11 @@ class MessageController extends Controller
     public function withdraw(MessageRequest $r, int $message): JsonResponse
     {
         return $this->response($r, app(MessageFlow::class)->withdraw($r->user(), $message, $r->validated()));
+    }
+
+    public function report(MessageRequest $r, int $message): JsonResponse
+    {
+        return $this->response($r, app(MessageReport::class)->for($r->user(), $message, (int) $r->validated('page', 1)));
     }
 
     public function inbox(MessageRequest $r): JsonResponse

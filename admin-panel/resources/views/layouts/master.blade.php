@@ -38,6 +38,7 @@
 
                 @include('layouts.partials.read-only-banner')
                 @include('layouts.partials.notices')
+                @include('layouts.partials.platform-announcements')
 
                 @yield('content')
 

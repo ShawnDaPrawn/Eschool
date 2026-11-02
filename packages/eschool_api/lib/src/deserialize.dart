@@ -289,6 +289,7 @@ import 'package:eschool_api/src/model/communication_configuration_years_inner.da
 import 'package:eschool_api/src/model/communication_contact_list.dart';
 import 'package:eschool_api/src/model/communication_contact_list_response.dart';
 import 'package:eschool_api/src/model/communication_decision_write.dart';
+import 'package:eschool_api/src/model/communication_delivery_counts.dart';
 import 'package:eschool_api/src/model/communication_effective_rules.dart';
 import 'package:eschool_api/src/model/communication_message_editor.dart';
 import 'package:eschool_api/src/model/communication_message_editor_response.dart';
@@ -300,6 +301,10 @@ import 'package:eschool_api/src/model/communication_message_reader.dart';
 import 'package:eschool_api/src/model/communication_message_reader_response.dart';
 import 'package:eschool_api/src/model/communication_message_receipt.dart';
 import 'package:eschool_api/src/model/communication_message_receipt_response.dart';
+import 'package:eschool_api/src/model/communication_message_report.dart';
+import 'package:eschool_api/src/model/communication_message_report_channels.dart';
+import 'package:eschool_api/src/model/communication_message_report_items_inner.dart';
+import 'package:eschool_api/src/model/communication_message_report_response.dart';
 import 'package:eschool_api/src/model/communication_message_write.dart';
 import 'package:eschool_api/src/model/communication_read_receipt.dart';
 import 'package:eschool_api/src/model/communication_read_receipt_response.dart';
@@ -2452,6 +2457,9 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'CommunicationDecisionWrite':
       return CommunicationDecisionWrite.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'CommunicationDeliveryCounts':
+      return CommunicationDeliveryCounts.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'CommunicationEffectiveRules':
       return CommunicationEffectiveRules.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -2492,6 +2500,24 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'CommunicationMessageReceiptResponse':
       return CommunicationMessageReceiptResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageReport':
+      return CommunicationMessageReport.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'CommunicationMessageReportChannels':
+      return CommunicationMessageReportChannels.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageReportItemsInner':
+      return CommunicationMessageReportItemsInner.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'CommunicationMessageReportResponse':
+      return CommunicationMessageReportResponse.fromJson(
             value as Map<String, dynamic>,
           )
           as ReturnType;
