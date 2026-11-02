@@ -20,6 +20,7 @@ declare(strict_types=1);
  *                   modules and prices; re-apply a package to its schools
  *  identity.review  LURITS claims between schools: see and close them
  *  incidents.manage the breach and incident register: record, update, close
+ *  flags.manage     feature flags: create, roll out, switch schools, kill
  *  announcements.manage announcements to schools: draft, publish, withdraw
  *  health.view      school health and usage, per school and compared (counts only)
  *  ai.view          the AI control centre: qualification, caps, spend, queue counts
@@ -33,7 +34,7 @@ declare(strict_types=1);
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['health.view', 'schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'announcements.manage', 'ai.view', 'support.access']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['health.view', 'schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'audit.view', 'identity.review', 'incidents.manage', 'announcements.manage', 'flags.manage', 'ai.view', 'support.access']],
     'support' => ['label' => 'Support', 'abilities' => ['health.view', 'schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'ai.view', 'support.access']],
     'finance' => ['label' => 'Finance', 'abilities' => ['health.view', 'schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'audit.view', 'audit.export']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],

@@ -107,6 +107,14 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- Platform: feature flags at `/saas/flags` for Owner and Operations. A new
+  feature can be switched on for chosen pilot schools first (beta), then for
+  everyone, with single schools switched on or off by name, and a kill switch
+  that turns it off everywhere at once. The apps receive the result in their
+  existing feature switches. A flag can switch a feature that is already in the
+  apps off for a school, but never on where the app does not offer it.
+  **Deploy:** run the migrations.
+
 - Platform and Admin panel: audited support access. Navigate Ed Support,
   Operations and Owner staff ask a school for access at `/saas/support`, with a
   reason and a length of up to four hours. The school's Super Admins are told
