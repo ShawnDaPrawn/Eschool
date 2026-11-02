@@ -7,10 +7,12 @@ namespace App\Http\Controllers\People;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\People\ProfilePanelRequest;
 use App\Http\Requests\People\StaffInvitationRequest;
+use App\Models\Students;
 use App\Models\User;
 use App\Policies\People\ProfilePolicy;
 use App\Services\People\Profiles\ProfileForms;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Identity\LearnerIdentifiers;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
@@ -38,8 +40,13 @@ class ProfileFormController extends Controller
         $form = $forms->schema($request->user(), $subject, $type);
 
         $canInvite = app(StaffInvitations::class)->mayInvite($request->user(), $subject);
+        // A learner is identified by the headline number first (ADR 0007),
+        // then by the school's own admission number.
+        $learner = $form['profile_type'] === 'learner' ? Students::query()->where('user_id', $subject->id)->first() : null;
+        $identifier = app(LearnerIdentifiers::class)->forLearner($request->user(), $learner);
+        $admissionNo = $learner?->admission_no;
 
-        return response()->view('people.profile-form', compact('form', 'subject', 'canInvite'))->header('Cache-Control', 'private, no-store');
+        return response()->view('people.profile-form', compact('form', 'subject', 'canInvite', 'identifier', 'admissionNo'))->header('Cache-Control', 'private, no-store');
     }
 
     public function update(ProfilePanelRequest $request, ProfileForms $forms, ?int $person = null): JsonResponse

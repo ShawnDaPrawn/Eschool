@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Contracts;
 
+use App\Models\Platform\GuardianLink;
+use App\Models\Students;
 use App\Models\User;
+use App\Services\Platform\Identity\LuritsNumbers;
+use App\Services\Platform\Identity\StudentNumbers;
 use cebe\openapi\Reader;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -665,7 +670,18 @@ class OpenApiContractTest extends TestCase
             'profile field update unknown' => ['superadmin', 'PUT', 'api/v2/profile-fields/definitions/999999', ['category_id' => 1, 'key' => 'contract_route', 'label' => 'Route', 'type' => 'text', 'visible_to' => ['owner'], 'editable_by' => []], 404],
             'profile field removal protected' => ['superadmin', 'DELETE', 'api/v2/profile-fields/definitions/1', [], 422],
             'read own notification preferences' => ['farid', 'GET', 'api/v2/me/notification-preferences', [], 200],
+            'list own notifications as a parent' => ['farid', 'GET', 'api/v2/me/notifications', [], 200],
+            'list own notifications as a learner' => ['asha', 'GET', 'api/v2/me/notifications', [], 200],
+            'list own notifications as a teacher' => ['tara', 'GET', 'api/v2/me/notifications', [], 200],
+            'list own notifications as school-created staff' => ['staff', 'GET', 'api/v2/me/notifications', [], 200],
+            'notification list page out of range' => ['farid', 'GET', 'api/v2/me/notifications?page=0', [], 422],
+            'notification list requires auth' => [null, 'GET', 'api/v2/me/notifications', [], 401],
+            'notification list for an account with no role' => ['norole', 'GET', 'api/v2/me/notifications', [], 403],
+            'notification detail requires auth' => [null, 'GET', 'api/v2/me/notifications/1', [], 401],
+            'notification detail of a notice that is not yours' => ['farid', 'GET', 'api/v2/me/notifications/999999', [], 404],
             'locked notice preference' => ['farid', 'PUT', 'api/v2/me/notification-preferences', ['type' => 'attendance.absence', 'channel' => 'email', 'enabled' => false], 422],
+            'read own quiet hours' => ['farid', 'GET', 'api/v2/me/notification-quiet-hours', [], 200],
+            'quiet hours need valid times' => ['farid', 'PUT', 'api/v2/me/notification-quiet-hours', ['enabled' => true, 'starts_at' => '25:00', 'ends_at' => '06:00'], 422],
             'read own handle' => ['asha', 'GET', 'api/v2/me/handle', [], 200],
             'handle write requires auth' => [null, 'PUT', 'api/v2/me/handle', ['handle' => 'orbit'], 401],
             'unverified guardian handle list' => ['farid', 'GET', 'api/v2/guardian/handle-proposals', [], 403],
@@ -737,6 +753,33 @@ class OpenApiContractTest extends TestCase
 
         // ValidatesOpenApiResponses checks the response against openapi.yaml.
         $this->json($method, '/'.$path, $body)->assertStatus($status);
+    }
+
+    /**
+     * The learner's headline number (ADR 0007): a LURITS number, the temporary
+     * NavigateEd number, and null, on every v2 learner resource that carries it.
+     */
+    public function test_learner_headline_numbers_match_the_spec(): void
+    {
+        DB::table('users')->where('id', $this->school->ids['farid_user'])->update(['email_verified_at' => now()]);
+        GuardianLink::query()->create(['learner_id' => $this->school->ids['asha'], 'guardian_user_id' => $this->school->ids['farid_user'], 'relationship' => 'father', 'status' => 'active', 'can_approve' => true]);
+        app(LuritsNumbers::class)->record(Students::query()->findOrFail($this->school->ids['asha']), '8800000001', 'school_entry');
+        app(StudentNumbers::class)->assign(Students::query()->findOrFail($this->school->ids['cara']));
+        $lurits = ['type' => 'lurits', 'value' => '8800000001'];
+
+        $calls = [
+            ['asha', 'api/v2/me/profile', 'data.primary_identifier', $lurits],
+            ['superadmin', 'api/v2/people/'.$this->school->ids['asha_user'].'/profile', 'data.primary_identifier', $lurits],
+            ['superadmin', 'api/v2/people/'.$this->school->ids['cara_user'].'/profile', 'data.primary_identifier.type', 'navigateed'],
+            ['tara', 'api/v2/people/'.$this->school->ids['asha_user'].'/profile', 'data.primary_identifier', null],
+            ['farid', 'api/v2/guardian/approvals', 'data.0.learner.primary_identifier', $lurits],
+            ['farid', 'api/v2/me/context', 'data.children.0.primary_identifier', $lurits],
+        ];
+        foreach ($calls as [$who, $path, $field, $expected]) {
+            $this->app['auth']->forgetGuards();
+            // ValidatesOpenApiResponses checks each response against openapi.yaml.
+            $this->flushHeaders()->withToken($this->tokenFor($who))->getJson('/'.$path)->assertOk()->assertJsonPath($field, $expected);
+        }
     }
 
     public function test_a_rate_limited_answer_matches_the_spec(): void
