@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -29,6 +30,7 @@ use Tests\TestCase;
  */
 class PlatformRolesTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -61,7 +63,7 @@ class PlatformRolesTest extends TestCase
         $finance = $this->staff('finance');
         $school = self::SCHOOL_B_ID;
 
-        $this->actingAs($sales)->get('/saas')->assertOk()->assertDontSee('Set up a school');
+        $this->actingAsHq($sales)->get('/saas')->assertOk()->assertDontSee('Set up a school');
         $this->get('/saas/schools/'.$school)->assertOk()->assertDontSee('Change package')->assertDontSee('Change status')->assertSee('Your role cannot change modules')
             // Links and forms another role's pages need are not offered either.
             ->assertDontSee('School record, contacts and contracts')->assertDontSee('Audit log for this school')->assertDontSee('Send the invitation again');
@@ -70,21 +72,21 @@ class PlatformRolesTest extends TestCase
         $this->put('/saas/schools/'.$school.'/status', ['status' => 'suspended', 'reason' => 'Should never be allowed'])->assertForbidden();
         $this->get('/saas/staff')->assertForbidden();
 
-        $this->actingAs($finance)->get('/saas/schools/'.$school)->assertOk()->assertSee('Change package')->assertDontSee('Change status')
+        $this->actingAsHq($finance)->get('/saas/schools/'.$school)->assertOk()->assertSee('Change package')->assertDontSee('Change status')
             ->assertSee('School record, contacts and contracts')->assertSee('Audit log for this school');
         $this->get('/saas/audit')->assertOk()->assertSee('Export CSV');
-        $this->actingAs($this->staff('support'))->get('/saas/audit')->assertOk()->assertDontSee('Export CSV');
-        $this->actingAs($finance);
+        $this->actingAsHq($this->staff('support'))->get('/saas/audit')->assertOk()->assertDontSee('Export CSV');
+        $this->actingAsHq($finance);
         $this->put('/saas/schools/'.$school.'/package', ['package_key' => 'standard'])->assertRedirect();
         $this->put('/saas/schools/'.$school.'/status', ['status' => 'suspended', 'reason' => 'Should never be allowed'])->assertForbidden();
 
-        $this->actingAs($owner)->get('/saas')->assertOk()->assertSee('Set up a school')->assertSee('Platform staff');
+        $this->actingAsHq($owner)->get('/saas')->assertOk()->assertSee('Set up a school')->assertSee('Platform staff');
         $this->get('/saas/staff')->assertOk()->assertSee($sales->email);
 
         // A role removed from the config grants nothing.
         PlatformAdminGrant::query()->where('user_id', $sales->id)->update(['role' => 'retired']);
         $this->assertFalse(app(PlatformStaffAccess::class)->can($sales->fresh(), 'schools.view'));
-        $this->actingAs($sales)->get('/saas')->assertForbidden();
+        $this->actingAsHq($sales)->get('/saas')->assertForbidden();
     }
 
     public function test_an_owner_invites_staff_who_choose_their_own_password(): void
@@ -111,7 +113,12 @@ class PlatformRolesTest extends TestCase
         $this->assertNotNull($user->fresh()->email_verified_at);
         $this->get($invited['url'])->assertNotFound();
 
-        $this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!'])->assertRedirect('/saas');
+        $this->keepSession($this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!']))->assertRedirect('/saas');
+        // Choosing the password leads into setting up two-factor sign-in (SA.2) before any HQ page.
+        $this->get('/saas')->assertRedirect(route('saas.two-factor.enrol'));
+        $this->get('/saas/staff')->assertRedirect(route('saas.two-factor.enrol'));
+        $this->get('/saas/two-factor')->assertOk()->assertSee('Set up two-factor sign-in');
+        $this->passPlatformTwoFactor($user);
         $this->get('/saas')->assertOk();
         $this->get('/saas/staff')->assertForbidden();
 
@@ -172,7 +179,7 @@ class PlatformRolesTest extends TestCase
     {
         Queue::fake();
         $owner = $this->staff('owner');
-        $this->actingAs($owner)->post('/saas/staff', ['first_name' => 'Lindiwe', 'last_name' => 'Khumalo', 'email' => 'lindiwe@platform.example', 'role' => 'content', 'days' => 400, 'reason' => 'Writes help content'])
+        $this->actingAsHq($owner)->post('/saas/staff', ['first_name' => 'Lindiwe', 'last_name' => 'Khumalo', 'email' => 'lindiwe@platform.example', 'role' => 'content', 'days' => 400, 'reason' => 'Writes help content'])
             ->assertSessionHasErrors('days');
         $this->post('/saas/staff', ['first_name' => 'Lindiwe', 'last_name' => 'Khumalo', 'email' => 'lindiwe@platform.example', 'role' => 'content', 'days' => 60, 'reason' => 'Writes help content'])
             ->assertRedirect('/saas/staff')->assertSessionHas('success');
@@ -185,7 +192,7 @@ class PlatformRolesTest extends TestCase
         $this->post('/saas/staff/'.$lindiwe->id.'/revoke', ['reason' => 'Left the company'])->assertRedirect('/saas/staff');
         $this->assertFalse((bool) PlatformAdminGrant::query()->where('user_id', $lindiwe->id)->value('active'));
         // Only platform staff: a school's Super Admin cannot reach it.
-        $this->actingAs($this->superAdmin())->get('/saas/staff')->assertForbidden();
+        $this->newBrowserSession()->actingAs($this->superAdmin())->get('/saas/staff')->assertForbidden();
     }
 
     private function expectValidation(callable $call, string $field): void

@@ -515,6 +515,53 @@ class SchoolTransferTest extends TestCase
         $this->getJson($u.'incoming/'.$id)->assertNotFound();
     }
 
+    /**
+     * Leavers (Action Plan 1.21): staff still send a leaver's records on, with
+     * the consent of a guardian whose only child here left, both during the
+     * read-only period and after it ended (the family write guard applies to
+     * the person acting, never to the guardian staff check).
+     */
+    public function test_staff_prepare_and_release_a_leavers_transfer_during_and_after_leaver_access(): void
+    {
+        $u = '/api/v2/transfers/';
+        $member = fn (int $user, string $role) => SchoolMembership::query()->where('school_id', 1)->where('user_id', $user)->where('role', $role);
+        // Asha left at the switch; her father's other child is gone too, so he is a leaver guardian.
+        $member($this->schoolA->ids['asha_user'], 'Student')->update(['status' => SchoolMembership::LEAVER, 'leaver_until' => '2026-03-31', 'ends_on' => '2026-03-31']);
+        $member($this->guardian->id, 'Parent')->update(['status' => SchoolMembership::LEAVER, 'leaver_until' => '2026-03-31', 'ends_on' => '2026-03-31']);
+        $send = function (array $input) use ($u): int {
+            $this->app['auth']->forgetGuards();
+            $this->app->forgetScopedInstances();
+            app(CurrentSchool::class)->set(1);
+            $this->actingAs($this->sender)->withHeaders(['X-School-Id' => '1', 'X-Account-Id' => (string) $this->sender->id]);
+            $id = (int) $this->postJson($u.'packages', $input)->assertOk()->json('data.id');
+            $p = TransferPackage::findOrFail($id);
+            $this->app['auth']->forgetGuards();
+            $this->app->forgetScopedInstances();
+            app(CurrentSchool::class)->set(1);
+            $this->actingAs($this->guardian)->withHeader('X-Account-Id', (string) $this->guardian->id);
+            $this->postJson($u.'packages/'.$id.'/consent', ['operation_id' => (string) Str::uuid(), 'revision' => 1, 'fingerprint' => $p->fingerprint, 'version' => config('school_transfers.consent_version'), 'confirmation' => true])->assertOk();
+            $this->app['auth']->forgetGuards();
+            $this->app->forgetScopedInstances();
+            app(CurrentSchool::class)->set(1);
+            $this->actingAs($this->sender)->withHeader('X-Account-Id', (string) $this->sender->id)->postJson($u.'packages/'.$id.'/release', ['operation_id' => (string) Str::uuid(), 'revision' => 2])->assertOk()->assertJsonPath('data.revision', 3);
+
+            return $id;
+        };
+        $input = $this->input();
+        $input['to_school_id'] = null;
+        $input['external_school'] = 'Leaver export';
+        $send($input);
+
+        // After her access ended (her father keeps the school for another child).
+        $member($this->schoolA->ids['asha_user'], 'Student')->update(['status' => SchoolMembership::ENDED, 'ends_on' => '2026-02-10']);
+        $member($this->guardian->id, 'Parent')->update(['status' => SchoolMembership::ACTIVE, 'leaver_until' => null, 'ends_on' => null]);
+        $again = $this->input();
+        $again['to_school_id'] = null;
+        $again['external_school'] = 'Leaver export after access';
+        $send($again);
+        $this->assertSame(2, TransferPackage::where('learner_id', $this->learner)->where('state', 'released')->count());
+    }
+
     public function test_http_transfer_authority_precedes_validation_replay_and_foreign_reads(): void
     {
         $u = '/api/v2/transfers/';
@@ -610,7 +657,9 @@ class SchoolTransferTest extends TestCase
         $notice = Notification::where('type', TransferNotices::TYPE)->sole();
         $this->assertStringNotContainsString($p->contents['learner_name'], $notice->message);
         $this->assertStringNotContainsString($p->contents['to_school_name'], $notice->message);
-        $this->assertSame(['link', 'transfer_package_id', 'transfer_revision'], array_keys($notice->delivery_payload));
+        $keys = array_keys($notice->delivery_payload);
+        sort($keys);
+        $this->assertSame(['link', 'transfer_package_id', 'transfer_revision'], $keys);
         $guard = app(TransferNotices::class);
         $payload = $notice->delivery_payload;
         $this->assertTrue($guard->allows($this->guardian, $notice->type, $payload));

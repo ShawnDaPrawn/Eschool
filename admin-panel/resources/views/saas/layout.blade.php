@@ -11,7 +11,9 @@
 </head>
 <body class="saas">
 @php
-    $platformCan = fn (string $ability): bool => auth()->check() && app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
+    // No HQ links until two-factor sign-in is passed in this session (SA.2).
+    $hqOpen = auth()->check() && app(\App\Services\Platform\Saas\PlatformTwoFactor::class)->passed(request()->hasSession() ? request()->session() : null, auth()->user());
+    $platformCan = fn (string $ability): bool => $hqOpen && app(\App\Services\Platform\Saas\PlatformStaffAccess::class)->can(auth()->user(), $ability);
 @endphp
 <header class="saas-bar">
     <a href="{{ auth()->check() ? route('saas.index') : route('login') }}">{{ __('NavigateEd platform') }}</a>
@@ -19,11 +21,17 @@
     <nav aria-label="{{ __('Platform') }}">
         @if ($platformCan('schools.create'))<a href="{{ route('saas.schools.create') }}">{{ __('Set up a school') }}</a>@endif
         @if ($platformCan('packages.view'))<a href="{{ route('saas.packages') }}">{{ __('Product modules and packages') }}</a>@endif
+        @if ($platformCan('health.view'))<a href="{{ route('saas.health') }}">{{ __('School health') }}</a>@endif
+        @if ($platformCan('billing.view'))<a href="{{ route('saas.billing') }}">{{ __('Billing') }}</a>@endif
         @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
+        @if ($platformCan('support.access'))<a href="{{ route('saas.support.index') }}">{{ __('Support access') }}</a>@endif
+        @if ($platformCan('flags.manage'))<a href="{{ route('saas.flags.index') }}">{{ __('Feature flags') }}</a>@endif
         @if ($platformCan('incidents.manage'))<a href="{{ route('saas.incidents.index') }}">{{ __('Incidents') }}</a>@endif
         @if ($platformCan('ai.view'))<a href="{{ route('saas.ai') }}">{{ __('AI control centre') }}</a>@endif
         @if ($platformCan('support.manage'))<a href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
+        @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('identity.review'))<a href="{{ route('saas.lurits') }}">{{ __('LURITS claims') }}</a>@endif
+        @if ($platformCan('mail.view'))<a href="{{ route('saas.mail-streams') }}">{{ __('Mail streams') }}</a>@endif
         @if ($platformCan('staff.manage'))<a href="{{ route('saas.staff.index') }}">{{ __('Platform staff') }}</a>@endif
     </nav>
     <form method="POST" action="{{ route('logout') }}">

@@ -49,3 +49,19 @@
 .saas-thread__item--note { border-inline-start: 4px solid var(--md-sys-color-error); background: var(--md-sys-color-surface-container); }
 .saas-thread__meta { color: var(--md-sys-color-on-surface-variant); margin: 0 0 8px; }
 .saas-thread__body { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+
+/* Two-factor sign-in (SA.2): the setup QR code and the recovery codes. */
+.saas-qr { background: var(--md-sys-color-surface); border-radius: 8px; display: inline-block; line-height: 0; padding: 8px; }
+.saas-qr svg { display: block; height: auto; max-width: 100%; width: 220px; }
+.saas-codes { display: grid; gap: 8px 24px; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); padding-inline-start: 1.5rem; }
+.saas-codes code { font-family: ui-monospace, monospace; font-size: 1.05rem; letter-spacing: .05em; user-select: all; }
+
+/* HQ billing (1.17, SA.8): summary figures and the printable invoice and statement. */
+.saas-figure { font-size: 1.5rem; font-weight: 600; margin: 4px 0; overflow-wrap: anywhere; }
+.saas-invoice tfoot th, .saas-invoice tfoot td { border-top: 1px solid var(--md-sys-color-outline-variant, var(--md-sys-color-outline)); }
+@media print {
+    .saas-bar, .saas-print-hide, .saas-ok, .saas-error { display: none !important; }
+    .saas-main { max-width: none; padding: 0; }
+    .saas-card { border: 0; box-shadow: none; padding: 0; }
+    .saas-table-wrap { overflow: visible; }
+}
