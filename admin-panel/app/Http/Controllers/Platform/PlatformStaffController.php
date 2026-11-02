@@ -8,18 +8,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Saas\ManagePlatformStaffRequest;
 use App\Services\Platform\Saas\PlatformStaff;
 use App\Services\Platform\Saas\PlatformStaffAccess;
+use App\Services\Platform\Saas\PlatformTwoFactor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
  * /saas/staff: Owners invite platform staff and set their role and expiry
- * (Action Plan SA.1, the staff.manage ability).
- * engineering/specs/platform/platform-roles.md.
+ * (Action Plan SA.1, the staff.manage ability), and reset another staff
+ * member's two-factor sign-in (SA.2).
+ * engineering/specs/platform/platform-roles.md, hq-two-factor.md.
  */
 class PlatformStaffController extends Controller
 {
-    public function __construct(private readonly PlatformStaff $staff, private readonly PlatformStaffAccess $access) {}
+    public function __construct(private readonly PlatformStaff $staff, private readonly PlatformStaffAccess $access, private readonly PlatformTwoFactor $twoFactor) {}
 
     public function index(Request $request): View
     {
@@ -54,5 +56,12 @@ class PlatformStaffController extends Controller
         $this->staff->resend($this->access->actor($request->user()), $user);
 
         return redirect()->route('saas.staff.index')->with('success', __('A new invitation was sent.'));
+    }
+
+    public function resetTwoFactor(ManagePlatformStaffRequest $request, int $user): RedirectResponse
+    {
+        $this->twoFactor->reset($this->access->actor($request->user()), $user, (string) $request->validated('reason'));
+
+        return redirect()->route('saas.staff.index')->with('success', __('Two-factor sign-in was reset. They set it up again when they next sign in.'));
     }
 }

@@ -63,8 +63,10 @@ use App\Http\Controllers\Api\V2\Platform\ContextController;
 use App\Http\Controllers\Api\V2\Platform\GuardianApprovalController;
 use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
+use App\Http\Controllers\Api\V2\Platform\NotificationInboxController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
+use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
@@ -424,6 +426,10 @@ Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approv
     Route::get('me/context', [ContextController::class, 'show'])->name('me.context');
     Route::get('me/notification-preferences', [NotificationPreferenceController::class, 'index']);
     Route::put('me/notification-preferences', [NotificationPreferenceController::class, 'update']);
+    Route::get('me/notifications', [NotificationInboxController::class, 'index'])->name('me.notifications.index');
+    Route::get('me/notifications/{notice}', [NotificationInboxController::class, 'show'])->whereNumber('notice')->name('me.notifications.show');
+    Route::get('me/notification-quiet-hours', [QuietHoursController::class, 'show'])->middleware('cache.headers:private;no_store');
+    Route::put('me/notification-quiet-hours', [QuietHoursController::class, 'update']);
     Route::get('me/handle', [HandleController::class, 'show']);
     Route::put('me/handle', [HandleController::class, 'update'])->middleware('throttle:auth');
 });
@@ -541,6 +547,7 @@ Route::prefix('communication')->middleware(['auth:sanctum', 'school.context', 'r
     Route::get('drafts/{message}', [$c, 'editor'])->whereNumber('message')->name('editor');
     Route::put('drafts/{message}', [$c, 'save'])->whereNumber('message')->name('save');
     Route::get('drafts/{message}/preview', [$c, 'preview'])->whereNumber('message')->name('preview');
+    Route::get('drafts/{message}/report', [$c, 'report'])->whereNumber('message')->name('report');
     foreach (['submit', 'decision', 'withdraw'] as $action) {
         Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
     }
