@@ -13,6 +13,7 @@ use App\Policies\Academics\TransitionPolicy;
 use App\Services\Academics\Reports\ReportArtifacts;
 use App\Services\People\Profiles\ProfileFiles;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Crypt;
@@ -183,7 +184,8 @@ class ExitArtifacts
                 $card = ReportCard::where('learner_id', $row->learner_id)->findOrFail($report['id']);
                 $add('reports/report-'.$card->id.'.pdf', app(ReportArtifacts::class)->read($card), 'application/pdf');
             }
-            $person = Students::findOrFail($row->learner_id)->user;
+            $learner = Students::findOrFail($row->learner_id);
+            $person = $learner->user;
             foreach ($blueprint['documents'] as $document) {
                 if (! in_array($document['extension'], ['pdf', 'png', 'jpg'], true)) {
                     throw new RuntimeException('The selected document type is unavailable.');
@@ -192,7 +194,9 @@ class ExitArtifacts
                 $add('documents/document-'.$document['id'].'.'.$document['extension'], $file['bytes'], $file['mime'], $file['name']);
             }
             $manifest = ['format' => 'navigateed-academic-exit-v1', 'school_id' => $blueprint['school_id'], 'school_name' => $blueprint['school_name'], 'package_id' => (int) $row->id,
-                'learner_id' => $blueprint['learner_id'], 'learner_name' => $blueprint['learner_name'], 'student_number' => $blueprint['student_number'], 'last_attended_on' => $blueprint['last_attended_on'],
+                'learner_id' => $blueprint['learner_id'], 'learner_name' => $blueprint['learner_name'], 'student_number' => $blueprint['student_number'],
+                // The headline number (ADR 0007), read when the archive is built; held only in the encrypted copy.
+                'primary_identifier' => app(LuritsNumbers::class)->primary($learner), 'admission_no' => (string) $learner->admission_no, 'last_attended_on' => $blueprint['last_attended_on'],
                 'prepared_at' => $row->created_at->toISOString(), 'files' => $files];
             $encoded = $json($manifest);
             $verification = app(ExitSigning::class)->sign($encoded);
