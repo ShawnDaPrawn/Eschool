@@ -17,12 +17,13 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: security-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   gitleaks:
+    # Match CI's job-level cancellation so an earlier workflow's serialization
+    # state cannot hold this required scan at the workflow level.
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-gitleaks
+      cancel-in-progress: true
     name: Secret scan (gitleaks, whole history)
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -295,3 +295,11 @@ applied to it on its own `schools` row (`package_key`, `package_version`)
 exam coach paper version, unique per school and version. Another school's
 version id is not found, so its memo is never read or changed
 ([structured memos](../ai/structured-memos.md)).
+
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
