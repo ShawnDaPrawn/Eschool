@@ -70,7 +70,7 @@ dependencies:
   flutter_keyboard_visibility_temp_fork: ^0.1.5
   bloc: any
   intl: any
-  firebase_crashlytics: ^5.2.0
+  firebase_crashlytics: ^5.4.1
   firebase_analytics: ^12.3.0
   youtube_player_iframe: ^6.0.2
   webview_flutter: ^4.13.1
