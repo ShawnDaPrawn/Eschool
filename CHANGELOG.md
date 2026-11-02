@@ -125,6 +125,18 @@ Earlier history is kept where it was written and is not repeated here:
   in, and a school can switch back at any time. The change is in the audit log.
   The apps receive the model's name but don't show it yet. **Deploy:** run the
   migrations.
+- Admin panel: Every child teaches something (Action Plan 4.7). When a teacher
+  looks for peer tutors, learners who have not tutored yet this term (or have
+  tutored least) are offered first, and each match says why, for example "Has
+  not tutored yet this term". The existing rules still apply: proven topic
+  mastery, guardian consent, a current place in the teaching group and a
+  supervising teacher. A learner who captains an activity group this school
+  year can now also be matched to teach that activity as a non-academic skill,
+  under the same supervision; these sessions count as service like any other
+  but are not shown in the apps yet. Staff who manage the academic structure,
+  the principal and grade heads get a new page, "Who has tutored this term, per grade", showing how
+  many learners in each grade have tutored at least once this term: counts
+  only, never names or a ranking. **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
