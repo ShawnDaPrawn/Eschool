@@ -74,7 +74,7 @@ class LibraryItems
             $item = LibraryItem::create(['library_topic_id' => $topic->id, 'library_source_id' => $source->id, 'kind' => $data['kind'],
                 'title' => trim($data['title']), 'revision' => 1, 'created_by' => $actor->id]);
             $version = LibraryItemVersion::create(['library_item_id' => $item->id, 'number' => 1, 'state' => 'draft', 'content' => $content['content'],
-                'estimated_seconds' => $content['estimated_seconds'], 'created_by' => $actor->id]);
+                'estimated_seconds' => $content['estimated_seconds'], 'created_by' => $actor->id, 'editor_ids' => [(int) $actor->id]]);
             Audit::record('library_item_created', $item, [], ['kind' => $item->kind, 'topic_id' => $topic->id, 'source_id' => $source->id, 'version_id' => $version->id, 'changed_by' => $actor->id]);
 
             return $item;
@@ -98,13 +98,16 @@ class LibraryItems
             abort_if($latest->state === 'in_review', 409, 'This item is waiting for review. Wait for the decision before changing it.');
             $item->update(['title' => trim($data['title']), 'revision' => $item->revision + 1]);
             if ($latest->state === 'draft') {
-                $latest->update(['content' => $content['content'], 'estimated_seconds' => $content['estimated_seconds']]);
+                // Whoever changes a draft becomes one of its editors, and so can never review it.
+                $latest->update(['content' => $content['content'], 'estimated_seconds' => $content['estimated_seconds'],
+                    'editor_ids' => array_values(array_unique([...$latest->editors(), (int) $actor->id]))]);
                 Audit::record('library_draft_saved', $item, [], ['version_id' => $latest->id, 'number' => $latest->number, 'changed_by' => $actor->id]);
 
                 return $latest;
             }
+            // A new draft starts from the content before it, so that version's editors carry forward.
             $draft = LibraryItemVersion::create(['library_item_id' => $item->id, 'number' => $latest->number + 1, 'state' => 'draft', 'content' => $content['content'],
-                'estimated_seconds' => $content['estimated_seconds'], 'created_by' => $actor->id]);
+                'estimated_seconds' => $content['estimated_seconds'], 'created_by' => $actor->id, 'editor_ids' => array_values(array_unique([...$latest->editors(), (int) $actor->id]))]);
             Audit::record('library_draft_started', $item, ['version_id' => $latest->id, 'state' => $latest->state], ['version_id' => $draft->id, 'number' => $draft->number, 'changed_by' => $actor->id]);
 
             return $draft;

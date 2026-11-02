@@ -21,7 +21,7 @@ class LibraryPages
 {
     public const STATES = ['draft' => 'Draft', 'in_review' => 'Waiting for review', 'approved' => 'Approved', 'rejected' => 'Rejected', 'published' => 'Published'];
 
-    public const QUEUE_LIMIT = 200;
+    public const QUEUE_PER_PAGE = 50;
 
     public function index(User $actor, int $schoolPage = 1): array
     {
@@ -104,19 +104,37 @@ class LibraryPages
         ];
     }
 
-    /** Items waiting for review; each says whether this reviewer may decide it, and if not, why. */
-    public function reviews(User $actor): array
+    /**
+     * Versions waiting for review in this reviewer's subjects, oldest first, a
+     * page at a time. The subjects filter the query before it is paged, so
+     * other subjects' queues never push this reviewer's items out of view.
+     * Each row says whether this reviewer may decide it, and if not, why.
+     */
+    public function reviews(User $actor, int $page = 1): array
     {
         $actor = app(LibraryAccess::class)->actor($actor, LibraryAccess::REVIEW);
-        $versions = LibraryItemVersion::query()->with('item.topic.framework', 'item.source')->where('state', 'in_review')->orderBy('submitted_at')->orderBy('id')
-            ->limit(self::QUEUE_LIMIT)->get();
+        $assignments = LibraryReviewer::query()->where('user_id', $actor->id)->orderBy('library_framework_id')->orderBy('subject_code')->get();
+        $paginator = LibraryItemVersion::query()->with('item.topic.framework', 'item.source')->where('state', 'in_review')
+            ->whereHas('item.topic', function ($topic) use ($assignments) {
+                $topic->where(function ($any) use ($assignments) {
+                    $any->whereRaw('1 = 0');
+                    foreach ($assignments as $assignment) {
+                        $any->orWhere(fn ($q) => $q->where('library_framework_id', $assignment->library_framework_id)->where('subject_code', $assignment->subject_code));
+                    }
+                });
+            })
+            ->orderBy('submitted_at')->orderBy('id')
+            ->paginate(self::QUEUE_PER_PAGE, ['*'], 'page', max(1, min(100000, $page)))->withPath(route('saas.library.reviews'));
+        $versions = collect($paginator->items());
         $names = $this->names($versions->pluck('submitted_by')->filter()->all());
         $grades = GradeLevel::query()->pluck('name', 'id');
-        $subjects = LibraryReviewer::query()->where('user_id', $actor->id)->get()
-            ->map(fn ($r) => LibraryFramework::query()->whereKey($r->library_framework_id)->value('code').' · '.$r->subject_code)->all();
+        $subjects = $assignments->map(fn ($r) => LibraryFramework::query()->whereKey($r->library_framework_id)->value('code').' · '.$r->subject_code)->all();
 
         return [
             'subjects' => $subjects,
+            'total' => $paginator->total(),
+            'page' => $paginator->currentPage(),
+            'lastPage' => $paginator->lastPage(),
             'waiting' => $versions->map(fn ($v) => ['id' => (int) $v->id, 'number' => $v->number, 'title' => $v->item->title, 'kind' => LibraryContent::KINDS[$v->item->kind] ?? $v->item->kind,
                 'framework' => $v->item->topic->framework->code, 'subject_code' => $v->item->topic->subject_code, 'grade' => (string) $grades->get($v->item->topic->grade_level_id),
                 'topic' => $v->item->topic->name, 'source' => $v->item->source->title.' · '.$v->item->source->licence, 'submitted_by' => $names[$v->submitted_by] ?? '',

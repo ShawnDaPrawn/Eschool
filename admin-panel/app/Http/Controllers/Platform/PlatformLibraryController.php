@@ -91,7 +91,7 @@ class PlatformLibraryController extends Controller
 
     public function reviews(Request $request, LibraryPages $pages): View
     {
-        return view('saas.library.reviews', $pages->reviews($request->user()));
+        return view('saas.library.reviews', $pages->reviews($request->user(), (int) $request->query('page', 1)));
     }
 
     public function review(LibraryRequest $request, LibraryItems $items, int $version): RedirectResponse

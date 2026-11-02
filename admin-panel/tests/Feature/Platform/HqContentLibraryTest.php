@@ -13,6 +13,7 @@ use App\Models\Platform\AuditLog;
 use App\Models\User;
 use App\Services\Learning\Library\LibraryCatalogue;
 use App\Services\Learning\Library\LibraryItems;
+use App\Services\Learning\Library\LibraryPages;
 use App\Services\Learning\Library\LibraryReviewers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\SchoolOwnedTables;
@@ -171,7 +172,8 @@ class HqContentLibraryTest extends TestCase
         // Assigned to English only: refused, nothing written.
         $this->assignReviewer('ENG-SP');
         $this->refuses(fn () => $items->review($this->libraryStaff('reviewer'), $version->id, ['decision' => 'approved']), 403);
-        $this->actingAs($this->libraryStaff('reviewer'))->get('/saas/library/reviews')->assertOk()->assertSee('You are not a reviewer for this subject.')->assertDontSee('Approve</button>', false);
+        // Another subject's queue is not this reviewer's: the item is not listed at all.
+        $this->actingAs($this->libraryStaff('reviewer'))->get('/saas/library/reviews')->assertOk()->assertSee('Nothing is waiting for review in your subjects.')->assertDontSee('Half as a decimal');
         $this->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertForbidden();
         // An Owner holds every ability but still needs the subject, and never reviews their own submission.
         $owner = $this->libraryStaff('owner');
@@ -195,6 +197,73 @@ class HqContentLibraryTest extends TestCase
         // Only staff whose role reviews can be assigned.
         $this->invalid(fn () => app(LibraryReviewers::class)->assign($this->libraryStaff('content'),
             ['user_id' => $this->libraryStaff('support')->id, 'library_framework_id' => $this->framework()->id, 'subject_code' => 'MATH-SP']), 'user_id');
+    }
+
+    public function test_an_editor_of_a_draft_cannot_review_it_even_when_someone_else_submits_it(): void
+    {
+        $items = app(LibraryItems::class);
+        $owner = $this->libraryStaff('owner');
+        $content = $this->libraryStaff('content');
+        $this->assignReviewer('MATH-SP');
+        $this->assignReviewer('MATH-SP', 'owner');
+        $item = $this->draftItem($this->libraryTopic('Fractions'));
+        // The Owner, assigned to Maths, changes Content's draft; Content then submits it.
+        $items->saveDraft($owner, $item->id, $this->question(['prompt' => 'Write one half as a decimal number.', 'revision' => $item->revision]));
+        $version = $items->submit($content, $item->id, ['revision' => $item->fresh()->revision]);
+        $this->assertSame((int) $content->id, (int) $version->created_by);
+        $this->assertSame((int) $content->id, (int) $version->submitted_by);
+        $this->assertEqualsCanonicalizing([(int) $content->id, (int) $owner->id], $version->fresh()->editors());
+
+        $this->refuses(fn () => $items->review($owner, $version->id, ['decision' => 'approved']), 403);
+        $this->actingAs($owner)->post('/saas/library/versions/'.$version->id.'/review', ['decision' => 'approved'])->assertForbidden();
+        $this->get('/saas/library/reviews')->assertOk()->assertSee('Someone else must review a version you wrote, changed or submitted.');
+        $this->assertSame(0, LibraryReview::query()->count());
+        $this->assertSame('in_review', $version->fresh()->state);
+        // The editor list is part of the content: it cannot change once the version leaves draft.
+        $this->refuses(fn () => $version->fresh()->update(['editor_ids' => [(int) $content->id]]), 409);
+
+        // A reviewer who never touched it decides; a new draft carries the Owner's edits forward, so the Owner stays out.
+        $items->review($this->libraryStaff('reviewer'), $version->id, ['decision' => 'approved']);
+        $items->publish($content, $item->id, ['version_id' => $version->id, 'revision' => $item->fresh()->revision]);
+        $next = $items->saveDraft($content, $item->id, $this->question(['answers' => '.5', 'revision' => $item->fresh()->revision]));
+        $items->submit($content, $item->id, ['revision' => $item->fresh()->revision]);
+        $this->assertContains((int) $owner->id, $next->fresh()->editors());
+        $this->refuses(fn () => $items->review($owner, $next->id, ['decision' => 'approved']), 403);
+    }
+
+    public function test_the_review_queue_filters_by_the_reviewers_subjects_before_paging(): void
+    {
+        $content = $this->libraryStaff('content');
+        $english = $this->libraryTopic('Grammar', 'ENG-SP');
+        $source = $this->librarySource();
+        $others = LibraryPages::QUEUE_PER_PAGE + 1;
+        for ($i = 1; $i <= $others; $i++) {
+            $item = LibraryItem::query()->create(['library_topic_id' => $english->id, 'library_source_id' => $source->id, 'kind' => 'lesson',
+                'title' => 'English lesson '.$i, 'revision' => 2, 'created_by' => $content->id]);
+            LibraryItemVersion::query()->create(['library_item_id' => $item->id, 'number' => 1, 'state' => 'in_review', 'content' => ['body' => 'A synthetic English lesson body.'],
+                'created_by' => $content->id, 'editor_ids' => [(int) $content->id], 'submitted_by' => $content->id, 'submitted_at' => now()->subHours(2)]);
+        }
+        // The Maths version was sent last, so it is the oldest-first queue's very last row.
+        $maths = $this->draftItem($this->libraryTopic('Fractions'));
+        app(LibraryItems::class)->submit($content, $maths->id, ['revision' => $maths->revision]);
+        $this->assignReviewer('MATH-SP');
+        $reviewer = $this->libraryStaff('reviewer');
+
+        $queue = app(LibraryPages::class)->reviews($reviewer);
+        $this->assertSame(1, $queue['total']);
+        $this->assertSame(['Half as a decimal'], array_column($queue['waiting'], 'title'));
+        $this->assertNull($queue['waiting'][0]['refusal']);
+        $this->actingAs($reviewer)->get('/saas/library/reviews')->assertOk()->assertSee('Half as a decimal')->assertSee('Approve')->assertDontSee('English lesson 1');
+
+        // Assigned to English too: every waiting version is reachable, a page at a time.
+        $this->assignReviewer('ENG-SP');
+        $first = app(LibraryPages::class)->reviews($reviewer);
+        $last = app(LibraryPages::class)->reviews($reviewer, 2);
+        $this->assertSame($others + 1, $first['total']);
+        $this->assertCount(LibraryPages::QUEUE_PER_PAGE, $first['waiting']);
+        $this->assertSame(2, $first['lastPage']);
+        $this->assertSame(['English lesson '.$others, 'Half as a decimal'], array_column($last['waiting'], 'title'));
+        $this->get('/saas/library/reviews?page=2')->assertOk()->assertSee('Page 2 of 2')->assertSee('Half as a decimal');
     }
 
     public function test_wrong_roles_are_refused_and_nothing_is_written(): void

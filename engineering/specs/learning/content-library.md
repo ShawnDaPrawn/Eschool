@@ -76,9 +76,15 @@ a published library version, and say so.
   409). Each item carries a revision, so a form opened before another change is
   refused (409, reload).
 - **Review.** Only a reviewer assigned to the item's framework and subject may
-  decide, and never on a version they wrote or sent for review (an Owner too).
-  A rejection needs a reason (10 to 1000 characters). Reviews are kept as
-  written.
+  decide, and never on a version they wrote, changed or sent for review (an
+  Owner too). Every person who saves a version's content is recorded on it
+  (`library_item_versions.editor_ids`), and a new draft carries forward the
+  editors of the version it replaces. The list cannot change once the version
+  leaves draft. A rejection needs a reason (10 to 1000 characters). Reviews are
+  kept as written.
+- **Review queue.** A reviewer sees only the versions waiting in their assigned
+  subjects, oldest first, 50 to a page. The subjects filter the query before it
+  is paged, so other subjects' queues never hide a reviewer's own.
 - **Reviewers and their subjects.** Content staff assign platform staff whose
   role holds `library.review` to a framework and subject code, and remove them.
 - **Publishing.** Only an approved version can be published (409 otherwise),
@@ -127,7 +133,7 @@ a published library version, and say so.
 | `library_topics` | global | framework, subject code, grade, key, name |
 | `library_topic_prerequisites` | global | topic, prerequisite |
 | `library_items` | global | topic, source, kind, title, published version, revision |
-| `library_item_versions` | global | number, state, content (JSON), expected time, who wrote, sent and published it |
+| `library_item_versions` | global | number, state, content (JSON), expected time, who wrote, changed (`editor_ids`), sent and published it |
 | `library_reviews` | global | version, reviewer, decision, reason |
 | `library_reviewers` | global | reviewer, framework, subject code |
 | `library_school_settings` | required school-owned | the school's switch |
@@ -138,7 +144,9 @@ Columns added to school tables (all nullable, foreign keys into the library):
 `practice_set_entries.library_item_version_id` (and
 `practice_item_version_id` is now nullable),
 `practice_memories.library_item_id` (and `practice_item_id` is now nullable).
-Both migrations' `down` refuse while rows use the library.
+The migrations' `down` refuse while rows use the library.
+`2026_11_04_130200_track_library_version_editors` adds `editor_ids`, starting
+existing versions with their author.
 
 Every library model uses `PlatformLibraryRow`: creating, changing or deleting a
 library row while a school is the current school is refused (403).
@@ -153,6 +161,8 @@ library row while a school is the current school is refused (403).
 | Whole numbers ← Fractions ← Decimals | make Decimals a prerequisite of Whole numbers; a topic its own prerequisite; an English topic as a Maths prerequisite | each refused, edges unchanged; replacing and clearing work (`test_a_cycle_in_prerequisites_is_refused`) |
 | A published version | change its content or state; delete it; edit the item | 409, 409, 409; version 2 starts as a draft and version 1 is unchanged and still live; an approved version's content is refused too; a stale revision is 409 (`test_a_published_version_cannot_be_edited`) |
 | A version waiting for review | a reviewer for English only; an Owner not assigned; an assigned Owner on their own submission; the Maths reviewer rejects without, then with a reason | 403, 403, 403, nothing written; reason required; rejected; editing starts version 2; a Support member cannot be assigned (`test_only_a_reviewer_for_that_subject_can_approve`) |
+| Content's draft, changed by an Owner assigned to Maths, then sent for review by Content | the Owner reviews it; a Maths reviewer approves; Content starts the next draft | 403 (service and HTTP), the queue says why, nothing written, the editor list is fixed; approved; the Owner is still refused on the next version (`test_an_editor_of_a_draft_cannot_review_it_even_when_someone_else_submits_it`) |
+| 51 English versions waiting, then one Maths version | a Maths reviewer opens the queue; then is assigned English too | only the Maths version, decidable; then 52 waiting over two pages of 50, the Maths one last on page 2 (`test_the_review_queue_filters_by_the_reviewers_subjects_before_paging`) |
 | Operations, Support, Finance, Sales; Content on the queue; a reviewer on the manage pages | every library route with a valid payload | 403 everywhere, nothing written (`test_wrong_roles_are_refused_and_nothing_is_written`) |
 | A school Super Admin, a School A teacher, a School B teacher; platform staff inside a school | every library page and two writes; create a framework | 403; 403; nothing written (`test_school_accounts_cannot_reach_the_library`) |
 | The schema | list the library tables' columns; create, change or delete library rows inside School A and School B | no `school_id`, all listed as global; every write refused, counts unchanged (`test_library_tables_hold_no_school_id_and_no_school_row_is_written_into_them`) |

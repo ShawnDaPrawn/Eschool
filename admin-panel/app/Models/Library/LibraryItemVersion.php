@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * version is ever deleted: a learner's practice set may point at it.
  *
  * @property array<string, mixed> $content
+ * @property list<int>|null $editor_ids
  */
 class LibraryItemVersion extends Model
 {
@@ -31,7 +32,7 @@ class LibraryItemVersion extends Model
         static::updating(function (self $version): void {
             $from = (string) $version->getOriginal('state');
             abort_if($from === 'published', 409, 'A published library version is immutable. Edit the item to start a new draft.');
-            abort_if($from !== 'draft' && $version->isDirty(['content', 'estimated_seconds', 'library_item_id', 'number', 'created_by']), 409, 'Only a draft library version can change its content.');
+            abort_if($from !== 'draft' && $version->isDirty(['content', 'estimated_seconds', 'library_item_id', 'number', 'created_by', 'editor_ids']), 409, 'Only a draft library version can change its content.');
             if ($version->isDirty('state')) {
                 abort_unless(in_array($version->state, self::STEPS[$from] ?? [], true), 409, 'That review step is not allowed from here.');
             }
@@ -41,13 +42,24 @@ class LibraryItemVersion extends Model
 
     protected function casts(): array
     {
-        return ['content' => 'array', 'library_item_id' => 'integer', 'number' => 'integer', 'estimated_seconds' => 'integer',
+        return ['content' => 'array', 'editor_ids' => 'array', 'library_item_id' => 'integer', 'number' => 'integer', 'estimated_seconds' => 'integer',
             'submitted_at' => 'datetime', 'published_at' => 'datetime'];
     }
 
     public function item(): BelongsTo
     {
         return $this->belongsTo(LibraryItem::class, 'library_item_id');
+    }
+
+    /**
+     * Everyone who wrote or changed this version's content, including what it
+     * carried forward from the version before. None of them may review it.
+     *
+     * @return list<int>
+     */
+    public function editors(): array
+    {
+        return array_values(array_unique(array_map('intval', [(int) $this->created_by, ...(array) ($this->editor_ids ?? [])])));
     }
 
     /** The practice question a learner answers (practice and past-paper questions only). */

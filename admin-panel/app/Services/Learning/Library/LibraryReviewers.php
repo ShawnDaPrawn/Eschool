@@ -20,7 +20,8 @@ use Illuminate\Validation\ValidationException;
  * Library reviewers and their subjects (SA.16). Content staff assign a
  * platform staff member whose role holds library.review to one framework's
  * subject code; only an assigned reviewer may approve or reject a version of
- * an item in that subject, and never a version they wrote or submitted.
+ * an item in that subject, and never a version they wrote, changed or
+ * submitted (every editor of a version is recorded on it).
  */
 class LibraryReviewers
 {
@@ -86,8 +87,8 @@ class LibraryReviewers
         if (! $this->assigned($reviewer, $version)) {
             return 'You are not a reviewer for this subject.';
         }
-        if ((int) $version->created_by === (int) $reviewer->id || (int) $version->submitted_by === (int) $reviewer->id) {
-            return 'Someone else must review a version you wrote or submitted.';
+        if (in_array((int) $reviewer->id, $version->editors(), true) || (int) $version->submitted_by === (int) $reviewer->id) {
+            return 'Someone else must review a version you wrote, changed or submitted.';
         }
 
         return null;
