@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Recognition;
 
 use App\Events\Recognition\RecognitionChanged;
+use App\Models\People\Enrolment;
 use App\Models\Recognition\AwardCategory;
 use App\Models\Recognition\AwardDefinition;
 use App\Models\Recognition\AwardNomination;
@@ -133,6 +134,22 @@ class AwardPresentations
 
             return $row;
         }, fn (int $id) => AwardPresentation::findOrFail($id));
+    }
+
+    /**
+     * A persistence badge earned under a rule a manager switched on (Action
+     * Plan 4.6). The caller owns idempotency (PersistenceBadges' ledger); the
+     * presenter is the manager who switched the rule on.
+     */
+    public function badge(Students $learner, SessionYear $year, Enrolment $place, User $presenter, string $on, string $title, string $criteria): AwardPresentation
+    {
+        abort_unless($on >= substr((string) $year->start_date, 0, 10) && $on <= min(app(RecognitionAuthority::class)->today(), substr((string) $year->end_date, 0, 10)), 422);
+        $row = AwardPresentation::create(['learner_id' => $learner->id, 'session_year_id' => $year->id, 'grade_level_id' => $place->homeroom->class->grade_level_id,
+            'presented_by' => $presenter->id, 'presented_on' => $on, 'title' => mb_substr($title, 0, 160), 'criteria' => mb_substr($criteria, 0, 4000), 'event' => null,
+            'source_kind' => 'badge', 'state' => 'active', 'revision' => 1]);
+        $this->audit($row);
+
+        return $row;
     }
 
     /** This permanent profile intentionally queries presentations only. */

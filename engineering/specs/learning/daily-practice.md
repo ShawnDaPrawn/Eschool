@@ -1,5 +1,7 @@
 # Daily practice and auditable review memory
 
+Questions belong to a subject-and-grade bank and reach the learners of each group they are used in (Action Plan 3.6): `engineering/specs/learning/question-banks.md`.
+
 Practice uses current school/subject/learner authorization, teacher-approved versioned questions bound to published topics, immutable own daily sets and server-verified answers. Downloaded work remains explicitly pending until its exact operation is synchronized and checked; it is never an official assessment mark. Practice evidence has a separate provenance adapter into mastery, so it cannot masquerade as released canonical marks. There are no peer rankings or counselling sources.
 
 The deterministic memory engine uses the pinned official FSRS4Anki v4.5.0 reference at commit `8180871d9ef7e93943a60829533e46ab6d785ef4`, with the published 17 default parameters. Its MIT attribution is retained in `engineering/licenses/fsrs4anki-MIT.txt`. The scheduler stores its algorithm version with every transition. Reference vectors were generated from that immutable upstream JavaScript implementation with fuzz disabled, covering fresh memory, short/late reviews and same-day recall. These are numerical compatibility vectors, not learner outcome or provider-safety evaluations.

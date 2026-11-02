@@ -78,14 +78,39 @@ class DigestTemplates
     {
         abort_unless($template->approved_at !== null && $template->revoked_at === null, 409);
         $replacements = [];
+        $optional = config('weekly_digests.optional_tokens', []);
         foreach (config('weekly_digests.tokens') as $token) {
+            if (in_array($token, $optional, true)) {
+                $values[$token] ??= '';
+            }
             abort_unless(array_key_exists($token, $values) && (is_string($values[$token]) || is_int($values[$token])), 422);
             $replacements['{'.$token.'}'] = (string) $values[$token];
         }
-        $title = strtr($template->title_template, $replacements);
-        $body = strtr($template->body_template, $replacements);
+        $title = strtr($this->withoutEmptyLines($template->title_template, $replacements, $optional), $replacements);
+        $body = strtr($this->withoutEmptyLines($template->body_template, $replacements, $optional), $replacements);
         abort_if(mb_strlen($title) > 220 || mb_strlen($body) > 2000, 422, 'Keep a weekly summary short enough to read in one minute.');
 
         return ['title' => $title, 'summary' => $body];
+    }
+
+    /** A line whose optional block (growth, help at home) has nothing to show is left out, never printed empty. */
+    private function withoutEmptyLines(string $text, array $replacements, array $optional): string
+    {
+        $empty = array_values(array_filter($optional, fn (string $token) => ($replacements['{'.$token.'}'] ?? '') === ''));
+        if ($empty === []) {
+            return $text;
+        }
+        $lines = preg_split('/\R/u', $text) ?: [$text];
+        $kept = array_filter($lines, function (string $line) use ($empty): bool {
+            foreach ($empty as $token) {
+                if (str_contains($line, '{'.$token.'}')) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        return implode("\n", $kept);
     }
 }

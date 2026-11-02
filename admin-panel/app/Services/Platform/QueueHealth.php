@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Platform;
 
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -56,5 +57,38 @@ class QueueHealth
     public function maxWaitSeconds(): int
     {
         return (int) config('queue.worker_health.max_wait_seconds', 600);
+    }
+
+    /**
+     * Jobs waiting on the database queue: due and not taken by a live
+     * worker, as oldestWaitSeconds() counts them. Null when the default
+     * connection is not the database queue. Counts only: no payload is read.
+     */
+    public function backlog(): ?int
+    {
+        $connection = (string) config('queue.default');
+        $settings = (array) config("queue.connections.$connection", []);
+        if (($settings['driver'] ?? null) !== 'database') {
+            return null;
+        }
+        $now = now()->getTimestamp();
+
+        return DB::connection($settings['connection'] ?? null)->table((string) ($settings['table'] ?? 'jobs'))
+            ->where(fn ($due) => $due->where(fn ($free) => $free->whereNull('reserved_at')->where('available_at', '<=', $now))
+                ->orWhere('reserved_at', '<=', $now - (int) ($settings['retry_after'] ?? 90)))
+            ->count();
+    }
+
+    /**
+     * Jobs that failed since a moment, and all still kept, from the failed
+     * jobs table. Counts only: no payload or exception text is read.
+     *
+     * @return array{since: int, kept: int}
+     */
+    public function failedJobs(DateTimeInterface $since): array
+    {
+        $failed = fn () => DB::connection(config('queue.failed.database'))->table((string) config('queue.failed.table', 'failed_jobs'));
+
+        return ['since' => $failed()->where('failed_at', '>=', $since)->count(), 'kept' => $failed()->count()];
     }
 }
