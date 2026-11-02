@@ -6183,5 +6183,9 @@
     ":domain is verified. Your school's notices are now sent from it.": ":domain siqinisekisiwe. Izaziso zesikole sakho manje zithunyelwa zisuka kuso.",
     ":domain is not verified yet.": ":domain asikaqinisekiswa.",
     "The domain is disconnected. Notices are sent from the NavigateEd address again.": "Isizinda sinqanyuliwe. Izaziso ziphinde zithunyelwe zisuka ekhelini le-NavigateEd.",
-    "The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.": "Indawo ye-DNS ye-DKIM ayikatholakali. Hlola isizinda futhi ngaphambi kokwengeza amarekhodi e-DKIM."
+    "The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.": "Indawo ye-DNS ye-DKIM ayikatholakali. Hlola isizinda futhi ngaphambi kokwengeza amarekhodi e-DKIM.",
+    "It was on :was.": "Ngaphambilini bekungo-:was.",
+    "Open the calendar for your full exam timetable.": "Vula ikhalenda ukuze ubone lonke uhlelo lwakho lokuhlolwa.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "Uma wazi isizathu, noma uma kuyiphutha, xhumana nehhovisi lesikole. Vula ukuya esikoleni ukuze ubone irejista.",
+    "Contact the school office if something looks wrong.": "Xhumana nehhovisi lesikole uma kukhona okubonakala kungalungile."
 }

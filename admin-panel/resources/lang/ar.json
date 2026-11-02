@@ -5110,5 +5110,9 @@
     ":domain is verified. Your school's notices are now sent from it.": ":domain is verified. Your school's notices are now sent from it.",
     ":domain is not verified yet.": ":domain is not verified yet.",
     "The domain is disconnected. Notices are sent from the NavigateEd address again.": "The domain is disconnected. Notices are sent from the NavigateEd address again.",
-    "The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.": "هدف DNS الخاص بـ DKIM غير متاح بعد. تحقق من النطاق مرة أخرى قبل إضافة سجلات DKIM."
+    "The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.": "هدف DNS الخاص بـ DKIM غير متاح بعد. تحقق من النطاق مرة أخرى قبل إضافة سجلات DKIM.",
+    "It was on :was.": "It was on :was.",
+    "Open the calendar for your full exam timetable.": "Open the calendar for your full exam timetable.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.",
+    "Contact the school office if something looks wrong.": "Contact the school office if something looks wrong."
 }

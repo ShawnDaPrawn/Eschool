@@ -403,6 +403,15 @@ Earlier history is kept where it was written and is not repeated here:
   `MAIL_SENDING_DOMAINS=true`. **Deploy:** run the migrations; to switch it on, give
   the SES keys the identity permissions listed in
   `engineering/specs/platform/sending-domains.md` and set `MAIL_SENDING_DOMAINS=true`.
+- API: notifications now come in three layers: a title, a short excerpt for the
+  inbox row and, where there is more to say, a full text, plus the app screen
+  each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
+  the current school and `GET /api/v2/me/notifications/{id}` returns one with
+  its full text after checking again that they may still see it. Exam changes
+  now say what the sitting was before, and absence alerts say who to contact.
+  Private notices (wellbeing, discipline, progress, transfers and the like)
+  still only say that something is waiting. Installed apps see no change; the
+  new app screens follow. **Deploy:** run the migrations.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and

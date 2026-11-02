@@ -6183,5 +6183,9 @@
     ":domain is verified. Your school's notices are now sent from it.": ":domain is geverifieer. Jou skool se kennisgewings word nou daarvandaan gestuur.",
     ":domain is not verified yet.": ":domain is nog nie geverifieer nie.",
     "The domain is disconnected. Notices are sent from the NavigateEd address again.": "Die domein is ontkoppel. Kennisgewings word weer van die NavigateEd-adres af gestuur.",
-    "The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.": "Die DKIM-DNS-teiken is nog nie beskikbaar nie. Kontroleer die domein weer voordat jy DKIM-rekords byvoeg."
+    "The DKIM DNS target is not available yet. Check the domain again before adding DKIM records.": "Die DKIM-DNS-teiken is nog nie beskikbaar nie. Kontroleer die domein weer voordat jy DKIM-rekords byvoeg.",
+    "It was on :was.": "Dit was op :was.",
+    "Open the calendar for your full exam timetable.": "Maak die kalender oop vir jou volledige eksamenrooster.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "As jy weet hoekom, of as dit 'n fout is, kontak die skoolkantoor. Maak Bywoning oop vir die register.",
+    "Contact the school office if something looks wrong.": "Kontak die skoolkantoor as iets verkeerd lyk."
 }
