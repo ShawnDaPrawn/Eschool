@@ -15,6 +15,7 @@ use App\Actions\Transfers\TransferDisciplineFramework;
 use App\Actions\Transfers\TransferExamGrades;
 use App\Actions\Transfers\TransferHouseMemberships;
 use App\Actions\Transfers\TransferLeaveSettings;
+use App\Actions\Transfers\TransferPracticeBanks;
 use App\Actions\Transfers\TransferTeachingGroups;
 use App\Models\Academics\BellSchedule;
 use App\Models\Academics\CurriculumPlan;
@@ -27,6 +28,8 @@ use App\Models\ClassTeacher;
 use App\Models\Discipline\DisciplineFramework;
 use App\Models\Exam;
 use App\Models\Grade;
+use App\Models\Learning\PracticeItem;
+use App\Models\Learning\PracticeItemGroup;
 use App\Models\Leave;
 use App\Models\LeaveMaster;
 use App\Models\People\Enrolment;
@@ -79,6 +82,7 @@ class NewYearService
         'houses' => ['new_year_carry_houses', TransferHouseMemberships::class],
         'award_windows' => ['new_year_carry_award_windows', TransferAwardWindows::class],
         'discipline' => ['new_year_carry_discipline', TransferDisciplineFramework::class],
+        'practice_banks' => ['new_year_carry_practice_banks', TransferPracticeBanks::class],
     ];
 
     /**
@@ -91,7 +95,7 @@ class NewYearService
     public const WELCOME = 'school.new_year';
 
     /** Choices that exist only while their module is switched on. */
-    public const MODULES = ['houses' => 'house_points', 'award_windows' => 'awards', 'discipline' => 'discipline'];
+    public const MODULES = ['houses' => 'house_points', 'award_windows' => 'awards', 'discipline' => 'discipline', 'practice_banks' => 'daily_practice'];
 
     /**
      * Choices that need another: a lesson belongs to a subject teacher, so
@@ -102,6 +106,8 @@ class NewYearService
      */
     public const NEEDS = [
         'timetable' => ['teachers'],
+        // Questions follow their group into the new year, so its copy must exist.
+        'practice_banks' => ['teaching_groups'],
     ];
 
     public function __construct(private readonly SessionYearService $years) {}
@@ -396,6 +402,8 @@ class NewYearService
             'houses' => HouseMembership::where('session_year_id', $yearId)->where('active', true)->count(),
             'award_windows' => AwardWindow::where('session_year_id', $yearId)->count(),
             'discipline' => DisciplineFramework::where('session_year_id', $yearId)->count(),
+            'practice_banks' => PracticeItemGroup::whereIn('teaching_group_id', TeachingGroup::where('session_year_id', $yearId)->where('active', true)->select('id'))
+                ->whereIn('practice_item_id', PracticeItem::where('active', true)->select('id'))->count(),
         };
     }
 

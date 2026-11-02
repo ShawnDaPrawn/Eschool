@@ -166,12 +166,12 @@ class MasteryRecompute
                 $source = ['content_source' => 'library', 'library_item_version_id' => (int) $libraryVersion->id];
             } else {
                 $version = PracticeItemVersion::findOrFail($entry->practice_item_version_id);
-                PracticeItem::where('teaching_group_id', $group->id)->where('topic_id', $topicId)->findOrFail($version->practice_item_id);
+                PracticeItem::usedIn((int) $group->id)->where('topic_id', $topicId)->findOrFail($version->practice_item_id);
             }
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $review->learner_id, 'topic_id' => $topicId,
                 'audience' => 'practice', 'source_key' => 'practice:'.$review->id], ['grade_level_id' => $group->grade_level_id,
                     'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
-                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => 'practice_item:'.$version->practice_item_id] + $source);
+                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => $entry->library_item_version_id !== null ? 'library_item:'.$libraryVersion->library_item_id : 'practice_item:'.$version->practice_item_id] + $source);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
         });
     }
@@ -184,7 +184,7 @@ class MasteryRecompute
             $session = TutorSession::where('teaching_group_id', $group->id)->where('learner_id', $row->learner_id)
                 ->where('user_id', $row->user_id)->where('topic_id', $row->topic_id)->findOrFail($row->tutor_session_id);
             $version = PracticeItemVersion::findOrFail($row->practice_item_version_id);
-            PracticeItem::where('teaching_group_id', $group->id)->where('topic_id', $row->topic_id)->findOrFail($version->practice_item_id);
+            PracticeItem::usedIn((int) $group->id)->where('topic_id', $row->topic_id)->findOrFail($version->practice_item_id);
             abort_unless((int) $session->subject_id === (int) $group->subject_id && (int) $session->session_year_id === (int) $group->session_year_id, 404);
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $row->learner_id, 'topic_id' => $row->topic_id,
                 'audience' => 'practice', 'source_key' => 'tutor_checkpoint:'.$row->id], ['grade_level_id' => $group->grade_level_id,
