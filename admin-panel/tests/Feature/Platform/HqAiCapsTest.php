@@ -13,6 +13,7 @@ use App\Services\Ai\Operations\AiSchoolControls;
 use App\Services\Ai\Operations\PlatformAiCaps;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\UsesTwoSchools;
@@ -107,7 +108,7 @@ class HqAiCapsTest extends TestCase
         $this->assertCount(3, $audit);
         $this->assertNull($audit->first()->school_id);
         $this->assertSame((int) $owner->id, (int) $audit->first()->actor_id);
-        $this->assertSame(['feature' => 'school_assistant', 'school_daily_cents' => 1000, 'actor_daily_cents' => 50], $audit->first()->before);
+        $this->assertSame(Arr::sortRecursive(['feature' => 'school_assistant', 'school_daily_cents' => 1000, 'actor_daily_cents' => 50]), Arr::sortRecursive($audit->first()->before));
         $this->get('/saas/audit')->assertOk()->assertSee('AI spending caps changed')->assertSee('school_daily_cents: 1000 → 2500');
     }
 
@@ -200,8 +201,13 @@ class HqAiCapsTest extends TestCase
         $this->put('/saas/ai/caps', ['feature' => 'school_assistant', 'school_daily_cents' => '2500', 'reason' => self::REASON])->assertSessionHasNoErrors();
 
         $row = AuditLog::query()->where('action', 'platform_ai_caps_changed')->sole();
-        $this->assertSame(['feature', 'school_daily_cents'], array_keys($row->before));
-        $this->assertSame(['feature', 'school_daily_cents', 'currency', 'reason', 'changed_by'], array_keys($row->after));
+        // Audit JSON objects have no key order; still require the exact field set.
+        $beforeKeys = array_keys($row->before);
+        $afterKeys = array_keys($row->after);
+        sort($beforeKeys);
+        sort($afterKeys);
+        $this->assertSame(['feature', 'school_daily_cents'], $beforeKeys);
+        $this->assertSame(['changed_by', 'currency', 'feature', 'reason', 'school_daily_cents'], $afterKeys);
         $raw = json_encode([$row->before, $row->after, $row->getAttributes()]);
         foreach ([self::SECRET, (string) config('app.key'), 'provider_class', 'model', 'prompt', 'key'] as $secret) {
             $this->assertStringNotContainsString($secret, (string) $raw);
