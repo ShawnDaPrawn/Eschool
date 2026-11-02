@@ -38,6 +38,7 @@ final class SchoolOwnedTables
         'school_assistance_notice_intents',
         'school_knowledge_documents', 'school_support_threads', 'school_support_messages', 'school_assistance_operations', 'school_assistance_turns',
         'admission_requirements', 'admission_requirement_versions', 'pathway_operations',
+        'career_profiles', 'career_profile_versions',
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
         'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
