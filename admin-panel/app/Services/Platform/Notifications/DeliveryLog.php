@@ -25,6 +25,29 @@ class DeliveryLog
 
     public const PUSH = 'push';
 
+    /** The school notice being delivered while forNotice() runs, if any. */
+    private static ?int $notificationId = null;
+
+    /**
+     * Runs $send with deliveries it queues linked to this school notice, so
+     * the sender's delivery report can find them.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $send
+     * @return T
+     */
+    public static function forNotice(?int $notificationId, callable $send): mixed
+    {
+        $previous = self::$notificationId;
+        self::$notificationId = $notificationId;
+        try {
+            return $send();
+        } finally {
+            self::$notificationId = $previous;
+        }
+    }
+
     /**
      * Record a message as queued and return the key its attempts share.
      */
@@ -37,6 +60,7 @@ class DeliveryLog
                 // The school it was sent for (none for platform messages).
                 'school_id' => app(CurrentSchool::class)->idOrNull(),
                 'delivery_key' => $key,
+                'notification_id' => self::$notificationId,
                 'type' => Str::limit($type, 100, ''),
                 'channel' => $channel,
                 'recipient_user_id' => $userId,
@@ -76,6 +100,7 @@ class DeliveryLog
             return NotificationDelivery::create([
                 'school_id' => $first->school_id,
                 'delivery_key' => $deliveryKey,
+                'notification_id' => $first->notification_id,
                 'type' => $first->type,
                 'channel' => $first->channel,
                 'recipient_user_id' => $first->recipient_user_id,
