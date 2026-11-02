@@ -14,6 +14,7 @@ use App\Models\Platform\SchoolContract;
 use App\Models\User;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -24,6 +25,7 @@ use Tests\TestCase;
  */
 class HqSchoolAccountsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     protected function setUp(): void
@@ -62,7 +64,7 @@ class HqSchoolAccountsTest extends TestCase
 
     public function test_staff_record_the_profile_stage_contacts_contract_and_notes_of_a_school(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         $this->get('/saas/schools/1/account')->assertOk()->assertSee('Onboarding')->assertSee('No contacts recorded yet.')->assertDontSee('Asha');
 
         $this->put('/saas/schools/1/account', $this->profile())->assertRedirect('/saas/schools/1/account');
@@ -93,7 +95,7 @@ class HqSchoolAccountsTest extends TestCase
     {
         $staff = $this->staff();
         $this->assertSame(0, DB::table('school_memberships')->where('school_id', 2)->where('user_id', $staff->id)->count(), 'the operator belongs to another school');
-        $this->actingAs($staff);
+        $this->actingAsHq($staff);
 
         $this->post('/saas/schools/2/notes', ['body' => 'Called the Baobab bursar.'])->assertRedirect();
 
@@ -103,7 +105,7 @@ class HqSchoolAccountsTest extends TestCase
 
     public function test_stale_edits_bad_values_and_one_way_contracts_are_refused(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         $this->put('/saas/schools/1/account', $this->profile())->assertRedirect();
         $this->put('/saas/schools/1/account', $this->profile(['stage' => 'at_risk']))->assertStatus(409);
         $this->put('/saas/schools/1/account', $this->profile(['stage' => 'sold', 'revision' => 1]))->assertSessionHasErrors('stage');
@@ -120,7 +122,7 @@ class HqSchoolAccountsTest extends TestCase
 
     public function test_a_contact_belongs_to_its_school_and_ids_from_another_school_are_not_found(): void
     {
-        $this->actingAs($this->staff());
+        $this->actingAsHq($this->staff());
         $this->post('/saas/schools/2/contacts', ['role' => 'bursar', 'name' => 'Baobab Bursar', 'email' => 'bursar@baobab.example'])->assertRedirect();
         $foreign = $this->inSchool(2, fn () => (int) SchoolContact::query()->sole()->id);
 

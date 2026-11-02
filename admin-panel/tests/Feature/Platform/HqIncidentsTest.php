@@ -14,6 +14,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -24,6 +25,7 @@ use Tests\TestCase;
  */
 class HqIncidentsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const SUMMARY = 'A support export was emailed to the wrong school contact address.';
@@ -83,7 +85,7 @@ class HqIncidentsTest extends TestCase
     {
         $schoolA = (string) DB::table('schools')->where('id', 1)->value('name');
         app(CurrentSchool::class)->run(1, fn () => SchoolContact::query()->create(['role' => 'information_officer', 'name' => 'Thandi Mokoena', 'email' => 'io@jacaranda.example']));
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
 
         $id = $this->open();
         $this->assertSame('INC-'.str_pad((string) $id, 4, '0', STR_PAD_LEFT), PlatformIncidents::reference($id));
@@ -129,7 +131,7 @@ class HqIncidentsTest extends TestCase
 
     public function test_a_closed_incident_is_reopened_before_it_changes_and_stale_forms_are_refused(): void
     {
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
         $id = $this->open(['category' => 'availability', 'personal_information' => 'no', 'schools' => []]);
         $stale = $this->revision($id);
         $this->post('/saas/incidents/'.$id.'/schools', ['school_id' => 2])->assertRedirect();
@@ -152,7 +154,7 @@ class HqIncidentsTest extends TestCase
 
     public function test_impossible_records_are_refused(): void
     {
-        $this->actingAs($support = $this->staff('support'));
+        $this->actingAsHq($support = $this->staff('support'));
         $base = ['title' => 'Unusual sign-ins', 'category' => 'security', 'severity' => 'low', 'personal_information' => 'unknown', 'summary' => 'Repeated failed sign-ins from one address.'];
         $this->post('/saas/incidents', $base + ['detected_at' => '2026-10-31T09:00'])->assertSessionHasErrors('detected_at');
         $this->post('/saas/incidents', $base + ['detected_at' => '2026-10-30T07:00', 'occurred_at' => '2026-10-30T07:30'])->assertSessionHasErrors('occurred_at');
@@ -176,24 +178,24 @@ class HqIncidentsTest extends TestCase
 
     public function test_only_roles_with_the_register_and_never_a_school_reach_it(): void
     {
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
         $id = $this->open();
         $before = [DB::table('platform_incidents')->count(), DB::table('platform_incident_schools')->count(), DB::table('platform_incident_entries')->count(), $this->revision($id)];
 
         foreach (['sales', 'finance', 'content'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $this->get('/saas')->assertOk()->assertDontSee('Incidents');
             $this->refusedEverywhere($id);
         }
 
         // A school's own Super Admin and teachers never reach HQ's register, on any endpoint.
         foreach ([$this->superAdmin(), User::query()->findOrFail($this->schoolA->ids['tara_user'])] as $schoolUser) {
-            $this->actingAs($schoolUser);
+            $this->newBrowserSession()->actingAs($schoolUser);
             $this->refusedEverywhere($id);
         }
 
         // A school not listed on the incident cannot be marked as told through it.
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
         $this->get('/saas')->assertSee('Incidents');
         $this->put('/saas/incidents/'.$id.'/schools/2', ['notified_on' => '2026-10-30', 'notified_how' => 'email', 'notified_contact' => 'Principal'])->assertNotFound();
         $this->put('/saas/incidents/999/schools/1', ['notified_on' => '2026-10-30', 'notified_how' => 'email', 'notified_contact' => 'Principal'])->assertNotFound();
@@ -206,7 +208,7 @@ class HqIncidentsTest extends TestCase
 
     public function test_the_whole_timeline_stays_reachable_a_page_at_a_time(): void
     {
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
         $id = $this->open();
         $rows = [];
         for ($i = 1; $i <= PlatformIncidents::TIMELINE_PER_PAGE; $i++) {
