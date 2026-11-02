@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Learning;
 
+use App\Models\Academics\TeachingGroup;
 use App\Models\Learning\PracticeItem;
+use App\Models\Learning\PracticeItemGroup;
 use App\Models\Learning\PracticeItemVersion;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
@@ -26,12 +28,19 @@ class PracticeBank
         };
 
         return app(PracticeOperations::class)->run($actor, $data + ['group_id' => $groupId, 'item_id' => $itemId], $authorize, function () use ($actor, $groupId, $itemId, $data) {
-            $item = $itemId === null ? new PracticeItem(['teaching_group_id' => $groupId, 'topic_id' => $data['topic_id'], 'revision' => 0])
-                : PracticeItem::where('teaching_group_id', $groupId)->lockForUpdate()->findOrFail($itemId);
+            $group = TeachingGroup::findOrFail($groupId);
+            $item = $itemId === null ? new PracticeItem(['teaching_group_id' => $groupId, 'subject_id' => (int) $group->subject_id, 'grade_level_id' => (int) $group->grade_level_id,
+                'author_id' => (int) $actor->id, 'visibility' => 'groups', 'topic_id' => $data['topic_id'], 'revision' => 0])
+                : PracticeItem::usedIn($groupId)->lockForUpdate()->findOrFail($itemId);
+            // Colleagues reuse a shared question; only its author or a subject lead changes it (Action Plan 3.6).
+            abort_unless($itemId === null || app(QuestionBanks::class)->canEdit($actor, $item), 403, 'Only the question\'s author or a subject lead may change it.');
             abort_unless((int) $item->revision === (int) $data['expected_revision'], 409, 'The approved question changed. Reload before editing.');
             // Identity/topic cannot move underneath retained learner review memory.
             abort_unless((int) $item->topic_id === (int) $data['topic_id'], 409, 'Create a separate question for another topic.');
             $item->fill(['active' => $data['active'], 'revision' => (int) $item->revision + 1])->save();
+            if ($itemId === null) {
+                PracticeItemGroup::create(['practice_item_id' => $item->id, 'teaching_group_id' => $groupId, 'added_by' => $actor->id]);
+            }
             $version = PracticeItemVersion::create(['practice_item_id' => $item->id, 'content_version_id' => $data['content_version_id'],
                 'approved_by' => $actor->id, 'revision' => $item->revision, 'estimated_seconds' => $data['estimated_seconds'], 'definition' => $data['definition']]);
 
@@ -44,7 +53,7 @@ class PracticeBank
     public function catalogue(User $actor, int $groupId, int $page = 1): array
     {
         app(PracticeAccess::class)->staff($actor, $groupId);
-        $items = PracticeItem::where('teaching_group_id', $groupId)->orderByDesc('id')->paginate(25, ['id', 'topic_id', 'revision', 'active'], 'page', $page);
+        $items = PracticeItem::usedIn($groupId)->orderByDesc('id')->paginate(25, ['id', 'topic_id', 'revision', 'active'], 'page', $page);
         $versions = PracticeItemVersion::whereIn('id', PracticeItemVersion::selectRaw('MAX(id)')->whereIn('practice_item_id', $items->pluck('id'))->groupBy('practice_item_id'))->get()->keyBy('practice_item_id');
         $result = $items->map(fn ($item) => ['id' => (int) $item->id, 'topic_id' => (int) $item->topic_id, 'revision' => (int) $item->revision, 'active' => $item->active,
             'content_version_id' => (int) $versions[$item->id]->content_version_id, 'estimated_seconds' => (int) $versions[$item->id]->estimated_seconds,

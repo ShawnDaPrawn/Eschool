@@ -9,6 +9,9 @@ use App\Http\Requests\Growth\RiskPanelRequest;
 use App\Models\Growth\Intervention;
 use App\Models\User;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Growth\CheckInContext;
+use App\Services\Growth\InterventionLibrary;
+use App\Services\Growth\InterventionPlans;
 use App\Services\Growth\Interventions;
 use App\Services\Growth\RiskAuthority;
 use App\Services\Growth\RiskOperations;
@@ -51,11 +54,18 @@ class RiskPanelController extends Controller
         $staff = ['staff' => [], 'page' => 1, 'last_page' => 1];
         $owners = ['owners' => [], 'page' => 1, 'last_page' => 1];
         $record = null;
+        $plan = null;
+        $library = [];
+        $checkIns = [];
         $history = [];
         $handoff = null;
         if ($mode === 'signals') {
             abort_unless($config['can_read_signals'], 403);
             $rows = app(RiskViews::class)->list($r->user(), $year, $page);
+            // Context for the reader's own authorised learners only; it never changes the list or a score.
+            if ($year === $config['session_year_id']) {
+                $checkIns = app(CheckInContext::class)->forLearners($r->user(), array_column($rows['learners'], 'learner_id'));
+            }
         } elseif ($mode === 'classroom') {
             if ($group > 0) {
                 $rows = app(RiskViews::class)->classroom($r->user(), $group);
@@ -85,12 +95,14 @@ class RiskPanelController extends Controller
                 $learner = $record['learner_id'];
                 $year = $record['session_year_id'];
                 $history = app(Interventions::class)->history($r->user(), $id);
+                $plan = app(InterventionPlans::class)->read($r->user(), $id);
             } elseif ($learner > 0 && $year === $config['session_year_id']) {
                 $owners = $q->owners($r->user(), $learner, $year, null, $this->id($r->input('owner_page'), 1), $search);
+                $library = app(InterventionLibrary::class)->choices();
             }
         }
         $draft = [];
-        foreach (['action' => 20000, 'outcome' => 20000, 'reason' => 1000] as $field => $limit) {
+        foreach (['action' => 20000, 'outcome' => 20000, 'reason' => 1000, 'note' => 2000] as $field => $limit) {
             $v = $r->input($field);
             if (! $r->isMethodSafe() && is_string($v)) {
                 $draft[$field] = mb_substr($v, 0, $limit);
@@ -102,7 +114,7 @@ class RiskPanelController extends Controller
         $startedOn = is_string($r->input('started_on')) ? mb_substr($r->input('started_on'), 0, 10) : app(AcademicAuthority::class)->today();
         $reviewOn = is_string($r->input('review_on')) ? mb_substr($r->input('review_on'), 0, 10) : ($record['review_on'] ?? app(AcademicAuthority::class)->today());
 
-        return compact('config', 'mode', 'year', 'page', 'learner', 'group', 'id', 'rows', 'people', 'assignments', 'staff', 'owners', 'record', 'history', 'handoff', 'draft', 'operationId', 'selection', 'messages', 'conflict', 'canWrite', 'startedOn', 'reviewOn') +
+        return compact('config', 'mode', 'year', 'page', 'learner', 'group', 'id', 'rows', 'people', 'assignments', 'staff', 'owners', 'record', 'plan', 'library', 'checkIns', 'history', 'handoff', 'draft', 'operationId', 'selection', 'messages', 'conflict', 'canWrite', 'startedOn', 'reviewOn') +
             ['actorId' => (int) $r->user()->id, 'schoolId' => app(CurrentSchool::class)->id()];
     }
 
@@ -135,7 +147,7 @@ class RiskPanelController extends Controller
                     $a->administer($r->user(), $learner, $year);
                 }
             },
-            'update' => fn () => $s->authorized($r->user(), $id, true),
+            'update', 'progress' => fn () => $s->authorized($r->user(), $id, true),
             'assign','revoke' => fn () => $a->administer($r->user(), $learner, $year),
             'configure' => fn () => $a->principal($r->user(), true),
             'transfer' => function () use ($r, $a, $id) {
@@ -149,6 +161,7 @@ class RiskPanelController extends Controller
                 'assign' => $s->assign($r->user(), $learner, $year, (int) $d['professional_id'], $d),
                 'revoke' => $s->revoke($r->user(), $learner, $year, (int) $d['professional_id'], (int) $d['expected_revision']),
                 'configure' => app(RiskSettingsService::class)->configure($r->user(), $d),
+                'progress' => app(InterventionPlans::class)->record($r->user(), $id, $d),
                 'transfer' => $s->transferOwner($r->user(), $id, (int) $d['owner_id'], (int) $d['expected_revision'], $d['reason'])
             },
                 $op === 'create' ? fn (array $receipt) => $a->caseActor(User::findOrFail($receipt['owner_id']), $learner, $year, (int) $receipt['grade_level_id'], true, $receipt['owner_authority']) : null);
@@ -166,6 +179,9 @@ class RiskPanelController extends Controller
             $selection['learner_id'] = $result['learner_id'] ?? $learner;
         }if (in_array($op, ['create', 'update'], true)) {
             $selection['intervention'] = $result['id'];
+        }
+        if ($op === 'progress') {
+            $selection['intervention'] = $result['intervention_id'];
         }
 
         return redirect()->route('risk-interventions.index', $selection)->with('success', __('Intervention change saved'))->header('Cache-Control', 'private, no-store');

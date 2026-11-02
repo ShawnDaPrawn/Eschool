@@ -1200,3 +1200,16 @@
 .search-result-title {
     font-weight: 500;
 }
+
+/* Navigate Ed support tickets (Settings > Navigate Ed support). */
+.support-thread {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.support-thread__body {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}

@@ -22,14 +22,19 @@ use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
+use App\Services\Leadership\MasteryImpact;
 use App\Services\Learning\Digests\DigestPanelScope;
+use App\Services\Learning\ExamCoachAccess;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
+use App\Services\Pathways\CareerGuidance;
 use App\Services\Pathways\PathwayPanelScope;
 use App\Services\PeerTutoring\PeerPanelScope;
 use App\Services\Platform\Modules\ModuleGate;
+use App\Services\Platform\Offboarding\SchoolExit;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Transfers\TransferAuthority;
+use App\Services\Wellbeing\CheckIns;
 use App\Services\Wellbeing\WellbeingAccess;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Route;
@@ -169,7 +174,13 @@ class Navigation
         if (($item['wellbeing_actor'] ?? false) && ! app(WellbeingAccess::class)->panelAvailable($user)) {
             return false;
         }
+        if (($item['check_in_actor'] ?? false) && ! app(CheckIns::class)->available($user)) {
+            return false;
+        }
         if (($item['principal_dashboard'] ?? false) && ! app(LeadershipAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['mastery_impact_actor'] ?? false) && ! app(MasteryImpact::class)->available($user)) {
             return false;
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {
@@ -182,6 +193,9 @@ class Navigation
             return false;
         }
         if (($item['pathway_manager'] ?? false) && ! app(PathwayPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['pathway_guide'] ?? false) && ! app(CareerGuidance::class)->available($user)) {
             return false;
         }
         if (($item['assistance_office'] ?? false) && ! app(AssistanceQueries::class)->available($user)) {
@@ -202,6 +216,10 @@ class Navigation
         if (($item['early_years_actor'] ?? false) && ! app(EarlyYearsAuthority::class)->available($user)) {
             return false;
         }
+        // Only while the school is leaving and has an export to collect (SA.11).
+        if (($item['school_exit'] ?? false) && (! app(SchoolExit::class)->allowed($user) || app(SchoolExit::class)->current() === null)) {
+            return false;
+        }
         if (($item['ai_manager'] ?? false) && ! app(AiSchoolControls::class)->available($user)) {
             return false;
         }
@@ -209,6 +227,9 @@ class Navigation
             return false;
         }
         if (($item['digest_manager'] ?? false) && ! app(DigestPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['exam_coach_staff'] ?? false) && ! app(ExamCoachAccess::class)->availableStaff($user)) {
             return false;
         }
         if ($item['consultation_actor'] ?? false) {

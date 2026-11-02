@@ -21,6 +21,7 @@ use App\Services\Panel\SessionYearContext;
 use App\Services\Recognition\AwardNominations;
 use App\Services\Recognition\AwardPresentations;
 use App\Services\Recognition\HousePoints;
+use App\Services\Recognition\PersistenceBadges;
 use App\Services\Recognition\RecognitionAuthority;
 use App\Services\Recognition\RecognitionCatalog;
 use App\Services\Recognition\RecognitionQueries;
@@ -149,7 +150,9 @@ class RecognitionPanelController extends Controller
             }
         }
 
-        return compact('selectedGrade', 'nominationDefinitions', 'presentationDefinitions', 'canApprove', 'administrators', 'subjects', 'groups', 'staff', 'pointControls', 'presentationControls', 'module', 'config', 'year', 'learner', 'selected', 'history', 'profile', 'membership', 'choices', 'counter', 'queue', 'operationId', 'account', 'school', 'canWrite', 'assembly', 'draft', 'messages');
+        $badges = $module === 'awards' && $config['access']['manager'] ? app(PersistenceBadges::class)->current() : null;
+
+        return compact('badges', 'selectedGrade', 'nominationDefinitions', 'presentationDefinitions', 'canApprove', 'administrators', 'subjects', 'groups', 'staff', 'pointControls', 'presentationControls', 'module', 'config', 'year', 'learner', 'selected', 'history', 'profile', 'membership', 'choices', 'counter', 'queue', 'operationId', 'account', 'school', 'canWrite', 'assembly', 'draft', 'messages');
     }
 
     public function index(RecognitionPanelRequest $r): Response
@@ -178,6 +181,7 @@ class RecognitionPanelController extends Controller
             } else {
                 $row = match ($op) {
                     'configure' => app(RecognitionCatalog::class)->configure($actor, $module, $d),
+                    'badges' => $module === 'awards' ? app(PersistenceBadges::class)->configure($actor, $d) : abort(404),
                     'issue' => $module === 'house_points' ? app(HousePoints::class)->issue($actor, $d) : abort(404),
                     'reverse' => $module === 'house_points' ? app(HousePoints::class)->reverse($actor, $id, $d) : abort(404),
                     'nominate' => $module === 'awards' ? app(AwardNominations::class)->nominate($actor, $d) : abort(404),

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\StudentSessions;
 use App\Services\Academics\Transitions\LearnerAcademicAccess;
+use App\Services\People\Leavers\LeaverState;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,6 +46,22 @@ class EnsureStudentSessionIsActive
         }
 
         if ($studentSession->status == 0) {
+            // A leaver (Action Plan 1.21) reads their own profile and history,
+            // read-only, until leaver_until; pages about this year's class and
+            // every write are refused.
+            if (app(LeaverState::class)->until($user->student) !== null) {
+                if ($request->is(...(array) config('leavers.student_api', [])) && ! LeaverState::writing()) {
+                    return $next($request);
+                }
+
+                return response()->json([
+                    'error' => true,
+                    'message' => trans('leaver_read_only'),
+                    'data' => null,
+                    'code' => Response::HTTP_FORBIDDEN,
+                ], Response::HTTP_FORBIDDEN);
+            }
+
             return response()->json([
                 'message' => 'Your Account is Deactivate Please contact Admin for Further Help.',
                 'code' => 'SESSION_NOT_ACTIVE',

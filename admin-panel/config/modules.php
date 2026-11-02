@@ -2,6 +2,12 @@
 
 // Register features when their implementation arrives. Later-phase modules
 // cannot be enabled merely by changing a database row.
+//
+// 'stages' (optional, Action Plan 4.1): the age stages whose learners may use
+// a learner-facing module (early_years, junior, high_school; see
+// App\Services\Platform\Stages\SchoolStages). ModuleGate refuses the module
+// to a signed-in learner whose grade is in another stage. Guardians and staff
+// are not limited. Without 'stages' every stage may use it.
 return [
     'peer_tutoring' => ['name' => 'Supervised peer tutoring', 'default' => false, 'dependencies' => ['mastery']],
     'ask_school' => ['name' => 'School assistant and human support', 'default' => false, 'dependencies' => ['people', 'communication']],
@@ -11,14 +17,14 @@ return [
     'test_insights' => ['name' => 'Test insights', 'default' => false, 'dependencies' => ['mastery']],
     'exam_coach' => ['name' => 'Exam coach', 'default' => false, 'dependencies' => ['academics']],
     'family_forms' => ['name' => 'Health forms and family consents', 'default' => false, 'dependencies' => ['people']],
-    'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics']],
+    'tutor' => ['name' => 'Subject tutor', 'default' => false, 'dependencies' => ['academics'], 'stages' => ['junior', 'high_school']],
     'diary' => ['name' => 'Learner diary', 'default' => false, 'dependencies' => ['people', 'academics']],
     'early_years' => ['name' => 'Early years diary, observations and portfolios', 'default' => false, 'dependencies' => ['people', 'academics']],
     'digest' => ['name' => 'Weekly parent digest', 'default' => false, 'dependencies' => ['people', 'academics', 'communication']],
     'live_updates' => ['name' => 'Live school updates', 'default' => false, 'dependencies' => ['people', 'communication']],
     'my_grade' => ['name' => 'My grade', 'default' => false, 'dependencies' => ['academics']],
     'gallery' => ['name' => 'Private photo gallery', 'default' => false, 'dependencies' => ['people']],
-    'daily_practice' => ['name' => 'Daily practice', 'default' => false, 'dependencies' => ['academics']],
+    'daily_practice' => ['name' => 'Daily practice', 'default' => false, 'dependencies' => ['academics'], 'stages' => ['junior', 'high_school']],
     'consultations' => ['name' => 'Polls, surveys and nonstatutory elections', 'default' => false, 'dependencies' => ['people', 'communication']],
     'house_points' => ['name' => 'House points', 'default' => false, 'dependencies' => ['people', 'academics']],
     'awards' => ['name' => 'Awards', 'default' => false, 'dependencies' => ['people', 'academics']],

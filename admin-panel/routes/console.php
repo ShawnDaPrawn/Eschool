@@ -39,6 +39,17 @@ Schedule::command('money:backfill-cents')->dailyAt('02:10')->withoutOverlapping(
 // Each school enables its own cadence and local delivery hour.
 Schedule::command('fees:remind')->hourly()->withoutOverlapping();
 
+// Twilio prices SMS and WhatsApp messages after sending (Action Plan 2.7).
+Schedule::command('messaging:fetch-prices')->hourly()->name('messaging-prices')->withoutOverlapping();
+
+// School sending domains (Action Plan 2.2): waiting domains are checked with
+// SES every ten minutes, verified ones once a day; nothing while switched off.
+Schedule::command('mail:check-sending-domains')->everyFiveMinutes()->withoutOverlapping();
+
+// SES streams (Action Plan 2.3): each school's account and bulk configuration
+// sets are set up within the hour and checked daily; nothing while switched off.
+Schedule::command('mail:ensure-streams')->hourly()->withoutOverlapping();
+
 // Read-only by default: discrepancies remain visible and generate a critical
 // operations log; historical receipts are never automatically reposted.
 Schedule::command('ledger:reconcile --json')->dailyAt('02:20')->withoutOverlapping();
@@ -94,7 +105,16 @@ Schedule::job(new RecoverMessages)->everyMinute()->name('communication-message-r
 
 Schedule::command('leadership:prune-activity')->dailyAt('02:50')->name('learner-activity-retention')->withoutOverlapping();
 
+// HQ school health figures (Action Plan SA.10): the history the at-risk trend compares against.
+Schedule::command('platform:school-health')->dailyAt('04:20')->name('school-health-snapshots')->withoutOverlapping();
+
 Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-copy-retention')->withoutOverlapping();
+
+// Imports run on a school's behalf (SA.11): an unfinished one expires and its file is deleted.
+Schedule::command('platform:expire-school-imports')->hourly()->name('hq-import-expiry')->withoutOverlapping();
+
+// School offboarding (SA.11): a leaving school's receipt deadline passes.
+Schedule::command('offboarding:receipt-deadlines')->dailyAt('03:10')->name('offboarding-receipt-deadlines')->withoutOverlapping();
 
 // Refresh current-day evidence even when no source event arrives.
 Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);
@@ -120,6 +140,10 @@ Schedule::command('ai:prune-quarantine')->dailyAt('03:50')->name('ai-quarantine-
 Schedule::command('exam-coach:prune-working')->dailyAt('04:00')->name('exam-working-retention')->withoutOverlapping();
 // Temporary teaching proposals/crops expire independently of module availability.
 Schedule::command('learning:prune-teaching-drafts')->dailyAt('03:45')->withoutOverlapping();
+
+// Term growth snapshots (Action Plan 3.14): queued per school, idempotent;
+// the start of a term is written once, the latest is refreshed each night.
+Schedule::command('mastery:growth-snapshots')->dailyAt('04:25')->name('mastery-growth-snapshots')->withoutOverlapping();
 
 Schedule::command('assistance:prune-private')->dailyAt('04:10')->name('school-support-private-retention')->withoutOverlapping();
 // Recovery also reaches a guardian verified after the original publication.
