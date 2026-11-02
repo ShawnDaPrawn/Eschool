@@ -65,4 +65,6 @@ return [
     'billing.overdue' => ['label' => 'Navigate Ed account overdue', 'module' => 'school', 'portals' => ['admin'], 'channels' => ['push' => 'default_on', 'email' => 'mandatory', 'in_app' => 'mandatory'], 'locked' => ['admin']],
     // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
     'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
+    // "No child unseen" (Action Plan 4.5): only the named adult; the notice names no learner.
+    'growth.unseen_adult_assigned' => ['label' => 'Learner to check in with', 'module' => 'early_warning', 'portals' => ['teacher', 'admin'], 'channels' => $on],
 ];
