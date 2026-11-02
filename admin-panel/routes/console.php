@@ -110,6 +110,9 @@ Schedule::command('platform:school-health')->dailyAt('04:20')->name('school-heal
 
 Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-copy-retention')->withoutOverlapping();
 
+// School offboarding (SA.11): a leaving school's receipt deadline passes.
+Schedule::command('offboarding:receipt-deadlines')->dailyAt('03:10')->name('offboarding-receipt-deadlines')->withoutOverlapping();
+
 // Refresh current-day evidence even when no source event arrives.
 Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);
 

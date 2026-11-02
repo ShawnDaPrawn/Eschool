@@ -12,7 +12,7 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; announcements; feature flags; AI control centre (view); approved support sessions; school health; billing (read-only); mail streams (see and set up); support desk; SMS and WhatsApp costs; platform health on the HQ home page |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; announcements; feature flags; AI control centre (view); approved support sessions; school health; billing (read-only); mail streams (see and set up); support desk; SMS and WhatsApp costs; platform health on the HQ home page; school offboarding (start, archive, dry run, first deletion approval, legal hold) |
 | Support | see schools; audit log; LURITS claims; incident register; AI control centre (view); approved support sessions; school health; mail streams (see); support desk; platform health on the HQ home page |
 | Finance | see schools; change package; customer records; audit log and its export; school health; invoices, credit notes, payments and reminders; SMS and WhatsApp costs; packages, and edit packages and prices |
 | Content | see schools; packages; the content library (`library.manage`) |
@@ -22,7 +22,7 @@ and Owners invite staff by email from HQ.
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
 `packages.manage` ([package editor](package-editor.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`health.view` (see `hq-home.md`), `announcements.manage`, `flags.manage`, `support.access`, `support.emergency` (Owner only; see `support-access.md`), `support.manage`, `billing.view`, `billing.manage` ([HQ billing](hq-billing.md)), `mail.view`, `mail.manage`, `messaging.view`, `ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `library.manage`, `library.review` (see `../learning/content-library.md`), `staff.manage`. A role that is no longer in the
+`health.view` (see `hq-home.md`), `announcements.manage`, `flags.manage`, `support.access`, `support.emergency` (Owner only; see `support-access.md`), `support.manage`, `billing.view`, `billing.manage` ([HQ billing](hq-billing.md)), `mail.view`, `mail.manage`, `messaging.view`, `ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `library.manage`, `library.review` (see `../learning/content-library.md`), `offboarding.view`, `offboarding.manage`, `offboarding.approve` (see `offboarding.md`), `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password and the two-factor pages names its ability with

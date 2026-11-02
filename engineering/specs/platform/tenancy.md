@@ -269,6 +269,16 @@ required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
 
+### School offboarding
+
+`school_offboardings` is required school-owned (a foreign key to the school):
+one row per offboarding of a leaving school, holding states, dates, hashes and
+counts, never the school's data. HQ writes it from `/saas` inside the school and
+the school's Super Admin confirms receipt from the panel, where an id from
+another school is not found ([Offboarding](offboarding.md)). The export and the
+deletion dry run read the school's rows through `SchoolOwnedTables`, always with
+the school's id.
+
 ### Platform content library (Action Plan 3.3)
 
 The library tables (`library_frameworks`, `library_sources`, `library_topics`,

@@ -29,6 +29,21 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Platform: school offboarding (Action Plan SA.11). For a school that is
+  leaving, Operations or an Owner starts an offboarding at
+  `/saas/schools/{school}/offboarding` with a reason, a deadline and the
+  contract's retention terms (a contract can now record how many days after it
+  ends the school's data is deleted; otherwise the date and terms are
+  entered). Navigate Ed prepares a full, signed and encrypted export of the
+  school's own data, and only the school's Super Admin can download it, from
+  "Data export (leaving)" in their own panel, through a link that lasts 15
+  minutes. They confirm receipt there, or the deadline counts as receipt. HQ
+  then archives the school and deletion is scheduled for the contract's date.
+  Deletion needs two approvals by different people, the second an Owner, each
+  re-checking that the export was delivered and no legal hold is on; in this
+  release it runs a dry run that counts what would be deleted and deletes
+  nothing. HQ sees states and counts only, and every step is in the audit log.
+  **Deploy:** run the migrations.
 - Platform: a Navigate Ed content library in HQ at `/saas/library`. Content
   staff add curriculum frameworks (such as CAPS), topics per subject and grade
   with their prerequisites (a loop of prerequisites is refused), the source and

@@ -64,4 +64,6 @@ return [
     'support_access.requested' => ['label' => 'Navigate Ed support access request', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     'support_access.emergency' => ['label' => 'Navigate Ed emergency support access', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
     'group_chat.family_update' => ['label' => 'Family group conversations', 'module' => 'groups', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
+    // School offboarding (SA.11): the leaving school's Super Admins, who must collect the export.
+    'school.offboarding_export' => ['label' => 'School data export ready', 'module' => 'people', 'portals' => ['admin'], 'channels' => $required, 'locked' => ['admin']],
 ];

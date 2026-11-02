@@ -492,6 +492,17 @@ use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
 
+## School offboarding
+
+School data export ready: `school.offboarding_export` (people module, admin
+portal; push, email and in-app are mandatory and locked) tells a leaving
+school's active Super Admins (never platform staff) that the full export of
+their school's data is ready in the panel at `/school-exit`, and the date by
+which to download it and confirm receipt. The notice names no person and
+carries no data; the download itself needs the Super Admin's sign-in and a
+short-lived signed link (engineering/specs/platform/offboarding.md).
+
+
 ## Support desk
 
 Navigate Ed support replies: `school.support_reply` (school module, admin portal
