@@ -8,7 +8,7 @@ The panel platform staff use to see the schools on the install, set one up with 
 
 Built: school list with counts, set up a school, package, suspend/archive/restore, module switches, audited and fenced.
 
-Not built, and not implied by any screen: audited support access into a school (acting as a school user), import toolkit (CSV, SA-SAMS), usage, health and delivery views, consent/retention/personal-data tooling, and a way to give an existing account a role at a new school. Each needs its own spec; support access also needs the decision on what platform staff may see (below).
+Not built, and not implied by any screen: audited support access into a school (acting as a school user), import toolkit (CSV, SA-SAMS), delivery views (the core usage and health figures are in [HQ school health](hq-school-health.md)), consent/retention/personal-data tooling, and a way to give an existing account a role at a new school. Each needs its own spec; support access also needs the decision on what platform staff may see (below).
 
 ## User stories
 
