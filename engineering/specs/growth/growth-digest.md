@@ -125,6 +125,8 @@ written only inside the learner's own school.
 | `recognition_badge_settings` | One row per school: each badge on/off, thresholds, who switched them on, revision. |
 | `recognition_badges` | Idempotency ledger: learner, kind, week, topic, dedupe key, the award presented. |
 
+Retention erases the topic-text copy in the associated notification before deleting an expired learner growth receipt, including a soft-deleted notification. It keeps the generic notice identity and delivery references. Both queries stay inside the current school, and only `growth.weekly` notification text is scrubbed; current notes and other notice types are untouched.
+
 ## Acceptance tests
 
 `tests/Feature/Learning/GrowthDigestTest.php`
@@ -146,7 +148,9 @@ written only inside the learner's own school.
 | `test_panel_manager_saves_badges_and_teacher_or_other_school_cannot` | Panel form; other school's ID 403; invalid threshold 422; house points 404; teacher 403; nothing written on refusal. |
 | `test_school_b_never_sees_school_a_growth_settings_or_badges` | School B sees none of School A's growth, notes, settings or badges, and School A never acts on School B's learner. |
 | `test_rollback_refuses_while_badges_or_growth_receipts_are_retained` | Rollback refuses while rows are held. |
-| `test_retention_erases_expired_learner_growth_notes` | Expired learner notes are erased by the daily retention run. |
+| `test_retention_erases_expired_learner_growth_notes` | The expired receipt and notification topic text are erased; generic delivery references remain. |
+| `test_retention_erases_topic_text_even_when_the_notice_was_soft_deleted` | Soft deletion does not leave an expired topic-text copy behind. |
+| `test_retention_keeps_current_notes_and_never_scrubs_another_school_or_notice_type` | Current notes, another school’s text and other notice types survive, even with corrupt receipt references. |
 | `test_starting_template_lines_render_only_when_there_is_something_to_show` | Optional template lines. |
 
 ## Not in this step

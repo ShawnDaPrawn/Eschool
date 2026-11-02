@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Learning\Digests;
 
 use App\Models\Learning\LearnerGrowthWeek;
+use App\Models\Notification;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Platform\Modules\ModuleGate;
@@ -60,6 +61,25 @@ class LearnerGrowthNotices implements PrivateNoticeDelivery, PrivateNoticeScope
 
             return $week;
         }, 3);
+    }
+
+    /** Erase every topic-text copy before removing expired encrypted receipts. */
+    public function prune(): int
+    {
+        $school = app(CurrentSchool::class);
+        abort_unless($school->isSet() && ! $school->isAcrossSchools() && ! $school->isImpersonating(), 403);
+        $cutoff = now();
+
+        return DB::transaction(function () use ($cutoff): int {
+            $expired = LearnerGrowthWeek::where('expires_at', '<=', $cutoff);
+            // Keep notification identities and delivery history, including soft
+            // deleted notices, but erase their copy of the private topic text.
+            Notification::withTrashed()->where('type', self::TYPE)
+                ->whereIn('id', (clone $expired)->whereNotNull('notification_id')->select('notification_id'))
+                ->update(['message' => '']);
+
+            return $expired->delete();
+        });
     }
 
     public function apply(Builder $notifications, User $actor): void

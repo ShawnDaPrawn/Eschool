@@ -394,9 +394,58 @@ class GrowthDigestTest extends TestCase
         $this->week();
         $this->monday();
         app(WeeklyDigests::class)->monday();
+        $notice = Notification::where('type', LearnerGrowthNotices::TYPE)->sole();
+        $this->assertStringContainsString('Fractions', (string) $notice->getRawOriginal('message'));
+        $payload = $notice->delivery_payload;
         LearnerGrowthWeek::query()->update(['expires_at' => now()->subMinute()]);
         $this->artisan('digest:weekly', ['--retention' => true])->assertSuccessful();
         $this->assertSame(0, LearnerGrowthWeek::count());
+        $this->assertStringNotContainsString('Fractions', (string) DB::table('notifications')->where('id', $notice->id)->value('message'));
+        $this->assertSame($payload, $notice->fresh()->delivery_payload, 'Keep the generic notice identity and delivery references.');
+    }
+
+    public function test_retention_erases_topic_text_even_when_the_notice_was_soft_deleted(): void
+    {
+        $this->week();
+        $this->monday();
+        app(WeeklyDigests::class)->monday();
+        $notice = Notification::where('type', LearnerGrowthNotices::TYPE)->sole();
+        $notice->delete();
+        LearnerGrowthWeek::query()->update(['expires_at' => now()->subMinute()]);
+        $this->artisan('digest:weekly', ['--retention' => true])->assertSuccessful();
+        $this->assertSame(0, LearnerGrowthWeek::count());
+        $this->assertStringNotContainsString('Fractions', (string) DB::table('notifications')->where('id', $notice->id)->value('message'));
+        $this->assertNotNull(DB::table('notifications')->where('id', $notice->id)->value('deleted_at'));
+    }
+
+    public function test_retention_keeps_current_notes_and_never_scrubs_another_school_or_notice_type(): void
+    {
+        $this->week();
+        $this->monday();
+        app(WeeklyDigests::class)->monday();
+        $week = LearnerGrowthWeek::sole();
+        $expired = Notification::findOrFail($week->notification_id);
+        $other = app(CurrentSchool::class)->run(self::SCHOOL_B_ID, fn () => app(Notifier::class)->makeNotice(LearnerGrowthNotices::TYPE, 'Synthetic other school', 'Synthetic protected topic', LearnerGrowthNotices::LINK));
+        $unrelated = app(Notifier::class)->makeNotice('digest.weekly', 'Synthetic other type', 'Synthetic unrelated private summary', '/');
+        $current = app(Notifier::class)->makeNotice(LearnerGrowthNotices::TYPE, 'Synthetic current week', 'Synthetic current topic', LearnerGrowthNotices::LINK);
+        $copy = function (int $weeks, Notification $notice, bool $expire) use ($week): void {
+            $row = $week->replicate();
+            $row->week_start = $week->week_start->subWeeks($weeks);
+            $row->notification_id = $notice->id;
+            $row->expires_at = $expire ? now()->subMinute() : now()->addWeek();
+            $row->save();
+        };
+        $copy(1, $current, false);
+        // A corrupt cross-school or wrong-type reference must not widen cleanup.
+        $copy(2, $other, true);
+        $copy(3, $unrelated, true);
+        $week->update(['expires_at' => now()->subMinute()]);
+        $this->artisan('digest:weekly', ['--retention' => true])->assertSuccessful();
+        $this->assertSame(1, LearnerGrowthWeek::count());
+        $this->assertStringNotContainsString('Fractions', (string) $expired->fresh()->message);
+        foreach ([$current, $other, $unrelated] as $notice) {
+            $this->assertSame($notice->message, DB::table('notifications')->where('id', $notice->id)->value('message'));
+        }
     }
 
     public function test_starting_template_lines_render_only_when_there_is_something_to_show(): void

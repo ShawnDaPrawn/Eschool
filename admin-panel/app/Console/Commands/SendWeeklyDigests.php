@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\Learning\LearnerGrowthWeek;
 use App\Models\Learning\WeeklyParentDigest;
 use App\Models\Platform\School;
+use App\Services\Learning\Digests\LearnerGrowthNotices;
 use App\Services\Learning\Digests\WeeklyDigests;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Recognition\PersistenceBadges;
@@ -29,7 +29,7 @@ class SendWeeklyDigests extends Command
                 app(CurrentSchool::class)->run((int) $school->id, function (): void {
                     if ($this->option('retention')) {
                         WeeklyParentDigest::where('expires_at', '<=', now())->delete();
-                        LearnerGrowthWeek::where('expires_at', '<=', now())->delete();
+                        app(LearnerGrowthNotices::class)->prune();
                     } else {
                         // Badges follow the awards module, not the digest module.
                         $this->badges();
