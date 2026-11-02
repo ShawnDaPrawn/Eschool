@@ -11,6 +11,7 @@ use App\Http\Requests\Saas\SchoolStatusRequest;
 use App\Http\Requests\Saas\StoreSchoolRequest;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Saas\PlatformSchools;
+use App\Services\Platform\Saas\PlatformSupportDesk;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,6 +62,7 @@ class SaasController extends Controller
             'pendingAdministrator' => app(StaffInvitations::class)->pendingAdministrator($school) !== null,
             'modules' => $this->schools->modules($school),
             'packages' => array_keys($this->schools->packages()),
+            'support' => app(PlatformSupportDesk::class)->forSchool($school),
         ]);
     }
 

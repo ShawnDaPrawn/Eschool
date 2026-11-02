@@ -67,6 +67,9 @@ return [
 
             // Settings that are the same in every year.
             'clear',
+            // Support tickets to Navigate Ed belong to no school year.
+            'support-tickets',
+            'support-tickets/*',
             'settings',
             'app-settings',
             'setting-update',
