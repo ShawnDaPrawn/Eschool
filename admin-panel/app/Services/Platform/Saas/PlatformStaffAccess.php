@@ -81,6 +81,21 @@ class PlatformStaffAccess
         return in_array('*', $abilities, true) || in_array($ability, $abilities, true);
     }
 
+    /**
+     * Every ability an allowed staff member's role holds, read once (the HQ
+     * home page checks several); '*' for an Owner. Empty for anyone else.
+     *
+     * @return list<string>
+     */
+    public function abilities(?User $user): array
+    {
+        if (! $this->allowed($user)) {
+            return [];
+        }
+
+        return array_values(array_filter((array) config('platform_roles.'.$this->role($user).'.abilities', []), 'is_string'));
+    }
+
     /** The signed-in staff member, from a fresh row; 403 for anyone else. */
     public function actor(?User $user, bool $ownPassword = false): User
     {

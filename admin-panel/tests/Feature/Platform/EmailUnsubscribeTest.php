@@ -181,4 +181,18 @@ class EmailUnsubscribeTest extends TestCase
         // An unknown person is simply not found.
         $this->post(URL::temporarySignedRoute(EmailUnsubscribe::ROUTE, now()->addDay(), ['user' => 999999, 'school' => 1, 'type' => 'comms.notice']))->assertNotFound();
     }
+
+    public function test_sender_channel_choices_cannot_override_global_opt_out_or_mandatory_email(): void
+    {
+        $parent = $this->parent();
+        app(NotificationRules::class)->choose($parent, 'comms.notice', 'email', false);
+        app(Notifier::class)->send($parent, 'comms.notice', 'Optional', 'Synthetic notice', channels: ['in_app', 'email']);
+        Queue::assertNotPushed(SendMail::class);
+        app(Notifier::class)->send($parent, 'attendance.absence', 'Required', 'Synthetic absence', channels: ['in_app']);
+        Queue::assertPushed(SendMail::class, 1);
+        Mail::fake();
+        app(CurrentSchool::class)->forget();
+        Queue::pushed(SendMail::class)->last()->handle();
+        Mail::assertSent(NotificationMail::class, fn (NotificationMail $mail) => $mail->notificationType === 'attendance.absence' && $mail->unsubscribeUrl === null);
+    }
 }

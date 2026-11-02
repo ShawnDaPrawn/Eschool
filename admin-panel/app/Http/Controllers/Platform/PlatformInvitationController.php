@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * /platform/invite/{token}: an invited platform staff member chooses their
- * password, then signs in (Action Plan SA.1). The page is private and never
- * cached; an unknown, used or expired link answers 404.
+ * password, then signs in (Action Plan SA.1) and sets up two-factor sign-in
+ * before any HQ page opens (SA.2). The page is private and never cached; an
+ * unknown, used or expired link answers 404.
  */
 class PlatformInvitationController extends Controller
 {
@@ -32,6 +33,6 @@ class PlatformInvitationController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', __('Your password is set. Sign in with your email address and new password.'));
+        return redirect()->route('login')->with('success', __('Your password is set. Sign in with your email address and new password, then set up an authenticator app on your phone.'));
     }
 }

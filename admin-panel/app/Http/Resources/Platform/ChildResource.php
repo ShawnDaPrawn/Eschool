@@ -37,6 +37,8 @@ class ChildResource extends JsonResource
             'name' => trim($user->first_name.' '.$user->last_name),
             'image' => ContextUserResource::imageUrl($user),
             'student_number' => $child->getAttribute('student_number'),
+            // The headline number (ADR 0007), only for a guardian who may approve.
+            'primary_identifier' => $child->getAttribute('context_primary_identifier'),
             'approved' => (bool) $child->getAttribute('context_approved'),
             'homeroom' => $child->getAttribute('context_homeroom'),
             // The child's school, including the guardian's other schools.

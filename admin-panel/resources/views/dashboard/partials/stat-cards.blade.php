@@ -7,6 +7,10 @@
         ['label' => __('total_classes'), 'value' => $counts['total_classes'], 'icon' => 'fa fa-building'],
         ['label' => __('total_streams'), 'value' => $counts['total_streams'], 'icon' => 'fa fa-sitemap'],
     ];
+    // Leavers count apart from current learners while any are reading (Action Plan 1.21).
+    if (($counts['leavers'] ?? 0) > 0) {
+        array_splice($stat_cards, 2, 0, [['label' => __('Leavers (read-only)'), 'value' => $counts['leavers'], 'icon' => 'fa fa-sign-out']]);
+    }
 @endphp
 <div class="dash-stat-row mb-4">
     @foreach ($stat_cards as $card)
