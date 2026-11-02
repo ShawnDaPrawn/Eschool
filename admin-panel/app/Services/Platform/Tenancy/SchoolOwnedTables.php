@@ -24,9 +24,6 @@ final class SchoolOwnedTables
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
-        'support_access_grants', 'support_access_views',
-        'school_health_snapshots',
-        'platform_feature_flag_schools',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
         // notes, their lines, its EFT payments and what each payment or credit
         // note settles. Each row is about one school, so it carries the school
