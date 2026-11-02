@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
 use App\Services\Platform\RequestContext;
+use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -64,7 +65,8 @@ class ModuleGate
         if ($locked && $school?->status !== School::ACTIVE) {
             return $off;
         }
-        $inPackage = in_array($key, config('school_packages.'.($school?->package_key ?? 'legacy'), []), true);
+        // The module set version applied to the school, not the package's latest (SA.7).
+        $inPackage = in_array($key, app(PlatformPackages::class)->forSchool($school), true);
         $row = $this->rows($locked)[$key] ?? null;
         // A new school without rows still gets secure defaults. No implicit
         // entitlement is granted by enabling a switch in the database.
@@ -168,7 +170,7 @@ class ModuleGate
             if ($state['in_package'] || $state['enabled'] || ! $this->hasRetainedMoney($schoolId, $key)) {
                 continue;
             }
-            // in_package stays as it is: the package config decides entitlement, and a later upgrade must still count.
+            // in_package stays as it is: the school's package decides entitlement, and a later upgrade must still count.
             $row = SchoolModule::query()->firstOrNew(['module' => $key]);
             if (! $row->exists) {
                 $row->in_package = true;

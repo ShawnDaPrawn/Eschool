@@ -80,10 +80,14 @@ class PlatformSchools
         });
     }
 
-    /** The package keys platform staff can assign, with the modules each includes. */
+    /**
+     * The packages platform staff can put a school on: active ones, key => name (PlatformPackages).
+     *
+     * @return array<string, string>
+     */
     public function packages(): array
     {
-        return array_map(fn (array $modules): int => count($modules), (array) config('school_packages'));
+        return app(PlatformPackages::class)->assignable();
     }
 
     /**
@@ -99,12 +103,15 @@ class PlatformSchools
     {
         return $this->currentSchool->acrossSchools(function () use ($data, $actor): array {
             return DB::transaction(function () use ($data, $actor): array {
+                // The package's current module set; later changes reach the school only when HQ re-applies them.
+                $version = app(PlatformPackages::class)->versionToAssign($data['package_key']);
                 $school = School::query()->create([
                     'name' => $data['name'],
                     'slug' => ($data['slug'] ?? null) ?: $this->uniqueSlug($data['name']),
                     'status' => School::ACTIVE,
                     'timezone' => $data['timezone'],
                     'package_key' => $data['package_key'],
+                    'package_version' => $version,
                 ]);
                 app(SchoolRoles::class)->seed($school);
                 $this->currentSchool->run($school, fn () => $this->firstRunDefaults($school));
@@ -124,6 +131,7 @@ class PlatformSchools
 
                 Audit::record('platform_school_created', $school, [], [
                     'package_key' => $school->package_key,
+                    'package_version' => $version,
                     'first_admin_user_id' => $admin->id,
                     'created_by' => $actor->id,
                 ], (int) $school->id);
@@ -135,19 +143,18 @@ class PlatformSchools
 
     public function changePackage(int $schoolId, string $package, User $actor): void
     {
-        if (! array_key_exists($package, (array) config('school_packages'))) {
-            throw ValidationException::withMessages(['package_key' => 'Choose one of the listed packages.']);
-        }
-
         $this->currentSchool->acrossSchools(function () use ($schoolId, $package, $actor): void {
             DB::transaction(function () use ($schoolId, $package, $actor): void {
+                // Only an active package; the school gets its current module set (SA.7).
+                $version = app(PlatformPackages::class)->versionToAssign($package);
                 $school = DB::table('schools')->where('id', $schoolId)->lockForUpdate()->first();
                 abort_if($school === null, 404);
                 if ($school->package_key === $package) {
                     return;
                 }
-                DB::table('schools')->where('id', $schoolId)->update(['package_key' => $package, 'updated_at' => now()]);
-                Audit::record('platform_school_package_changed', School::query()->findOrFail($schoolId), ['package_key' => $school->package_key], ['package_key' => $package, 'changed_by' => $actor->id], $schoolId);
+                DB::table('schools')->where('id', $schoolId)->update(['package_key' => $package, 'package_version' => $version, 'updated_at' => now()]);
+                Audit::record('platform_school_package_changed', School::query()->findOrFail($schoolId), ['package_key' => $school->package_key, 'package_version' => $school->package_version],
+                    ['package_key' => $package, 'package_version' => $version, 'changed_by' => $actor->id], $schoolId);
                 // A money module the new package leaves out stays readable (read-only) while the school has its records.
                 $this->currentSchool->run($schoolId, fn () => app(ModuleGate::class)->keepRetainedMoneyReadable($actor));
                 // Entitlements follow the package, so the apps refresh their menus.
@@ -265,6 +272,7 @@ class PlatformSchools
             'slug' => (string) $school->slug,
             'status' => (string) $school->status,
             'package_key' => $school->package_key,
+            'package_version' => $school->package_version === null ? 1 : (int) $school->package_version,
             'timezone' => (string) $school->timezone,
             'created_at' => $school->created_at,
             'people' => $own['people'],
