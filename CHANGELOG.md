@@ -145,6 +145,16 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- API: notifications now come in three layers: a title, a short excerpt for the
+  inbox row and, where there is more to say, a full text, plus the app screen
+  each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
+  the current school and `GET /api/v2/me/notifications/{id}` returns one with
+  its full text after checking again that they may still see it. Exam changes
+  now say what the sitting was before, and absence alerts say who to contact.
+  Private notices (wellbeing, discipline, progress, transfers and the like)
+  still only say that something is waiting. Installed apps see no change; the
+  new app screens follow. **Deploy:** run the migrations.
+
 - Platform: each school's mail now goes out on two Amazon SES streams, one for
   account and safety mail (sign-in links, password resets, invitations, welcome
   mails, safeguarding alerts, urgent notices and absence alerts) and one for
