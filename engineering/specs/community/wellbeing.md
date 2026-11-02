@@ -60,3 +60,7 @@ has no automatic tenant scope. No exposed metadata operation grants clinical
 body access. Public HTML and the restricted panel are implemented and browser verified in
 separate increments. Private media, notices and restricted app screens remain
 follow-on work until their complete flows are verified.
+
+Short private wellbeing check-ins for a learner's authorised pastoral staff are
+described in [check-ins and the intervention library](../growth/check-ins-and-intervention-library.md)
+(Action Plan 4.11).

@@ -37,7 +37,7 @@ class TutorCheckpoints
     private function definition(User $actor, TutorSession $session, TeachingGroup $group, int $versionId): array
     {
         $meta = PracticeItemVersion::select('id', 'practice_item_id', 'content_version_id', 'revision')->findOrFail($versionId);
-        PracticeItem::where('teaching_group_id', $group->id)->where('topic_id', $session->topic_id)->where('active', true)
+        PracticeItem::usedIn((int) $group->id)->where('topic_id', $session->topic_id)->where('active', true)
             ->where('revision', $meta->revision)->findOrFail($meta->practice_item_id);
         abort_unless(in_array((int) $meta->content_version_id, $session->source_version_ids, true), 404);
         app(TutorContext::class)->version($actor, $session, (int) $meta->content_version_id);
@@ -75,7 +75,7 @@ class TutorCheckpoints
             }
             abort_if(TutorCheckpoint::where('tutor_session_id', $sessionId)->count() >= 10, 422, 'This session has reached its checkpoint limit.');
             abort_if(TutorCheckpoint::where('user_id', $actor->id)->whereDate('created_at', now()->toDateString())->count() >= 20, 422, 'The daily checkpoint allowance is used up.');
-            $items = PracticeItem::where('teaching_group_id', $group->id)->where('topic_id', $session->topic_id)->where('active', true);
+            $items = PracticeItem::usedIn((int) $group->id)->where('topic_id', $session->topic_id)->where('active', true);
             $candidate = PracticeItemVersion::whereIn('id', PracticeItemVersion::selectRaw('MAX(id)')->whereIn('practice_item_id', $items->select('id'))->groupBy('practice_item_id'))
                 ->whereIn('content_version_id', $session->source_version_ids)
                 ->whereNotIn('id', TutorCheckpoint::where('learner_id', $session->learner_id)->select('practice_item_version_id'))

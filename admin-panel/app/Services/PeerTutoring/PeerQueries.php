@@ -97,10 +97,12 @@ class PeerQueries
         return $rows;
     }
 
-    public function read(User $actor, string $id, string $persona): array
+    /** $skills false (the v2 API) treats activity-skill sessions as not found. */
+    public function read(User $actor, string $id, string $persona, bool $skills = true): array
     {
         app(PeerAccess::class)->actor($actor);
         $row = PeerTutoringSession::findOrFail($id);
+        abort_if(! $skills && $row->topic_id === null, 404);
         $this->authorize($actor, $row, $persona);
         $result = $this->data($actor, $row, $persona);
         $this->authorize($actor, $row->fresh(), $persona);
@@ -127,7 +129,7 @@ class PeerQueries
         abort(404);
     }
 
-    public function listing(User $actor, string $persona, int $page = 1): array
+    public function listing(User $actor, string $persona, int $page = 1, bool $skills = true): array
     {
         abort_unless($page >= 1 && $page <= 100000, 422);
         $config = $this->configuration($actor, $persona);
@@ -145,11 +147,14 @@ class PeerQueries
             $ids = array_column($config['children'], 'id');
             $query->where(fn ($q) => $q->whereIn('tutor_learner_id', $ids)->orWhereIn('tutee_learner_id', $ids));
         }
+        if (! $skills) {
+            $query->whereNotNull('topic_id');
+        }
         $rows = $query->orderByDesc('starts_at')->orderBy('id')->skip(($page - 1) * 20)->limit(21)->get();
         $items = [];
         foreach ($rows->take(20) as $row) {
             try {
-                $items[] = $this->read($actor, $row->id, $persona);
+                $items[] = $this->read($actor, $row->id, $persona, $skills);
             } catch (ModelNotFoundException|HttpExceptionInterface) {
                 continue;
             }
@@ -179,7 +184,9 @@ class PeerQueries
         $writable = $staff && app(ModuleGate::class)->writable('peer_tutoring');
 
         return ['id' => $row->id, 'revision' => $row->revision, 'teaching_group_id' => (int) $row->teaching_group_id,
-            'topic_id' => (int) $row->topic_id, 'topic_name' => MasteryTopic::findOrFail($row->topic_id)->name,
+            // An activity-skill session (Action Plan 4.7) has no mastery topic; only the panel reads it.
+            'topic_id' => $row->topic_id === null ? null : (int) $row->topic_id,
+            'topic_name' => $row->topic_id === null ? (string) $row->skill_name : MasteryTopic::findOrFail($row->topic_id)->name,
             'tutor_learner_id' => (int) $row->tutor_learner_id, 'tutor_name' => $names[0], 'tutee_learner_id' => (int) $row->tutee_learner_id, 'tutee_name' => $names[1],
             'supervisor_user_id' => (int) $row->supervisor_user_id, 'supervisor_name' => User::findOrFail($row->supervisor_user_id)->full_name,
             'starts_at' => $row->starts_at->toIso8601String(), 'ends_at' => $row->ends_at->toIso8601String(), 'venue' => $row->venue, 'status' => $row->status,

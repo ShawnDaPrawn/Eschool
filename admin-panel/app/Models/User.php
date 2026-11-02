@@ -9,6 +9,7 @@ use App\Models\Platform\LearnerInvitation;
 use App\Models\Platform\RolePivot;
 use App\Models\Platform\SchoolMembership;
 use App\Services\Platform\Audit\Auditable;
+use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\Platform\Tenancy\MemberScope;
 use Illuminate\Database\Eloquent\Builder;
@@ -106,6 +107,8 @@ class User extends Authenticatable
         // A new password ends a forced change (learners:flag-dob-passwords),
         // unless the same save sets the flag itself.
         static::saving(function (User $user) {
+            // A school may not change the details of an account that also belongs elsewhere (Action Plan 1.3).
+            SharedAccounts::guard($user);
             if ($user->exists && $user->isDirty('email')
                 && strtolower(trim((string) $user->getOriginal('email'))) !== strtolower(trim((string) $user->email))) {
                 $user->email_verified_at = null;
@@ -124,6 +127,7 @@ class User extends Authenticatable
         });
 
         static::deleting(function (User $user) {
+            SharedAccounts::guard($user, deleting: true);
             if ($user->isForceDeleting() || empty($user->email)) {
                 return;
             }

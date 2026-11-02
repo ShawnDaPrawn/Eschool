@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Gallery;
 
 use App\Models\Gallery\GalleryPhoto;
+use App\Models\Gallery\PhotoTag;
 use App\Models\SessionYear;
 use App\Models\User;
 use App\Services\Activities\CommunityAuthority;
@@ -13,6 +14,7 @@ use App\Services\Platform\Files\UploadScanner;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -60,31 +62,14 @@ class GalleryPhotos
         };
         $authority();
         Validator::make(['photo' => $file], SafeImages::rules())->validate();
-        $source = $file->getContent();
         $d['kind'] = 'photo.upload';
-        $d['source_hash'] = hash_hmac('sha256', $source, (string) config('app.key'));
-        $this->scan($source);
-        $image = $this->images->sanitize($file);
-        $engine = $this->scan($image['bytes']);
-        $this->scan($image['thumbnail']);
-        unset($source);
+        $d['source_hash'] = hash_hmac('sha256', $file->getContent(), (string) config('app.key'));
+        ['image' => $image, 'engine' => $engine] = $this->prepare($file);
         $paths = [];
         try {
             $result = app(GalleryOperations::class)->once($actor, $d, $authority, function () use ($actor, $d, $year, $image, $engine, &$paths): array {
-                $uuid = (string) Str::uuid();
-                $prefix = app(CurrentSchool::class)->storagePath('gallery/'.$uuid);
-                $path = $prefix.'/photo.enc';
-                $thumbnail = $prefix.'/thumbnail.enc';
-                $paths = [$path, $thumbnail];
-                $disk = Storage::disk(self::DISK);
-                if (! $disk->put($path, Crypt::encryptString($image['bytes'])) || ! $disk->put($thumbnail, Crypt::encryptString($image['thumbnail']))) {
-                    throw new RuntimeException('Private photo storage is temporarily unavailable.');
-                }
-                $row = GalleryPhoto::create(['public_id' => $uuid, 'session_year_id' => $year->id, 'activity_group_id' => $d['scope'] === 'group' ? $d['activity_group_id'] : null,
-                    'owner_learner_id' => $d['scope'] === 'family' ? $d['learner_id'] : null, 'uploaded_by' => $actor->id, 'scope' => $d['scope'], 'caption' => $d['caption'] ?? null,
-                    'captured_on' => $d['captured_on'], 'year_label' => $year->name, 'path' => $path, 'thumbnail_path' => $thumbnail, 'bytes' => strlen($image['bytes']), 'thumbnail_bytes' => strlen($image['thumbnail']),
-                    'sha256' => hash('sha256', $image['bytes']), 'thumbnail_sha256' => hash('sha256', $image['thumbnail']), 'width' => $image['width'], 'height' => $image['height'], 'scanner' => $engine, 'scanned_at' => now(), 'active' => true, 'revision' => 1]);
-                app(GalleryEvents::class)->record('photo_uploaded', $actor, $row);
+                $row = $this->store($actor, $year, ['activity_group_id' => $d['scope'] === 'group' ? $d['activity_group_id'] : null, 'owner_learner_id' => $d['scope'] === 'family' ? $d['learner_id'] : null,
+                    'scope' => $d['scope'], 'caption' => $d['caption'] ?? null, 'captured_on' => $d['captured_on']], $image, $engine, $paths);
                 if ($row->scope === 'family') {
                     app(GalleryTags::class)->propose($actor, (int) $row->id, ['operation_id' => (string) Uuid::uuid5($d['operation_id'], 'family-tag'), 'learner_id' => (int) $row->owner_learner_id]);
                 }
@@ -99,6 +84,60 @@ class GalleryPhotos
         }
 
         return GalleryPhoto::findOrFail($result['id']);
+    }
+
+    /**
+     * Scan the original, reduce it to clean JPEG pixels and a thumbnail, and
+     * scan both again. The caller has already validated the file against
+     * SafeImages::rules().
+     *
+     * @return array{image: array{bytes: string, thumbnail: string, width: int, height: int}, engine: string}
+     */
+    public function prepare(UploadedFile $file): array
+    {
+        $this->scan($file->getContent());
+        $image = $this->images->sanitize($file);
+        $engine = $this->scan($image['bytes']);
+        $this->scan($image['thumbnail']);
+
+        return ['image' => $image, 'engine' => $engine];
+    }
+
+    /** Private ciphertext under this school's gallery prefix; the caller holds the transaction. */
+    private function store(User $actor, SessionYear $year, array $attributes, array $image, string $engine, array &$paths): GalleryPhoto
+    {
+        $uuid = (string) Str::uuid();
+        $prefix = app(CurrentSchool::class)->storagePath('gallery/'.$uuid);
+        $path = $prefix.'/photo.enc';
+        $thumbnail = $prefix.'/thumbnail.enc';
+        $paths = [$path, $thumbnail];
+        $disk = Storage::disk(self::DISK);
+        if (! $disk->put($path, Crypt::encryptString($image['bytes'])) || ! $disk->put($thumbnail, Crypt::encryptString($image['thumbnail']))) {
+            throw new RuntimeException('Private photo storage is temporarily unavailable.');
+        }
+        $row = GalleryPhoto::create($attributes + ['public_id' => $uuid, 'session_year_id' => $year->id, 'uploaded_by' => $actor->id, 'year_label' => $year->name,
+            'path' => $path, 'thumbnail_path' => $thumbnail, 'bytes' => strlen($image['bytes']), 'thumbnail_bytes' => strlen($image['thumbnail']),
+            'sha256' => hash('sha256', $image['bytes']), 'thumbnail_sha256' => hash('sha256', $image['thumbnail']), 'width' => $image['width'], 'height' => $image['height'], 'scanner' => $engine, 'scanned_at' => now(), 'active' => true, 'revision' => 1]);
+        app(GalleryEvents::class)->record('photo_uploaded', $actor, $row);
+
+        return $row;
+    }
+
+    /**
+     * A staff photograph of one learner (early years observations, Action Plan
+     * 4.3): a family-scope photo with a proposed tag, so the learner's family
+     * decides under the school's consent rule exactly as for any other tag.
+     * Staff authority and the open transaction belong to the caller; the
+     * photo carries no caption.
+     */
+    public function storeForLearner(User $actor, SessionYear $year, int $learnerId, string $capturedOn, array $prepared, array &$paths): GalleryPhoto
+    {
+        abort_unless(DB::transactionLevel() > 0, 409);
+        $row = $this->store($actor, $year, ['activity_group_id' => null, 'owner_learner_id' => $learnerId, 'scope' => 'family', 'caption' => null, 'captured_on' => $capturedOn], $prepared['image'], $prepared['engine'], $paths);
+        $tag = PhotoTag::create(['gallery_photo_id' => $row->id, 'learner_id' => $learnerId, 'tagged_by' => $actor->id, 'status' => 'proposed', 'approval_kind' => null, 'retained_on_transfer' => false, 'revision' => 1]);
+        app(GalleryEvents::class)->record('tag_proposed', $actor, tag: $tag);
+
+        return $row;
     }
 
     /** Immutable clean pixels; no original filenames or caller-supplied paths. */

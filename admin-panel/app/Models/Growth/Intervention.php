@@ -13,10 +13,10 @@ class Intervention extends Model
 
     protected $guarded = ['id', 'school_id'];
 
-    protected $hidden = ['action', 'outcome'];
+    protected $hidden = ['action', 'outcome', 'plan'];
 
     protected function casts(): array
     {
-        return ['started_on' => 'date', 'review_on' => 'date', 'revision' => 'integer', 'action' => 'encrypted', 'outcome' => 'encrypted'];
+        return ['started_on' => 'date', 'review_on' => 'date', 'revision' => 'integer', 'action' => 'encrypted', 'outcome' => 'encrypted', 'plan' => 'encrypted:array'];
     }
 }

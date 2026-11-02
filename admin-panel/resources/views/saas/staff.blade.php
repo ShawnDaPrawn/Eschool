@@ -31,6 +31,7 @@
                     @if ($person['invitation_pending'])
                         <br><small>{{ __('Invitation not accepted yet') }}</small>
                     @endif
+                    <br><small>{{ $person['two_factor'] ? __('Two-factor sign-in set up') : __('Two-factor sign-in not set up yet') }}</small>
                 </td>
             </tr>
         @endforeach
@@ -71,6 +72,17 @@
                 <textarea id="revoke-reason-{{ $person['id'] }}" name="reason" required minlength="10" maxlength="500" rows="2"></textarea>
             </div>
             <div class="saas-actions"><button class="saas-btn saas-btn--danger" type="submit">{{ __('Revoke access') }}</button></div>
+        </form>
+    @endif
+    @if ($person['two_factor'] && $person['id'] !== $me)
+        <form method="POST" action="{{ route('saas.staff.two-factor.reset', $person['id']) }}" class="saas-card" aria-label="{{ __('Reset two-factor sign-in for :name', ['name' => $person['name']]) }}">
+            @csrf
+            <p>{{ __('For a lost or replaced phone. Their authenticator app and recovery codes stop working, they are signed out everywhere, and they set it up again when they next sign in.') }}</p>
+            <div class="saas-field">
+                <label for="two-factor-reason-{{ $person['id'] }}">{{ __('Reason for the reset (kept in the audit log)') }}</label>
+                <textarea id="two-factor-reason-{{ $person['id'] }}" name="reason" required minlength="10" maxlength="500" rows="2"></textarea>
+            </div>
+            <div class="saas-actions"><button class="saas-btn saas-btn--danger" type="submit">{{ __('Reset two-factor sign-in') }}</button></div>
         </form>
     @endif
     @if ($person['invitation_pending'] || (! $person['invited'] && $person['current']))
