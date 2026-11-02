@@ -105,6 +105,85 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | School sending domains (Action Plan 2.2)
+    |--------------------------------------------------------------------------
+    |
+    | A school connects its own domain under Settings, adds the DNS records the
+    | page shows, and once Amazon SES has verified it the school's notices are
+    | sent From "<school name> <notices@that domain>". Account mail (passwords,
+    | invitations) keeps the platform address above. Off by default: while off
+    | the page only explains it, nothing is sent to SES and no SES client is
+    | built. The SES keys and region are services.ses.
+    | engineering/specs/platform/sending-domains.md.
+    |
+    */
+
+    'sending_domains' => [
+        'enabled' => (bool) env('MAIL_SENDING_DOMAINS', false),
+
+        // The address a school's notices come from, at its own domain.
+        'local_part' => 'notices',
+
+        // The custom MAIL FROM (bounce) subdomain of the school's domain.
+        'mail_from_label' => 'bounce',
+
+        // Domains no school may connect, besides the platform's own (the hosts
+        // of APP_URL and the learner portal, and the platform From address),
+        // comma separated. Their subdomains and parents are refused too.
+        'reserved' => array_values(array_filter(array_map('trim', explode(',', (string) env('MAIL_SENDING_DOMAINS_RESERVED', 'navigateed.co.za,amazonses.com'))))),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SES streams (Action Plan 2.3)
+    |--------------------------------------------------------------------------
+    |
+    | Each school sends through two Amazon SES configuration sets: "account"
+    | (sign-in, passwords, invitations, welcome mails and safety notices) and
+    | "bulk" (every other notice), named <prefix>-s<school id>-<stream>, plus a
+    | platform pair <prefix>-platform-<stream> for mail without a school. Each
+    | set publishes deliveries, bounces, complaints and rejects to the SNS topic
+    | POST /webhook/mail/ses already reads, and has Virtual Deliverability
+    | Manager options on. Off by default: while off no SES client is built,
+    | mail:ensure-streams does nothing and mail carries no configuration set.
+    | With it on, leave AWS_SES_CONFIGURATION_SET unset.
+    | engineering/specs/platform/ses-streams.md.
+    |
+    */
+
+    'streams' => [
+        'enabled' => (bool) env('MAIL_SES_STREAMS', false),
+
+        // Keeps staging and production apart in one SES account (letters, digits, hyphens).
+        'prefix' => (string) env('MAIL_SES_STREAMS_PREFIX', 'ne'),
+
+        // The SNS topic the sets publish to; it must be one of
+        // services.ses_notifications.topic_arns (the first one when unset).
+        'event_topic_arn' => env('MAIL_SES_STREAMS_TOPIC_ARN'),
+
+        // Notification types sent on the account stream. Every mail that is
+        // not a notice (passwords, invitations, welcome mails, admissions
+        // replies) is account mail too. Other notices are bulk.
+        'account_types' => ['account.*', 'approval.*', 'safeguarding.alert', 'comms.urgent', 'attendance.absence'],
+
+        // VDM engagement tracking (opens and clicks) per stream. Off for the
+        // account stream, so sign-in, password and invitation links are never
+        // rewritten through a tracking domain. Optimised shared delivery is on
+        // for both.
+        'engagement_tracking' => ['account' => false, 'bulk' => true],
+
+        // The /saas mail streams page: rates over this many days, flagged from
+        // this many messages, at SES's review and pause levels.
+        'report_days' => 30,
+        'report_minimum' => 50,
+        'bounce_review' => 0.05,
+        'bounce_pause' => 0.10,
+        'complaint_review' => 0.001,
+        'complaint_pause' => 0.005,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
     |

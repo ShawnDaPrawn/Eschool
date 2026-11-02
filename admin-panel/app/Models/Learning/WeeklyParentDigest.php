@@ -15,6 +15,6 @@ class WeeklyParentDigest extends Model
 
     protected function casts(): array
     {
-        return ['title' => 'encrypted', 'summary' => 'encrypted', 'snapshot' => 'encrypted:array', 'home_action' => 'encrypted:array', 'week_start' => 'immutable_date', 'week_end' => 'immutable_date', 'expires_at' => 'immutable_datetime', 'opened_at' => 'immutable_datetime'];
+        return ['title' => 'encrypted', 'summary' => 'encrypted', 'snapshot' => 'encrypted:array', 'home_action' => 'encrypted:array', 'growth' => 'encrypted:array', 'week_start' => 'immutable_date', 'week_end' => 'immutable_date', 'expires_at' => 'immutable_datetime', 'opened_at' => 'immutable_datetime'];
     }
 }

@@ -56,7 +56,7 @@ Read from the real schema (`information_schema`) on the Phase 0 tip. The lists l
 
 Child rows (`lesson_topics`, `chat_files`, `media_files`, `online_exam_question_options` and the like) carry `school_id` too, rather than following their parent: a child row looked up by its own id is then refused across schools by the same scope, with no join to remember. `learner_invitations` is the one model without the scope: an invitation is found by its secret token or code on the public set-up page, before anyone knows the school, and is always created with the school set.
 
-**School-owned, `school_id` nullable** (indexed, no foreign key): `settings` (null rows are the platform's keys and the defaults beneath every school), `audit_log` and `domain_events` (platform actions and events have no school; log rows outlive what they describe), `notification_deliveries` (a delivery records the school it was sent for), `idempotency_keys` (the school a write was made in).
+**School-owned, `school_id` nullable** (indexed, no foreign key): `settings` (null rows are the platform's keys and the defaults beneath every school), `audit_log` and `domain_events` (platform actions and events have no school; log rows outlive what they describe), `notification_deliveries` (a delivery records the school it was sent for), `idempotency_keys` (the school a write was made in), `mail_streams` (a school's SES configuration set for each mail stream; rows without a school are the platform's own pair, and every read names the school explicitly, Action Plan 2.3).
 
 **Spatie teams** (`school_id` is the team key): `roles` (each school has its own Super Admin, Teacher, Parent and Student roles and the roles it creates; nullable only because Spatie reserves null for a role every school shares, and none exists), `model_has_roles` and `model_has_permissions` (NOT NULL and part of the primary key: a role or direct permission is given at one school).
 
@@ -214,6 +214,8 @@ bounded tenant purge removes message bodies while retaining minimal receipts.
 
 `admission_requirements`, `admission_requirement_versions` and `pathway_operations` are school-owned, with required indexed foreign keys and scoped models. A composite current-version foreign key also binds a revision to its own source in the same school. Published source revisions and maintaining staff identities remain internal to that school's catalogue management. Private learner projections are transient and introduce no stored cross-school reference or new academic mark table.
 
+`career_profiles` and `career_profile_versions` (Action Plan 4.9) are school-owned in the same way: required indexed foreign keys, scoped models and a composite current-version foreign key. A career profile can link only the school's own subjects, mastery topics and programme sources. The catalogue is not shared between schools; each school reviews and publishes its own sourced entries.
+
 Peer tutoring adds school-scoped `peer_tutoring_sessions`, append-only `service_hours` and reference-only `peer_tutoring_operations`. All models use the existing school boundary.
 
 The learner diary adds school-owned `diary_entries` and `diary_item_states`, each bound to one learner's `user_id`. Text is encrypted with a key derived per school and learner, so a row copied into another school's context cannot be read there either. School items are computed per read from the current school's own homework, holidays and events; nothing is copied across schools.
@@ -254,6 +256,12 @@ open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 daily AI caps per feature and their history, read and written only from
 `/saas/ai`. They name no school. A school's own lower limits stay in the
 school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
 
 ### HQ incident register
 
@@ -262,6 +270,41 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### School offboarding
+
+`school_offboardings` is required school-owned (a foreign key to the school):
+one row per offboarding of a leaving school, holding states, dates, hashes and
+counts, never the school's data. HQ writes it from `/saas` inside the school and
+the school's Super Admin confirms receipt from the panel, where an id from
+another school is not found ([Offboarding](offboarding.md)). The export and the
+deletion dry run read the school's rows through `SchoolOwnedTables`, always with
+the school's id.
+
+### Platform content library (Action Plan 3.3)
+
+The library tables (`library_frameworks`, `library_sources`, `library_topics`,
+`library_topic_prerequisites`, `library_items`, `library_item_versions`,
+`library_reviews`, `library_reviewers`) are global: Navigate Ed's own content,
+written only from `/saas/library`. Their models refuse any write while a school
+is the current school, so school data never flows into them.
+`library_school_settings` (each school's switch) is required school-owned. School
+rows may point into the library (`mastery_topics.library_topic_id`,
+`mastery_evidence.library_item_version_id`,
+`practice_set_entries.library_item_version_id`,
+`practice_memories.library_item_id`), never the other way
+([content library](../learning/content-library.md)).
+
+### Invitations to join another school
+
+`school_join_invitations` is required school-owned: the inviting school's
+invitation for an existing account to join it ([existing-account invitations](existing-account-invitations.md)).
+It is read by its secret across schools only to find the school, then checked
+inside it. Nothing reaches the account's other schools: accepting adds a
+membership and role at the inviting school only, and
+`ExistingAccountInvitationsTest` checks that the person's roles and permissions
+at their first school are exactly as before, and at the new one exactly the role
+it gave.
 
 ### A guardian at two schools (Action Plan 1.1, server side)
 
@@ -281,6 +324,34 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### School stages
+
+`school_stages` is required school-owned: each school maps its own grades to
+age stages, and a learner's stage is always read from their own school's
+mapping ([school stages](school-stages.md)).
+
+### HQ two-factor sign-in
+
+`platform_staff_two_factor` is global: a platform staff member's own authenticator
+app (encrypted secret, hashed recovery codes), read and written only by the
+two-factor pages, the HQ staff page and the operator console. Platform staff
+belong to no school ([two-factor sign-in](hq-two-factor.md)).
+### Support access
+
+`support_access_grants` and `support_access_views` are required school-owned
+(foreign keys to the school; the models use BelongsToSchool). The school reads its
+own rows in its panel through the ordinary school scope; HQ reads them across
+schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: the
+granted school with the impersonation flag, which cannot be switched to another
+school or widened to every school for the rest of the request
+([support access](support-access.md)).
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
 ### Packages and prices
 
 `platform_packages`, `platform_package_modules` and `platform_prices` are global:
@@ -289,13 +360,73 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
-### HQ school health
+### Structured memos
 
-`school_health_snapshots` is required school-owned: each row is one school's
-nightly health figures (counts and shares only), so it carries a not-null
-`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
-and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
-school reads it ([HQ school health](hq-school-health.md)).
+`past_paper_memos` is required school-owned: the mark points of a school's own
+exam coach paper version, unique per school and version. Another school's
+version id is not found, so its memo is never read or changed
+([structured memos](../ai/structured-memos.md)).
+
+### SMS and WhatsApp
+
+`school_messaging_settings` is required school-owned (one row per school, a
+foreign key to the school): each school's own SMS and WhatsApp opt-in, never
+another school's. Texted deliveries are `notification_deliveries` rows like mail
+and push, with the school they were sent for; HQ reads their counts and cost
+across schools. Guardians' numbers come from the school-owned `parents` row at
+the sending school, never from the shared `users` row
+([SMS and WhatsApp](sms-whatsapp.md)).
+
+
+### Support desk
+
+`school_support_tickets` and `school_support_ticket_messages` are required
+school-owned: a school reads and writes only its own tickets (another school's
+id is a 404), and HQ reads them across schools from `/saas` and writes inside
+the ticket's school. `platform_support_views` is global: when each HQ staff
+member last opened the queue ([support desk](support-desk.md)).
+
+
+### School sending domains
+
+`school_sending_domains` is required school-owned, with a unique school foreign
+key (one domain per school) and a unique domain (one school per domain). Its model
+uses BelongsToSchool. Two reads cross schools on purpose and say only yes or no or
+use the delivery's own school: the connect check that no other school has the
+domain, a subdomain or a parent of it, and the From address a queued notice uses,
+read by the school the delivery row names. The scheduled poll lists due domains
+across schools and checks each inside its own school ([sending domains](sending-domains.md)).
+
+
+### Notification quiet hours
+
+`notification_quiet_hours` is global, like `notification_preferences`: one
+person chooses their push quiet hours once for every school ([quiet hours](quiet-hours.md)).
+
+
+### HQ billing
+
+`platform_invoices`, `platform_invoice_lines`, `platform_payments` and
+`platform_payment_allocations` are required school-owned: each invoice, credit
+note, line, EFT payment and allocation is about one school's account with
+Navigate Ed, so it carries the school (not null, indexed, a foreign key) and is
+written inside that school from `/saas`. The models use `BelongsToSchool`, so
+another school's invoice or payment id resolves to "not found". HQ reads them
+across schools; no school reads them in this step
+([HQ billing](hq-billing.md)).
+
+
+### HQ announcements to schools
+
+`platform_announcements` is global: Navigate Ed's own announcements, written only
+from `/saas`. Its `audience_values` may list school ids (an explicit audience);
+only HQ reads it. `platform_announcement_schools` (the schools an announcement
+reached, fixed at publication) and `platform_announcement_reads` (one row per
+Super Admin who dismissed it) are required school-owned, with models that use
+`BelongsToSchool`: a school reads an announcement only through its own target
+row and sees only its own people's reads; it never sees which other schools an
+announcement reached or their reads. HQ reads both across schools and shows
+counts ([HQ announcements](hq-announcements.md)).
 
 ### Mastery growth snapshots
 

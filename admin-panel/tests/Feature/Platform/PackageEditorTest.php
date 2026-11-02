@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -33,6 +34,7 @@ use Tests\TestCase;
  */
 class PackageEditorTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const TABLES = ['platform_packages', 'platform_package_modules', 'platform_prices'];
@@ -154,7 +156,7 @@ class PackageEditorTest extends TestCase
     public function test_finance_creates_edits_and_activates_a_draft_package(): void
     {
         $finance = $this->staff('finance');
-        $this->actingAs($finance)->post('/saas/packages', ['package_key' => 'starter', 'name' => 'Starter', 'description' => 'Core and learning', 'trial_days' => 30, 'product_modules' => ['learning']])
+        $this->actingAsHq($finance)->post('/saas/packages', ['package_key' => 'starter', 'name' => 'Starter', 'description' => 'Core and learning', 'trial_days' => 30, 'product_modules' => ['learning']])
             ->assertRedirect();
         $id = $this->packageId('starter');
         $this->assertSame(['draft', 30, 1], [DB::table('platform_packages')->where('id', $id)->value('status'), (int) DB::table('platform_packages')->where('id', $id)->value('trial_days'), (int) DB::table('platform_packages')->where('id', $id)->value('modules_version')]);
@@ -199,7 +201,7 @@ class PackageEditorTest extends TestCase
     {
         $owner = $this->staff('owner');
         $id = $this->packageId('core');
-        $this->actingAs($owner);
+        $this->actingAsHq($owner);
         $price = fn (array $input) => $this->post('/saas/packages/'.$id.'/prices', $input + ['note' => '']);
 
         $price(['kind' => 'base', 'amount' => '120', 'effective_from' => $this->day(10)])->assertRedirect('/saas/packages/'.$id);
@@ -278,7 +280,7 @@ class PackageEditorTest extends TestCase
             }
         }
         $id = $this->packageId('standard');
-        $this->actingAs($this->staff('finance'))->post('/saas/packages/'.$id.'/prices', ['kind' => 'base', 'amount' => '0.29', 'effective_from' => $this->day(1)])->assertRedirect();
+        $this->actingAsHq($this->staff('finance'))->post('/saas/packages/'.$id.'/prices', ['kind' => 'base', 'amount' => '0.29', 'effective_from' => $this->day(1)])->assertRedirect();
         $this->assertSame(29, (int) DB::table('platform_prices')->where('package_id', $id)->value('amount_cents'));
         $this->post('/saas/packages/'.$id.'/prices', ['kind' => 'base', 'amount' => '12,50', 'effective_from' => $this->day(5)])->assertSessionHasErrors('amount');
         $this->assertSame(1, DB::table('platform_prices')->count());
@@ -293,7 +295,7 @@ class PackageEditorTest extends TestCase
         $rows = [DB::table('platform_packages')->orderBy('id')->get()->all(), DB::table('platform_prices')->get()->all()];
         foreach (['sales', 'content', 'support', 'operations'] as $role) {
             $user = $this->staff($role);
-            $this->actingAs($user);
+            $this->actingAsHq($user);
             $this->post('/saas/packages', ['package_key' => 'sneaky-'.$role, 'name' => 'Sneaky', 'trial_days' => 0])->assertForbidden();
             $this->put('/saas/packages/'.$id, ['name' => 'Renamed', 'trial_days' => 0])->assertForbidden();
             $this->put('/saas/packages/'.$id.'/modules', ['product_modules' => []])->assertForbidden();
@@ -349,7 +351,7 @@ class PackageEditorTest extends TestCase
         DB::table('platform_prices')->insert(['package_id' => $standard, 'kind' => 'base', 'amount_cents' => 5000, 'effective_from' => $this->day(30), 'created_at' => now(), 'updated_at' => now()]);
         $priceId = (int) DB::table('platform_prices')->value('id');
         $before = $this->counts();
-        $this->actingAs($owner)->post('/saas/packages/'.$core.'/prices/'.$priceId.'/withdraw')->assertNotFound();
+        $this->actingAsHq($owner)->post('/saas/packages/'.$core.'/prices/'.$priceId.'/withdraw')->assertNotFound();
         $this->get('/saas/packages/987654')->assertNotFound();
         $this->put('/saas/packages/987654/modules', ['product_modules' => []])->assertNotFound();
         $this->post('/saas/packages/987654/prices', ['kind' => 'base', 'amount' => '1', 'effective_from' => $this->day(1)])->assertNotFound();
@@ -382,7 +384,7 @@ class PackageEditorTest extends TestCase
         $outbox = OutboxEvent::query()->count();
 
         // Finance leaves Finance out of Standard: a new version, nothing changes for school 2.
-        $this->actingAs($finance)->put('/saas/packages/'.$id.'/modules', ['product_modules' => ['learning', 'ai_tutor', 'pastoral', 'family', 'activities', 'futures', 'leadership', 'access']])->assertRedirect();
+        $this->actingAsHq($finance)->put('/saas/packages/'.$id.'/modules', ['product_modules' => ['learning', 'ai_tutor', 'pastoral', 'family', 'activities', 'futures', 'leadership', 'access']])->assertRedirect();
         $this->assertSame(2, (int) DB::table('platform_packages')->where('id', $id)->value('modules_version'));
         $this->assertSame(1, AuditLog::query()->where('action', 'platform_package_modules_changed')->sole()->after['schools_on_earlier_version']);
         $this->assertSame($rows, [1 => $this->moduleRows(1), 2 => $this->moduleRows(2)]);
