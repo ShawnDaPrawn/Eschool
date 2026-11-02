@@ -148,6 +148,78 @@ class StructuredMemosTest extends TestCase
         $this->assertSame(1, (int) PastPaperMemo::sole()->revision, 'A packed stale form still changes nothing.');
     }
 
+    public function test_a_scriptless_rendered_form_cannot_clear_the_last_questions_truncated_mark_points(): void
+    {
+        $this->assertSame('1000', ini_get('max_input_vars'));
+        $version = PastPaperVersion::findOrFail($this->paper['version_id']);
+        $definition = $version->definition;
+        $template = $definition['questions'][0];
+        $definition['questions'] = [];
+        $questions = [];
+        for ($i = 0; $i < 18; $i++) {
+            $count = $i === 0 ? 10 : 6;
+            $definition['questions'][] = array_replace($template, ['number' => (string) ($i + 1), 'max_units' => $count * 100]);
+            $questions[] = ['number' => (string) ($i + 1), 'points' => array_fill(0, $count, $this->point('Synthetic preserved point', 'method', '1'))];
+        }
+        $version->update(['definition' => $definition]);
+        $this->save(input: ['expected_revision' => 0, 'questions' => $questions]);
+        $before = PastPaperMemo::sole()->mark_points;
+        $this->actingAs($this->actor(), 'web')->withSession(['school_id' => 1]);
+        $page = $this->get($this->path())->assertOk();
+
+        // Serialize the actual rendered controls as a browser would without the
+        // formdata listener. The last question number lands at PHP's boundary.
+        $document = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $document->loadHTML($page->getContent());
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+        $xpath = new \DOMXPath($document);
+        $form = $xpath->query('//form[@data-exam-memo-form]')->item(0);
+        $this->assertNotNull($form);
+        $pairs = [];
+        /** @var \DOMElement $control */
+        foreach ($xpath->query('.//input[@name] | .//select[@name] | .//textarea[@name]', $form) as $control) {
+            if ($control->hasAttribute('disabled')) {
+                continue;
+            }
+            $value = $control->getAttribute('value');
+            if ($control->nodeName === 'select') {
+                $option = $xpath->query('.//option[@selected]', $control)->item(0) ?? $xpath->query('.//option', $control)->item(0);
+                $value = $option?->getAttribute('value') ?? '';
+            } elseif ($control->nodeName === 'textarea') {
+                $value = $control->textContent;
+            }
+            $pairs[] = rawurlencode($control->getAttribute('name')).'='.rawurlencode($value);
+        }
+        $this->assertGreaterThan(1000, count($pairs));
+        $limitHit = false;
+        set_error_handler(function (int $severity, string $message) use (&$limitHit): bool {
+            if ($severity === E_WARNING && str_contains($message, 'Input variables exceeded')) {
+                $limitHit = true;
+
+                return true;
+            }
+
+            return false;
+        });
+        try {
+            parse_str(implode('&', $pairs), $parsed);
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertTrue($limitHit, 'Exercise real PHP truncation rather than Laravel post(array).');
+        $response = $this->post($this->path(), $parsed);
+        $after = PastPaperMemo::sole();
+        $this->assertCount(6, $after->mark_points[17]['points'], 'An unavailable packing script must never erase saved points.');
+        $this->assertSame(1, (int) $after->revision);
+        $this->assertSame($before, $after->mark_points);
+        $response->assertSessionHasErrors();
+    }
+
     public function test_packed_memos_keep_validation_and_never_fall_back_from_invalid_payloads(): void
     {
         $this->actingAs($this->actor(), 'web')->withSession(['school_id' => 1]);
@@ -328,7 +400,8 @@ class StructuredMemosTest extends TestCase
         $this->actingAs($this->actor(), 'web')->withSession(['school_id' => 1]);
         $this->get('/exam-memos')->assertOk()->assertSee('Synthetic licensed motion paper')->assertSee('No mark points yet')
             ->assertHeader('Cache-Control', 'no-store, private');
-        $this->get($this->path())->assertOk()->assertSee('A car travels 100 m in 8 s.')->assertSee('Save the mark points')->assertDontSee('Mark the memo as reviewed');
+        $this->get($this->path())->assertOk()->assertSee('A car travels 100 m in 8 s.')->assertSee('Save the mark points')->assertDontSee('Mark the memo as reviewed')
+            ->assertDontSee('name="memo_payload"', false);
 
         $input = $this->input();
         $input['questions'][0]['points'][] = $this->point('', 'method', '');
