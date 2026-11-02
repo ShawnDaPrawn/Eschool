@@ -42,6 +42,15 @@ class MessagePolicy
 
             return;
         }
+        if ($kind === 'custom' && isset($definition['smart'])) {
+            // A smart group: the author (or reviewer) needs authority over every rule.
+            abort_unless((int) $definition['smart']['session_year_id'] === (int) $year->id, 422);
+            foreach ($definition['smart']['rules'] as $rule) {
+                $this->scope($actor, ['kind' => $rule['kind'], 'target_id' => (int) $rule['target_id'], 'session_year_id' => (int) $year->id], $date, $review);
+            }
+
+            return;
+        }
         if ($kind === 'custom') {
             $allowed = app(CommunicationRecipients::class)->allowed($actor, (int) $year->id, $date, $review);
             abort_unless(array_diff($definition['user_ids'], array_keys($allowed)) === [], 403);
@@ -88,11 +97,20 @@ class MessagePolicy
             'target_id' => $kind === 'school' ? null : (int) $input['target_id'], 'parents' => (bool) ($input['parents'] ?? false)];
         if ($kind === 'custom') {
             $list = Audience::where('active', true)->findOrFail($definition['target_id']);
-            $allowed = app(CommunicationRecipients::class)->allowed($actor, $definition['session_year_id'], $date);
-            $ids = $list->definition['user_ids'];
-            abort_unless((int) $list->created_by === (int) $actor->id || app(CommunicationRules::class)->manages($actor) || array_diff($ids, array_keys($allowed)) === [], 404);
-            $definition += ['user_ids' => array_values(array_intersect($ids, array_keys($allowed))), 'name' => $list->name, 'audience_revision' => $list->revision];
-            $definition['parents'] = false;
+            $mine = (int) $list->created_by === (int) $actor->id || app(CommunicationRules::class)->manages($actor);
+            abort_unless($mine || $list->shared, 404);
+            if ($list->isSmart()) {
+                // Rules, not people: resolved again at preview and at sending.
+                abort_unless((int) $list->definition['session_year_id'] === $definition['session_year_id'], 404);
+                $definition += ['name' => $list->name, 'audience_revision' => $list->revision, 'smart' => $list->definition];
+                $definition['parents'] = (bool) $list->definition['parents'];
+            } else {
+                $allowed = app(CommunicationRecipients::class)->allowed($actor, $definition['session_year_id'], $date);
+                $ids = $list->definition['user_ids'];
+                abort_unless($mine || array_diff($ids, array_keys($allowed)) === [], 404);
+                $definition += ['user_ids' => array_values(array_intersect($ids, array_keys($allowed))), 'name' => $list->name, 'audience_revision' => $list->revision];
+                $definition['parents'] = false;
+            }
         }
         $this->scope($actor, $definition, $date);
 
@@ -103,6 +121,9 @@ class MessagePolicy
     {
         $this->scope($author, $definition, $date);
         $resolver = app(CommunicationRecipients::class);
+        if ($definition['kind'] === 'custom' && isset($definition['smart'])) {
+            return $resolver->smart($definition['smart'], $date);
+        }
         if ($definition['kind'] === 'custom') {
             return array_intersect_key($resolver->allowed($author, $definition['session_year_id'], $date), array_flip($definition['user_ids']));
         }

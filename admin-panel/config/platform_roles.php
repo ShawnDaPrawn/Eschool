@@ -37,8 +37,8 @@ declare(strict_types=1);
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage']],
-    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'support.access']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view']],
+    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'support.access', 'ai.view']],
     'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'billing.view', 'billing.manage', 'audit.view', 'audit.export', 'health.view']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],

@@ -48,6 +48,8 @@ class PlatformAuditLog
         'platform_support_access_emergency' => 'Emergency support access opened',
         'platform_support_access_ended' => 'Support access ended',
         'platform_support_page_viewed' => 'Page viewed in a support session',
+        'platform_ai_feature_switched' => 'AI feature switched',
+        'platform_ai_caps_changed' => 'AI spending caps changed',
     ];
 
     /** Keys left out of the summary: who changed it is already the actor. */

@@ -5049,6 +5049,115 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AcademicRegisterSyncWrite'
+  /academics/calendar-feeds:
+    get:
+      operationId: listCalendarFeeds
+      tags:
+      - Academics
+      summary: List your calendar subscription links
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      responses:
+        '200':
+          description: Your live calendar links at this school.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: createCalendarFeed
+      tags:
+      - Academics
+      summary: Make a calendar subscription link for a learner
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API. At most five live links per person and learner. Not idempotent by design, so a retry makes another link (the response carries the secret, which is never stored for replay); remove extra links with the revoke call.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - learner_id
+              properties:
+                learner_id:
+                  type: integer
+                  minimum: 1
+                include_lessons:
+                  type: boolean
+                  default: false
+                  description: Exams are always included; lessons for the next four weeks only when true.
+      responses:
+        '200':
+          description: The new link, with its URL shown this once.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedCreatedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /academics/calendar-feeds/{feed}:
+    delete:
+      operationId: revokeCalendarFeed
+      tags:
+      - Academics
+      summary: Revoke one of your calendar subscription links
+      description: Family calendar subscriptions. A link is made by the learner or a guardian who may see that learner's timetable; its URL (with the secret token) is returned once, on creation, and only its hash is stored. Listing shows only the actor's own live links. Revoking stops the link at once. The .ics endpoint itself is not part of this API.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: feed
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The link no longer works.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarFeedRevokedResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /academics/timetable/configuration:
     get:
       operationId: getTimetableConfiguration
@@ -38240,6 +38349,123 @@ components:
           type: integer
         data:
           $ref: '#/components/schemas/AcademicTimetableCommitData'
+    CalendarFeedListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - items
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CalendarFeed'
+    CalendarFeed:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - learner_id
+      - learner_name
+      - include_lessons
+      - created_at
+      - last_used_at
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        learner_id:
+          type: integer
+          minimum: 1
+        learner_name:
+          type: string
+        include_lessons:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    CalendarFeedCreatedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - learner_id
+          - include_lessons
+          - url
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            learner_id:
+              type: integer
+              minimum: 1
+            include_lessons:
+              type: boolean
+            url:
+              type: string
+              format: uri
+              description: The secret subscription address. Shown only here; treat it like a password.
+    CalendarFeedRevokedResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - code
+      - data
+      properties:
+        error:
+          type: boolean
+        message:
+          type: string
+        code:
+          type: integer
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          - revoked
+          properties:
+            id:
+              type: integer
+              minimum: 1
+            revoked:
+              type: boolean
     AcademicTimetableWeekResponse:
       type: object
       additionalProperties: false
@@ -42190,6 +42416,28 @@ components:
         audience_revision:
           type: integer
           minimum: 1
+        smart:
+          type: object
+          additionalProperties: false
+          description: A smart group's rules, resolved again at preview and at sending.
+          required:
+          - session_year_id
+          - match
+          - parents
+          - rules
+          properties:
+            session_year_id:
+              type: integer
+              minimum: 1
+            match:
+              type: string
+              enum:
+              - any
+              - all
+            parents:
+              type: boolean
+            rules:
+              $ref: '#/components/schemas/CommunicationSmartRules'
     CommunicationAudience:
       type: object
       additionalProperties: false
@@ -42200,6 +42448,9 @@ components:
       - active
       - editable
       - user_ids
+      - kind
+      - shared
+      - smart
       properties:
         id:
           type: integer
@@ -42219,6 +42470,34 @@ components:
             type: integer
             minimum: 1
           uniqueItems: true
+        kind:
+          type: string
+          enum:
+          - fixed
+          - smart
+        shared:
+          type: boolean
+          description: Shared lists are offered to other staff who may address everyone on them (every rule, for a smart group). Private ones only to their creator and communication managers.
+        smart:
+          description: A smart group's rules (null for a fixed list, whose people are user_ids).
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          required:
+          - match
+          - parents
+          - rules
+          properties:
+            match:
+              type: string
+              enum:
+              - any
+              - all
+            parents:
+              type: boolean
+            rules:
+              $ref: '#/components/schemas/CommunicationSmartRules'
     CommunicationAudienceList:
       type: object
       additionalProperties: false
@@ -42238,7 +42517,6 @@ components:
       - session_year_id
       - name
       - active
-      - user_ids
       properties:
         operation_id:
           type: string
@@ -42262,6 +42540,49 @@ components:
           minItems: 0
           maxItems: 1000
           uniqueItems: true
+        kind:
+          type: string
+          enum:
+          - fixed
+          - smart
+          default: fixed
+          description: Fixed for a new audience unless smart. An existing audience keeps its kind.
+        shared:
+          type: boolean
+          default: true
+        match:
+          type: string
+          enum:
+          - any
+          - all
+          description: Smart groups only. Learners in any rule, or only those in all of them.
+        parents:
+          type: boolean
+          description: Smart groups only. The learners, or their parents and guardians.
+        rules:
+          $ref: '#/components/schemas/CommunicationSmartRules'
+    CommunicationSmartRules:
+      type: array
+      minItems: 1
+      maxItems: 10
+      description: Each rule is an audience scope the author may address. Required for a smart group, refused for a fixed list.
+      items:
+        type: object
+        additionalProperties: false
+        required:
+        - kind
+        - target_id
+        properties:
+          kind:
+            type: string
+            enum:
+            - grade
+            - homeroom
+            - group
+            - activity_group
+          target_id:
+            type: integer
+            minimum: 1
     CommunicationAudienceReceipt:
       type: object
       additionalProperties: false

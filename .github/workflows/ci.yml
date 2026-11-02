@@ -12,12 +12,14 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
+# Cancel superseded test jobs independently. Aggregate checks deliberately keep
+# always() and their success assertions: cancelled or failed tests must not pass.
+# A queued aggregate from an old head must not hold the next workflow's slot.
 jobs:
   converter:
+    concurrency:
+      group: ci-${{ github.ref }}-converter
+      cancel-in-progress: true
     name: Private academic content converter
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -68,6 +70,9 @@ jobs:
         run: docker rm --force converter-check || true
 
   php-runtime:
+    concurrency:
+      group: ci-${{ github.ref }}-php-runtime
+      cancel-in-progress: true
     name: Patched PHP container runtime
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -84,6 +89,9 @@ jobs:
         run: docker run --rm --entrypoint apache2ctl navigateed-php-check configtest
 
   admin-panel-quality:
+    concurrency:
+      group: ci-${{ github.ref }}-admin-panel-quality
+      cancel-in-progress: true
     name: Admin panel quality and runtime
     runs-on: ubuntu-latest
     defaults:
@@ -177,6 +185,9 @@ jobs:
         run: bash docker/tests/storage-cors.sh
 
   admin-panel-tests:
+    concurrency:
+      group: ci-${{ github.ref }}-admin-panel-tests-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: Admin panel PHP shard ${{ matrix.shard }} of 4
     runs-on: ubuntu-latest
     strategy:
@@ -234,6 +245,9 @@ jobs:
           test "$TEST_RESULT" = success
 
   openapi:
+    concurrency:
+      group: ci-${{ github.ref }}-openapi
+      cancel-in-progress: true
     name: OpenAPI contract (lint)
     runs-on: ubuntu-latest
     defaults:
@@ -250,6 +264,9 @@ jobs:
       - run: npx --yes @redocly/cli@2.57.0 lint openapi.yaml
 
   apps:
+    concurrency:
+      group: ci-${{ github.ref }}-apps-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: Flutter app (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
@@ -289,6 +306,9 @@ jobs:
       - run: flutter test
 
   apps-web:
+    concurrency:
+      group: ci-${{ github.ref }}-apps-web-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: Flutter web build (${{ matrix.app }})
     runs-on: ubuntu-latest
     strategy:
@@ -314,6 +334,9 @@ jobs:
   # The two explicit live browser fixtures require loopback Reverb/control and
   # stay in Chrome below; native Reverb end-to-end qualification is pending.
   apps-smoke-android:
+    concurrency:
+      group: ci-${{ github.ref }}-apps-smoke-android-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: Flutter smoke flows on Android (${{ matrix.app }} ${{ matrix.flavor }})${{ matrix.part && format(' part {0} of 2', matrix.part) || '' }}
     # Pin the emulator host while ubuntu-latest migrates to Ubuntu 26.
     # Android SDK and KVM availability must not change under a release.
@@ -448,6 +471,9 @@ jobs:
         run: test "$ANDROID_SMOKE_RESULT" = success
 
   apps-smoke-chrome:
+    concurrency:
+      group: ci-${{ github.ref }}-apps-smoke-chrome-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: Flutter smoke flow in Chrome (${{ matrix.flow }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -696,6 +722,9 @@ jobs:
           done
 
   docs:
+    concurrency:
+      group: ci-${{ github.ref }}-docs
+      cancel-in-progress: true
     name: Documentation build
     runs-on: ubuntu-latest
     defaults:
@@ -713,6 +742,9 @@ jobs:
       - run: npm run build
 
   security-audit:
+    concurrency:
+      group: ci-${{ github.ref }}-security-audit
+      cancel-in-progress: true
     name: Dependency security audit
     runs-on: ubuntu-latest
     steps:
@@ -750,6 +782,9 @@ jobs:
         run: npm audit --audit-level=critical
 
   playwright-parts:
+    concurrency:
+      group: ci-${{ github.ref }}-playwright-parts-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: Admin panel browser (${{ matrix.part }})
     runs-on: ubuntu-latest
     strategy:
