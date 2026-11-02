@@ -65,7 +65,7 @@ class DailyPractice
 
     private function candidates(User $actor, int $learner, TeachingGroup $group): array
     {
-        $items = PracticeItem::where('teaching_group_id', $group->id)->where('active', true)->orderBy('id')->limit(1001)->get();
+        $items = PracticeItem::usedIn((int) $group->id)->where('active', true)->orderBy('id')->limit(1001)->get();
         abort_if($items->count() > 1000, 422, 'The subject practice bank exceeds its bounded catalogue.');
         $versions = PracticeItemVersion::whereIn('id', PracticeItemVersion::selectRaw('MAX(id)')->whereIn('practice_item_id', $items->pluck('id'))->groupBy('practice_item_id'))->get();
         $readable = app(ContentPolicy::class)->readableVersions($actor, $learner)->pluck('id')->all();
@@ -104,7 +104,7 @@ class DailyPractice
         abort_if($entries->count() > 10, 409);
         foreach ($entries as $entry) {
             $version = PracticeItemVersion::findOrFail($entry->practice_item_version_id);
-            $item = PracticeItem::where('teaching_group_id', $group->id)->where('active', true)->findOrFail($version->practice_item_id);
+            $item = PracticeItem::usedIn((int) $group->id)->where('active', true)->findOrFail($version->practice_item_id);
             app(PracticeAccess::class)->topic($group, (int) $item->topic_id);
             app(ContentPolicy::class)->reader($actor, $learner, (int) $version->content_version_id);
             $entry->setRelation('approvedVersion', $version);

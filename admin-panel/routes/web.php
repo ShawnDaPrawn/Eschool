@@ -63,6 +63,7 @@ use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
+use App\Http\Controllers\Panel\Learning\QuestionBankController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\CashHandoverPanelController;
@@ -503,6 +504,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        // Teachers' question banks by subject and grade (Action Plan 3.6).
+        Route::prefix('question-banks')->name('question-banks.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
+            $c = QuestionBankController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('items/{item}', [$c, 'update'])->whereNumber('item')->middleware('throttle:60,1')->name('update');
+            Route::post('items/{item}/use', [$c, 'use'])->whereNumber('item')->middleware('throttle:60,1')->name('use');
+            Route::post('items/{item}/stop', [$c, 'stop'])->whereNumber('item')->middleware('throttle:60,1')->name('stop');
         });
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             Route::get('{item}/rules', [FeeItemRulePanelController::class, 'form'])->whereNumber('item')->name('rules');

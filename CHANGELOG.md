@@ -23,6 +23,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: teachers share their own practice questions. A practice
+  question now belongs to its subject and grade in the school instead of one
+  class, so it stays when the year changes. On the new **Question banks** page
+  (Academics, with daily practice on) teachers open the bank for a subject and
+  grade, use a question in any of their groups or stop using it, and choose
+  who else may find and reuse the questions they wrote: only them, the teachers
+  of the groups using it, or every teacher of that subject and grade. Only the
+  author or a subject lead (academic managers, the grade head, the principal)
+  may change or archive a question; colleagues may only use it. The page shows
+  which classes really get each question and which wait for this year's
+  material or curriculum plan. The new-year wizard has a new choice that keeps
+  questions in use in each teaching group's copy. Existing questions keep
+  working in their class and are shared with that class's teachers.
+  `engineering/specs/learning/question-banks.md`. **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.

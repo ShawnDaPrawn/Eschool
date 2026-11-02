@@ -50,7 +50,7 @@ final class SchoolOwnedTables
         'consent_requests', 'consent_recipients', 'consent_responses', 'family_form_operations',
         'cards', 'card_keys', 'card_portraits', 'card_reader_devices', 'card_chip_profiles', 'card_qr_uses', 'card_scan_logs', 'card_classroom_sessions', 'card_events', 'card_operations',
         'gallery_settings', 'gallery_photos', 'photo_tags', 'gallery_events', 'gallery_operations', 'gallery_transfer_choices',
-        'practice_items', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',
+        'practice_items', 'practice_item_groups', 'practice_item_versions', 'practice_daily_sets', 'practice_set_entries', 'practice_memories', 'practice_reviews', 'practice_operations',
         'intakes', 'intake_grades', 'applications', 'application_documents', 'application_links', 'application_events', 'offers', 'admission_operations',
         'consultations', 'consultation_questions', 'consultation_options', 'consultation_candidates', 'consultation_participation', 'consultation_responses', 'consultation_configuration_events', 'consultation_operations',
         'discipline_operations', 'discipline_frameworks', 'discipline_framework_versions', 'discipline_records', 'discipline_record_versions',

@@ -76,6 +76,10 @@ Rules:
 | A teacher | each action, discipline included | 403; nothing copied |
 | School B's year as the new year | each action | not found; no rows change in either school |
 
+## Question banks (Action Plan 3.6)
+
+One more carry-forward choice, `practice_banks` (`TransferPracticeBanks`), offered while daily practice is on: each active practice question used in an active group of the old year is used in that group's new-year copy. The questions themselves stay in their subject-and-grade bank either way. Rules and tests: `engineering/specs/learning/question-banks.md`.
+
 ## Switch day (Action Plan 1.21, first part)
 
 - **Welcome.** The wizard's carry step has a choice, ticked by default: "Welcome families to *year* in the app when it becomes current". After the switch, in the same transaction, one `school.new_year` notice goes to the learners enrolled in the new year on its first day (or today, if later) and their current guardians (`GuardianService::guardianUserIds`). It says "Welcome to *year*", gives the first day and links to the timetable (`/academics/timetable`). It names no learner or homeroom. Leavers and their families get nothing. The result reports how many people it went to.
