@@ -328,14 +328,6 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
-### Packages and prices
-
-`platform_packages`, `platform_package_modules` and `platform_prices` are global:
-Navigate Ed's own package list and price list, written only from `/saas`. They
-name no school; a school names its package by key and the module set version
-applied to it on its own `schools` row (`package_key`, `package_version`)
-([package editor](package-editor.md)).
-
 ### School sending domains
 
 `school_sending_domains` is required school-owned, with a unique school foreign
@@ -365,16 +357,6 @@ across schools; no school reads them in this step
 ([HQ billing](hq-billing.md)).
 
 
-### Support access
-
-`support_access_grants` and `support_access_views` are required school-owned
-(foreign keys to the school; the models use BelongsToSchool). The school reads its
-own rows in its panel through the ordinary school scope; HQ reads them across
-schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: the
-granted school with the impersonation flag, which cannot be switched to another
-school or widened to every school for the rest of the request
-([support access](support-access.md)).
-
 ### HQ announcements to schools
 
 `platform_announcements` is global: Navigate Ed's own announcements, written only
@@ -386,11 +368,3 @@ Super Admin who dismissed it) are required school-owned, with models that use
 row and sees only its own people's reads; it never sees which other schools an
 announcement reached or their reads. HQ reads both across schools and shows
 counts ([HQ announcements](hq-announcements.md)).
-
-### HQ school health
-
-`school_health_snapshots` is required school-owned: each row is one school's
-nightly health figures (counts and shares only), so it carries a not-null
-`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
-and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
-school reads it ([HQ school health](hq-school-health.md)).

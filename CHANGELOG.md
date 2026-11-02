@@ -104,16 +104,6 @@ Earlier history is kept where it was written and is not repeated here:
   and pressing "Send a reminder" twice sends one reminder.
   **Deploy:** run the migrations.
 
-- Platform: packages and prices are edited at `/saas/packages` instead of being
-  fixed in the code. Owner and Finance create draft packages from the product
-  modules, set trial days, activate and retire them, and add prices per learner
-  per month (excluding VAT) from a date: a base price, add-on prices for product
-  modules and discounts. Past prices are kept and never changed, overlapping
-  dates are refused, and the page shows the price on any date. Changing an
-  active package's modules does not change what schools already on it can use
-  until HQ re-applies the package to them, with a reason. Other HQ roles can
-  only look. The four existing packages are copied over unchanged, so no school
-  notices anything. **Deploy:** run the migrations.
 - Caseload renewals for a new school year: in Early warning and interventions,
   **Renew caseloads for a new year** lists last year's open risk caseload grants
   for learners placed in the new year. A principal (or the learner's grade head)
@@ -164,20 +154,6 @@ Earlier history is kept where it was written and is not repeated here:
   learner's exams, and optionally the next four weeks of lessons, through a
   secret link they can revoke at any time. **Deploy:** run the migrations.
 
-- HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
-  families, how many learners have a guardian the school can reach, sign-ins by
-  role, module use, email bounces and complaints, push failures, AI spend against
-  the month's cap and failed jobs, counts only and never a person. `/saas/health`
-  compares every school from nightly figures, schools at risk first; the at-risk
-  rules (activity down 30%, reach under 60%, bounces at 5% and others) are in
-  `config/school_health.php`. Owner, Operations, Support and Finance can see it.
-  **Deploy:** run the `school_health_snapshots` migration; the scheduler runs
-  `platform:school-health` nightly (run it once by hand to fill the comparison).
-- Staff drafts for a new school year: on Academic allocations, **Draft from last
-  year** fills in each teaching group's teachers and each homeroom's teacher from
-  last year wherever the group or homeroom carried over. Change what is different
-  and apply it in one step; teachers see nothing until then, and a draft is refused
-  if allocations changed after it was built.
 - Admin panel: SA-SAMS learner, attendance and marks exports now identify each
   learner by their LURITS number. Only learners who have no LURITS number yet
   still need a learner reference in the layout's map. The export page and each
@@ -188,14 +164,6 @@ Earlier history is kept where it was written and is not repeated here:
   support, and the school is not told who holds it.
 
 
-- Academics: a learner or guardian can subscribe their calendar app to the
-  learner's exams, and optionally the next four weeks of lessons, through a
-  secret link they can revoke at any time. **Deploy:** run the migrations.
-- Communication: the sender of a school message, and its reviewers, see a
-  delivery report: how many people it reached and read it, who had no
-  notification channel, and for email and push how many were delivered, sent,
-  bounced or failed, with each recipient by name. Addresses are never shown.
-  **Deploy:** run the migrations.
 - **LURITS when adding a learner.** The Add learner form takes the learner's
   LURITS number. If another NavigateEd school already has the learner, the
   office is asked to start a transfer request instead of creating a duplicate;
@@ -246,18 +214,6 @@ Earlier history is kept where it was written and is not repeated here:
   notifications wait and arrive afterwards; safeguarding alerts, urgent
   notices, absence alerts and new sign-in alerts always come through. Pushes
   now tell the apps their channel and urgency. **Deploy:** run the migrations.
-- Platform: feature flags at `/saas/flags` for Owner and Operations. A new
-  feature can be switched on for chosen pilot schools first (beta), then for
-  everyone, with single schools switched on or off by name, and a kill switch
-  that turns it off everywhere at once. The apps receive the result in their
-  existing feature switches. A flag can switch a feature that is already in the
-  apps off for a school, but never on where the app does not offer it.
-  **Deploy:** run the migrations.
-- Communication: the sender of a school message, and its reviewers, see a
-  delivery report: how many people it reached and read it, who had no
-  notification channel, and for email and push how many were delivered, sent,
-  bounced or failed, with each recipient by name. Addresses are never shown.
-  **Deploy:** run the migrations.
 - Platform: HQ (`/saas`) now needs two-factor sign-in. Every Navigate Ed staff
   member sets up an authenticator app (Google Authenticator, Microsoft
   Authenticator, 1Password and others) and gets ten single-use recovery codes.
@@ -303,15 +259,6 @@ Earlier history is kept where it was written and is not repeated here:
   leaver back as a returning learner or end their access sooner. **Deploy:** run
   the additive `school_memberships.leaver_until` migration.
 
-- HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
-  families, how many learners have a guardian the school can reach, sign-ins by
-  role, module use, email bounces and complaints, push failures, AI spend against
-  the month's cap and failed jobs, counts only and never a person. `/saas/health`
-  compares every school from nightly figures, schools at risk first; the at-risk
-  rules (activity down 30%, reach under 60%, bounces at 5% and others) are in
-  `config/school_health.php`. Owner, Operations, Support and Finance can see it.
-  **Deploy:** run the `school_health_snapshots` migration; the scheduler runs
-  `platform:school-health` nightly (run it once by hand to fill the comparison).
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
