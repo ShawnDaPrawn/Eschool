@@ -65,6 +65,7 @@ use App\Http\Controllers\Api\V2\Platform\GuardianInvitationController;
 use App\Http\Controllers\Api\V2\Platform\HandleController;
 use App\Http\Controllers\Api\V2\Platform\NotificationPreferenceController;
 use App\Http\Controllers\Api\V2\Platform\PrivateStaffNoticeController;
+use App\Http\Controllers\Api\V2\Platform\QuietHoursController;
 use App\Http\Controllers\Api\V2\Recognition\RecognitionController;
 use App\Http\Controllers\Api\V2\School\MySchoolController;
 use App\Http\Controllers\Api\V2\Transfers\TransferController;
@@ -424,6 +425,8 @@ Route::middleware(['auth:sanctum', 'school.context', 'role.any', 'learner.approv
     Route::get('me/context', [ContextController::class, 'show'])->name('me.context');
     Route::get('me/notification-preferences', [NotificationPreferenceController::class, 'index']);
     Route::put('me/notification-preferences', [NotificationPreferenceController::class, 'update']);
+    Route::get('me/notification-quiet-hours', [QuietHoursController::class, 'show'])->middleware('cache.headers:private;no_store');
+    Route::put('me/notification-quiet-hours', [QuietHoursController::class, 'update']);
     Route::get('me/handle', [HandleController::class, 'show']);
     Route::put('me/handle', [HandleController::class, 'update'])->middleware('throttle:auth');
 });

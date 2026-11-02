@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Parent\Concerns\ParentAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Shift;
 use App\Models\StudentSessions;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\AppTokens;
 use App\Services\Platform\Identity\DateOfBirthPasswords;
 use App\Services\Platform\Identity\PortalSession;
@@ -99,12 +100,10 @@ class AuthController extends Controller
                 if ($studentSession) {
                     $hasAnyValidSession = true;
 
-                    // Active / studying check
-                    if ($studentSession->status == 1) {
+                    // Active / studying check; a leaver reads until leaver_until (Action Plan 1.21).
+                    if ($studentSession->status == 1 || app(LeaverState::class)->until($child) !== null) {
                         $hasAnyActiveStudent = true;
                     }
-
-                    $class_id = $studentSession->class_section->class_id;
 
                 }
                 $child->is_fee_payment_due = 0; // Retired v1 hint; statements are authoritative.
@@ -129,7 +128,8 @@ class AuthController extends Controller
 
                 unset($child->user);
 
-                if ($studentSession) {
+                // A leaver's row this year has no homeroom: their last one is on the learner.
+                if ($studentSession?->class_section) {
                     $classSectionName = $studentSession->class_section->class->name.' '.$studentSession->class_section->section->name;
 
                     $child->is_term_on_in_class = $studentSession->class_section->class->getIncludeTermsForSession($session_year_id);

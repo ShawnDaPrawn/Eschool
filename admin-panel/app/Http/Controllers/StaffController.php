@@ -19,6 +19,8 @@ use App\Models\User;
 use App\Services\IdCardService;
 use App\Services\MailService;
 use App\Services\Platform\Files\FileNames;
+use App\Services\Platform\Identity\SchoolJoinInvitations;
+use App\Services\Platform\Identity\SharedAccounts;
 use App\Services\Platform\Tenancy\SchoolTable;
 use App\Services\ResponseService;
 use Carbon\Carbon;
@@ -503,7 +505,9 @@ class StaffController extends Controller
             'role_id' => ['required', 'numeric', $this->assignableRoleRule()],
             'first_name' => 'required',
             'last_name' => 'required',
-            'email' => 'required|email|unique:users,email',
+            // An address this school already knows is a duplicate; one with an
+            // account elsewhere is invited below, answering the same as a new one.
+            'email' => ['required', 'email', app(SchoolJoinInvitations::class)->notKnownHereRule()],
             'gender' => 'required',
             'mobile' => 'required|numeric|regex:/^[0-9]{7,16}$/',
             'image' => 'mimes:jpeg,png,jpg|image|max:2048',
@@ -519,6 +523,15 @@ class StaffController extends Controller
         }
         try {
             $role = Role::findOrFail($request->role_id);
+            $joins = app(SchoolJoinInvitations::class);
+
+            [$kind, $account] = $joins->classify((string) $request->email);
+            if ($kind === SchoolJoinInvitations::ELSEWHERE && $account !== null) {
+                // An existing account is invited, never given a second login (Action Plan 1.3).
+                $joins->inviteFromSchool(Auth::user(), $account, $role, ['name' => trim($request->first_name.' '.$request->last_name), 'email' => (string) $request->email]);
+
+                return ResponseService::successResponse(trans('data_store_successfully'));
+            }
 
             $check_user = User::where('email', $request->email)->onlyTrashed();
             if ($check_user->count()) {
@@ -711,6 +724,7 @@ class StaffController extends Controller
 
                 MailService::queue(TemplateMail::staffWelcome($data), (int) $user->id);
             }
+            $joins->recordAdded(Auth::user(), $role);
 
             return ResponseService::successResponse(trans('data_store_successfully'));
         } catch (\Throwable $e) {
@@ -865,8 +879,20 @@ class StaffController extends Controller
                 'message' => trans('no_permission_message'),
             ]);
         }
+        $shared = app(SharedAccounts::class);
+        $account = ['first_name' => $request->first_name, 'last_name' => $request->last_name, 'email' => $request->email, 'gender' => $request->gender,
+            'mobile' => $request->mobile, 'dob' => $request->dob, 'current_address' => $request->address];
+        if ($shared->changes($user, $account) !== [] || ($request->hasFile('image') && $shared->locked($user))) {
+            // An account that also belongs elsewhere is its owner's to change (Action Plan 1.3).
+            return response()->json(['error' => true, 'message' => $shared->message()]);
+        }
         try {
             $role = Role::findOrFail($request->role_id);
+            if ($shared->locked($user)) {
+                $user->syncRoles($role);
+
+                return ResponseService::successResponse(trans('data_store_successfully'));
+            }
 
             if ($request->hasFile('image')) {
 
@@ -930,6 +956,13 @@ class StaffController extends Controller
             ]);
         }
         try {
+            if (app(SharedAccounts::class)->shared((int) $user->id)) {
+                // The account also belongs elsewhere: this school's staff record and roles end, the account stays (Action Plan 1.3).
+                Staff::where('user_id', $id)->delete();
+                app(SharedAccounts::class)->endStaffRolesHere($user);
+
+                return ResponseService::successResponse(trans('data_delete_successfully'));
+            }
             if (Storage::disk('public')->exists($user->image)) {
                 Storage::disk('public')->delete($user->image);
             }
