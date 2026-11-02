@@ -18,6 +18,7 @@ use App\Models\FormField;
 use App\Models\OnlineExamStudentAnswer;
 use App\Models\Parents;
 use App\Models\Platform\Role;
+use App\Models\Platform\SchoolMembership;
 use App\Models\SessionYear;
 use App\Models\Settings;
 use App\Models\StudentOnlineExamStatus;
@@ -28,10 +29,13 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Services\MailService;
 use App\Services\People\LuritsAdmission;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\People\RemoveLearner;
 use App\Services\Platform\Files\FileNames;
 use App\Services\Platform\Identity\LearnerInvitations;
 use App\Services\Platform\Identity\LuritsNumbers;
+use App\Services\Platform\Identity\SharedAccounts;
+use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
 use Carbon\Carbon;
 use Exception;
@@ -773,6 +777,8 @@ class StudentController extends Controller
             ->whereHas('student.user', function ($query) {
                 $query->where('status', 1);
             })
+            // A leaver whose read-only access has ended is no longer listed (Action Plan 1.21).
+            ->where(fn ($q) => $q->where('status', 1)->orWhereHas('student', fn ($learner) => $learner->whereNotExists(fn ($ended) => app(LeaverState::class)->whereAccessEnded($ended))))
             ->with([
                 'student.user',
                 'student.category',
@@ -841,6 +847,11 @@ class StudentController extends Controller
         $studentsWithOnlineStatus = StudentOnlineExamStatus::whereIn('student_id', $studentIds)->pluck('student_id')->unique()->toArray();
         $studentsWithSessions = StudentSessions::whereIn('student_id', $studentIds)->pluck('student_id')->unique()->toArray();
         $studentsWithSubjects = StudentSubject::whereIn('student_id', $studentIds)->pluck('student_id')->unique()->toArray();
+        // Leavers are marked as leavers, with the last day of their read-only access.
+        $leaverUntil = SchoolMembership::query()->where('school_id', app(CurrentSchool::class)->id())->where('role', 'Student')
+            ->where('status', SchoolMembership::LEAVER)->whereDate('leaver_until', '>=', app(LeaverState::class)->today())
+            ->whereIn('user_id', $res->where('status', 0)->map(fn ($row) => $row->student?->user_id)->filter()->all())
+            ->pluck('leaver_until', 'user_id');
 
         foreach ($res as $sessionRow) {
 
@@ -974,6 +985,9 @@ class StudentController extends Controller
             $tempRow['class_section_name'] =
                 ($sessionRow->class_section->class->name ?? '').'-'.
                 ($sessionRow->class_section->section->name ?? '');
+            if ((int) $sessionRow->status === 0 && $leaverUntil->has($student->user_id)) {
+                $tempRow['class_section_name'] = __('Leaver: read-only until :date', ['date' => Carbon::parse($leaverUntil->get($student->user_id))->format('j M Y')]);
+            }
 
             $tempRow['stream_name'] =
                 $sessionRow->class_section->class->streams->name ?? '';
@@ -1406,7 +1420,10 @@ class StudentController extends Controller
                             // Delete parent's user
                             if ($parent->user_id) {
                                 $parentUser = User::find($parent->user_id);
-                                if ($parentUser) {
+                                if ($parentUser && app(SharedAccounts::class)->shared((int) $parentUser->id)) {
+                                    // The account also belongs elsewhere: only the Parent role here ends (Action Plan 1.3).
+                                    $parentUser->unsetRelation('roles')->removeRole('Parent');
+                                } elseif ($parentUser) {
                                     if ($parentUser->image && Storage::disk('public')->exists($parentUser->image)) {
                                         Storage::disk('public')->delete($parentUser->image);
                                     }

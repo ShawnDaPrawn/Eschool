@@ -172,7 +172,12 @@ class ExamMode
         $subject = $this->subject($sitting);
         $when = $this->when($sitting);
         $notifier = app(Notifier::class);
-        $notice = $notifier->makeNotice(self::NOTICE, __('Exam changed: :subject', ['subject' => $subject]), __(':subject is now on :when.', ['subject' => $subject, 'when' => $when]), self::LINK);
+        $summary = __(':subject is now on :when.', ['subject' => $subject, 'when' => $when]);
+        // The full view also says what it was before, which the push and the
+        // inbox row have no room for.
+        $was = $this->whenBefore($sitting, $changes);
+        $body = $summary.($was === $when ? '' : ' '.__('It was on :was.', ['was' => $was])).' '.__('Open the calendar for your full exam timetable.');
+        $notice = $notifier->makeNotice(self::NOTICE, __('Exam changed: :subject', ['subject' => $subject]), $summary, self::LINK, excerpt: $summary, body: $body, target: self::LINK);
         $notifier->assign($notice, $this->recipients($sitting));
     }
 
@@ -183,7 +188,9 @@ class ExamMode
         }
         $subject = $this->subject($sitting);
         $notifier = app(Notifier::class);
-        $notice = $notifier->makeNotice(self::NOTICE, __('Exam removed: :subject', ['subject' => $subject]), __('The :subject sitting on :date was removed from the exam timetable.', ['subject' => $subject, 'date' => CarbonImmutable::parse($sitting->date)->format('j M Y')]), self::LINK);
+        $summary = __('The :subject sitting on :date was removed from the exam timetable.', ['subject' => $subject, 'date' => CarbonImmutable::parse($sitting->date)->format('j M Y')]);
+        $notice = $notifier->makeNotice(self::NOTICE, __('Exam removed: :subject', ['subject' => $subject]), $summary, self::LINK,
+            excerpt: $summary, body: $summary.' '.__('Open the calendar for your full exam timetable.'), target: self::LINK);
         $notifier->assign($notice, $this->recipients($sitting));
     }
 
@@ -218,6 +225,17 @@ class ExamMode
         $text = CarbonImmutable::parse($sitting->date)->format('j M Y').', '.$this->normal('start_time', $sitting->start_time).'–'.$this->normal('end_time', $sitting->end_time);
 
         return $sitting->venue ? $text.', '.$sitting->venue : $text;
+    }
+
+    /** @param  array<string, array{0: string|null, 1: string|null}>  $changes */
+    private function whenBefore(ExamTimetable $sitting, array $changes): string
+    {
+        $value = fn (string $field) => array_key_exists($field, $changes) ? $changes[$field][0] : $this->normal($field, $sitting->getAttributes()[$field] ?? null);
+        $date = $value('date');
+        $text = ($date === null ? '' : CarbonImmutable::parse($date)->format('j M Y')).', '.$value('start_time').'–'.$value('end_time');
+        $venue = $value('venue');
+
+        return $venue ? $text.', '.$venue : $text;
     }
 
     private function upcoming(?string $date): bool

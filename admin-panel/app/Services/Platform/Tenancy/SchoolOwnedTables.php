@@ -21,8 +21,19 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
+        // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
+        // notes, their lines, its EFT payments and what each payment or credit
+        // note settles. Each row is about one school, so it carries the school
+        // (written inside it from /saas); only HQ reads them, never the school.
+        // platform_billing_reminders logs each overdue reminder sent to it.
+        'platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders',
+        'support_access_grants', 'support_access_views',
+        'platform_announcement_schools', 'platform_announcement_reads',
+        'school_health_snapshots',
+        'platform_feature_flag_schools',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',
@@ -75,7 +86,7 @@ final class SchoolOwnedTables
         'assessment_marks', 'question_marks', 'mark_snapshots', 'mark_releases', 'mark_release_entries', 'academic_exam_links',
         'teaching_groups', 'teaching_group_memberships', 'teaching_allocations', 'homeroom_allocations', 'academic_leaderships',
         'curriculum_plans', 'curriculum_topics', 'assessment_plans', 'assessment_tasks', 'assessment_questions',
-        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations', 'staff_invitations', 'school_accounts', 'school_contacts', 'school_contracts', 'school_account_events',
+        'profile_field_categories', 'profile_field_definitions', 'profile_field_values', 'profile_files', 'notification_dispatches', 'notification_rules', 'handle_proposals', 'school_modules', 'enrolments', 'guardian_links', 'learner_approvals', 'guardian_invitations', 'staff_invitations', 'school_join_invitations', 'school_accounts', 'school_contacts', 'school_contracts', 'school_account_events',
         'term_templates', 'academic_calendars', 'announcements', 'assignment_submissions', 'assignments', 'attendances',
         'categories', 'chat_files', 'chat_members', 'chat_messages', 'chat_rooms',
         'class_sections', 'class_session_configs', 'class_subjects', 'class_teachers', 'classes',
@@ -101,6 +112,7 @@ final class SchoolOwnedTables
      */
     public const NULLABLE = [
         'audit_log', 'domain_events', 'idempotency_keys', 'notification_deliveries', 'settings',
+        'mail_streams',
     ];
 
     /**
@@ -121,10 +133,12 @@ final class SchoolOwnedTables
     /** Tables that belong to no one school, each with the reason. */
     public const GLOBAL = [
         'platform_ai_cost_grants' => 'explicit expiring cost-only operator grants; no school or learner-content access',
+        'platform_feature_flags' => 'platform-wide feature switches and their rollout, written only from /saas; the schools switched by name are rows of platform_feature_flag_schools',
         'platform_incidents' => 'Navigate Ed\'s own breach and incident register, read and written only from /saas; the schools an incident affects are rows of platform_incident_schools',
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
+        'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
         'platform_ai_cap_changes' => 'the history of HQ AI cap changes (who, when, old and new cents, reason), written only from /saas/ai; names no school',
@@ -133,6 +147,7 @@ final class SchoolOwnedTables
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',
         'notification_preferences' => 'a human controls their own channel choices across schools; each schools mandatory rules override these choices',
+        'notification_quiet_hours' => 'a human chooses their own push quiet hours once, for every school; safety notices are never held',
         'handle_claims' => 'global unique handles and temporary reservations; locked by handle and accessed only through the identity service',
         'handle_changes' => 'one human identity across schools; change limit and history queried only by the authenticated or authorised learner user id',
         'learner_identifiers' => 'one immutable student number and the LURITS number per human across schools; accessed by user id under a lock',

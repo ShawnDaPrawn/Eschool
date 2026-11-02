@@ -36,6 +36,7 @@ use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -111,6 +112,53 @@ class FamilyConsentTest extends TestCase
         $service->respond($this->parent, $request['id'], $this->learner, $this->response($request, ['revision' => 1, 'decision' => 'no']));
         $this->assertSame(2, ConsentResponse::count());
         $this->assertFalse($service->effective($this->teacher, $request['id'], $this->learner));
+    }
+
+    public function test_leaver_only_guardian_can_withdraw_consent_directly_and_over_http_but_cannot_sign_yes(): void
+    {
+        // Mona has only Asha at this school: no active sibling keeps her Parent role writable.
+        $this->parent = User::findOrFail($this->schoolA->ids['mona_user']);
+        $this->parent->forceFill(['email_verified_at' => now()])->save();
+        GuardianLink::updateOrCreate(['learner_id' => $this->learner, 'guardian_user_id' => $this->parent->id], ['status' => 'active', 'relationship' => 'mother', 'can_approve' => true]);
+        $request = $this->create();
+        $service = app(Consents::class);
+        $service->respond($this->parent, $request['id'], $this->learner, $this->response($request));
+        SchoolMembership::where('school_id', 1)->whereIn('user_id', [$this->parent->id, $this->schoolA->ids['asha_user']])
+            ->update(['status' => SchoolMembership::LEAVER, 'leaver_until' => '2026-03-31', 'ends_on' => '2026-03-31']);
+        Enrolment::where('learner_id', $this->learner)->update(['ends_on' => '2026-02-09']);
+        $url = '/api/v2/family-forms/consents/'.$request['id'].'/learners/'.$this->learner.'/response';
+        $input = $this->response($request, ['revision' => 1, 'decision' => 'no']);
+        $this->app->instance('request', Request::create($url, 'POST'));
+        $first = $service->respond($this->parent, $request['id'], $this->learner, $input);
+        $this->assertSame('no', $first['decision']);
+        $this->api($this->parent)->postJson($url, $input)->assertOk()->assertJsonPath('data.id', $first['id']);
+        $this->postJson($url, $this->response($request, ['revision' => 2]))->assertForbidden();
+        $this->putJson('/api/v2/family-forms/learners/'.$this->learner.'/health', ['values' => ['allergies' => ['text' => 'not allowed']]])->assertForbidden();
+        $this->assertSame(2, ConsentResponse::count());
+
+        GuardianLink::where('learner_id', $this->learner)->where('guardian_user_id', $this->parent->id)->update(['status' => 'ended']);
+        $this->postJson($url, $input)->assertNotFound();
+        $this->assertSame(2, ConsentResponse::count());
+    }
+
+    public function test_leaver_consent_withdrawal_rejects_foreign_guardians_and_expired_access(): void
+    {
+        // Mona has only Asha at this school: no active sibling keeps her Parent role writable.
+        $this->parent = User::findOrFail($this->schoolA->ids['mona_user']);
+        $this->parent->forceFill(['email_verified_at' => now()])->save();
+        GuardianLink::updateOrCreate(['learner_id' => $this->learner, 'guardian_user_id' => $this->parent->id], ['status' => 'active', 'relationship' => 'mother', 'can_approve' => true]);
+        $request = $this->create();
+        app(Consents::class)->respond($this->parent, $request['id'], $this->learner, $this->response($request));
+        SchoolMembership::where('school_id', 1)->whereIn('user_id', [$this->parent->id, $this->schoolA->ids['asha_user']])
+            ->update(['status' => SchoolMembership::LEAVER, 'leaver_until' => '2026-03-31', 'ends_on' => '2026-03-31']);
+        $url = '/api/v2/family-forms/consents/'.$request['id'].'/learners/'.$this->learner.'/response';
+        $input = $this->response($request, ['revision' => 1, 'decision' => 'no']);
+        $this->api(User::findOrFail($this->schoolA->ids['gina_user']))->postJson($url, $input)->assertNotFound();
+        $this->api($this->parent)->withHeader('X-School-Id', '2')->postJson($url, $input)->assertForbidden();
+        $this->withHeader('X-School-Id', '1');
+        SchoolMembership::where('user_id', $this->schoolA->ids['asha_user'])->where('school_id', 1)->where('role', 'Student')->update(['leaver_until' => '2026-02-09']);
+        $this->postJson($url, $input)->assertNotFound();
+        $this->assertSame(1, ConsentResponse::count());
     }
 
     public function test_changed_wording_fingerprint_or_operation_body_cannot_reuse_a_signature(): void

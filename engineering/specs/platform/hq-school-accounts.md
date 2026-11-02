@@ -64,5 +64,7 @@ pixels (accessibility and fit).
 
 ## Not yet
 
-Uploading the signed contract document, renewal reminders, the onboarding
-checklist (SA.6) and invoices from the contract (SA.8, 1.17).
+Uploading the signed contract document, renewal reminders and the onboarding
+checklist (SA.6). Invoices are [HQ billing](hq-billing.md): a contract in force
+on the first day of a month sets that month's price per learner, and wins over
+the package's list price, because it is what the school signed.
