@@ -68,9 +68,10 @@ class ChatController extends Controller
 
             if ($class_section_ids) {
                 $students = Students::with(['user', 'class_section.class', 'student_subjects.subject'])
-                    ->whereHas('studentSessions', function ($q) use ($session_year_id) {
-                        $q->where('session_year_id', $session_year_id);
-                    })->whereIn('class_section_id', $class_section_ids)->get();
+                    // This year's placement (a leaver keeps students.class_section_id but has none; Action Plan 1.21).
+                    ->whereHas('studentSessions', function ($q) use ($session_year_id, $class_section_ids) {
+                        $q->where('session_year_id', $session_year_id)->where('status', 1)->whereIn('class_section_id', $class_section_ids);
+                    })->get();
 
                 foreach ($students as $student) {
                     $parents_ids[] = $student->father_id;
@@ -149,7 +150,7 @@ class ChatController extends Controller
                         if ($parent->user_id != 0) {
                             $children = $parent->children()->with('user', 'class_section')
                                 ->whereHas('studentSessions', function ($q) use ($session_year_id) {
-                                    $q->where('session_year_id', $session_year_id);
+                                    $q->where('session_year_id', $session_year_id)->where('status', 1);
                                 })->get();
 
                             foreach ($children as $child) {
@@ -225,9 +226,9 @@ class ChatController extends Controller
                 foreach ($subject_teachers as $subject_teacher) {
                     $class_subject = ClassSubject::where('subject_id', $subject_teacher->subject_id)->where('class_id', $subject_teacher->class_section->class->id)->first();
                     $students = Students::with(['user', 'class_section.class', 'student_subjects.subject'])
-                        ->whereHas('studentSessions', function ($q) use ($session_year_id) {
-                            $q->where('session_year_id', $session_year_id);
-                        })->where('class_section_id', $subject_teacher->class_section_id)->get();
+                        ->whereHas('studentSessions', function ($q) use ($session_year_id, $subject_teacher) {
+                            $q->where('session_year_id', $session_year_id)->where('status', 1)->where('class_section_id', $subject_teacher->class_section_id);
+                        })->get();
                     $parents_id = [];
 
                     // Every father, mother and guardian (groupBy()->keys() only gave the fathers).
@@ -363,7 +364,7 @@ class ChatController extends Controller
                                 }
                                 $children = $parent->children()->with('user', 'class_section')
                                     ->whereHas('studentSessions', function ($q) use ($session_year_id) {
-                                        $q->where('session_year_id', $session_year_id);
+                                        $q->where('session_year_id', $session_year_id)->where('status', 1);
                                     })->get();
 
                                 foreach ($children as $child) {
@@ -684,8 +685,10 @@ class ChatController extends Controller
         }
 
         $sessionYearId = $this->currentSessionYearId();
-        $students = Students::whereIn('class_section_id', $this->teacherClassSectionIds())
-            ->whereHas('studentSessions', fn ($q) => $q->where('session_year_id', $sessionYearId));
+        // This year's placement, not the learner's last homeroom: a leaver keeps
+        // students.class_section_id but has no homeroom this year (Action Plan 1.21).
+        $students = Students::whereHas('studentSessions', fn ($q) => $q->where('session_year_id', $sessionYearId)
+            ->where('status', 1)->whereIn('class_section_id', $this->teacherClassSectionIds()));
 
         if ((clone $students)->where('user_id', $userId)->exists()) {
             return true;

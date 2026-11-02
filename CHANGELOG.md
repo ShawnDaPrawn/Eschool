@@ -21,6 +21,12 @@ Earlier history is kept where it was written and is not repeated here:
 
 ## Unreleased
 
+### Fixed
+
+- API: guardians with leaver-only access can remove a child's photo tag and
+  withdraw existing consent without regaining any other write access. Revoked
+  relationships and expired access still stop changes and receipt replay.
+
 ### Added
 
 - Platform: packages and prices are edited at `/saas/packages` instead of being
@@ -33,6 +39,21 @@ Earlier history is kept where it was written and is not repeated here:
   until HQ re-applies the package to them, with a reason. Other HQ roles can
   only look. The four existing packages are copied over unchanged, so no school
   notices anything. **Deploy:** run the migrations.
+- Admin panel: a school can add a teacher or staff member who already uses
+  NavigateEd at another school (or a principal moving schools) without a second
+  login. They are emailed an invitation, sign in with their usual password and
+  accept or decline. Accepting never changes their password, and no school can
+  change the name, email address or other details of an account it shares with
+  another school, or deactivate or delete it: editing, deactivating or deleting
+  such a person only changes that school's own records and roles.
+  Adding them reads the same as adding a new person, so the school never learns
+  that the address was in use or where. Waiting invitations are under Staff,
+  Invitations to join, where they can be withdrawn. The staff import now invites
+  such people (and parents or former staff of the school) instead of giving
+  them the role straight away, and refuses learners. Platform: HQ can
+  set up a school whose first administrator already has an account the same way.
+  Learner and platform staff accounts are never invited.
+  **Deploy:** run the migrations (`school_join_invitations`).
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
@@ -60,6 +81,28 @@ Earlier history is kept where it was written and is not repeated here:
   applied. The dated cost report at `/platform/ai-costs` is unchanged and
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
+
+- Platform: Navigate Ed bills its schools from `/saas/billing`. Each month
+  Finance (or an Owner) creates draft invoices for every active school in one
+  run: learners are counted that day (leavers and other schools' learners are
+  not), and the price per learner is the school's contract price, or else its
+  package's list price with any discount and the add-on modules it has switched
+  on. VAT (15 %, set in config) is worked out on each line and the invoice adds
+  the lines. Drafts are reviewed and then issued with a reference such as
+  NE-2026-0001 and a due date 30 days later; an issued invoice never changes,
+  and a mistake is corrected with a credit note. EFT payments are recorded with
+  the bank reference and the invoices they settle; part-payments are fine, an
+  over-payment becomes credit on the school's account, and a mistaken payment is
+  reversed with a reason rather than deleted. Each school has a printable
+  statement and each invoice a printable page. Overdue invoices are listed, a
+  reminder goes to the school's Super Admins and its bursar contact, and after a
+  14-day grace period the school is listed as due for suspension, which an Owner
+  or Operations still decides with the existing suspend form. The page also
+  shows the month's invoiced, collected and overdue totals and monthly recurring
+  revenue. Operations can look; Sales, Content and Support cannot. Issued
+  invoices, their lines and payments are also protected in the database itself,
+  and pressing "Send a reminder" twice sends one reminder.
+  **Deploy:** run the migrations.
 
 - Platform: packages and prices are edited at `/saas/packages` instead of being
   fixed in the code. Owner and Finance create draft packages from the product
@@ -148,6 +191,61 @@ Earlier history is kept where it was written and is not repeated here:
 - Academics: a learner or guardian can subscribe their calendar app to the
   learner's exams, and optionally the next four weeks of lessons, through a
   secret link they can revoke at any time. **Deploy:** run the migrations.
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
+- **LURITS when adding a learner.** The Add learner form takes the learner's
+  LURITS number. If another NavigateEd school already has the learner, the
+  office is asked to start a transfer request instead of creating a duplicate;
+  it is never told which school. If the learner is already, or was before, at
+  the school, the office is pointed to their existing record.
+- API: notifications now come in three layers: a title, a short excerpt for the
+  inbox row and, where there is more to say, a full text, plus the app screen
+  each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
+  the current school and `GET /api/v2/me/notifications/{id}` returns one with
+  its full text after checking again that they may still see it. Exam changes
+  now say what the sitting was before, and absence alerts say who to contact.
+  Private notices (wellbeing, discipline, progress, transfers and the like)
+  still only say that something is waiting. Installed apps see no change; the
+  new app screens follow. **Deploy:** run the migrations.
+
+- Platform: each school's mail now goes out on two Amazon SES streams, one for
+  account and safety mail (sign-in links, password resets, invitations, welcome
+  mails, safeguarding alerts, urgent notices and absence alerts) and one for
+  everything else, each through the school's own SES configuration set, so one
+  school's newsletter bounces can no longer hold up another school's or its own
+  password resets. HQ's new "Mail streams" page (/saas/mail-streams) shows each
+  school's streams, whether SES lets them send, any tenant pause SES reports,
+  and 30 days of bounce and complaint rates flagged at SES's review and pause
+  levels; Operations can set up or check a school's streams there. Off until
+  `MAIL_SES_STREAMS` is switched on. **Deploy:** run the migrations. Before
+  switching on, see engineering/specs/platform/ses-streams.md (VDM cost check,
+  SES key permissions, leave `AWS_SES_CONFIGURATION_SET` empty, then run
+  `php artisan mail:ensure-streams`).
+
+- Admin panel: schools can send their notices from their own domain. Under
+  Settings, "Email from your domain", the school's Super Admin enters the domain,
+  sees the exact DNS records to add (three DKIM records, the bounce MX and SPF
+  records and a recommended DMARC record), and presses "Check now" or waits for
+  the automatic check. Once Amazon SES has verified it, the school's notices come
+  from "<school name> <notices@that domain>"; until then, and always for password
+  and invitation emails, from the NavigateEd address. Disconnecting goes back to
+  the NavigateEd address at once. Each domain belongs to one school, and every
+  connect, verification change and disconnect is in the audit log. HQ's onboarding
+  checklist shows whether the school's domain is verified. Off until
+  `MAIL_SENDING_DOMAINS=true`. **Deploy:** run the migrations; to switch it on, give
+  the SES keys the identity permissions listed in
+  `engineering/specs/platform/sending-domains.md` and set `MAIL_SENDING_DOMAINS=true`.
+
+- Academics: the learner and family week view shows named breaks and the
+  learner's activity sessions next to lessons. Activity sessions can now have
+  a start and end time. **Deploy:** run the migrations.
+- Notifications: quiet hours. Each person can set hours when push
+  notifications wait and arrive afterwards; safeguarding alerts, urgent
+  notices, absence alerts and new sign-in alerts always come through. Pushes
+  now tell the apps their channel and urgency. **Deploy:** run the migrations.
 - Platform: feature flags at `/saas/flags` for Owner and Operations. A new
   feature can be switched on for chosen pilot schools first (beta), then for
   everyone, with single schools switched on or off by name, and a kill switch
@@ -169,6 +267,7 @@ Earlier history is kept where it was written and is not repeated here:
   {email}` is the break-glass for an Owner's own. School accounts are not
   affected. **Deploy:** run the migrations. Every platform staff member sets
   up their app at their next HQ sign-in.
+
 - Platform and Admin panel: audited support access. Navigate Ed Support,
   Operations and Owner staff ask a school for access at `/saas/support`, with a
   reason and a length of up to four hours. The school's Super Admins are told
@@ -184,6 +283,35 @@ Earlier history is kept where it was written and is not repeated here:
   audit log. It ends by itself, or earlier when the school or the staff member
   ends it. **Deploy:** run the migrations.
 
+- Platform: announcements to schools at `/saas/announcements` for Owner and
+  Operations. Write release notes, a maintenance window or a policy change, aim
+  it at every school, at schools on a package or at a lifecycle stage, or at
+  chosen schools, see how many schools and Super Admins it reaches, then
+  publish. Each school's Super Admins get a notice and a banner in their panel
+  while it is current; dismissing the banner counts as read, and HQ sees how
+  many schools and Super Admins have read it. A published announcement never
+  changes: withdraw it and publish a new one. Super Admins find every
+  announcement for their school under Settings, Navigate Ed announcements.
+  **Deploy:** run the migrations.
+- Admin panel and apps: learners who leave at the end of the year are no longer
+  locked out on the day the new year starts. Until 31 March they, and their
+  guardians, can still sign in and read their final reports, marks and
+  documents, but change nothing; then their access ends. A learner who leaves
+  during the year reads for 90 days. Leavers are not in any class list, register or
+  group of the new year, are counted apart on the dashboard and are marked on the
+  student list. The new Leavers page (Calendar and years) lets the office bring a
+  leaver back as a returning learner or end their access sooner. **Deploy:** run
+  the additive `school_memberships.leaver_until` migration.
+
+- HQ shows each school's health at `/saas/schools/{id}/health`: weekly active
+  families, how many learners have a guardian the school can reach, sign-ins by
+  role, module use, email bounces and complaints, push failures, AI spend against
+  the month's cap and failed jobs, counts only and never a person. `/saas/health`
+  compares every school from nightly figures, schools at risk first; the at-risk
+  rules (activity down 30%, reach under 60%, bounces at 5% and others) are in
+  `config/school_health.php`. Owner, Operations, Support and Finance can see it.
+  **Deploy:** run the `school_health_snapshots` migration; the scheduler runs
+  `platform:school-health` nightly (run it once by hand to fill the comparison).
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
@@ -191,7 +319,6 @@ Earlier history is kept where it was written and is not repeated here:
   incident that may involve personal information cannot close until every
   school has been told and the Regulator decision is recorded. **Deploy:** run
   the migrations.
-
 - Notifications now reach every device a person is signed in on, not only the last
   one: a parent's phone and tablet, or a teacher's two devices, all receive them.
   Signing in to an app on another device no longer signs the first one out (up to

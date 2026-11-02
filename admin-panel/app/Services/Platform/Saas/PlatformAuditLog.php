@@ -44,6 +44,8 @@ class PlatformAuditLog
         'platform_two_factor_failed' => 'Two-factor code refused',
         'platform_two_factor_recovery_code_used' => 'Recovery code used',
         'platform_two_factor_reset' => 'Two-factor sign-in reset',
+        'platform_announcement_published' => 'Announcement published',
+        'platform_announcement_withdrawn' => 'Announcement withdrawn',
         'ai.platform_cost_access_changed' => 'AI cost access changed',
         'platform_ai_feature_switched' => 'AI feature switched',
         'platform_ai_caps_changed' => 'AI spending caps changed',
