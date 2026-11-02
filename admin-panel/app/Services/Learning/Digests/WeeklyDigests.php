@@ -48,15 +48,18 @@ class WeeklyDigests
             $kind = $evidence['action_kind'];
             $action = ['kind' => $kind, 'learner_id' => $learnerId, 'label' => $template->action_templates[$kind], 'content_version_id' => $evidence['content_version_id']];
             $person = User::acrossSchools()->findOrFail($learner->user_id);
+            // Action Plan 4.6: rises only, from evidence this family may see.
+            $growth = app(GrowthMovement::class)->digest($learnerId, $start);
             $rendered = app(DigestTemplates::class)->render($template, [
                 'learner' => mb_substr((string) $person->full_name, 0, 100), 'week_start' => $start->toDateString(), 'week_end' => $start->addDays(6)->toDateString(),
                 'marks_count' => count($evidence['marks']), 'attendance_present' => $evidence['attendance']['present'], 'attendance_absent' => $evidence['attendance']['absent'],
                 'practice_completed' => $evidence['practice']['completed'], 'practice_total' => $evidence['practice']['total'], 'event_count' => $evidence['event_count'], 'home_action' => $action['label'],
+                'grew_in' => GrowthMovement::grewText($growth), 'help_at_home' => GrowthMovement::helpText($growth),
             ]);
             $digest = WeeklyParentDigest::create(['learner_id' => $learnerId, 'recipient_id' => $parent->id, 'session_year_id' => (int) schoolSetting('session_year'),
                 'template_id' => $template->id, 'template_version' => $template->version, 'language' => $language,
                 'week_start' => $start, 'week_end' => $start->addDays(6), 'title' => $rendered['title'], 'summary' => $rendered['summary'],
-                'snapshot' => $evidence, 'home_action' => $action, 'expires_at' => now()->addWeeks((int) config('weekly_digests.retention_weeks'))]);
+                'snapshot' => $evidence, 'home_action' => $action, 'growth' => $growth, 'expires_at' => now()->addWeeks((int) config('weekly_digests.retention_weeks'))]);
             app(DigestAuthority::class)->family($parent, $learnerId);
             $this->queue($digest);
 
@@ -88,14 +91,20 @@ class WeeklyDigests
         app(DigestAuthority::class)->enabled(true);
         $today = CarbonImmutable::now(app(CurrentSchool::class)->school()->timezone);
         if (! $today->isMonday() || $today->hour < (int) config('weekly_digests.local_hour')) {
-            return ['created' => 0, 'unavailable' => 0];
+            return ['created' => 0, 'unavailable' => 0, 'learner_growth' => 0];
         }
         $start = $today->startOfWeek()->subWeek()->startOfDay();
-        $counts = ['created' => 0, 'unavailable' => 0];
+        $counts = ['created' => 0, 'unavailable' => 0, 'learner_growth' => 0];
         Students::orderBy('id')->chunkById(100, function ($learners) use ($start, &$counts): void {
             foreach ($learners as $learner) {
                 if (! app(DigestAuthority::class)->currentLearner($learner)) {
                     continue;
+                }
+                try {
+                    if (app(LearnerGrowthNotices::class)->deliver($learner, $start)?->wasRecentlyCreated) {
+                        $counts['learner_growth']++;
+                    }
+                } catch (HttpExceptionInterface|ModelNotFoundException) {
                 }
                 foreach (User::whereIn('id', app(GuardianService::class)->guardianUserIds($learner))->get() as $parent) {
                     try {

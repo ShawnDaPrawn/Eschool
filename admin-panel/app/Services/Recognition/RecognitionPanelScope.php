@@ -16,6 +16,10 @@ class RecognitionPanelScope
         if (! $r->isMethodSafe()) {
             abort_unless((int) $r->input('expected_account_id') === (int) $actor->id && (int) $r->input('expected_school_id') === app(CurrentSchool::class)->id(), 403);
             abort_if($r->query->count() > 0, 422, 'Submit recognition changes in the request body.');
+            if ($r->route('operation') === 'badges') {
+                abort_unless($module === 'awards', 404);
+                app(RecognitionAuthority::class)->manage($actor, 'awards');
+            }
         }
 
         return true;

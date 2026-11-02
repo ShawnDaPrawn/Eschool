@@ -27,6 +27,8 @@ class DisciplineAuthority
     {
         $c = app(CurrentSchool::class);
         abort_unless($c->isSet() && ! $c->isAcrossSchools() && ! $c->isImpersonating(), 403);
+        // Never in a Navigate Ed support session (SA.9), whatever its scope.
+        abort_if($c->isSupportSession(), 403);
         abort_unless(School::active()->whereKey($c->id())->exists(), 403);
         $g = app(ModuleGate::class);
         $g->forget();
