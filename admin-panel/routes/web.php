@@ -151,6 +151,7 @@ use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\SchoolSupportAccessController;
 use App\Http\Controllers\Platform\SchoolExitController;
+use App\Http\Controllers\Platform\SchoolStageController;
 use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\Platform\SupportSessionController;
 use App\Http\Controllers\Platform\UrgentMessagingController;
@@ -1531,6 +1532,9 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::get('/school-exit', [SchoolExitController::class, 'index'])->name('school-exit.index');
     Route::get('/school-exit/{offboarding}/download', [SchoolExitController::class, 'download'])->whereNumber('offboarding')->middleware(['signed', 'throttle:10,1'])->name('school-exit.download');
     Route::post('/school-exit/{offboarding}/receipt', [SchoolExitController::class, 'confirm'])->whereNumber('offboarding')->name('school-exit.confirm');
+    // The age stage of each grade (Action Plan 4.1).
+    Route::get('/school-stages', [SchoolStageController::class, 'index'])->name('school-stages.index');
+    Route::put('/school-stages', [SchoolStageController::class, 'update'])->middleware('throttle:30,1')->name('school-stages.update');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {

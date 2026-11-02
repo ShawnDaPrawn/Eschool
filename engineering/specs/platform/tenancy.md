@@ -310,6 +310,12 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### School stages
+
+`school_stages` is required school-owned: each school maps its own grades to
+age stages, and a learner's stage is always read from their own school's
+mapping ([school stages](school-stages.md)).
+
 ### Packages and prices
 
 `platform_packages`, `platform_package_modules` and `platform_prices` are global:

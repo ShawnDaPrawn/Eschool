@@ -436,6 +436,8 @@ return [
                     'items' => [
                         ['key' => 'school-modules', 'label' => 'nav_school_modules', 'route' => 'school-modules.index', 'permissions' => ['setting-create'], 'module' => null,
                             'keywords' => ['features', 'switch', 'package', 'enabled modules']],
+                        ['key' => 'school-stages', 'label' => 'nav_school_stages', 'route' => 'school-stages.index', 'permissions' => ['setting-create'], 'module' => null,
+                            'keywords' => ['age stages', 'early years', 'junior', 'high school', 'foundation phase', 'learner sign in']],
                         ['key' => 'profile-fields', 'label' => 'nav_profile_fields', 'route' => 'profile-configuration.index', 'permissions' => ['form-field-list'], 'module' => null,
                             'active' => ['profile-configuration.*'], 'keywords' => ['categories', 'profile', 'transport', 'fields']],
                         ['key' => 'person-profile', 'label' => 'nav_person_profile', 'route' => 'people-profiles.index', 'permissions' => [], 'module' => null,
