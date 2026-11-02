@@ -8,6 +8,7 @@ use App\Models\Platform\School;
 use App\Models\User;
 use App\Services\Commerce\VendorOperatorAccess;
 use App\Services\Facilitators\FacilitatorAccess;
+use App\Services\People\Leavers\LeaverAccess;
 use App\Services\Platform\Identity\ExpectedAccount;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Identity\StudentNumbers;
@@ -33,8 +34,10 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  * - otherwise the user's first school (v1 apps send no header).
  *
  * A user with no active membership is refused (403 on the API; signed out
- * of the panel). Platform staff have none: they reach a school only through
- * audited impersonation, which sets CurrentSchool before this runs.
+ * of the panel). A leaver membership counts until its leaver_until, and
+ * LeaverAccess refuses its writes (Action Plan 1.21). Platform staff have
+ * none: they reach a school only through audited impersonation, which sets
+ * CurrentSchool before this runs.
  *
  * school.context:optional sets the school when there is one and lets the
  * request through otherwise (signing out, changing one's own password).
@@ -93,6 +96,11 @@ class SetSchoolContext
         $this->currentSchool->set($school);
         // Roles loaded before the team was known would be another school's.
         $user->unsetRelation('roles')->unsetRelation('permissions');
+        // Leavers read and do not write (Action Plan 1.21); signing out and
+        // changing one's own password (the optional mode) stay open.
+        if ($mode !== 'optional') {
+            app(LeaverAccess::class)->assertWritable($request, $user, (int) $school->getKey());
+        }
         app(VendorOperatorAccess::class)->enforceProfile($request);
         // A facilitator profile cannot bypass fresh readiness through another
         // role's v1/v2 routes. Credential management/logout remain available.
