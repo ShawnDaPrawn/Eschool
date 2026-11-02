@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services\Growth;
 
+use App\Models\Academics\CurriculumPlan;
 use App\Models\Academics\CurriculumTopic;
 use App\Models\Academics\GradeLevel;
 use App\Models\Growth\MasterySettings;
 use App\Models\Growth\MasteryTopic;
 use App\Models\Growth\TopicLink;
+use App\Models\Library\LibraryTopic;
 use App\Models\Platform\School;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\Academics\AcademicAccess;
+use App\Services\Learning\Library\LibrarySchools;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -33,6 +36,41 @@ class TopicGraph
         foreach ($sources->unique('key') as $source) {
             MasteryTopic::updateOrCreate(['subject_id' => $subjectId, 'topic_key' => $source->key],
                 ['curriculum_topic_id' => $source->id, 'grade_level_id' => $source->curriculum->grade_level_id, 'name' => $source->name]);
+        }
+        $this->overlay($subjectId);
+    }
+
+    /**
+     * The platform library's graph laid over the school's (Action Plan 3.3).
+     * Where the school has switched the library on, each library topic for a
+     * framework, subject code and grade of the subject's published curriculum
+     * gets a mirror node here (library_topic_id set, no curriculum topic), so
+     * evidence from library practice has a school-owned topic to belong to.
+     * Mirror nodes stay out of nodes(), so the school's own graph, its editor
+     * and the tutor see only the school's topics. Data flows from the library
+     * into the school, never back.
+     */
+    public function overlay(int $subjectId): void
+    {
+        if (! app(LibrarySchools::class)->enabled()) {
+            return;
+        }
+        $scopes = CurriculumPlan::query()->where('subject_id', $subjectId)->where('state', 'published')->whereNotNull('standard_snapshot')
+            ->orderByDesc('id')->limit(500)->get(['grade_level_id', 'standard_snapshot'])
+            ->map(fn ($plan) => [(string) ($plan->standard_snapshot['framework'] ?? ''), (string) ($plan->standard_snapshot['code'] ?? ''), (int) $plan->grade_level_id])
+            ->filter(fn ($scope) => $scope[0] !== '' && $scope[1] !== '')->unique(fn ($scope) => implode('|', $scope))->values();
+        if ($scopes->isEmpty()) {
+            return;
+        }
+        $topics = LibraryTopic::query()->where(function ($query) use ($scopes) {
+            foreach ($scopes as [$framework, $code, $grade]) {
+                $query->orWhere(fn ($q) => $q->where('subject_code', $code)->where('grade_level_id', $grade)->whereHas('framework', fn ($f) => $f->where('code', $framework)));
+            }
+        })->orderBy('id')->limit(5001)->get();
+        abort_if($topics->count() > 5000, 422, 'The library subject exceeds its bounded catalogue.');
+        foreach ($topics as $topic) {
+            MasteryTopic::updateOrCreate(['subject_id' => $subjectId, 'topic_key' => $topic->topic_key],
+                ['library_topic_id' => $topic->id, 'curriculum_topic_id' => null, 'grade_level_id' => $topic->grade_level_id, 'name' => $topic->name]);
         }
     }
 

@@ -18,7 +18,7 @@ class MasteryTopic extends Model
 
     protected function casts(): array
     {
-        return ['grade_level_id' => 'integer'];
+        return ['grade_level_id' => 'integer', 'library_topic_id' => 'integer'];
     }
 
     public function source()
