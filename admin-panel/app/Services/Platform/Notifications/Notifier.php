@@ -28,6 +28,9 @@ use Throwable;
 /** Checks school membership, module, rules and choice before queueing. */
 class Notifier
 {
+    /** Characters kept of a full body (the column is TEXT). */
+    public const BODY_LIMIT = 5000;
+
     public function __construct(private readonly NotificationRules $rules) {}
 
     /** Durable recipient intent; the worker checks each channel before delivery. */
@@ -90,12 +93,9 @@ class Notifier
         if (! $this->eligible($user) || ! $this->rules->offered($user, $type)) {
             return [];
         }
-        $link ??= NotificationTypes::link($type);
         // Links are app paths. Never turn a caller-supplied URL into an open
         // redirect in a trusted school message or include a foreign origin.
-        if (! str_starts_with($link, '/') || str_starts_with($link, '//') || str_contains($link, '\\') || preg_match('/[\r\n]/', $link)) {
-            throw new RuntimeException('A notification link must be an app path.');
-        }
+        $link = NotificationTypes::assertAppPath($link ?? NotificationTypes::link($type));
         $notice ??= $this->makeNotice($type, $title, $body, $link);
         abort_unless((int) $notice->school_id === app(CurrentSchool::class)->id(), 404);
         $sent = [];
@@ -140,12 +140,27 @@ class Notifier
         return $sent;
     }
 
-    public function makeNotice(string $type, string $title, string $body, string $link): Notification
+    /**
+     * Three layers: the title, a short excerpt for the inbox row (the message
+     * by default) and an optional full body for the detail view, plus the app
+     * path it opens (the link by default). Private and notice-only types keep
+     * their generic message as the excerpt and never store a body, whatever
+     * the caller passes.
+     */
+    public function makeNotice(string $type, string $title, string $message, string $link, ?string $excerpt = null, ?string $body = null, ?string $target = null): Notification
     {
+        $target = NotificationTypes::assertAppPath($target ?? $link);
+        if (mb_strlen($target) > 512) {
+            throw new RuntimeException('A notification target must be at most 512 characters.');
+        }
+        $private = NotificationTypes::isPrivate($type);
+        $excerpt = $private || $excerpt === null || trim($excerpt) === '' ? $message : $excerpt;
+        $body = $private || $body === null || trim($body) === '' ? null : Str::limit($body, self::BODY_LIMIT, '');
         $year = SessionYear::query()->find((int) schoolSetting('session_year'));
         $notice = new Notification;
         $notice->forceFill([
-            'title' => Str::limit($title, 128, ''), 'message' => Str::limit($body, 128, ''), 'type' => $type,
+            'title' => Str::limit($title, 128, ''), 'message' => Str::limit($message, 128, ''), 'type' => $type,
+            'excerpt' => Str::limit($excerpt, 140, ''), 'body' => $body, 'target' => $target,
             'send_to' => 2, 'delivery_payload' => ['link' => $link], 'date' => now(), 'session_year_id' => $year?->id,
             'is_custom' => 0, 'preferences_enforced' => true,
         ])->save();

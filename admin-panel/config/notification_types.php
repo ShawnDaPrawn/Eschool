@@ -2,6 +2,8 @@
 
 // Add types with their feature. Modes are mandatory, default_on, default_off,
 // or off (not offered). The platform locks cannot be weakened by school rows.
+// 'notice_only' types (like every private_notices scope prefix) only say that
+// something is waiting: their excerpt is the generic message, never a body.
 $all = ['learner', 'parent', 'teacher', 'admin'];
 $on = ['push' => 'default_on', 'email' => 'default_off', 'in_app' => 'default_on'];
 $mail = ['push' => 'off', 'email' => 'mandatory', 'in_app' => 'off'];
@@ -13,8 +15,8 @@ return [
     'account.invitation' => ['label' => 'School invitation', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.sign_in_link' => ['label' => 'Sign-in link', 'module' => 'people', 'portals' => $all, 'channels' => $mail, 'locked' => $all],
     'account.new_device' => ['label' => 'New sign-in', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all],
-    'approval.requested' => ['label' => 'Learner access approval', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent']],
-    'approval.handle_requested' => ['label' => 'Handle approval request', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent']],
+    'approval.requested' => ['label' => 'Learner access approval', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent'], 'notice_only' => true],
+    'approval.handle_requested' => ['label' => 'Handle approval request', 'module' => 'people', 'portals' => ['parent'], 'channels' => $required, 'locked' => ['parent'], 'notice_only' => true],
     'consent.requested' => ['label' => 'Consent request', 'module' => 'people', 'portals' => $all, 'channels' => $required, 'locked' => $all, 'notice_only' => true],
     'safeguarding.alert' => ['label' => 'Safeguarding alert', 'module' => 'wellbeing', 'portals' => ['admin', 'teacher'], 'channels' => $required, 'locked' => ['admin', 'teacher'], 'permission' => 'safeguarding-alerts', 'notice_only' => true],
     'comms.notice' => ['label' => 'School notice', 'module' => 'communication', 'portals' => $all, 'channels' => $on],
@@ -42,7 +44,7 @@ return [
     'transfer.consent_requested' => ['label' => 'School transfer review', 'module' => 'school_transfers', 'portals' => ['parent'], 'channels' => $on, 'notice_only' => true],
     'progress.staff_band_changed' => ['label' => 'Teaching progress updates', 'module' => 'academics', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'progress.band_changed' => ['label' => 'Learning progress updates', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
-    'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on],
+    'pastoral.cover_assigned' => ['label' => 'Relief cover assignment', 'module' => 'relief_cover', 'portals' => ['teacher', 'admin'], 'channels' => $on, 'notice_only' => true],
     'recognition.points_changed' => ['label' => 'House point updates', 'module' => 'house_points', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
     'recognition.award_presented' => ['label' => 'Award presentations', 'module' => 'awards', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],
     'consultations.opened' => ['label' => 'School consultations', 'module' => 'consultations', 'portals' => ['learner', 'parent'], 'channels' => $on, 'notice_only' => true],

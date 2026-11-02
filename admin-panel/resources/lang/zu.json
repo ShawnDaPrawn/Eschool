@@ -5955,5 +5955,9 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "It was on :was.": "Ngaphambilini bekungo-:was.",
+    "Open the calendar for your full exam timetable.": "Vula ikhalenda ukuze ubone lonke uhlelo lwakho lokuhlolwa.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "Uma wazi isizathu, noma uma kuyiphutha, xhumana nehhovisi lesikole. Vula ukuya esikoleni ukuze ubone irejista.",
+    "Contact the school office if something looks wrong.": "Xhumana nehhovisi lesikole uma kukhona okubonakala kungalungile."
 }

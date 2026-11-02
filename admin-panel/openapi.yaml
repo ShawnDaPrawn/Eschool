@@ -2586,6 +2586,83 @@ paths:
                   - in_app
                 enabled:
                   type: boolean
+  /me/notifications:
+    get:
+      operationId: listMyNotifications
+      tags:
+      - Platform
+      summary: Your notifications in this school, newest first
+      description: Three-layer notifications (Action Plan 1.4). Each row has the title, a short excerpt (at most 140
+        characters) and the app path it opens, plus has_body when a fuller text can be read with getMyNotification. Only
+        notices sent to you in the selected school (and older whole-school notices) are listed; private sources are
+        filtered before paging. Private and notice-only types show only their generic text and never have a body. 25 a
+        page.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: One page of your notifications; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationInboxResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /me/notifications/{notice}:
+    get:
+      operationId: getMyNotification
+      tags:
+      - Platform
+      summary: One of your notifications with its full body
+      description: The full body is returned only after the same fresh access check the notice's delivery uses
+        (membership, the source record and any private-source rule). Another user's notice, another school's notice and a
+        notice whose source no longer allows you all answer 404. Without a stored body (has_body false), body repeats the
+        excerpt; private and notice-only types always answer with their generic text.
+      parameters:
+      - $ref: '#/components/parameters/ExpectedAccount'
+      - $ref: '#/components/parameters/SchoolId'
+      - name: notice
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: The notice; never cached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /me/profile:
     get:
       operationId: getMyProfile
@@ -36080,6 +36157,150 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NotificationTypePreference'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationInboxItem:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - title
+      - excerpt
+      - target
+      - has_body
+      - date
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          description: The notification type, for example `academics.exam_changed`.
+        title:
+          type: string
+          maxLength: 128
+        excerpt:
+          type: string
+          maxLength: 140
+          description: The collapsed row's text.
+        target:
+          type: string
+          pattern: ^/(?!/)
+          description: The app path the notice opens, for example `/calendar`.
+        has_body:
+          type: boolean
+          description: Whether getMyNotification has a fuller text than the excerpt.
+        date:
+          type: string
+          format: date-time
+    NotificationDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - type
+      - title
+      - excerpt
+      - target
+      - has_body
+      - date
+      - body
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          description: The notification type, for example `academics.exam_changed`.
+        title:
+          type: string
+          maxLength: 128
+        excerpt:
+          type: string
+          maxLength: 140
+          description: The collapsed row's text.
+        target:
+          type: string
+          pattern: ^/(?!/)
+          description: The app path the notice opens, for example `/calendar`.
+        has_body:
+          type: boolean
+          description: Whether getMyNotification has a fuller text than the excerpt.
+        date:
+          type: string
+          format: date-time
+        body:
+          type: string
+          maxLength: 5000
+          description: The full text; the excerpt when has_body is false.
+    NotificationInboxPage:
+      type: object
+      additionalProperties: false
+      required:
+      - school_id
+      - reader_id
+      - items
+      - page
+      - last_page
+      - total
+      properties:
+        school_id:
+          type: integer
+          minimum: 1
+        reader_id:
+          type: integer
+          minimum: 1
+        items:
+          type: array
+          maxItems: 25
+          items:
+            $ref: '#/components/schemas/NotificationInboxItem'
+        page:
+          type: integer
+          minimum: 1
+        last_page:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+    NotificationInboxResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationInboxPage'
+        code:
+          type: integer
+          description: Always 200.
+    NotificationDetailResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - message
+      - data
+      - code
+      properties:
+        error:
+          type: boolean
+          description: Always false.
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/NotificationDetail'
         code:
           type: integer
           description: Always 200.

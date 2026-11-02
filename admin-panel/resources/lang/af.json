@@ -5955,5 +5955,9 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "It was on :was.": "Dit was op :was.",
+    "Open the calendar for your full exam timetable.": "Maak die kalender oop vir jou volledige eksamenrooster.",
+    "If you know why, or this is a mistake, contact the school office. Open Attendance for the register.": "As jy weet hoekom, of as dit 'n fout is, kontak die skoolkantoor. Maak Bywoning oop vir die register.",
+    "Contact the school office if something looks wrong.": "Kontak die skoolkantoor as iets verkeerd lyk."
 }

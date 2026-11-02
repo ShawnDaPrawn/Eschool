@@ -79,6 +79,15 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+- API: notifications now come in three layers: a title, a short excerpt for the
+  inbox row and, where there is more to say, a full text, plus the app screen
+  each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
+  the current school and `GET /api/v2/me/notifications/{id}` returns one with
+  its full text after checking again that they may still see it. Exam changes
+  now say what the sitting was before, and absence alerts say who to contact.
+  Private notices (wellbeing, discipline, progress, transfers and the like)
+  still only say that something is waiting. Installed apps see no change; the
+  new app screens follow. **Deploy:** run the migrations.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
