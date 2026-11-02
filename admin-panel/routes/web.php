@@ -121,6 +121,7 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
+use App\Http\Controllers\Platform\PlatformAnnouncementController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
@@ -130,6 +131,7 @@ use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
@@ -328,6 +330,15 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // Announcements to schools (SA.13): draft, preview the reach, publish, withdraw.
+    Route::prefix('/announcements')->middleware('platform.can:announcements.manage')->name('announcements.')->group(function () {
+        Route::get('/', [PlatformAnnouncementController::class, 'index'])->name('index');
+        Route::post('/', [PlatformAnnouncementController::class, 'store'])->middleware('throttle:20,1')->name('store');
+        Route::get('/{announcement}', [PlatformAnnouncementController::class, 'show'])->whereNumber('announcement')->name('show');
+        Route::put('/{announcement}', [PlatformAnnouncementController::class, 'update'])->whereNumber('announcement')->name('update');
+        Route::post('/{announcement}/publish', [PlatformAnnouncementController::class, 'publish'])->middleware('throttle:20,1')->whereNumber('announcement')->name('publish');
+        Route::post('/{announcement}/withdraw', [PlatformAnnouncementController::class, 'withdraw'])->middleware('throttle:20,1')->whereNumber('announcement')->name('withdraw');
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -1398,6 +1409,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
     Route::post('consents', [$controller, 'write'])->defaults('operation', 'create')->name('create');
     Route::get('consents/{consent}/managed', [$controller, 'show'])->whereUuid('consent')->defaults('operation', 'managed')->name('managed');
     Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->defaults('operation', 'cancel')->name('cancel');
+});
+
+// Navigate Ed's announcements to this school, for its Super Admins (SA.13). Dismissing
+// a banner is allowed while a past year is open, so it sits outside EnforceReadOnlyYears.
+Route::middleware(['Role', 'auth', 'school.context'])->prefix('navigate-ed-announcements')->name('platform-announcements.')->group(function () {
+    Route::get('/', [SchoolAnnouncementController::class, 'index'])->name('index');
+    Route::get('/{announcement}', [SchoolAnnouncementController::class, 'show'])->whereNumber('announcement')->name('show');
+    Route::post('/{announcement}/read', [SchoolAnnouncementController::class, 'read'])->middleware('throttle:60,1')->whereNumber('announcement')->name('read');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('family-visits')->name('family-visits-panel.')->group(function () {

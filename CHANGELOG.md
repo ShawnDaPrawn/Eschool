@@ -79,6 +79,16 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+- Platform: announcements to schools at `/saas/announcements` for Owner and
+  Operations. Write release notes, a maintenance window or a policy change, aim
+  it at every school, at schools on a package or at a lifecycle stage, or at
+  chosen schools, see how many schools and Super Admins it reaches, then
+  publish. Each school's Super Admins get a notice and a banner in their panel
+  while it is current; dismissing the banner counts as read, and HQ sees how
+  many schools and Super Admins have read it. A published announcement never
+  changes: withdraw it and publish a new one. Super Admins find every
+  announcement for their school under Settings, Navigate Ed announcements.
+  **Deploy:** run the migrations.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
