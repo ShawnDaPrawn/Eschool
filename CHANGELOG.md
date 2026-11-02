@@ -29,6 +29,18 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: Wellbeing check-ins and an intervention library (Action Plan
+  4.11). Principals keep a library of everyday school actions in early warning
+  (the steps, a suggested length and how to measure progress) and can add
+  NavigateEd's six suggested actions in one step. Staff who plan an
+  intervention can start it from a library action and record dated progress
+  against its steps: on track, needs review or completed. A learner's
+  counsellor or safeguarding professional can schedule a short private
+  check-in for one learner or a group on their caseload and record the
+  learner's answer, from Not good to Great with an optional note. Only that learner's
+  authorised pastoral staff see the answers; their early warning list shows
+  recent check-ins as context, never as a risk. The learner app answer comes
+  later. **Deploy:** run the migrations.
 - Platform: Navigate Ed Operations can now run a school's onboarding imports
   (homerooms, learners with guardians, or staff) on its behalf. From the
   school's HQ page, "Imports on the school's behalf", Operations check the file

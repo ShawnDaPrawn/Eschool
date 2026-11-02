@@ -86,7 +86,9 @@ class Interventions
         $authority->year($year, true);
         $grade = $authority->currentGrade($learner, $year);
         $authority->caseActor($actor, $learner, $year, $grade, true);
-        $data = Validator::make($input, ['owner_id' => ['required', 'integer', 'min:1'], 'owner_authority' => ['sometimes', 'in:academic,professional,leadership'], 'action' => ['required', 'string', 'max:20000'],
+        // A library action (Action Plan 4.11) gives the plan its steps; the author may still write the action text.
+        $data = Validator::make($input, ['owner_id' => ['required', 'integer', 'min:1'], 'owner_authority' => ['sometimes', 'in:academic,professional,leadership'],
+            'library_action_id' => ['sometimes', 'nullable', 'integer', 'min:1'], 'action' => ['required_without:library_action_id', 'nullable', 'string', 'max:20000'],
             'started_on' => ['required', 'date_format:Y-m-d'], 'review_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:started_on']])->validate();
         $schoolYear = SessionYear::findOrFail($year);
         abort_unless($data['started_on'] >= $schoolYear->start_date && $data['started_on'] <= $schoolYear->end_date, 422, 'Start the intervention within its school year.');
@@ -105,6 +107,11 @@ class Interventions
             }
             $authority->caseActor(User::findOrFail($data['owner_id']), $learner, $year, $grade, true, $kind);
             abort_unless($authority->currentGrade($learner, $year) === $grade, 409, 'The learner enrolment changed. Reload before saving.');
+            if (($data['library_action_id'] ?? null) !== null) {
+                $plan = app(InterventionLibrary::class)->plan((int) $data['library_action_id']);
+                $data['plan'] = $plan;
+                $data['action'] = is_string($data['action'] ?? null) && trim($data['action']) !== '' ? $data['action'] : app(InterventionLibrary::class)->actionText($plan);
+            }
             $row = Intervention::create($data + ['learner_id' => $learner, 'session_year_id' => $year, 'grade_level_id' => $grade,
                 'created_by' => $actor->id, 'owner_authority' => $kind, 'revision' => 1, 'state' => 'active']);
             $this->version($row, $actor);

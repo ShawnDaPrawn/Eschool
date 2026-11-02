@@ -58,6 +58,7 @@ use App\Http\Controllers\Panel\FamilyForms\FamilyPanelController;
 use App\Http\Controllers\Panel\FamilyVisits\VisitPanelController;
 use App\Http\Controllers\Panel\Gallery\GalleryPanelController;
 use App\Http\Controllers\Panel\Growth\CaseloadRenewalController;
+use App\Http\Controllers\Panel\Growth\InterventionLibraryController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
@@ -118,6 +119,7 @@ use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
 use App\Http\Controllers\Panel\Recognition\RecognitionPanelController;
 use App\Http\Controllers\Panel\SearchController;
 use App\Http\Controllers\Panel\Transfers\TransferPanelController;
+use App\Http\Controllers\Panel\Wellbeing\CheckInPanelController;
 use App\Http\Controllers\Panel\Wellbeing\WellbeingPanelController;
 use App\Http\Controllers\ParentsController;
 use App\Http\Controllers\People\AccessReviewController;
@@ -1586,6 +1588,21 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::get('renewals', [CaseloadRenewalController::class, 'index'])->name('renewals');
     Route::post('renewals', [CaseloadRenewalController::class, 'store'])->middleware('throttle:20,1')->name('renewals.store');
     Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
+    // Intervention library and progress against a plan's steps (Action Plan 4.11).
+    Route::post('interventions/{intervention}/progress', [RiskPanelController::class, 'write'])->whereNumber('intervention')->name('progress');
+    Route::get('library', [InterventionLibraryController::class, 'index'])->name('library');
+    Route::post('library', [InterventionLibraryController::class, 'store'])->name('library.store');
+    Route::post('library/suggested', [InterventionLibraryController::class, 'adopt'])->name('library.adopt');
+    Route::post('library/{action}', [InterventionLibraryController::class, 'update'])->whereNumber('action')->name('library.update');
+    Route::post('library/{action}/archive', [InterventionLibraryController::class, 'archive'])->whereNumber('action')->name('library.archive');
+});
+
+// Short private wellbeing check-ins for authorised pastoral staff (Action Plan 4.11).
+Route::middleware([PrivateWellbeing::class, 'auth', 'school.context', 'staff', 'module:wellbeing', EnforceReadOnlyYears::class])->prefix('wellbeing-check-ins')->name('wellbeing-check-ins.')->group(function () {
+    Route::get('/', [CheckInPanelController::class, 'index'])->name('index');
+    Route::post('/', [CheckInPanelController::class, 'schedule'])->name('schedule');
+    Route::post('{checkIn}/answer', [CheckInPanelController::class, 'record'])->whereNumber('checkIn')->name('record');
+    Route::post('{checkIn}/cancel', [CheckInPanelController::class, 'cancel'])->whereNumber('checkIn')->name('cancel');
     // "No child unseen" (Action Plan 4.5).
     Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
     Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
