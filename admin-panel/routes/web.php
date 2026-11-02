@@ -122,10 +122,13 @@ use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformFeatureFlagController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
+use App\Http\Controllers\Platform\PlatformPackageController;
+use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
@@ -291,12 +294,26 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     // Every route names the ability its role must hold (platform.can, SA.1).
     Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
     Route::get('/packages', ProductCatalogueController::class)->middleware('platform.can:packages.view')->name('packages');
+    // The package and price editor (SA.7): packages.view reads, packages.manage changes.
+    Route::get('/packages/{package}', [PlatformPackageController::class, 'show'])->middleware('platform.can:packages.view')->whereNumber('package')->name('packages.show');
+    Route::prefix('/packages')->middleware(['platform.can:packages.manage', 'throttle:30,1'])->name('packages.')->group(function () {
+        Route::post('/', [PlatformPackageController::class, 'store'])->name('store');
+        Route::put('/{package}', [PlatformPackageController::class, 'update'])->whereNumber('package')->name('update');
+        Route::put('/{package}/modules', [PlatformPackageController::class, 'modules'])->whereNumber('package')->name('modules');
+        Route::put('/{package}/status', [PlatformPackageController::class, 'status'])->whereNumber('package')->name('status');
+        Route::post('/{package}/prices', [PlatformPackageController::class, 'price'])->whereNumber('package')->name('prices.store');
+        Route::post('/{package}/prices/{price}/withdraw', [PlatformPackageController::class, 'withdraw'])->whereNumber(['package', 'price'])->name('prices.withdraw');
+        Route::post('/{package}/reapply', [PlatformPackageController::class, 'reapply'])->whereNumber('package')->name('reapply');
+    });
     Route::get('/schools/create', [SaasController::class, 'create'])->middleware('platform.can:schools.create')->name('schools.create');
     Route::post('/schools', [SaasController::class, 'store'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->name('schools.store');
     Route::get('/schools/{school}', [SaasController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.show');
     // The onboarding checklist (SA.6): counts from the school's live data, never a person.
     Route::get('/schools/{school}/onboarding', [PlatformOnboardingController::class, 'show'])->middleware('platform.can:schools.view')->whereNumber('school')->name('schools.onboarding');
     Route::post('/schools/{school}/training', [PlatformOnboardingController::class, 'training'])->middleware(['platform.can:accounts.manage', 'throttle:20,1'])->whereNumber('school')->name('schools.training');
+    // School health and usage (SA.10): counts and shares only, never a person.
+    Route::get('/schools/{school}/health', [PlatformSchoolHealthController::class, 'show'])->middleware('platform.can:health.view')->whereNumber('school')->name('schools.health');
+    Route::get('/health', [PlatformSchoolHealthController::class, 'index'])->middleware('platform.can:health.view')->name('health');
     // HQ's own record of the school (contacts, stage, contracts, timeline): never the school's people.
     Route::prefix('/schools/{school}')->whereNumber('school')->middleware('platform.can:accounts.manage')->name('schools.')->group(function () {
         Route::get('account', [SchoolAccountController::class, 'show'])->name('account');
@@ -328,6 +345,11 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // Feature flags and staged rollout (SA.14): beta schools first, then everyone; a kill switch.
+    Route::get('/flags', [PlatformFeatureFlagController::class, 'index'])->middleware('platform.can:flags.manage')->name('flags.index');
+    Route::post('/flags', [PlatformFeatureFlagController::class, 'store'])->middleware(['platform.can:flags.manage', 'throttle:20,1'])->name('flags.store');
+    Route::put('/flags/{flag}', [PlatformFeatureFlagController::class, 'update'])->middleware('platform.can:flags.manage')->whereNumber('flag')->name('flags.update');
+    Route::post('/flags/{flag}/schools', [PlatformFeatureFlagController::class, 'school'])->middleware('platform.can:flags.manage')->whereNumber('flag')->name('flags.schools');
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -476,6 +498,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             foreach (['save', 'submit', 'decision', 'withdraw'] as $action) {
                 Route::post('drafts/{message}/'.$action, [$c, $action])->whereNumber('message')->name($action);
             }
+            Route::get('messages/{message}/report', [$c, 'report'])->whereNumber('message')->name('report');
             Route::post('audiences', [$c, 'audienceCreate'])->name('audience-create');
             Route::post('audiences/{audience}', [$c, 'audienceSave'])->whereNumber('audience')->name('audience-save');
             Route::post('rules/{role}', [$c, 'ruleSave'])->whereNumber('role')->name('rule-save');
