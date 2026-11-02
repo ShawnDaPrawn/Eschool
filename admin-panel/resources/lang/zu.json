@@ -6024,6 +6024,7 @@
     "Not yet": "Akukakabi",
     "No recipients": "Abekho abamukeli",
     "Former member": "Owayeyilungu",
+
     "That is not a valid LURITS number.": "Lena akuyona inombolo ye-LURITS evumelekile.",
     "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Akuphoqelekile. Uma umfundi esenayo irekhodi le-NavigateEd, uzocelwa ukuthi uqale isicelo sokudluliselwa esikhundleni salokho.",
     "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Le nombolo ye-LURITS ingeyowayengumfundi wesikole sakho (:number). Buyisela irekhodi lakhe esikhundleni sokumengeza futhi.",
@@ -6099,6 +6100,7 @@
     "Reason: :reason": "Isizathu: :reason",
     "Asked :date": "Kucelwe ngo-:date",
     "Approve": "Vuma",
+    "Decline": "Yenqaba",
     "Open now": "Kuvulekile manje",
     "No support session is open": "Asikho isikhathi sokusekela esivulekile",
     "Nobody from Navigate Ed can see your school right now.": "Akekho ovela ku-Navigate Ed ongabona isikole sakho manje.",

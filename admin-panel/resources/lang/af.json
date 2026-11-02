@@ -6024,6 +6024,7 @@
     "Not yet": "Nog nie",
     "No recipients": "Geen ontvangers nie",
     "Former member": "Voormalige lid",
+
     "That is not a valid LURITS number.": "Dit is nie 'n geldige LURITS-nommer nie.",
     "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Opsioneel. As die leerder reeds 'n NavigateEd-rekord het, sal u gevra word om eerder 'n oorplasingsversoek te begin.",
     "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "Hierdie LURITS-nommer behoort aan 'n oud-leerder van u skool (:number). Herstel hulle rekord eerder as om hulle weer by te voeg.",
@@ -6099,6 +6100,7 @@
     "Reason: :reason": "Rede: :reason",
     "Asked :date": "Gevra :date",
     "Approve": "Keur goed",
+    "Decline": "Weier",
     "Open now": "Nou oop",
     "No support session is open": "Geen ondersteuningsessie is oop nie",
     "Nobody from Navigate Ed can see your school right now.": "Niemand van Navigate Ed kan jou skool nou sien nie.",

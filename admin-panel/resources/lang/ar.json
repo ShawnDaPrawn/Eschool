@@ -4951,6 +4951,7 @@
     "Not yet": "Not yet",
     "No recipients": "No recipients",
     "Former member": "Former member",
+
     "That is not a valid LURITS number.": "That is not a valid LURITS number.",
     "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.": "Optional. If the learner already has a NavigateEd record, you will be asked to start a transfer request instead.",
     "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.": "This LURITS number belongs to a former learner of your school (:number). Restore their record instead of adding them again.",
@@ -5026,6 +5027,7 @@
     "Reason: :reason": "Reason: :reason",
     "Asked :date": "Asked :date",
     "Approve": "Approve",
+    "Decline": "Decline",
     "Open now": "Open now",
     "No support session is open": "No support session is open",
     "Nobody from Navigate Ed can see your school right now.": "Nobody from Navigate Ed can see your school right now.",

@@ -24,6 +24,9 @@ final class SchoolOwnedTables
         'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
+        'support_access_grants', 'support_access_views',
+        'school_health_snapshots',
+        'platform_feature_flag_schools',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
         // notes, their lines, its EFT payments and what each payment or credit
         // note settles. Each row is about one school, so it carries the school
@@ -138,11 +141,15 @@ final class SchoolOwnedTables
         'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
         'platform_package_modules' => 'which product modules each version of a package includes; names no school',
         'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
+        'platform_packages' => 'Navigate Ed\'s own package list, written only from /saas; a school names its package by key on schools.package_key',
+        'platform_package_modules' => 'which product modules each version of a package includes; names no school',
+        'platform_prices' => 'Navigate Ed\'s effective-dated price list per package, written only from /saas; names no school (a school\'s agreed price is on school_contracts)',
         'platform_announcements' => 'Navigate Ed\'s own announcements to schools, written only from /saas; a school reads one only through its own platform_announcement_schools row, and the audience list is never shown to a school',
         'platform_incident_entries' => 'the timeline of one platform incident, written only from /saas; names no school (the affected schools are in platform_incident_schools)',
         'platform_ai_caps' => 'Navigate Ed\'s own daily AI spending caps per feature, set only from /saas/ai; a school\'s own lower limits stay in ai_school_limits',
         'platform_ai_cap_changes' => 'the history of HQ AI cap changes (who, when, old and new cents, reason), written only from /saas/ai; names no school',
         'platform_admin_grants' => 'explicit expiring operator grants to the platform admin area; no school role, permission or record',
+        'platform_staff_two_factor' => 'a platform staff member\'s own authenticator app (encrypted secret, hashed recovery codes) for signing in to /saas; platform staff belong to no school',
         'subject_standards' => 'public versioned CAPS/IEB catalogue; only the trusted platform operator importer writes, with no school HTTP writes',
         'grade_levels' => 'shared R to 12 grade and school-phase reference; no person or school records and no API writes',
         'academic_rating_levels' => 'shared seven-point percentage reference only; no learner marks or school records',

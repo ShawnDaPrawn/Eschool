@@ -125,6 +125,7 @@ use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAnnouncementController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformFeatureFlagController;
 use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformFeatureFlagController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
@@ -136,9 +137,12 @@ use App\Http\Controllers\Platform\PlatformPackageController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\PlatformSupportAccessController;
+use App\Http\Controllers\Platform\PlatformTwoFactorController;
+use App\Http\Controllers\Platform\PlatformSupportAccessController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\SchoolSupportAccessController;
 use App\Http\Controllers\Platform\SchoolJoinInvitationController;
 use App\Http\Controllers\Platform\SchoolSupportAccessController;
 use App\Http\Controllers\Platform\SchoolAnnouncementController;
@@ -294,6 +298,16 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:passwor
     Route::post('saas/password', [HomeController::class, 'changePassword'])->middleware('throttle:password')->name('saas.password.store');
 });
 
+// Two-factor sign-in for platform staff (SA.2): set up the authenticator app,
+// then pass the challenge once in each session. Every other /saas page waits
+// for it (platform.staff); these pages are the only ones open before it.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:two-factor'])->prefix('saas/two-factor')->name('saas.two-factor.')->group(function () {
+    Route::get('/', [PlatformTwoFactorController::class, 'enrol'])->name('enrol');
+    Route::post('/', [PlatformTwoFactorController::class, 'confirm'])->middleware('throttle:20,1')->name('confirm');
+    Route::get('/challenge', [PlatformTwoFactorController::class, 'challenge'])->name('challenge');
+    Route::post('/challenge', [PlatformTwoFactorController::class, 'verify'])->middleware('throttle:20,1')->name('verify');
+});
+
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
 // One-click unsubscribe from an optional notice email (Action Plan 2.4, RFC 8058): the
 // signature is the authority, so the POST takes no session or CSRF token.
@@ -364,6 +378,19 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // Audited support access (SA.9): ask a school, follow the decision, see every page viewed; Owners may open a pending request in an emergency.
+    Route::prefix('/support')->name('support.')->group(function () {
+        Route::get('/', [PlatformSupportAccessController::class, 'index'])->middleware('platform.can:support.access')->name('index');
+        Route::post('/', [PlatformSupportAccessController::class, 'store'])->middleware(['platform.can:support.access', 'throttle:20,1'])->name('store');
+        Route::get('/{grant}', [PlatformSupportAccessController::class, 'show'])->middleware('platform.can:support.access')->whereNumber('grant')->name('show');
+        Route::post('/{grant}/emergency', [PlatformSupportAccessController::class, 'emergency'])->middleware(['platform.can:support.emergency', 'throttle:10,1'])->whereNumber('grant')->name('emergency');
+        Route::post('/{grant}/end', [PlatformSupportAccessController::class, 'end'])->middleware('platform.can:support.access')->whereNumber('grant')->name('end');
+    });
+    // Feature flags and staged rollout (SA.14): beta schools first, then everyone; a kill switch.
+    Route::get('/flags', [PlatformFeatureFlagController::class, 'index'])->middleware('platform.can:flags.manage')->name('flags.index');
+    Route::post('/flags', [PlatformFeatureFlagController::class, 'store'])->middleware(['platform.can:flags.manage', 'throttle:20,1'])->name('flags.store');
+    Route::put('/flags/{flag}', [PlatformFeatureFlagController::class, 'update'])->middleware('platform.can:flags.manage')->whereNumber('flag')->name('flags.update');
+    Route::post('/flags/{flag}/schools', [PlatformFeatureFlagController::class, 'school'])->middleware('platform.can:flags.manage')->whereNumber('flag')->name('flags.schools');
     // SES streams (2.3): each school's account and bulk configuration sets, their status and rates; counts only.
     Route::get('/mail-streams', [PlatformMailStreamsController::class, 'index'])->middleware('platform.can:mail.view')->name('mail-streams');
     Route::post('/mail-streams/check', [PlatformMailStreamsController::class, 'check'])->middleware(['platform.can:mail.manage', 'throttle:20,1'])->name('mail-streams.check');
@@ -416,6 +443,17 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/staff/{user}', [PlatformStaffController::class, 'update'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.update');
     Route::post('/staff/{user}/revoke', [PlatformStaffController::class, 'revoke'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.revoke');
     Route::post('/staff/{user}/invitation', [PlatformStaffController::class, 'resend'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.invitation');
+    Route::post('/staff/{user}/two-factor/reset', [PlatformStaffController::class, 'resetTwoFactor'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.two-factor.reset');
+});
+
+// A support session (SA.9): read-only pages of the one school an open grant names.
+// support.session checks the grant and platform sign-in before setting the school; no school.context.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'support.session'])->prefix('support-session/{grant}')->name('support-session.')->group(function () {
+    Route::get('/', [SupportSessionController::class, 'show'])->whereNumber('grant')->name('show');
+    Route::get('/people', [SupportSessionController::class, 'people'])->whereNumber('grant')->name('people');
+    // A read sent as a POST (the search words stay out of the URL); the only POST support.session lets through.
+    Route::post('/people', [SupportSessionController::class, 'search'])->whereNumber('grant')->middleware('throttle:60,1')->name('people.search');
+    Route::get('/people/{person}', [SupportSessionController::class, 'person'])->whereNumber(['grant', 'person'])->name('person');
 });
 
 // A support session (SA.9): read-only pages of the one school an open grant names.
