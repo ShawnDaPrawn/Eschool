@@ -17,7 +17,9 @@ class SasamsExportController extends Controller
 {
     public function index(SasamsExportRequest $request): View
     {
-        return view('academics.sasams-export');
+        // How many learners still need the layout's learner_refs map (1.0d).
+        return view('academics.sasams-export', ['readiness' => app(SasamsExport::class)->readiness($request->user()),
+            'recordsLurits' => $request->user()->can('student-edit')]);
     }
 
     public function download(SasamsExportRequest $request): Response
