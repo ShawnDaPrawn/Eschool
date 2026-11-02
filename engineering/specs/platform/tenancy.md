@@ -293,6 +293,14 @@ the school's Super Admin confirms receipt from the panel, where an id from
 another school is not found ([Offboarding](offboarding.md)). The export and the
 deletion dry run read the school's rows through `SchoolOwnedTables`, always with
 the school's id.
+### Imports on a school's behalf
+
+`platform_school_imports` is required school-owned: each import Navigate Ed
+Operations prepare belongs to its target school. HQ reads it across schools
+only to find an import's school, then works inside that school (the preview,
+the approval check and the write all run in it). The school reads its own rows
+through `BelongsToSchool`; another school's import is not found
+([HQ imports](hq-imports.md)).
 
 ### A guardian at two schools (Action Plan 1.1, server side)
 

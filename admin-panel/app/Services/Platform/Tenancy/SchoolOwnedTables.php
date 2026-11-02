@@ -36,6 +36,7 @@ final class SchoolOwnedTables
         'support_access_grants', 'support_access_views',
         'platform_feature_flag_schools',
         'school_support_tickets', 'school_support_ticket_messages',
+        'platform_school_imports',
         'fee_tax_settings', 'fee_payment_choices', 'fee_reminder_policies', 'fee_reminders',
         'fee_accounting_settings',
         'bank_statement_imports', 'bank_statement_lines', 'bank_statement_import_rows', 'bank_statement_resolutions',

@@ -117,4 +117,4 @@ No API change.
 
 - Correcting an already recorded LURITS number from a file. Corrections stay on the office's LURITS numbers page.
 
-- Import on a school's behalf by HQ operations (SA.11).
+- Import on a school's behalf by HQ operations (SA.11): built, see [HQ imports](../platform/hq-imports.md). It runs these same checks and writes, in the school, as the leader who approves it.

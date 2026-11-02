@@ -55,6 +55,14 @@ class PlatformAuditLog
         'platform_support_access_emergency' => 'Emergency support access opened',
         'platform_support_access_ended' => 'Support access ended',
         'platform_support_page_viewed' => 'Page viewed in a support session',
+        'platform_import_previewed' => 'Import checked for a school',
+        'platform_import_requested' => 'Import sent for the school\'s approval',
+        'platform_import_approved' => 'Import approved by the school',
+        'platform_import_declined' => 'Import declined by the school',
+        'platform_import_applied' => 'Import applied for the school',
+        'platform_import_cancelled' => 'Import cancelled',
+        'platform_import_stopped' => 'Import stopped',
+        'platform_import_expired' => 'Import expired',
     ];
 
     /** Keys left out of the summary: who changed it is already the actor. */

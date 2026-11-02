@@ -29,6 +29,7 @@ return [
     'academics.content_published' => ['label' => 'Lesson content', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.marks_released' => ['label' => 'Marks released', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'academics.report_published' => ['label' => 'Report published', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],
+    'people.hq_import_approval' => ['label' => 'Import waiting for approval', 'module' => 'people', 'portals' => ['teacher', 'admin'], 'channels' => $on],
     'school.new_year' => ['label' => 'New school year', 'module' => 'people', 'portals' => ['learner', 'parent'], 'channels' => $on],
     'school.support_reply' => ['label' => 'Navigate Ed support replies', 'module' => 'school', 'portals' => ['admin'], 'channels' => $on],
     'academics.exam_changed' => ['label' => 'Exam changes', 'module' => 'academics', 'portals' => ['learner', 'parent'], 'channels' => $on],

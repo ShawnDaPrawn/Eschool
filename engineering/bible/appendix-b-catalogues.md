@@ -120,6 +120,11 @@ school's notification rules apply) goes to the active Super Admins of each schoo
 an HQ announcement reaches (SA.13) when it is published. The notice carries the
 announcement's title and its kind (and a maintenance window's times), and links
 to the school panel's Navigate Ed announcements page; it names no other school.
+Import waiting for approval: people.hq_import_approval (people module, teacher
+and admin portals, standard channel preferences) tells the school leader whom
+Navigate Ed Operations named when an onboarding import prepared on the school's
+behalf (SA.11) waits for their approval. The notice links to the import in the
+panel and names no learner, guardian or staff member.
 
 Exam changes: academics.exam_changed (academics module, learner and parent
 portals, standard channel preferences) tells the learners in a class and their
