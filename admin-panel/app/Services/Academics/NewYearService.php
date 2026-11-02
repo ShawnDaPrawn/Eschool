@@ -39,6 +39,7 @@ use App\Models\SubjectTeacher;
 use App\Models\TermTemplate;
 use App\Models\Timetable;
 use App\Models\User;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Identity\GuardianService;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Notifications\Notifier;
@@ -218,7 +219,7 @@ class NewYearService
      * The preview shown before the switch.
      *
      * @param  list<string>  $chosen
-     * @return array{carry: list<array<string, mixed>>, promoted: int, leaving: int, learners: int}
+     * @return array{carry: list<array<string, mixed>>, promoted: int, leaving: int, learners: int, leaver_until: string}
      */
     public function preview(SessionYear $from, SessionYear $to, array $chosen): array
     {
@@ -227,6 +228,8 @@ class NewYearService
             'promoted' => StudentSessions::where('session_year_id', $to->id)->where('status', 1)->count(),
             'leaving' => StudentSessions::where('session_year_id', $to->id)->where('status', 0)->count(),
             'learners' => StudentSessions::where('session_year_id', $from->id)->where('status', 1)->distinct()->count('student_id'),
+            // Leavers read their records until then (LeaverState, 1.21).
+            'leaver_until' => app(LeaverState::class)->untilForSwitch($to),
         ];
     }
 

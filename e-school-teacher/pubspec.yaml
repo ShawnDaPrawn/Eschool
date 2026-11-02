@@ -34,7 +34,7 @@ dependencies:
 
   cupertino_icons: ^2.0.0
   flutter_bloc: ^9.1.1
-  flutter_svg: ^2.2.4
+  flutter_svg: ^2.3.2
   google_fonts: ^9.0.0
   dotted_border: ^3.1.0
   lottie: ^3.3.3
@@ -48,7 +48,7 @@ dependencies:
   firebase_core: ^4.7.0
   firebase_messaging: ^16.7.1
   awesome_notifications: ^0.12.1
-  cached_network_image: ^4.0.5
+  cached_network_image: ^4.0.6
   shimmer: ^4.0.0
   permission_handler: ^12.0.1
   url_launcher: ^6.3.2
@@ -67,8 +67,8 @@ dependencies:
   bloc: any
   meta: any
   path_provider: any
-  firebase_crashlytics: ^5.2.0
-  firebase_analytics: ^12.3.0
+  firebase_crashlytics: ^5.4.1
+  firebase_analytics: ^12.6.1
   dotted_line: ^3.3.0
   youtube_player_iframe: ^6.0.2
   webview_flutter: ^4.13.1
@@ -77,7 +77,7 @@ dependency_overrides:
   intl: any
 
 dev_dependencies:
-  crypto: ^3.0.7
+  crypto: ^3.0.8
   flutter_test:
     sdk: flutter
   flutter_driver:

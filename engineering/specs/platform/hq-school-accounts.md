@@ -15,8 +15,8 @@ row and audit entry carries the school:
 | --- | --- |
 | `school_accounts` | one row per school: stage, school type, phase, curriculum, province, district, EMIS number, address, expected learners, revision |
 | `school_contacts` | the people Navigate Ed works with there: role (principal, deputy principal, bursar, IT, Information Officer, other), name, email and/or phone |
-| `school_contracts` | start, end and renewal dates, contracted learners, monthly price per learner before VAT in integer cents, signatory, operator agreement version and signed date, data processing addendum date, notes |
-| `school_account_events` | the timeline: notes, stage changes, contacts added or removed, contracts recorded, with who and when |
+| `school_contracts` | start, end and renewal dates, contracted learners, monthly price per learner before VAT in integer cents, signatory, operator agreement version and signed date, data processing addendum date, the optional deletion term (days after the end before the school's data is deleted; it needs an end date and is what [offboarding](offboarding.md) uses), notes |
+| `school_account_events` | the timeline: notes, stage changes, contacts added or removed, contracts recorded, support tickets opened, closed or reopened ([support desk](support-desk.md)), with who and when |
 
 ## Rules
 
@@ -64,5 +64,7 @@ pixels (accessibility and fit).
 
 ## Not yet
 
-Uploading the signed contract document, renewal reminders, the onboarding
-checklist (SA.6) and invoices from the contract (SA.8, 1.17).
+Uploading the signed contract document, renewal reminders and the onboarding
+checklist (SA.6). Invoices are [HQ billing](hq-billing.md): a contract in force
+on the first day of a month sets that month's price per learner, and wins over
+the package's list price, because it is what the school signed.

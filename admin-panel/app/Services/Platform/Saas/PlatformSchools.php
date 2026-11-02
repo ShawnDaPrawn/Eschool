@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Platform\Audit\Audit;
 use App\Services\Platform\Events\ContextChanged;
 use App\Services\Platform\Events\Outbox;
+use App\Services\Platform\Identity\SchoolJoinInvitations;
 use App\Services\Platform\Identity\StaffInvitations;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
@@ -80,10 +81,14 @@ class PlatformSchools
         });
     }
 
-    /** The package keys platform staff can assign, with the modules each includes. */
+    /**
+     * The packages platform staff can put a school on: active ones, key => name (PlatformPackages).
+     *
+     * @return array<string, string>
+     */
     public function packages(): array
     {
-        return array_map(fn (array $modules): int => count($modules), (array) config('school_packages'));
+        return app(PlatformPackages::class)->assignable();
     }
 
     /**
@@ -92,62 +97,85 @@ class PlatformSchools
      * password (StaffInvitations). Their starting password is random and known
      * to nobody. The link is also returned, to show once if the email is late.
      *
+     * When the administrator's address already has an account (a principal
+     * moving schools), no second account is made: they are invited to join
+     * (SchoolJoinInvitations), sign in with their own password and accept,
+     * and only then become the school's Super Admin. An account that may not
+     * be one is refused before anything is created.
+     *
      * @param  array{name: string, slug: ?string, timezone: string, package_key: string, admin_first_name: string, admin_last_name: string, admin_email: string, admin_mobile: ?string}  $data
-     * @return array{school: School, admin: User, invitation_url: string}
+     * @return array{school: School, admin: User, invitation_url: string, existing_account: bool}
      */
     public function create(array $data, User $actor): array
     {
         return $this->currentSchool->acrossSchools(function () use ($data, $actor): array {
             return DB::transaction(function () use ($data, $actor): array {
+                $joins = app(SchoolJoinInvitations::class);
+                $existing = User::acrossSchools()->withTrashed()->where('email', strtolower(trim($data['admin_email'])))->lockForUpdate()->first();
+                if ($existing !== null) {
+                    // Refused before the school exists, so nothing is created.
+                    $joins->assertMayBeFirstAdministrator($existing, $data['admin_email']);
+                }
+                // The package's current module set; later changes reach the school only when HQ re-applies them.
+                $version = app(PlatformPackages::class)->versionToAssign($data['package_key']);
                 $school = School::query()->create([
                     'name' => $data['name'],
                     'slug' => ($data['slug'] ?? null) ?: $this->uniqueSlug($data['name']),
                     'status' => School::ACTIVE,
                     'timezone' => $data['timezone'],
                     'package_key' => $data['package_key'],
+                    'package_version' => $version,
                 ]);
                 app(SchoolRoles::class)->seed($school);
                 $this->currentSchool->run($school, fn () => $this->firstRunDefaults($school));
 
-                $admin = User::query()->create([
-                    'first_name' => $data['admin_first_name'],
-                    'last_name' => $data['admin_last_name'],
-                    'email' => strtolower(trim($data['admin_email'])),
-                    'mobile' => $data['admin_mobile'] ?? '',
-                    'password' => Str::password(32),
-                    'status' => 1,
-                ]);
-                $admin->forceFill(['password_change_required' => true])->save();
-                // The role grant creates the membership (MembershipService).
-                $this->currentSchool->run($school, fn () => $admin->assignRole(SchoolRoles::SUPER_ADMIN));
-                $invitation = $this->currentSchool->run($school, fn () => app(StaffInvitations::class)->issue($admin, $actor, StaffInvitation::SCHOOL_ADMIN));
+                if ($existing !== null) {
+                    // Nothing is attached to the account until its owner accepts.
+                    $admin = $existing;
+                    $typed = trim($data['admin_first_name'].' '.$data['admin_last_name']);
+                    $invitation = $this->currentSchool->run($school, fn () => $joins->inviteFirstAdministrator($existing, $actor, $typed, $data['admin_email']));
+                } else {
+                    $admin = User::query()->create([
+                        'first_name' => $data['admin_first_name'],
+                        'last_name' => $data['admin_last_name'],
+                        'email' => strtolower(trim($data['admin_email'])),
+                        'mobile' => $data['admin_mobile'] ?? '',
+                        'password' => Str::password(32),
+                        'status' => 1,
+                    ]);
+                    $admin->forceFill(['password_change_required' => true])->save();
+                    // The role grant creates the membership (MembershipService).
+                    $this->currentSchool->run($school, fn () => $admin->assignRole(SchoolRoles::SUPER_ADMIN));
+                    $invitation = $this->currentSchool->run($school, fn () => app(StaffInvitations::class)->issue($admin, $actor, StaffInvitation::SCHOOL_ADMIN));
+                }
 
                 Audit::record('platform_school_created', $school, [], [
                     'package_key' => $school->package_key,
+                    'package_version' => $version,
                     'first_admin_user_id' => $admin->id,
+                    'first_admin_existing_account' => $existing !== null,
                     'created_by' => $actor->id,
                 ], (int) $school->id);
 
-                return ['school' => $school, 'admin' => $admin, 'invitation_url' => $invitation['url']];
+                return ['school' => $school, 'admin' => $admin, 'invitation_url' => $invitation['url'], 'existing_account' => $existing !== null];
             });
         });
     }
 
     public function changePackage(int $schoolId, string $package, User $actor): void
     {
-        if (! array_key_exists($package, (array) config('school_packages'))) {
-            throw ValidationException::withMessages(['package_key' => 'Choose one of the listed packages.']);
-        }
-
         $this->currentSchool->acrossSchools(function () use ($schoolId, $package, $actor): void {
             DB::transaction(function () use ($schoolId, $package, $actor): void {
+                // Only an active package; the school gets its current module set (SA.7).
+                $version = app(PlatformPackages::class)->versionToAssign($package);
                 $school = DB::table('schools')->where('id', $schoolId)->lockForUpdate()->first();
                 abort_if($school === null, 404);
                 if ($school->package_key === $package) {
                     return;
                 }
-                DB::table('schools')->where('id', $schoolId)->update(['package_key' => $package, 'updated_at' => now()]);
-                Audit::record('platform_school_package_changed', School::query()->findOrFail($schoolId), ['package_key' => $school->package_key], ['package_key' => $package, 'changed_by' => $actor->id], $schoolId);
+                DB::table('schools')->where('id', $schoolId)->update(['package_key' => $package, 'package_version' => $version, 'updated_at' => now()]);
+                Audit::record('platform_school_package_changed', School::query()->findOrFail($schoolId), ['package_key' => $school->package_key, 'package_version' => $school->package_version],
+                    ['package_key' => $package, 'package_version' => $version, 'changed_by' => $actor->id], $schoolId);
                 // A money module the new package leaves out stays readable (read-only) while the school has its records.
                 $this->currentSchool->run($schoolId, fn () => app(ModuleGate::class)->keepRetainedMoneyReadable($actor));
                 // Entitlements follow the package, so the apps refresh their menus.
@@ -265,6 +293,7 @@ class PlatformSchools
             'slug' => (string) $school->slug,
             'status' => (string) $school->status,
             'package_key' => $school->package_key,
+            'package_version' => $school->package_version === null ? 1 : (int) $school->package_version,
             'timezone' => (string) $school->timezone,
             'created_at' => $school->created_at,
             'people' => $own['people'],
