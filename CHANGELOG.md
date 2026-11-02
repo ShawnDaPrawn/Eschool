@@ -227,6 +227,19 @@ Earlier history is kept where it was written and is not repeated here:
   announcement for their school under Settings, Navigate Ed announcements.
   **Deploy:** run the migrations.
 
+- Admin panel: SA-SAMS learner, attendance and marks exports now identify each
+  learner by their LURITS number. Only learners who have no LURITS number yet
+  still need a learner reference in the layout's map. The export page and each
+  download's manifest say how many learners were exported without one, with a
+  link to the LURITS numbers page. Importing the SA-SAMS learner list again
+  records the LURITS numbers of learners already at the school. A number that
+  another learner already holds is not recorded: it waits for Navigate Ed
+  support, and the school is not told who holds it.
+- Communication: the sender of a school message, and its reviewers, see a
+  delivery report: how many people it reached and read it, who had no
+  notification channel, and for email and push how many were delivered, sent,
+  bounced or failed, with each recipient by name. Addresses are never shown.
+  **Deploy:** run the migrations.
 - Platform and Admin panel: audited support access. Navigate Ed Support,
   Operations and Owner staff ask a school for access at `/saas/support`, with a
   reason and a length of up to four hours. The school's Super Admins are told
