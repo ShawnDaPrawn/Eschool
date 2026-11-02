@@ -3,7 +3,7 @@
     'use strict';
     const root = document.querySelector('[data-pathway-editor]');
     if (!root) return;
-    const limits = {subject: 50, band: 20, elective: 10};
+    const limits = {subject: 50, band: 20, elective: 10, requirement: 20, route: 10};
     const containers = kind => root.querySelector(`[data-pathway-rows="${kind}"]`);
     const refresh = kind => {
         const container = containers(kind);
@@ -13,7 +13,7 @@
             for (const node of [row, ...row.querySelectorAll('*')]) {
                 for (const attr of [...node.attributes]) {
                     const next = attr.value
-                        .replace(/^(score_subjects|score_bands|elective_groups)\[(?:__INDEX__|\d+)\]/, (_, prefix) => `${prefix}[${index}]`)
+                        .replace(/^(score_subjects|score_bands|elective_groups|career_subjects|career_routes)\[(?:__INDEX__|\d+)\]/, (_, prefix) => `${prefix}[${index}]`)
                         .replace(new RegExp(`(pathway-${kind}-)(?:__INDEX__|\\d+)(-)`, 'g'), (_, prefix, suffix) => `${prefix}${index}${suffix}`);
                     if (next !== attr.value) node.setAttribute(attr.name, next);
                 }
