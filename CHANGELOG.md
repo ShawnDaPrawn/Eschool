@@ -50,6 +50,16 @@ Earlier history is kept where it was written and is not repeated here:
   applied. The dated cost report at `/platform/ai-costs` is unchanged and
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
+- Platform: packages and prices are edited at `/saas/packages` instead of being
+  fixed in the code. Owner and Finance create draft packages from the product
+  modules, set trial days, activate and retire them, and add prices per learner
+  per month (excluding VAT) from a date: a base price, add-on prices for product
+  modules and discounts. Past prices are kept and never changed, overlapping
+  dates are refused, and the page shows the price on any date. Changing an
+  active package's modules does not change what schools already on it can use
+  until HQ re-applies the package to them, with a reason. Other HQ roles can
+  only look. The four existing packages are copied over unchanged, so no school
+  notices anything. **Deploy:** run the migrations.
 - SMS and WhatsApp for urgent notices: in **Settings > SMS and WhatsApp** a
   school can send urgent school notices and absence alerts to guardians by SMS,
   WhatsApp or both, choosing which notices use each. Both are off until the
