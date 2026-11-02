@@ -145,6 +145,11 @@ Earlier history is kept where it was written and is not repeated here:
   notification channel, and for email and push how many were delivered, sent,
   bounced or failed, with each recipient by name. Addresses are never shown.
   **Deploy:** run the migrations.
+- **LURITS when adding a learner.** The Add learner form takes the learner's
+  LURITS number. If another NavigateEd school already has the learner, the
+  office is asked to start a transfer request instead of creating a duplicate;
+  it is never told which school. If the learner is already, or was before, at
+  the school, the office is pointed to their existing record.
 - API: notifications now come in three layers: a title, a short excerpt for the
   inbox row and, where there is more to say, a full text, plus the app screen
   each notice opens. `GET /api/v2/me/notifications` lists a person's notices in
