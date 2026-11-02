@@ -17,7 +17,7 @@ The UTF-8 JSON object has these required fields:
 | format | `csv` or `xlsx` |
 | version / source / import_menu | target version and operator's authoritative layout reference/menu |
 | columns | ordered `{header, field}` objects; `literal` also needs `value` |
-| learner_refs | map canonical student numbers to confirmed target learner IDs, all as strings |
+| learner_refs | optional: map canonical student numbers to confirmed target learner IDs, all as strings, for learners without a LURITS number (see below) |
 | on_date | school-local `YYYY-MM-DD` for learners or daily attendance |
 | delimiter | CSV comma, semicolon or tab |
 | template_sha256 / sheet / header_row | exact XLSX hash, sheet name, header row 1–100 |
@@ -64,3 +64,74 @@ from the manifest, encode it in its original field order with PHP
 server `config('app.key')` string. Also compare the dataset SHA-256. Never give
 the server key to an operator or put it in a client. Retain operator import
 evidence privately by target version; the generated manifest never claims it.
+
+## Learner key: LURITS first (Action Plan 1.0d)
+
+Part of the [SA-SAMS export bridge](sasams-bridge.md); the LURITS number itself is
+specified in [LURITS as the primary learner identifier](../platform/lurits.md).
+
+### User stories
+
+- As an academic manager, I export learners, daily attendance and task marks
+  keyed on each learner's LURITS number, so I no longer type a reference for
+  every learner into the layout.
+- As an academic manager at a school where some learners have no LURITS number
+  yet (new admissions, pre-school, learners from outside South Africa), I still
+  export them, using my confirmed `learner_refs` map for those learners only.
+- As the same manager, I see how many learners have no LURITS number, both on
+  the export page and in each download's manifest, and can go straight to the
+  office's LURITS numbers page to record them.
+
+### Rules (the lead's decisions, 31 October 2026)
+
+- `learner_ref` is the learner's LURITS number when one is recorded on their
+  global identity (`learner_identifiers`). This applies to all three datasets.
+- A learner without a LURITS number keeps the behaviour from before 1.0d: the
+  `learner_refs` entry for their student number. The manual map is **kept**,
+  not removed, as the fallback for learners without a LURITS number. It is now
+  optional, so a school whose exported learners all have a LURITS number can
+  leave it out.
+- When a learner has both, the LURITS number wins and the map entry is ignored.
+- A learner with neither still fails the whole export, as before. An internal
+  id is never used.
+- Two rows with the same `learner_ref` fail the export. For example, a mapped
+  reference that repeats another learner's LURITS number would merge two
+  learners in the target.
+- The manifest gains `learners_without_lurits`: how many exported rows were
+  keyed on the map. It is a count, so it is safe in the audit log.
+- The export page shows "N of M learners have no LURITS number yet" for the
+  school. Staff with `student-edit` get a link to the office page
+  (`lurits-office.index`); others are told to ask the school office.
+- LURITS numbers are read in one batch through `LuritsNumbers::forLearners()`.
+  It refuses (404) any learner who is not in the current school, as
+  `forLearner()` does, so one school's export never reads another school's
+  numbers.
+
+### Privacy
+
+- LURITS numbers appear only in the downloaded dataset, which is the point of
+  the export. They never appear in the manifest, the audit log (counts and
+  hashes only), logs, notifications, URLs or AI context. Validation messages
+  never quote a number.
+- The download is permission-gated as before: `SasamsExportRequest::authorize()`
+  and the service both require `academic-structure-manage` through
+  `AcademicAuthority::manage`, afresh for each request.
+
+### Acceptance tests (`Academics/SasamsExportTest`)
+
+| Given | When | Then |
+| --- | --- | --- |
+| Asha with a LURITS number (and a map entry), Ben without one but mapped | `test_learners_with_a_lurits_number_are_keyed_on_it_and_the_others_on_the_map`: learners, attendance and marks exports; Ben's map entry removed; Ben mapped to Asha's number | Asha by her LURITS number, Ben by the map; `learners_without_lurits` 1 (0 for the marks export with an empty map); the number absent from the manifest and the audit log; refused without a reference; refused for a shared reference |
+| School B's Ben with a LURITS number and Asha's student number | `test_a_school_b_learners_lurits_number_never_reaches_a_school_a_export`: School A exports; School A asks the service for School B's learner | the map reference, no School B number or name; 404 |
+| Asha with a LURITS number | `test_the_page_counts_learners_without_lurits_and_links_to_the_office_page`: the admin opens the page; a teacher opens it and posts a download | "2 of 3 learners have no LURITS number yet." and the office link, no number shown; 403 twice, no export audited |
+| The earlier tests | unchanged | still pass; their learners have no LURITS number, so they still use the map |
+
+### Not in this step
+
+- A separate `lurits` column field, for layouts that want the LURITS number in
+  its own column next to another learner reference.
+- Reading LURITS numbers back from SA-SAMS export files other than the learner
+  list (the onboarding learner import does that; see
+  [school imports](../people/school-imports.md)).
+- Confirming the official LURITS format (`identity.lurits.pattern`).
+- No API or OpenAPI change.

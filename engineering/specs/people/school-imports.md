@@ -10,13 +10,14 @@ Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role:
 - As a school, I import my staff list with each person's role, and they set their own passwords from an emailed invitation; nobody is ever given a password.
 - As a guardian, I get one invitation to sign in and approve my children when the school chooses to send them, even if I have several children at the school.
 - As a learner who already has a NavigateEd record at another school, I am not duplicated: the school is told to start a transfer, and is not told where my record is.
+- As a school that imported its learners before it had their LURITS numbers, I import the SA-SAMS learner export again and the numbers are recorded for the learners already here (Action Plan 1.0d).
 
 ## Flow
 
 1. **Choose the file.** A CSV upload or pasted rows (UTF-8 or Windows-1252, comma, semicolon or tab, at most 1 MB and 1,000 rows, a header row with unique names). A template with the header row can be downloaded.
 2. **Match the columns.** Each NavigateEd field is matched to the column whose header names it, ignoring case, spaces, underscores and dots, including common SA-SAMS and Afrikaans names ("Admission No", "Surname", "First Names", "Date of Birth", "Class", "LURITS Number", "Parent Email", "Van", "Geboortedatum"). The school can change any match. A column can serve only one field.
-3. **Settings.** Homerooms: the medium for rows that name none (defaults to the only medium). Learners: the school year (current), the date they are in their homerooms from (today, or the year's first day if it has not started), the learner category (the first), and whether to email guardians their invitations now (off).
-4. **Check the rows.** Each row is *will be imported*, *already here, left alone*, *start a transfer* or *fix this row*, with notes. Problems are listed first.
+3. **Settings.** Homerooms: the medium for rows that name none (defaults to the only medium). Learners: the school year (current), the date they are in their homerooms from (today, or the year's first day if it has not started), the learner category (the first), whether to email guardians their invitations now (off), and whether the file is a learner list exported from SA-SAMS (off; it sets the LURITS numbers' source).
+4. **Check the rows.** Each row is *will be imported*, *already here, LURITS number added*, *already here, left alone*, *start a transfer* or *fix this row*, with notes. "Import N rows" counts the first two. Problems are listed first.
 5. **Import.** Only when no row needs fixing. Everything is written in one transaction, with the school row locked so two imports cannot run at once, after the file is checked again. If anything differs from the check the school saw (a fingerprint of the file, matches, settings and every row's result), nothing is written and the school checks again. The file is kept as UTF-8 (a Windows-1252 file is converted on upload) with LF line ends, and the fingerprint ignores the CRLF line ends and surrounding whitespace that browsers and request trimming add.
 
 ## Rows
@@ -29,6 +30,11 @@ Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role:
 
 **Learners**: admission number, first name and surname (required); date of birth (day first: 09/03/2015, 2015-03-09, 9.3.2015 or a spreadsheet day number), gender, LURITS number, and the homeroom by full name ("Grade 8 B"), short form ("8B") or grade and letter; up to two guardians (first name, surname, email, mobile, relationship).
 - An admission number already at the school, archived or not, means *already here*.
+- **LURITS for a learner already here (1.0d).** When the row gives a valid LURITS number for a learner already here (not archived):
+  - the same number is already recorded: *already here*;
+  - a different number is recorded: *already here*, and it is kept. The school is told to correct it on the LURITS numbers page if the file is right. An import never overwrites a recorded number;
+  - the learner has none: *already here, LURITS number added*. If another learner (here or elsewhere) already holds the number, the note says so without naming them or their school, and on import the number is not written: `LuritsNumbers::record` raises a claim for Navigate Ed support, the same handling as the office's LURITS page;
+  - a claim for that learner and number is already open: *already here*, with a note that it waits for Navigate Ed support. Importing again does not raise it twice.
 - A LURITS number held by a learner of this school means *already here*. One held by any other NavigateEd learner means *start a transfer*, with no school or record named. An invalid number is an error, as is one repeated in the file.
 - A guardian without an email address is not added (noted). A learner without any guardian email is imported with a note that they cannot be approved until a guardian is linked.
 - An existing account with the guardian's email is linked, not duplicated, unless it is deleted, inactive or suspended as a parent here (error, without saying more).
@@ -38,7 +44,9 @@ Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role:
 - A `students` row (admission date = the start date, the first guardian as the legacy guardian).
 - An active `guardian_links` row per guardian (`can_approve`, `can_see_fees`; relationship mother, father, guardian, grandmother, grandfather, aunt, uncle, sister, brother, foster parent or other).
 - `EnrolmentService::place` in the homeroom from the start date, which assigns the NavigateEd student number.
-- `LuritsNumbers::record` with source `onboarding_import`. If another school claims the number between the check and this write, the whole import is rolled back and the school checks again, so no duplicate identity stands.
+- `LuritsNumbers::record` with source `sasams_import` when the school says the file is an SA-SAMS learner export, otherwise `onboarding_import`. If another school claims the number between the check and this write, the whole import is rolled back and the school checks again, so no duplicate identity stands.
+
+**Writes for each learner already here with *LURITS number added***: `LuritsNumbers::recordIfUnset` with the same source. A conflict raises the claim and the import goes on (`lurits_claimed` in the counts); the learner's other details are not changed. If the office recorded a different number after the check, it is kept: the check is made again under the identity row's lock, nothing is written (`lurits_kept`). The success message says how many numbers wait for Navigate Ed support and how many were kept.
 - Guardians get the Parent role and a `parents` row.
 - Invitations are `GuardianInvitations::issue`, once per guardian, only when chosen. Learner approval is never granted by an import.
 - One `academics.learner_changed` outbox event.
@@ -54,7 +62,7 @@ Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role:
   - An existing account elsewhere (for example a parent here who also teaches) is given the role, not duplicated.
 - When chosen, each person added gets a staff invitation (`StaffInvitations::issue`, #358) to set their own password.
 
-**Audit**: `people.onboarding_import_committed` with the kind, the file's SHA-256, row and skipped counts and the result counts. No row contents.
+**Audit**: `people.onboarding_import_committed` with the kind, the file's SHA-256, row and skipped counts and the result counts. No row contents. LURITS recordings and claims are audited by `LuritsNumbers` with hashes only.
 
 ## Acceptance tests (`People/SchoolImportsTest`)
 
@@ -73,6 +81,9 @@ Action Plan step 0.11: homerooms, learners and guardians, and staff. Owner role:
 | A school administrator | open, download a template, upload, import (CRLF as a browser sends it), choose a missing column | page, CSV header, rows checked, learner imported, the missing column reported |
 | Staff: a new teacher ("teacher", spaced mobile, BEd), a new Bursar, Tara (already a teacher), a "Super Admin" row, a repeated email in other case, Farid (a parent here) as Teacher | check, then import the good rows with invitations | create, create, already here, error, error, create; three added with Teacher or Bursar, a teachers or staffs row, the qualification and the mobile cleaned; Farid not duplicated; three invitations; importing again leaves everything alone |
 | A teacher without the permissions | open, check, or call the service | 403 |
+| `test_an_sa_sams_learner_export_records_lurits_numbers_for_learners_already_here`: Ben at School B holds 7700000001; Cara here has 7700000020; an SA-SAMS file with Asha (new number, spaced), Ben here (School B's number), Cara (another number) and a new learner | check; a teacher commits; the admin commits; check again | added, added with "registered to another learner" (School B not named), already here with "different number, kept", create; the teacher gets 403 and nothing is written; 1 created, 2 recorded with source `sasams_import`, 1 claim owned by School A, Cara's number kept, School B unchanged, no number in the audit log; everything already here, Ben's claim "waiting for Navigate Ed support", not raised twice |
+| `test_a_lurits_number_the_office_records_after_the_check_is_kept_by_the_import`: Asha checked as *LURITS number added*; the office then records another number | the import's write runs | `lurits_kept` 1; the office's number and source kept; no audit row or claim; `recordIfUnset` directly: kept, unchanged, recorded; `record` still corrects |
+| `test_the_panel_offers_the_sa_sams_source_and_imports_lurits_for_learners_already_here`: the admin checks a file with Asha's LURITS number from the page | check, then import | "Already here, LURITS number added", the SA-SAMS option, "Import 1 row"; the number recorded |
 
 ## Endpoints (panel)
 
@@ -101,5 +112,7 @@ No API change.
 - File limits as above; there is no file storage, the file lives only in the request.
 
 ## Deferred
+
+- Correcting an already recorded LURITS number from a file. Corrections stay on the office's LURITS numbers page.
 
 - Import on a school's behalf by HQ operations (SA.11).

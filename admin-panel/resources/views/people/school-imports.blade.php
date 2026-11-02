@@ -3,8 +3,9 @@
 @section('content')
 @php
     $kindLabels = ['homerooms' => __('Homerooms'), 'learners' => __('Learners and guardians'), 'staff' => __('Staff')];
-    $statusLabels = ['create' => __('Will be imported'), 'exists' => __('Already here, left alone'), 'transfer' => __('Start a transfer'), 'error' => __('Fix this row')];
-    $rank = ['error' => 0, 'transfer' => 1, 'create' => 2, 'exists' => 3];
+    $statusLabels = ['create' => __('Will be imported'), 'lurits' => __('Already here, LURITS number added'), 'exists' => __('Already here, left alone'), 'transfer' => __('Start a transfer'), 'error' => __('Fix this row')];
+    $rank = ['error' => 0, 'transfer' => 1, 'create' => 2, 'lurits' => 3, 'exists' => 4];
+    $writes = $check === null ? 0 : $check['counts']['create'] + $check['counts']['lurits'];
 @endphp
 <div class="content-wrapper m3 page-content">
     <x-page.header :title="__('Import school data')" :subtitle="__('Bring in homerooms, then learners with their guardians, from a spreadsheet saved as CSV (for example the learner list from SA-SAMS). Every row is checked before anything is saved.')" />
@@ -74,12 +75,16 @@
                     <x-page.field name="starts_on" id="import-starts" type="date" :label="__('In their homerooms from')" :value="$check['options']['starts_on']" :restore-old-input="false" />
                     <x-page.field name="category_id" id="import-category" type="select" :label="__('Learner category')" :value="$check['options']['category_id']" :options="$categories" :restore-old-input="false" />
                     <label><input type="checkbox" name="invite" value="1" @checked($check['options']['invite'])> {{ __('Email the guardians their invitations to sign in and approve their children now') }}</label>
+                    <label><input type="checkbox" name="from_sasams" value="1" @checked($check['options']['from_sasams'])> {{ __('This is a learner list exported from SA-SAMS (the LURITS numbers are recorded as coming from SA-SAMS)') }}</label>
                 @endif
             </section>
 
             <section class="page-section" aria-labelledby="import-rows">
                 <h2 id="import-rows">{{ __('4. Check the rows') }}</h2>
                 <p>{{ __(':create to import, :exists already here, :transfer to transfer, :error to fix.', $check['counts']) }}</p>
+                @if ($check['counts']['lurits'] > 0)
+                    <p>{{ trans_choice(':count learner already here gets the LURITS number from the file.|:count learners already here get the LURITS number from the file.', $check['counts']['lurits']) }}</p>
+                @endif
                 @if ($check['rows'] !== [])
                     <div class="page-table__scroll" role="region" aria-label="{{ __('Rows in the file') }}" tabindex="0"><table class="page-table__table">
                         <caption class="m3-visually-hidden">{{ __('Rows in the file') }}</caption>
@@ -107,7 +112,7 @@
 
             <button class="m3-button m3-button--outlined" type="submit">{{ __('Check again') }}</button>
             <button class="m3-button m3-button--filled" type="submit" formaction="{{ route('school-imports.store') }}"
-                @disabled($check['missing'] !== [] || $check['counts']['error'] > 0 || $check['counts']['create'] === 0)>{{ trans_choice('Import :count row|Import :count rows', $check['counts']['create'], ['count' => $check['counts']['create']]) }}</button>
+                @disabled($check['missing'] !== [] || $check['counts']['error'] > 0 || $writes === 0)>{{ trans_choice('Import :count row|Import :count rows', $writes, ['count' => $writes]) }}</button>
             @if ($check['counts']['error'] > 0)
                 <p>{{ __('Fix the rows with problems in the file and check it again, or remove them.') }}</p>
             @endif

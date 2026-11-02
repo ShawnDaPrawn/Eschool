@@ -5955,5 +5955,20 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "Learner LURITS numbers": "Izinombolo ze-LURITS zabafundi",
+    "Each learner is exported with their LURITS number. A learner without one needs the learner reference from the layout's learner_refs map, by student number.": "Umfundi ngamunye uthunyelwa ngenombolo yakhe ye-LURITS. Umfundi ongenayo udinga inkomba yomfundi evela kumephu ye-learner_refs yesakhiwo, ngenombolo yomfundi.",
+    ":count of :learners learners has no LURITS number yet.|:count of :learners learners have no LURITS number yet.": ":count kwabafundi abangu-:learners akakabi nayo inombolo ye-LURITS.|:count kwabafundi abangu-:learners abakabi nayo inombolo ye-LURITS.",
+    "The manifest in each download counts the learners exported without one.": "I-manifest ekulandweni ngakunye ibala abafundi abathunyelwe bengenayo.",
+    "Record the missing LURITS numbers": "Rekhoda izinombolo ze-LURITS ezingekho",
+    "Ask the school office to record the missing LURITS numbers.": "Cela ihhovisi lesikole ukuthi lirekhode izinombolo ze-LURITS ezingekho.",
+    "Already here, LURITS number added": "Usekhona, inombolo ye-LURITS yengeziwe",
+    "This is a learner list exported from SA-SAMS (the LURITS numbers are recorded as coming from SA-SAMS)": "Lolu uhlu lwabafundi oluthunyelwe lusuka ku-SA-SAMS (izinombolo ze-LURITS zirekhodwa njengezivela ku-SA-SAMS)",
+    ":count learner already here gets the LURITS number from the file.|:count learners already here get the LURITS number from the file.": "Umfundi ongu-:count osekhona uthola inombolo ye-LURITS efayeleni.|Abafundi abangu-:count abasekhona bathola inombolo ye-LURITS efayeleni.",
+    ":count LURITS number is already registered to another learner and waits for Navigate Ed support.|:count LURITS numbers are already registered to other learners and wait for Navigate Ed support.": "Inombolo ye-LURITS engu-:count isibhaliselwe komunye umfundi futhi ilinde ukwesekwa kwe-Navigate Ed.|Izinombolo ze-LURITS ezingu-:count sezibhaliselwe kwabanye abafundi futhi zilinde ukwesekwa kwe-Navigate Ed.",
+    "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.": "Usesesikoleni ngenombolo ye-LURITS ehlukile, egcinwayo. Uma ifayela lilungile, yilungise ekhasini lezinombolo ze-LURITS.",
+    "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.": "Usesesikoleni. Le nombolo ye-LURITS ilinde ukuthi ukwesekwa kwe-Navigate Ed kuyihlole.",
+    "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.": "Usesesikoleni. Le nombolo ye-LURITS isibhaliselwe komunye umfundi, ngakho ngeke irekhodwe: ukwesekwa kwe-Navigate Ed kuzoyihlola. Uma umfundi ezojoyina evela kwesinye isikole, qala isicelo sokudluliselwa.",
+    "Already at the school. Their LURITS number will be recorded.": "Usesesikoleni. Inombolo yakhe ye-LURITS izorekhodwa.",
+    ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.": "Umfundi ongu-:count unikezwe enye inombolo ye-LURITS phakathi naleso sikhathi, egcinwayo.|Abafundi abangu-:count banikezwe enye inombolo ye-LURITS phakathi naleso sikhathi, egcinwayo."
 }

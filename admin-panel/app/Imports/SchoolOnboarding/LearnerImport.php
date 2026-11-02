@@ -19,7 +19,9 @@ use App\Services\Platform\Identity\GuardianInvitations;
 use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Identity\MembershipService;
 use App\Services\Platform\Tenancy\CurrentSchool;
+use App\Services\Platform\Tenancy\SchoolTable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -30,7 +32,11 @@ use Illuminate\Validation\ValidationException;
  * created. The LURITS number is recorded; a number that already belongs to a
  * NavigateEd learner elsewhere is not imported (start a transfer instead), and
  * the school is not told where. Learners whose admission number is already in
- * the school are left alone, so a file can be imported again.
+ * the school are left alone, so a file can be imported again, except that a
+ * LURITS number in the file is recorded for one who has none yet (Action Plan
+ * 1.0d), as the office's LURITS page does: a number another learner holds is
+ * not written but raised as a claim for Navigate Ed support, without saying
+ * who holds it.
  */
 final class LearnerImport implements OnboardingImport
 {
@@ -82,6 +88,10 @@ final class LearnerImport implements OnboardingImport
         $known = Students::query()->withTrashed()->whereIn('admission_no', $numbers->all())->get(['admission_no', 'deleted_at'])
             ->mapWithKeys(fn (Students $row) => [mb_strtolower((string) $row->admission_no) => $row->trashed()]);
         $here = Students::query()->withTrashed()->pluck('user_id')->flip();
+        // Learners already here, with their LURITS hash, to fill in missing numbers (1.0d).
+        $current = Students::query()->whereIn('admission_no', $numbers->all())->get(['id', 'user_id', 'admission_no'])
+            ->keyBy(fn (Students $row) => mb_strtolower((string) $row->admission_no));
+        $hashes = DB::table('learner_identifiers')->whereIn('user_id', $current->pluck('user_id'))->pluck('lurits_hash', 'user_id');
         $lurits = app(LuritsNumbers::class);
         $seenNumbers = [];
         $seenLurits = [];
@@ -137,7 +147,9 @@ final class LearnerImport implements OnboardingImport
             $row = ['line' => $line, 'label' => $label, 'notes' => $notes, 'status' => 'error', 'homeroom' => $room['label'] ?? '', 'guardians' => count($guardians)];
             if ($notes === []) {
                 $holder = $luritsNumber !== null ? $lurits->holderUserId($luritsNumber) : null;
-                if ($known->has(mb_strtolower($number))) {
+                if ($known->has(mb_strtolower($number)) && $luritsNumber !== null && $current->has(mb_strtolower($number))) {
+                    $this->existing($row, $current[mb_strtolower($number)], $hashes, $luritsNumber, $holder);
+                } elseif ($known->has(mb_strtolower($number))) {
                     $row['status'] = 'exists';
                     $row['notes'][] = $known[mb_strtolower($number)] ? __('An archived learner has this admission number.') : __('Already at the school.');
                 } elseif ($holder !== null && $here->has($holder)) {
@@ -178,8 +190,21 @@ final class LearnerImport implements OnboardingImport
         $startsOn = (string) $options['starts_on'];
         $school = app(CurrentSchool::class)->id();
         $invite = [];
-        $counts = ['created' => 0, 'guardians_linked' => 0, 'lurits_recorded' => 0];
+        $source = ! empty($options['from_sasams']) ? 'sasams_import' : 'onboarding_import';
+        $counts = ['created' => 0, 'guardians_linked' => 0, 'lurits_recorded' => 0, 'lurits_claimed' => 0, 'lurits_kept' => 0];
         foreach ($rows as $row) {
+            if ($row['status'] === 'lurits') {
+                // A learner already here gets the file's number, or the number
+                // is raised as a claim when another learner holds it (1.0d).
+                // A number recorded since the check (by the office) is kept.
+                $learner = Students::query()->findOrFail($row['data']['learner_id']);
+                $result = app(LuritsNumbers::class)->recordIfUnset($learner, $row['data']['lurits'], $source, $actor);
+                $counts['lurits_recorded'] += $result === LuritsNumbers::RECORDED ? 1 : 0;
+                $counts['lurits_claimed'] += $result === LuritsNumbers::CONFLICT ? 1 : 0;
+                $counts['lurits_kept'] += $result === LuritsNumbers::KEPT ? 1 : 0;
+
+                continue;
+            }
             if ($row['status'] !== 'create') {
                 continue;
             }
@@ -211,7 +236,7 @@ final class LearnerImport implements OnboardingImport
             }
             app(EnrolmentService::class)->place((int) $learner->id, (int) $room->id, (int) $year->id, $startsOn, 'School onboarding import');
             if ($data['lurits'] !== null) {
-                $claimed = app(LuritsNumbers::class)->record($learner, $data['lurits'], 'onboarding_import', $actor);
+                $claimed = app(LuritsNumbers::class)->record($learner, $data['lurits'], $source, $actor);
                 // Claimed elsewhere since the check: the learner already has a
                 // record, so nothing of this import may stand (1.0c).
                 if ($claimed === LuritsNumbers::CONFLICT) {
@@ -230,6 +255,36 @@ final class LearnerImport implements OnboardingImport
         }
 
         return $counts;
+    }
+
+    /**
+     * A row for a learner already at the school whose file row gives a LURITS
+     * number: recorded when they have none (status lurits), otherwise left
+     * alone. A number another learner holds is still recorded as a claim on
+     * import, as the office page does, and the school is told only that it is
+     * registered to another learner.
+     *
+     * @param  array<string, mixed>  $row
+     * @param  Collection<int|string, string|null>  $hashes  LURITS hash by user id
+     */
+    private function existing(array &$row, Students $learner, Collection $hashes, string $number, ?int $holder): void
+    {
+        $hash = LuritsNumbers::hash($number);
+        $recorded = $hashes->get($learner->user_id);
+        $row['status'] = 'exists';
+        if ($recorded === $hash) {
+            $row['notes'][] = __('Already at the school.');
+        } elseif ($recorded !== null) {
+            $row['notes'][] = __('Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.');
+        } elseif (SchoolTable::query('lurits_conflicts')->where('learner_id', $learner->id)->where('lurits_hash', $hash)->where('status', 'open')->exists()) {
+            $row['notes'][] = __('Already at the school. This LURITS number is waiting for Navigate Ed support to check it.');
+        } else {
+            $row['status'] = 'lurits';
+            $row['notes'][] = $holder !== null
+                ? __('Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.')
+                : __('Already at the school. Their LURITS number will be recorded.');
+            $row['data'] = ['learner_id' => (int) $learner->id, 'lurits' => $number];
+        }
     }
 
     /**

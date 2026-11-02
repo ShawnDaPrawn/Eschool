@@ -4882,5 +4882,20 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "Learner LURITS numbers": "Learner LURITS numbers",
+    "Each learner is exported with their LURITS number. A learner without one needs the learner reference from the layout's learner_refs map, by student number.": "Each learner is exported with their LURITS number. A learner without one needs the learner reference from the layout's learner_refs map, by student number.",
+    ":count of :learners learners has no LURITS number yet.|:count of :learners learners have no LURITS number yet.": ":count of :learners learners has no LURITS number yet.|:count of :learners learners have no LURITS number yet.",
+    "The manifest in each download counts the learners exported without one.": "The manifest in each download counts the learners exported without one.",
+    "Record the missing LURITS numbers": "Record the missing LURITS numbers",
+    "Ask the school office to record the missing LURITS numbers.": "Ask the school office to record the missing LURITS numbers.",
+    "Already here, LURITS number added": "Already here, LURITS number added",
+    "This is a learner list exported from SA-SAMS (the LURITS numbers are recorded as coming from SA-SAMS)": "This is a learner list exported from SA-SAMS (the LURITS numbers are recorded as coming from SA-SAMS)",
+    ":count learner already here gets the LURITS number from the file.|:count learners already here get the LURITS number from the file.": ":count learner already here gets the LURITS number from the file.|:count learners already here get the LURITS number from the file.",
+    ":count LURITS number is already registered to another learner and waits for Navigate Ed support.|:count LURITS numbers are already registered to other learners and wait for Navigate Ed support.": ":count LURITS number is already registered to another learner and waits for Navigate Ed support.|:count LURITS numbers are already registered to other learners and wait for Navigate Ed support.",
+    "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.": "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.",
+    "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.": "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.",
+    "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.": "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.",
+    "Already at the school. Their LURITS number will be recorded.": "Already at the school. Their LURITS number will be recorded.",
+    ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.": ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept."
 }

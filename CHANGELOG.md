@@ -79,6 +79,14 @@ Earlier history is kept where it was written and is not repeated here:
   last year wherever the group or homeroom carried over. Change what is different
   and apply it in one step; teachers see nothing until then, and a draft is refused
   if allocations changed after it was built.
+- Admin panel: SA-SAMS learner, attendance and marks exports now identify each
+  learner by their LURITS number. Only learners who have no LURITS number yet
+  still need a learner reference in the layout's map. The export page and each
+  download's manifest say how many learners were exported without one, with a
+  link to the LURITS numbers page. Importing the SA-SAMS learner list again
+  records the LURITS numbers of learners already at the school. A number that
+  another learner already holds is not recorded: it waits for Navigate Ed
+  support, and the school is not told who holds it.
 
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and

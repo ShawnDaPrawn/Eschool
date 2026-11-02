@@ -5955,5 +5955,20 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "Learner LURITS numbers": "Leerders se LURITS-nommers",
+    "Each learner is exported with their LURITS number. A learner without one needs the learner reference from the layout's learner_refs map, by student number.": "Elke leerder word met hul LURITS-nommer uitgevoer. 'n Leerder sonder een het die leerderverwysing uit die uitleg se learner_refs-kaart nodig, volgens studentenommer.",
+    ":count of :learners learners has no LURITS number yet.|:count of :learners learners have no LURITS number yet.": ":count van :learners leerders het nog nie 'n LURITS-nommer nie.|:count van :learners leerders het nog nie 'n LURITS-nommer nie.",
+    "The manifest in each download counts the learners exported without one.": "Die manifes in elke aflaai tel die leerders wat sonder een uitgevoer is.",
+    "Record the missing LURITS numbers": "Teken die ontbrekende LURITS-nommers aan",
+    "Ask the school office to record the missing LURITS numbers.": "Vra die skoolkantoor om die ontbrekende LURITS-nommers aan te teken.",
+    "Already here, LURITS number added": "Reeds hier, LURITS-nommer bygevoeg",
+    "This is a learner list exported from SA-SAMS (the LURITS numbers are recorded as coming from SA-SAMS)": "Dit is 'n leerderlys wat uit SA-SAMS uitgevoer is (die LURITS-nommers word aangeteken as afkomstig van SA-SAMS)",
+    ":count learner already here gets the LURITS number from the file.|:count learners already here get the LURITS number from the file.": ":count leerder wat reeds hier is, kry die LURITS-nommer uit die lêer.|:count leerders wat reeds hier is, kry die LURITS-nommer uit die lêer.",
+    ":count LURITS number is already registered to another learner and waits for Navigate Ed support.|:count LURITS numbers are already registered to other learners and wait for Navigate Ed support.": ":count LURITS-nommer is reeds op 'n ander leerder geregistreer en wag vir Navigate Ed-ondersteuning.|:count LURITS-nommers is reeds op ander leerders geregistreer en wag vir Navigate Ed-ondersteuning.",
+    "Already at the school with a different LURITS number, which is kept. If the file is right, correct it on the LURITS numbers page.": "Reeds by die skool met 'n ander LURITS-nommer, wat behou word. As die lêer reg is, korrigeer dit op die LURITS-nommers-blad.",
+    "Already at the school. This LURITS number is waiting for Navigate Ed support to check it.": "Reeds by die skool. Hierdie LURITS-nommer wag vir Navigate Ed-ondersteuning om dit na te gaan.",
+    "Already at the school. This LURITS number is already registered to another learner, so it will not be recorded: Navigate Ed support will check it. If the learner is joining from another school, start a transfer request.": "Reeds by die skool. Hierdie LURITS-nommer is reeds op 'n ander leerder geregistreer, dus word dit nie aangeteken nie: Navigate Ed-ondersteuning sal dit nagaan. As die leerder van 'n ander skool af kom, begin 'n oorplasingsversoek.",
+    "Already at the school. Their LURITS number will be recorded.": "Reeds by die skool. Hul LURITS-nommer sal aangeteken word.",
+    ":count learner was given a different LURITS number meanwhile, which is kept.|:count learners were given a different LURITS number meanwhile, which is kept.": ":count leerder het intussen 'n ander LURITS-nommer gekry, wat behou word.|:count leerders het intussen 'n ander LURITS-nommer gekry, wat behou word."
 }

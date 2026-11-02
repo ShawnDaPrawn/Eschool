@@ -13,12 +13,22 @@ use App\Models\SessionYear;
 use App\Models\Students;
 use App\Models\User;
 use App\Services\Platform\Audit\Audit;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
-/** Read-only source extraction with fresh school management authority. */
+/**
+ * Read-only source extraction with fresh school management authority.
+ * Learners are keyed on their LURITS number when one is recorded (Action Plan
+ * 1.0d); the layout's learner_refs map stays the fallback for the others.
+ * engineering/specs/academics/sasams-layouts.md.
+ */
 class SasamsExport
 {
+    /** The learner key of an exported row: its LURITS number, or the layout's map. */
+    private const KEY = '_learner_key';
+
     public function generate(User $actor, array $input, ?string $template = null): array
     {
         app(AcademicAuthority::class)->manage($actor);
@@ -35,16 +45,36 @@ class SasamsExport
         if ($rows === [] || count($rows) > 10000) {
             $layout->fail('The export must contain between one and 10,000 records.');
         }
+        if (collect($rows)->pluck('learner_ref')->duplicates()->isNotEmpty()) {
+            $layout->fail('Two exported learners would share one learner reference. A mapped reference may not repeat a learner\'s LURITS number.');
+        }
+        $keys = array_count_values(array_column($rows, self::KEY));
         $content = $layout->render($p, $rows, $template);
         app(AcademicAuthority::class)->manage($actor);
         $manifest = ['schema_version' => 1, 'school_id' => $p['school_id'], 'session_year_id' => $p['session_year_id'], 'kind' => $p['kind'],
             'target_version' => $p['version'], 'source' => $p['source'], 'import_menu' => $p['import_menu'], 'actor_id' => (int) $actor->id,
-            'generated_at' => now()->toISOString(), 'records' => count($rows), 'layout_sha256' => hash('sha256', json_encode($p, JSON_THROW_ON_ERROR)),
+            'generated_at' => now()->toISOString(), 'records' => count($rows),
+            'learners_without_lurits' => $keys['learner_refs'] ?? 0, 'layout_sha256' => hash('sha256', json_encode($p, JSON_THROW_ON_ERROR)),
             'template_sha256' => $p['template_sha256'] ?? null, 'file_sha256' => hash('sha256', $content), 'target_import_verified' => false];
         $manifest['hmac_sha256'] = hash_hmac('sha256', json_encode($manifest, JSON_THROW_ON_ERROR), (string) config('app.key'));
         Audit::record('academics.sasams_exported', null, [], $manifest, $p['school_id']);
 
         return ['filename' => 'sasams-'.$p['kind'].'.'.$p['format'], 'content' => $content, 'manifest' => $manifest];
+    }
+
+    /**
+     * For the export page: how many of the school's learners have no LURITS
+     * number yet, so their rows need the layout's learner_refs map.
+     *
+     * @return array{learners: int, without_lurits: int}
+     */
+    public function readiness(User $actor): array
+    {
+        app(AcademicAuthority::class)->manage($actor);
+        $learners = Students::query()->count();
+        $with = DB::table('learner_identifiers')->whereNotNull('lurits_hash')->whereIn('user_id', Students::query()->select('user_id'))->count();
+
+        return ['learners' => $learners, 'without_lurits' => $learners - $with];
     }
 
     private function enrolments(array $p): Collection
@@ -57,23 +87,33 @@ class SasamsExport
         return $rows;
     }
 
-    private function identity(array $p, Students $learner): array
+    /** @param array<int, string|null> $lurits LURITS numbers by learner id, read for this school's learners only */
+    private function identity(array $p, Students $learner, array $lurits): array
     {
         $number = (string) $learner->student_number;
-        $ref = $p['learner_refs'][$number] ?? null;
-        if ($number === '' || $ref === null) {
-            app(SasamsLayout::class)->fail('Map every exported student number to its confirmed target learner reference.');
+        $ref = $lurits[(int) $learner->id] ?? null;
+        $key = 'lurits';
+        if ($ref === null) {
+            // No LURITS number yet: the operator's confirmed map, as before 1.0d.
+            $ref = $number === '' ? null : ($p['learner_refs'][$number] ?? null);
+            $key = 'learner_refs';
+        }
+        if ($ref === null) {
+            app(SasamsLayout::class)->fail('Record a LURITS number for every exported learner, or map the student number of each learner without one to its confirmed target learner reference.');
         }
 
-        return ['learner_ref' => $ref, 'student_number' => $number, 'admission_no' => $learner->admission_no,
+        return [self::KEY => $key, 'learner_ref' => $ref, 'student_number' => $number, 'admission_no' => $learner->admission_no,
             'first_name' => $learner->user?->first_name, 'last_name' => $learner->user?->last_name,
             'dob' => $learner->user?->dob, 'gender' => $learner->user?->gender];
     }
 
     private function learners(array $p): array
     {
-        return $this->enrolments($p)->map(function ($entry) use ($p) {
-            return $this->identity($p, $entry->learner) + ['grade' => $entry->homeroom?->class?->gradeLevel?->code,
+        $enrolments = $this->enrolments($p);
+        $lurits = app(LuritsNumbers::class)->forLearners($enrolments->pluck('learner')->filter());
+
+        return $enrolments->map(function ($entry) use ($p, $lurits) {
+            return $this->identity($p, $entry->learner, $lurits) + ['grade' => $entry->homeroom?->class?->gradeLevel?->code,
                 'homeroom' => trim(($entry->homeroom?->class?->name ?? '').' '.($entry->homeroom?->section?->name ?? '')),
                 'starts_on' => $entry->starts_on->toDateString(), 'ends_on' => $entry->ends_on?->toDateString() ?? ''];
         })->all();
@@ -83,6 +123,7 @@ class SasamsExport
     {
         $enrolments = $this->enrolments($p)->keyBy('learner_id');
         $entries = AttendanceEntry::with('register')->whereIn('learner_id', $enrolments->keys())->whereHas('register', fn ($q) => $q->where('session_year_id', $p['session_year_id'])->whereDate('on_date', $p['on_date'])->whereNull('timetable_lesson_id'))->limit(10001)->get()->groupBy('learner_id');
+        $lurits = app(LuritsNumbers::class)->forLearners($enrolments->pluck('learner')->filter());
         $rows = [];
         foreach ($enrolments as $entry) {
             $found = $entries->get($entry->learner_id, collect());
@@ -93,7 +134,7 @@ class SasamsExport
             if ($code === null) {
                 app(SasamsLayout::class)->fail('Map every attendance state to an explicit target code.');
             }
-            $rows[] = $this->identity($p, $entry->learner) + ['on_date' => $p['on_date'], 'attendance_code' => $code];
+            $rows[] = $this->identity($p, $entry->learner, $lurits) + ['on_date' => $p['on_date'], 'attendance_code' => $code];
         }
 
         return $rows;
@@ -112,8 +153,9 @@ class SasamsExport
         $ids = Enrolment::where('session_year_id', $p['session_year_id'])->onDate($date)->whereIn('learner_id', $ids)->pluck('learner_id');
         $learners = Students::with('user')->whereIn('id', $ids)->orderBy('id')->limit(10001)->get();
         $marks = AssessmentMark::where('assessment_task_id', $canonical->id)->whereIn('learner_id', $learners->pluck('id'))->get()->keyBy('learner_id');
+        $lurits = app(LuritsNumbers::class)->forLearners($learners);
 
-        return $learners->map(function ($learner) use ($p, $marks, $task) {
+        return $learners->map(function ($learner) use ($p, $marks, $task, $lurits) {
             $mark = $marks->get($learner->id);
             if ($mark === null || $mark->disposition === 'missing' || ($mark->disposition === 'recorded' && $mark->mark_units === null)) {
                 app(SasamsLayout::class)->fail('Finish or explicitly resolve every task mark before exporting; missing marks are never zeroed.');
@@ -123,7 +165,7 @@ class SasamsExport
                 app(SasamsLayout::class)->fail('Map every non-recorded mark disposition explicitly for the target import.');
             }
 
-            return $this->identity($p, $learner) + ['subject_code' => $p['subject_code'], 'task_ref' => $p['task_ref'], 'score' => $score,
+            return $this->identity($p, $learner, $lurits) + ['subject_code' => $p['subject_code'], 'task_ref' => $p['task_ref'], 'score' => $score,
                 'maximum' => AcademicNumbers::decimal($task->max_mark_units), 'mark_code' => $p['mark_codes'][$mark->disposition] ?? null];
         })->all();
     }
