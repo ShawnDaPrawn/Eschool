@@ -39,3 +39,8 @@ Each switch records `context.changed` in the transactional outbox. Its listener
 queues a silent invalidation to that school's topics. Native apps refresh
 context on receipt; browser apps refresh on resume. Push delivery and real
 portal/device behaviour still need staging evidence.
+
+A module may also list the age `stages` whose learners may use it. The gate
+then refuses it to a signed-in learner in another stage, and leaves it out of
+that learner's context; guardians and staff are not limited
+([school stages](school-stages.md)).

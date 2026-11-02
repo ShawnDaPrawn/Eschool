@@ -17,6 +17,7 @@ use App\Models\Wellbeing\TeamAssignment;
 use App\Policies\People\ProfilePolicy;
 use App\Services\Academics\AcademicAuthority;
 use App\Services\Pastoral\SensitiveRecordsAccess;
+use App\Services\Platform\Identity\LearnerIdentifiers;
 use App\Services\Platform\Modules\ModuleGate;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -84,11 +85,12 @@ class WellbeingQueries
                 $this->search($query, $search);
             });
         }
-        $learnerRows = $learners->with('user')->orderBy('id')->paginate(30, ['id', 'user_id', 'admission_no'], 'page', $page);
+        $learnerRows = $learners->with('user')->orderBy('id')->paginate(30, ['id', 'school_id', 'user_id', 'admission_no'], 'page', $page);
+        $identifiers = app(LearnerIdentifiers::class)->forStaffList($actor, $learnerRows->items());
         $categories = Category::orderBy('name')->orderBy('id')->paginate(30, ['id', 'name', 'emergency_guidance', 'active', 'revision'], 'page', $page);
 
         return ['professional_choices' => $eligible, 'professionals_last_page' => $professionals->lastPage(),
-            'learner_choices' => collect($learnerRows->items())->map(fn ($learner) => ['id' => (int) $learner->id, 'name' => $learner->user === null ? __('Archived learner') : $this->name($learner->user), 'admission_no' => $learner->admission_no])->all(),
+            'learner_choices' => collect($learnerRows->items())->map(fn ($learner) => ['id' => (int) $learner->id, 'name' => $learner->user === null ? __('Archived learner') : $this->name($learner->user), 'admission_no' => $learner->admission_no, 'primary_identifier' => $identifiers[(int) $learner->id] ?? null])->all(),
             'learners_last_page' => $learnerRows->lastPage(), 'categories' => $categories->items(), 'categories_last_page' => $categories->lastPage(), 'page' => $page];
     }
 

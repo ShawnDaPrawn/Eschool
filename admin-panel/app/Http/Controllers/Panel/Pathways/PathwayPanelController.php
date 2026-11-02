@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pathways\PathwayPanelRequest;
 use App\Models\Subject;
 use App\Services\Academics\AcademicAuthority;
+use App\Services\Pathways\CareerProfiles;
 use App\Services\Pathways\PathwayPanelScope;
 use App\Services\Pathways\PathwayQueries;
 use App\Services\Pathways\PathwayReferences;
@@ -23,8 +24,9 @@ class PathwayPanelController extends Controller
     {
         $configuration = app(PathwayQueries::class)->configuration($request->user());
         $listing = app(PathwayQueries::class)->catalogue($request->user(), $request->integer('page', 1), true);
+        $careers = app(CareerProfiles::class)->catalogue($request->user(), $request->integer('career_page', 1));
 
-        return response()->view('pathways.index', compact('configuration', 'listing'));
+        return response()->view('pathways.index', compact('configuration', 'listing', 'careers'));
     }
 
     public function form(PathwayPanelRequest $request): Response

@@ -49,6 +49,14 @@ portal/channel modes, humans control their optional choices, and `Notifier`
 enforces module availability, current access and precedence before delivery.
 The [specification](../specs/platform/notification-rules.md) records semantics.
 
+Each notice has three layers (Action Plan 1.4): a title, an excerpt of at most
+140 characters for the inbox row and an optional full body, plus the app path
+(`target`) it opens. Learner approval requests, handle approval requests,
+safeguarding alerts and relief-cover assignments are marked `notice_only`;
+like every `private_notices` scope prefix they keep their generic message as
+the excerpt and never store a body. See
+[notification layers](../specs/notifications/notification-layers.md).
+
 ## Phase 2: curriculum permissions
 
 Always-on academics includes curriculum-read/manage/publish. School publishers
@@ -92,6 +100,13 @@ standard channel preferences) tells affected learners, their current guardians
 and the lessons' teachers when a short day is planned or cancelled. The notice
 names only the date; the outbox event carries lesson IDs, never a learner list.
 
+Rich push (2.9) adds no notification type. `push_actions` on consent.requested
+(consent_yes, consent_no), comms.message and communication.message (reply),
+comms.urgent and safeguarding.alert (acknowledge) name buttons that only open
+the app to confirm. Private types show generic push text. The silent push
+`timetable.refresh` (1.9, like `context.changed`, not a notice type) follows
+academics.timetable_changed with only its type and the school id.
+
 
 New school year: school.new_year (people module, learner and parent portals,
 standard channel preferences) welcomes the learners placed in the new year and
@@ -104,6 +119,13 @@ and admin portals, standard channel preferences) tells the school leader whom
 Navigate Ed Operations named when an onboarding import prepared on the school's
 behalf (SA.11) waits for their approval. The notice links to the import in the
 panel and names no learner, guardian or staff member.
+
+Announcements from Navigate Ed: platform.announcement (school module, which is
+always on; admin portal only; in-app and email on by default, no push; the
+school's notification rules apply) goes to the active Super Admins of each school
+an HQ announcement reaches (SA.13) when it is published. The notice carries the
+announcement's title and its kind (and a maintenance window's times), and links
+to the school panel's Navigate Ed announcements page; it names no other school.
 
 Exam changes: academics.exam_changed (academics module, learner and parent
 portals, standard channel preferences) tells the learners in a class and their
@@ -197,6 +219,15 @@ Hourly `risk:evaluate` jobs and academic/attendance events observe current-day
 canonical evidence. Unavailable wellbeing and discipline sources stay null until
 explicit authoritative adapters exist. No family risk labels or clinical-source
 counts are exposed. Leadership receives grade/date counts only.
+
+"No child unseen" (Action Plan 4.5): `growth.unseen_adult_assigned`
+(early_warning module, teacher and admin portals, standard channel
+preferences) tells the one staff member a grade head or principal named to
+reach out to a learner with no recent positive contact. It links to
+`/risk-interventions/unseen` and names no learner; the page shows the named
+adult only their own learners. The hourly `risk:evaluate` run records an
+`unseen` observation per learner and closes the request when a positive
+contact is recorded.
 
 
 ## Discipline
@@ -475,3 +506,59 @@ Personal profiles use their current wallet/guardian scope; dedicated operators
 use only assigned counters. Pausing retains private original history and allows
 reader revocation and uncertain-request recovery while refusing new debits.
 No provider, notification, offline payment or Phase6 collection is activated.
+
+
+## Growth-first digest and persistence badges (Action Plan 4.6)
+
+`growth.weekly` (digest module, learner portal, in-app only: push and email are
+locked off through `locked_off_channels`, so no school rule can switch them on) tells a learner, once a week, which topics they grew in. The text names up
+to three topics and no scores, levels or other learners. The payload carries an
+opaque `growth_week_id`; the inbox and delivery recheck the learner's own
+current, guardian-approved account and the digest and mastery modules. Parents
+get growth inside the existing `digest.weekly` update. Persistence badges are
+permanent awards with source `badge` and use the existing
+`recognition.award_presented` notice. No new outbox event type.
+
+
+## School offboarding
+
+School data export ready: `school.offboarding_export` (people module, admin
+portal; push, email and in-app are mandatory and locked) tells a leaving
+school's active Super Admins (never platform staff) that the full export of
+their school's data is ready in the panel at `/school-exit`, and the date by
+which to download it and confirm receipt. The notice names no person and
+carries no data; the download itself needs the Super Admin's sign-in and a
+short-lived signed link (engineering/specs/platform/offboarding.md).
+
+
+## Support desk
+
+Navigate Ed support replies: `school.support_reply` (school module, admin portal
+only, standard channel preferences) tells the school staff member who opened a
+support ticket that Navigate Ed replied. The notice carries the ticket's subject
+and a link to `/support-tickets/{id}` in the admin panel, never the message;
+internal notes and status changes send nothing.
+
+
+### Navigate Ed account overdue (HQ billing)
+
+`billing.overdue` (school module, admin portal; in-app and email mandatory,
+push on by default; locked) tells a school's Super Admins that its own account
+with Navigate Ed is overdue, when HQ sends a reminder from `/saas/billing`. The
+bursar contact on HQ's school record gets the same text by email. The notice
+names the overdue amount and invoice references only; no learner or person.
+No payment provider is involved: schools pay by EFT
+([HQ billing](../specs/platform/hq-billing.md)).
+
+
+## Navigate Ed support access (SA.9)
+
+Notification types `support_access.requested` and `support_access.emergency`
+(people module, admin portal only, every channel mandatory and locked so a school
+cannot switch them off) go to the school's active Super Admins, never to a
+platform staff account that also holds a school role. The first says Navigate Ed
+asks for support access; the second that an Owner opened emergency access at once.
+Both link to the school panel's `/support-access` page and name no person, reason
+or record. No ability, module or permission row is added to schools; HQ adds the
+platform abilities `support.access` (Owner, Operations, Support) and
+`support.emergency` (Owner).

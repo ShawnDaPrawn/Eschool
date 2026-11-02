@@ -39,6 +39,13 @@ class PlatformAuditLog
         'platform_school_status_changed' => 'School status changed',
         'platform_school_module_changed' => 'Module switched',
         'platform_audit_exported' => 'Audit log exported',
+        'platform_two_factor_enrolled' => 'Two-factor sign-in set up',
+        'platform_two_factor_passed' => 'Two-factor challenge passed',
+        'platform_two_factor_failed' => 'Two-factor code refused',
+        'platform_two_factor_recovery_code_used' => 'Recovery code used',
+        'platform_two_factor_reset' => 'Two-factor sign-in reset',
+        'platform_announcement_published' => 'Announcement published',
+        'platform_announcement_withdrawn' => 'Announcement withdrawn',
         'ai.platform_cost_access_changed' => 'AI cost access changed',
         'platform_ai_feature_switched' => 'AI feature switched',
         'platform_ai_caps_changed' => 'AI spending caps changed',
@@ -50,6 +57,12 @@ class PlatformAuditLog
         'platform_import_cancelled' => 'Import cancelled',
         'platform_import_stopped' => 'Import stopped',
         'platform_import_expired' => 'Import expired',
+        'platform_support_access_requested' => 'Support access requested',
+        'platform_support_access_approved' => 'Support access approved by the school',
+        'platform_support_access_declined' => 'Support access declined',
+        'platform_support_access_emergency' => 'Emergency support access opened',
+        'platform_support_access_ended' => 'Support access ended',
+        'platform_support_page_viewed' => 'Page viewed in a support session',
     ];
 
     /** Keys left out of the summary: who changed it is already the actor. */

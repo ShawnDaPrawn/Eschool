@@ -78,6 +78,11 @@ class NotificationRules
         if (! is_array($definition) || ! in_array($portal, $definition['portals'], true) || ! in_array($channel, self::CHANNELS, true)) {
             return 'off';
         }
+        // Channels NavigateEd keeps off for this type whatever the school saved
+        // (a rule saved before the lock is ignored here, so transport stays off).
+        if (in_array($channel, $definition['locked_off_channels'] ?? [], true)) {
+            return 'off';
+        }
         $default = $definition['channels'][$channel] ?? 'off';
         if (in_array($portal, $definition['locked'] ?? [], true)) {
             return in_array($channel, $definition['mandatory_channels'] ?? [], true) || $default === 'mandatory' ? 'mandatory' : 'off';
@@ -168,6 +173,9 @@ class NotificationRules
             }
             if (in_array($portal, $definition['locked'] ?? [], true)) {
                 throw ValidationException::withMessages(['mode' => 'This account or safeguarding notice is locked by NavigateEd.']);
+            }
+            if (in_array($channel, $definition['locked_off_channels'] ?? [], true) && $mode !== 'off') {
+                throw ValidationException::withMessages(['mode' => 'NavigateEd keeps this channel off for this notice to protect private learning details.']);
             }
             NotificationRule::query()->updateOrCreate(['portal' => $portal, 'type' => $type, 'channel' => $channel], ['mode' => $mode, 'changed_by' => $actor->id]);
             $this->forget();

@@ -131,7 +131,7 @@ jobs:
           node-version: '24'
       - name: Qualify PHP and WebCrypto offline card interoperability
         run: node --test tool/cards/offline-crypto.test.mjs
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install the pinned local encoder crypto dependency
@@ -418,7 +418,7 @@ jobs:
           flutter-version: '3.47.7'
           channel: stable
           cache: true
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
         with:
           # Pull-request caches are isolated by GitHub's ref scope. Forks only
           # read existing caches; no shared credentials are cached.

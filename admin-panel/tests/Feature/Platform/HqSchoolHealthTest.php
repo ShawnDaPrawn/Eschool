@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -28,6 +29,7 @@ use Tests\TestCase;
  */
 class HqSchoolHealthTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     /** The demo schools' people: none of them may appear on an HQ page. */
@@ -209,7 +211,7 @@ class HqSchoolHealthTest extends TestCase
 
         $after = app(PlatformSchoolHealth::class)->compute(1)['ai'];
         $this->assertSame([200, true], [$after['spent_cents'], $after['other_currency']]);
-        $this->actingAs($this->staff('owner'))->get('/saas/schools/1/health')->assertOk()
+        $this->actingAsHq($this->staff('owner'))->get('/saas/schools/1/health')->assertOk()
             ->assertSee('Spend recorded in another billing currency this month is not included.');
     }
 
@@ -348,7 +350,7 @@ class HqSchoolHealthTest extends TestCase
         $this->assertSame(['bounce_rate', 'push_failure_rate', 'ai_spend'], $flagged($b));
         $this->assertSame(3, $b->flag_count);
 
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
         $page = $this->get('/saas/health')->assertOk()->assertSee('Bounces')->assertSee('Push failures');
         $html = $page->getContent();
         $this->assertLessThan(strpos($html, 'data-health-school="1"'), strpos($html, 'data-health-school="2"'), 'the flagged school is listed first');
@@ -359,7 +361,7 @@ class HqSchoolHealthTest extends TestCase
 
     public function test_a_school_without_nightly_figures_is_listed_as_not_computed(): void
     {
-        $this->actingAs($this->staff('finance'));
+        $this->actingAsHq($this->staff('finance'));
 
         $this->get('/saas/health')->assertOk()->assertSee('Not computed yet');
         $this->get('/saas/schools/1/health')->assertOk()->assertSee('No nightly figures yet')->assertSee('Not enough nightly figures yet');
@@ -370,7 +372,7 @@ class HqSchoolHealthTest extends TestCase
         $count = fn () => app(CurrentSchool::class)->acrossSchools(fn () => SchoolHealthSnapshot::acrossSchools()->count());
         $before = $count();
         foreach (['owner', 'operations', 'support', 'finance'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $this->get('/saas')->assertOk()->assertSee('School health');
             $this->get('/saas/schools/1')->assertOk()->assertSee('/saas/schools/1/health', false);
             $this->get('/saas/health')->assertOk();
@@ -379,7 +381,7 @@ class HqSchoolHealthTest extends TestCase
         }
         $refused = ['sales' => $this->staff('sales'), 'content' => $this->staff('content')];
         foreach ($refused as $user) {
-            $this->actingAs($user);
+            $this->actingAsHq($user);
             $this->get('/saas')->assertOk()->assertDontSee('School health');
             $this->get('/saas/schools/1')->assertOk()->assertDontSee('/saas/schools/1/health', false);
             $this->get('/saas/health')->assertForbidden();
@@ -388,7 +390,7 @@ class HqSchoolHealthTest extends TestCase
         }
         // School accounts never reach HQ: School A's Super Admin and a teacher.
         foreach ([$this->superAdmin(), User::query()->findOrFail($this->person('tara'))] as $user) {
-            $this->actingAs($user);
+            $this->newBrowserSession()->actingAs($user);
             $this->get('/saas/health')->assertForbidden();
             $this->get('/saas/schools/1/health')->assertForbidden();
         }
@@ -410,7 +412,7 @@ class HqSchoolHealthTest extends TestCase
         $this->seedSchoolA();
         $this->seedSchoolB();
         $this->artisan('platform:school-health')->assertSuccessful();
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
 
         $school = $this->get('/saas/schools/1/health')->assertOk()
             ->assertSee('1 of 3 guardians')->assertSee('2 of 3')->assertSee('SendMail: 1')->assertSee('Not shown (sensitive)', false);

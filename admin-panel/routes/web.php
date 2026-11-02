@@ -61,8 +61,12 @@ use App\Http\Controllers\Panel\Growth\CaseloadRenewalController;
 use App\Http\Controllers\Panel\Growth\MasteryWorkbenchController;
 use App\Http\Controllers\Panel\Growth\ProgressPanelController;
 use App\Http\Controllers\Panel\Growth\RiskPanelController;
+use App\Http\Controllers\Panel\Growth\UnseenLearnersController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
+use App\Http\Controllers\Panel\Leadership\MasteryImpactController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
+use App\Http\Controllers\Panel\Learning\QuestionBankController;
+use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\CashHandoverPanelController;
@@ -99,11 +103,15 @@ use App\Http\Controllers\Panel\Money\WalletPaymentPortalController;
 use App\Http\Controllers\Panel\Money\WalletWithdrawalPanelController;
 use App\Http\Controllers\Panel\Pastoral\CoverPanelController;
 use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
+use App\Http\Controllers\Panel\Pathways\CareerGuidancePanelController;
+use App\Http\Controllers\Panel\Pathways\CareerProfilePanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
 use App\Http\Controllers\Panel\People\HqImportController;
+use App\Http\Controllers\Panel\People\JoinInvitationOfficeController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
+use App\Http\Controllers\Panel\People\LeaverController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
 use App\Http\Controllers\Panel\Platform\SchoolSwitchController;
@@ -122,22 +130,42 @@ use App\Http\Controllers\Platform\LearnerSetupController;
 use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
+use App\Http\Controllers\Platform\PlatformAnnouncementController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformHomeController;
+use App\Http\Controllers\Platform\PlatformFeatureFlagController;
+use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
+use App\Http\Controllers\Platform\PlatformLibraryController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
+use App\Http\Controllers\Platform\PlatformOffboardingController;
+use App\Http\Controllers\Platform\PlatformMessagingController;
+use App\Http\Controllers\Platform\PlatformMailStreamsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
 use App\Http\Controllers\Platform\PlatformSchoolHealthController;
 use App\Http\Controllers\Platform\PlatformSchoolImportController;
 use App\Http\Controllers\Platform\PlatformStaffController;
+use App\Http\Controllers\Platform\PlatformSupportController;
+use App\Http\Controllers\Platform\PlatformSupportAccessController;
+use App\Http\Controllers\Platform\PlatformTwoFactorController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\SchoolStageController;
+use App\Http\Controllers\Platform\SchoolExitController;
+use App\Http\Controllers\Platform\SchoolSupportAccessController;
+use App\Http\Controllers\Platform\SchoolJoinInvitationController;
+use App\Http\Controllers\Platform\SchoolAnnouncementController;
 use App\Http\Controllers\Platform\StaffInvitationController;
+use App\Http\Controllers\Platform\UrgentMessagingController;
+use App\Http\Controllers\Platform\SupportSessionController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\School\SchoolInformationController;
+use App\Http\Controllers\School\SupportTicketController;
+use App\Http\Controllers\School\SendingDomainController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SessionYearController;
 use App\Http\Controllers\SettingController;
@@ -154,6 +182,7 @@ use App\Http\Controllers\TermController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\WebController;
 use App\Http\Controllers\Webhooks\MailWebhookController;
+use App\Http\Controllers\Webhooks\MessagingWebhookController;
 use App\Http\Controllers\WebSettingController;
 use App\Http\Middleware\AuthorizeCardEncodingPanel;
 use App\Http\Middleware\AuthorizeCardsPanel;
@@ -263,6 +292,14 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
     Route::post('invite/staff/{token}', [StaffInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:password')->name('staff-invitation.accept');
 });
 
+// An invitation to join another school with an existing account (Action Plan 1.3):
+// answered only while signed in as the invited account; guests are sent to sign in.
+Route::middleware([PrivateDomainResponse::class])->group(function () {
+    Route::get('invite/join/{token}', [SchoolJoinInvitationController::class, 'show'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:30,1')->name('join-invitation.show');
+    Route::post('invite/join/{token}/accept', [SchoolJoinInvitationController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware(['auth', 'throttle:20,1'])->name('join-invitation.accept');
+    Route::post('invite/join/{token}/decline', [SchoolJoinInvitationController::class, 'decline'])->where('token', '[A-Za-z0-9]{64}')->middleware(['auth', 'throttle:20,1'])->name('join-invitation.decline');
+});
+
 // A learner's calendar subscription (Action Plan 1.10). The secret token is
 // the only key; the calendar app fetches it without signing in.
 Route::middleware([PrivateDomainResponse::class])->group(function () {
@@ -274,6 +311,16 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:password'])->group(function () {
     Route::view('saas/password', 'saas.password')->name('saas.password');
     Route::post('saas/password', [HomeController::class, 'changePassword'])->middleware('throttle:password')->name('saas.password.store');
+});
+
+// Two-factor sign-in for platform staff (SA.2): set up the authenticator app,
+// then pass the challenge once in each session. Every other /saas page waits
+// for it (platform.staff); these pages are the only ones open before it.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff:two-factor'])->prefix('saas/two-factor')->name('saas.two-factor.')->group(function () {
+    Route::get('/', [PlatformTwoFactorController::class, 'enrol'])->name('enrol');
+    Route::post('/', [PlatformTwoFactorController::class, 'confirm'])->middleware('throttle:20,1')->name('confirm');
+    Route::get('/challenge', [PlatformTwoFactorController::class, 'challenge'])->name('challenge');
+    Route::post('/challenge', [PlatformTwoFactorController::class, 'verify'])->middleware('throttle:20,1')->name('verify');
 });
 
 // An invited platform staff member chooses their password (SA.1). No school, no sign-in.
@@ -294,6 +341,8 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
     // Every route names the ability its role must hold (platform.can, SA.1).
     Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
+    // The HQ home page (4F), where sign-in lands: each tile only for the role that may open its area.
+    Route::get('/home', PlatformHomeController::class)->middleware('platform.can:schools.view')->name('home');
     Route::get('/packages', ProductCatalogueController::class)->middleware('platform.can:packages.view')->name('packages');
     // The package and price editor (SA.7): packages.view reads, packages.manage changes.
     Route::get('/packages/{package}', [PlatformPackageController::class, 'show'])->middleware('platform.can:packages.view')->whereNumber('package')->name('packages.show');
@@ -325,6 +374,19 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
         Route::post('contracts', [SchoolAccountController::class, 'contract'])->name('contracts.store');
         Route::post('notes', [SchoolAccountController::class, 'note'])->name('notes.store');
     });
+    // School offboarding (SA.11): export, receipt, archive and deletion approvals of a leaving school; states and counts only.
+    Route::prefix('/schools/{school}/offboarding')->whereNumber('school')->name('schools.offboarding')->group(function () {
+        Route::get('/', [PlatformOffboardingController::class, 'show'])->middleware('platform.can:offboarding.view');
+        Route::post('/', [PlatformOffboardingController::class, 'start'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.start');
+        Route::post('/retry', [PlatformOffboardingController::class, 'retry'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.retry');
+        Route::post('/archive', [PlatformOffboardingController::class, 'archive'])->middleware('platform.can:offboarding.manage')->name('.archive');
+        Route::post('/cancel', [PlatformOffboardingController::class, 'cancel'])->middleware('platform.can:offboarding.manage')->name('.cancel');
+        Route::post('/dry-run', [PlatformOffboardingController::class, 'dryRun'])->middleware(['platform.can:offboarding.manage', 'throttle:10,1'])->name('.dry-run');
+        Route::post('/deletion', [PlatformOffboardingController::class, 'requestDeletion'])->middleware('platform.can:offboarding.manage')->name('.request');
+        Route::post('/deletion/approval', [PlatformOffboardingController::class, 'approve'])->middleware('platform.can:offboarding.approve')->name('.approve');
+        Route::post('/legal-hold', [PlatformOffboardingController::class, 'hold'])->middleware('platform.can:offboarding.manage')->name('.hold');
+        Route::delete('/legal-hold', [PlatformOffboardingController::class, 'liftHold'])->middleware('platform.can:offboarding.approve')->name('.hold.lift');
+    });
     Route::put('/schools/{school}/package', [SaasController::class, 'updatePackage'])->middleware('platform.can:schools.package')->whereNumber('school')->name('schools.package');
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->middleware('platform.can:schools.modules')->whereNumber('school')->name('schools.modules');
@@ -355,6 +417,84 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // The platform content library (3.3) and its review (SA.16): library rows only, never a school's material or people.
+    Route::prefix('/library')->name('library.')->group(function () {
+        Route::middleware('platform.can:library.manage')->group(function () {
+            Route::get('/', [PlatformLibraryController::class, 'index'])->name('index');
+            Route::post('/frameworks', [PlatformLibraryController::class, 'storeFramework'])->middleware('throttle:30,1')->name('frameworks.store');
+            Route::get('/frameworks/{framework}', [PlatformLibraryController::class, 'framework'])->whereNumber('framework')->name('frameworks.show');
+            Route::post('/frameworks/{framework}/topics', [PlatformLibraryController::class, 'storeTopic'])->middleware('throttle:60,1')->whereNumber('framework')->name('topics.store');
+            Route::put('/topics/{topic}/prerequisites', [PlatformLibraryController::class, 'prerequisites'])->middleware('throttle:60,1')->whereNumber('topic')->name('topics.prerequisites');
+            Route::post('/items', [PlatformLibraryController::class, 'storeItem'])->middleware('throttle:60,1')->name('items.store');
+            Route::post('/sources', [PlatformLibraryController::class, 'storeSource'])->middleware('throttle:30,1')->name('sources.store');
+            Route::get('/items/{item}', [PlatformLibraryController::class, 'item'])->whereNumber('item')->name('items.show');
+            Route::put('/items/{item}/draft', [PlatformLibraryController::class, 'draft'])->middleware('throttle:60,1')->whereNumber('item')->name('items.draft');
+            Route::post('/items/{item}/submit', [PlatformLibraryController::class, 'submit'])->middleware('throttle:60,1')->whereNumber('item')->name('items.submit');
+            Route::post('/items/{item}/publish', [PlatformLibraryController::class, 'publish'])->middleware('throttle:60,1')->whereNumber('item')->name('items.publish');
+            Route::post('/reviewers', [PlatformLibraryController::class, 'storeReviewer'])->middleware('throttle:30,1')->name('reviewers.store');
+            Route::delete('/reviewers/{assignment}', [PlatformLibraryController::class, 'removeReviewer'])->whereNumber('assignment')->name('reviewers.destroy');
+            Route::put('/schools/{school}', [PlatformLibraryController::class, 'switch'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.switch');
+        });
+        Route::middleware('platform.can:library.review')->group(function () {
+            Route::get('/reviews', [PlatformLibraryController::class, 'reviews'])->name('reviews');
+            Route::post('/versions/{version}/review', [PlatformLibraryController::class, 'review'])->middleware('throttle:60,1')->whereNumber('version')->name('versions.review');
+        });
+    });
+    // SMS and WhatsApp pass-through cost per school (2.7): counts and sums only.
+    Route::get('/messaging', [PlatformMessagingController::class, 'index'])->middleware('platform.can:messaging.view')->name('messaging');
+    // The support desk (SA.17): every school's tickets, replies, internal notes, assignee and status.
+    Route::prefix('/support-desk')->middleware('platform.can:support.manage')->name('support-desk.')->group(function () {
+        Route::get('/', [PlatformSupportController::class, 'index'])->name('index');
+        Route::get('/{ticket}', [PlatformSupportController::class, 'show'])->whereNumber('ticket')->name('show');
+        Route::post('/{ticket}/messages', [PlatformSupportController::class, 'message'])->middleware('throttle:60,1')->whereNumber('ticket')->name('messages.store');
+        Route::put('/{ticket}/status', [PlatformSupportController::class, 'status'])->whereNumber('ticket')->name('status');
+        Route::put('/{ticket}/assignee', [PlatformSupportController::class, 'assignee'])->whereNumber('ticket')->name('assignee');
+    });
+    // Audited support access (SA.9): ask a school, follow the decision, see every page viewed; Owners may open a pending request in an emergency.
+    Route::prefix('/support')->name('support.')->group(function () {
+        Route::get('/', [PlatformSupportAccessController::class, 'index'])->middleware('platform.can:support.access')->name('index');
+        Route::post('/', [PlatformSupportAccessController::class, 'store'])->middleware(['platform.can:support.access', 'throttle:20,1'])->name('store');
+        Route::get('/{grant}', [PlatformSupportAccessController::class, 'show'])->middleware('platform.can:support.access')->whereNumber('grant')->name('show');
+        Route::post('/{grant}/emergency', [PlatformSupportAccessController::class, 'emergency'])->middleware(['platform.can:support.emergency', 'throttle:10,1'])->whereNumber('grant')->name('emergency');
+        Route::post('/{grant}/end', [PlatformSupportAccessController::class, 'end'])->middleware('platform.can:support.access')->whereNumber('grant')->name('end');
+    });
+    // Feature flags and staged rollout (SA.14): beta schools first, then everyone; a kill switch.
+    Route::get('/flags', [PlatformFeatureFlagController::class, 'index'])->middleware('platform.can:flags.manage')->name('flags.index');
+    Route::post('/flags', [PlatformFeatureFlagController::class, 'store'])->middleware(['platform.can:flags.manage', 'throttle:20,1'])->name('flags.store');
+    Route::put('/flags/{flag}', [PlatformFeatureFlagController::class, 'update'])->middleware('platform.can:flags.manage')->whereNumber('flag')->name('flags.update');
+    Route::post('/flags/{flag}/schools', [PlatformFeatureFlagController::class, 'school'])->middleware('platform.can:flags.manage')->whereNumber('flag')->name('flags.schools');
+    // SES streams (2.3): each school's account and bulk configuration sets, their status and rates; counts only.
+    Route::get('/mail-streams', [PlatformMailStreamsController::class, 'index'])->middleware('platform.can:mail.view')->name('mail-streams');
+    Route::post('/mail-streams/check', [PlatformMailStreamsController::class, 'check'])->middleware(['platform.can:mail.manage', 'throttle:20,1'])->name('mail-streams.check');
+    // Billing schools (1.17, SA.8): billing.view reads, billing.manage invoices, records payments and reminds.
+    Route::get('/billing', [PlatformBillingController::class, 'index'])->middleware('platform.can:billing.view')->name('billing');
+    Route::prefix('/billing')->name('billing.')->group(function () {
+        Route::get('/schools/{school}', [PlatformBillingController::class, 'statement'])->middleware('platform.can:billing.view')->whereNumber('school')->name('statement');
+        Route::get('/schools/{school}/invoices/{invoice}', [PlatformBillingController::class, 'invoice'])->middleware('platform.can:billing.view')->whereNumber(['school', 'invoice'])->name('invoices.show');
+        Route::middleware(['platform.can:billing.manage', 'throttle:30,1'])->group(function () {
+            Route::post('/runs', [PlatformBillingController::class, 'run'])->name('runs.store');
+            Route::post('/runs/issue', [PlatformBillingController::class, 'issueMonth'])->name('runs.issue');
+            Route::prefix('/schools/{school}')->whereNumber('school')->group(function () {
+                Route::post('/invoices/{invoice}/recompute', [PlatformBillingController::class, 'recompute'])->whereNumber('invoice')->name('invoices.recompute');
+                Route::post('/invoices/{invoice}/issue', [PlatformBillingController::class, 'issue'])->whereNumber('invoice')->name('invoices.issue');
+                Route::post('/invoices/{invoice}/discard', [PlatformBillingController::class, 'discard'])->whereNumber('invoice')->name('invoices.discard');
+                Route::post('/invoices/{invoice}/credit-notes', [PlatformBillingController::class, 'credit'])->whereNumber('invoice')->name('invoices.credit');
+                Route::post('/invoices/{invoice}/apply-credit', [PlatformBillingController::class, 'applyCredit'])->whereNumber('invoice')->name('invoices.apply-credit');
+                Route::post('/payments', [PlatformBillingController::class, 'payment'])->name('payments.store');
+                Route::post('/payments/{payment}/reverse', [PlatformBillingController::class, 'reverse'])->whereNumber('payment')->name('payments.reverse');
+                Route::post('/reminders', [PlatformBillingController::class, 'remind'])->name('reminders.store');
+            });
+        });
+    });
+    // Announcements to schools (SA.13): draft, preview the reach, publish, withdraw.
+    Route::prefix('/announcements')->middleware('platform.can:announcements.manage')->name('announcements.')->group(function () {
+        Route::get('/', [PlatformAnnouncementController::class, 'index'])->name('index');
+        Route::post('/', [PlatformAnnouncementController::class, 'store'])->middleware('throttle:20,1')->name('store');
+        Route::get('/{announcement}', [PlatformAnnouncementController::class, 'show'])->whereNumber('announcement')->name('show');
+        Route::put('/{announcement}', [PlatformAnnouncementController::class, 'update'])->whereNumber('announcement')->name('update');
+        Route::post('/{announcement}/publish', [PlatformAnnouncementController::class, 'publish'])->middleware('throttle:20,1')->whereNumber('announcement')->name('publish');
+        Route::post('/{announcement}/withdraw', [PlatformAnnouncementController::class, 'withdraw'])->middleware('throttle:20,1')->whereNumber('announcement')->name('withdraw');
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
@@ -362,6 +502,17 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/staff/{user}', [PlatformStaffController::class, 'update'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.update');
     Route::post('/staff/{user}/revoke', [PlatformStaffController::class, 'revoke'])->middleware('platform.can:staff.manage')->whereNumber('user')->name('staff.revoke');
     Route::post('/staff/{user}/invitation', [PlatformStaffController::class, 'resend'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.invitation');
+    Route::post('/staff/{user}/two-factor/reset', [PlatformStaffController::class, 'resetTwoFactor'])->middleware(['platform.can:staff.manage', 'throttle:20,1'])->whereNumber('user')->name('staff.two-factor.reset');
+});
+
+// A support session (SA.9): read-only pages of the one school an open grant names.
+// support.session checks the grant and platform sign-in before setting the school; no school.context.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'support.session'])->prefix('support-session/{grant}')->name('support-session.')->group(function () {
+    Route::get('/', [SupportSessionController::class, 'show'])->whereNumber('grant')->name('show');
+    Route::get('/people', [SupportSessionController::class, 'people'])->whereNumber('grant')->name('people');
+    // A read sent as a POST (the search words stay out of the URL); the only POST support.session lets through.
+    Route::post('/people', [SupportSessionController::class, 'search'])->whereNumber('grant')->middleware('throttle:60,1')->name('people.search');
+    Route::get('/people/{person}', [SupportSessionController::class, 'person'])->whereNumber(['grant', 'person'])->name('person');
 });
 
 Route::get('platform/ai-costs', [AiControlPanelController::class, 'costs'])->middleware(['auth', PrivateDomainResponse::class])->name('ai-platform.costs');
@@ -468,6 +619,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('subjects/{subject}', [$controller, 'save'])->whereNumber('subject')->name('save');
             Route::post('subjects/{subject}/refresh', [$controller, 'refresh'])->whereNumber('subject')->name('refresh');
             Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->name('rebuild');
+            Route::post('model', [$controller, 'model'])->name('model');
         });
         // This purpose resolves the material's actual year in ActivityFiles:
         // uploads require its current writable year; removal stays available.
@@ -518,6 +670,14 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
                 Route::post('versions/{version}/'.$action, [$controller, $action])->whereNumber('version')->name($action);
             }
             Route::post('settings', [$controller, 'settings'])->name('settings');
+        });
+        // Teachers' question banks by subject and grade (Action Plan 3.6).
+        Route::prefix('question-banks')->name('question-banks.')->middleware(['module:daily_practice', PrivateAcademicContent::class])->group(function () {
+            $c = QuestionBankController::class;
+            Route::get('/', [$c, 'index'])->name('index');
+            Route::post('items/{item}', [$c, 'update'])->whereNumber('item')->middleware('throttle:60,1')->name('update');
+            Route::post('items/{item}/use', [$c, 'use'])->whereNumber('item')->middleware('throttle:60,1')->name('use');
+            Route::post('items/{item}/stop', [$c, 'stop'])->whereNumber('item')->middleware('throttle:60,1')->name('stop');
         });
         Route::prefix('fee-items')->name('fee-items.')->middleware([PrivateDomainResponse::class, 'module:fees,read'])->group(function () {
             Route::get('{item}/rules', [FeeItemRulePanelController::class, 'form'])->whereNumber('item')->name('rules');
@@ -840,10 +1000,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('/', [$c, 'index'])->name('index');
             Route::post('catalogue/{kind}', [$c, 'write'])->defaults('operation', 'catalogue')->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->name('catalogue-create');
             Route::post('catalogue/{kind}/{record}', [$c, 'write'])->defaults('operation', 'catalogue')->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->whereNumber('record')->name('catalogue-save');
-            Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['configure', 'issue', 'nominate', 'present', 'outside'])->name('create');
+            Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['configure', 'badges', 'issue', 'nominate', 'present', 'outside'])->name('create');
             Route::post('actions/{operation}/{record}', [$c, 'write'])->whereIn('operation', ['reverse', 'review', 'withdraw', 'void'])->whereNumber('record')->name('change');
         });
         Route::get('leadership-dashboard', [DashboardController::class, 'index'])->middleware(['module:leadership_dashboard', 'cache.headers:private;no_store'])->name('leadership-dashboard.index');
+        Route::get('leadership-dashboard/mastery-impact', [MasteryImpactController::class, 'index'])->middleware(['module:leadership_dashboard', 'module:mastery', 'cache.headers:private;no_store'])->name('mastery-impact.index');
         Route::prefix('academic-transitions')->name('academic-transitions.')->middleware(['module:academics', 'cache.headers:private;no_store'])->group(function () {
             $controller = TransitionWorkbenchController::class;
             Route::get('/', [$controller, 'index'])->name('index');
@@ -967,6 +1128,9 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('students/download-sample', [Student\BulkImportController::class, 'downloadSampleFile'])->name('students.download-sample');
         Route::post('students/store_bulk', [Student\BulkImportController::class, 'storeBulkData'])->middleware('throttle:heavy')->name('students.store-bulk-data');
         Route::resource('students', Student\StudentController::class)->except(['edit']);
+        // Invitations for people who already have an account to join this school (Action Plan 1.3).
+        Route::get('join-invitations', [JoinInvitationOfficeController::class, 'index'])->name('join-invitations.index');
+        Route::post('join-invitations/{invitation}/withdraw', [JoinInvitationOfficeController::class, 'withdraw'])->whereNumber('invitation')->middleware('throttle:30,1')->name('join-invitations.withdraw');
         // A learner's sign-in set-up: email the guardians a link, or print a one-time code.
         // The office's LURITS numbers (Action Plan 1.0e).
         Route::get('learners/lurits', [LuritsOfficeController::class, 'index'])->name('lurits-office.index');
@@ -1121,6 +1285,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('promotions/by-grade', [GradePromotionController::class, 'index'])->name('promotions.by-grade');
         Route::post('promotions/by-grade/check', [GradePromotionController::class, 'preview'])->name('promotions.by-grade.preview');
         Route::post('promotions/by-grade', [GradePromotionController::class, 'store'])->name('promotions.by-grade.store');
+        // Leavers: read-only until 31 March, restored or ended early by the office (Action Plan 1.21).
+        Route::get('learners/leavers', [LeaverController::class, 'index'])->name('leavers.index');
+        Route::post('learners/leavers/{learner}/restore', [LeaverController::class, 'restore'])->whereNumber('learner')->middleware('throttle:60,1')->name('leavers.restore');
+        Route::post('learners/leavers/{learner}/end', [LeaverController::class, 'end'])->whereNumber('learner')->middleware('throttle:60,1')->name('leavers.end');
 
         Route::get('resetpassword', [HomeController::class, 'resetpassword'])->name('resetpassword');
         // POST so the password isn't written to access logs with the URL.
@@ -1309,6 +1477,10 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
 // only the topics in services.ses_notifications.topic_arns are accepted).
 Route::post('webhook/mail/ses', [MailWebhookController::class, 'ses'])->middleware('throttle:mail-webhook')->name('webhook.mail.ses');
 
+// Twilio SMS and WhatsApp status callbacks (Action Plan 2.7), signed with the
+// platform's auth token (X-Twilio-Signature).
+Route::post('webhook/messaging/twilio', [MessagingWebhookController::class, 'twilio'])->middleware('throttle:messaging-webhook')->name('webhook.messaging.twilio');
+
 // Linked from the public website footer; the school may not have written them yet.
 Route::get('/privacy-policy', function () {
     $settings = getSettings('privacy_policy');
@@ -1356,6 +1528,12 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::put('/learners/{learner}/guardians/{link}', [LearnerGuardiansController::class, 'update'])->whereNumber(['learner', 'link'])->name('learner-guardians.update');
     Route::post('/learners/{learner}/guardians/{link}/end', [LearnerGuardiansController::class, 'end'])->whereNumber(['learner', 'link'])->name('learner-guardians.end');
     Route::get('/access-review', AccessReviewController::class)->name('access-review.index');
+    // Navigate Ed support access to this school (SA.9): its Super Admins decide, end it and see every page viewed.
+    Route::get('/support-access', [SchoolSupportAccessController::class, 'index'])->name('support-access.index');
+    Route::get('/support-access/{grant}', [SchoolSupportAccessController::class, 'show'])->whereNumber('grant')->name('support-access.show');
+    Route::post('/support-access/{grant}/approve', [SchoolSupportAccessController::class, 'approve'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.approve');
+    Route::post('/support-access/{grant}/decline', [SchoolSupportAccessController::class, 'decline'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.decline');
+    Route::post('/support-access/{grant}/end', [SchoolSupportAccessController::class, 'end'])->whereNumber('grant')->middleware('throttle:30,1')->name('support-access.end');
     Route::get('/family-reach', FamilyReachController::class)->name('family-reach.index');
     Route::get('/people-profiles/{person}/export', [ProfileFormController::class, 'export'])->whereNumber('person')->name('people-profiles.export');
     Route::post('/people-profiles/{person}/invitation', [ProfileFormController::class, 'invite'])->whereNumber('person')->middleware('throttle:20,1')->name('people-profiles.invitation');
@@ -1363,8 +1541,29 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::put('/people-profiles/{person?}', [ProfileFormController::class, 'update'])->whereNumber('person')->name('people-profiles.update');
     Route::get('/notification-rules', [NotificationRuleController::class, 'index'])->name('notification-rules.index');
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
+    // SMS and WhatsApp for urgent notices (Action Plan 2.7): off until the school switches them on.
+    Route::get('/urgent-messaging', [UrgentMessagingController::class, 'index'])->name('urgent-messaging.index');
+    Route::put('/urgent-messaging', [UrgentMessagingController::class, 'update'])->middleware('throttle:20,1')->name('urgent-messaging.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+    // The age stage of each grade (Action Plan 4.1).
+    Route::get('/school-stages', [SchoolStageController::class, 'index'])->name('school-stages.index');
+    Route::put('/school-stages', [SchoolStageController::class, 'update'])->middleware('throttle:30,1')->name('school-stages.update');
+    // A leaving school's export (SA.11): its Super Admin downloads it through a short-lived signed link and confirms receipt.
+    Route::get('/school-exit', [SchoolExitController::class, 'index'])->name('school-exit.index');
+    Route::get('/school-exit/{offboarding}/download', [SchoolExitController::class, 'download'])->whereNumber('offboarding')->middleware(['signed', 'throttle:10,1'])->name('school-exit.download');
+    Route::post('/school-exit/{offboarding}/receipt', [SchoolExitController::class, 'confirm'])->whereNumber('offboarding')->name('school-exit.confirm');
+    // Support tickets to Navigate Ed (Action Plan SA.17); SupportTicketRequest checks the right.
+    Route::get('/support-tickets', [SupportTicketController::class, 'index'])->name('support-tickets.index');
+    Route::post('/support-tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('support-tickets.store');
+    Route::get('/support-tickets/{ticket}', [SupportTicketController::class, 'show'])->whereNumber('ticket')->name('support-tickets.show');
+    Route::post('/support-tickets/{ticket}/messages', [SupportTicketController::class, 'message'])->whereNumber('ticket')->middleware('throttle:30,1')->name('support-tickets.messages.store');
+    Route::post('/support-tickets/{ticket}/close', [SupportTicketController::class, 'close'])->whereNumber('ticket')->middleware('throttle:30,1')->name('support-tickets.close');
+    // The domain the school's notices are sent from (Action Plan 2.2); SendingDomainRequest checks the right.
+    Route::get('/sending-domain', [SendingDomainController::class, 'index'])->name('sending-domain.index');
+    Route::post('/sending-domain', [SendingDomainController::class, 'store'])->middleware('throttle:10,1')->name('sending-domain.store');
+    Route::post('/sending-domain/{sendingDomain}/check', [SendingDomainController::class, 'check'])->whereNumber('sendingDomain')->middleware('throttle:20,1')->name('sending-domain.check');
+    Route::delete('/sending-domain/{sendingDomain}', [SendingDomainController::class, 'destroy'])->whereNumber('sendingDomain')->middleware('throttle:10,1')->name('sending-domain.destroy');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {
@@ -1387,6 +1586,10 @@ Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'mo
     Route::get('renewals', [CaseloadRenewalController::class, 'index'])->name('renewals');
     Route::post('renewals', [CaseloadRenewalController::class, 'store'])->middleware('throttle:20,1')->name('renewals.store');
     Route::post('settings', [RiskPanelController::class, 'write'])->name('configure');
+    // "No child unseen" (Action Plan 4.5).
+    Route::get('unseen', [UnseenLearnersController::class, 'index'])->name('unseen');
+    Route::post('unseen/learners/{learner}/adult', [UnseenLearnersController::class, 'assign'])->whereNumber('learner')->middleware('throttle:30,1')->name('unseen.assign');
+    Route::post('unseen/settings', [UnseenLearnersController::class, 'configure'])->name('unseen.configure');
 });
 
 Route::middleware([PrivateMastery::class, 'auth', 'school.context', 'staff', 'module:discipline', EnforceReadOnlyYears::class])->prefix('school-discipline')->name('discipline-panel.')->group(function () {
@@ -1433,6 +1636,14 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', Autho
     Route::post('consents/{consent}/cancel', [$controller, 'write'])->whereUuid('consent')->defaults('operation', 'cancel')->name('cancel');
 });
 
+// Navigate Ed's announcements to this school, for its Super Admins (SA.13). Dismissing
+// a banner is allowed while a past year is open, so it sits outside EnforceReadOnlyYears.
+Route::middleware(['Role', 'auth', 'school.context'])->prefix('navigate-ed-announcements')->name('platform-announcements.')->group(function () {
+    Route::get('/', [SchoolAnnouncementController::class, 'index'])->name('index');
+    Route::get('/{announcement}', [SchoolAnnouncementController::class, 'show'])->whereNumber('announcement')->name('show');
+    Route::post('/{announcement}/read', [SchoolAnnouncementController::class, 'read'])->middleware('throttle:60,1')->whereNumber('announcement')->name('read');
+});
+
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context'])->prefix('family-visits')->name('family-visits-panel.')->group(function () {
     $controller = VisitPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
@@ -1446,6 +1657,12 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::get('references/{reference}/edit', [$controller, 'form'])->whereUuid('reference')->name('edit');
     Route::post('references', [$controller, 'save'])->middleware('module:pathway,write')->name('store');
     Route::post('references/{reference}', [$controller, 'save'])->whereUuid('reference')->middleware('module:pathway,write')->name('update');
+    $careers = CareerProfilePanelController::class;
+    Route::get('careers/new', [$careers, 'form'])->name('careers.new');
+    Route::get('careers/{profile}/edit', [$careers, 'form'])->whereUuid('profile')->name('careers.edit');
+    Route::post('careers', [$careers, 'save'])->middleware('module:pathway,write')->name('careers.store');
+    Route::post('careers/{profile}', [$careers, 'save'])->whereUuid('profile')->middleware('module:pathway,write')->name('careers.update');
+    Route::get('guidance', [CareerGuidancePanelController::class, 'show'])->name('guidance');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:ask_school,read', EnforceReadOnlyYears::class])->prefix('ask-school')->name('assistance-panel.')->group(function () {
@@ -1458,10 +1675,21 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
 });
 
+// Structured exam coach memos (Action Plan 3.15): engineering/specs/ai/structured-memos.md.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:exam_coach,read', EnforceReadOnlyYears::class])->prefix('exam-memos')->name('exam-memos.')->group(function () {
+    $controller = ExamMemoPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('groups/{group}/versions/{version}', [$controller, 'show'])->whereNumber('group')->whereUuid('version')->name('show');
+    Route::post('groups/{group}/versions/{version}', [$controller, 'save'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('save');
+    Route::post('groups/{group}/versions/{version}/review', [$controller, 'review'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('review');
+});
+
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {
     $controller = PeerPanelController::class;
     Route::get('/', [$controller, 'index'])->name('index');
     Route::post('sessions', [$controller, 'write'])->defaults('action', 'create')->name('create');
+    Route::get('measure', [$controller, 'measure'])->name('measure');
+    Route::post('skill-sessions', [$controller, 'write'])->defaults('action', 'skill')->name('skill');
     Route::post('sessions/{session}/{action}', [$controller, 'write'])->whereUuid('session')->whereIn('action', ['complete', 'cancel', 'reverse'])->name('change');
 });
 
