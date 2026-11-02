@@ -96,6 +96,9 @@ Schedule::command('leadership:prune-activity')->dailyAt('02:50')->name('learner-
 
 Schedule::command('transfers:prune-copies')->dailyAt('03:00')->name('transfer-copy-retention')->withoutOverlapping();
 
+// Imports run on a school's behalf (SA.11): an unfinished one expires and its file is deleted.
+Schedule::command('platform:expire-school-imports')->hourly()->name('hq-import-expiry')->withoutOverlapping();
+
 // Refresh current-day evidence even when no source event arrives.
 Schedule::command('risk:evaluate')->hourly()->name('risk-observations')->withoutOverlapping(55);
 

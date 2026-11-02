@@ -99,6 +99,12 @@ their current guardians when it becomes current, if the school chooses it in the
 new-year wizard. The notice names the year and its first day, never a learner or
 homeroom.
 
+Import waiting for approval: people.hq_import_approval (people module, teacher
+and admin portals, standard channel preferences) tells the school leader whom
+Navigate Ed Operations named when an onboarding import prepared on the school's
+behalf (SA.11) waits for their approval. The notice links to the import in the
+panel and names no learner, guardian or staff member.
+
 Exam changes: academics.exam_changed (academics module, learner and parent
 portals, standard channel preferences) tells the learners in a class and their
 current guardians when an upcoming exam sitting's date, time or venue changes,

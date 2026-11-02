@@ -102,6 +102,7 @@ use App\Http\Controllers\Panel\Pastoral\SupportPanelController;
 use App\Http\Controllers\Panel\Pathways\PathwayPanelController;
 use App\Http\Controllers\Panel\PeerTutoring\PeerPanelController;
 use App\Http\Controllers\Panel\People\GradePromotionController;
+use App\Http\Controllers\Panel\People\HqImportController;
 use App\Http\Controllers\Panel\People\LearnerInvitationController;
 use App\Http\Controllers\Panel\People\LuritsOfficeController;
 use App\Http\Controllers\Panel\People\SchoolImportController;
@@ -127,6 +128,7 @@ use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
 use App\Http\Controllers\Platform\PlatformOnboardingController;
 use App\Http\Controllers\Platform\PlatformPackageController;
+use App\Http\Controllers\Platform\PlatformSchoolImportController;
 use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
@@ -323,6 +325,15 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::put('/schools/{school}/status', [SaasController::class, 'updateStatus'])->middleware('platform.can:schools.status')->whereNumber('school')->name('schools.status');
     Route::put('/schools/{school}/modules/{module}', [SaasController::class, 'updateModule'])->middleware('platform.can:schools.modules')->whereNumber('school')->name('schools.modules');
     Route::post('/schools/{school}/administrator-invitation', [SaasController::class, 'resendInvitation'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->whereNumber('school')->name('schools.invitation');
+    // Onboarding imports on a school's behalf (SA.11): preview, the school's approval, then apply.
+    Route::middleware('platform.can:imports.run')->group(function () {
+        Route::get('/schools/{school}/imports', [PlatformSchoolImportController::class, 'index'])->whereNumber('school')->name('schools.imports');
+        Route::post('/schools/{school}/imports/preview', [PlatformSchoolImportController::class, 'preview'])->middleware('throttle:30,1')->whereNumber('school')->name('schools.imports.preview');
+        Route::post('/schools/{school}/imports', [PlatformSchoolImportController::class, 'store'])->middleware('throttle:10,1')->whereNumber('school')->name('schools.imports.store');
+        Route::get('/imports/{import}', [PlatformSchoolImportController::class, 'show'])->whereNumber('import')->name('imports.show');
+        Route::post('/imports/{import}/apply', [PlatformSchoolImportController::class, 'apply'])->middleware('throttle:10,1')->whereNumber('import')->name('imports.apply');
+        Route::post('/imports/{import}/cancel', [PlatformSchoolImportController::class, 'cancel'])->middleware('throttle:20,1')->whereNumber('import')->name('imports.cancel');
+    });
     // LURITS claims for support (1.0f): schools and dates, never a learner.
     Route::get('/lurits', [PlatformLuritsController::class, 'index'])->middleware('platform.can:identity.review')->name('lurits');
     Route::post('/lurits/{conflict}/close', [PlatformLuritsController::class, 'resolve'])->middleware(['platform.can:identity.review', 'throttle:30,1'])->whereNumber('conflict')->name('lurits.resolve');
@@ -961,6 +972,11 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
         Route::get('school-imports/templates/{kind}', [SchoolImportController::class, 'template'])->where('kind', 'homerooms|learners|staff')->name('school-imports.template');
         Route::post('school-imports/check', [SchoolImportController::class, 'check'])->middleware('throttle:30,1')->name('school-imports.check');
         Route::post('school-imports', [SchoolImportController::class, 'store'])->middleware('throttle:10,1')->name('school-imports.store');
+        // Imports Navigate Ed prepared for the school (SA.11): every step, and the approving leader's decision.
+        Route::get('hq-imports', [HqImportController::class, 'index'])->name('hq-imports.index');
+        Route::get('hq-imports/{import}', [HqImportController::class, 'show'])->whereNumber('import')->name('hq-imports.show');
+        Route::post('hq-imports/{import}/approve', [HqImportController::class, 'approve'])->middleware('throttle:20,1')->whereNumber('import')->name('hq-imports.approve');
+        Route::post('hq-imports/{import}/decline', [HqImportController::class, 'decline'])->middleware('throttle:20,1')->whereNumber('import')->name('hq-imports.decline');
         Route::post('students/{id}/invite-guardians', [LearnerInvitationController::class, 'invite'])->whereNumber('id')->name('students.invite-guardians');
         Route::post('students/{id}/sign-in-sheet', [LearnerInvitationController::class, 'sheet'])->whereNumber('id')->name('students.sign-in-sheet');
 

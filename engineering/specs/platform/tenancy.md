@@ -263,6 +263,15 @@ required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
 
+### Imports on a school's behalf
+
+`platform_school_imports` is required school-owned: each import Navigate Ed
+Operations prepare belongs to its target school. HQ reads it across schools
+only to find an import's school, then works inside that school (the preview,
+the approval check and the write all run in it). The school reads its own rows
+through `BelongsToSchool`; another school's import is not found
+([HQ imports](hq-imports.md)).
+
 ### A guardian at two schools (Action Plan 1.1, server side)
 
 A parent with children at two schools signs in once. `/api/v2/me/context` lists both schools and each child with their own school. The app reads each child with `X-School-Id` set to that child's school: the header picks one of the user's active memberships, and a school they don't belong to is refused (403).

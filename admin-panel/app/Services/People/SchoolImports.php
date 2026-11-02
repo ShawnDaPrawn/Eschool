@@ -129,7 +129,7 @@ class SchoolImports
             Audit::record('people.onboarding_import_committed', null, [], [
                 'kind' => $kind, 'file_sha256' => hash('sha256', $csv), 'rows' => count($check['rows']),
                 'skipped' => $check['counts']['exists'] + $check['counts']['transfer'], 'counts' => $counts, 'by' => $actor->id,
-            ]);
+            ], app(CurrentSchool::class)->id());
             if ($kind === 'learners' && ($counts['created'] ?? 0) > 0) {
                 Outbox::record(new ContextChanged(app(CurrentSchool::class)->id(), 'academics.learner_changed'));
             }
