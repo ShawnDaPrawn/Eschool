@@ -427,3 +427,10 @@ Super Admin who dismissed it) are required school-owned, with models that use
 row and sees only its own people's reads; it never sees which other schools an
 announcement reached or their reads. HQ reads both across schools and shows
 counts ([HQ announcements](hq-announcements.md)).
+
+### Mastery growth snapshots
+
+`mastery_growth_snapshots` is required school-owned: each row is one learner's
+derived mastery at the start and end of one of the school's terms. The nightly
+capture runs inside one school's context and the impact report reads only the
+current school's rows ([mastery impact](../leadership/mastery-impact.md)).

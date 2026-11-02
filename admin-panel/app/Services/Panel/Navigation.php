@@ -21,6 +21,7 @@ use App\Services\Gallery\GalleryPanelScope;
 use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
+use App\Services\Leadership\MasteryImpact;
 use App\Services\Learning\Digests\DigestPanelScope;
 use App\Services\Learning\ExamCoachAccess;
 use App\Services\Pastoral\CoverAuthority;
@@ -172,6 +173,9 @@ class Navigation
             return false;
         }
         if (($item['principal_dashboard'] ?? false) && ! app(LeadershipAuthority::class)->available($user)) {
+            return false;
+        }
+        if (($item['mastery_impact_actor'] ?? false) && ! app(MasteryImpact::class)->available($user)) {
             return false;
         }
         if (($item['transfer_actor'] ?? false) && ! app(TransferAuthority::class)->available($user)) {

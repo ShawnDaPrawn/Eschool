@@ -29,6 +29,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: a **Mastery impact** report for each term. Principals and
+  academic managers see the whole school; grade heads see their own grades. For
+  each topic it shows how many learners rose a level since the start of the
+  term, held their level, went lower, were measured for the first time, or have
+  no evidence yet, with a total per grade. It shows counts only, never learner
+  names or rankings. Learners with no evidence count as "no evidence yet", never
+  as zero. It is in the menu under Grades and subjects, next to the leadership
+  dashboard (which links to it), and needs the mastery and leadership dashboard
+  modules. The start and latest mastery are saved every night
+  (`mastery:growth-snapshots`), and start and end are always compared within
+  one mastery model version.
+  **Deploy:** run the migrations, then run
+  `php artisan mastery:growth-snapshots <school> --backfill` once for each
+  school using mastery, to fill in the current term.
 - Admin panel: Pathways now has career profiles and a "What would it take"
   view (Action Plan 4.9). Pathway managers publish a career profile from a dated
   public source: the school subjects it needs (with any sourced minimum), the
