@@ -154,9 +154,11 @@ class StructuredMemosTest extends TestCase
         foreach (['{invalid', 'null', json_encode([str_repeat('x', 1048576)], JSON_THROW_ON_ERROR)] as $payload) {
             $this->post($this->path(), $this->input() + ['memo_payload' => $payload])->assertSessionHasErrors();
         }
-        $invalid = $this->input()['questions'];
-        $invalid[0]['points'][0]['earns'] = '  ';
-        $this->post($this->path(), $this->parsedPayload($invalid))->assertSessionHasErrors('questions.0.points.0.earns');
+        foreach (['  ', "\u{2003}\u{00A0}"] as $whitespace) {
+            $invalid = $this->input()['questions'];
+            $invalid[0]['points'][0]['earns'] = $whitespace;
+            $this->post($this->path(), $this->parsedPayload($invalid))->assertSessionHasErrors('questions.0.points.0.earns');
+        }
         $invalid = $this->input()['questions'];
         $invalid[0]['points'][0]['marks'] = '2';
         $this->post($this->path(), $this->parsedPayload($invalid))->assertSessionHasErrors('questions.0.points');

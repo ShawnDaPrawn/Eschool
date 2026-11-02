@@ -7,6 +7,7 @@ namespace App\Http\Requests\Learning;
 use App\Models\Learning\PastPaperVersion;
 use App\Services\Learning\PastPaperMemos;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
 
@@ -36,7 +37,7 @@ class ExamMemoRequest extends FormRequest
                 // Match TrimStrings / ConvertEmptyStringsToNull for native forms.
                 array_walk_recursive($decoded, function (&$value) {
                     if (is_string($value)) {
-                        $value = trim($value);
+                        $value = Str::trim($value);
                         $value = $value === '' ? null : $value;
                     }
                 });
