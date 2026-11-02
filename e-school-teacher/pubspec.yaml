@@ -67,7 +67,7 @@ dependencies:
   bloc: any
   meta: any
   path_provider: any
-  firebase_crashlytics: ^5.2.0
+  firebase_crashlytics: ^5.4.1
   firebase_analytics: ^12.3.0
   dotted_line: ^3.3.0
   youtube_player_iframe: ^6.0.2
