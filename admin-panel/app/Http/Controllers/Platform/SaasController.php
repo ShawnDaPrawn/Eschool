@@ -10,6 +10,7 @@ use App\Http\Requests\Saas\SchoolPackageRequest;
 use App\Http\Requests\Saas\SchoolStatusRequest;
 use App\Http\Requests\Saas\StoreSchoolRequest;
 use App\Services\Platform\Identity\StaffInvitations;
+use App\Services\Platform\Saas\PlatformPackages;
 use App\Services\Platform\Saas\PlatformSchools;
 use App\Services\Platform\Saas\PlatformSupportDesk;
 use Illuminate\Contracts\View\View;
@@ -61,7 +62,9 @@ class SaasController extends Controller
             'school' => $row,
             'pendingAdministrator' => app(StaffInvitations::class)->pendingAdministrator($school) !== null,
             'modules' => $this->schools->modules($school),
-            'packages' => array_keys($this->schools->packages()),
+            'packages' => $this->schools->packages(),
+            'packageVersion' => ($current = app(PlatformPackages::class)->package($row['package_key'] ?? PlatformPackages::LEGACY)) === null ? null
+                : ['applied' => $row['package_version'], 'current' => (int) $current->modules_version],
             'support' => app(PlatformSupportDesk::class)->forSchool($school),
         ]);
     }
@@ -90,6 +93,6 @@ class SaasController extends Controller
     /** @return array<string, mixed> */
     private function formChoices(): array
     {
-        return ['packages' => array_keys($this->schools->packages()), 'timezones' => timezone_identifiers_list(), 'defaultTimezone' => 'Africa/Johannesburg'];
+        return ['packages' => $this->schools->packages(), 'timezones' => timezone_identifiers_list(), 'defaultTimezone' => 'Africa/Johannesburg'];
     }
 }
