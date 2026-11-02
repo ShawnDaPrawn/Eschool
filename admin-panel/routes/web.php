@@ -131,6 +131,7 @@ use App\Http\Controllers\Platform\PlatformStaffController;
 use App\Http\Controllers\Platform\ProductCatalogueController;
 use App\Http\Controllers\Platform\SaasController;
 use App\Http\Controllers\Platform\SchoolAccountController;
+use App\Http\Controllers\Platform\SchoolStageController;
 use App\Http\Controllers\Platform\StaffInvitationController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\RoleController;
@@ -1345,6 +1346,9 @@ Route::middleware(['auth', 'school.context', EnforceReadOnlyYears::class])->grou
     Route::post('/notification-rules', [NotificationRuleController::class, 'update'])->name('notification-rules.update');
     Route::get('/school-modules', [ModuleController::class, 'index'])->name('school-modules.index');
     Route::put('/school-modules/{module}', [ModuleController::class, 'update'])->name('school-modules.update');
+    // The age stage of each grade (Action Plan 4.1).
+    Route::get('/school-stages', [SchoolStageController::class, 'index'])->name('school-stages.index');
+    Route::put('/school-stages', [SchoolStageController::class, 'update'])->middleware('throttle:30,1')->name('school-stages.update');
 });
 
 Route::middleware(['auth', 'school.context', 'staff', 'module:academics', EnforceReadOnlyYears::class])->prefix('learner-notes')->name('learner-notes.')->group(function () {

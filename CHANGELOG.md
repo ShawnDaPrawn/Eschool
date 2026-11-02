@@ -23,6 +23,13 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: Each grade now belongs to an age stage: early years (Grade R to
+  2), junior (Grade 3 to 7) or high school (Grade 8 to 12). School leaders see
+  and change the stage of each grade under Settings, School stages, and every
+  change is kept in the audit log. Early years learners can no longer sign in
+  to the learner app or portal themselves; their parents and guardians keep
+  their own sign-in. The tutor and daily practice are offered to junior and
+  high school learners only. **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.
