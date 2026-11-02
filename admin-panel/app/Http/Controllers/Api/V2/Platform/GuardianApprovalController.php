@@ -11,6 +11,7 @@ use App\Models\Platform\GuardianLink;
 use App\Models\Platform\School;
 use App\Models\Students;
 use App\Services\Platform\Identity\ApprovalService;
+use App\Services\Platform\Identity\LearnerIdentifiers;
 use App\Services\Platform\SchoolProfile;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use App\Services\ResponseService;
@@ -26,7 +27,8 @@ class GuardianApprovalController extends Controller
         $profile = SchoolProfile::current(School::query()->findOrFail(app(CurrentSchool::class)->id()));
         $rows = Students::query()->with('user')->whereIn('id', $ids)->get()->map(function (Students $learner) use ($request, $profile, $approvals) {
             return [
-                'learner' => array_intersect_key((new ChildResource($learner, $profile))->resolve($request), array_flip(['id', 'name', 'image', 'school'])) + ['student_number' => $learner->getAttribute('student_number')],
+                'learner' => array_intersect_key((new ChildResource($learner, $profile))->resolve($request), array_flip(['id', 'name', 'image', 'school'])) + ['student_number' => $learner->getAttribute('student_number'),
+                    'primary_identifier' => app(LearnerIdentifiers::class)->forLearner($request->user(), $learner)],
                 'status' => $approvals->state($learner)['status'],
                 'requested_at' => $learner->created_at?->toIso8601String(),
                 'consent' => ['version' => config('identity.consent_version'), 'text' => config('identity.consent_text')],

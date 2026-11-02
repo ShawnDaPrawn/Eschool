@@ -23,9 +23,10 @@ class RequirePasswordChange
     /**
      * What someone who must change their password can still open. An emailed
      * staff invitation also sets a password, and its controller signs out
-     * whoever was signed in on this browser.
+     * whoever was signed in on this browser. A platform operator who has set up
+     * two-factor sign-in passes its challenge before changing their password.
      */
-    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*', 'saas/password', 'invite/staff/*'];
+    private const ALLOWED = ['resetpassword', 'checkPassword', 'changePassword', 'logout', 'web-set-language/*', 'saas/password', 'saas/two-factor/challenge', 'invite/staff/*'];
 
     public static function isDefaultPassword(User $user, string $password): bool
     {

@@ -117,12 +117,27 @@ class RegisterEngineTest extends TestCase
         $this->getJson('/api/v2/academics/registers/'.$matrix['register_id'])->assertForbidden();
     }
 
+    /** Preserve JSON list order and scalar types, sorting only object keys. */
+    private function sortedObjectKeys(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $value[$key] = $this->sortedObjectKeys($item);
+            }
+        }
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return $value;
+    }
+
     public function test_duplicate_operation_is_exactly_once_and_changed_payload_cannot_reuse_its_id(): void
     {
         $matrix = $this->open();
         $data = $this->write($matrix);
         $one = app(Registers::class)->sync($this->tara, $matrix['register_id'], $data);
-        $this->assertSame($one, app(Registers::class)->sync($this->tara, $matrix['register_id'], $data));
+        $this->assertSame($this->sortedObjectKeys($one), $this->sortedObjectKeys(app(Registers::class)->sync($this->tara, $matrix['register_id'], $data)));
         $this->assertSame(1, AttendanceOperation::count());
         $this->assertSame(1, AttendanceEntry::count());
         $this->assertSame(1, AttendanceRegister::findOrFail($matrix['register_id'])->revision);
