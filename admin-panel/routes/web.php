@@ -976,7 +976,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::get('/', [$c, 'index'])->name('index');
             Route::post('catalogue/{kind}', [$c, 'write'])->defaults('operation', 'catalogue')->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->name('catalogue-create');
             Route::post('catalogue/{kind}/{record}', [$c, 'write'])->defaults('operation', 'catalogue')->whereIn('kind', array_keys(RecognitionQueries::CATALOGUES))->whereNumber('record')->name('catalogue-save');
-            Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['configure', 'issue', 'nominate', 'present', 'outside'])->name('create');
+            Route::post('actions/{operation}', [$c, 'write'])->whereIn('operation', ['configure', 'badges', 'issue', 'nominate', 'present', 'outside'])->name('create');
             Route::post('actions/{operation}/{record}', [$c, 'write'])->whereIn('operation', ['reverse', 'review', 'withdraw', 'void'])->whereNumber('record')->name('change');
         });
         Route::get('leadership-dashboard', [DashboardController::class, 'index'])->middleware(['module:leadership_dashboard', 'cache.headers:private;no_store'])->name('leadership-dashboard.index');

@@ -538,3 +538,14 @@ their school's data is ready in the panel at `/school-exit`, and the date by
 which to download it and confirm receipt. The notice names no person and
 carries no data; the download itself needs the Super Admin's sign-in and a
 short-lived signed link (engineering/specs/platform/offboarding.md).
+
+## Growth-first digest and persistence badges (Action Plan 4.6)
+
+`growth.weekly` (digest module, learner portal, in-app only: push and email are
+locked off through `locked_off_channels`, so no school rule can switch them on) tells a learner, once a week, which topics they grew in. The text names up
+to three topics and no scores, levels or other learners. The payload carries an
+opaque `growth_week_id`; the inbox and delivery recheck the learner's own
+current, guardian-approved account and the digest and mastery modules. Parents
+get growth inside the existing `digest.weekly` update. Persistence badges are
+permanent awards with source `badge` and use the existing
+`recognition.award_presented` notice. No new outbox event type.

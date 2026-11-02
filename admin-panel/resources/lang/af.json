@@ -6426,5 +6426,22 @@
     "Explanation": "Verduideliking",
     "No rule": "Geen reël nie",
     "Units required": "Eenhede vereis",
-    "Save the mark points before reviewing the memo.": "Stoor die nasienpunte voordat jy die memorandum nagaan."
+    "Save the mark points before reviewing the memo.": "Stoor die nasienpunte voordat jy die memorandum nagaan.",
+    "Persistence badges": "Volhardingskentekens",
+    "Persistence badge settings": "Instellings vir volhardingskentekens",
+    "Badges are presented automatically each Monday for the week before, and appear with the learner’s permanent awards. Each badge is earned once a week and is never awarded again for that week after a correction.": "Kentekens word elke Maandag outomaties vir die vorige week toegeken en verskyn saam met die leerder se permanente toekennings. Elke kenteken word een keer per week verdien en word nooit weer vir daardie week toegeken ná ’n regstelling nie.",
+    "The comeback badge uses only evidence the family may see, and needs the mastery map. You are recorded as the presenter of badges while you keep them switched on.": "Die terugkomkenteken gebruik slegs bewyse wat die gesin mag sien, en benodig die bemeesteringskaart. Jy word as die toekenner van kentekens aangeteken solank jy hulle aangeskakel hou.",
+    "Save persistence badges": "Stoor volhardingskentekens",
+    "Practice badge": "Oefenkenteken",
+    "Different practice days needed in a week": "Verskillende oefendae nodig in ’n week",
+    "Comeback badge": "Terugkomkenteken",
+    "An earlier topic score below this percentage counts as low": "’n Vroeëre punt vir ’n onderwerp onder hierdie persentasie tel as laag",
+    "Off": "Af",
+    "On": "Aan",
+    "Your week of growth": "Jou week van groei",
+    "This week you grew in :topics. Keep going!": "Hierdie week het jy gegroei in :topics. Hou so aan!",
+    "Kept practising on :days days in one week": "Het op :days dae in een week bly oefen",
+    "Earned automatically for practising on at least :required different days in the week of :week.": "Outomaties verdien vir oefening op minstens :required verskillende dae in die week van :week.",
+    "Came back to :topic and grew": "Het na :topic teruggekeer en gegroei",
+    "Earned automatically for returning to a topic after an earlier low score and improving, in the week of :week.": "Outomaties verdien vir terugkeer na ’n onderwerp ná ’n vroeëre lae punt en verbetering, in die week van :week."
 }
