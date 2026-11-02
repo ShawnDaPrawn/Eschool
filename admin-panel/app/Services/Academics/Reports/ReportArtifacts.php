@@ -6,6 +6,8 @@ namespace App\Services\Academics\Reports;
 
 use App\Models\Academics\ReportCard;
 use App\Models\Platform\School;
+use App\Models\Students;
+use App\Services\Platform\Identity\LuritsNumbers;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Crypt;
@@ -59,10 +61,8 @@ class ReportArtifacts
         if ($card === null || ! in_array($card->batch->state, ['approved', 'ready'], true) || $card->batch->fingerprint !== $fingerprint || $this->available($card, $fingerprint)) {
             return;
         }
-        $payload = $card->payload;
-        $comments = $card->comments->mapWithKeys(fn ($comment) => [$comment->scope_key => $comment->text])->all();
         $pdf = Pdf::setOptions(['isRemoteEnabled' => false, 'isPhpEnabled' => false, 'isJavascriptEnabled' => false, 'defaultFont' => 'DejaVu Sans'])
-            ->loadView('academics.reports.pdf', ['card' => $payload, 'design' => $card->batch->design, 'comments' => $comments, 'signatures' => $card->batch->signature_data ?? []])->setPaper('a4');
+            ->loadHTML($this->html($card))->setPaper('a4');
         $bytes = $pdf->output();
         if (! str_starts_with($bytes, '%PDF-')) {
             throw new RuntimeException('Report renderer did not produce a PDF.');
@@ -104,6 +104,20 @@ class ReportArtifacts
                 Storage::disk(self::DISK)->delete($path);
             }
         }
+    }
+
+    /**
+     * The card's printable page. The learner is identified by the headline
+     * number (ADR 0007), read when the PDF is made, so it is held only in the
+     * encrypted PDF and never in the card payload or its fingerprint.
+     */
+    public function html(ReportCard $card): string
+    {
+        $comments = $card->comments->mapWithKeys(fn ($comment) => [$comment->scope_key => $comment->text])->all();
+        $learner = Students::withTrashed()->find($card->learner_id);
+
+        return view('academics.reports.pdf', ['card' => $card->payload, 'design' => $card->batch->design, 'comments' => $comments, 'signatures' => $card->batch->signature_data ?? [],
+            'identifier' => $learner === null ? null : app(LuritsNumbers::class)->primary($learner), 'admissionNo' => $learner?->admission_no])->render();
     }
 
     public function read(ReportCard $card): string
