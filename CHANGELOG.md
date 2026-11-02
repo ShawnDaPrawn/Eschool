@@ -50,6 +50,7 @@ Earlier history is kept where it was written and is not repeated here:
   applied. The dated cost report at `/platform/ai-costs` is unchanged and
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
+
 - Platform: Navigate Ed bills its schools from `/saas/billing`. Each month
   Finance (or an Owner) creates draft invoices for every active school in one
   run: learners are counted that day (leavers and other schools' learners are
