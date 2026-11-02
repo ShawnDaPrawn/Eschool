@@ -71,7 +71,7 @@ dependencies:
   bloc: any
   intl: any
   firebase_crashlytics: ^5.4.1
-  firebase_analytics: ^12.3.0
+  firebase_analytics: ^12.6.1
   youtube_player_iframe: ^6.0.2
   webview_flutter: ^4.13.1
   fl_chart: ^1.3.0
