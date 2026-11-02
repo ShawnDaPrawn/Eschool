@@ -55,7 +55,8 @@ class ClassroomLocks
         DB::table('users')->whereIn('id', $users)->orderBy('id')->lockForUpdate()->get();
         DB::table('school_memberships')->where('school_id', $school)->whereIn('user_id', $users)->orderBy('id')->lockForUpdate()->get();
         DB::table('teaching_groups')->where('school_id', $school)->where('id', $lease->teaching_group_id)->lockForUpdate()->get();
-        $items = DB::table('practice_items')->where('school_id', $school)->where('teaching_group_id', $lease->teaching_group_id)->orderBy('id')->lockForUpdate()->get(['id'])->pluck('id')->all();
+        $uses = DB::table('practice_item_groups')->where('school_id', $school)->where('teaching_group_id', $lease->teaching_group_id)->orderBy('id')->lockForUpdate()->get(['practice_item_id'])->pluck('practice_item_id')->all();
+        $items = DB::table('practice_items')->where('school_id', $school)->whereIn('id', $uses)->orderBy('id')->lockForUpdate()->get(['id'])->pluck('id')->all();
         DB::table('practice_item_versions')->where('school_id', $school)->whereIn('practice_item_id', $items)->orderBy('id')->lockForUpdate()->get(['id']);
         foreach (['teaching_allocations', 'teaching_group_memberships'] as $table) {
             DB::table($table)->where('school_id', $school)->where('teaching_group_id', $lease->teaching_group_id)->orderBy('id')->lockForUpdate()->get();

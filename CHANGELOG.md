@@ -29,6 +29,20 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: teachers share their own practice questions. A practice
+  question now belongs to its subject and grade in the school instead of one
+  class, so it stays when the year changes. On the new **Question banks** page
+  (Academics, with daily practice on) teachers open the bank for a subject and
+  grade, use a question in any of their groups or stop using it, and choose
+  who else may find and reuse the questions they wrote: only them, the teachers
+  of the groups using it, or every teacher of that subject and grade. Only the
+  author or a subject lead (academic managers, the grade head, the principal)
+  may change or archive a question; colleagues may only use it. The page shows
+  which classes really get each question and which wait for this year's
+  material or curriculum plan. The new-year wizard has a new choice that keeps
+  questions in use in each teaching group's copy. Existing questions keep
+  working in their class and are shared with that class's teachers.
+  `engineering/specs/learning/question-banks.md`. **Deploy:** run the migrations.
 - Admin panel: Each grade now belongs to an age stage: early years (Grade R to
   2), junior (Grade 3 to 7) or high school (Grade 8 to 12). School leaders see
   and change the stage of each grade under Settings, School stages, and every
