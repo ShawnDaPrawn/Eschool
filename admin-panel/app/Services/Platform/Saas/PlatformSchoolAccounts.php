@@ -63,6 +63,7 @@ class PlatformSchoolAccounts
                     'price_per_learner_cents' => $contract->price_per_learner_cents, 'signatory' => $contract->signatory,
                     'operator_agreement_version' => $contract->operator_agreement_version, 'operator_agreement_signed_on' => $contract->operator_agreement_signed_on->toDateString(),
                     'data_processing_signed_on' => $contract->data_processing_signed_on?->toDateString(), 'notes' => $contract->notes,
+                    'deletion_days_after_end' => $contract->deletion_days_after_end,
                 ])->all(),
                 'events' => SchoolAccountEvent::query()->orderByDesc('created_at')->orderByDesc('id')->limit(100)->get()
                     ->map(fn ($event) => ['kind' => $event->kind, 'body' => $event->body, 'at' => $event->created_at, 'actor' => $this->actorName($event->actor_id)])->all(),
@@ -101,6 +102,8 @@ class PlatformSchoolAccounts
             'signatory' => ['required', 'string', 'max:191'], 'operator_agreement_version' => ['required', 'string', 'max:32'],
             'operator_agreement_signed_on' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.$today],
             'data_processing_signed_on' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:'.$today], 'notes' => ['nullable', 'string', 'max:500'],
+            // The retention term offboarding uses (SA.11): days after the end before the school's data is deleted.
+            'deletion_days_after_end' => ['nullable', 'integer', 'between:0,3650'],
         ];
     }
 
@@ -160,6 +163,9 @@ class PlatformSchoolAccounts
     public function recordContract(int $schoolId, array $input, User $actor): void
     {
         $data = Validator::make($input, self::contractRules())->validate();
+        if (($data['deletion_days_after_end'] ?? null) !== null && ($data['ends_on'] ?? null) === null) {
+            throw ValidationException::withMessages(['deletion_days_after_end' => __('A deletion term needs the date the contract ends.')]);
+        }
         // Rands typed as text become integer cents without floating point.
         [$rands, $cents] = array_pad(explode('.', $data['price_per_learner']), 2, '0');
         $data['price_per_learner_cents'] = (int) $rands * 100 + (int) str_pad($cents, 2, '0');
