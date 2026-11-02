@@ -55,7 +55,7 @@ final class SchoolOwnedTables
         'teaching_drafts', 'teaching_draft_photos', 'teaching_draft_versions', 'teaching_draft_operations', 'task_insights',
         'diary_entries', 'diary_item_states',
         'tutor_sessions', 'tutor_messages', 'tutor_photos', 'tutor_checkpoints',
-        'past_papers', 'past_paper_versions', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
+        'past_papers', 'past_paper_versions', 'past_paper_memos', 'exam_study_plans', 'exam_coach_operations', 'exam_answers', 'exam_answer_reviews',
         'ai_school_limits', 'ai_settings_operations',
         'ai_flag_reviews',
         'ai_quarantine_snapshots',

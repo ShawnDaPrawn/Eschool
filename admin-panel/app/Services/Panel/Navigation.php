@@ -22,6 +22,7 @@ use App\Services\Growth\ProgressQueries;
 use App\Services\Growth\RiskQueries;
 use App\Services\Leadership\LeadershipAuthority;
 use App\Services\Learning\Digests\DigestPanelScope;
+use App\Services\Learning\ExamCoachAccess;
 use App\Services\Pastoral\CoverAuthority;
 use App\Services\Pastoral\SupportAuthority;
 use App\Services\Pathways\PathwayPanelScope;
@@ -210,6 +211,9 @@ class Navigation
             return false;
         }
         if (($item['digest_manager'] ?? false) && ! app(DigestPanelScope::class)->available($user)) {
+            return false;
+        }
+        if (($item['exam_coach_staff'] ?? false) && ! app(ExamCoachAccess::class)->availableStaff($user)) {
             return false;
         }
         if ($item['consultation_actor'] ?? false) {

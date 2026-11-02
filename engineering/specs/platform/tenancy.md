@@ -352,6 +352,13 @@ name no school; a school names its package by key and the module set version
 applied to it on its own `schools` row (`package_key`, `package_version`)
 ([package editor](package-editor.md)).
 
+### Structured memos
+
+`past_paper_memos` is required school-owned: the mark points of a school's own
+exam coach paper version, unique per school and version. Another school's
+version id is not found, so its memo is never read or changed
+([structured memos](../ai/structured-memos.md)).
+
 ### SMS and WhatsApp
 
 `school_messaging_settings` is required school-owned (one row per school, a

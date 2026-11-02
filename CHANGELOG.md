@@ -29,6 +29,16 @@ Earlier history is kept where it was written and is not repeated here:
 
 ### Added
 
+- Admin panel: Teachers can now break an exam coach memo into mark points. On
+  the new Exam coach memos page, a teacher picks a teaching group and a past
+  paper, and for each question records what earns each mark, the kind of mark
+  (method, answer, accuracy, consistent accuracy or explanation), an optional
+  rule (an exact value with a tolerance, or units required) and how many marks
+  it is worth. The points of each question must add up to the question's
+  total. The paper's author or a grade lead then marks the memo as reviewed;
+  changing it afterwards needs a fresh review, and only a reviewed memo will
+  be used for marking. Other teachers of the group can read the mark points.
+  **Deploy:** run the migrations.
 - Admin panel: Every child teaches something (Action Plan 4.7). When a teacher
   looks for peer tutors, learners who have not tutored yet this term (or have
   tutored least) are offered first, and each match says why, for example "Has
