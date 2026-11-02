@@ -23,11 +23,16 @@ use InvalidArgumentException;
  * Every mastery record (learner, topic, audience, model version) whose topic
  * grade has a running term, or one that ended in the last CLOSING_DAYS, gets
  * one snapshot row for that term. The start is written once and never
- * changes; the end is refreshed on every run until the term is over. Running
- * it twice gives the same rows (idempotent).
+ * changes; the end is refreshed on every run while the term runs, settled on
+ * the first run after it ends (end_final) and never written again. Running it
+ * twice gives the same rows (idempotent).
  *
  * recent20-v1 is a pure function of the evidence, so both ends are replayed
  * from evidence dated before the term start and up to the term end (or now).
+ * Evidence is a rebuilt projection, not a history: a corrected mark is dated
+ * at its correction. That is why starts and ends are frozen once written; a
+ * start first written mid-term (a backfill) can miss an earlier mark that was
+ * corrected during this term.
  * Another model version is read from its stored record: its start is known
  * only when first captured on the term's first day; otherwise it is
  * "unavailable", never zero, and its end stops at the term's last run.
@@ -127,6 +132,12 @@ class MasteryGrowth
                 $starts = $term->start_date->toDateString();
                 $ends = $term->end_date->toDateString();
                 $ended = $today > $ends;
+                if ($prior !== null && $prior->end_final) {
+                    // Settled on the first run after the term. Evidence is a rebuilt projection:
+                    // a mark corrected later is re-dated at its correction, so replaying again
+                    // would drop it from the term rather than describe the term.
+                    continue;
+                }
                 if (! $replayable && $ended) {
                     // A stored record changes after the term: its end stays at the term's last run.
                     if ($prior !== null && ! $prior->end_final) {
