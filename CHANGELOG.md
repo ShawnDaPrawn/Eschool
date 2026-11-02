@@ -83,6 +83,12 @@ Earlier history is kept where it was written and is not repeated here:
 - Academics: a learner or guardian can subscribe their calendar app to the
   learner's exams, and optionally the next four weeks of lessons, through a
   secret link they can revoke at any time. **Deploy:** run the migrations.
+- Staff drafts for a new school year: on Academic allocations, **Draft from last
+  year** fills in each teaching group's teachers and each homeroom's teacher from
+  last year wherever the group or homeroom carried over. Change what is different
+  and apply it in one step; teachers see nothing until then, and a draft is refused
+  if allocations changed after it was built.
+
 - Platform: a breach and incident register at `/saas/incidents` for Owner,
   Operations and Support. Each incident records the schools it affects and
   when, how and whom at each school Navigate Ed told, whether the Information
