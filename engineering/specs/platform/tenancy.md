@@ -254,6 +254,12 @@ open claims, and the holder school is never told of them ([LURITS](lurits.md)).
 daily AI caps per feature and their history, read and written only from
 `/saas/ai`. They name no school. A school's own lower limits stay in the
 school-owned `ai_school_limits`, which HQ never writes ([HQ AI](hq-ai.md)).
+### HQ feature flags
+
+`platform_feature_flags` is global: platform-wide switches written only from
+`/saas`. `platform_feature_flag_schools` is required school-owned: one row per
+school switched on or off by name. HQ reads it across schools; a school's app
+context reads only its own row ([feature flags](feature-flags.md)).
 
 ### HQ incident register
 
@@ -262,6 +268,17 @@ own register, read and written only from `/saas`. `platform_incident_schools` is
 required school-owned (a foreign key to the school) so each affected school, and
 when it was told, is one row per school; HQ reads it across schools and no school
 reads it ([HQ incidents](hq-incidents.md)).
+
+### Invitations to join another school
+
+`school_join_invitations` is required school-owned: the inviting school's
+invitation for an existing account to join it ([existing-account invitations](existing-account-invitations.md)).
+It is read by its secret across schools only to find the school, then checked
+inside it. Nothing reaches the account's other schools: accepting adds a
+membership and role at the inviting school only, and
+`ExistingAccountInvitationsTest` checks that the person's roles and permissions
+at their first school are exactly as before, and at the new one exactly the role
+it gave.
 
 ### A guardian at two schools (Action Plan 1.1, server side)
 
@@ -299,3 +316,34 @@ written inside that school from `/saas`. The models use `BelongsToSchool`, so
 another school's invoice or payment id resolves to "not found". HQ reads them
 across schools; no school reads them in this step
 ([HQ billing](hq-billing.md)).
+
+
+### Support access
+
+`support_access_grants` and `support_access_views` are required school-owned
+(foreign keys to the school; the models use BelongsToSchool). The school reads its
+own rows in its panel through the ordinary school scope; HQ reads them across
+schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: the
+granted school with the impersonation flag, which cannot be switched to another
+school or widened to every school for the rest of the request
+([support access](support-access.md)).
+
+### HQ announcements to schools
+
+`platform_announcements` is global: Navigate Ed's own announcements, written only
+from `/saas`. Its `audience_values` may list school ids (an explicit audience);
+only HQ reads it. `platform_announcement_schools` (the schools an announcement
+reached, fixed at publication) and `platform_announcement_reads` (one row per
+Super Admin who dismissed it) are required school-owned, with models that use
+`BelongsToSchool`: a school reads an announcement only through its own target
+row and sees only its own people's reads; it never sees which other schools an
+announcement reached or their reads. HQ reads both across schools and shows
+counts ([HQ announcements](hq-announcements.md)).
+
+### HQ school health
+
+`school_health_snapshots` is required school-owned: each row is one school's
+nightly health figures (counts and shares only), so it carries a not-null
+`school_id` foreign key, first in its unique `(school_id, snapshot_date)` index,
+and its model uses BelongsToSchool. HQ reads it across schools explicitly; no
+school reads it ([HQ school health](hq-school-health.md)).
