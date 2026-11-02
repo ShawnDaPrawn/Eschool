@@ -372,3 +372,12 @@ school-owned: a school reads and writes only its own tickets (another school's
 id is a 404), and HQ reads them across schools from `/saas` and writes inside
 the ticket's school. `platform_support_views` is global: when each HQ staff
 member last opened the queue ([support desk](support-desk.md)).
+### SMS and WhatsApp
+
+`school_messaging_settings` is required school-owned (one row per school, a
+foreign key to the school): each school's own SMS and WhatsApp opt-in, never
+another school's. Texted deliveries are `notification_deliveries` rows like mail
+and push, with the school they were sent for; HQ reads their counts and cost
+across schools. Guardians' numbers come from the school-owned `parents` row at
+the sending school, never from the shared `users` row
+([SMS and WhatsApp](sms-whatsapp.md)).

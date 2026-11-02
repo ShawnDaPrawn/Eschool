@@ -37,15 +37,16 @@ declare(strict_types=1);
  *  ai.view          the AI control centre: qualification, caps, spend, queue counts
  *  ai.manage        switch a school's AI features on or off (Owner only)
  *  ai.caps          set the AI spending caps that replace config/ai.php's defaults (Owner only)
+ *  messaging.view   SMS and WhatsApp counts and pass-through cost per school
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view', 'mail.view', 'mail.manage', 'support.manage']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view', 'mail.view', 'mail.manage', 'support.manage', 'messaging.view']],
     'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'support.access', 'ai.view', 'mail.view', 'support.manage']],
-    'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'billing.view', 'billing.manage', 'audit.view', 'audit.export', 'health.view']],
+    'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'billing.view', 'billing.manage', 'audit.view', 'audit.export', 'health.view', 'messaging.view']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],
 ];

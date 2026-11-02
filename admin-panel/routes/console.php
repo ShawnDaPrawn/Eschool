@@ -46,6 +46,8 @@ Schedule::command('mail:check-sending-domains')->everyFiveMinutes()->withoutOver
 // SES streams (Action Plan 2.3): each school's account and bulk configuration
 // sets are set up within the hour and checked daily; nothing while switched off.
 Schedule::command('mail:ensure-streams')->hourly()->withoutOverlapping();
+// Twilio prices SMS and WhatsApp messages after sending (Action Plan 2.7).
+Schedule::command('messaging:fetch-prices')->hourly()->name('messaging-prices')->withoutOverlapping();
 
 // Read-only by default: discrepancies remain visible and generate a critical
 // operations log; historical receipts are never automatically reposted.

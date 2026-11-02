@@ -26,6 +26,7 @@
         @if ($platformCan('audit.view'))<a href="{{ route('saas.audit') }}">{{ __('Audit log') }}</a>@endif
         @if ($platformCan('support.access'))<a href="{{ route('saas.support.index') }}">{{ __('Support access') }}</a>@endif
         @if ($platformCan('flags.manage'))<a href="{{ route('saas.flags.index') }}">{{ __('Feature flags') }}</a>@endif
+        @if ($platformCan('messaging.view'))<a href="{{ route('saas.messaging') }}">{{ __('SMS and WhatsApp') }}</a>@endif
         @if ($platformCan('incidents.manage'))<a href="{{ route('saas.incidents.index') }}">{{ __('Incidents') }}</a>@endif
         @if ($platformCan('announcements.manage'))<a href="{{ route('saas.announcements.index') }}">{{ __('Announcements') }}</a>@endif
         @if ($platformCan('ai.view'))<a href="{{ route('saas.ai') }}">{{ __('AI control centre') }}</a>@endif

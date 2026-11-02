@@ -22,6 +22,7 @@ final class SchoolOwnedTables
      */
     public const REQUIRED = [
         'school_sending_domains',
+        'school_messaging_settings',
         'lurits_conflicts',
         'platform_incident_schools',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
