@@ -404,3 +404,9 @@ and push, with the school they were sent for; HQ reads their counts and cost
 across schools. Guardians' numbers come from the school-owned `parents` row at
 the sending school, never from the shared `users` row
 ([SMS and WhatsApp](sms-whatsapp.md)).
+### Structured memos
+
+`past_paper_memos` is required school-owned: the mark points of a school's own
+exam coach paper version, unique per school and version. Another school's
+version id is not found, so its memo is never read or changed
+([structured memos](../ai/structured-memos.md)).

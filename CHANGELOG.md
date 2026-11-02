@@ -137,6 +137,16 @@ Earlier history is kept where it was written and is not repeated here:
   the principal and grade heads get a new page, "Who has tutored this term, per grade", showing how
   many learners in each grade have tutored at least once this term: counts
   only, never names or a ranking. **Deploy:** run the migrations.
+- Admin panel: Teachers can now break an exam coach memo into mark points. On
+  the new Exam coach memos page, a teacher picks a teaching group and a past
+  paper, and for each question records what earns each mark, the kind of mark
+  (method, answer, accuracy, consistent accuracy or explanation), an optional
+  rule (an exact value with a tolerance, or units required) and how many marks
+  it is worth. The points of each question must add up to the question's
+  total. The paper's author or a grade lead then marks the memo as reviewed;
+  changing it afterwards needs a fresh review, and only a reviewed memo will
+  be used for marking. Other teachers of the group can read the mark points.
+  **Deploy:** run the migrations.
 - Platform: Owners now set the AI spending caps in HQ. In the AI control
   centre at `/saas/ai`, each AI feature's daily caps per school, per person and
   per learner can be changed with a reason, and apply from the next request.

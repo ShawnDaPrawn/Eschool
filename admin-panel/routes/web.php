@@ -64,6 +64,7 @@ use App\Http\Controllers\Panel\Growth\RiskPanelController;
 use App\Http\Controllers\Panel\Growth\UnseenLearnersController;
 use App\Http\Controllers\Panel\Leadership\DashboardController;
 use App\Http\Controllers\Panel\Learning\Digests\DigestPanelController;
+use App\Http\Controllers\Panel\Learning\ExamMemoPanelController;
 use App\Http\Controllers\Panel\Money\BankStatementPanelController;
 use App\Http\Controllers\Panel\Money\BillRunPanelController;
 use App\Http\Controllers\Panel\Money\CashHandoverPanelController;
@@ -1633,6 +1634,15 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'modu
     Route::post('documents', [$controller, 'write'])->defaults('operation', 'publish')->name('publish');
     Route::post('documents/{document}/withdraw', [$controller, 'write'])->whereUuid('document')->defaults('operation', 'withdraw')->name('withdraw');
     Route::post('turns/{turn}/run', [$controller, 'write'])->whereUuid('turn')->defaults('operation', 'run')->name('run');
+});
+
+// Structured exam coach memos (Action Plan 3.15): engineering/specs/ai/structured-memos.md.
+Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:exam_coach,read', EnforceReadOnlyYears::class])->prefix('exam-memos')->name('exam-memos.')->group(function () {
+    $controller = ExamMemoPanelController::class;
+    Route::get('/', [$controller, 'index'])->name('index');
+    Route::get('groups/{group}/versions/{version}', [$controller, 'show'])->whereNumber('group')->whereUuid('version')->name('show');
+    Route::post('groups/{group}/versions/{version}', [$controller, 'save'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('save');
+    Route::post('groups/{group}/versions/{version}/review', [$controller, 'review'])->whereNumber('group')->whereUuid('version')->middleware(['module:exam_coach,write', 'throttle:30,1'])->name('review');
 });
 
 Route::middleware([PrivateDomainResponse::class, 'auth', 'school.context', 'module:peer_tutoring,read'])->prefix('peer-tutoring')->name('peer-tutoring-panel.')->group(function () {
