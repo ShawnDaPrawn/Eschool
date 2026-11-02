@@ -122,6 +122,7 @@ use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformHomeController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
@@ -290,6 +291,8 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
     // Every route names the ability its role must hold (platform.can, SA.1).
     Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
+    // The HQ home page (4F), where sign-in lands: each tile only for the role that may open its area.
+    Route::get('/home', PlatformHomeController::class)->middleware('platform.can:schools.view')->name('home');
     Route::get('/packages', ProductCatalogueController::class)->middleware('platform.can:packages.view')->name('packages');
     Route::get('/schools/create', [SaasController::class, 'create'])->middleware('platform.can:schools.create')->name('schools.create');
     Route::post('/schools', [SaasController::class, 'store'])->middleware(['platform.can:schools.create', 'throttle:20,1'])->name('schools.store');

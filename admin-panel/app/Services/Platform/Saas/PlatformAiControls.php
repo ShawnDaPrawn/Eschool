@@ -79,6 +79,31 @@ class PlatformAiControls
         ];
     }
 
+    /**
+     * Counts across every school for the HQ home page, from the same rows the
+     * control centre shows: schools at or over today's cap, schools whose
+     * own AI is paused, and safeguarding flags still waiting. Never a name
+     * of a person, a prompt or a flag's content.
+     *
+     * @return array{schools: int, over_cap: int, paused: int, flags_open: int, flags_escalated: int, platform_on: bool}
+     */
+    public function summary(User $actor): array
+    {
+        abort_unless(app(PlatformStaffAccess::class)->can($actor, 'ai.view'), 403);
+        $features = $this->features();
+        $rows = $this->currentSchool->acrossSchools(fn (): array => $this->schoolRows(
+            DB::table('schools')->orderBy('id')->get(['id', 'name', 'status', 'timezone'])->all(), $features));
+
+        return [
+            'schools' => count($rows),
+            'over_cap' => count(array_filter($rows, fn (array $row): bool => $row['over'])),
+            'paused' => count(array_filter($rows, fn (array $row): bool => $row['paused'])),
+            'flags_open' => array_sum(array_map(fn (array $row): int => $row['queue']['open'], $rows)),
+            'flags_escalated' => array_sum(array_map(fn (array $row): int => $row['queue']['escalated'], $rows)),
+            'platform_on' => config('ai.inference.enabled') === true,
+        ];
+    }
+
     /** @return array<string, mixed> */
     public static function switchRules(): array
     {

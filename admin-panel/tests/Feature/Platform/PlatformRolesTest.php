@@ -111,7 +111,7 @@ class PlatformRolesTest extends TestCase
         $this->assertNotNull($user->fresh()->email_verified_at);
         $this->get($invited['url'])->assertNotFound();
 
-        $this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!'])->assertRedirect('/saas');
+        $this->post('/login', ['email' => 'sipho@platform.example', 'password' => 'Sipho-chose-this-password-731!'])->assertRedirect('/saas/home');
         $this->get('/saas')->assertOk();
         $this->get('/saas/staff')->assertForbidden();
 
