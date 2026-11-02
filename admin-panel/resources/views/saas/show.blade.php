@@ -24,6 +24,9 @@
 @endif
 
 <h2>{{ __('Package') }}</h2>
+@if ($packageVersion !== null && $packageVersion['applied'] < $packageVersion['current'])
+<p class="saas-card">{{ __('This school has version :applied of the package\'s modules; the package is now at version :current. The school keeps what it has until HQ re-applies the package from its page.', ['applied' => $packageVersion['applied'], 'current' => $packageVersion['current']]) }}</p>
+@endif
 @if ($platformCan('schools.package'))
 <form method="POST" action="{{ route('saas.schools.package', $school['id']) }}" class="saas-card">
     @csrf
@@ -32,8 +35,11 @@
         <div class="saas-field">
             <label for="package_key">{{ __('Package') }}</label>
             <select id="package_key" name="package_key">
-                @foreach ($packages as $package)
-                    <option value="{{ $package }}" @selected(($school['package_key'] ?? 'legacy') === $package)>{{ $package }}</option>
+                @unless (array_key_exists($school['package_key'] ?? 'legacy', $packages))
+                    <option value="" selected disabled>{{ $school['package_key'] ?? 'legacy' }} ({{ __('retired') }})</option>
+                @endunless
+                @foreach ($packages as $package => $name)
+                    <option value="{{ $package }}" @selected(($school['package_key'] ?? 'legacy') === $package)>{{ $name }} ({{ $package }})</option>
                 @endforeach
             </select>
         </div>
@@ -105,10 +111,34 @@
         </tbody>
     </table>
 </div>
+<h2 id="support">{{ __('Support tickets') }}</h2>
+<div class="saas-card">
+    <p>{{ trans_choice('{0} No open support tickets.|{1} One open support ticket.|[2,*] :count open support tickets.', $support['open'], ['count' => $support['open']]) }}</p>
+    @if ($platformCan('support.manage') && $support['latest'] !== [])
+        <table class="saas-table">
+            <caption>{{ __('The school\'s latest tickets') }}</caption>
+            <thead><tr><th scope="col">{{ __('Reference') }}</th><th scope="col">{{ __('Subject') }}</th><th scope="col">{{ __('Status') }}</th><th scope="col">{{ __('Last change') }}</th></tr></thead>
+            <tbody>
+            @foreach ($support['latest'] as $ticket)
+                <tr>
+                    <td><a href="{{ route('saas.support-desk.show', $ticket['id']) }}">{{ $ticket['reference'] }}</a></td>
+                    <th scope="row">{{ $ticket['subject'] }}@if ($ticket['priority'] === 'urgent') <span class="saas-badge saas-badge--warn">{{ __('Urgent') }}</span>@endif</th>
+                    <td>{{ \App\Models\Platform\SupportTicket::STATUS_LABELS[$ticket['status']] }}</td>
+                    <td>{{ $ticket['updated_at'] }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    @endif
+</div>
+
 <p class="saas-actions">
     @if ($platformCan('accounts.manage'))<a class="saas-btn" href="{{ route('saas.schools.account', $school['id']) }}">{{ __('School record, contacts and contracts') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.onboarding', $school['id']) }}">{{ __('Onboarding checklist') }}</a>
+    @if ($platformCan('offboarding.view') && ! $school['is_default'])<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.offboarding', $school['id']) }}">{{ __('Offboarding') }}</a>@endif
+    @if ($platformCan('health.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.schools.health', $school['id']) }}">{{ __('School health') }}</a>@endif
     <a class="saas-btn saas-btn--quiet" href="{{ route('saas.index') }}">{{ __('All schools') }}</a>
+    @if ($platformCan('support.manage'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.support-desk.index') }}">{{ __('Support desk') }}</a>@endif
     @if ($platformCan('audit.view'))<a class="saas-btn saas-btn--quiet" href="{{ route('saas.audit', ['school' => $school['id']]) }}">{{ __('Audit log for this school') }}</a>@endif
 </p>
 @endsection

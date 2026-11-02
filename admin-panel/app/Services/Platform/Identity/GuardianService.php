@@ -7,16 +7,24 @@ namespace App\Services\Platform\Identity;
 use App\Models\Parents;
 use App\Models\Platform\GuardianLink;
 use App\Models\Students;
+use App\Services\People\Leavers\LeaverState;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class GuardianService
 {
-    /** Current relationship rights, including ended-link overrides of v1 fields. */
+    /**
+     * Current relationship rights, including ended-link overrides of v1 fields.
+     * A leaver's guardians keep them until the leaver's access ends
+     * (Action Plan 1.21); then there are none.
+     */
     public function guardianUserIds(Students $learner, bool $fees = false): Collection
     {
         abort_unless((int) $learner->school_id === app(CurrentSchool::class)->id(), 404);
+        if (app(LeaverState::class)->accessEnded($learner)) {
+            return collect();
+        }
         $parentIds = array_filter([$learner->father_id, $learner->mother_id, $learner->guardian_id]);
         $legacy = Parents::query()->whereIn('id', $parentIds)->whereNotExists(function ($query) use ($learner) {
             $query->selectRaw('1')->from('guardian_links')->where('guardian_links.school_id', $learner->school_id)
@@ -28,10 +36,13 @@ class GuardianService
         return $legacy->merge($linked)->filter()->map(fn ($id) => (int) $id)->unique()->values();
     }
 
-    /** Explicit links override legacy relationships, including an ended link. */
+    /**
+     * Explicit links override legacy relationships, including an ended link.
+     * A leaver whose access has ended is no longer anyone's child here.
+     */
     public function childrenFor(int $guardianUserId, int $legacyParentId): Builder
     {
-        return Students::query()->where(function ($query) use ($guardianUserId, $legacyParentId) {
+        return Students::query()->whereNotExists(fn ($ended) => app(LeaverState::class)->whereAccessEnded($ended))->where(function ($query) use ($guardianUserId, $legacyParentId) {
             $query->whereExists(fn ($links) => $links->selectRaw('1')->from('guardian_links')
                 ->whereColumn('guardian_links.learner_id', 'students.id')->whereColumn('guardian_links.school_id', 'students.school_id')
                 ->where('guardian_user_id', $guardianUserId)->where('status', 'active'))

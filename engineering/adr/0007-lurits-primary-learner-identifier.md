@@ -1,6 +1,6 @@
 # 0007. The LURITS number is the learner's primary identifier
 
-Status: Accepted (30 October 2026, product owner). Amends [ADR 0005](0005-student-number-and-handles.md).
+Status: Accepted (30 October 2026, product owner). Amends [ADR 0005](0005-student-number-and-handles.md). Headline display built in Action Plan 1.0b ([spec](../specs/platform/lurits.md#headline-number-action-plan-10b)).
 
 ## Context
 
