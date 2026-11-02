@@ -30,6 +30,8 @@ class MasteryRecompute
 {
     private array $definitions = [];
 
+    private ?MasteryV2Inputs $inputs = null;
+
     public function group(int $groupId): array
     {
         $this->definitions = [];
@@ -115,7 +117,7 @@ class MasteryRecompute
                 MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $learnerId, 'topic_id' => $topic->id,
                     'audience' => $audience, 'source_key' => $source.':q:'.$original->id], ['grade_level_id' => $group->grade_level_id,
                         'session_year_id' => $group->session_year_id, 'source_type' => $kind, 'achieved_units' => $score,
-                        'maximum_units' => $question->max_mark_units, 'observed_at' => $observed]);
+                        'maximum_units' => $question->max_mark_units, 'observed_at' => $observed, 'item_key' => 'question:'.$original->id]);
                 $written++;
             }
         }
@@ -138,6 +140,7 @@ class MasteryRecompute
         SchoolTable::query('mastery_scopes')->insertOrIgnore($identity + ['created_at' => now(), 'updated_at' => now()]);
 
         return DB::transaction(function () use ($identity, $run) {
+            $this->inputs = null;
             // Lock before any evidence snapshot. Grade/year locks are insufficient:
             // each learner projection includes evidence from every grade and year.
             $scope = MasteryScope::query()->where($identity)->lockForUpdate()->firstOrFail();
@@ -159,7 +162,7 @@ class MasteryRecompute
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $review->learner_id, 'topic_id' => $topicId,
                 'audience' => 'practice', 'source_key' => 'practice:'.$review->id], ['grade_level_id' => $group->grade_level_id,
                     'session_year_id' => $group->session_year_id, 'source_type' => 'practice_review', 'achieved_units' => $review->correct ? 1 : 0,
-                    'maximum_units' => 1, 'observed_at' => $review->created_at]);
+                    'maximum_units' => 1, 'observed_at' => $review->created_at, 'item_key' => 'practice_item:'.$version->practice_item_id]);
             $this->aggregate((int) $review->learner_id, (int) $group->subject_id);
         });
     }
@@ -177,22 +180,38 @@ class MasteryRecompute
             MasteryEvidence::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $row->learner_id, 'topic_id' => $row->topic_id,
                 'audience' => 'practice', 'source_key' => 'tutor_checkpoint:'.$row->id], ['grade_level_id' => $group->grade_level_id,
                     'session_year_id' => $group->session_year_id, 'source_type' => 'tutor_checkpoint', 'achieved_units' => $row->correct ? 1 : 0,
-                    'maximum_units' => 1, 'observed_at' => $row->answered_at->setTimezone(app(CurrentSchool::class)->school()->timezone)]);
+                    'maximum_units' => 1, 'observed_at' => $row->answered_at->setTimezone(app(CurrentSchool::class)->school()->timezone),
+                    'item_key' => 'practice_item:'.$version->practice_item_id]);
             $this->aggregate((int) $row->learner_id, (int) $group->subject_id);
         });
     }
 
+    /** recent20-v1 is always written exactly as before; v2 is written too while the school has chosen it. */
     private function aggregate(int $learnerId, int $subjectId): void
     {
         $topicIds = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->pluck('topic_id')
             ->merge(MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->pluck('topic_id'))->unique();
+        $v2 = in_array(MasteryScoreV2::VERSION, app(MasteryModels::class)->computed(), true) ? app(MasteryScoreV2::class) : null;
+        $asOf = now()->toImmutable();
+        $stabilities = $v2 === null ? [] : $this->inputs()->stabilities($learnerId, $topicIds->values()->all());
         foreach ($topicIds as $topicId) {
             foreach (['staff', 'family', 'practice'] as $audience) {
                 $rows = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->where('topic_id', $topicId)
                     ->whereIn('audience', $audience === 'practice' ? ['practice'] : [$audience, 'practice'])->orderByDesc('observed_at')->orderByDesc('id')->limit(20)->get(['achieved_units', 'maximum_units'])->toArray();
                 $score = app(MasteryScore::class)->calculate($rows);
-                MasteryRecord::updateOrCreate(['subject_id' => $subjectId, 'learner_id' => $learnerId, 'topic_id' => $topicId, 'audience' => $audience], $score + ['computed_at' => now()]);
+                MasteryRecord::updateOrCreate(['subject_id' => $subjectId, 'learner_id' => $learnerId, 'topic_id' => $topicId, 'audience' => $audience,
+                    'policy_version' => MasteryScore::VERSION], $score + ['computed_at' => now()]);
+                if ($v2 !== null) {
+                    $rows = $this->inputs()->rows($learnerId, $subjectId, (int) $topicId, $audience, $v2->parameters()['window']);
+                    MasteryRecord::updateOrCreate(['subject_id' => $subjectId, 'learner_id' => $learnerId, 'topic_id' => $topicId, 'audience' => $audience,
+                        'policy_version' => MasteryScoreV2::VERSION], $v2->calculate($rows, $asOf, $stabilities[(int) $topicId] ?? []) + ['computed_at' => $asOf]);
+                }
             }
         }
+    }
+
+    private function inputs(): MasteryV2Inputs
+    {
+        return $this->inputs ??= app(MasteryV2Inputs::class);
     }
 }

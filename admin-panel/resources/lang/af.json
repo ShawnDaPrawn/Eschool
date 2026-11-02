@@ -5955,5 +5955,16 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "Scored with": "Bereken met",
+    "Mastery model": "Bemeesteringsmodel",
+    "Choose the mastery model": "Kies die bemeesteringsmodel",
+    "Mastery model for this school": "Bemeesteringsmodel vir hierdie skool",
+    "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.": "Model v2 laat onlangse en moeiliker vrae swaarder weeg, laat ou bewyse vervaag teen die tempo van die leerder se oefengeheue, tel oefening teen die helfte van die gewig van punte, en laat bewysdekking stadig groei.",
+    "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.": "Elke telling hou rekord van die model wat dit bereken het. Model v1-tellings word altyd bygehou, sodat jy enige tyd kan terugskakel. Om na model v2 oor te skakel, plaas ’n herberekening van elke aktiewe groep in die tou.",
+    "Save mastery model": "Stoor bemeesteringsmodel",
+    "Mastery model v1: the last 20 answers, marks added up": "Bemeesteringsmodel v1: die laaste 20 antwoorde, punte bymekaargetel",
+    "Mastery model v2: weighted by recency, difficulty and forgetting": "Bemeesteringsmodel v2: geweeg volgens onlangsheid, moeilikheid en vergeet",
+    "Mastery settings changed. Review the current model and try again.": "Die bemeesteringsinstellings het verander. Kyk na die huidige model en probeer weer.",
+    "Mastery model saved": "Bemeesteringsmodel gestoor"
 }

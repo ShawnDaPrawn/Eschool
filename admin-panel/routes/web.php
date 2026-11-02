@@ -441,6 +441,7 @@ Route::group(['middleware' => ['Role', 'auth', 'school.context', EnforceReadOnly
             Route::post('subjects/{subject}', [$controller, 'save'])->whereNumber('subject')->name('save');
             Route::post('subjects/{subject}/refresh', [$controller, 'refresh'])->whereNumber('subject')->name('refresh');
             Route::post('groups/{group}/rebuild', [$controller, 'rebuild'])->whereNumber('group')->name('rebuild');
+            Route::post('model', [$controller, 'model'])->name('model');
         });
         // This purpose resolves the material's actual year in ActivityFiles:
         // uploads require its current writable year; removal stays available.

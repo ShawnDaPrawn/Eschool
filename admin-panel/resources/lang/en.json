@@ -5955,5 +5955,16 @@
     "Start of draft": "Start of draft",
     "Next draft rows": "Next draft rows",
     "Use the batch links to choose this allocation.": "Use the batch links to choose this allocation.",
-    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these."
+    "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.": "This draft is too large to send at once. Use Next draft rows to reach the remaining :waiting without allocating these.",
+    "Scored with": "Scored with",
+    "Mastery model": "Mastery model",
+    "Choose the mastery model": "Choose the mastery model",
+    "Mastery model for this school": "Mastery model for this school",
+    "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.": "Model v2 weighs recent and harder questions more, lets old evidence fade at the pace of the learner’s practice memory, counts practice at half the weight of marks, and grows evidence coverage slowly.",
+    "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.": "Every score records the model that produced it. Model v1 scores are always kept up to date, so you can switch back at any time. Switching to model v2 queues a refresh of every active group.",
+    "Save mastery model": "Save mastery model",
+    "Mastery model v1: the last 20 answers, marks added up": "Mastery model v1: the last 20 answers, marks added up",
+    "Mastery model v2: weighted by recency, difficulty and forgetting": "Mastery model v2: weighted by recency, difficulty and forgetting",
+    "Mastery settings changed. Review the current model and try again.": "Mastery settings changed. Review the current model and try again.",
+    "Mastery model saved": "Mastery model saved"
 }
