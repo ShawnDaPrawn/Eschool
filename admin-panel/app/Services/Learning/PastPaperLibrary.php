@@ -18,7 +18,8 @@ use Illuminate\Validation\Rule;
 /** School-reviewed, licensed question/memo versions; no automatic rights claims. */
 class PastPaperLibrary
 {
-    private function editor(User $actor, int $groupId, ?int $paperId, bool $write = true): array
+    /** The group and paper an author or grade lead may change; also used by the structured memo (PastPaperMemos). */
+    public function editor(User $actor, int $groupId, ?int $paperId, bool $write = true): array
     {
         $group = app(ExamCoachAccess::class)->staff($actor, $groupId, $write);
         $paper = $paperId === null ? null : PastPaper::where('subject_id', $group->subject_id)->where('grade_level_id', $group->grade_level_id)->findOrFail($paperId);

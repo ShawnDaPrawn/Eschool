@@ -35,3 +35,8 @@ typed API operations are implemented and tested with the generated SDK. Photo
 feedback availability is explicit while inference remains disabled; the licensed
 library and deterministic plans remain usable independently. Staff/learner
 clients remain in progress; no full Exam Coach acceptance is claimed.
+
+Structured memos (Action Plan 3.15): teachers who may change a paper break its
+memo into mark points per question in the panel at `/exam-memos`, and review
+the memo; only a reviewed memo is usable downstream. See
+[structured memos](structured-memos.md).
