@@ -26,7 +26,8 @@ class ResetSchoolContext
     public function handle(Request $request, Closure $next): Response
     {
         $request->attributes->set(self::PREVIOUS, $this->currentSchool->snapshot());
-        $this->currentSchool->forget();
+        // Whatever was set before, a support session included, never carries into a request.
+        $this->currentSchool->reset();
 
         return $next($request);
     }

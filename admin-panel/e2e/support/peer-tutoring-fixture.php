@@ -57,7 +57,7 @@ return app(CurrentSchool::class)->run(1, function (): array {
     }
     $topics = MasteryTopic::where('subject_id', $group->subject_id)->get();
     foreach ($topics as $topic) {
-        MasteryRecord::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $tutor->id, 'topic_id' => $topic->id, 'audience' => 'staff'],
+        MasteryRecord::updateOrCreate(['subject_id' => $group->subject_id, 'learner_id' => $tutor->id, 'topic_id' => $topic->id, 'audience' => 'staff', 'policy_version' => 'recent20-v1'],
             ['level' => 4, 'score_bp' => 10000, 'confidence_bp' => 6000, 'evidence_count' => 2, 'computed_at' => now()]);
     }
     $topic = $topics->firstWhere('name', 'Peer tutoring browser fractions');
