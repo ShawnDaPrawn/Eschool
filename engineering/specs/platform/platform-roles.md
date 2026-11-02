@@ -12,16 +12,16 @@ and Owners invite staff by email from HQ.
 | Role | Can |
 | --- | --- |
 | Owner | everything, including managing platform staff |
-| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; AI control centre (view); approved support sessions |
-| Support | see schools; audit log; LURITS claims; incident register; AI control centre (view); approved support sessions |
-| Finance | see schools; change package; customer records; packages, and edit packages and prices; audit log and its export |
+| Operations | see schools; set them up; change package, status and modules; customer records; packages; audit log; LURITS claims; incident register; AI control centre (view); approved support sessions; school health |
+| Support | see schools; audit log; LURITS claims; incident register; AI control centre (view); approved support sessions; school health |
+| Finance | see schools; change package; customer records; packages, and edit packages and prices; audit log and its export; school health |
 | Content | see schools; packages |
 | Sales (read-only) | see schools; packages |
 
 Abilities: `schools.view`, `schools.create`, `schools.package`,
 `schools.status`, `schools.modules`, `accounts.manage`, `packages.view`,
 `packages.manage` ([package editor](package-editor.md)), `audit.view`, `audit.export`, `identity.review`, `incidents.manage`,
-`support.access`, `support.emergency` (Owner only; see `support-access.md`), `ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `staff.manage`. A role that is no longer in the
+`health.view`, `support.access`, `support.emergency` (Owner only; see `support-access.md`), `ai.view`, `ai.manage` and `ai.caps` (both Owner only; see `hq-ai.md`), `staff.manage`. A role that is no longer in the
 config grants nothing. Existing grants became Owner, so nobody lost access.
 
 Every `/saas` route except the operator's own password names its ability with
