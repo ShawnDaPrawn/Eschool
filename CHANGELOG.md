@@ -50,7 +50,22 @@ Earlier history is kept where it was written and is not repeated here:
   applied. The dated cost report at `/platform/ai-costs` is unchanged and
   linked for staff who hold its grant.
   `engineering/specs/platform/hq-ai.md`.
-
+- SMS and WhatsApp for urgent notices: in **Settings > SMS and WhatsApp** a
+  school can send urgent school notices and absence alerts to guardians by SMS,
+  WhatsApp or both, choosing which notices use each. Both are off until the
+  school switches them on, and only office staff who can change settings can do
+  it. Messages go to the mobile number on the guardian's parent record at that
+  school. An SMS or WhatsApp message never contains a child's name or details:
+  it says there is an urgent message and asks the guardian to open the
+  NavigateEd app; only a notice sent to the whole school includes its title and
+  message. Each message is charged to the school at the price NavigateEd pays.
+  In HQ, **SMS and WhatsApp** shows each school's messages and cost for the
+  month (Owner, Operations, Finance). Nothing is sent until NavigateEd's Twilio
+  account, senders and WhatsApp templates are set up.
+  **Deploy:** run the migrations; add `navigateed-twilio-account-sid` and
+  `navigateed-twilio-auth-token` in Secret Manager, re-run
+  `infra/gcp/provision.sh`, and set the Twilio senders and templates in the env
+  file ([SMS and WhatsApp](engineering/specs/platform/sms-whatsapp.md)).
 - Caseload renewals for a new school year: in Early warning and interventions,
   **Renew caseloads for a new year** lists last year's open risk caseload grants
   for learners placed in the new year. A principal (or the learner's grade head)

@@ -54,6 +54,7 @@ class PlatformServiceProvider extends ServiceProvider
         // SNS posts bounce, complaint and delivery notices from many addresses;
         // a burst after a bulk send stays well under this.
         RateLimiter::for('mail-webhook', fn (Request $request) => Limit::perMinute(600)->by('mail-webhook:'.$request->ip()));
+        RateLimiter::for('messaging-webhook', fn (Request $request) => Limit::perMinute(600)->by('messaging-webhook:'.$request->ip()));
 
         $this->bootTenancy();
     }

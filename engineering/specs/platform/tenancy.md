@@ -281,3 +281,12 @@ The apps' parent home and child screens are app work and not part of this step; 
 timetable it serves. The public `.ics` endpoint has no school header; it finds
 the link by its token hash, then runs inside the link's school and rechecks the
 owner's access there ([calendar feed](../academics/calendar-feed.md)).
+### SMS and WhatsApp
+
+`school_messaging_settings` is required school-owned (one row per school, a
+foreign key to the school): each school's own SMS and WhatsApp opt-in, never
+another school's. Texted deliveries are `notification_deliveries` rows like mail
+and push, with the school they were sent for; HQ reads their counts and cost
+across schools. Guardians' numbers come from the school-owned `parents` row at
+the sending school, never from the shared `users` row
+([SMS and WhatsApp](sms-whatsapp.md)).

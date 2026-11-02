@@ -102,6 +102,12 @@ class DeliveryGuard
             if (str_starts_with($type, 'pastoral.cover') && ! app(CoverNotices::class)->allows($user, $type, $context)) {
                 return false;
             }
+            if (in_array($channel, UrgentMessaging::CHANNELS, true)) {
+                // The number the school office has on record now, and the school's opt-in now.
+                $messaging = app(UrgentMessaging::class);
+
+                return hash_equals((string) $messaging->number($user), $address) && $messaging->allows($user, $type, $channel);
+            }
             $current = $channel === 'email'
                 ? is_string($user->email) && hash_equals($user->email, $address)
                 : app(PushDevices::class)->isCurrent($user, $address);

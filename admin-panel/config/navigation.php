@@ -464,6 +464,8 @@ return [
                             'keywords' => ['email template', 'welcome email']],
                         ['key' => 'push-setup', 'label' => 'nav_push_setup', 'url' => 'fcm-settings', 'permissions' => ['fcm-setting-create'], 'module' => null,
                             'active' => ['fcm-settings*'], 'keywords' => ['firebase', 'fcm', 'notification setting']],
+                        ['key' => 'urgent-messaging', 'label' => 'nav_urgent_messaging', 'route' => 'urgent-messaging.index', 'permissions' => ['setting-create'], 'module' => null,
+                            'keywords' => ['sms', 'whatsapp', 'text message', 'urgent notice', 'twilio']],
                         ['key' => 'chat-settings', 'label' => 'nav_chat_settings', 'route' => 'chat_setting.index', 'permissions' => ['chat-settings'], 'module' => 'chat',
                             'keywords' => ['chat', 'messages cleanup']],
                     ],
