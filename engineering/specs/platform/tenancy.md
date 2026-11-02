@@ -352,3 +352,7 @@ schools in `/saas`. A support session sets `CurrentSchool::supportSession()`: th
 granted school with the impersonation flag, which cannot be switched to another
 school or widened to every school for the rest of the request
 ([support access](support-access.md)).
+### Notification quiet hours
+
+`notification_quiet_hours` is global, like `notification_preferences`: one
+person chooses their push quiet hours once for every school ([quiet hours](quiet-hours.md)).
