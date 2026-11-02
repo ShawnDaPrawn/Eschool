@@ -331,6 +331,7 @@ export 'package:eschool_api/src/model/communication_configuration_years_inner.da
 export 'package:eschool_api/src/model/communication_contact_list.dart';
 export 'package:eschool_api/src/model/communication_contact_list_response.dart';
 export 'package:eschool_api/src/model/communication_decision_write.dart';
+export 'package:eschool_api/src/model/communication_delivery_counts.dart';
 export 'package:eschool_api/src/model/communication_effective_rules.dart';
 export 'package:eschool_api/src/model/communication_message_editor.dart';
 export 'package:eschool_api/src/model/communication_message_editor_response.dart';
@@ -342,6 +343,10 @@ export 'package:eschool_api/src/model/communication_message_reader.dart';
 export 'package:eschool_api/src/model/communication_message_reader_response.dart';
 export 'package:eschool_api/src/model/communication_message_receipt.dart';
 export 'package:eschool_api/src/model/communication_message_receipt_response.dart';
+export 'package:eschool_api/src/model/communication_message_report.dart';
+export 'package:eschool_api/src/model/communication_message_report_channels.dart';
+export 'package:eschool_api/src/model/communication_message_report_items_inner.dart';
+export 'package:eschool_api/src/model/communication_message_report_response.dart';
 export 'package:eschool_api/src/model/communication_message_write.dart';
 export 'package:eschool_api/src/model/communication_read_receipt.dart';
 export 'package:eschool_api/src/model/communication_read_receipt_response.dart';

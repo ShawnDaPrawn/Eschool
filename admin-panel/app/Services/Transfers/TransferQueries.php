@@ -163,6 +163,20 @@ class TransferQueries
             'mark_count' => count($c['released_marks']), 'attendance_count' => count($c['attendance'])];
     }
 
+    /**
+     * The headline number frozen in the package (ADR 0007), for the panel;
+     * null for a package prepared before it was recorded there.
+     *
+     * @return array{type: 'lurits'|'navigateed', value: string}|null
+     */
+    public function primaryIdentifier(User $actor, string $lane, int $id): ?array
+    {
+        $identifier = $this->record($actor, $lane, $id)->contents['primary_identifier'] ?? null;
+
+        return is_array($identifier) && in_array($identifier['type'] ?? null, ['lurits', 'navigateed'], true) && is_string($identifier['value'] ?? null)
+            ? ['type' => $identifier['type'], 'value' => $identifier['value']] : null;
+    }
+
     public function record(User $actor, string $lane, int $id): TransferPackage|TransferReceipt
     {
         $a = app(TransferAuthority::class);
