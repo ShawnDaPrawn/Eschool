@@ -31,14 +31,19 @@ declare(strict_types=1);
  *  support.emergency record an emergency override that opens a pending
  *                   support request at once and tells the school (Owner only)
  *  flags.manage     feature flags: create, roll out, switch schools, kill
+ *  mail.view        each school's SES mail streams, their status and rates
+ *  mail.manage      set up or check a school's SES mail streams now
+ *  ai.view          the AI control centre: qualification, caps, spend, queue counts
+ *  ai.manage        switch a school's AI features on or off (Owner only)
+ *  ai.caps          set the AI spending caps that replace config/ai.php's defaults (Owner only)
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access
  */
 return [
     'owner' => ['label' => 'Owner', 'abilities' => ['*']],
-    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view']],
-    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'support.access', 'ai.view']],
+    'operations' => ['label' => 'Operations', 'abilities' => ['schools.view', 'schools.create', 'schools.package', 'schools.status', 'schools.modules', 'accounts.manage', 'packages.view', 'billing.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'announcements.manage', 'support.access', 'flags.manage', 'ai.view', 'mail.view', 'mail.manage']],
+    'support' => ['label' => 'Support', 'abilities' => ['schools.view', 'audit.view', 'identity.review', 'incidents.manage', 'health.view', 'support.access', 'ai.view', 'mail.view']],
     'finance' => ['label' => 'Finance', 'abilities' => ['schools.view', 'schools.package', 'accounts.manage', 'packages.view', 'packages.manage', 'billing.view', 'billing.manage', 'audit.view', 'audit.export', 'health.view']],
     'content' => ['label' => 'Content', 'abilities' => ['schools.view', 'packages.view']],
     'sales' => ['label' => 'Sales (read-only)', 'abilities' => ['schools.view', 'packages.view']],

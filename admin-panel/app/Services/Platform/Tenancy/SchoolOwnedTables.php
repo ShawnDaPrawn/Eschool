@@ -21,6 +21,7 @@ final class SchoolOwnedTables
      * and the model (where there is one) uses BelongsToSchool.
      */
     public const REQUIRED = [
+        'school_sending_domains',
         'lurits_conflicts',
         'platform_incident_schools',
         // Navigate Ed billing the school (1.17, SA.8): its invoices and credit
@@ -110,6 +111,7 @@ final class SchoolOwnedTables
      */
     public const NULLABLE = [
         'audit_log', 'domain_events', 'idempotency_keys', 'notification_deliveries', 'settings',
+        'mail_streams',
     ];
 
     /**
