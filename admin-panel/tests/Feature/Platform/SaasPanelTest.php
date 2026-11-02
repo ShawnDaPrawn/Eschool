@@ -693,7 +693,7 @@ class SaasPanelTest extends TestCase
         $operator = $this->operatorWithoutRoles();
         $operator->password = 'superadmin';
         $operator->save();
-        $this->post('/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas');
+        $this->post('/login', ['email' => $operator->email, 'password' => 'superadmin'])->assertRedirect('/saas/home');
         $this->assertTrue($operator->fresh()->password_change_required);
         $this->assertFalse(app(PlatformStaffAccess::class)->allowed($operator));
         $this->get('/saas')->assertRedirect(route('saas.password'))->assertHeader('Cache-Control', 'no-store, private');

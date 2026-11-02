@@ -38,6 +38,7 @@ declare(strict_types=1);
  *  ai.manage        switch a school's AI features on or off (Owner only)
  *  ai.caps          set the AI spending caps that replace config/ai.php's defaults (Owner only)
  *  messaging.view   SMS and WhatsApp counts and pass-through cost per school
+ *  health.view      platform health on the HQ home page: queue backlog, failed jobs, delivery failures
  *  audit.view       the platform audit log
  *  audit.export     export the platform audit log
  *  staff.manage     invite platform staff, change their role, revoke access

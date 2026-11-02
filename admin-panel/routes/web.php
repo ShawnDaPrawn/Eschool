@@ -127,6 +127,7 @@ use App\Http\Controllers\Platform\PlatformAnnouncementController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformFeatureFlagController;
+use App\Http\Controllers\Platform\PlatformHomeController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
@@ -328,6 +329,8 @@ Route::middleware([PrivateDomainResponse::class])->group(function () {
 Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->prefix('saas')->name('saas.')->group(function () {
     // Every route names the ability its role must hold (platform.can, SA.1).
     Route::get('/', [SaasController::class, 'index'])->middleware('platform.can:schools.view')->name('index');
+    // The HQ home page (4F), where sign-in lands: each tile only for the role that may open its area.
+    Route::get('/home', PlatformHomeController::class)->middleware('platform.can:schools.view')->name('home');
     Route::get('/packages', ProductCatalogueController::class)->middleware('platform.can:packages.view')->name('packages');
     // The package and price editor (SA.7): packages.view reads, packages.manage changes.
     Route::get('/packages/{package}', [PlatformPackageController::class, 'show'])->middleware('platform.can:packages.view')->whereNumber('package')->name('packages.show');
