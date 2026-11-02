@@ -18,6 +18,9 @@ CommunicationAudience _$CommunicationAudienceFromJson(
       'active',
       'editable',
       'user_ids',
+      'kind',
+      'shared',
+      'smart',
     ],
   );
   final val = CommunicationAudience(
@@ -29,6 +32,21 @@ CommunicationAudience _$CommunicationAudienceFromJson(
     userIds: $checkedConvert(
       'user_ids',
       (v) => (v as List<dynamic>).map((e) => (e as num).toInt()).toSet(),
+    ),
+    kind: $checkedConvert(
+      'kind',
+      (v) => $enumDecode(
+        _$CommunicationAudienceKindEnumEnumMap,
+        v,
+        unknownValue: CommunicationAudienceKindEnum.unknownDefaultOpenApi,
+      ),
+    ),
+    shared: $checkedConvert('shared', (v) => v as bool),
+    smart: $checkedConvert(
+      'smart',
+      (v) => v == null
+          ? null
+          : CommunicationAudienceSmart.fromJson(v as Map<String, dynamic>),
     ),
   );
   return val;
@@ -43,4 +61,14 @@ Map<String, dynamic> _$CommunicationAudienceToJson(
   'active': instance.active,
   'editable': instance.editable,
   'user_ids': instance.userIds.toList(),
+  'kind': _$CommunicationAudienceKindEnumEnumMap[instance.kind]!,
+  'shared': instance.shared,
+  'smart': instance.smart?.toJson(),
+};
+
+const _$CommunicationAudienceKindEnumEnumMap = {
+  CommunicationAudienceKindEnum.fixed: 'fixed',
+  CommunicationAudienceKindEnum.smart: 'smart',
+  CommunicationAudienceKindEnum.unknownDefaultOpenApi:
+      'unknown_default_open_api',
 };

@@ -133,6 +133,31 @@ class MasteryImpactTest extends TestCase
         $this->assertSame([null, 0, 2, 5000, 2], [$first->start_level, $first->start_evidence_count, $first->end_level, $first->end_score_bp, $first->end_evidence_count]);
     }
 
+    public function test_term_end_uses_retained_marks_before_a_later_correction_and_release(): void
+    {
+        $this->growth();
+        $this->release();
+        $this->at('2026-04-05');
+        $this->capture('10.00', '1.00', 1);
+        $this->release();
+        app(MasteryRecompute::class)->group($this->group);
+        app(MasteryGrowth::class)->capture();
+        $this->assertSame(3000, $this->row($this->topic(1))->end_score_bp);
+        $this->assertSame(9000, $this->row($this->topic(2))->end_score_bp);
+        $this->assertSame(4000, $this->row($this->topic(1), 'family')->end_score_bp);
+        $this->assertSame(9000, $this->row($this->topic(2), 'family')->end_score_bp);
+    }
+
+    public function test_rostered_topics_without_any_evidence_are_visible(): void
+    {
+        $report = app(MasteryImpact::class)->read($this->superAdmin(), $this->term);
+        $this->assertCount(3, $report['grades'][0]['topics']);
+        foreach ($report['grades'][0]['topics'] as $topic) {
+            $this->assertSame(1, $topic['no_evidence']);
+            $this->assertSame(0, $topic['evidence_now']);
+        }
+    }
+
     public function test_term_end_settles_within_the_closing_window_and_is_then_left_alone(): void
     {
         $this->growth();

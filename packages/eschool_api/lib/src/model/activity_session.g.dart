@@ -30,6 +30,8 @@ ActivitySession _$ActivitySessionFromJson(Map<String, dynamic> json) =>
             (v) => (v as num).toInt(),
           ),
           onDate: $checkedConvert('on_date', (v) => v as String),
+          startsAt: $checkedConvert('starts_at', (v) => v as String?),
+          endsAt: $checkedConvert('ends_at', (v) => v as String?),
           name: $checkedConvert('name', (v) => v as String),
           venue: $checkedConvert('venue', (v) => v as String),
           status: $checkedConvert(
@@ -47,6 +49,8 @@ ActivitySession _$ActivitySessionFromJson(Map<String, dynamic> json) =>
       fieldKeyMap: const {
         'activityGroupId': 'activity_group_id',
         'onDate': 'on_date',
+        'startsAt': 'starts_at',
+        'endsAt': 'ends_at',
       },
     );
 
@@ -55,6 +59,8 @@ Map<String, dynamic> _$ActivitySessionToJson(ActivitySession instance) =>
       'id': instance.id,
       'activity_group_id': instance.activityGroupId,
       'on_date': instance.onDate,
+      'starts_at': ?instance.startsAt,
+      'ends_at': ?instance.endsAt,
       'name': instance.name,
       'venue': instance.venue,
       'status': _$ActivitySessionStatusEnumEnumMap[instance.status]!,

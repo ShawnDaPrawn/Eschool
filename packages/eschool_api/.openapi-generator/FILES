@@ -189,6 +189,8 @@ lib/src/model/academic_timetable_preview_data.dart
 lib/src/model/academic_timetable_preview_response.dart
 lib/src/model/academic_timetable_preview_write.dart
 lib/src/model/academic_timetable_week_data.dart
+lib/src/model/academic_timetable_week_data_activities_inner.dart
+lib/src/model/academic_timetable_week_data_breaks_inner.dart
 lib/src/model/academic_timetable_week_response.dart
 lib/src/model/academic_transition_assignment.dart
 lib/src/model/academic_transition_commit.dart
@@ -285,6 +287,13 @@ lib/src/model/approval_state.dart
 lib/src/model/approval_state_response.dart
 lib/src/model/approve_practice_question_response.dart
 lib/src/model/branding.dart
+lib/src/model/calendar_feed.dart
+lib/src/model/calendar_feed_created_response.dart
+lib/src/model/calendar_feed_created_response_data.dart
+lib/src/model/calendar_feed_list_response.dart
+lib/src/model/calendar_feed_list_response_data.dart
+lib/src/model/calendar_feed_revoked_response.dart
+lib/src/model/calendar_feed_revoked_response_data.dart
 lib/src/model/calendar_removed_response.dart
 lib/src/model/cancel_consultation_response.dart
 lib/src/model/cast_consultation_vote_response.dart
@@ -321,7 +330,9 @@ lib/src/model/communication_audience_list_response.dart
 lib/src/model/communication_audience_receipt.dart
 lib/src/model/communication_audience_receipt_response.dart
 lib/src/model/communication_audience_selection.dart
+lib/src/model/communication_audience_smart.dart
 lib/src/model/communication_audience_snapshot.dart
+lib/src/model/communication_audience_snapshot_smart.dart
 lib/src/model/communication_audience_write.dart
 lib/src/model/communication_configuration.dart
 lib/src/model/communication_configuration_response.dart
@@ -354,6 +365,7 @@ lib/src/model/communication_rule_list.dart
 lib/src/model/communication_rule_list_response.dart
 lib/src/model/communication_rule_write.dart
 lib/src/model/communication_scope.dart
+lib/src/model/communication_smart_rules_inner.dart
 lib/src/model/communication_submit_write.dart
 lib/src/model/communication_summary.dart
 lib/src/model/communication_withdraw_write.dart
@@ -442,6 +454,7 @@ lib/src/model/cover_occurrence.dart
 lib/src/model/cover_occurrence_response.dart
 lib/src/model/cover_source.dart
 lib/src/model/cover_teacher.dart
+lib/src/model/create_calendar_feed_request.dart
 lib/src/model/create_consultation_response.dart
 lib/src/model/create_learner_enrolment_request.dart
 lib/src/model/create_profile_category_request.dart
@@ -800,6 +813,7 @@ lib/src/model/learner_note_list_response.dart
 lib/src/model/learner_note_metadata.dart
 lib/src/model/learner_note_revision.dart
 lib/src/model/learner_note_update.dart
+lib/src/model/learner_primary_identifier.dart
 lib/src/model/leave_foundation_learner_response.dart
 lib/src/model/link_wellbeing_case_incident_response.dart
 lib/src/model/list_consultation_audience_choices_response.dart
@@ -864,6 +878,11 @@ lib/src/model/my_grade_signal.dart
 lib/src/model/my_school_info.dart
 lib/src/model/my_school_response.dart
 lib/src/model/notification_channel_preference.dart
+lib/src/model/notification_detail.dart
+lib/src/model/notification_detail_response.dart
+lib/src/model/notification_inbox_item.dart
+lib/src/model/notification_inbox_page.dart
+lib/src/model/notification_inbox_response.dart
 lib/src/model/notification_preferences_response.dart
 lib/src/model/notification_rule.dart
 lib/src/model/notification_type_preference.dart
@@ -975,6 +994,8 @@ lib/src/model/progress_roster_response.dart
 lib/src/model/progress_staff_band.dart
 lib/src/model/progress_staff_band_response.dart
 lib/src/model/publish_consultation_response.dart
+lib/src/model/quiet_hours_response.dart
+lib/src/model/quiet_hours_response_data.dart
 lib/src/model/read_staff_private_notice_response.dart
 lib/src/model/read_wellbeing_notice_response.dart
 lib/src/model/recognition_access.dart
@@ -1306,6 +1327,7 @@ lib/src/model/tutor_turn_write.dart
 lib/src/model/update_consultation_response.dart
 lib/src/model/update_my_notification_preferences_request.dart
 lib/src/model/update_my_profile_request.dart
+lib/src/model/update_my_quiet_hours_request.dart
 lib/src/model/update_person_profile_request.dart
 lib/src/model/update_profile_category_request.dart
 lib/src/model/update_profile_field_request.dart

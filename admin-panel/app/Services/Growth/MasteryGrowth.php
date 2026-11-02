@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Growth;
 
 use App\Models\Academics\GradeLevel;
-use App\Models\Growth\MasteryEvidence;
 use App\Models\Growth\MasteryGrowthSnapshot;
 use App\Models\Growth\MasteryRecord;
 use App\Models\Growth\MasteryTopic;
@@ -108,8 +107,7 @@ class MasteryGrowth
         $counts = ['rows' => 0, 'closed' => 0, 'invalid' => 0];
         $records = MasteryRecord::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->whereIn('topic_id', $topics->keys())
             ->orderBy('id')->get(['topic_id', 'audience', 'policy_version', 'level', 'score_bp', 'confidence_bp', 'evidence_count']);
-        $evidence = MasteryEvidence::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->whereIn('topic_id', $records->pluck('topic_id')->unique())
-            ->orderByDesc('observed_at')->orderByDesc('id')->get(['topic_id', 'audience', 'achieved_units', 'maximum_units', 'observed_at'])->groupBy('topic_id');
+        $history = [];
         $existing = MasteryGrowthSnapshot::query()->where('learner_id', $learnerId)->where('subject_id', $subjectId)->whereIn('term_id', $termIds)
             ->get(['id', 'term_id', 'topic_id', 'audience', 'policy_version', 'end_final'])
             ->keyBy(fn ($row) => $row->term_id.':'.$row->topic_id.':'.$row->audience.':'.$row->policy_version);
@@ -140,8 +138,10 @@ class MasteryGrowth
                     if ($replayable) {
                         $startAt = CarbonImmutable::parse($starts, $timezone)->startOfDay();
                         $endAt = CarbonImmutable::parse($ends, $timezone)->addDay()->startOfDay()->min($now->addSecond());
-                        $start = $this->replay($evidence->get($record->topic_id), $record->audience, $startAt) + ['start_basis' => 'replayed'];
-                        $end = $this->replay($evidence->get($record->topic_id), $record->audience, $endAt);
+                        $startEvidence = $history[$startAt->toISOString()] ??= app(MasteryHistory::class)->before($learnerId, $subjectId, $startAt);
+                        $endEvidence = $history[$endAt->toISOString()] ??= app(MasteryHistory::class)->before($learnerId, $subjectId, $endAt);
+                        $start = $this->replay($startEvidence->get($record->topic_id), $record->audience, $startAt) + ['start_basis' => 'replayed'];
+                        $end = $this->replay($endEvidence->get($record->topic_id), $record->audience, $endAt);
                     } else {
                         $stored = ['level' => $record->level, 'score_bp' => $record->score_bp, 'confidence_bp' => $record->confidence_bp, 'evidence_count' => $record->evidence_count];
                         $start = $today === $starts ? $stored + ['start_basis' => 'captured']

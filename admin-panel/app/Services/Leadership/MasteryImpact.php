@@ -113,7 +113,23 @@ class MasteryImpact
         foreach ($base()->where('policy_version', $version)->whereNull('end_level')->get(['topic_id', 'learner_id']) as $row) {
             $unmeasured[(int) $row->topic_id][(int) $row->learner_id] = true;
         }
-        $rosters = $this->rosters($term, $rows->pluck('grade_level_id')->map(fn ($id) => (int) $id)->unique()->values()->all());
+        $eligibleGrades = GradeLevel::query()->whereBetween('sort_order', [$term->grade_from, $term->grade_to])
+            ->when($grades !== null, fn ($q) => $q->whereIn('id', $grades))->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $rosters = $this->rosters($term, $eligibleGrades);
+        // Seed the roster even when a topic has never produced a snapshot. An explicitly
+        // absent model version must still remain separate from the available versions.
+        if ($versions === [] || in_array($version, $versions, true)) {
+            $present = $rows->pluck('topic_id')->all();
+            foreach (MasteryTopic::whereIn('grade_level_id', $eligibleGrades)->whereNotIn('id', $present)
+                ->whereHas('source', fn ($q) => $q->where('term_id', $term->id)
+                    ->whereHas('curriculum', fn ($c) => $c->where('session_year_id', $term->session_year_id)->where('state', 'published')))
+                ->get() as $topic) {
+                if (isset($rosters[$topic->subject_id.':'.$topic->grade_level_id])) {
+                    $rows->push((object) (['grade_level_id' => $topic->grade_level_id, 'subject_id' => $topic->subject_id, 'topic_id' => $topic->id,
+                        'lower_level' => 0] + array_fill_keys(self::COUNTS, 0)));
+                }
+            }
+        }
         $topics = MasteryTopic::query()->whereIn('id', $rows->pluck('topic_id'))->pluck('name', 'id');
         $subjects = Subject::query()->whereIn('id', $rows->pluck('subject_id'))->pluck('name', 'id');
         $gradeLevels = GradeLevel::query()->whereIn('id', $rows->pluck('grade_level_id'))->orderBy('sort_order')->get(['id', 'name']);

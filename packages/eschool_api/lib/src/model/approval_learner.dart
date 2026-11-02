@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:eschool_api/src/model/learner_primary_identifier.dart';
 import 'package:eschool_api/src/model/school_summary.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -25,6 +26,8 @@ class ApprovalLearner {
 
     required this.studentNumber,
 
+    this.primaryIdentifier,
+
     required this.school,
   });
 
@@ -40,6 +43,10 @@ class ApprovalLearner {
   @JsonKey(name: r'student_number', required: true, includeIfNull: true)
   final String? studentNumber;
 
+  /// The learner's headline number (ADR 0007), the LURITS number or else the temporary NavigateEd number. Null when the caller may not see it (only the learner, a guardian who may approve, and staff with profile permission may) or when the learner has neither.
+  @JsonKey(name: r'primary_identifier', required: false, includeIfNull: false)
+  final LearnerPrimaryIdentifier? primaryIdentifier;
+
   @JsonKey(name: r'school', required: true, includeIfNull: false)
   final SchoolSummary school;
 
@@ -51,6 +58,7 @@ class ApprovalLearner {
           other.name == name &&
           other.image == image &&
           other.studentNumber == studentNumber &&
+          other.primaryIdentifier == primaryIdentifier &&
           other.school == school;
 
   @override
@@ -59,6 +67,7 @@ class ApprovalLearner {
       name.hashCode +
       (image == null ? 0 : image.hashCode) +
       (studentNumber == null ? 0 : studentNumber.hashCode) +
+      (primaryIdentifier == null ? 0 : primaryIdentifier.hashCode) +
       school.hashCode;
 
   factory ApprovalLearner.fromJson(Map<String, dynamic> json) =>

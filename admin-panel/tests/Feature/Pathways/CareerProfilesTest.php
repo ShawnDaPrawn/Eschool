@@ -10,6 +10,7 @@ use App\Models\Pathways\CareerProfile;
 use App\Models\Pathways\CareerProfileVersion;
 use App\Models\Pathways\PathwayOperation;
 use App\Models\Platform\SchoolModule;
+use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\Academics\TeachingGroups;
@@ -68,12 +69,12 @@ class CareerProfilesTest extends TestCase
     public function test_retired_subjects_do_not_hide_the_remaining_career_requirements_or_routes(): void
     {
         $profile = $this->publish();
-        \App\Models\Subject::findOrFail($this->schoolA->ids['science'])->delete();
+        Subject::findOrFail($this->schoolA->ids['science'])->delete();
         $view = app(CareerGuidance::class)->view($this->superAdmin(), $this->schoolA->ids['asha'], $profile['id']);
         $this->assertCount(2, $view['subjects']);
         $this->assertCount(2, $view['routes']);
         $this->assertNotEmpty($view['topics']);
-        \App\Models\Subject::findOrFail($this->subject)->delete();
+        Subject::findOrFail($this->subject)->delete();
         $view = app(CareerGuidance::class)->view($this->superAdmin(), $this->schoolA->ids['asha'], $profile['id']);
         $this->assertCount(2, $view['subjects']);
         $this->assertCount(2, $view['routes']);

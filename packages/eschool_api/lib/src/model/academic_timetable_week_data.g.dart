@@ -43,6 +43,26 @@ AcademicTimetableWeekData _$AcademicTimetableWeekDataFromJson(
         'exam_days',
         (v) => (v as List<dynamic>?)?.map((e) => e as String).toList(),
       ),
+      breaks: $checkedConvert(
+        'breaks',
+        (v) => (v as List<dynamic>?)
+            ?.map(
+              (e) => AcademicTimetableWeekDataBreaksInner.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
+            .toList(),
+      ),
+      activities: $checkedConvert(
+        'activities',
+        (v) => (v as List<dynamic>?)
+            ?.map(
+              (e) => AcademicTimetableWeekDataActivitiesInner.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
+            .toList(),
+      ),
     );
     return val;
   },
@@ -64,4 +84,6 @@ Map<String, dynamic> _$AcademicTimetableWeekDataToJson(
   'can_manage': instance.canManage,
   'lessons': instance.lessons.map((e) => e.toJson()).toList(),
   'exam_days': ?instance.examDays,
+  'breaks': ?instance.breaks?.map((e) => e.toJson()).toList(),
+  'activities': ?instance.activities?.map((e) => e.toJson()).toList(),
 };

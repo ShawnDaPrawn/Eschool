@@ -16,7 +16,6 @@ use App\Services\Platform\Notifications\NotificationRules;
 use App\Services\Platform\Saas\PlatformAnnouncements;
 use App\Services\Platform\Tenancy\CurrentSchool;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;

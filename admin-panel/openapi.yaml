@@ -42968,7 +42968,6 @@ components:
           enum:
           - fixed
           - smart
-          default: fixed
           description: Fixed for a new audience unless smart. An existing audience keeps its kind.
         shared:
           type: boolean
