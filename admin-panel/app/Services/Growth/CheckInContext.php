@@ -36,15 +36,21 @@ class CheckInContext
                 return [];
             }
             $since = Carbon::parse(app(AcademicAuthority::class)->today())->subWeeks(self::WEEKS)->startOfDay();
-            $rows = CheckIn::whereIn('learner_id', $own)->where('session_year_id', (int) schoolSetting('session_year'))->where('status', 'answered')
-                ->where('answered_at', '>=', $since)->orderByDesc('answered_at')->orderByDesc('id')->limit(500)->get(['id', 'learner_id', 'answer', 'answered_at']);
+            $base = fn () => CheckIn::whereIn('learner_id', $own)->where('session_year_id', (int) schoolSetting('session_year'))->where('status', 'answered')
+                ->where('answered_at', '>=', $since);
+            $counts = $base()->selectRaw('learner_id, COUNT(*) AS answered')->groupBy('learner_id')->pluck('answered', 'learner_id');
+            $latest = [];
+            foreach ($own as $learner) {
+                $latest[$learner] = $base()->where('learner_id', $learner)->orderByDesc('answered_at')->orderByDesc('id')
+                    ->first(['id', 'learner_id', 'answer', 'answered_at']);
+            }
             // Recheck after reading: a grant withdrawn meanwhile shows nothing.
             $still = array_values(array_intersect($own, $checkIns->learnerIds($fresh)));
             $context = [];
             foreach ($still as $learner) {
-                $mine = $rows->where('learner_id', $learner)->values();
-                $context[$learner] = ['answered' => $mine->count(), 'latest_scale' => $mine->first()?->answer['scale'] ?? null,
-                    'latest_on' => $mine->first()?->answered_at?->toDateString()];
+                $last = $latest[$learner];
+                $context[$learner] = ['answered' => (int) ($counts[$learner] ?? 0), 'latest_scale' => $last?->answer['scale'] ?? null,
+                    'latest_on' => $last?->answered_at?->toDateString()];
             }
 
             return $context;

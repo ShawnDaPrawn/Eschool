@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use LogicException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -39,6 +40,7 @@ use Tests\TestCase;
  */
 class HqBillingTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const TABLES = ['platform_invoices', 'platform_invoice_lines', 'platform_payments', 'platform_payment_allocations', 'platform_billing_reminders'];
@@ -121,7 +123,7 @@ class HqBillingTest extends TestCase
     {
         $this->price('base', 5000);
         $this->contract(1, 24500);
-        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
+        $this->actingAsHq($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
         $this->post('/saas/billing/runs/issue', ['period' => $this->month()])->assertRedirect();
 
         return [$this->invoice(1), $this->invoice(2)];
@@ -141,7 +143,7 @@ class HqBillingTest extends TestCase
         $this->assertGreaterThan(0, $learnersA);
         $this->assertGreaterThan(0, $learnersB);
 
-        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect('/saas/billing?month='.$this->month());
+        $this->actingAsHq($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect('/saas/billing?month='.$this->month());
         $a = $this->invoice(1);
         $b = $this->invoice(2);
         $this->assertSame(['draft', 'contract', $learnersA, 400, null], [$a->status, $a->price_source, $a->learners, $a->contracted_learners, $a->reference]);
@@ -190,7 +192,7 @@ class HqBillingTest extends TestCase
         // Tutor is switched on; Futures (pathway, transfers) is off, so it is not billed.
         $this->modules(2, ['tutor' => true, 'pathway' => false, 'school_transfers' => false]);
 
-        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
+        $this->actingAsHq($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
         $b = $this->invoice(2);
         $lines = PlatformInvoiceLine::acrossSchools()->where('invoice_id', $b->id)->orderBy('position')->get();
         $this->assertSame([
@@ -247,7 +249,7 @@ class HqBillingTest extends TestCase
         // The draft keeps the count and the day it was taken; recompute counts again.
         $this->price('base', 1000);
         $finance = $this->staff('finance');
-        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
+        $this->actingAsHq($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
         $draft = $this->invoice(1);
         $this->assertSame([$a - 2, $today], [$draft->learners, $draft->learners_counted_on->toDateString()]);
         User::acrossSchools()->whereKey($students[2]->user_id)->update(['status' => 1]);
@@ -310,7 +312,7 @@ class HqBillingTest extends TestCase
         $year = substr(PlatformBilling::today(), 0, 4);
 
         // R 100 excluding VAT: R 115 credit, which settles R 115 of the unpaid invoice.
-        $this->actingAs($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '100', 'reason' => 'Two learners left in the first week'])->assertRedirect();
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '100', 'reason' => 'Two learners left in the first week'])->assertRedirect();
         $note = PlatformInvoice::acrossSchools()->where('kind', 'credit_note')->sole();
         $this->assertSame(['issued', 'NE-'.$year.'-0003', $a->id, -10000, -1500, -11500], [$note->status, $note->reference, $note->credits_invoice_id, $note->subtotal_cents, $note->vat_cents, $note->total_cents]);
         $this->assertSame($a->total_cents - 11500, app(CurrentSchool::class)->run(1, fn () => app(PlatformBillingAccounts::class)->outstanding($a)));
@@ -412,7 +414,7 @@ class HqBillingTest extends TestCase
         $today = PlatformBilling::today();
 
         // A part-payment.
-        $this->actingAs($finance)->post('/saas/billing/schools/1/payments', ['amount' => '100.00', 'received_on' => $today, 'bank_reference' => 'FNB 1001', 'allocations' => [$a->id => '100']])->assertRedirect('/saas/billing/schools/1');
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/payments', ['amount' => '100.00', 'received_on' => $today, 'bank_reference' => 'FNB 1001', 'allocations' => [$a->id => '100']])->assertRedirect('/saas/billing/schools/1');
         $this->assertSame($total - 10000, $outstanding());
         // The same bank reference again is refused (one bank line, one payment).
         $before = $this->snapshot();
@@ -479,7 +481,7 @@ class HqBillingTest extends TestCase
         $finance = $this->staff('finance');
         [$a, $b] = $this->issued($finance);
         $accounts = app(PlatformBillingAccounts::class);
-        $this->actingAs($finance)->post('/saas/billing/schools/2/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'PART-1', 'allocations' => [$b->id => '1']]);
+        $this->actingAsHq($finance)->post('/saas/billing/schools/2/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'PART-1', 'allocations' => [$b->id => '1']]);
         $this->assertSame([], $accounts->overdue(), 'not overdue on the due date');
 
         // The day after the due date: overdue, in grace.
@@ -499,7 +501,7 @@ class HqBillingTest extends TestCase
 
         // Operations sees the form; suspending uses the existing flow, with its reason in the audit log.
         $operations = $this->staff('operations');
-        $this->actingAs($operations)->get('/saas/billing')->assertOk()->assertSee('Suspend this school')->assertDontSee('Create drafts')->assertDontSee('Send a reminder');
+        $this->actingAsHq($operations)->get('/saas/billing')->assertOk()->assertSee('Suspend this school')->assertDontSee('Create drafts')->assertDontSee('Send a reminder');
         $this->put('/saas/schools/2/status', ['status' => 'suspended', 'reason' => 'Account overdue past grace'])->assertRedirect();
         $this->assertSame(School::SUSPENDED, School::query()->findOrFail(2)->status);
         $this->assertSame('Account overdue past grace', AuditLog::query()->where('action', 'platform_school_status_changed')->sole()->after['reason']);
@@ -517,7 +519,7 @@ class HqBillingTest extends TestCase
             DB::table('school_contacts')->insert(['school_id' => $school, 'role' => 'bursar', 'name' => 'Synthetic bursar', 'email' => $email, 'created_at' => now(), 'updated_at' => now()]);
         }
         $key = fn (): array => ['idempotency_key' => (string) Str::uuid()];
-        $this->actingAs($finance)->post('/saas/billing/schools/1/reminders', $key())->assertSessionHasErrors('school');
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/reminders', $key())->assertSessionHasErrors('school');
         $this->post('/saas/billing/schools/1/reminders')->assertSessionHasErrors('idempotency_key');
         $this->assertSame(0, OutboxEvent::query()->where('type', 'notification.requested')->count(), 'nothing overdue yet, nothing sent');
         $this->assertSame(0, DB::table('platform_billing_reminders')->count());
@@ -574,7 +576,7 @@ class HqBillingTest extends TestCase
         $finance = $this->staff('finance');
         [$a] = $this->issued($finance);
         $next = CarbonImmutable::parse(PlatformBilling::today())->startOfMonth()->addMonth()->format('Y-m');
-        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $next]);
+        $this->actingAsHq($finance)->post('/saas/billing/runs', ['period' => $next]);
         $draft = $this->invoice(1, $next);
         $issuedLine = fn () => PlatformInvoiceLine::acrossSchools()->where('invoice_id', $a->id)->orderBy('id')->first();
         $draftLine = fn () => PlatformInvoiceLine::acrossSchools()->where('invoice_id', $draft->id)->orderBy('id')->first();
@@ -642,7 +644,7 @@ class HqBillingTest extends TestCase
     {
         $finance = $this->staff('finance');
         $this->price('base', 5000);
-        $this->actingAs($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
+        $this->actingAsHq($finance)->post('/saas/billing/runs', ['period' => $this->month()])->assertRedirect();
         School::query()->whereKey(2)->update(['status' => School::SUSPENDED]);
         $this->post('/saas/billing/runs/issue', ['period' => $this->month()])->assertRedirect()->assertSessionHas('success', fn (string $m) => str_contains($m, '1 left as drafts because the school is no longer active'));
         $this->assertSame(['issued', 'draft'], [$this->invoice(1)->status, $this->invoice(2)->status]);
@@ -660,7 +662,7 @@ class HqBillingTest extends TestCase
         $finance = $this->staff('finance');
         [$a, $b] = $this->issued($finance);
         $cents = $a->total_cents + 5000;
-        $this->actingAs($finance)->post('/saas/billing/schools/1/payments', ['amount' => intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT),
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/payments', ['amount' => intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT),
             'received_on' => PlatformBilling::today(), 'bank_reference' => 'CREDIT-A', 'allocations' => [$a->id => intdiv($a->total_cents, 100).'.'.str_pad((string) ($a->total_cents % 100), 2, '0', STR_PAD_LEFT)]])->assertRedirect();
         $this->assertSame(5000, app(PlatformBillingAccounts::class)->statement(1)['credit_cents']);
         $before = $this->snapshot();
@@ -675,7 +677,7 @@ class HqBillingTest extends TestCase
     {
         $finance = $this->staff('finance');
         [$a] = $this->issued($finance);
-        $this->actingAs($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '10', 'reason' => 'Rollback guard fixture'])->assertRedirect();
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/invoices/'.$a->id.'/credit-notes', ['idempotency_key' => (string) Str::uuid(), 'amount' => '10', 'reason' => 'Rollback guard fixture'])->assertRedirect();
         DB::table('platform_billing_reminders')->insert(['school_id' => 1, 'request_key' => (string) Str::uuid(), 'invoice_ids' => '[]', 'overdue_cents' => 0,
             'super_admins' => 0, 'bursar_contact_ids' => '[]', 'email_title' => 'Fixture', 'email_body' => 'Fixture', 'created_at' => now(), 'updated_at' => now()]);
         foreach (['2026_11_01_182000_guard_platform_billing', '2026_11_01_181000_add_credit_note_idempotency', '2026_11_01_180000_create_platform_billing'] as $name) {
@@ -698,13 +700,13 @@ class HqBillingTest extends TestCase
     {
         $finance = $this->staff('finance');
         [$a] = $this->issued($finance);
-        $this->actingAs($finance)->post('/saas/billing/schools/1/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'ROLE-1']);
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'ROLE-1']);
         $payment = PlatformPayment::acrossSchools()->sole();
         $before = $this->counts();
         $rows = $this->snapshot();
         foreach (['sales', 'content', 'support', 'operations'] as $role) {
             $user = $this->staff($role);
-            $this->actingAs($user);
+            $this->actingAsHq($user);
             foreach ($this->writes($a->id, $payment->id) as [$uri, $input]) {
                 $this->post($uri, $input)->assertForbidden();
             }
@@ -759,7 +761,7 @@ class HqBillingTest extends TestCase
     {
         $finance = $this->staff('finance');
         [$a] = $this->issued($finance);
-        $this->actingAs($finance)->post('/saas/billing/schools/1/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'SCHOOL-1']);
+        $this->actingAsHq($finance)->post('/saas/billing/schools/1/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'SCHOOL-1']);
         $payment = PlatformPayment::acrossSchools()->sole();
         $before = $this->counts();
         foreach ([$this->superAdmin(), User::findOrFail($this->schoolA->ids['tara_user'])] as $user) {
@@ -777,7 +779,7 @@ class HqBillingTest extends TestCase
     {
         $finance = $this->staff('finance');
         [$a, $b] = $this->issued($finance);
-        $this->actingAs($finance)->post('/saas/billing/schools/2/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'BAOBAB-1']);
+        $this->actingAsHq($finance)->post('/saas/billing/schools/2/payments', ['amount' => '1', 'received_on' => PlatformBilling::today(), 'bank_reference' => 'BAOBAB-1']);
         $baobabPayment = PlatformPayment::acrossSchools()->where('school_id', 2)->sole();
         $before = $this->counts();
         $rows = $this->snapshot();

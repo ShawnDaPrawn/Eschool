@@ -15,6 +15,7 @@ use App\Services\Platform\Tenancy\CurrentSchool;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -25,6 +26,7 @@ use Tests\TestCase;
  */
 class HqSchoolImportsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const CSV = "Grade,Letter\n8,A\n8,B";
@@ -60,7 +62,7 @@ class HqSchoolImportsTest extends TestCase
     private function send(User $operator, string $csv = self::CSV, ?User $approver = null): int
     {
         $approver ??= $this->superAdmin();
-        $this->actingAs($operator);
+        $this->actingAsHq($operator);
         $check = $this->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $approver->id, 'csv' => $csv])->assertOk()->viewData('check');
         $this->post('/saas/schools/1/imports', ['kind' => 'homerooms', 'approver_id' => $approver->id, 'csv' => $csv, 'mapped' => 1,
             'mapping' => $check['mapping'], 'fingerprint' => $check['fingerprint']])->assertRedirect()->assertSessionHasNoErrors();
@@ -90,13 +92,30 @@ class HqSchoolImportsTest extends TestCase
         return DB::table('audit_log')->where('subject_type', (new PlatformSchoolImport)->getMorphClass())->where('subject_id', $id)->orderBy('id')->pluck('action')->all();
     }
 
+    public function test_learner_approval_shows_guardians_placement_and_import_settings(): void
+    {
+        $operator = $this->staff('operations');
+        $leader = $this->superAdmin();
+        $csv = "admission_no,first_name,last_name,homeroom,guardian_first_name,guardian_last_name,guardian_email,guardian_relationship\nNEW-01,Thabo,Mokoena,Grade 5 A,Lindiwe,Mokoena,lindiwe@example.com,mother";
+        $this->actingAsHq($operator);
+        $input = ['kind' => 'learners', 'approver_id' => $leader->id, 'csv' => $csv, 'invite' => true];
+        $check = $this->post('/saas/schools/1/imports/preview', $input)->assertOk()->viewData('check');
+        $this->post('/saas/schools/1/imports', $input + ['mapped' => 1, 'mapping' => $check['mapping'], 'fingerprint' => $check['fingerprint']])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $id = (int) PlatformSchoolImport::acrossSchools()->max('id');
+        $this->actingAs($leader)->get('/hq-imports/'.$id)->assertOk()->assertSee('Lindiwe')->assertSee('lindiwe@example.com')
+            ->assertSee('mother')->assertSee('Grade 5 A')->assertSee('Send invitations')->assertSee($check['options']['starts_on']);
+        $raw = (string) DB::table('platform_school_imports')->where('id', $id)->value('preview');
+        $this->assertStringNotContainsString('lindiwe@example.com', $raw);
+    }
+
     public function test_operations_preview_send_and_apply_an_import_the_school_approved(): void
     {
         $operator = $this->staff('operations');
         $leader = $this->superAdmin();
         $classesB = ClassSchool::query()->withoutGlobalScopes()->where('school_id', self::SCHOOL_B_ID)->count();
 
-        $this->actingAs($operator)->get('/saas/schools/1/imports')->assertOk()->assertSee('No imports yet.')->assertSee(trim($leader->first_name.' '.$leader->last_name));
+        $this->actingAsHq($operator)->get('/saas/schools/1/imports')->assertOk()->assertSee('No imports yet.')->assertSee(trim($leader->first_name.' '.$leader->last_name));
         // The preview checks every row and writes nothing.
         $this->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $leader->id, 'csv' => self::CSV])
             ->assertOk()->assertSee('Will be imported')->assertSee('Send 2 rows to');
@@ -125,7 +144,7 @@ class HqSchoolImportsTest extends TestCase
         $this->approve($leader, $id);
         $this->assertSame([PlatformSchoolImport::APPROVED, hash('sha256', self::CSV)], [$this->import($id)->status, $this->import($id)->approved_sha256]);
 
-        $this->actingAs($operator)->post('/saas/imports/'.$id.'/apply')->assertRedirect('/saas/imports/'.$id)->assertSessionHasNoErrors();
+        $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/apply')->assertRedirect('/saas/imports/'.$id)->assertSessionHasNoErrors();
         $this->assertSame(1, $this->grade8(1));
         $this->assertSame(2, DB::table('class_sections')->where('class_id', ClassSchool::query()->withoutGlobalScopes()->where('school_id', 1)->where('name', 'Grade 8')->value('id'))->count());
         $this->assertSame($classesB, ClassSchool::query()->withoutGlobalScopes()->where('school_id', self::SCHOOL_B_ID)->count());
@@ -148,7 +167,7 @@ class HqSchoolImportsTest extends TestCase
         $audit = DB::table('audit_log')->where('action', 'like', 'platform\_import\_%')->count();
 
         foreach (['support', 'finance', 'content', 'sales'] as $role) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $this->get('/saas/schools/1/imports')->assertForbidden();
             $this->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $this->superAdmin()->id, 'csv' => self::CSV])->assertForbidden();
             $this->post('/saas/schools/1/imports', ['kind' => 'homerooms', 'approver_id' => $this->superAdmin()->id, 'csv' => self::CSV, 'mapped' => 1, 'fingerprint' => str_repeat('a', 64)])->assertForbidden();
@@ -186,7 +205,7 @@ class HqSchoolImportsTest extends TestCase
         $operator = $this->staff('operations');
         $baobab = $this->leader(self::SCHOOL_B_ID, 'Baobab');
         // A leader of School B cannot be named to approve School A's import: nothing is stored.
-        $this->actingAs($operator)->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $baobab->id, 'csv' => self::CSV])
+        $this->actingAsHq($operator)->post('/saas/schools/1/imports/preview', ['kind' => 'homerooms', 'approver_id' => $baobab->id, 'csv' => self::CSV])
             ->assertStatus(422)->assertSee('Choose a leader at this school who may import homerooms.');
         $this->assertSame(0, PlatformSchoolImport::acrossSchools()->count());
 
@@ -214,7 +233,7 @@ class HqSchoolImportsTest extends TestCase
         // The leader asked declines it: the file is deleted and it can never be applied.
         $this->actingAs($this->superAdmin())->post('/hq-imports/'.$id.'/decline', ['reason' => 'We will import homerooms ourselves.'])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame([PlatformSchoolImport::DECLINED, null], [$this->import($id)->status, $this->import($id)->contents]);
-        $this->actingAs($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
+        $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
         $this->assertSame(0, $this->grade8(1));
     }
 
@@ -226,7 +245,7 @@ class HqSchoolImportsTest extends TestCase
         // The stored file is replaced after the school approved it.
         DB::table('platform_school_imports')->where('id', $id)->update(['contents' => Crypt::encryptString("Grade,Letter\n9,A")]);
 
-        $this->actingAs($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
+        $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
         $this->assertSame(0, $this->grade8(1));
         $this->assertSame(0, ClassSchool::query()->withoutGlobalScopes()->where('name', 'Grade 9')->count());
         $import = $this->import($id);
@@ -247,7 +266,7 @@ class HqSchoolImportsTest extends TestCase
             app(SchoolImports::class)->check($this->superAdmin(), 'homerooms', "Grade,Letter\n8,A", null, [])['fingerprint']));
         $sections = DB::table('class_sections')->count();
 
-        $this->actingAs($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
+        $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/apply')->assertSessionHasErrors('status');
         $this->assertSame($sections, DB::table('class_sections')->count());
         $this->assertSame(PlatformSchoolImport::VOID, $this->import($id)->status);
         $this->assertSame('records_changed', json_decode((string) DB::table('audit_log')->where('action', 'platform_import_stopped')->sole()->after, true)['stopped']);
@@ -273,7 +292,7 @@ class HqSchoolImportsTest extends TestCase
         $this->assertSame([PlatformSchoolImport::EXPIRED, null], [$this->import($approved)->status, $this->import($approved)->contents]);
         $this->assertNull(DB::table('audit_log')->where('action', 'platform_import_expired')->where('subject_id', $approved)->sole()->actor_id);
 
-        $this->actingAs($operator)->post('/saas/imports/'.$approved.'/apply')->assertSessionHasErrors('status');
+        $this->actingAsHq($operator)->post('/saas/imports/'.$approved.'/apply')->assertSessionHasErrors('status');
         $this->assertSame(0, ClassSchool::query()->withoutGlobalScopes()->whereIn('name', ['Grade 8', 'Grade 10'])->count());
         $this->get('/saas/schools/1/imports')->assertOk()->assertSee('Expired');
     }
@@ -283,7 +302,7 @@ class HqSchoolImportsTest extends TestCase
         $operator = $this->staff('operations');
         $id = $this->send($operator);
 
-        $this->actingAs($operator)->post('/saas/imports/'.$id.'/cancel', ['reason' => 'x'])->assertSessionHasErrors('reason');
+        $this->actingAsHq($operator)->post('/saas/imports/'.$id.'/cancel', ['reason' => 'x'])->assertSessionHasErrors('reason');
         $this->post('/saas/imports/'.$id.'/cancel', ['reason' => 'The school sent a corrected list.'])->assertRedirect('/saas/imports/'.$id)->assertSessionHasNoErrors();
         $this->assertSame([PlatformSchoolImport::CANCELLED, null, 'The school sent a corrected list.'], [$this->import($id)->status, $this->import($id)->contents, $this->import($id)->close_reason]);
         $this->actingAs($this->superAdmin())->get('/hq-imports/'.$id)->assertOk()->assertSee('Cancelled by Navigate Ed')->assertSee('The school sent a corrected list.');

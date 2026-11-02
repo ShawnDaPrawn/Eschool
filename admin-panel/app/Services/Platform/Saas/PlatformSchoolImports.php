@@ -221,7 +221,7 @@ class PlatformSchoolImports
             }
             $import = PlatformSchoolImport::query()->create([
                 'kind' => $kind, 'status' => PlatformSchoolImport::AWAITING, 'requested_by' => (int) $operator->id, 'approver_id' => (int) $approver->id,
-                'contents' => $csv, 'preview' => array_map(fn (array $row) => Arr::except($row, ['data']), $check['rows']),
+                'contents' => $csv, 'preview' => $check['rows'],
                 'file_sha256' => hash('sha256', $csv), 'fingerprint' => $check['fingerprint'], 'mapping' => $check['mapping'],
                 'options' => $check['options'], 'counts' => $check['counts'], 'rows' => count($check['rows']), 'expires_at' => now()->addDays(self::EXPIRY_DAYS),
             ]);
@@ -425,6 +425,7 @@ class PlatformSchoolImports
                 'preview' => $import->isOpen() ? ($import->preview ?? []) : [],
                 'mapping' => $import->mapping,
                 'options' => $import->options,
+                'choices' => $this->choices($schoolId),
                 'decision_reason' => $import->decision_reason,
                 'close_reason' => $import->close_reason,
                 'closed_by' => $names[$import->closed_by] ?? null,

@@ -30,6 +30,7 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -42,6 +43,7 @@ use Tests\TestCase;
  */
 class UrgentMessagingTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const SID = 'ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -502,11 +504,11 @@ class UrgentMessagingTest extends TestCase
         $this->assertSame([2, 16, 'USD'], [$priced->segments, $priced->price_cents, $priced->price_currency]);
 
         app(CurrentSchool::class)->forget();
-        $this->actingAs($this->staff('finance'))->get('/saas/messaging?month=2026-11')->assertOk()
+        $this->actingAsHq($this->staff('finance'))->get('/saas/messaging?month=2026-11')->assertOk()
             ->assertSee('November 2026')->assertSee(School::query()->findOrFail(1)->name)->assertSee('Baobab High')
             ->assertSee('USD 0.16')->assertSee('USD 0.01')->assertSee('USD 0.24')->assertDontSee('USD 0.08')->assertDontSee('821234567');
         $this->app['auth']->forgetGuards();
-        $this->actingAs($this->staff('content'))->get('/saas/messaging')->assertForbidden();
+        $this->actingAsHq($this->staff('content'))->get('/saas/messaging')->assertForbidden();
         $this->app['auth']->forgetGuards();
         $this->actingAs($this->superAdmin())->get('/saas/messaging')->assertForbidden();
     }

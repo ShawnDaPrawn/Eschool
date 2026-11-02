@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -38,6 +39,7 @@ use Tests\TestCase;
  */
 class ExistingAccountInvitationsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const PASSWORD = 'Synthetic-own-password-4417!';
@@ -445,7 +447,7 @@ class ExistingAccountInvitationsTest extends TestCase
         // receive a school pinned to the latest package version at creation.
         $packages = app(PlatformPackages::class);
         $packageId = (int) DB::table('platform_packages')->where('package_key', 'core')->value('id');
-        $this->actingAs($operator)->put('/saas/packages/'.$packageId.'/modules', ['product_modules' => ['learning']])->assertRedirect();
+        $this->actingAsHq($operator)->put('/saas/packages/'.$packageId.'/modules', ['product_modules' => ['learning']])->assertRedirect();
         $this->assertSame(2, $packages->versionToAssign('core'));
         $form = ['name' => 'Marula Primary', 'slug' => '', 'timezone' => 'Africa/Johannesburg', 'package_key' => 'core', 'admin_first_name' => 'Tara', 'admin_last_name' => 'Moving', 'admin_email' => strtoupper($tara->email), 'admin_mobile' => ''];
 
@@ -454,11 +456,11 @@ class ExistingAccountInvitationsTest extends TestCase
         $learner = User::acrossSchools()->findOrFail($this->schoolA->ids['asha_user']);
         DB::table('users')->where('id', $learner->id)->update(['email' => 'asha.learner@example.com']);
         foreach (['asha.learner@example.com', $operator->email, User::acrossSchools()->findOrFail($this->schoolA->ids['farid_user'])->email] as $refused) {
-            $this->actingAs($operator)->post('/saas/schools', ['admin_email' => $refused] + $form)->assertSessionHasErrors('admin_email');
+            $this->actingAsHq($operator)->post('/saas/schools', ['admin_email' => $refused] + $form)->assertSessionHasErrors('admin_email');
         }
         $this->assertSame($schools, School::query()->count());
 
-        $response = $this->actingAs($operator)->post('/saas/schools', $form)->assertOk()->assertSee('already has a NavigateEd account');
+        $response = $this->actingAsHq($operator)->post('/saas/schools', $form)->assertOk()->assertSee('already has a NavigateEd account');
         $this->assertTrue($response->viewData('existingAccount'));
         $this->assertSame($users, User::acrossSchools()->count(), 'no second account');
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
@@ -490,7 +492,7 @@ class ExistingAccountInvitationsTest extends TestCase
         }), 'the school retains the learning module from version 2');
         auth()->forgetGuards();
 
-        $this->actingAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->actingAsHq($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
     }
 
@@ -653,13 +655,13 @@ class ExistingAccountInvitationsTest extends TestCase
         PlatformAdminGrant::query()->create(['user_id' => $operator->id, 'active' => true, 'expires_at' => now()->addHour()]);
         app(CurrentSchool::class)->forget();
         $form = ['name' => 'Marula Primary', 'slug' => '', 'timezone' => 'Africa/Johannesburg', 'package_key' => 'core', 'admin_first_name' => 'Tara', 'admin_last_name' => 'Moving', 'admin_email' => $tara->email, 'admin_mobile' => ''];
-        $path = (string) parse_url($this->actingAs($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
+        $path = (string) parse_url($this->actingAsHq($operator)->post('/saas/schools', $form)->assertOk()->viewData('invitationUrl'), PHP_URL_PATH);
         $school = School::query()->where('slug', 'marula-primary')->firstOrFail();
         auth()->forgetGuards();
         $this->actingAs($tara, 'web')->post($path.'/decline')->assertRedirect();
         auth()->forgetGuards();
 
-        $this->actingAs($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
+        $this->actingAsHq($operator)->get('/saas/schools/'.$school->id)->assertOk()->assertDontSee('Send the invitation again');
         $this->assertFalse(app(SchoolJoinInvitations::class)->resendAdministrator((int) $school->id, $operator));
     }
 }

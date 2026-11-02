@@ -18,6 +18,11 @@
             @if (! $import['expired'] && in_array($import['status'], ['awaiting_approval', 'approved'], true))
                 <dt>{{ __('Expires') }}</dt><dd>{{ __(':at. The file is deleted then if it has not been imported.', ['at' => $import['expires_at']]) }}</dd>
             @endif
+            @foreach (['session_year_id' => ['years', 'School year'], 'category_id' => ['categories', 'Category'], 'medium_id' => ['mediums', 'Medium']] as $option => [$choice, $label])
+                @if (isset($import['options'][$option]))<dt>{{ __($label) }}</dt><dd>{{ $import['choices'][$choice][$import['options'][$option]] ?? __('Unknown') }}</dd>@endif
+            @endforeach
+            @if (isset($import['options']['starts_on']))<dt>{{ __('Starts on') }}</dt><dd>{{ $import['options']['starts_on'] }}</dd>@endif
+            @if (array_key_exists('invite', $import['options']))<dt>{{ __('Send invitations') }}</dt><dd>{{ $import['options']['invite'] ? __('Yes') : __('No') }}</dd>@endif
             @if ($import['decision_reason'])<dt>{{ __('Reason given') }}</dt><dd>{{ $import['decision_reason'] }}</dd>@endif
             @if ($import['close_reason'])<dt>{{ __('Navigate Ed\'s reason') }}</dt><dd>{{ $import['close_reason'] }}</dd>@endif
         </dl>
@@ -55,7 +60,12 @@
                 @foreach ($import['preview'] as $row)
                     <tr>
                         <td>{{ $row['line'] }}</td>
-                        <th scope="row">{{ $row['label'] }}</th>
+                        <th scope="row">{{ $row['label'] }}
+                            @if (! empty($row['homeroom']))<p>{{ __('Homeroom') }}: {{ $row['homeroom'] }}</p>@endif
+                            @foreach ($row['data']['guardians'] ?? [] as $guardian)
+                                <p>{{ __('Guardian') }}: {{ $guardian['first_name'] }} {{ $guardian['last_name'] }} · {{ $guardian['email'] }} · {{ $guardian['relationship'] }}@if ($guardian['mobile']) · {{ $guardian['mobile'] }}@endif</p>
+                            @endforeach
+                        </th>
                         <td>{{ $statusLabels[$row['status']] ?? $row['status'] }}</td>
                         <td>{{ implode(' ', $row['notes']) }}</td>
                     </tr>

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -30,6 +31,7 @@ use Tests\TestCase;
  */
 class HqHomeTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     /** Every person and private text of the two schools that must never reach the page. */
@@ -133,7 +135,7 @@ class HqHomeTest extends TestCase
     public function test_the_owner_sees_counts_from_both_schools_and_never_a_person(): void
     {
         $this->seedBothSchools();
-        $this->actingAs($this->staff('owner'));
+        $this->actingAsHq($this->staff('owner'));
 
         $page = $this->get('/saas/home')->assertOk();
         $tiles = $page->viewData('tiles');
@@ -177,12 +179,13 @@ class HqHomeTest extends TestCase
             'support' => self::ALL,
             'finance' => self::SCHOOL_TILES,
             'content' => self::SCHOOL_TILES,
+            'reviewer' => self::SCHOOL_TILES,
             'sales' => self::SCHOOL_TILES,
         ];
         $this->assertSame(array_keys((array) config('platform_roles')), array_keys($expected), 'every role is covered');
 
         foreach ($expected as $role => $tiles) {
-            $this->actingAs($this->staff($role));
+            $this->actingAsHq($this->staff($role));
             $page = $this->get('/saas/home')->assertOk();
             $this->assertSame($tiles, $this->shownTiles($page), $role);
             $this->assertSame($tiles, array_keys($page->viewData('tiles')), $role);
@@ -200,7 +203,7 @@ class HqHomeTest extends TestCase
     public function test_sales_sees_only_what_it_may(): void
     {
         $this->seedBothSchools();
-        $this->actingAs($this->staff('sales'));
+        $this->actingAsHq($this->staff('sales'));
 
         $page = $this->get('/saas/home')->assertOk()->assertSee('Schools by stage')->assertSee('Schools at risk')->assertSee('Onboarding blockers');
         foreach (['Open incidents', 'LURITS claims', 'Safeguarding flag', 'Platform health', 'Jobs waiting', 'Incident register', 'AI control centre'] as $hidden) {
@@ -222,7 +225,7 @@ class HqHomeTest extends TestCase
 
         $retired = $this->staff('sales');
         PlatformAdminGrant::query()->where('user_id', $retired->id)->update(['role' => 'retired']);
-        $this->actingAs($retired->fresh())->get('/saas/home')->assertForbidden();
+        $this->actingAsHq($retired->fresh())->get('/saas/home')->assertForbidden();
         $this->assertSame([], app(PlatformStaffAccess::class)->abilities($retired->fresh()));
 
         auth()->logout();
@@ -234,7 +237,7 @@ class HqHomeTest extends TestCase
         DB::table('school_memberships')->where('starts_on', '>', '2026-01-01')->update(['starts_on' => '2026-01-01']);
         app(CurrentSchool::class)->run(1, fn () => SchoolAccount::query()->create(['stage' => 'live', 'revision' => 1]));
         app(CurrentSchool::class)->run(2, fn () => SchoolAccount::query()->create(['stage' => 'live', 'revision' => 1]));
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
 
         $page = $this->get('/saas/home')->assertOk()
             ->assertSee('No school is marked at risk.')->assertSee('No active school is being set up.')
@@ -270,7 +273,7 @@ class HqHomeTest extends TestCase
     private function queriesFor(User $user): int
     {
         $this->app['auth']->forgetGuards();
-        $this->actingAs($user);
+        $this->actingAsHq($user);
         // Once to warm what the app keeps between requests (settings), then counted.
         $this->get('/saas/home')->assertOk();
         DB::flushQueryLog();

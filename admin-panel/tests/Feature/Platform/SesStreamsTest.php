@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Mime\Email;
+use Tests\Concerns\PassesPlatformTwoFactor;
 use Tests\Concerns\UsesTwoSchools;
 use Tests\TestCase;
 
@@ -40,6 +41,7 @@ use Tests\TestCase;
  */
 class SesStreamsTest extends TestCase
 {
+    use PassesPlatformTwoFactor;
     use UsesTwoSchools;
 
     private const TOPIC = 'arn:aws:sns:af-south-1:123456789012:navigateed-ses-feedback';
@@ -316,7 +318,7 @@ class SesStreamsTest extends TestCase
             'delivery_key' => (string) Str::uuid(), 'type' => 'mail.comms.notice', 'channel' => 'mail', 'attempt' => 1, 'created_at' => now(), 'updated_at' => now(),
         ], $rows));
 
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
         $page = $this->get('/saas/mail-streams')->assertOk()->assertSee('Mail streams')->assertSee('ne-s1-bulk')->assertSee('ne-s2-account')->assertSee('Baobab High');
         $targets = collect($page->viewData('targets'))->keyBy(fn (array $t) => $t['school_id'] ?? 'platform');
         $aBulk = collect($targets[1]['streams'])->firstWhere('stream', 'bulk');
@@ -349,11 +351,11 @@ class SesStreamsTest extends TestCase
     public function test_roles_without_the_ability_and_school_staff_cannot_see_or_check_streams(): void
     {
         // Support sees the page but cannot set anything up.
-        $this->actingAs($this->staff('support'));
+        $this->actingAsHq($this->staff('support'));
         $this->get('/saas/mail-streams')->assertOk()->assertDontSee('Set up or check now');
         $this->post('/saas/mail-streams/check', ['school_id' => 1])->assertForbidden();
 
-        $this->actingAs($this->staff('sales'));
+        $this->actingAsHq($this->staff('sales'));
         $this->get('/saas/mail-streams')->assertForbidden();
         $this->post('/saas/mail-streams/check', ['school_id' => 1])->assertForbidden();
 
@@ -421,7 +423,7 @@ class SesStreamsTest extends TestCase
         $operator = $this->staff('operations');
         // The grant outlasts the two days this test travels.
         PlatformAdminGrant::query()->where('user_id', $operator->id)->update(['expires_at' => now()->addDays(3)]);
-        $this->actingAs($operator);
+        $this->actingAsHq($operator);
 
         // The daily check fails once: the set stays in use and HQ sees why.
         $this->sesDown = true;
@@ -451,7 +453,7 @@ class SesStreamsTest extends TestCase
         $this->assertNull($this->configurationSetOf($this->urgentToFarid()));
         $this->assertSame('account', NotificationDelivery::query()->where('type', 'mail.comms.urgent')->latest('id')->firstOrFail()->mail_stream);
 
-        $this->actingAs($this->staff('operations'));
+        $this->actingAsHq($this->staff('operations'));
         $this->get('/saas/mail-streams')->assertOk()->assertSee('SES streams are not switched on')->assertDontSee('Set up or check now');
         $this->post('/saas/mail-streams/check', ['school_id' => 1])->assertSessionHasErrors(['streams' => 'SES streams are not switched on (MAIL_SES_STREAMS).']);
 

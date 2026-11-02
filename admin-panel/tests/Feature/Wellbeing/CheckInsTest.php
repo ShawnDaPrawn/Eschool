@@ -217,6 +217,20 @@ class CheckInsTest extends TestCase
         $this->assertEquals($before, DB::table('wellbeing_check_ins')->where('id', $foreign->id)->first(), 'School B\'s check-in is unchanged');
     }
 
+    public function test_context_counts_the_full_window_beyond_five_hundred_answers(): void
+    {
+        $id = $this->answered(2);
+        $answer = CheckIn::findOrFail($id);
+        for ($i = 0; $i < 500; $i++) {
+            $copy = $answer->replicate();
+            $copy->answered_at = now()->subDay();
+            $copy->save();
+        }
+        $context = app(CheckInContext::class)->forLearners($this->actor(), [$this->schoolA->ids['asha']]);
+        $this->assertSame(501, $context[$this->schoolA->ids['asha']]['answered']);
+        $this->assertSame(2, $context[$this->schoolA->ids['asha']]['latest_scale']);
+    }
+
     public function test_check_ins_feed_early_warning_as_context_only_and_never_raise_a_risk(): void
     {
         $risk = app(RiskRecompute::class);
