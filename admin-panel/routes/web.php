@@ -122,6 +122,7 @@ use App\Http\Controllers\Platform\ModuleController;
 use App\Http\Controllers\Platform\NotificationRuleController;
 use App\Http\Controllers\Platform\PlatformAiController;
 use App\Http\Controllers\Platform\PlatformAuditController;
+use App\Http\Controllers\Platform\PlatformBillingController;
 use App\Http\Controllers\Platform\PlatformIncidentController;
 use App\Http\Controllers\Platform\PlatformInvitationController;
 use App\Http\Controllers\Platform\PlatformLuritsController;
@@ -340,6 +341,26 @@ Route::middleware([PrivateDomainResponse::class, 'auth', 'platform.staff'])->pre
     Route::get('/ai', [PlatformAiController::class, 'index'])->middleware('platform.can:ai.view')->name('ai');
     Route::put('/ai/switch', [PlatformAiController::class, 'switch'])->middleware(['platform.can:ai.manage', 'throttle:30,1'])->name('ai.switch');
     Route::put('/ai/caps', [PlatformAiController::class, 'caps'])->middleware(['platform.can:ai.caps', 'throttle:30,1'])->name('ai.caps');
+    // Billing schools (1.17, SA.8): billing.view reads, billing.manage invoices, records payments and reminds.
+    Route::get('/billing', [PlatformBillingController::class, 'index'])->middleware('platform.can:billing.view')->name('billing');
+    Route::prefix('/billing')->name('billing.')->group(function () {
+        Route::get('/schools/{school}', [PlatformBillingController::class, 'statement'])->middleware('platform.can:billing.view')->whereNumber('school')->name('statement');
+        Route::get('/schools/{school}/invoices/{invoice}', [PlatformBillingController::class, 'invoice'])->middleware('platform.can:billing.view')->whereNumber(['school', 'invoice'])->name('invoices.show');
+        Route::middleware(['platform.can:billing.manage', 'throttle:30,1'])->group(function () {
+            Route::post('/runs', [PlatformBillingController::class, 'run'])->name('runs.store');
+            Route::post('/runs/issue', [PlatformBillingController::class, 'issueMonth'])->name('runs.issue');
+            Route::prefix('/schools/{school}')->whereNumber('school')->group(function () {
+                Route::post('/invoices/{invoice}/recompute', [PlatformBillingController::class, 'recompute'])->whereNumber('invoice')->name('invoices.recompute');
+                Route::post('/invoices/{invoice}/issue', [PlatformBillingController::class, 'issue'])->whereNumber('invoice')->name('invoices.issue');
+                Route::post('/invoices/{invoice}/discard', [PlatformBillingController::class, 'discard'])->whereNumber('invoice')->name('invoices.discard');
+                Route::post('/invoices/{invoice}/credit-notes', [PlatformBillingController::class, 'credit'])->whereNumber('invoice')->name('invoices.credit');
+                Route::post('/invoices/{invoice}/apply-credit', [PlatformBillingController::class, 'applyCredit'])->whereNumber('invoice')->name('invoices.apply-credit');
+                Route::post('/payments', [PlatformBillingController::class, 'payment'])->name('payments.store');
+                Route::post('/payments/{payment}/reverse', [PlatformBillingController::class, 'reverse'])->whereNumber('payment')->name('payments.reverse');
+                Route::post('/reminders', [PlatformBillingController::class, 'remind'])->name('reminders.store');
+            });
+        });
+    });
     Route::get('/audit', [PlatformAuditController::class, 'index'])->middleware('platform.can:audit.view')->name('audit');
     Route::get('/audit/export', [PlatformAuditController::class, 'export'])->middleware(['platform.can:audit.export', 'throttle:10,1'])->name('audit.export');
     Route::get('/staff', [PlatformStaffController::class, 'index'])->middleware('platform.can:staff.manage')->name('staff.index');
